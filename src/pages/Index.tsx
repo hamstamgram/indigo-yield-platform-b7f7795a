@@ -128,7 +128,7 @@ const Index = () => {
               className="h-8"
             />
             <p className="mt-2 text-sm text-gray-500">
-              © 2025 Infinite Yield Fund. All rights reserved.
+              © 2025 INDIGO DIGITAL ASSETS YIELD. All rights reserved.
             </p>
           </div>
           <div className="flex space-x-6">
