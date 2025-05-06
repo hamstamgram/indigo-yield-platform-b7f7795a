@@ -214,11 +214,6 @@ const Dashboard = () => {
             Here's an overview of your portfolio performance
           </p>
         </div>
-        <div className="mt-4 md:mt-0">
-          <Button>
-            Make a Deposit
-          </Button>
-        </div>
       </div>
       
       {/* Portfolio summary cards */}
@@ -344,7 +339,6 @@ const Dashboard = () => {
           ) : (
             <div className="text-center py-8">
               <p className="text-gray-500 dark:text-gray-400">No assets in your portfolio yet</p>
-              <Button className="mt-4">Make Your First Deposit</Button>
             </div>
           )}
         </CardContent>
@@ -354,7 +348,9 @@ const Dashboard = () => {
       <div>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">Your Assets</h2>
-          <Button variant="outline" size="sm">View All</Button>
+          <Link to="/assets">
+            <Button variant="outline" size="sm">View All</Button>
+          </Link>
         </div>
         
         <div className="overflow-x-auto">
