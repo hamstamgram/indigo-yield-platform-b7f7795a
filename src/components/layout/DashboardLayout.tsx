@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -10,14 +9,13 @@ import {
   Settings, 
   User,
   LogOut, 
-  Bitcoin,
-  Coins,
-  PiggyBank,
   DollarSign,
+  PiggyBank,
   Menu,
   X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CryptoIcon } from "@/components/CryptoIcons";
 
 type NavItem = {
   title: string;
@@ -27,9 +25,9 @@ type NavItem = {
 
 const mainNav: NavItem[] = [
   { title: "Overview", href: "/dashboard", icon: <Home className="h-5 w-5" /> },
-  { title: "Bitcoin", href: "/assets/btc", icon: <Bitcoin className="h-5 w-5" /> },
-  { title: "Ethereum", href: "/assets/eth", icon: <Coins className="h-5 w-5" /> },
-  { title: "Solana", href: "/assets/sol", icon: <PiggyBank className="h-5 w-5" /> },
+  { title: "Bitcoin", href: "/assets/btc", icon: <CryptoIcon symbol="btc" className="h-5 w-5" /> },
+  { title: "Ethereum", href: "/assets/eth", icon: <CryptoIcon symbol="eth" className="h-5 w-5" /> },
+  { title: "Solana", href: "/assets/sol", icon: <CryptoIcon symbol="sol" className="h-5 w-5" /> },
   { title: "USDC", href: "/assets/usdc", icon: <DollarSign className="h-5 w-5" /> },
 ];
 

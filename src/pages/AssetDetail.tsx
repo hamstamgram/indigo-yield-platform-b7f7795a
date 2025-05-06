@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CryptoIcon } from "@/components/CryptoIcons";
 
 // Types
 interface Asset {
@@ -148,13 +148,7 @@ const AssetDetail = () => {
     <div className="font-['Space_Grotesk']">
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
-          {asset?.icon_url ? (
-            <img src={asset.icon_url} alt={asset.name} className="h-10 w-10" />
-          ) : (
-            <div className="h-10 w-10 bg-indigo-600/20 rounded-full flex items-center justify-center text-indigo-600">
-              {symbol?.substring(0, 1).toUpperCase()}
-            </div>
-          )}
+          <CryptoIcon symbol={symbol || ''} />
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{asset?.name || symbol?.toUpperCase()}</h1>
           <div className={`ml-auto px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 ${
             assetPrice.change24h >= 0 

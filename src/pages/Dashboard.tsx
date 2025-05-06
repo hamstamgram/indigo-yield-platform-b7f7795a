@@ -8,8 +8,10 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import { ArrowUpRight, ArrowDownRight, TrendingUp, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { CryptoIcon } from "@/components/CryptoIcons";
 
 // Helper function to format numbers
 const formatNumber = (value: number, decimals = 2) => {
@@ -25,6 +27,13 @@ const formatCurrency = (value: number) => {
     style: 'currency',
     currency: 'USD',
   }).format(value);
+};
+
+// Helper function to format crypto amounts
+const formatCrypto = (value: number, symbol: string) => {
+  const decimals = symbol.toLowerCase() === 'btc' ? 8 : 
+                  symbol.toLowerCase() === 'usdc' ? 2 : 4;
+  return `${value.toFixed(decimals)} ${symbol.toUpperCase()}`;
 };
 
 // Asset color mapping
@@ -43,6 +52,7 @@ type Asset = {
   usdValue: number;
   percentChange: number;
   color: string;
+  yieldValue: number; // Added yield value in crypto
 };
 
 const Dashboard = () => {
@@ -58,6 +68,14 @@ const Dashboard = () => {
     ETH: 3200,
     SOL: 140,
     USDC: 1,
+  };
+  
+  // Mock yield rates (in a real app, this would come from an API)
+  const yieldRates: Record<string, number> = {
+    BTC: 4.8,
+    ETH: 5.2,
+    SOL: 6.5,
+    USDC: 8.1,
   };
 
   useEffect(() => {
@@ -101,9 +119,14 @@ const Dashboard = () => {
         
         if (portfolioData && portfolioData.length > 0) {
           portfolioData.forEach((item) => {
-            const symbol = item.assets.symbol;
-            const usdValue = Number(item.balance) * (assetPrices[symbol] || 0);
+            const symbol = item.assets.symbol.toUpperCase();
+            const balance = Number(item.balance);
+            const usdValue = balance * (assetPrices[symbol] || 0);
             portfolioTotal += usdValue;
+            
+            // Calculate yield value in crypto
+            const yieldPercentage = yieldRates[symbol] || 0;
+            const yieldValue = balance * (yieldPercentage / 100);
             
             // Generate random percent change for demo purposes (remove in production)
             const randomChange = (Math.random() * 10) - 5;
@@ -112,10 +135,11 @@ const Dashboard = () => {
               id: item.assets.id,
               symbol: symbol,
               name: item.assets.name,
-              balance: Number(item.balance),
+              balance: balance,
               usdValue: usdValue,
               percentChange: randomChange,
-              color: assetColors[symbol] || '#6366F1'
+              color: assetColors[symbol] || '#6366F1',
+              yieldValue: yieldValue
             });
           });
         } else {
@@ -126,6 +150,10 @@ const Dashboard = () => {
                            symbol === 'SOL' ? 50 : 1000;
             const usdValue = balance * assetPrices[symbol];
             portfolioTotal += usdValue;
+            
+            // Calculate yield value in crypto
+            const yieldPercentage = yieldRates[symbol] || 0;
+            const yieldValue = balance * (yieldPercentage / 100);
             
             // Generate random percent change for demo purposes
             const randomChange = (Math.random() * 10) - 5;
@@ -139,7 +167,8 @@ const Dashboard = () => {
               balance: balance,
               usdValue: usdValue,
               percentChange: randomChange,
-              color: assetColors[symbol]
+              color: assetColors[symbol],
+              yieldValue: yieldValue
             });
           });
         }
@@ -283,10 +312,7 @@ const Dashboard = () => {
                   return (
                     <div key={asset.id} className="flex justify-between items-center">
                       <div className="flex items-center">
-                        <div 
-                          className="w-3 h-3 rounded-full mr-2" 
-                          style={{ backgroundColor: asset.color }}
-                        />
+                        <CryptoIcon symbol={asset.symbol} className="w-6 h-6 mr-2" />
                         <div className="flex flex-col">
                           <span className="font-medium text-gray-900 dark:text-white">{asset.name}</span>
                           <span className="text-xs text-gray-500">{asset.symbol}</span>
@@ -324,6 +350,7 @@ const Dashboard = () => {
                 <th className="text-left py-3 px-4 font-medium">Asset</th>
                 <th className="text-left py-3 px-4 font-medium">Balance</th>
                 <th className="text-right py-3 px-4 font-medium">Value</th>
+                <th className="text-right py-3 px-4 font-medium">Yield Earned</th>
                 <th className="text-right py-3 px-4 font-medium">24h Change</th>
                 <th className="text-right py-3 px-4 font-medium">Actions</th>
               </tr>
@@ -331,7 +358,7 @@ const Dashboard = () => {
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={6} className="py-8 text-center text-gray-500 dark:text-gray-400">
                     Loading assets...
                   </td>
                 </tr>
@@ -340,9 +367,7 @@ const Dashboard = () => {
                   <tr key={asset.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                     <td className="py-4 px-4">
                       <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center mr-3" style={{ backgroundColor: `${asset.color}20` }}>
-                          <div className="w-5 h-5 rounded-full" style={{ backgroundColor: asset.color }} />
-                        </div>
+                        <CryptoIcon symbol={asset.symbol} className="w-8 h-8 mr-3" />
                         <div>
                           <div className="font-medium text-gray-900 dark:text-white">{asset.name}</div>
                           <div className="text-xs text-gray-500">{asset.symbol}</div>
@@ -351,12 +376,17 @@ const Dashboard = () => {
                     </td>
                     <td className="py-4 px-4">
                       <div className="font-medium text-gray-900 dark:text-white">
-                        {formatNumber(asset.balance, asset.symbol === 'BTC' ? 8 : 4)} {asset.symbol}
+                        {formatCrypto(asset.balance, asset.symbol)}
                       </div>
                     </td>
                     <td className="py-4 px-4 text-right">
                       <div className="font-medium text-gray-900 dark:text-white">
                         {formatCurrency(asset.usdValue)}
+                      </div>
+                    </td>
+                    <td className="py-4 px-4 text-right">
+                      <div className="font-medium text-indigo-600 dark:text-indigo-400">
+                        {formatCrypto(asset.yieldValue, asset.symbol)}
                       </div>
                     </td>
                     <td className="py-4 px-4 text-right">
@@ -370,13 +400,15 @@ const Dashboard = () => {
                       </div>
                     </td>
                     <td className="py-4 px-4 text-right">
-                      <Button variant="outline" size="sm">Details</Button>
+                      <Link to={`/assets/${asset.symbol.toLowerCase()}`}>
+                        <Button variant="outline" size="sm">Details</Button>
+                      </Link>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={6} className="py-8 text-center text-gray-500 dark:text-gray-400">
                     No assets in your portfolio yet
                   </td>
                 </tr>
@@ -401,50 +433,30 @@ const Dashboard = () => {
               <div className="h-12 flex items-center justify-center">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500"></div>
               </div>
-            ) : (
+            ) : assets.length > 0 ? (
               <>
-                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center mr-4">
-                    <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                {assets.slice(0, 3).map((asset, index) => (
+                  <div key={index} className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg flex items-center">
+                    <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center mr-4">
+                      <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900 dark:text-white">Daily Yield Payment</div>
+                      <div className="text-sm text-gray-500">May {6 - index}, 2025 • {asset.name}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium text-emerald-600 dark:text-emerald-400">
+                        +{formatCrypto(asset.yieldValue / 30, asset.symbol)}
+                      </div>
+                      <div className="text-xs text-gray-500">{(yieldRates[asset.symbol] / 365).toFixed(4)}%</div>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900 dark:text-white">Daily Yield Payment</div>
-                    <div className="text-sm text-gray-500">May 6, 2025 • All Assets</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-medium text-emerald-600 dark:text-emerald-400">+$4.32</div>
-                    <div className="text-xs text-gray-500">0.0021%</div>
-                  </div>
-                </div>
-                
-                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center mr-4">
-                    <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900 dark:text-white">Daily Yield Payment</div>
-                    <div className="text-sm text-gray-500">May 5, 2025 • All Assets</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-medium text-emerald-600 dark:text-emerald-400">+$4.28</div>
-                    <div className="text-xs text-gray-500">0.0021%</div>
-                  </div>
-                </div>
-                
-                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center mr-4">
-                    <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900 dark:text-white">Daily Yield Payment</div>
-                    <div className="text-sm text-gray-500">May 4, 2025 • All Assets</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-medium text-emerald-600 dark:text-emerald-400">+$4.26</div>
-                    <div className="text-xs text-gray-500">0.0021%</div>
-                  </div>
-                </div>
+                ))}
               </>
+            ) : (
+              <div className="text-center py-6">
+                <p className="text-gray-500 dark:text-gray-400">No yield activity yet</p>
+              </div>
             )}
           </div>
         </CardContent>
