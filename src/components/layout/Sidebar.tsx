@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LogOut, User, Settings, Home, DollarSign, X } from "lucide-react";
+import { LogOut, User, Settings, Home, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -78,6 +78,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     }
   };
 
+  const handleNavigation = (href: string) => {
+    // Close sidebar on mobile when navigating
+    setSidebarOpen(false);
+    navigate(href);
+  };
+
   return (
     <>
       {/* Mobile sidebar backdrop */}
@@ -116,18 +122,17 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               <ul className="space-y-1">
                 {mainNav.map((item) => (
                   <li key={item.href}>
-                    <Link
-                      to={item.href}
-                      className={`flex items-center px-2 py-2 text-sm rounded-md group ${
+                    <button
+                      onClick={() => handleNavigation(item.href)}
+                      className={`flex w-full items-center px-2 py-2 text-sm rounded-md group ${
                         location.pathname === item.href
                           ? "text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20"
                           : "text-gray-700 hover:text-indigo-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-indigo-300 dark:hover:bg-gray-700"
                       }`}
-                      onClick={() => setSidebarOpen(false)}
                     >
                       <span className="mr-3">{item.icon}</span>
                       {item.title}
-                    </Link>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -140,18 +145,17 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               <ul className="space-y-1">
                 {secondaryNav.map((item) => (
                   <li key={item.href}>
-                    <Link
-                      to={item.href}
-                      className={`flex items-center px-2 py-2 text-sm rounded-md group ${
+                    <button
+                      onClick={() => handleNavigation(item.href)}
+                      className={`flex w-full items-center px-2 py-2 text-sm rounded-md group ${
                         location.pathname === item.href
                           ? "text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20"
                           : "text-gray-700 hover:text-indigo-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-indigo-300 dark:hover:bg-gray-700"
                       }`}
-                      onClick={() => setSidebarOpen(false)}
                     >
                       <span className="mr-3">{item.icon}</span>
                       {item.title}
-                    </Link>
+                    </button>
                   </li>
                 ))}
                 <li>
