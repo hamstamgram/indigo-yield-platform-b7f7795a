@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -38,75 +37,77 @@ const AccountPage = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          throw new Error('User not authenticated');
-        }
-        
-        // Create a minimal profile from auth user data if we can't fetch from profiles table
-        const minimalProfile: Profile = {
-          id: user.id,
-          email: user.email || '',
-          first_name: null,
-          last_name: null,
-          phone: null,
-          totp_enabled: false,
-          totp_verified: false
-        };
-        
-        try {
-          const { data: profileData, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-            
-          if (error) {
-            console.error('Error fetching profile:', error);
-            
-            if (error.code === '42P17') {
-              setError('Database policy error. Please contact support.');
-            } else {
-              // Use minimal profile if we can't fetch the full profile
-              setProfile(minimalProfile);
-            }
-          } else if (profileData) {
-            setProfile(profileData);
-            setFirstName(profileData.first_name || '');
-            setLastName(profileData.last_name || '');
-            setPhone(profileData.phone || '');
-          } else {
-            // Use minimal profile if no profile data exists
-            setProfile(minimalProfile);
-          }
-        } catch (profileError: any) {
-          console.error('Profile fetch error:', profileError);
-          // Fallback to minimal profile
-          setProfile(minimalProfile);
-        }
-        
-      } catch (authError: any) {
-        console.error('Authentication error:', authError);
-        setError(authError.message || 'Failed to load your profile information');
-        toast({
-          title: 'Error loading profile',
-          description: authError.message || 'Failed to load your profile information',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('User not authenticated');
       }
-    };
-    
+      
+      // Create a minimal profile from auth user data
+      const minimalProfile: Profile = {
+        id: user.id,
+        email: user.email || '',
+        first_name: null,
+        last_name: null,
+        phone: null,
+        totp_enabled: false,
+        totp_verified: false
+      };
+      
+      // Set minimal profile as fallback
+      setProfile(minimalProfile);
+      
+      try {
+        const { data: profileData, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) {
+          console.error('Error fetching profile:', error);
+          
+          // For database policy errors, we already have minimal profile set
+          if (error.code === '42P17') {
+            toast({
+              title: 'Database policy error',
+              description: 'Using limited profile information. Some features may be unavailable.',
+              variant: 'destructive',
+            });
+          }
+        } else if (profileData) {
+          // Update with full profile if available
+          setProfile(profileData);
+          setFirstName(profileData.first_name || '');
+          setLastName(profileData.last_name || '');
+          setPhone(profileData.phone || '');
+        }
+      } catch (profileError: any) {
+        console.error('Profile fetch error:', profileError);
+        // We already have minimal profile set as fallback
+      }
+      
+    } catch (authError: any) {
+      console.error('Authentication error:', authError);
+      setError(authError.message || 'Failed to load your profile information');
+      toast({
+        title: 'Error loading profile',
+        description: authError.message || 'Failed to load your profile information',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchProfile();
-  }, [toast]);
+  }, []);
 
   const handleSaveProfile = async () => {
     try {
@@ -114,7 +115,7 @@ const AccountPage = () => {
       
       if (!profile) return;
 
-      // Just update the local state since database operations are failing
+      // Just update the local state since database operations may fail
       setProfile({
         ...profile,
         first_name: firstName,
