@@ -1,12 +1,258 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="flex flex-col min-h-screen">
+      {/* Hero Section */}
+      <header className="bg-gradient-to-r from-indigo-900 to-purple-800 text-white">
+        <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center">
+            <span className="text-xl font-bold">Indigo Yield Fund</span>
+          </div>
+          <div className="hidden md:flex space-x-4 items-center">
+            <Link to="#features" className="hover:text-indigo-200">Features</Link>
+            <Link to="#assets" className="hover:text-indigo-200">Assets</Link>
+            <Link to="#performance" className="hover:text-indigo-200">Performance</Link>
+            <Link to="/login" className="bg-white text-indigo-700 px-4 py-2 rounded-md font-medium hover:bg-indigo-100 transition duration-300">
+              Sign In
+            </Link>
+          </div>
+        </nav>
+
+        <div className="container mx-auto px-6 py-16 md:py-24 text-center">
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">Grow Your Crypto Assets</h1>
+          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
+            Indigo Yield Fund accepts BTC, ETH, SOL, and Stablecoins, providing daily yields with best-in-class security.
+          </p>
+          <div className="flex flex-col md:flex-row justify-center gap-4">
+            <Button size="lg" className="bg-white text-indigo-700 hover:bg-indigo-100">
+              <Link to="/login">Start Investing</Link>
+            </Button>
+            <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10">
+              <Link to="#learn-more">Learn More</Link>
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Features Section */}
+      <section id="features" className="py-16 bg-white">
+        <div className="container mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">Why Choose Indigo Yield Fund</h2>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="flex flex-col items-center text-center p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
+              <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Daily Yields</h3>
+              <p className="text-gray-600">Earn competitive yields paid daily to your portfolio, compounding your returns over time.</p>
+            </div>
+
+            <div className="flex flex-col items-center text-center p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
+              <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Institutional Security</h3>
+              <p className="text-gray-600">Enterprise-grade custody solutions and insurance protect your digital assets.</p>
+            </div>
+
+            <div className="flex flex-col items-center text-center p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
+              <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Performance Tracking</h3>
+              <p className="text-gray-600">Comprehensive dashboards and daily reports to monitor your portfolio's growth.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Assets Section */}
+      <section id="assets" className="py-16 bg-gray-50">
+        <div className="container mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">Supported Assets</h2>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 flex flex-col items-center">
+              <div className="w-16 h-16 mb-4 bg-[#F7931A]/10 rounded-full flex items-center justify-center">
+                <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M23.6408 14.988C22.0379 21.3704 15.5261 25.2103 9.14511 23.6079C2.7641 22.0054 -1.0763 15.4947 0.526605 9.11224C2.12951 2.72982 8.64125 -1.11006 15.0223 0.492386C21.4033 2.09483 25.2438 8.60553 23.6408 14.988Z" fill="#F7931A"/>
+                  <path d="M17.2908 10.5195C17.5346 8.91054 16.3131 8.04837 14.6387 7.47727L15.1194 5.50311L13.9334 5.20263L13.4644 7.12862C13.1444 7.04964 12.8163 6.97499 12.4899 6.90076L12.9624 4.95957L11.7775 4.65909L11.2967 6.63283C11.0279 6.57298 10.7644 6.51354 10.5092 6.45116L10.5103 6.44674L8.88062 6.02581L8.55716 7.29863C8.55716 7.29863 9.4485 7.47727 9.4317 7.48603C9.93344 7.60998 10.0143 7.9476 9.999 8.21327L9.44547 10.4582C9.478 10.467 9.52053 10.4801 9.56577 10.4977C9.52811 10.4889 9.48721 10.4771 9.44425 10.4658L8.67137 13.6227C8.61923 13.7722 8.48652 13.9907 8.1461 13.9056C8.1585 13.9188 7.27136 13.7137 7.27136 13.7137L6.66016 15.0813L8.20324 15.4808C8.4979 15.5554 8.78815 15.6327 9.07398 15.7054L8.58663 17.7018L9.77156 18.0023L10.2528 16.0268C10.5847 16.1147 10.9074 16.1956 11.2232 16.2715L10.7437 18.2367L11.9296 18.5372L12.417 16.5442C14.6387 16.9398 16.2896 16.7885 16.9879 14.7528C17.5487 13.1091 16.9437 12.1949 15.8402 11.6123C16.6517 11.4007 17.2536 10.8648 17.2908 10.5195ZM14.2625 13.964C13.8626 15.6077 11.1487 14.8441 10.372 14.636L11.0177 12.0668C11.7944 12.2756 14.6821 12.2523 14.2625 13.964ZM14.6633 10.5006C14.2973 12.0118 11.9952 11.3618 11.3517 11.1879L11.9387 8.85949C12.5821 9.03336 15.0462 8.92536 14.6633 10.5006Z" fill="white"/>
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-1">Bitcoin</h3>
+              <p className="text-gray-500 text-sm">BTC</p>
+              <p className="text-indigo-600 font-medium mt-2">~0.5% Monthly Yield</p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 flex flex-col items-center">
+              <div className="w-16 h-16 mb-4 bg-[#627EEA]/10 rounded-full flex items-center justify-center">
+                <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 24C18.6274 24 24 18.6274 24 12C24 5.37258 18.6274 0 12 0C5.37258 0 0 5.37258 0 12C0 18.6274 5.37258 24 12 24Z" fill="#627EEA"/>
+                  <path d="M12.374 3V9.6525L17.9994 12.165L12.374 3Z" fill="white" fillOpacity="0.602"/>
+                  <path d="M12.374 3L6.75 12.165L12.374 9.6525V3Z" fill="white"/>
+                  <path d="M12.374 16.4761V20.9964L18.0015 13.2118L12.374 16.4761Z" fill="white" fillOpacity="0.602"/>
+                  <path d="M12.374 20.9964V16.4761L6.75 13.2118L12.374 20.9964Z" fill="white"/>
+                  <path d="M12.374 15.4298L17.9994 12.165L12.374 9.65399V15.4298Z" fill="white" fillOpacity="0.2"/>
+                  <path d="M6.75 12.165L12.374 15.4298V9.65399L6.75 12.165Z" fill="white" fillOpacity="0.602"/>
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-1">Ethereum</h3>
+              <p className="text-gray-500 text-sm">ETH</p>
+              <p className="text-indigo-600 font-medium mt-2">~0.8% Monthly Yield</p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 flex flex-col items-center">
+              <div className="w-16 h-16 mb-4 bg-[#14F195]/10 rounded-full flex items-center justify-center">
+                <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 24C18.6274 24 24 18.6274 24 12C24 5.37258 18.6274 0 12 0C5.37258 0 0 5.37258 0 12C0 18.6274 5.37258 24 12 24Z" fill="#14F195"/>
+                  <path d="M7.41144 14.6468L6.35777 15.7004C6.29689 15.7613 6.24949 15.8338 6.21829 15.9136C6.18709 15.9934 6.17279 16.0788 6.17635 16.1644C6.17992 16.25 6.20127 16.3336 6.23917 16.4099C6.27706 16.4861 6.33066 16.5535 6.39697 16.6076C7.74774 17.7753 9.43959 18.4909 11.2225 18.6551C13.0054 18.8193 14.7935 18.4247 16.3497 17.524C17.9059 16.6232 19.147 15.2591 19.9008 13.621C20.6546 11.9828 20.8867 10.1535 20.5682 8.38336C20.2496 6.61319 19.3955 4.98126 18.1214 3.72203C16.8473 2.4628 15.2166 1.63891 13.4599 1.35606C11.7032 1.07322 9.89509 1.34373 8.28328 2.13488C6.67147 2.92602 5.33803 4.19941 4.47044 5.77648C3.60285 7.35355 3.25277 9.14519 3.46971 10.9171C3.55312 11.6812 3.751 12.4271 4.05551 13.1296C4.11125 13.2553 4.20212 13.3598 4.31799 13.4298C4.43386 13.4997 4.56928 13.5321 4.70559 13.5228C4.8419 13.5136 4.97152 13.4631 5.07563 13.3782C5.17974 13.2934 5.25286 13.1781 5.28647 13.0492L5.65731 11.6241C5.68513 11.5189 5.68698 11.4087 5.66273 11.3026C5.63847 11.1966 5.58881 11.0975 5.51783 11.0132C5.44686 10.9289 5.35649 10.8618 5.25397 10.8172C5.15145 10.7725 5.03961 10.7515 4.92772 10.7558C4.87266 10.7583 4.81782 10.7663 4.76418 10.7797L4.55457 10.8401C4.48055 9.8913 4.63168 8.93608 5.00141 8.0584C5.37113 7.18072 5.94966 6.40358 6.68821 5.79269L8.03269 7.13717C8.09927 7.20376 8.17873 7.25618 8.26591 7.2912C8.35309 7.32622 8.44629 7.34312 8.53994 7.34071C8.63359 7.3383 8.72596 7.31663 8.81153 7.2772C8.89709 7.23777 8.97418 7.18155 9.03777 7.11191L9.03903 7.11065C9.10679 7.04289 9.16087 6.96251 9.19814 6.87384C9.23541 6.78517 9.25505 6.69 9.25586 6.59366C9.25667 6.49732 9.23862 6.40179 9.20285 6.31236C9.16708 6.22293 9.11437 6.14143 9.04773 6.07232L9.04645 6.07103L7.6366 4.66118C8.52895 4.2379 9.50607 3.99036 10.4993 3.93641V5.62552C10.4993 5.82042 10.5762 6.00695 10.7127 6.14342C10.8492 6.2799 11.0357 6.35686 11.2306 6.35686C11.4255 6.35686 11.612 6.2799 11.7485 6.14342C11.885 6.00695 11.9619 5.82042 11.9619 5.62552V3.93641C12.9552 3.99045 13.9323 4.2381 14.8246 4.66149L13.4666 6.01951C13.3352 6.15753 13.262 6.33946 13.2635 6.52855C13.2651 6.71764 13.3413 6.89847 13.4749 7.0345C13.6084 7.17053 13.7881 7.24942 13.9771 7.25366C14.1661 7.2579 14.3491 7.18719 14.4883 7.05734L14.49 7.05565L15.8988 5.63201C16.6374 6.24276 17.2159 6.51991 17.5856 7.39765C17.9553 8.27538 18.1065 9.23071 18.0324 10.1795L17.8282 10.1211C17.7658 10.1045 17.7009 10.0966 17.6358 10.0976C17.5239 10.0998 17.4135 10.1251 17.3127 10.1718C17.2119 10.2185 17.1232 10.286 17.0524 10.3695C16.9816 10.453 16.9308 10.5504 16.9038 10.6551C16.8768 10.7599 16.8743 10.8692 16.8965 10.9751L17.2673 12.3993C17.3019 12.5272 17.3747 12.6417 17.4774 12.7263C17.5801 12.8109 17.708 12.8617 17.8428 12.8723C17.9775 12.8829 18.1119 12.8528 18.2275 12.786C18.3431 12.7192 18.4346 12.619 18.4916 12.5003C18.7877 11.8077 18.9841 11.0743 19.0761 10.3243C19.2929 8.55248 18.9428 6.76092 18.0753 5.18397C17.2079 3.60702 15.8747 2.33378 14.2631 1.54279C12.6514 0.751798 10.8436 0.481371 9.08707 0.764309C7.33057 1.04725 5.70011 1.87124 4.42623 3.13058C3.15234 4.38992 2.29847 6.02199 1.98016 7.79225C1.66185 9.56251 1.89427 11.3918 2.64834 13.0299C3.40242 14.668 4.6437 16.0319 6.19986 16.9324C7.17599 17.5236 8.25483 17.9013 9.37461 18.0398V19.345C9.37461 19.5399 9.45158 19.7264 9.58805 19.8629C9.72452 19.9994 9.91105 20.0763 10.1059 20.0763C10.3008 20.0763 10.4874 19.9994 10.6238 19.8629C10.7603 19.7264 10.8373 19.5399 10.8373 19.345V18.0173C12.8394 17.81 14.6919 16.8122 15.9891 15.2516L14.6126 13.878C14.4811 13.7399 14.408 13.558 14.4095 13.3689C14.4111 13.1798 14.4872 12.999 14.6208 12.863C14.7544 12.7269 14.934 12.648 15.123 12.6438C15.3121 12.6396 15.4951 12.7103 15.6343 12.8401L15.636 12.8418L17.0497 14.2536C17.6605 13.5151 18.1334 12.6751 18.4467 11.7742L18.9835 11.9505C19.0535 11.9748 19.1274 11.9852 19.2012 11.9811C19.3126 11.9741 19.4204 11.9414 19.5153 11.8859C19.6101 11.8304 19.6894 11.7537 19.7463 11.6625C19.8033 11.5713 19.8363 11.4683 19.8427 11.3618C19.8491 11.2554 19.8287 11.1488 19.7833 11.0513L19.1775 9.83599C19.1325 9.73839 19.0651 9.65308 18.9812 9.58781C18.8973 9.52254 18.7991 9.47935 18.6949 9.46177C18.5908 9.44419 18.4839 9.45272 18.3836 9.48666C18.2832 9.52059 18.1927 9.57886 18.1196 9.65599L17.3611 10.4145C17.3 10.4735 17.2521 10.5449 17.2198 10.6243C17.1874 10.7037 17.1715 10.7889 17.1729 10.8749C17.1743 10.961 17.1932 11.0455 17.2284 11.1234C17.2635 11.2014 17.3142 11.2708 17.3773 11.3273L18.0921 11.9419C17.7602 12.7465 17.2954 13.4922 16.7189 14.1472L15.046 12.4742C14.9765 12.4047 14.8941 12.3493 14.8033 12.3114C14.7124 12.2735 14.6152 12.254 14.5173 12.254C14.4194 12.254 14.3222 12.2735 14.2314 12.3114C14.1405 12.3493 14.0581 12.4047 13.9886 12.4742L13.9874 12.4754C13.9179 12.5449 13.8624 12.6273 13.8245 12.7181C13.7866 12.809 13.767 12.9062 13.767 13.0041C13.767 13.102 13.7866 13.1992 13.8245 13.2901C13.8624 13.3809 13.9179 13.4633 13.9874 13.5328L13.9886 13.534L15.6229 15.1682C14.2721 16.415 12.4833 17.1589 10.8373 17.2381V15.6462C10.8373 15.4513 10.7603 15.2648 10.6238 15.1283C10.4874 14.9919 10.3008 14.9149 10.1059 14.9149C9.91105 14.9149 9.72452 14.9919 9.58805 15.1283C9.45158 15.2648 9.37461 15.4513 9.37461 15.6462V17.2381C8.43317 17.1833 7.52146 16.8959 6.74337 16.4042L7.81545 15.3193C7.95331 15.1795 8.02542 14.9963 8.02372 14.8059C8.02202 14.6154 7.94663 14.4336 7.80612 14.2964C7.6656 14.1592 7.48219 14.0881 7.29176 14.0907C7.10134 14.0933 6.91978 14.1694 6.78326 14.3095L6.78137 14.3114L6.03263 15.0602C5.81992 14.9209 5.61889 14.7656 5.43109 14.5959L6.52817 13.4988C6.59879 13.4304 6.65548 13.3492 6.69514 13.2598C6.7348 13.1705 6.75673 13.0747 6.75977 12.9774C6.76282 12.8802 6.74693 12.7831 6.71297 12.691C6.67901 12.5989 6.62756 12.5138 6.56142 12.4407C6.49527 12.3677 6.41374 12.308 6.32155 12.2656C6.22936 12.2232 6.12857 12.1988 6.02736 12.194C5.92614 12.1892 5.82341 12.2041 5.7275 12.2377C5.6316 12.2714 5.54471 12.3231 5.47231 12.39L5.47041 12.3919L4.37333 13.489C4.19566 13.3012 4.03016 13.1023 3.87854 12.8937C3.65958 12.3842 3.50166 11.8493 3.40829 11.3003C3.28886 10.6066 3.25511 9.89901 3.30799 9.19694C3.36086 8.49487 3.49976 7.80468 3.72046 7.14474C3.94116 6.4848 4.24078 5.86283 4.61111 5.29952C4.98144 4.73622 5.41835 4.2384 5.9073 3.8244C7.05672 2.30544 8.605 1.27882 10.3363 0.911303C12.0675 0.543789 13.8658 0.856546 15.4 1.79512C16.9342 2.7337 18.1064 4.23907 18.7094 6.00055C19.3124 7.76203 19.3101 9.67501 18.7031 11.435C18.0961 13.195 16.9203 14.6968 15.3837 15.6309C13.847 16.565 12.0478 16.8728 10.3171 16.5005C8.58633 16.1282 7.04 15.0972 5.8954 13.5752C5.78437 13.4165 5.73961 13.2235 5.77032 13.0359C5.80103 12.8483 5.90489 12.6792 6.06086 12.5634L7.18642 11.4378C7.25604 11.3683 7.31144 11.285 7.34924 11.1934C7.38704 11.1018 7.40651 11.0038 7.40651 10.9048C7.40651 10.7059 7.32954 10.5154 7.19307 10.3754L7.11938 10.3019L7.19307 10.2282C7.32686 10.0918 7.40183 9.90767 7.40183 9.71533C7.40183 9.52299 7.32686 9.33888 7.19307 9.20242L5.95355 7.9629C6.33266 7.6979 6.73473 7.47238 7.155 7.28926L8.13078 8.26503C8.20033 8.33462 8.28279 8.39015 8.37457 8.4288C8.46635 8.46745 8.56554 8.48844 8.66603 8.49058C8.76652 8.49271 8.86662 8.47596 8.96034 8.44133C9.05406 8.4067 9.13946 8.35482 9.21271 8.28823L9.214 8.28694C9.29064 8.21807 9.35234 8.13359 9.39527 8.03943C9.43821 7.94526 9.46131 7.8436 9.46318 7.74033C9.46504 7.63705 9.44562 7.5346 9.40605 7.4391C9.36648 7.3436 9.30773 7.25723 9.23356 7.18611L9.23145 7.18398L8.26066 6.21319C8.8866 5.88032 9.56309 5.6417 10.2625 5.5059V7.0584C10.2625 7.15636 10.2826 7.25338 10.3219 7.34422C10.3613 7.43505 10.4193 7.51779 10.4925 7.58773C10.5657 7.65766 10.6526 7.71337 10.7483 7.75177C10.844 7.7902 10.9468 7.81052 11.0505 7.81171C11.1542 7.8129 11.2575 7.79495 11.3543 7.75872C11.451 7.72249 11.5393 7.66871 11.6142 7.60037C11.689 7.53203 11.749 7.45056 11.7905 7.36062C11.832 7.27068 11.8544 7.17414 11.8566 7.07624V5.50213C12.5498 5.63659 13.2206 5.87279 13.8415 6.20139L12.9143 7.12856C12.8448 7.19804 12.7893 7.28045 12.7514 7.3713C12.7136 7.46216 12.694 7.55937 12.694 7.65726C12.694 7.75514 12.7136 7.85235 12.7514 7.94321C12.7893 8.03406 12.8448 8.11647 12.9143 8.18595L12.9156 8.18723C12.9876 8.2538 13.0723 8.30623 13.1647 8.34113C13.257 8.37602 13.3554 8.39261 13.4539 8.38995C13.5525 8.38729 13.6496 8.36543 13.7398 8.32571C13.83 8.28599 13.9114 8.22927 13.9795 8.158L14.9075 7.23C15.5285 7.56854 16.1094 8.01737 16.6124 8.55973C17.1154 9.10209 17.5338 9.73097 17.8495 10.417L17.1666 10.1974C17.0783 10.1664 16.9847 10.1548 16.8915 10.1634C16.7983 10.172 16.6079 10.1897 16.5409 10.2273C16.474 10.265 16.3677 10.3209 16.323 10.3911C16.2784 10.4613 16.2031 10.5695 16.1859 10.649L16.1859 10.6461L15.815 12.0712C15.7831 12.1795 15.7819 12.2941 15.8118 12.403C15.8416 12.5118 15.8915 12.6113 15.9573 12.6923C16.023 12.7732 16.1025 12.833 16.1892 12.867C16.2759 12.9009 16.3673 12.9081 16.457 12.8878L17.9148 12.5162C18.1098 13.0972 18.2475 13.6936 18.3266 14.2986C18.3803 14.5995 18.4221 14.9023 18.452 15.2062L18.2885 15.0426C18.1521 14.9064 17.9659 14.8297 17.7713 14.83C17.5767 14.8304 17.3902 14.9077 17.2534 15.0444C17.1167 15.1812 17.0395 15.3676 17.0391 15.5622C17.0388 15.7568 17.1155 15.9435 17.2517 16.0807L17.2534 16.0825L17.8306 16.6597C17.3008 17.2799 16.6887 17.8212 16.0129 18.2668L15.0116 17.2655C14.9421 17.196 14.8597 17.1406 14.7689 17.1027C14.678 17.0648 14.5808 17.0453 14.4829 17.0453C14.2881 17.0453 14.1014 17.1221 13.965 17.2583L13.9638 17.2596C13.8269 17.396 13.7501 17.5826 13.7501 17.7775C13.7501 17.9725 13.8269 18.159 13.9638 18.2954L13.965 18.2967L14.9304 19.2621C14.1371 19.5913 13.2965 19.7963 12.4422 19.8686C11.8386 19.9266 11.2299 19.9265 10.6263 19.8684C10.1428 19.8257 9.66326 19.7413 9.19201 19.6161V18.7712C9.19201 18.5763 9.11505 18.3898 8.97858 18.2533C8.84211 18.1169 8.65558 18.0399 8.46068 18.0399C8.26578 18.0399 8.07925 18.1169 7.94277 18.2533C7.8063 18.3898 7.72934 18.5763 7.72934 18.7712V19.6712C6.20925 19.215 4.84387 18.3338 3.77934 17.1265C3.56975 16.8821 3.44403 16.5849 3.41797 16.2719C3.3919 15.9589 3.46672 15.6461 3.63155 15.3771L4.09363 15.8392C4.16375 15.9092 4.24685 15.9651 4.33836 16.0033C4.42987 16.0416 4.52783 16.0616 4.62704 16.0622C4.72626 16.0629 4.82452 16.0442 4.91662 16.0071C5.00872 15.9701 5.0927 15.9153 5.16394 15.8461L5.16521 15.8449C5.30167 15.7084 5.37863 15.5219 5.37863 15.327C5.37863 15.1321 5.30167 14.9456 5.16521 14.8091L4.7095 14.3534C5.13443 13.8936 5.62497 13.4962 6.16508 13.1738L7.41144 14.6468Z" fill="white"/>
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-1">Solana</h3>
+              <p className="text-gray-500 text-sm">SOL</p>
+              <p className="text-indigo-600 font-medium mt-2">~1.0% Monthly Yield</p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 flex flex-col items-center">
+              <div className="w-16 h-16 mb-4 bg-[#2775CA]/10 rounded-full flex items-center justify-center">
+                <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 24C18.6274 24 24 18.6274 24 12C24 5.37258 18.6274 0 12 0C5.37258 0 0 5.37258 0 12C0 18.6274 5.37258 24 12 24Z" fill="#2775CA"/>
+                  <path d="M15.6523 14.6371C15.6523 13.2985 14.8296 12.7142 13.1841 12.5371C12.0523 12.4057 11.7955 12.1828 11.7955 11.7828C11.7955 11.3828 12.1296 11.1485 12.7296 11.1485C13.2864 11.1485 13.8432 11.2914 14.4 11.5828C14.5864 11.6685 14.7727 11.5828 14.8864 11.4057L15.2432 10.7885C15.3568 10.6114 15.3 10.4114 15.1136 10.3028C14.4 9.9485 13.6318 9.7828 12.8864 9.7828C11.3523 9.7828 10.3636 10.5828 10.3636 11.8914C10.3636 13.2528 11.2091 13.8028 12.8091 13.9828C14.0182 14.1142 14.2182 14.3485 14.2182 14.7371C14.2182 15.1485 13.8296 15.4057 13.1409 15.4057C12.4068 15.4057 11.7614 15.2057 11.2045 14.8857C11.0182 14.7771 10.8318 14.8371 10.7455 14.9942L10.3773 15.6342C10.2773 15.8114 10.3341 16.0114 10.5205 16.12C11.1773 16.5428 12.1091 16.7714 13.0746 16.7714C14.7318 16.7714 15.6523 15.9942 15.6523 14.6371ZM8.26137 16.6057C8.31819 16.6057 8.38865 16.5828 8.44547 16.5371L8.87275 16.0685C8.94502 15.9828 8.92956 15.84 8.8346 15.7828C8.18415 15.3485 7.8157 14.5828 7.8157 13.6914V13.6571C7.8157 12.7657 8.18415 12.0114 8.8346 11.5771C8.92956 11.5085 8.94502 11.3771 8.87275 11.2914L8.44547 10.8228C8.38865 10.7771 8.31819 10.7542 8.26137 10.7542C8.21819 10.7542 8.16138 10.7771 8.11592 10.8114C7.20001 11.4342 6.65911 12.5028 6.65911 13.6571V13.6914C6.65911 14.8457 7.20001 15.92 8.11592 16.5371C8.16138 16.5828 8.21819 16.6057 8.26137 16.6057ZM16.9386 16.5371C17.8546 15.92 18.3955 14.8514 18.3955 13.6971V13.6628C18.3955 12.5085 17.8546 11.44 16.9386 10.8171C16.8818 10.7828 16.825 10.76 16.7818 10.76C16.725 10.76 16.6546 10.7828 16.6091 10.8285L16.1818 11.2971C16.1091 11.3828 16.125 11.5142 16.22 11.5828C16.8705 12.0228 17.2386 12.7771 17.2386 13.6685V13.7028C17.2386 14.5942 16.8705 15.3542 16.22 15.7885C16.125 15.8571 16.1091 15.9885 16.1818 16.0742L16.6091 16.5428C16.6546 16.5885 16.725 16.6114 16.7818 16.6114C16.825 16.6114 16.8818 16.5885 16.9386 16.5371ZM18.8977 18.3542C20.4318 17.2628 21.3523 15.5428 21.3523 13.6914V13.6571C21.3523 11.8057 20.4318 10.0857 18.8977 8.99424C18.8409 8.95995 18.7727 8.93709 18.7273 8.93709C18.6591 8.93709 18.6023 8.95995 18.5568 9.00567L18.1432 9.46281C18.0841 9.52567 18.0727 9.62567 18.1318 9.69995C19.4341 10.6857 20.1932 12.0971 20.1932 13.6628V13.6971C20.1932 15.2628 19.4341 16.6742 18.1318 17.66C18.0727 17.7342 18.0841 17.8342 18.1432 17.8971L18.5568 18.3542C18.6023 18.4 18.6591 18.4228 18.7273 18.4228C18.7727 18.4228 18.8409 18.4 18.8977 18.3542ZM5.85456 18.3542C5.91138 18.4 5.9682 18.4228 6.0182 18.4228C6.07502 18.4228 6.14548 18.4 6.19093 18.3542L6.60456 17.8971C6.66366 17.8342 6.67502 17.7342 6.61593 17.66C5.31366 16.6742 4.55456 15.2628 4.55456 13.6971V13.6628C4.55456 12.0971 5.31366 10.6857 6.61593 9.69995C6.67502 9.62567 6.66366 9.52567 6.60456 9.46281L6.19093 9.00567C6.14548 8.95995 6.07502 8.93709 6.0182 8.93709C5.9682 8.93709 5.91138 8.95995 5.85456 8.99424C4.32048 10.0857 3.40002 11.8057 3.40002 13.6571V13.6914C3.40002 15.5428 4.32048 17.2628 5.85456 18.3542Z" fill="white"/>
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-1">USDC</h3>
+              <p className="text-gray-500 text-sm">USD Coin</p>
+              <p className="text-indigo-600 font-medium mt-2">~0.3% Monthly Yield</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Performance Section */}
+      <section id="performance" className="py-16 bg-indigo-50 dark:bg-indigo-900/10">
+        <div className="container mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">Historical Performance</h2>
+          
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <div className="mb-8 text-center">
+              <h3 className="text-xl font-semibold mb-2">Annual Yields</h3>
+              <p className="text-gray-600 dark:text-gray-400">Consistent performance across market conditions</p>
+            </div>
+            
+            <div className="h-64 md:h-80">
+              {/* Placeholder for chart */}
+              <div className="w-full h-full bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                <p className="text-gray-500 dark:text-gray-400">Performance chart will be displayed here</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+              <div className="text-center">
+                <h4 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">6.2%</h4>
+                <p className="text-gray-600 dark:text-gray-400">BTC Annual</p>
+              </div>
+              <div className="text-center">
+                <h4 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">9.7%</h4>
+                <p className="text-gray-600 dark:text-gray-400">ETH Annual</p>
+              </div>
+              <div className="text-center">
+                <h4 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">12.4%</h4>
+                <p className="text-gray-600 dark:text-gray-400">SOL Annual</p>
+              </div>
+              <div className="text-center">
+                <h4 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">3.6%</h4>
+                <p className="text-gray-600 dark:text-gray-400">USDC Annual</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className="py-16 bg-indigo-900 text-white">
+        <div className="container mx-auto px-6 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Start Earning?</h2>
+          <p className="text-xl mb-8 max-w-2xl mx-auto">
+            Join thousands of investors who are already growing their crypto portfolios with Indigo Yield Fund.
+          </p>
+          <div className="flex justify-center">
+            <Button size="lg" className="bg-white text-indigo-700 hover:bg-indigo-100">
+              <Link to="/login">Create Your Account</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-gray-300 py-12">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Indigo Yield Fund</h3>
+              <p className="text-sm text-gray-400">
+                A premium yield-generating fund for crypto assets.
+              </p>
+            </div>
+            <div>
+              <h4 className="text-md font-medium mb-4">Resources</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link to="#" className="hover:text-white">Documentation</Link></li>
+                <li><Link to="#" className="hover:text-white">FAQ</Link></li>
+                <li><Link to="#" className="hover:text-white">Security</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-md font-medium mb-4">Company</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link to="#" className="hover:text-white">About Us</Link></li>
+                <li><Link to="#" className="hover:text-white">Careers</Link></li>
+                <li><Link to="#" className="hover:text-white">Contact</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-md font-medium mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link to="#" className="hover:text-white">Terms of Service</Link></li>
+                <li><Link to="#" className="hover:text-white">Privacy Policy</Link></li>
+                <li><Link to="#" className="hover:text-white">Risk Disclosure</Link></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <p className="text-sm text-gray-500">© {new Date().getFullYear()} Indigo Yield Fund. All rights reserved.</p>
+            <div className="flex space-x-4 mt-4 md:mt-0">
+              <Link to="#" className="text-gray-400 hover:text-white">
+                <span className="sr-only">Twitter</span>
+                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723 10.008 10.008 0 01-3.127 1.195 4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                </svg>
+              </Link>
+              <Link to="#" className="text-gray-400 hover:text-white">
+                <span className="sr-only">LinkedIn</span>
+                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                </svg>
+              </Link>
+              <Link to="#" className="text-gray-400 hover:text-white">
+                <span className="sr-only">GitHub</span>
+                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd"/>
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

@@ -9,7 +9,258 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      assets: {
+        Row: {
+          created_at: string | null
+          decimal_places: number | null
+          icon_url: string | null
+          id: number
+          is_active: boolean | null
+          name: string
+          symbol: string
+        }
+        Insert: {
+          created_at?: string | null
+          decimal_places?: number | null
+          icon_url?: string | null
+          id?: number
+          is_active?: boolean | null
+          name: string
+          symbol: string
+        }
+        Update: {
+          created_at?: string | null
+          decimal_places?: number | null
+          icon_url?: string | null
+          id?: number
+          is_active?: boolean | null
+          name?: string
+          symbol?: string
+        }
+        Relationships: []
+      }
+      deposits: {
+        Row: {
+          amount: number
+          asset_id: number
+          confirmed_at: string | null
+          created_at: string | null
+          id: string
+          status: string | null
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          asset_id: number
+          confirmed_at?: string | null
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          asset_id?: number
+          confirmed_at?: string | null
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deposits_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deposits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portfolio_history: {
+        Row: {
+          asset_id: number
+          balance: number
+          created_at: string | null
+          date: string
+          id: string
+          usd_value: number | null
+          user_id: string
+          yield_applied: number | null
+        }
+        Insert: {
+          asset_id: number
+          balance: number
+          created_at?: string | null
+          date: string
+          id?: string
+          usd_value?: number | null
+          user_id: string
+          yield_applied?: number | null
+        }
+        Update: {
+          asset_id?: number
+          balance?: number
+          created_at?: string | null
+          date?: string
+          id?: string
+          usd_value?: number | null
+          user_id?: string
+          yield_applied?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_history_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portfolio_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portfolios: {
+        Row: {
+          asset_id: number
+          balance: number
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          asset_id: number
+          balance?: number
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          asset_id?: number
+          balance?: number
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolios_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portfolios_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          first_name: string | null
+          id: string
+          is_admin: boolean | null
+          last_name: string | null
+          phone: string | null
+          totp_enabled: boolean | null
+          totp_verified: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          first_name?: string | null
+          id: string
+          is_admin?: boolean | null
+          last_name?: string | null
+          phone?: string | null
+          totp_enabled?: boolean | null
+          totp_verified?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          is_admin?: boolean | null
+          last_name?: string | null
+          phone?: string | null
+          totp_enabled?: boolean | null
+          totp_verified?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      yield_rates: {
+        Row: {
+          asset_id: number
+          created_at: string | null
+          daily_yield_percentage: number
+          date: string
+          entered_by: string | null
+          id: string
+          is_api_sourced: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          asset_id: number
+          created_at?: string | null
+          daily_yield_percentage: number
+          date: string
+          entered_by?: string | null
+          id?: string
+          is_api_sourced?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          asset_id?: number
+          created_at?: string | null
+          daily_yield_percentage?: number
+          date?: string
+          entered_by?: string | null
+          id?: string
+          is_api_sourced?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yield_rates_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_rates_entered_by_fkey"
+            columns: ["entered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
