@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LogOut, User, Settings, Home, DollarSign, X } from "lucide-react";
@@ -18,7 +17,7 @@ const mainNav: NavItem[] = [
   { title: "Bitcoin", href: "/assets/btc", icon: <CryptoIcon symbol="btc" className="h-5 w-5" /> },
   { title: "Ethereum", href: "/assets/eth", icon: <CryptoIcon symbol="eth" className="h-5 w-5" /> },
   { title: "Solana", href: "/assets/sol", icon: <CryptoIcon symbol="sol" className="h-5 w-5" /> },
-  { title: "USDC", href: "/assets/usdc", icon: <DollarSign className="h-5 w-5" /> },
+  { title: "USDC", href: "/assets/usdc", icon: <CryptoIcon symbol="usdc" className="h-5 w-5" /> },
 ];
 
 const secondaryNav: NavItem[] = [

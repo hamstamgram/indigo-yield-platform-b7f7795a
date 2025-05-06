@@ -36,7 +36,7 @@ export const CryptoIcon: React.FC<CryptoIconProps> = ({ symbol, className = "h-1
   } else if (lowerSymbol === "usdc") {
     return (
       <img 
-        src="/lovable-uploads/a6a5a758-eb2f-4a38-b06c-955921720241.png" 
+        src="/lovable-uploads/42eba5df-69d9-4f96-8adf-49db2e0d438b.png" 
         alt="USDC" 
         className={className} 
       />
