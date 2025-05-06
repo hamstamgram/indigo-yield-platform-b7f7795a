@@ -105,8 +105,8 @@ const DashboardLayout = () => {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <Link to="/dashboard" className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
-              Indigo Yield Fund
+            <Link to="/dashboard" className="flex items-center">
+              <img src="/lovable-uploads/fca55247-2fe5-4db1-a35b-635a50f38a38.png" alt="Indigo Yield Fund Logo" className="h-8 w-auto" />
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -204,8 +204,8 @@ const DashboardLayout = () => {
               <span className="sr-only">Open sidebar</span>
               <Menu className="h-6 w-6" />
             </button>
-            <div className="text-xl font-bold text-gray-800 dark:text-gray-200 lg:hidden">
-              Indigo Yield Fund
+            <div className="lg:hidden">
+              <img src="/lovable-uploads/fca55247-2fe5-4db1-a35b-635a50f38a38.png" alt="Indigo Yield Fund Logo" className="h-8 w-auto" />
             </div>
             <div className="flex items-center">
               <Button variant="outline" size="sm">
