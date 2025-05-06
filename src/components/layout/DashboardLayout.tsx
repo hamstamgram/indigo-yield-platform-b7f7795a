@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Sidebar from "./Sidebar";
@@ -9,6 +8,12 @@ import ContentArea from "./ContentArea";
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
+  
+  // Set sidebar open state based on screen size
+  useEffect(() => {
+    // Close sidebar on mobile by default, keep open on desktop
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
 
   // Function to toggle sidebar visibility
   const toggleSidebar = () => {

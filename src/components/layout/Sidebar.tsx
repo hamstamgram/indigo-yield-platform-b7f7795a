@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LogOut, User, Settings, Home, DollarSign, X } from "lucide-react";
@@ -123,6 +124,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           ? "text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20"
                           : "text-gray-700 hover:text-indigo-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-indigo-300 dark:hover:bg-gray-700"
                       }`}
+                      onClick={() => setSidebarOpen(false)}
                     >
                       <span className="mr-3">{item.icon}</span>
                       {item.title}
@@ -146,6 +148,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           ? "text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20"
                           : "text-gray-700 hover:text-indigo-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-indigo-300 dark:hover:bg-gray-700"
                       }`}
+                      onClick={() => setSidebarOpen(false)}
                     >
                       <span className="mr-3">{item.icon}</span>
                       {item.title}
@@ -154,7 +157,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 ))}
                 <li>
                   <button
-                    onClick={handleLogout}
+                    onClick={() => {
+                      setSidebarOpen(false);
+                      handleLogout();
+                    }}
                     className="flex w-full items-center px-2 py-2 text-sm text-gray-700 hover:text-red-600 hover:bg-gray-100 rounded-md group dark:text-gray-300 dark:hover:text-red-400 dark:hover:bg-gray-700"
                   >
                     <span className="mr-3">
