@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import Index from './pages/Index';
@@ -26,7 +27,7 @@ function App() {
         {/* Dashboard routes with layout */}
         <Route path="/" element={<DashboardLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/assets/:id" element={<AssetDetail />} />
+          <Route path="/assets/:symbol" element={<AssetDetail />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
