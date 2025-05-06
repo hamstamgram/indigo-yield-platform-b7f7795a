@@ -132,9 +132,9 @@ const Index = () => {
             </p>
           </div>
           <div className="flex space-x-6">
-            <a className="text-gray-500 hover:text-gray-700" href="#">Terms</a>
-            <a className="text-gray-500 hover:text-gray-700" href="#">Privacy</a>
-            <a className="text-gray-500 hover:text-gray-700" href="#">Contact</a>
+            <Link className="text-gray-500 hover:text-gray-700" to="/terms">Terms</Link>
+            <Link className="text-gray-500 hover:text-gray-700" to="/privacy">Privacy</Link>
+            <Link className="text-gray-500 hover:text-gray-700" to="/contact">Contact</Link>
           </div>
         </div>
       </footer>
