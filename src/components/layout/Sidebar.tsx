@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LogOut, User, Settings, Home, X } from "lucide-react";
+import { LogOut, User, Settings, Home, X, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -32,6 +32,7 @@ type SidebarProps = {
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const [userName, setUserName] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -44,14 +45,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         // Get profile data
         const { data: profile } = await supabase
           .from('profiles')
-          .select('first_name, last_name')
+          .select('first_name, last_name, is_admin')
           .eq('id', user.id)
           .single();
         
         if (profile) {
           setUserName(`${profile.first_name || ''} ${profile.last_name || ''}`);
+          setIsAdmin(profile.is_admin || false);
         } else {
           setUserName(user.email?.split('@')[0] || 'User');
+          setIsAdmin(false);
         }
       } else {
         navigate('/login');
@@ -158,6 +161,26 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     </button>
                   </li>
                 ))}
+                
+                {/* Admin section - only visible to admin users */}
+                {isAdmin && (
+                  <li>
+                    <button
+                      onClick={() => handleNavigation("/admin")}
+                      className={`flex w-full items-center px-2 py-2 text-sm rounded-md group ${
+                        location.pathname === "/admin"
+                          ? "text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20"
+                          : "text-gray-700 hover:text-indigo-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-indigo-300 dark:hover:bg-gray-700"
+                      }`}
+                    >
+                      <span className="mr-3">
+                        <Shield className="h-5 w-5" />
+                      </span>
+                      Admin Tools
+                    </button>
+                  </li>
+                )}
+                
                 <li>
                   <button
                     onClick={() => {
@@ -185,7 +208,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             </div>
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{userName}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Investor</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {isAdmin ? "Administrator" : "Investor"}
+              </p>
             </div>
           </div>
         </div>
