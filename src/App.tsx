@@ -11,6 +11,10 @@ import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import AssetDetail from "./pages/AssetDetail";
+import DepositsPage from "./pages/DepositsPage";
+import AccountPage from "./pages/AccountPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
 // Layouts
@@ -71,10 +75,10 @@ const App = () => (
             </ProtectedRoute>
           }>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/assets/:symbol" element={<div>Asset Details (coming soon)</div>} />
-            <Route path="/deposits" element={<div>Deposits (coming soon)</div>} />
-            <Route path="/account" element={<div>Account (coming soon)</div>} />
-            <Route path="/settings" element={<div>Settings (coming soon)</div>} />
+            <Route path="/assets/:symbol" element={<AssetDetail />} />
+            <Route path="/deposits" element={<DepositsPage />} />
+            <Route path="/account" element={<AccountPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Route>
           
           {/* 404 Route */}
