@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,7 +11,6 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AssetDetail from "./pages/AssetDetail";
-import DepositsPage from "./pages/DepositsPage";
 import AccountPage from "./pages/AccountPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
@@ -76,7 +74,6 @@ const App = () => (
           }>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/assets/:symbol" element={<AssetDetail />} />
-            <Route path="/deposits" element={<DepositsPage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>

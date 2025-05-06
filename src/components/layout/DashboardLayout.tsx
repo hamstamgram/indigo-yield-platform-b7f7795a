@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -5,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { 
   BarChart3, 
   Home, 
-  CreditCard, 
   Settings, 
   User,
   LogOut, 
@@ -32,7 +32,7 @@ const mainNav: NavItem[] = [
 ];
 
 const secondaryNav: NavItem[] = [
-  { title: "Deposits", href: "/deposits", icon: <CreditCard className="h-5 w-5" /> },
+  // Removed the Deposits entry
   { title: "Account", href: "/account", icon: <User className="h-5 w-5" /> },
   { title: "Settings", href: "/settings", icon: <Settings className="h-5 w-5" /> },
 ];
