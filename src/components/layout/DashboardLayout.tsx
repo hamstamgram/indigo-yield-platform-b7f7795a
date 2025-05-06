@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import AppLogo from "@/components/AppLogo";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type NavItem = {
   title: string;
@@ -32,7 +33,6 @@ const mainNav: NavItem[] = [
 ];
 
 const secondaryNav: NavItem[] = [
-  // Removed the Deposits entry
   { title: "Account", href: "/account", icon: <User className="h-5 w-5" /> },
   { title: "Settings", href: "/settings", icon: <Settings className="h-5 w-5" /> },
 ];
@@ -43,6 +43,7 @@ const DashboardLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const getUser = async () => {
@@ -84,6 +85,11 @@ const DashboardLayout = () => {
         variant: "destructive",
       });
     }
+  };
+
+  // Function to toggle sidebar visibility
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
   };
 
   return (
@@ -195,18 +201,16 @@ const DashboardLayout = () => {
         {/* Top Header */}
         <header className="bg-white dark:bg-gray-800 shadow-sm z-10">
           <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            {/* Menu button - Made more prominent */}
+            {/* Menu button - Enhanced for better visibility */}
             <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-indigo-600 hover:text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-200 p-2 rounded-full bg-indigo-50 dark:bg-indigo-900/20"
+              onClick={toggleSidebar}
+              className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200 p-2 rounded-full bg-indigo-50 dark:bg-indigo-900/20 shadow-sm border border-indigo-100 dark:border-indigo-800 flex items-center justify-center"
+              aria-label="Open menu"
             >
-              <span className="sr-only">Open sidebar</span>
               <Menu className="h-6 w-6" />
             </button>
-            <div className="lg:hidden">
-              <AppLogo className="h-8 w-auto" />
-            </div>
-            <div className="flex items-center">
+            
+            <div className="flex items-center space-x-2">
               <Button variant="outline" size="sm">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Market Data

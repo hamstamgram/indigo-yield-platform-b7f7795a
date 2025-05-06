@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import Index from './pages/Index';
@@ -15,6 +14,7 @@ import About from './pages/About';
 import Strategies from './pages/Strategies';
 import FAQ from './pages/FAQ';
 import { Toaster } from './components/ui/sonner';
+import DashboardLayout from './components/layout/DashboardLayout';
 
 function App() {
   return (
@@ -22,10 +22,16 @@ function App() {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/asset/:id" element={<AssetDetail />} />
-        <Route path="/account" element={<AccountPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
+        
+        {/* Dashboard routes with layout */}
+        <Route path="/" element={<DashboardLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/assets/:id" element={<AssetDetail />} />
+          <Route path="/account" element={<AccountPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+        </Route>
+        
+        {/* Other routes */}
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/contact" element={<Contact />} />
