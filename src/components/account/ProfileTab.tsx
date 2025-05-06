@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User, User2, Mail, Phone, Upload, X } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -66,7 +65,7 @@ const ProfileTab = ({ profile, loading, onSave }: ProfileTabProps) => {
         try {
           const fileExt = avatarFile.name.split('.').pop();
           const fileName = `${profile.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-          const filePath = `avatars/${fileName}`;
+          const filePath = `${profile.id}/${fileName}`;
           
           // Upload avatar to storage
           const { error: uploadError } = await supabase.storage
@@ -153,7 +152,7 @@ const ProfileTab = ({ profile, loading, onSave }: ProfileTabProps) => {
           </Button>
         ) : (
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
+            <Button variant="ghost" size="sm" onClick={() => setEditMode(false)}>
               Cancel
             </Button>
             <Button size="sm" onClick={handleSaveProfile} disabled={isUpdating}>
