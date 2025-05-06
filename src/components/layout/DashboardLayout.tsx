@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -10,12 +9,12 @@ import {
   User,
   LogOut, 
   DollarSign,
-  PiggyBank,
   Menu,
   X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import AppLogo from "@/components/AppLogo";
 
 type NavItem = {
   title: string;
@@ -105,9 +104,7 @@ const DashboardLayout = () => {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <Link to="/dashboard" className="flex items-center">
-              <img src="/lovable-uploads/fca55247-2fe5-4db1-a35b-635a50f38a38.png" alt="Indigo Yield Fund Logo" className="h-8 w-auto" />
-            </Link>
+            <AppLogo linkTo="/dashboard" className="h-8 w-auto" />
             <button
               onClick={() => setSidebarOpen(false)}
               className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -205,7 +202,7 @@ const DashboardLayout = () => {
               <Menu className="h-6 w-6" />
             </button>
             <div className="lg:hidden">
-              <img src="/lovable-uploads/fca55247-2fe5-4db1-a35b-635a50f38a38.png" alt="Indigo Yield Fund Logo" className="h-8 w-auto" />
+              <AppLogo className="h-8 w-auto" />
             </div>
             <div className="flex items-center">
               <Button variant="outline" size="sm">

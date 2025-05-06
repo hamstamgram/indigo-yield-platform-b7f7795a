@@ -11,8 +11,8 @@ const AppLogo = ({ className = "h-8 w-auto", showText = false, linkTo }: AppLogo
   const LogoContent = () => (
     <>
       <img 
-        src="/lovable-uploads/fca55247-2fe5-4db1-a35b-635a50f38a38.png" 
-        alt="Indigo Yield Fund Logo" 
+        src="/lovable-uploads/2d55a454-e894-4533-85b1-b372e83be397.png" 
+        alt="Company Logo" 
         className={className} 
       />
       {showText && (
