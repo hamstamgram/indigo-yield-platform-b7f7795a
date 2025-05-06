@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Moon, Sun, Globe, Activity, Smartphone, Desktop, Eye, EyeOff } from 'lucide-react';
+import { Settings, Moon, Sun, Globe, Activity, Smartphone, Monitor, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
