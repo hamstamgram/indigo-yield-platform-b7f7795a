@@ -4,7 +4,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LogOut, User, Settings, Home, DollarSign, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import AppLogo from "@/components/AppLogo";
 import { CryptoIcon } from "@/components/CryptoIcons";
 
 type NavItem = {
@@ -96,9 +95,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Sidebar Header with Logo */}
+          {/* Sidebar Header - removed the logo and text */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <AppLogo showText={true} linkTo="/dashboard" />
+            <div className="flex-1"></div>
             <button
               onClick={() => setSidebarOpen(false)}
               className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
