@@ -73,7 +73,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-gray-900 to-black p-4 font-['Space_Grotesk']">
+    <div className="flex min-h-screen items-center justify-center bg-white p-4 font-['Space_Grotesk']">
       <div className="w-full max-w-md">
         <div className="mb-8 flex justify-center">
           <img 
@@ -82,9 +82,9 @@ export default function Login() {
             className="h-14"
           />
         </div>
-        <Card className="border border-gray-700 bg-gray-800/50 backdrop-blur-md shadow-xl">
+        <Card className="border border-gray-200 bg-white shadow-md">
           <CardHeader>
-            <CardTitle className="text-center text-2xl text-white">
+            <CardTitle className="text-center text-2xl text-gray-800">
               {isLogin ? "Investor Access" : "Request Access"}
             </CardTitle>
           </CardHeader>
@@ -98,7 +98,7 @@ export default function Login() {
                     placeholder="Email Address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 bg-gray-700/50 border-gray-600 text-white placeholder-gray-400"
+                    className="pl-10 border-gray-200 text-gray-800 placeholder-gray-400"
                     required
                   />
                 </div>
@@ -112,7 +112,7 @@ export default function Login() {
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 bg-gray-700/50 border-gray-600 text-white placeholder-gray-400"
+                    className="pl-10 pr-10 border-gray-200 text-gray-800 placeholder-gray-400"
                     required
                     minLength={6}
                   />
@@ -120,7 +120,7 @@ export default function Login() {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-1 top-1 text-gray-400 hover:text-white"
+                    className="absolute right-1 top-1 text-gray-400 hover:text-gray-600"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
@@ -158,19 +158,19 @@ export default function Login() {
             
             {isLogin && (
               <div className="mt-4 text-center text-sm">
-                <a href="#" className="text-indigo-400 hover:text-indigo-300 hover:underline">
+                <a href="#" className="text-indigo-600 hover:text-indigo-800 hover:underline">
                   Forgot password?
                 </a>
               </div>
             )}
           </CardContent>
-          <CardFooter className="flex justify-center border-t border-gray-700 px-6 py-4">
-            <p className="text-sm text-gray-400">
+          <CardFooter className="flex justify-center border-t border-gray-200 px-6 py-4">
+            <p className="text-sm text-gray-600">
               {isLogin ? "Need access to the platform? " : "Already have access? "}
               <button
                 type="button"
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-indigo-400 hover:text-indigo-300 hover:underline font-medium"
+                className="text-indigo-600 hover:text-indigo-800 hover:underline font-medium"
               >
                 {isLogin ? "Request Access" : "Sign in"}
               </button>
@@ -178,7 +178,7 @@ export default function Login() {
           </CardFooter>
         </Card>
         
-        <div className="mt-8 text-center text-sm text-gray-400">
+        <div className="mt-8 text-center text-sm text-gray-600">
           <p>Investor Portal - Invitation Only Access</p>
           <p className="mt-1">Test Credentials: test@investor.com / InvestorPass123</p>
           <p className="mt-4">Note: To create a Supabase user account, please contact admin</p>
