@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -103,9 +103,9 @@ const DashboardLayout = () => {
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Sidebar Header - Removed logo */}
+          {/* Sidebar Header with Logo */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex-1"></div> {/* Empty div to maintain spacing */}
+            <AppLogo showText={true} linkTo="/dashboard" />
             <button
               onClick={() => setSidebarOpen(false)}
               className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -195,9 +195,10 @@ const DashboardLayout = () => {
         {/* Top Header */}
         <header className="bg-white dark:bg-gray-800 shadow-sm z-10">
           <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+            {/* Menu button - Made more prominent */}
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-gray-500 hover:text-gray-700 focus:outline-none dark:text-gray-400 dark:hover:text-gray-200"
+              className="lg:hidden text-indigo-600 hover:text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-200 p-2 rounded-full bg-indigo-50 dark:bg-indigo-900/20"
             >
               <span className="sr-only">Open sidebar</span>
               <Menu className="h-6 w-6" />
