@@ -12,7 +12,7 @@ export const CryptoIcon: React.FC<CryptoIconProps> = ({ symbol, className = "h-1
   if (lowerSymbol === "btc") {
     return (
       <img 
-        src="/lovable-uploads/fca55247-2fe5-4db1-a35b-635a50f38a38.png" 
+        src="/lovable-uploads/7513c47e-3bab-4695-844b-517e1351d56a.png" 
         alt="Bitcoin" 
         className={className} 
       />
