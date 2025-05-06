@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +18,8 @@ const AdminTools = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get("tab") || "assets";
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -109,10 +111,10 @@ const AdminTools = () => {
         <h1 className="text-2xl font-bold">Admin Tools</h1>
       </div>
       
-      <Tabs defaultValue="assets" className="w-full">
+      <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="assets">Assets</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="users">Manage Users</TabsTrigger>
           <TabsTrigger value="portfolios">Portfolios</TabsTrigger>
           <TabsTrigger value="yields">Yield Rates</TabsTrigger>
           <TabsTrigger value="invites">Admin Invites</TabsTrigger>

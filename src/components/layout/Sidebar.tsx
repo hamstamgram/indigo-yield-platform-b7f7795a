@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LogOut, User, Settings, Home, X, Shield } from "lucide-react";
+import { LogOut, User, Settings, Home, X, Shield, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -104,7 +104,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Sidebar Header - removed the logo and text */}
+          {/* Sidebar Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex-1"></div>
             <button
@@ -164,21 +164,38 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 
                 {/* Admin section - only visible to admin users */}
                 {isAdmin && (
-                  <li>
-                    <button
-                      onClick={() => handleNavigation("/admin")}
-                      className={`flex w-full items-center px-2 py-2 text-sm rounded-md group ${
-                        location.pathname === "/admin"
-                          ? "text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20"
-                          : "text-gray-700 hover:text-indigo-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-indigo-300 dark:hover:bg-gray-700"
-                      }`}
-                    >
-                      <span className="mr-3">
-                        <Shield className="h-5 w-5" />
-                      </span>
-                      Admin Tools
-                    </button>
-                  </li>
+                  <>
+                    <li>
+                      <button
+                        onClick={() => handleNavigation("/admin")}
+                        className={`flex w-full items-center px-2 py-2 text-sm rounded-md group ${
+                          location.pathname === "/admin" && !location.search.includes('tab=users')
+                            ? "text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20"
+                            : "text-gray-700 hover:text-indigo-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-indigo-300 dark:hover:bg-gray-700"
+                        }`}
+                      >
+                        <span className="mr-3">
+                          <Shield className="h-5 w-5" />
+                        </span>
+                        Admin Dashboard
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        onClick={() => handleNavigation("/admin?tab=users")}
+                        className={`flex w-full items-center px-2 py-2 text-sm rounded-md group ${
+                          location.pathname === "/admin" && location.search.includes('tab=users')
+                            ? "text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20"
+                            : "text-gray-700 hover:text-indigo-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-indigo-300 dark:hover:bg-gray-700"
+                        }`}
+                      >
+                        <span className="mr-3">
+                          <Users className="h-5 w-5" />
+                        </span>
+                        Manage Users
+                      </button>
+                    </li>
+                  </>
                 )}
                 
                 <li>

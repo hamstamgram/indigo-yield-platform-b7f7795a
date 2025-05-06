@@ -81,7 +81,7 @@ const AdminUsersList = () => {
     <Card>
       <CardHeader>
         <CardTitle>User Management</CardTitle>
-        <CardDescription>View and manage all user accounts</CardDescription>
+        <CardDescription>View and manage all user accounts. Grant or revoke admin privileges.</CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
