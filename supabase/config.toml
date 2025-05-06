@@ -74,3 +74,5 @@ url = ""
 
 [functions]
 [functions.get-crypto-prices]
+[functions.send-admin-invite]
+

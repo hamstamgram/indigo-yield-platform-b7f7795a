@@ -17,6 +17,7 @@ import FAQ from './pages/FAQ';
 import { Toaster } from './components/ui/sonner';
 import DashboardLayout from './components/layout/DashboardLayout';
 import AdminTools from './pages/AdminTools';
+import AdminInvite from './pages/AdminInvite';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/admin-invite" element={<AdminInvite />} />
         
         {/* Dashboard routes with layout */}
         <Route path="/" element={<DashboardLayout />}>

@@ -10,6 +10,7 @@ import { Loader2 } from "lucide-react";
 import AdminUsersList from "@/components/admin/AdminUsersList";
 import AdminYieldRates from "@/components/admin/AdminYieldRates";
 import AdminPortfolios from "@/components/admin/AdminPortfolios";
+import AdminInvites from "@/components/admin/AdminInvites";
 
 const AdminTools = () => {
   const [loading, setLoading] = useState(false);
@@ -114,6 +115,7 @@ const AdminTools = () => {
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="portfolios">Portfolios</TabsTrigger>
           <TabsTrigger value="yields">Yield Rates</TabsTrigger>
+          <TabsTrigger value="invites">Admin Invites</TabsTrigger>
         </TabsList>
         
         <TabsContent value="assets">
@@ -145,6 +147,10 @@ const AdminTools = () => {
         
         <TabsContent value="yields">
           <AdminYieldRates />
+        </TabsContent>
+
+        <TabsContent value="invites">
+          <AdminInvites />
         </TabsContent>
       </Tabs>
     </div>
