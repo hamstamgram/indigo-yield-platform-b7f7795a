@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -138,25 +137,17 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Performance Section */}
+      {/* Simplified Performance Section - Removed charts */}
       <section id="performance" className="py-16 bg-indigo-50 dark:bg-indigo-900/10">
         <div className="container mx-auto px-6">
-          <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">Historical Performance</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Historical Performance</h2>
           
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
             <div className="mb-8 text-center">
-              <h3 className="text-xl font-semibold mb-2">Annual Yields</h3>
-              <p className="text-gray-600 dark:text-gray-400">Consistent performance across market conditions</p>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">Consistent performance across market conditions</p>
             </div>
             
-            <div className="h-64 md:h-80">
-              {/* Placeholder for chart */}
-              <div className="w-full h-full bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                <p className="text-gray-500 dark:text-gray-400">Performance chart will be displayed here</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
                 <h4 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">6.2%</h4>
                 <p className="text-gray-600 dark:text-gray-400">BTC Annual</p>
