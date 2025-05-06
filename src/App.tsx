@@ -6,7 +6,6 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
 import AssetDetail from './pages/AssetDetail';
-import DepositsPage from './pages/DepositsPage';
 import AccountPage from './pages/AccountPage';
 import SettingsPage from './pages/SettingsPage';
 import Terms from './pages/Terms';
@@ -25,7 +24,6 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/asset/:id" element={<AssetDetail />} />
-        <Route path="/deposits" element={<DepositsPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/terms" element={<Terms />} />
