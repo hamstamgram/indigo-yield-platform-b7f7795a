@@ -1,3 +1,4 @@
+
 import React from "react";
 
 interface CryptoIconProps {
@@ -19,7 +20,7 @@ export const CryptoIcon: React.FC<CryptoIconProps> = ({ symbol, className = "h-1
   } else if (lowerSymbol === "eth") {
     return (
       <img 
-        src="/lovable-uploads/9dc1fa25-5f4c-40b9-ba69-02292e9e5a35.png" 
+        src="/lovable-uploads/9b4e0bcd-3f9f-4aa8-9172-c5531da8a97e.png" 
         alt="Ethereum" 
         className={className} 
       />
