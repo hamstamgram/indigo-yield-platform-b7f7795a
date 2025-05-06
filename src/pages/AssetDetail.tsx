@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowUp, ArrowDown, DollarSign, LineChart, PiggyBank, Clock } from "lucide-react";
+import { ArrowUp, ArrowDown, LineChart, PiggyBank, Clock } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -246,7 +246,7 @@ const AssetDetail = () => {
                     {priceData ? Math.abs(priceData.change24h).toFixed(2) : 0}%
                   </span>
                 </div>
-                <Progress value={50 + priceData && priceData.change24h * 5} className="h-2" />
+                <Progress value={(priceData ? 50 + (priceData.change24h * 5) : 50)} className="h-2" />
               </div>
               <div>
                 <div className="flex justify-between text-sm mb-2 mt-4">
@@ -262,32 +262,11 @@ const AssetDetail = () => {
         </Card>
       </div>
       
-      <Tabs defaultValue="transactions" className="w-full">
+      <Tabs defaultValue="yield" className="w-full">
         <TabsList className="mb-4 bg-gray-100 dark:bg-gray-800">
-          <TabsTrigger value="transactions">Transactions</TabsTrigger>
           <TabsTrigger value="yield">Yield History</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="transactions">
-          <Card className="border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800">
-            <CardHeader>
-              <CardTitle className="text-lg">Recent Transactions</CardTitle>
-              <CardDescription>Your recent activity for {asset?.name || symbol}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                <DollarSign className="mx-auto h-10 w-10 text-gray-400 dark:text-gray-600 mb-2" />
-                <p className="mb-2">No transactions yet</p>
-                <p className="text-sm mb-4">Your recent transactions will appear here</p>
-                <div className="flex gap-2 justify-center">
-                  <Button>Deposit</Button>
-                  <Button variant="outline">Request Withdrawal</Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
         
         <TabsContent value="yield">
           <Card className="border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800">
