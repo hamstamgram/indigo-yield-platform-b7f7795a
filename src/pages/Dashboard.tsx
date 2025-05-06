@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   Card, 
@@ -12,6 +11,7 @@ import { Link } from "react-router-dom";
 import { ArrowUpRight, ArrowDownRight, TrendingUp, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import { fetchCryptoPrices, defaultPrices } from "@/services/cryptoService";
 
 // Helper function to format numbers
 const formatNumber = (value: number, decimals = 2) => {
@@ -44,6 +44,14 @@ const assetColors: Record<string, string> = {
   USDC: '#2775CA',
 };
 
+// Mock yield rates
+const yieldRates: Record<string, number> = {
+  BTC: 4.8,
+  ETH: 5.2,
+  SOL: 6.5,
+  USDC: 8.1,
+};
+
 type Asset = {
   id: number;
   symbol: string;
@@ -62,22 +70,6 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
 
-  // Mock price data (in a real app, this would come from an API)
-  const assetPrices: Record<string, number> = {
-    BTC: 42000,
-    ETH: 3200,
-    SOL: 140,
-    USDC: 1,
-  };
-  
-  // Mock yield rates (in a real app, this would come from an API)
-  const yieldRates: Record<string, number> = {
-    BTC: 4.8,
-    ETH: 5.2,
-    SOL: 6.5,
-    USDC: 8.1,
-  };
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -95,6 +87,19 @@ const Dashboard = () => {
           
         if (profile) {
           setUserName(profile.first_name || '');
+        }
+        
+        // Get all supported symbols for price fetching
+        const symbols = ['BTC', 'ETH', 'SOL', 'USDC'];
+        
+        // Fetch live prices
+        let prices = {};
+        try {
+          prices = await fetchCryptoPrices(symbols);
+          console.log('Fetched live prices:', prices);
+        } catch (e) {
+          console.error('Error fetching crypto prices, using defaults:', e);
+          prices = defaultPrices;
         }
         
         // Fetch portfolio data
@@ -116,20 +121,21 @@ const Dashboard = () => {
         // Process portfolio data
         const processedAssets: Asset[] = [];
         let portfolioTotal = 0;
+        let weightedChange = 0;
         
         if (portfolioData && portfolioData.length > 0) {
           portfolioData.forEach((item) => {
             const symbol = item.assets.symbol.toUpperCase();
             const balance = Number(item.balance);
-            const usdValue = balance * (assetPrices[symbol] || 0);
+            const priceData = prices[symbol.toLowerCase()] || defaultPrices[symbol.toLowerCase()];
+            const usdValue = balance * priceData.price;
+            
             portfolioTotal += usdValue;
+            weightedChange += (priceData.change24h * usdValue);
             
             // Calculate yield value in crypto
             const yieldPercentage = yieldRates[symbol] || 0;
             const yieldValue = balance * (yieldPercentage / 100);
-            
-            // Generate random percent change for demo purposes (remove in production)
-            const randomChange = (Math.random() * 10) - 5;
             
             processedAssets.push({
               id: item.assets.id,
@@ -137,26 +143,27 @@ const Dashboard = () => {
               name: item.assets.name,
               balance: balance,
               usdValue: usdValue,
-              percentChange: randomChange,
+              percentChange: priceData.change24h,
               color: assetColors[symbol] || '#6366F1',
               yieldValue: yieldValue
             });
           });
         } else {
           // Demo data if no portfolio exists
-          ['BTC', 'ETH', 'SOL', 'USDC'].forEach((symbol, index) => {
+          symbols.forEach((symbol, index) => {
             const balance = symbol === 'BTC' ? 0.5 : 
                            symbol === 'ETH' ? 5 : 
                            symbol === 'SOL' ? 50 : 1000;
-            const usdValue = balance * assetPrices[symbol];
+                           
+            const priceData = prices[symbol.toLowerCase()] || defaultPrices[symbol.toLowerCase()];
+            const usdValue = balance * priceData.price;
+            
             portfolioTotal += usdValue;
+            weightedChange += (priceData.change24h * usdValue);
             
             // Calculate yield value in crypto
             const yieldPercentage = yieldRates[symbol] || 0;
             const yieldValue = balance * (yieldPercentage / 100);
-            
-            // Generate random percent change for demo purposes
-            const randomChange = (Math.random() * 10) - 5;
             
             processedAssets.push({
               id: index + 1,
@@ -166,7 +173,7 @@ const Dashboard = () => {
                     symbol === 'SOL' ? 'Solana' : 'USD Coin',
               balance: balance,
               usdValue: usdValue,
-              percentChange: randomChange,
+              percentChange: priceData.change24h,
               color: assetColors[symbol],
               yieldValue: yieldValue
             });
@@ -176,8 +183,10 @@ const Dashboard = () => {
         setAssets(processedAssets);
         setTotalPortfolioValue(portfolioTotal);
         
-        // Set a random total change for demo purposes (remove in production)
-        setTotalChange((Math.random() * 10) - 2);
+        // Calculate weighted average change for total portfolio
+        if (portfolioTotal > 0) {
+          setTotalChange(weightedChange / portfolioTotal);
+        }
       } catch (error) {
         console.error('Error fetching portfolio data:', error);
       } finally {
@@ -186,6 +195,11 @@ const Dashboard = () => {
     };
     
     fetchData();
+    
+    // Set up a refresh interval for prices (every 60 seconds)
+    const refreshInterval = setInterval(fetchData, 60000);
+    
+    return () => clearInterval(refreshInterval);
   }, []);
   
   return (

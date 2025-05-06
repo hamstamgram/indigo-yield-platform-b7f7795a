@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import { CryptoPrice, fetchCryptoPrices, defaultPrices } from "@/services/cryptoService";
 
 // Types
 interface Asset {
@@ -18,23 +19,11 @@ interface Asset {
   decimal_places: number;
 }
 
-interface AssetPrice {
-  price: number;
-  change24h: number;
-}
-
 interface AssetPortfolio {
   balance: number;
   usd_value: number;
   yield_applied: number;
 }
-
-const mockPrices: Record<string, AssetPrice> = {
-  btc: { price: 62451.23, change24h: 2.4 },
-  eth: { price: 3012.75, change24h: -1.2 },
-  sol: { price: 142.89, change24h: 5.7 },
-  usdc: { price: 1.00, change24h: 0.01 }
-};
 
 const mockYield: Record<string, number> = {
   btc: 4.8,
@@ -48,6 +37,7 @@ const AssetDetail = () => {
   const [asset, setAsset] = useState<Asset | null>(null);
   const [portfolio, setPortfolio] = useState<AssetPortfolio | null>(null);
   const [loading, setLoading] = useState(true);
+  const [priceData, setPriceData] = useState<CryptoPrice | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -79,20 +69,36 @@ const AssetDetail = () => {
               .single();
               
             if (!portfolioError && portfolioData) {
-              // For demo purposes, calculate USD value based on mock prices
-              const mockPrice = mockPrices[symbol?.toLowerCase() || ''] || { price: 0, change24h: 0 };
+              // We'll update the USD value after we get the price data
               setPortfolio({
                 balance: portfolioData.balance || 0,
-                usd_value: (portfolioData.balance || 0) * mockPrice.price,
+                usd_value: 0, // Will be calculated when price data arrives
                 yield_applied: portfolioData.balance * (mockYield[symbol?.toLowerCase() || ''] / 100) || 0
               });
             } else {
               // No portfolio data or error, set mock data
               setPortfolio({
                 balance: symbol?.toLowerCase() === 'btc' ? 0.85 : 0,
-                usd_value: symbol?.toLowerCase() === 'btc' ? 0.85 * mockPrices['btc'].price : 0,
+                usd_value: 0, // Will be calculated when price data arrives
                 yield_applied: symbol?.toLowerCase() === 'btc' ? 0.85 * (mockYield['btc'] / 100) : 0
               });
+            }
+          }
+          
+          // Fetch real-time price data
+          if (symbol) {
+            try {
+              const prices = await fetchCryptoPrices([symbol.toUpperCase()]);
+              if (prices && prices[symbol.toLowerCase()]) {
+                setPriceData(prices[symbol.toLowerCase()]);
+              } else {
+                // Use default price as fallback
+                setPriceData(defaultPrices[symbol.toLowerCase()]);
+              }
+            } catch (priceError) {
+              console.error('Error fetching price data:', priceError);
+              // Use default price as fallback
+              setPriceData(defaultPrices[symbol.toLowerCase()]);
             }
           }
         } else {
@@ -117,7 +123,16 @@ const AssetDetail = () => {
     getAssetDetails();
   }, [symbol, toast]);
 
-  const assetPrice = mockPrices[symbol?.toLowerCase() || ''] || { price: 0, change24h: 0 };
+  // Update USD value whenever price data or portfolio changes
+  useEffect(() => {
+    if (portfolio && priceData) {
+      setPortfolio(prev => ({
+        ...prev!,
+        usd_value: prev!.balance * priceData.price
+      }));
+    }
+  }, [priceData, portfolio?.balance]);
+
   const yieldRate = mockYield[symbol?.toLowerCase() || ''] || 0;
   
   const formatCurrency = (value: number) => {
@@ -151,18 +166,18 @@ const AssetDetail = () => {
           <CryptoIcon symbol={symbol || ''} />
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{asset?.name || symbol?.toUpperCase()}</h1>
           <div className={`ml-auto px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 ${
-            assetPrice.change24h >= 0 
+            priceData && priceData.change24h >= 0 
               ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' 
               : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
           }`}>
-            {assetPrice.change24h >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-            {Math.abs(assetPrice.change24h)}%
+            {priceData && priceData.change24h >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+            {priceData ? Math.abs(priceData.change24h).toFixed(2) : 0}%
           </div>
         </div>
         
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold text-gray-900 dark:text-white">
-            {formatCurrency(assetPrice.price)}
+            {priceData ? formatCurrency(priceData.price) : "Loading..."}
           </span>
           <span className="text-sm text-gray-500 dark:text-gray-400">per {symbol?.toUpperCase()}</span>
         </div>
@@ -227,11 +242,11 @@ const AssetDetail = () => {
               <div>
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-gray-500 dark:text-gray-400">24h Change</span>
-                  <span className={`font-medium ${assetPrice.change24h >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                    {assetPrice.change24h}%
+                  <span className={`font-medium ${priceData && priceData.change24h >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                    {priceData ? Math.abs(priceData.change24h).toFixed(2) : 0}%
                   </span>
                 </div>
-                <Progress value={50 + assetPrice.change24h * 5} className="h-2" />
+                <Progress value={50 + priceData && priceData.change24h * 5} className="h-2" />
               </div>
               <div>
                 <div className="flex justify-between text-sm mb-2 mt-4">
