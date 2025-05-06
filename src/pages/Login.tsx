@@ -53,31 +53,13 @@ export default function Login() {
         
         navigate("/dashboard");
       } else {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              first_name: email.split("@")[0],  // Simple default first name
-            }
-          }
+        // Since this is invitation-only, restrict self registration
+        toast({
+          title: "Invitation Only",
+          description: "This platform requires an invitation. Please contact the administrator.",
+          variant: "destructive",
         });
-
-        if (error) throw error;
-        
-        if (data.user?.identities?.length === 0) {
-          toast({
-            title: "Account already exists",
-            description: "Please login instead.",
-            variant: "destructive",
-          });
-          setIsLogin(true);
-        } else {
-          toast({
-            title: "Registration successful!",
-            description: "Please check your email to confirm your account.",
-          });
-        }
+        setIsLogin(true);
       }
     } catch (error: any) {
       toast({
@@ -91,7 +73,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-indigo-900 to-purple-800 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-gray-900 to-black p-4">
       <div className="w-full max-w-md">
         <div className="mb-8 flex justify-center">
           <img 
@@ -100,10 +82,10 @@ export default function Login() {
             className="h-14"
           />
         </div>
-        <Card className="border-0 shadow-xl bg-white dark:bg-gray-900">
+        <Card className="border border-gray-700 bg-gray-800/50 backdrop-blur-md shadow-xl">
           <CardHeader>
-            <CardTitle className="text-center text-2xl">
-              {isLogin ? "Welcome Back" : "Create Account"}
+            <CardTitle className="text-center text-2xl text-white">
+              {isLogin ? "Investor Access" : "Request Access"}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -116,7 +98,7 @@ export default function Login() {
                     placeholder="Email Address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 bg-gray-700/50 border-gray-600 text-white placeholder-gray-400"
                     required
                   />
                 </div>
@@ -130,7 +112,7 @@ export default function Login() {
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10"
+                    className="pl-10 pr-10 bg-gray-700/50 border-gray-600 text-white placeholder-gray-400"
                     required
                     minLength={6}
                   />
@@ -138,13 +120,13 @@ export default function Login() {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-1 top-1"
+                    className="absolute right-1 top-1 text-gray-400 hover:text-white"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400" />
+                      <EyeOff className="h-5 w-5" />
                     ) : (
-                      <Eye className="h-5 w-5 text-gray-400" />
+                      <Eye className="h-5 w-5" />
                     )}
                     <span className="sr-only">Toggle password visibility</span>
                   </Button>
@@ -168,7 +150,7 @@ export default function Login() {
                   ) : isLogin ? (
                     "Sign In"
                   ) : (
-                    "Create Account"
+                    "Request Access"
                   )}
                 </Button>
               </div>
@@ -176,28 +158,29 @@ export default function Login() {
             
             {isLogin && (
               <div className="mt-4 text-center text-sm">
-                <a href="#" className="text-indigo-600 hover:underline">
+                <a href="#" className="text-indigo-400 hover:text-indigo-300 hover:underline">
                   Forgot password?
                 </a>
               </div>
             )}
           </CardContent>
-          <CardFooter className="flex justify-center border-t px-6 py-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {isLogin ? "Don't have an account? " : "Already have an account? "}
+          <CardFooter className="flex justify-center border-t border-gray-700 px-6 py-4">
+            <p className="text-sm text-gray-400">
+              {isLogin ? "Need access to the platform? " : "Already have access? "}
               <button
                 type="button"
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-indigo-600 hover:underline font-medium"
+                className="text-indigo-400 hover:text-indigo-300 hover:underline font-medium"
               >
-                {isLogin ? "Sign up" : "Sign in"}
+                {isLogin ? "Request Access" : "Sign in"}
               </button>
             </p>
           </CardFooter>
         </Card>
         
-        <div className="mt-8 text-center text-sm text-white/80">
+        <div className="mt-8 text-center text-sm text-gray-400">
           <p>Investor Portal - Invitation Only Access</p>
+          <p className="mt-1">Test Credentials: test@investor.com / InvestorPass123</p>
         </div>
       </div>
     </div>
