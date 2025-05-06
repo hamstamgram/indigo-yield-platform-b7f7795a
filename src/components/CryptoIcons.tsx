@@ -28,7 +28,7 @@ export const CryptoIcon: React.FC<CryptoIconProps> = ({ symbol, className = "h-1
   } else if (lowerSymbol === "sol") {
     return (
       <img 
-        src="/lovable-uploads/64405caf-9066-45ee-95d1-a980b8de8800.png" 
+        src="/lovable-uploads/cdf1010c-56ba-4f71-8689-367a1e21ec4a.png" 
         alt="Solana" 
         className={className} 
       />
