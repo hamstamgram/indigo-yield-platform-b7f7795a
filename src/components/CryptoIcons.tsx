@@ -34,11 +34,12 @@ export const CryptoIcon: React.FC<CryptoIconProps> = ({ symbol, className = "h-1
       />
     );
   } else if (lowerSymbol === "usdc") {
-    // For USDC we'll keep a colored circle since no icon was provided
     return (
-      <div className={`bg-blue-500 rounded-full flex items-center justify-center ${className}`}>
-        <span className="text-white font-bold text-xs">USDC</span>
-      </div>
+      <img 
+        src="/lovable-uploads/fab5fe55-d2d7-4d42-9448-b57d95eaed46.png" 
+        alt="USDC" 
+        className={className} 
+      />
     );
   }
   
