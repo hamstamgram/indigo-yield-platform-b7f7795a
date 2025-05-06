@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -8,7 +9,11 @@ const Index = () => {
       <header className="bg-gradient-to-r from-indigo-900 to-purple-800 text-white">
         <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center">
-            <span className="text-xl font-bold">Indigo Yield Fund</span>
+            <img 
+              src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png" 
+              alt="Infinite Yield Fund"
+              className="h-10"
+            />
           </div>
           <div className="hidden md:flex space-x-4 items-center">
             <Link to="#features" className="hover:text-indigo-200">Features</Link>
@@ -21,13 +26,19 @@ const Index = () => {
         </nav>
 
         <div className="container mx-auto px-6 py-16 md:py-24 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">Grow Your Crypto Assets</h1>
+          <div className="flex justify-center mb-6">
+            <img 
+              src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png" 
+              alt="Infinite Yield Fund"
+              className="h-16 md:h-20"
+            />
+          </div>
           <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-            Indigo Yield Fund accepts BTC, ETH, SOL, and Stablecoins, providing daily yields with best-in-class security.
+            Institutional-grade crypto yield generation platform accepting BTC, ETH, SOL, and Stablecoins.
           </p>
           <div className="flex flex-col md:flex-row justify-center gap-4">
             <Button size="lg" className="bg-white text-indigo-700 hover:bg-indigo-100">
-              <Link to="/login">Start Investing</Link>
+              <Link to="/login">Access Platform</Link>
             </Button>
             <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10">
               <Link to="#learn-more">Learn More</Link>
@@ -39,7 +50,7 @@ const Index = () => {
       {/* Features Section */}
       <section id="features" className="py-16 bg-white">
         <div className="container mx-auto px-6">
-          <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">Why Choose Indigo Yield Fund</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">Why Choose Our Yield Fund</h2>
           
           <div className="grid md:grid-cols-3 gap-8">
             <div className="flex flex-col items-center text-center p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
@@ -174,11 +185,11 @@ const Index = () => {
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Start Earning?</h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Join thousands of investors who are already growing their crypto portfolios with Indigo Yield Fund.
+            Join thousands of investors who are already growing their crypto portfolios with our yield fund.
           </p>
           <div className="flex justify-center">
             <Button size="lg" className="bg-white text-indigo-700 hover:bg-indigo-100">
-              <Link to="/login">Create Your Account</Link>
+              <Link to="/login">Access Platform</Link>
             </Button>
           </div>
         </div>
@@ -189,7 +200,13 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-lg font-semibold mb-4">Indigo Yield Fund</h3>
+              <div className="mb-4">
+                <img 
+                  src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png" 
+                  alt="Infinite Yield Fund"
+                  className="h-8"
+                />
+              </div>
               <p className="text-sm text-gray-400">
                 A premium yield-generating fund for crypto assets.
               </p>
@@ -220,7 +237,7 @@ const Index = () => {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-sm text-gray-500">© {new Date().getFullYear()} Indigo Yield Fund. All rights reserved.</p>
+            <p className="text-sm text-gray-500">© {new Date().getFullYear()} Infinite Yield Fund. All rights reserved.</p>
             <div className="flex space-x-4 mt-4 md:mt-0">
               <Link to="#" className="text-gray-400 hover:text-white">
                 <span className="sr-only">Twitter</span>
