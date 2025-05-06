@@ -15,11 +15,7 @@ const AppLogo = ({ className = "h-8 w-auto", showText = false, linkTo }: AppLogo
         alt="Company Logo" 
         className={className} 
       />
-      {showText && (
-        <span className="ml-2 font-bold text-xl text-indigo-600 dark:text-indigo-400">
-          Indigo Yield Fund
-        </span>
-      )}
+      {/* Text removed */}
     </>
   );
 
