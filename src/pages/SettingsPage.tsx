@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Moon, Sun, Globe, Activity, Smartphone, Monitor, Eye, EyeOff } from 'lucide-react';
+import { Settings, Moon, Sun, Globe, Activity, Smartphone, Monitor } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -37,7 +37,6 @@ const SettingsPage = () => {
         <TabsList className="mb-4 bg-gray-100 dark:bg-gray-800">
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
           <TabsTrigger value="preferences">Preferences</TabsTrigger>
-          <TabsTrigger value="api">API</TabsTrigger>
         </TabsList>
         
         <TabsContent value="appearance">
@@ -128,28 +127,6 @@ const SettingsPage = () => {
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">Default Currency Display</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Show assets in USD by default
-                  </p>
-                </div>
-                <Select defaultValue="usd">
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Select currency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="usd">USD</SelectItem>
-                    <SelectItem value="eur">EUR</SelectItem>
-                    <SelectItem value="gbp">GBP</SelectItem>
-                    <SelectItem value="btc">BTC</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <Separator />
-              
-              <div className="flex items-center justify-between">
-                <div>
                   <h3 className="font-medium">Dashboard Timeframe</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     Default timeframe for analytics
@@ -182,70 +159,12 @@ const SettingsPage = () => {
                 <Switch />
               </div>
               
-              <Separator />
-              
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">Chart Type</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Choose your preferred chart style
-                  </p>
-                </div>
-                <Select defaultValue="line">
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Select chart type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="line">Line Chart</SelectItem>
-                    <SelectItem value="candle">Candlestick</SelectItem>
-                    <SelectItem value="bar">Bar Chart</SelectItem>
-                    <SelectItem value="area">Area Chart</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
               <Button 
                 className="w-full sm:w-auto" 
                 onClick={handleSaveSettings}
                 disabled={saveLoading}
               >
                 {saveLoading ? 'Saving...' : 'Save Preferences'}
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="api">
-          <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-            <CardHeader>
-              <CardTitle className="text-xl">API Access</CardTitle>
-              <CardDescription>Manage your API keys and access</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-md p-4">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  API access is available for enterprise users. Please contact support to enable API access for your account.
-                </p>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">Portfolio Data Access</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Enable read-only API access to your portfolio data
-                  </p>
-                </div>
-                <Switch disabled />
-              </div>
-              
-              <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/30 rounded-md p-4 text-sm text-indigo-800 dark:text-indigo-300">
-                <p>
-                  <strong>Coming Soon:</strong> Programmatic access to your portfolio data and yield information through our secure API.
-                </p>
-              </div>
-              
-              <Button disabled className="w-full sm:w-auto">
-                Request API Access
               </Button>
             </CardContent>
           </Card>
