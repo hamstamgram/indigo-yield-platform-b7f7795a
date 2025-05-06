@@ -17,6 +17,7 @@ serve(async (req) => {
     const CMC_API_KEY = Deno.env.get('CMC_API_KEY');
     
     if (!CMC_API_KEY) {
+      console.error('CMC_API_KEY is not set');
       throw new Error('CMC_API_KEY is not set');
     }
 
@@ -60,6 +61,8 @@ serve(async (req) => {
     // Get the data from the response
     const data = await response.json();
     
+    console.log('CMC API response received');
+    
     // Transform the data for our frontend
     const prices = {};
     
@@ -73,10 +76,13 @@ serve(async (req) => {
             market_cap: tokenData.quote.USD.market_cap,
             volume_24h: tokenData.quote.USD.volume_24h
           };
+          console.log(`Processed price data for ${symbol}`);
         }
       }
     }
 
+    console.log('Returning processed price data');
+    
     // Return the transformed data
     return new Response(
       JSON.stringify(prices),

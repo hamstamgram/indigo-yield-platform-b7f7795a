@@ -16,6 +16,7 @@ import Strategies from './pages/Strategies';
 import FAQ from './pages/FAQ';
 import { Toaster } from './components/ui/sonner';
 import DashboardLayout from './components/layout/DashboardLayout';
+import AdminTools from './pages/AdminTools';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           <Route path="/assets/:symbol" element={<AssetDetail />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/admin" element={<AdminTools />} />
         </Route>
         
         {/* Other routes */}

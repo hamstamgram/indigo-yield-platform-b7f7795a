@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,59 +46,95 @@ const AssetDetail = () => {
       try {
         setLoading(true);
         
-        // Fetch asset info from database
-        const { data: assetData, error: assetError } = await supabase
-          .from('assets')
-          .select('*')
-          .eq('symbol', symbol?.toLowerCase())
-          .single();
+        let assetData = null;
+        let hasDbAsset = false;
+        
+        // Try to fetch asset info from database
+        try {
+          const { data, error } = await supabase
+            .from('assets')
+            .select('*')
+            .eq('symbol', symbol?.toLowerCase())
+            .maybeSingle();
+            
+          if (error && error.code !== 'PGRST116') {
+            console.error("Database error:", error);
+          }
           
-        if (assetError) throw assetError;
+          if (data) {
+            assetData = data;
+            hasDbAsset = true;
+          }
+        } catch (dbError) {
+          console.error("Error querying database:", dbError);
+        }
+        
+        // If asset not found in DB, create a mock asset
+        if (!assetData && symbol) {
+          assetData = {
+            id: 0,
+            symbol: symbol.toLowerCase(),
+            name: symbol.toUpperCase() === 'BTC' ? 'Bitcoin' : 
+                 symbol.toUpperCase() === 'ETH' ? 'Ethereum' : 
+                 symbol.toUpperCase() === 'SOL' ? 'Solana' : 'USD Coin',
+            decimal_places: symbol.toLowerCase() === 'btc' ? 8 : 
+                          symbol.toLowerCase() === 'eth' ? 18 : 
+                          symbol.toLowerCase() === 'sol' ? 9 : 6
+          };
+        }
         
         if (assetData) {
           setAsset(assetData);
           
           // Fetch portfolio data for this asset
+          let portfolioData = null;
+          
           const { data: { user } } = await supabase.auth.getUser();
           
-          if (user) {
-            const { data: portfolioData, error: portfolioError } = await supabase
-              .from('portfolios')
-              .select('*')
-              .eq('user_id', user.id)
-              .eq('asset_id', assetData.id)
-              .single();
-              
-            if (!portfolioError && portfolioData) {
-              // We'll update the USD value after we get the price data
-              setPortfolio({
-                balance: portfolioData.balance || 0,
-                usd_value: 0, // Will be calculated when price data arrives
-                yield_applied: portfolioData.balance * (mockYield[symbol?.toLowerCase() || ''] / 100) || 0
-              });
-            } else {
-              // No portfolio data or error, set mock data
-              setPortfolio({
-                balance: symbol?.toLowerCase() === 'btc' ? 0.85 : 0,
-                usd_value: 0, // Will be calculated when price data arrives
-                yield_applied: symbol?.toLowerCase() === 'btc' ? 0.85 * (mockYield['btc'] / 100) : 0
-              });
+          if (user && hasDbAsset) {
+            try {
+              const { data, error: portfolioError } = await supabase
+                .from('portfolios')
+                .select('*')
+                .eq('user_id', user.id)
+                .eq('asset_id', assetData.id)
+                .maybeSingle();
+                
+              if (!portfolioError && data) {
+                portfolioData = data;
+              }
+            } catch (portfolioFetchError) {
+              console.error("Error fetching portfolio:", portfolioFetchError);
             }
           }
+          
+          // Set mock or real portfolio data
+          const balance = portfolioData?.balance || 
+                        (symbol?.toLowerCase() === 'btc' ? 0.85 : 
+                         symbol?.toLowerCase() === 'eth' ? 5 : 
+                         symbol?.toLowerCase() === 'sol' ? 50 : 1000);
+          
+          setPortfolio({
+            balance: balance,
+            usd_value: 0, // Will be calculated when price data arrives
+            yield_applied: balance * (mockYield[symbol?.toLowerCase() || ''] / 100) || 0
+          });
           
           // Fetch real-time price data
           if (symbol) {
             try {
+              console.log(`Fetching prices for symbol: ${symbol.toUpperCase()}`);
               const prices = await fetchCryptoPrices([symbol.toUpperCase()]);
+              console.log("Fetched prices:", prices);
+              
               if (prices && prices[symbol.toLowerCase()]) {
                 setPriceData(prices[symbol.toLowerCase()]);
               } else {
-                // Use default price as fallback
+                console.log(`No price data found for ${symbol}, using default`);
                 setPriceData(defaultPrices[symbol.toLowerCase()]);
               }
             } catch (priceError) {
               console.error('Error fetching price data:', priceError);
-              // Use default price as fallback
               setPriceData(defaultPrices[symbol.toLowerCase()]);
             }
           }

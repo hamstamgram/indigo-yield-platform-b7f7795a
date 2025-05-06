@@ -20,20 +20,45 @@ export interface CryptoPricesMap {
  */
 export const fetchCryptoPrices = async (symbols: string[]): Promise<CryptoPricesMap> => {
   try {
+    console.log(`Attempting to fetch prices for: ${symbols.join(', ')}`);
+    
     const { data, error } = await supabase.functions.invoke('get-crypto-prices', {
       body: { symbols }
     });
 
     if (error) {
       console.error('Error fetching crypto prices:', error);
-      throw new Error(`Failed to fetch crypto prices: ${error.message}`);
+      console.log('Falling back to default prices');
+      
+      // Return default prices for the requested symbols
+      const fallbackPrices: CryptoPricesMap = {};
+      
+      symbols.forEach(symbol => {
+        const lowercaseSymbol = symbol.toLowerCase();
+        if (defaultPrices[lowercaseSymbol]) {
+          fallbackPrices[lowercaseSymbol] = defaultPrices[lowercaseSymbol];
+        }
+      });
+      
+      return fallbackPrices;
     }
 
+    console.log('Successfully fetched price data:', data);
     return data as CryptoPricesMap;
   } catch (error) {
     console.error('Error in fetchCryptoPrices:', error);
-    // Return an empty object rather than throwing to avoid breaking the UI
-    return {};
+    
+    // Return default prices for the requested symbols
+    const fallbackPrices: CryptoPricesMap = {};
+    
+    symbols.forEach(symbol => {
+      const lowercaseSymbol = symbol.toLowerCase();
+      if (defaultPrices[lowercaseSymbol]) {
+        fallbackPrices[lowercaseSymbol] = defaultPrices[lowercaseSymbol];
+      }
+    });
+    
+    return fallbackPrices;
   }
 };
 
