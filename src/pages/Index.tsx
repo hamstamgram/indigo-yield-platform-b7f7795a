@@ -42,13 +42,6 @@ const Index = () => {
 
       {/* Hero Section */}
       <div className="container mx-auto px-6 py-16 text-center">
-        <div className="flex justify-center mb-10">
-          <img 
-            src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png" 
-            alt="Infinite Yield Fund" 
-            className="h-24"
-          />
-        </div>
         <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight mb-6">
           Institutional-Grade <br />
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-indigo-500 to-blue-500">
@@ -58,15 +51,12 @@ const Index = () => {
         <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
           Unlock sustainable yields in the digital asset ecosystem through our diversified strategies, sophisticated risk management, and institutional infrastructure.
         </p>
-        <div className="flex flex-col md:flex-row justify-center gap-4">
+        <div className="flex justify-center">
           <Link to="/login">
-            <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 w-full md:w-auto">
+            <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700">
               Investor Access
             </Button>
           </Link>
-          <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-black w-full md:w-auto">
-            Learn More
-          </Button>
         </div>
       </div>
 
