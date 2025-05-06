@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ export default function Login() {
   const { toast } = useToast();
 
   // When the component loads, check if user is already authenticated
-  useState(() => {
+  useEffect(() => {
     const checkAuthSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -27,7 +27,7 @@ export default function Login() {
       }
     };
     checkAuthSession();
-  });
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,7 +73,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-gray-900 to-black p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-gray-900 to-black p-4 font-['Space_Grotesk']">
       <div className="w-full max-w-md">
         <div className="mb-8 flex justify-center">
           <img 
@@ -181,6 +181,7 @@ export default function Login() {
         <div className="mt-8 text-center text-sm text-gray-400">
           <p>Investor Portal - Invitation Only Access</p>
           <p className="mt-1">Test Credentials: test@investor.com / InvestorPass123</p>
+          <p className="mt-4">Note: To create a Supabase user account, please contact admin</p>
         </div>
       </div>
     </div>
