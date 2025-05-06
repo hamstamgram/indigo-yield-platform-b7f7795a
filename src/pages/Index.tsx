@@ -13,14 +13,14 @@ const Index = () => {
             <img 
               src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png" 
               alt="Infinite Yield Fund" 
-              className="h-10"
+              className="h-8"
             />
           </div>
           <div className="hidden md:flex items-center space-x-8">
-            <a className="text-gray-700 hover:text-gray-900 transition-colors duration-300" href="#">About</a>
-            <a className="text-gray-700 hover:text-gray-900 transition-colors duration-300" href="#">Strategies</a>
-            <a className="text-gray-700 hover:text-gray-900 transition-colors duration-300" href="#">FAQ</a>
-            <a className="text-gray-700 hover:text-gray-900 transition-colors duration-300" href="#">Contact</a>
+            <Link to="/about" className="text-gray-700 hover:text-gray-900 transition-colors duration-300">About</Link>
+            <Link to="/strategies" className="text-gray-700 hover:text-gray-900 transition-colors duration-300">Strategies</Link>
+            <Link to="/faq" className="text-gray-700 hover:text-gray-900 transition-colors duration-300">FAQ</Link>
+            <Link to="/contact" className="text-gray-700 hover:text-gray-900 transition-colors duration-300">Contact</Link>
           </div>
           <div className="hidden md:block">
             <Link to="/login">
@@ -124,7 +124,7 @@ const Index = () => {
           <div className="mb-6 md:mb-0">
             <img 
               src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png" 
-              alt="Infinite Yield Fund" 
+              alt="Indigo Digital Assets Yield" 
               className="h-8"
             />
             <p className="mt-2 text-sm text-gray-500">

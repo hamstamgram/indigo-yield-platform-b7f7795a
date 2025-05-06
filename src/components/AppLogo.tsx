@@ -11,11 +11,11 @@ const AppLogo = ({ className = "h-8 w-auto", showText = false, linkTo }: AppLogo
   const LogoContent = () => (
     <>
       <img 
-        src="/lovable-uploads/2d55a454-e894-4533-85b1-b372e83be397.png" 
-        alt="Company Logo" 
+        src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png" 
+        alt="Indigo Digital Assets Yield" 
         className={className} 
       />
-      {/* Text removed */}
+      {showText && <span className="ml-2 text-lg font-medium">Indigo</span>}
     </>
   );
 

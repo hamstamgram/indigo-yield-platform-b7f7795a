@@ -15,8 +15,8 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Contact as ContactIcon } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Contact as ContactIcon, Mail, Phone, MessageSquare } from "lucide-react";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -26,7 +26,6 @@ const formSchema = z.object({
 });
 
 const Contact = () => {
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -48,9 +47,8 @@ const Contact = () => {
       setIsSubmitting(false);
       form.reset();
       
-      toast({
-        title: "Message Sent",
-        description: "Thank you for contacting us. We'll get back to you soon.",
+      toast.success("Message Sent", {
+        description: "Thank you for contacting us. We'll get back to you soon."
       });
     }, 1000);
   }
@@ -64,8 +62,8 @@ const Contact = () => {
             <Link to="/">
               <img 
                 src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png" 
-                alt="Infinite Yield Fund" 
-                className="h-10"
+                alt="Indigo Digital Assets Yield" 
+                className="h-8"
               />
             </Link>
           </div>
@@ -91,24 +89,33 @@ const Contact = () => {
             </p>
             
             <div className="mt-8 space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Email</h3>
-                <p className="text-indigo-600">contact@indigoyield.com</p>
+              <div className="flex items-center gap-3">
+                <Mail className="h-6 w-6 text-indigo-500" />
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Email</h3>
+                  <a href="mailto:hello@indigo.fund" className="text-indigo-600 hover:underline">hello@indigo.fund</a>
+                </div>
               </div>
               
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Phone</h3>
-                <p className="text-indigo-600">+1 (555) 123-4567</p>
+              <div className="flex items-center gap-3">
+                <Phone className="h-6 w-6 text-indigo-500" />
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Phone</h3>
+                  <p className="text-indigo-600">+1 (555) 123-4567</p>
+                </div>
               </div>
               
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Office Address</h3>
-                <address className="not-italic text-gray-600">
-                  123 Blockchain Avenue<br />
-                  Suite 456<br />
-                  Financial District<br />
-                  New York, NY 10001
-                </address>
+              <div className="flex items-start gap-3">
+                <MessageSquare className="h-6 w-6 text-indigo-500 mt-1" />
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Office Address</h3>
+                  <address className="not-italic text-gray-600">
+                    123 Blockchain Avenue<br />
+                    Suite 456<br />
+                    Financial District<br />
+                    New York, NY 10001
+                  </address>
+                </div>
               </div>
             </div>
           </div>
@@ -197,7 +204,7 @@ const Contact = () => {
           <div className="mb-6 md:mb-0">
             <img 
               src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png" 
-              alt="Infinite Yield Fund" 
+              alt="Indigo Digital Assets Yield" 
               className="h-8"
             />
             <p className="mt-2 text-sm text-gray-500">
