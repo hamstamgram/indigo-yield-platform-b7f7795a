@@ -6,6 +6,7 @@ import { useInvestors } from "@/hooks/useInvestors";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { supabase } from "@/integrations/supabase/client";
 import AddInvestorDialog from "@/components/admin/investors/AddInvestorDialog";
+import { useEffect } from "react";
 
 const AdminInvestors = () => {
   const { 
@@ -22,6 +23,11 @@ const AdminInvestors = () => {
   if (loading) {
     return <LoadingSpinner />;
   }
+  
+  // Initial load
+  useEffect(() => {
+    refetch();
+  }, []);
   
   // Send email invitation
   const sendInviteToInvestor = async (email: string) => {
@@ -83,11 +89,17 @@ const AdminInvestors = () => {
     }
   };
 
+  // Define handleInvestorAdded function for refreshing data
+  const handleInvestorAdded = () => {
+    console.log("Investor added, refreshing data...");
+    refetch();
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Investor Management</h1>
-        <AddInvestorDialog assets={assets} onInvestorAdded={refetch} />
+        <AddInvestorDialog assets={assets} onInvestorAdded={handleInvestorAdded} />
       </div>
       
       <InvestorTableContainer

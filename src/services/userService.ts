@@ -23,6 +23,7 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
     
     // Create a user in the auth system if doesn't exist
     // Since we can't use admin.createUser with a regular token, let's try using the signup endpoint
+    console.log("Attempting to create new user via signup...");
     const { data: authData, error: signupError } = await supabase.auth.signUp({
       email: values.email,
       password: tempPassword,
@@ -46,6 +47,7 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
         .single();
         
       if (profileFetchError || !profileData) {
+        console.error("Failed to find or create user:", profileFetchError);
         throw new Error("Failed to find or create user");
       }
       
@@ -58,9 +60,11 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
         throw new Error("User created but ID not returned");
       }
       
+      console.log("New user created with ID:", userId);
+      
       // Check if the profile was automatically created
       // Wait a moment to allow the database trigger to create the profile
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Verify the profile exists
       const { data: profile, error: profileError } = await supabase
@@ -70,6 +74,7 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
         .single();
       
       if (profileError || !profile) {
+        console.log("Profile not found after creation, creating manually");
         // Manually create the profile if it wasn't created automatically
         const { error: insertError } = await supabase
           .from('profiles')
@@ -85,6 +90,8 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
           console.error("Error creating profile:", insertError);
           throw new Error("Failed to create user profile");
         }
+      } else {
+        console.log("Profile was created automatically:", profile);
       }
       
       return userId;

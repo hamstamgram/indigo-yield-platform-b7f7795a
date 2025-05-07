@@ -76,7 +76,13 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(newOpen) => {
+      setOpen(newOpen);
+      // If dialog is closing and we're not in loading state, refresh data
+      if (!newOpen && !isLoading) {
+        onInvestorAdded();
+      }
+    }}>
       <DialogTrigger asChild>
         <Button>
           <UserPlus className="h-4 w-4 mr-2" />

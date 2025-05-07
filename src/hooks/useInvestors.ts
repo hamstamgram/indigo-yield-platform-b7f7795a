@@ -81,6 +81,8 @@ export const useInvestors = () => {
         setLoading(false);
         return;
       }
+
+      console.log("Fetched investor profiles:", investorProfiles);
       
       // Fetch portfolio data for each investor
       const investorsWithPortfolios = await Promise.all((investorProfiles || []).map(async (investor) => {
@@ -123,6 +125,7 @@ export const useInvestors = () => {
         };
       }));
       
+      console.log("Processed investors with portfolios:", investorsWithPortfolios);
       setInvestors(investorsWithPortfolios);
       setFilteredInvestors(investorsWithPortfolios);
     } catch (error) {
@@ -159,6 +162,7 @@ export const useInvestors = () => {
   
   // Provide a refetch method to refresh data
   const refetch = useCallback(() => {
+    console.log("Refetching investor data...");
     fetchData();
   }, [fetchData]);
   
