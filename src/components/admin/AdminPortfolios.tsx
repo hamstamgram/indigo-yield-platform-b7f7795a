@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Save, Search, X, Plus, Users } from "lucide-react";
+import { Loader2, Save, Search, X, Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Investor, Asset } from "@/types/investorTypes";
 
 type UserPortfolio = {
@@ -50,13 +49,9 @@ const AdminPortfolios = ({
 }: AdminPortfoliosProps) => {
   const [portfolios, setPortfolios] = useState<UserPortfolio[]>([]);
   const [filteredPortfolios, setFilteredPortfolios] = useState<UserPortfolio[]>([]);
-  const [investors, setInvestors] = useState<UserProfile[]>([]);
-  const [filteredInvestors, setFilteredInvestors] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingInvestors, setLoadingInvestors] = useState(true);
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [investorSearchTerm, setInvestorSearchTerm] = useState("");
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -64,7 +59,6 @@ const AdminPortfolios = ({
   const [selectedAsset, setSelectedAsset] = useState<number>(0);
   const [newBalance, setNewBalance] = useState<string>("0");
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("portfolios");
 
   const fetchData = async () => {
     try {
@@ -131,54 +125,11 @@ const AdminPortfolios = ({
     }
   };
 
-  const fetchInvestors = async () => {
-    try {
-      setLoadingInvestors(true);
-      
-      // If investors are provided as props, use them
-      if (providedInvestors && providedInvestors.length > 0) {
-        const formattedInvestors = providedInvestors.map(investor => ({
-          id: investor.id,
-          email: investor.email,
-          first_name: investor.first_name,
-          last_name: investor.last_name
-        }));
-        setInvestors(formattedInvestors);
-        setFilteredInvestors(formattedInvestors);
-        setLoadingInvestors(false);
-        return;
-      }
-      
-      // Otherwise fetch investors directly
-      const { data: investorsData, error } = await supabase
-        .from('profiles')
-        .select('id, email, first_name, last_name, created_at')
-        .eq('is_admin', false)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      
-      console.log("Fetched investors:", investorsData?.length || 0);
-      setInvestors(investorsData || []);
-      setFilteredInvestors(investorsData || []);
-    } catch (error) {
-      console.error('Error fetching investors:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch investor data',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoadingInvestors(false);
-    }
-  };
-
   // Use both provided loading state and internal state
   const isLoading = providedLoading !== undefined ? providedLoading : loading;
 
   useEffect(() => {
     fetchData();
-    fetchInvestors();
   }, [providedInvestors, providedAssets]);
 
   useEffect(() => {
@@ -194,20 +145,6 @@ const AdminPortfolios = ({
       setFilteredPortfolios(filtered);
     }
   }, [searchTerm, portfolios]);
-
-  useEffect(() => {
-    if (investorSearchTerm.trim() === '') {
-      setFilteredInvestors(investors);
-    } else {
-      const term = investorSearchTerm.toLowerCase();
-      const filtered = investors.filter(investor => 
-        investor.email?.toLowerCase().includes(term) || 
-        investor.first_name?.toLowerCase().includes(term) || 
-        investor.last_name?.toLowerCase().includes(term)
-      );
-      setFilteredInvestors(filtered);
-    }
-  }, [investorSearchTerm, investors]);
 
   const handleBalanceChange = (portfolioId: string, value: string) => {
     const numValue = parseFloat(value);
@@ -353,10 +290,6 @@ const AdminPortfolios = ({
     setSearchTerm("");
   };
 
-  const clearInvestorSearch = () => {
-    setInvestorSearchTerm("");
-  };
-
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -370,168 +303,87 @@ const AdminPortfolios = ({
         </Button>
       </CardHeader>
       <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="portfolios">Portfolio Entries</TabsTrigger>
-            <TabsTrigger value="investors">All Investors</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="portfolios">
-            <div className="flex mb-4">
-              <div className="relative flex-grow">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by email or asset..."
-                  className="pl-8 pr-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                {searchTerm && (
-                  <button
-                    onClick={clearSearch}
-                    className="absolute right-2.5 top-2.5"
-                    aria-label="Clear search"
-                  >
-                    <X className="h-4 w-4 text-muted-foreground" />
-                  </button>
-                )}
-              </div>
-            </div>
-            
-            {isLoading ? (
-              <div className="flex justify-center p-4">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>User</TableHead>
-                      <TableHead>Asset</TableHead>
-                      <TableHead>Symbol</TableHead>
-                      <TableHead>Balance</TableHead>
-                      <TableHead className="w-[100px]">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredPortfolios.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-6">
-                          {searchTerm ? "No portfolios match your search" : "No portfolio data available"}
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredPortfolios.map((portfolio) => (
-                        <TableRow key={portfolio.id}>
-                          <TableCell>{portfolio.user_email}</TableCell>
-                          <TableCell>{portfolio.asset_name}</TableCell>
-                          <TableCell>{portfolio.asset_symbol}</TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              step="0.00000001"
-                              min="0"
-                              value={portfolio.balance}
-                              onChange={(e) => handleBalanceChange(portfolio.id, e.target.value)}
-                              className="min-w-[150px] h-10"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => savePortfolioChanges(portfolio.id)}
-                              disabled={saving}
-                            >
-                              {saving ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Save className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+        <div className="flex mb-4">
+          <div className="relative flex-grow">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by email or asset..."
+              className="pl-8 pr-8"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button
+                onClick={clearSearch}
+                className="absolute right-2.5 top-2.5"
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4 text-muted-foreground" />
+              </button>
             )}
-          </TabsContent>
-          
-          <TabsContent value="investors">
-            <div className="flex mb-4">
-              <div className="relative flex-grow">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search investors..."
-                  className="pl-8 pr-8"
-                  value={investorSearchTerm}
-                  onChange={(e) => setInvestorSearchTerm(e.target.value)}
-                />
-                {investorSearchTerm && (
-                  <button
-                    onClick={clearInvestorSearch}
-                    className="absolute right-2.5 top-2.5"
-                    aria-label="Clear search"
-                  >
-                    <X className="h-4 w-4 text-muted-foreground" />
-                  </button>
-                )}
-              </div>
-            </div>
-            
-            {loadingInvestors ? (
-              <div className="flex justify-center p-4">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Actions</TableHead>
+          </div>
+        </div>
+        
+        {isLoading ? (
+          <div className="flex justify-center p-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Investor</TableHead>
+                  <TableHead>Asset</TableHead>
+                  <TableHead>Symbol</TableHead>
+                  <TableHead>Balance</TableHead>
+                  <TableHead className="w-[100px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredPortfolios.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-6">
+                      {searchTerm ? "No portfolios match your search" : "No portfolio data available"}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredPortfolios.map((portfolio) => (
+                    <TableRow key={portfolio.id}>
+                      <TableCell>{portfolio.user_email}</TableCell>
+                      <TableCell>{portfolio.asset_name}</TableCell>
+                      <TableCell>{portfolio.asset_symbol}</TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          step="0.00000001"
+                          min="0"
+                          value={portfolio.balance}
+                          onChange={(e) => handleBalanceChange(portfolio.id, e.target.value)}
+                          className="min-w-[150px] h-10"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => savePortfolioChanges(portfolio.id)}
+                          disabled={saving}
+                        >
+                          {saving ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Save className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredInvestors.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-center py-6">
-                          {investorSearchTerm ? "No investors match your search" : "No investors found"}
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredInvestors.map((investor) => (
-                        <TableRow key={investor.id}>
-                          <TableCell>
-                            {investor.first_name || ''} {investor.last_name || ''}
-                          </TableCell>
-                          <TableCell>{investor.email}</TableCell>
-                          <TableCell>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedUser(investor.id);
-                                setAddDialogOpen(true);
-                              }}
-                            >
-                              <Plus className="h-4 w-4 mr-2" />
-                              Add Asset
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
 
         {/* Add Portfolio Dialog */}
         <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>

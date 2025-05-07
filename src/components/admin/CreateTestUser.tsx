@@ -46,6 +46,11 @@ const CreateTestUser: React.FC<CreateTestUserProps> = ({ onUserCreated }) => {
         });
         setEmail('');
         setPassword('');
+        
+        // Make sure to call onUserCreated to refresh the data
+        if (onUserCreated) {
+          onUserCreated();
+        }
       }
     } catch (error: any) {
       toast({
@@ -55,9 +60,6 @@ const CreateTestUser: React.FC<CreateTestUserProps> = ({ onUserCreated }) => {
       });
     } finally {
       setLoading(false);
-      if (onUserCreated) {
-        onUserCreated();
-      }
     }
   };
 
