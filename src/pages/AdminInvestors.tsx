@@ -7,21 +7,12 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
-import { Loader2, Search, Mail, Plus, X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { CryptoIcon } from "@/components/CryptoIcons";
+import { supabase } from "@/integrations/supabase/client";
+import SearchBar from "@/components/admin/investors/SearchBar";
+import InvestorsTable from "@/components/admin/investors/InvestorsTable";
+import InvestorsHeader from "@/components/admin/investors/InvestorsHeader";
 
 type Investor = {
   id: string;
@@ -51,21 +42,6 @@ const AdminInvestors = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  // Format currency
-  const formatCurrency = (value: number = 0) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(value);
-  };
-
-  // Format crypto amounts
-  const formatCrypto = (value: number = 0, symbol: string) => {
-    const decimals = symbol.toLowerCase() === 'btc' ? 8 : 
-                    symbol.toLowerCase() === 'usdc' ? 2 : 4;
-    return `${value.toFixed(decimals)}`;
-  };
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -201,11 +177,6 @@ const AdminInvestors = () => {
     }
   }, [searchTerm, investors]);
   
-  // Clear search
-  const clearSearch = () => {
-    setSearchTerm("");
-  };
-  
   // Navigate to create investor page
   const handleCreateInvestor = () => {
     navigate('/admin?tab=invites');
@@ -227,13 +198,7 @@ const AdminInvestors = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Investor Management</h1>
-        <Button onClick={handleCreateInvestor}>
-          <Plus className="h-4 w-4 mr-2" />
-          Invite New Investor
-        </Button>
-      </div>
+      <InvestorsHeader onCreateInvestor={handleCreateInvestor} />
       
       <Card className="border-0 shadow-md">
         <CardHeader>
@@ -244,127 +209,20 @@ const AdminInvestors = () => {
         </CardHeader>
         <CardContent>
           <div className="flex mb-4">
-            <div className="relative flex-grow">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name or email..."
-                className="pl-8 pr-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              {searchTerm && (
-                <button
-                  onClick={clearSearch}
-                  className="absolute right-2.5 top-2.5"
-                  aria-label="Clear search"
-                >
-                  <X className="h-4 w-4 text-muted-foreground" />
-                </button>
-              )}
-            </div>
+            <SearchBar 
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+            />
           </div>
           
-          {loading ? (
-            <div className="flex justify-center p-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : (
-            <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Investor</TableHead>
-                    {assets.map(asset => (
-                      <TableHead key={asset.id}>
-                        <div className="flex items-center">
-                          <CryptoIcon symbol={asset.symbol} className="h-5 w-5 mr-2" />
-                          {asset.symbol}
-                        </div>
-                      </TableHead>
-                    ))}
-                    <TableHead>Total Value</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredInvestors.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={assets.length + 3} className="text-center py-6">
-                        {searchTerm ? "No investors match your search" : "No investors found"}
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredInvestors.map((investor) => {
-                      // Calculate total portfolio value
-                      let totalValue = 0;
-                      if (investor.portfolio_summary) {
-                        Object.values(investor.portfolio_summary).forEach(asset => {
-                          totalValue += asset.usd_value;
-                        });
-                      }
-                      
-                      return (
-                        <TableRow key={investor.id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">
-                                {investor.first_name || ''} {investor.last_name || ''}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {investor.email}
-                              </div>
-                            </div>
-                          </TableCell>
-                          
-                          {assets.map(asset => (
-                            <TableCell key={`${investor.id}-${asset.id}`}>
-                              {investor.portfolio_summary && investor.portfolio_summary[asset.symbol] ? (
-                                <div>
-                                  <div className="font-medium">
-                                    {formatCrypto(investor.portfolio_summary[asset.symbol].balance, asset.symbol)}
-                                  </div>
-                                  <div className="text-xs text-gray-500">
-                                    {formatCurrency(investor.portfolio_summary[asset.symbol].usd_value)}
-                                  </div>
-                                </div>
-                              ) : (
-                                <span className="text-gray-400">-</span>
-                              )}
-                            </TableCell>
-                          ))}
-                          
-                          <TableCell>
-                            <span className="font-medium">
-                              {formatCurrency(totalValue)}
-                            </span>
-                          </TableCell>
-                          
-                          <TableCell className="text-right">
-                            <div className="flex justify-end space-x-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => viewInvestorDetails(investor.id)}
-                              >
-                                Details
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => sendEmailToInvestor(investor.email)}
-                              >
-                                <Mail className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+          <InvestorsTable
+            investors={filteredInvestors}
+            assets={assets}
+            loading={loading}
+            searchTerm={searchTerm}
+            onViewDetails={viewInvestorDetails}
+            onSendEmail={sendEmailToInvestor}
+          />
         </CardContent>
       </Card>
     </div>
