@@ -124,23 +124,35 @@ export const useInvestors = () => {
         }
         
         // Filter to only get non-admin users based on metadata
-        const nonAdminUsers = authUsers?.users.filter(user => {
-          // Type assertion for user_metadata to ensure TypeScript knows it's an object or null
-          const metadata = user?.user_metadata as Record<string, unknown> | null;
-          return metadata && metadata.is_admin !== true;
+        const nonAdminUsers = authUsers?.users?.filter(user => {
+          if (!user) return false;
+          
+          // Need to use explicit type assertion and null checks
+          const userMetadata = user.user_metadata as Record<string, unknown> | null | undefined;
+          return userMetadata && userMetadata.is_admin !== true;
         }) || [];
         
         console.log("Found users via auth API:", nonAdminUsers?.length || 0);
         
         // Map them to our investor format
         const mappedInvestors = nonAdminUsers.map(user => {
-          // Type assertion for metadata as Record<string, unknown>
-          const metadata = user?.user_metadata as Record<string, unknown> | null;
+          if (!user) return {
+            id: '',
+            email: '',
+            first_name: '',
+            last_name: '',
+            created_at: '',
+            portfolio_summary: {}
+          } as Investor;
+          
+          // Explicit type assertion with careful handling
+          const userMetadata = user.user_metadata as Record<string, unknown> | null | undefined;
+          
           return {
             id: user.id || '',
             email: user.email || '',
-            first_name: metadata?.first_name as string || '',
-            last_name: metadata?.last_name as string || '',
+            first_name: userMetadata?.first_name as string || '',
+            last_name: userMetadata?.last_name as string || '',
             created_at: user.created_at || '',
             portfolio_summary: {}
           } as Investor;
