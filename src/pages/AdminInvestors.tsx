@@ -19,15 +19,15 @@ const AdminInvestors = () => {
   } = useInvestors();
   const { toast } = useToast();
   
+  // IMPORTANT: useEffect must be called at the top level, not conditionally
+  useEffect(() => {
+    refetch();
+  }, [refetch]); // Added refetch as a dependency
+  
   // Show loading state while checking permissions or loading data
   if (loading) {
     return <LoadingSpinner />;
   }
-  
-  // Initial load
-  useEffect(() => {
-    refetch();
-  }, []);
   
   // Send email invitation
   const sendInviteToInvestor = async (email: string) => {
