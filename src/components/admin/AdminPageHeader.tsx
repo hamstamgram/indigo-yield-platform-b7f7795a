@@ -20,10 +20,10 @@ const AdminPageHeader: React.FC<AdminPageHeaderProps> = ({ userName }) => {
       </div>
       <div className="flex mt-4 md:mt-0 space-x-3">
         <Button variant="outline" asChild>
-          <Link to="/admin?tab=users">Manage Users</Link>
+          <Link to="/admin-investors">Manage Investors</Link>
         </Button>
         <Button asChild>
-          <Link to="/admin?tab=invites">Investor Invites</Link>
+          <Link to="/admin?tab=portfolios">Portfolio Management</Link>
         </Button>
       </div>
     </div>

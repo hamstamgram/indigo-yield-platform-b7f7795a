@@ -5,7 +5,6 @@ import { AlertCircle } from "lucide-react";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AssetOverview from "@/components/admin/AssetOverview";
 import YieldSourcesTable from "@/components/admin/YieldSourcesTable";
-import QuickLinks from "@/components/admin/QuickLinks";
 import { useAssetData } from "@/hooks/useAssetData";
 import { useNavigate } from "react-router-dom";
 
@@ -50,9 +49,6 @@ const AdminDashboard = () => {
         loading={loading} 
         yieldSources={yieldSources} 
       />
-      
-      {/* Quick links */}
-      <QuickLinks />
     </div>
   );
 };
