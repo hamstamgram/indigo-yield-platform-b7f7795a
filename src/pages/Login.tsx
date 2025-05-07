@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,24 +13,44 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   // When the component loads, check if user is already authenticated
   useEffect(() => {
     const checkAuthSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        // If there's already a session, redirect based on known admin email
-        if (session.user.email === 'hammadou@indigo.fund') {
-          console.log("Known admin detected, redirecting to admin dashboard");
-          navigate("/admin-dashboard");
-        } else {
-          console.log("Regular user detected, redirecting to dashboard");
-          navigate("/dashboard");
+      try {
+        setCheckingAuth(true);
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // Get user profile to check admin status
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', session.user.id)
+            .single();
+            
+          const isAdmin = profile?.is_admin || session.user.email === 'hammadou@indigo.fund';
+          
+          // If there's already a session, redirect based on admin status
+          if (isAdmin) {
+            console.log("Known admin detected, redirecting to admin dashboard");
+            navigate("/admin-dashboard", { replace: true });
+          } else {
+            console.log("Regular user detected, redirecting to dashboard");
+            navigate("/dashboard", { replace: true });
+          }
         }
+      } catch (error) {
+        console.error("Error checking session:", error);
+      } finally {
+        setCheckingAuth(false);
       }
     };
+    
     checkAuthSession();
   }, [navigate]);
 
@@ -63,10 +82,10 @@ export default function Login() {
         // Direct admin users to admin dashboard, regular users to normal dashboard
         if (isKnownAdmin) {
           console.log("Admin user detected, redirecting to admin dashboard");
-          navigate("/admin-dashboard");
+          navigate("/admin-dashboard", { replace: true });
         } else {
           console.log("Regular user detected, redirecting to dashboard");
-          navigate("/dashboard");
+          navigate("/dashboard", { replace: true });
         }
       } else {
         // Since this is invitation-only, restrict self registration
@@ -88,6 +107,14 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  if (checkingAuth) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-indigo-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-white p-4 font-['Space_Grotesk']">

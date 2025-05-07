@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
@@ -36,12 +36,19 @@ const DashboardLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  
+  // Use a ref to prevent unnecessary redirects
+  const authCheckComplete = useRef(false);
+  const hasRedirected = useRef(false);
   
   // Check auth status and admin status
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        if (authCheckComplete.current) return;
+        
         setIsLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         
@@ -57,15 +64,22 @@ const DashboardLayout = () => {
         const adminStatus = await checkAdminStatus(session.user.id);
         setIsAdmin(adminStatus);
         
-        // Route based on admin status and current path
-        const currentPath = window.location.pathname;
+        // Set ref to true to prevent further checks
+        authCheckComplete.current = true;
+        
+        // Route based on admin status and current path only if we haven't redirected yet
+        if (hasRedirected.current) return;
+        
+        const currentPath = location.pathname;
         console.log("Current path:", currentPath);
         
         if (adminStatus && currentPath === '/dashboard') {
           console.log("Admin on regular dashboard - redirecting to admin dashboard");
+          hasRedirected.current = true;
           navigate('/admin-dashboard');
         } else if (!adminStatus && currentPath.includes('admin')) {
           console.log("Regular user on admin page - redirecting to regular dashboard");
+          hasRedirected.current = true;
           navigate('/dashboard');
         }
       } catch (error) {
@@ -82,7 +96,24 @@ const DashboardLayout = () => {
     };
     
     checkAuth();
-  }, [navigate, toast]);
+  }, [navigate, toast, location.pathname]);
+  
+  // Listen for auth state changes
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        // Reset the auth check when session changes
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+          authCheckComplete.current = false;
+          hasRedirected.current = false;
+        }
+      }
+    );
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
   
   // Set sidebar open state based on screen size
   useEffect(() => {

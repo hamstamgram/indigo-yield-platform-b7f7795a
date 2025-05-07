@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
@@ -8,16 +8,16 @@ import AssetOverview from "@/components/admin/AssetOverview";
 import YieldSourcesTable from "@/components/admin/YieldSourcesTable";
 import QuickLinks from "@/components/admin/QuickLinks";
 import { useAssetData } from "@/hooks/useAssetData";
-import { useEffect } from "react";
 
 const AdminDashboard = () => {
   const { loading, error, assetSummaries, yieldSources, userName, isAdmin } = useAssetData();
   const navigate = useNavigate();
   
-  // Security check - redirect non-admin users
+  // Security check - redirect non-admin users, but only once
   useEffect(() => {
     if (!loading && !isAdmin) {
-      navigate('/dashboard');
+      console.log("Non-admin detected, redirecting to dashboard");
+      navigate('/dashboard', { replace: true });
     }
   }, [loading, isAdmin, navigate]);
   
