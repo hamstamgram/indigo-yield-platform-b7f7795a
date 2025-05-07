@@ -30,6 +30,7 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
   const handleSubmit = async (values: InvestorFormValues) => {
     try {
       setIsLoading(true);
+      console.log("Creating investor with values:", values);
       
       // Generate a random password for the initial user account
       const tempPassword = Math.random().toString(36).substring(2, 15) + 
@@ -49,15 +50,29 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
       
       if (authError) {
         // If the user already exists in auth system, continue with the profile creation
-        // We'll still need to create the profile and portfolio entries
         console.log("Auth creation warning (user may already exist):", authError);
+        
+        // Try to fetch the user by email to get their ID
+        const { data: profileData, error: profileFetchError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', values.email)
+          .single();
+          
+        if (profileFetchError || !profileData) {
+          throw new Error("Failed to find or create user");
+        }
+        
+        var userId = profileData.id;
+      } else {
+        var userId = authData?.user?.id;
       }
-      
-      const userId = authData?.user?.id;
 
       if (!userId) {
         throw new Error("Failed to create or find auth user");
       }
+
+      console.log("User created/found with ID:", userId);
 
       // 2. Create portfolio entries for this investor if balances are provided
       const portfolioEntries = [];
@@ -108,11 +123,13 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
 
       // Insert portfolio entries if any
       if (portfolioEntries.length > 0) {
+        console.log("Creating portfolio entries:", portfolioEntries);
         const { error: portfolioError } = await supabase
           .from('portfolios')
           .insert(portfolioEntries);
 
         if (portfolioError) {
+          console.error("Portfolio insert error:", portfolioError);
           throw portfolioError;
         }
       }
@@ -125,6 +142,7 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       
+      console.log("Creating invite for user:", values.email);
       const { error: inviteError } = await supabase
         .from('admin_invites')
         .insert({
@@ -135,6 +153,7 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
         });
 
       if (inviteError) {
+        console.error("Invite creation error:", inviteError);
         throw inviteError;
       }
 

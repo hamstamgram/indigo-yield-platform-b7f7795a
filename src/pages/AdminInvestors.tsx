@@ -26,6 +26,8 @@ const AdminInvestors = () => {
   // Send email invitation
   const sendInviteToInvestor = async (email: string) => {
     try {
+      console.log("Sending invite to:", email);
+      
       // Generate a new invite code each time we send an invite
       const inviteCode = Math.random().toString(36).substring(2, 15);
       const expiresAt = new Date();
@@ -47,8 +49,11 @@ const AdminInvestors = () => {
         .select();
       
       if (error) {
+        console.error("Error creating invite:", error);
         throw error;
       }
+      
+      console.log("Invite created:", data);
       
       // Call edge function to send the email
       const { error: inviteError } = await supabase.functions.invoke('send-admin-invite', {
@@ -56,6 +61,7 @@ const AdminInvestors = () => {
       });
       
       if (inviteError) {
+        console.error("Error invoking edge function:", inviteError);
         throw inviteError;
       }
       
