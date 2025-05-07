@@ -15,9 +15,9 @@ const AdminTools = () => {
   const defaultTab = searchParams.get("tab") || "portfolios";
   
   // Determine if we should show just the specific component without header and tabs
-  const directAccess = location.search.includes('?tab=') && !location.search.includes('showTabs=true');
+  const directAccess = location.search.includes('tab=') && !location.search.includes('showTabs=true');
 
-  // Simplified initialization - DashboardLayout now handles the auth check and redirection
+  // Simplified initialization
   useEffect(() => {
     // Just check if the component is ready to render
     setInitializing(false);
@@ -38,7 +38,7 @@ const AdminTools = () => {
       case "invites":
         return <AdminInvites />;
       default:
-        break;
+        return <AdminPortfolios />;
     }
   }
 

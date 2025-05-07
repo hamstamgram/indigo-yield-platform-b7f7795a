@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -39,7 +40,12 @@ const DashboardLayout = () => {
   const { toast } = useToast();
   
   const currentPath = location.pathname;
-  const isAdminRoute = currentPath.startsWith('/admin');
+  
+  // Determine if path is admin route - simplify logic
+  const isAdminRoute = 
+    currentPath.startsWith('/admin') || 
+    currentPath === '/admin-dashboard' || 
+    currentPath === '/admin-investors';
   
   // Check auth status and admin status
   useEffect(() => {
@@ -69,15 +75,15 @@ const DashboardLayout = () => {
             console.log("Admin on regular dashboard - redirecting to admin dashboard");
             navigate('/admin-dashboard', { replace: true });
           }
-        } else if (
-          isAdminRoute || 
-          currentPath === '/admin-dashboard' || 
-          currentPath === '/admin-investors'
-        ) {
+          // Don't redirect if already on admin pages
+        } else if (isAdminRoute) {
           // Non-admin users trying to access admin pages
           console.log("Regular user on admin page - redirecting to regular dashboard");
           navigate('/dashboard', { replace: true });
         }
+        
+        // Finish loading regardless of outcome
+        setIsLoading(false);
         
       } catch (error) {
         console.error("Auth check error:", error);
