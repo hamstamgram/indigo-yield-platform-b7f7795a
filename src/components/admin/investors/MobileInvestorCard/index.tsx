@@ -1,13 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Send, Save } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Asset, Investor } from '@/types/investorTypes';
+import InvestorAssetDropdown from './InvestorAssetDropdown';
 import InvestorInfo from './InvestorInfo';
-import AssetBalanceItem from './AssetBalanceItem';
-import FeePercentageItem from './FeePercentageItem';
-import CardActions from './CardActions';
 
 interface MobileInvestorCardProps {
   investor: Investor;
@@ -16,12 +17,12 @@ interface MobileInvestorCardProps {
   onSaveSuccess: () => void;
 }
 
-const MobileInvestorCard: React.FC<MobileInvestorCardProps> = ({
+const MobileInvestorCard = ({
   investor,
   assets,
   onSendEmail,
   onSaveSuccess
-}) => {
+}: MobileInvestorCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [fee, setFee] = useState<string>(investor.fee_percentage?.toString() || "2.0");
@@ -147,45 +148,92 @@ const MobileInvestorCard: React.FC<MobileInvestorCardProps> = ({
     <Card className="mb-4">
       <CardContent className="pt-4">
         <InvestorInfo 
-          firstName={investor.first_name}
-          lastName={investor.last_name}
+          firstName={investor.first_name || ''}
+          lastName={investor.last_name || ''}
           email={investor.email}
         />
         
         <div className="space-y-3">
           {assets.map(asset => (
-            <AssetBalanceItem
-              key={asset.id}
-              asset={asset}
-              balance={balances[asset.symbol] || '0'}
-              portfolioSummary={investor.portfolio_summary}
-              isEditing={isEditing}
-              onChange={(value) => handleBalanceChange(asset.symbol, value)}
-            />
+            <div key={asset.id} className="flex justify-between items-center">
+              <div className="font-medium">{asset.symbol}</div>
+              {isEditing ? (
+                <Input 
+                  type="number"
+                  step="0.00000001"
+                  value={balances[asset.symbol] || '0'}
+                  onChange={(e) => handleBalanceChange(asset.symbol, e.target.value)}
+                  className="max-w-[120px]"
+                />
+              ) : (
+                <div>
+                  {investor.portfolio_summary && investor.portfolio_summary[asset.symbol.toUpperCase()] 
+                    ? `${investor.portfolio_summary[asset.symbol.toUpperCase()].balance.toFixed(4)}`
+                    : '-'}
+                </div>
+              )}
+            </div>
           ))}
 
-          <FeePercentageItem
-            fee={fee}
-            feePercentage={investor.fee_percentage}
-            isEditing={isEditing}
-            onChange={setFee}
-          />
+          <div className="flex justify-between items-center border-t pt-3 mt-3">
+            <div className="font-medium">Fee (%)</div>
+            {isEditing ? (
+              <Input 
+                type="number"
+                step="0.1"
+                min="0"
+                max="100"
+                value={fee}
+                onChange={(e) => setFee(e.target.value)}
+                className="max-w-[80px]"
+              />
+            ) : (
+              <div>
+                {investor.fee_percentage !== null && investor.fee_percentage !== undefined
+                  ? `${investor.fee_percentage.toFixed(1)}%`
+                  : '2.0%'}
+              </div>
+            )}
+          </div>
         </div>
       </CardContent>
       
       <CardFooter className="flex justify-end gap-2 pt-0">
-        <CardActions
-          isEditing={isEditing}
-          isSaving={isSaving}
-          userId={investor.id}
-          existingAssets={existingAssetIds}
-          assets={assets}
-          onEdit={() => setIsEditing(true)}
-          onSave={handleSave}
-          onSendEmail={onSendEmail}
-          email={investor.email}
-          onAssetAdded={onSaveSuccess}
-        />
+        {isEditing ? (
+          <Button 
+            variant="default" 
+            size="sm"
+            onClick={handleSave}
+            disabled={isSaving}
+          >
+            <Save className="h-4 w-4 mr-1" />
+            {isSaving ? 'Saving...' : 'Save'}
+          </Button>
+        ) : (
+          <>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setIsEditing(true)}
+            >
+              Edit
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => onSendEmail(investor.email)}
+            >
+              <Send className="h-4 w-4 mr-1" />
+              Send Invite
+            </Button>
+            <InvestorAssetDropdown 
+              userId={investor.id}
+              assets={assets}
+              existingAssets={existingAssetIds}
+              onAssetAdded={onSaveSuccess}
+            />
+          </>
+        )}
       </CardFooter>
     </Card>
   );
