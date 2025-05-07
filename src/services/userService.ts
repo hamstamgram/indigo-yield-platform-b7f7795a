@@ -6,17 +6,19 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
   try {
     console.log("Starting createOrFindInvestorUser with values:", values);
     
-    // First try to find if user already exists
-    const { data: existingUser, error: findError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('email', values.email)
-      .maybeSingle();
+    // Try to find if user already exists by email 
+    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers({
+      perPage: 1,
+      page: 1,
+      filter: {
+        email: `eq.${values.email}`
+      }
+    });
     
     // If found, return existing user ID
-    if (existingUser && !findError) {
-      console.log("Found existing user:", existingUser.id);
-      return existingUser.id;
+    if (!authError && authUsers?.users && authUsers.users.length > 0) {
+      console.log("Found existing user:", authUsers.users[0].id);
+      return authUsers.users[0].id;
     }
     
     console.log("No existing user found, will create new user...");
@@ -84,26 +86,23 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
         throw new Error(`Signup failed: ${signupError.message}`);
       }
       
-      const userId = authData?.user?.id;
-      
-      if (!userId) {
+      if (authData?.user) {
+        console.log("Signup response: Success", signupError ? `Error: ${signupError.message}` : "No errors");
+        console.log("New user created with ID:", authData.user.id);
+        return authData.user.id;
+      } else {
         console.error("User created but ID not returned");
         throw new Error("User created but ID not returned");
       }
-      
-      console.log("New user created with ID:", userId);
-      return userId;
     }
     
-    const userId = userData?.user.id;
-    
-    if (!userId) {
+    if (userData?.user) {
+      console.log("New user created with ID:", userData.user.id);
+      return userData.user.id;
+    } else {
       console.error("Admin user created but ID not returned");
       throw new Error("User created but ID not returned");
     }
-    
-    console.log("New user created with ID:", userId);
-    return userId;
     
   } catch (error) {
     console.error("Error in createOrFindInvestorUser:", error);

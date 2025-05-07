@@ -98,7 +98,7 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Add New Investor</DialogTitle>
           <DialogDescription>
-            Add a new investor to the platform.
+            Create a new investor account and set initial portfolio balances.
           </DialogDescription>
         </DialogHeader>
         <InvestorForm

@@ -92,47 +92,165 @@ export const useInvestors = () => {
       }
       
       // Continue with fetching assets data
-      const { data: assetData, error: assetError } = await supabase
-        .from('assets')
-        .select('id, symbol, name')
-        .order('symbol');
-      
-      if (assetError) {
-        console.error("Error fetching assets:", assetError);
-        toast({
-          title: "Error",
-          description: "Failed to load asset data",
-          variant: "destructive",
-        });
+      try {
+        const { data: assetData, error: assetError } = await supabase
+          .from('assets')
+          .select('id, symbol, name')
+          .order('symbol');
+        
+        if (assetError) {
+          console.error("Error fetching assets:", assetError);
+          toast({
+            title: "Error",
+            description: "Failed to load asset data",
+            variant: "destructive",
+          });
+          setAssets([]);
+        } else {
+          console.log("Fetched assets:", assetData?.length || 0);
+          setAssets(assetData || []);
+        }
+      } catch (error) {
+        console.error("Error fetching assets:", error);
         setAssets([]);
-      } else {
-        console.log("Fetched assets:", assetData?.length || 0);
-        setAssets(assetData || []);
       }
       
       try {
-        // Try to fetch admin invites first as a fallback
-        const { data: invitesData, error: invitesError } = await supabase
-          .from('admin_invites')
-          .select('email, created_at')
-          .eq('used', false);
+        // Use auth admin API to fetch users directly
+        const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
         
-        if (invitesError) throw invitesError;
+        if (authError) {
+          console.error("Error fetching users:", authError);
+          throw authError;
+        }
         
-        console.log("Found invites:", invitesData?.length || 0);
+        // Filter to only get non-admin users based on metadata
+        const nonAdminUsers = authUsers?.users.filter(user => {
+          return !user.user_metadata?.is_admin;
+        }) || [];
         
-        // Get all profiles using the RPC function to bypass RLS
-        const { data: allProfiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, email, first_name, last_name, created_at, is_admin')
-          .eq('is_admin', false);
+        console.log("Found users via auth API:", nonAdminUsers?.length || 0);
         
-        if (profilesError) {
-          console.error("Error fetching profiles:", profilesError);
+        // Map them to our investor format
+        const mappedInvestors = nonAdminUsers.map(user => {
+          return {
+            id: user.id || '',
+            email: user.email || '',
+            first_name: user.user_metadata?.first_name || '',
+            last_name: user.user_metadata?.last_name || '',
+            created_at: user.created_at || '',
+            portfolio_summary: {}
+          } as Investor;
+        });
+        
+        // If we don't get users from auth API, try to get admin_invites as fallback
+        if (mappedInvestors.length === 0) {
+          try {
+            const { data: invitesData, error: invitesError } = await supabase
+              .from('admin_invites')
+              .select('email, created_at')
+              .eq('used', false);
+            
+            if (invitesError) throw invitesError;
+            
+            console.log("Found invites:", invitesData?.length || 0);
+            
+            if (invitesData && invitesData.length > 0) {
+              const simpleInvestorsList = invitesData.map(invite => ({
+                id: '',
+                email: invite.email,
+                first_name: '',
+                last_name: '',
+                created_at: invite.created_at,
+                portfolio_summary: {}
+              })) as Investor[];
+              
+              setInvestors(simpleInvestorsList);
+              setFilteredInvestors(simpleInvestorsList);
+            } else {
+              setInvestors([]);
+              setFilteredInvestors([]);
+            }
+          } catch (invitesError) {
+            console.error("Error fetching invites:", invitesError);
+            setInvestors([]);
+            setFilteredInvestors([]);
+          }
+        } else {
+          // Enrich with portfolio data if possible
+          const investorsWithPortfolios = await Promise.all(mappedInvestors.map(async (investor) => {
+            if (!investor.id) return investor;
+            
+            // Try to get portfolio data
+            try {
+              const { data: portfolioData, error: portfolioError } = await supabase
+                .from('portfolios')
+                .select(`
+                  balance,
+                  asset_id,
+                  assets (
+                    symbol
+                  )
+                `)
+                .eq('user_id', investor.id);
+                
+              if (portfolioError) {
+                console.error(`Error fetching portfolio for user ${investor.id}:`, portfolioError);
+                return investor;
+              }
+              
+              // Create portfolio summary by asset
+              const portfolioSummary: { [key: string]: { balance: number, usd_value: number } } = {};
+              
+              if (portfolioData && portfolioData.length > 0) {
+                portfolioData.forEach(item => {
+                  if (!item.assets) return;
+                  const symbol = item.assets.symbol;
+                  const balance = Number(item.balance);
+                  
+                  // Mock price calculation (in production, fetch real prices)
+                  const price = symbol === 'BTC' ? 67500 : 
+                              symbol === 'ETH' ? 3200 : 
+                              symbol === 'SOL' ? 148 : 
+                              symbol === 'USDC' ? 1 : 0;
+                  
+                  portfolioSummary[symbol] = {
+                    balance,
+                    usd_value: balance * price
+                  };
+                });
+              }
+              
+              return {
+                ...investor,
+                portfolio_summary: portfolioSummary
+              };
+            } catch (error) {
+              console.error(`Error enriching portfolio for ${investor.id}:`, error);
+              return investor;
+            }
+          }));
           
-          // If no profile data, use invites as fallback
+          setInvestors(investorsWithPortfolios);
+          setFilteredInvestors(investorsWithPortfolios);
+        }
+        
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        
+        // Try to get admin_invites as fallback
+        try {
+          const { data: invitesData, error: invitesError } = await supabase
+            .from('admin_invites')
+            .select('email, created_at')
+            .eq('used', false);
+          
+          if (invitesError) throw invitesError;
+          
+          console.log("Found invites:", invitesData?.length || 0);
+          
           if (invitesData && invitesData.length > 0) {
-            const simpleInvestorsList = invitesData?.map(invite => ({
+            const simpleInvestorsList = invitesData.map(invite => ({
               id: '',
               email: invite.email,
               first_name: '',
@@ -143,89 +261,20 @@ export const useInvestors = () => {
             
             setInvestors(simpleInvestorsList);
             setFilteredInvestors(simpleInvestorsList);
-            setLoading(false);
-            return;
           } else {
-            toast({
-              title: "Error",
-              description: "Failed to load investor data",
-              variant: "destructive",
-            });
             setInvestors([]);
             setFilteredInvestors([]);
-            setLoading(false);
-            return;
           }
-        }
-
-        console.log("Found investor profiles:", allProfiles?.length || 0);
-        
-        if (!allProfiles || allProfiles.length === 0) {
-          console.log("No investors found");
+        } catch (invitesError) {
+          console.error("Error fetching invites:", invitesError);
+          toast({
+            title: "Error",
+            description: "Failed to load investor data",
+            variant: "destructive",
+          });
           setInvestors([]);
           setFilteredInvestors([]);
-          setLoading(false);
-          return;
         }
-        
-        // Fetch portfolio data for each investor
-        const investorsWithPortfolios = await Promise.all(allProfiles.map(async (investor) => {
-          // Get portfolio data
-          const { data: portfolioData, error: portfolioError } = await supabase
-            .from('portfolios')
-            .select(`
-              balance,
-              asset_id,
-              assets (
-                symbol
-              )
-            `)
-            .eq('user_id', investor.id);
-            
-          if (portfolioError) {
-            console.error(`Error fetching portfolio for user ${investor.id}:`, portfolioError);
-          }
-          
-          // Create portfolio summary by asset
-          const portfolioSummary: { [key: string]: { balance: number, usd_value: number } } = {};
-          
-          if (portfolioData && portfolioData.length > 0) {
-            portfolioData.forEach(item => {
-              if (!item.assets) return;
-              const symbol = item.assets.symbol;
-              const balance = Number(item.balance);
-              
-              // Mock price calculation (in production, fetch real prices)
-              const price = symbol === 'BTC' ? 67500 : 
-                          symbol === 'ETH' ? 3200 : 
-                          symbol === 'SOL' ? 148 : 
-                          symbol === 'USDC' ? 1 : 0;
-              
-              portfolioSummary[symbol] = {
-                balance,
-                usd_value: balance * price
-              };
-            });
-          }
-          
-          return {
-            ...investor,
-            portfolio_summary: portfolioSummary
-          };
-        }));
-        
-        console.log("Processed investors with portfolios:", investorsWithPortfolios.length);
-        setInvestors(investorsWithPortfolios);
-        setFilteredInvestors(investorsWithPortfolios);
-      } catch (error) {
-        console.error('Error fetching investor data:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load investor data",
-          variant: "destructive",
-        });
-        setInvestors([]);
-        setFilteredInvestors([]);
       }
     } catch (error) {
       console.error('Error in main investor data fetch:', error);
