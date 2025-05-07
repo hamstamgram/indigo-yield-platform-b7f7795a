@@ -12,13 +12,13 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
       page: 1
     });
     
-    // Manually filter users by email if we got results
-    let existingUser = authUsers?.users?.find(user => {
+    // Fix TypeScript error by checking if users exists and is an array
+    let existingUser = authUsers?.users ? authUsers.users.find(user => {
       if (user && user.email) {
         return user.email === values.email;
       }
       return false;
-    });
+    }) : undefined;
     
     // If found, return existing user ID
     if (!authError && existingUser) {
