@@ -1,11 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Asset, Investor } from '@/types/investorTypes';
-
-// Import our new components
 import InvestorInfo from './InvestorInfo';
 import AssetBalanceItem from './AssetBalanceItem';
 import FeePercentageItem from './FeePercentageItem';
@@ -128,12 +127,11 @@ const MobileInvestorCard = ({
         description: "Investor portfolio updated successfully",
       });
       
-      // Add timeout to ensure UI feedback before reverting to normal state
       setTimeout(() => {
         setIsSaving(false);
         setIsEditing(false);
         onSaveSuccess(); // Refresh data
-      }, 500);
+      }, 500); // Small delay to ensure UI feedback
       
     } catch (error) {
       console.error("Error saving investor data:", error);
@@ -155,39 +153,29 @@ const MobileInvestorCard = ({
       <CardContent className="pt-4">
         <InvestorInfo name={name} email={investor.email} />
         
-        <div className="space-y-4">
-          {assets.map(asset => {
-            // Determine what to display for balance
-            const normalizedSymbol = asset.symbol.toUpperCase();
-            const displayBalance = isEditing
-              ? balances[asset.symbol] || '0'
-              : investor.portfolio_summary && investor.portfolio_summary[normalizedSymbol]
-                ? investor.portfolio_summary[normalizedSymbol].balance
-                : '-';
-                
-            return (
-              <AssetBalanceItem
-                key={asset.id}
-                symbol={asset.symbol}
-                balance={displayBalance}
-                isEditing={isEditing}
-                onChange={handleBalanceChange}
-              />
-            );
-          })}
+        <div className="space-y-3">
+          {assets.map(asset => (
+            <AssetBalanceItem
+              key={asset.id}
+              asset={asset}
+              balance={balances[asset.symbol] || '0'}
+              portfolioSummary={investor.portfolio_summary}
+              isEditing={isEditing}
+              onChange={(value) => handleBalanceChange(asset.symbol, value)}
+            />
+          ))}
 
-          <FeePercentageItem 
-            fee={isEditing ? fee : investor.fee_percentage !== null && investor.fee_percentage !== undefined
-              ? investor.fee_percentage
-              : '2.0%'}
+          <FeePercentageItem
+            fee={fee}
             isEditing={isEditing}
             onChange={setFee}
+            feePercentage={investor.fee_percentage}
           />
         </div>
       </CardContent>
       
-      <CardFooter>
-        <CardActions 
+      <CardFooter className="flex justify-end gap-2 pt-0">
+        <CardActions
           isEditing={isEditing}
           isSaving={isSaving}
           userId={investor.id}
