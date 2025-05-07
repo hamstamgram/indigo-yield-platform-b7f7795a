@@ -172,7 +172,7 @@ const MobileInvestorCard = ({
             <InvestorAssetDropdown 
               userId={investor.id}
               assets={assets}
-              existingAssetIds={existingAssetIds}
+              existingAssets={existingAssetIds}
               onAssetAdded={onSaveSuccess}
             />
           </>

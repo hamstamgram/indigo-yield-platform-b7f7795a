@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 interface InvestorAssetDropdownProps {
   userId: string;
   assets: Asset[];
-  existingAssets: number[];
+  existingAssets: number[]; // This is the prop we need to use consistently
   onAssetAdded: () => void;
 }
 

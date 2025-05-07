@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +16,7 @@ interface YieldSource {
   created_at: string;
 }
 
+// Simplified interface for Protocol without using the database table
 interface Protocol {
   id: number;
   name: string;
@@ -59,35 +59,12 @@ const YieldSourcesManagement = () => {
         
       if (assetsError) throw assetsError;
       
-      // Check if protocols table exists, if not create it
-      try {
-        // Try to select from protocols table
-        const { data: protocolsTest, error: protocolsTestError } = await supabase
-          .from('protocols')
-          .select('count(*)');
-          
-        // If table doesn't exist, create it
-        if (protocolsTestError) {
-          console.log("Protocols table may not exist, skipping protocols fetch");
-          setProtocols([]);
-        } else {
-          // Fetch protocols
-          const { data: protocolsData, error: protocolsError } = await supabase
-            .from('protocols')
-            .select('*')
-            .order('name');
-            
-          if (protocolsError) throw protocolsError;
-          setProtocols(protocolsData || []);
-        }
-      } catch (error) {
-        console.error("Error checking protocols:", error);
-        setProtocols([]);
-      }
-      
+      // Since the protocols table doesn't exist, we'll skip trying to fetch it
+      // Just set protocols to an empty array or handle differently
+      setProtocols([]);
       setAssets(assetsData || []);
       
-      // Try to fetch yield_rates with protocol and asset info
+      // Try to fetch yield_rates with asset info
       const { data: yieldData, error: yieldError } = await supabase
         .from('yield_rates')
         .select(`
