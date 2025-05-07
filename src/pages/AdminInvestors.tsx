@@ -23,16 +23,10 @@ const AdminInvestors = () => {
     return <LoadingSpinner />;
   }
   
-  // Handle creating/adding an investor
-  const handleCreateInvestor = () => {
-    // The dialog will be shown via the AddInvestorDialog component
-  };
-  
   // Send email invitation
   const sendInviteToInvestor = async (email: string) => {
     try {
-      // In a real implementation, this would generate an invite code and store it
-      // Then call the send-admin-invite edge function
+      // Generate a new invite code each time we send an invite
       const inviteCode = Math.random().toString(36).substring(2, 15);
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7); // Invite expires in 7 days
@@ -40,14 +34,15 @@ const AdminInvestors = () => {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Store invite in the database
+      // Store or update invite in the database
       const { data, error } = await supabase
         .from('admin_invites')
-        .insert({
+        .upsert({
           email: email,
           invite_code: inviteCode,
           created_by: user?.id,
-          expires_at: expiresAt.toISOString()
+          expires_at: expiresAt.toISOString(),
+          used: false, // Reset to false if re-sending
         })
         .select();
       

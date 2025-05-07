@@ -31,29 +31,33 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
     try {
       setIsLoading(true);
       
-      // Generate a UUID for the new investor profile
-      // We'll use this as the profile ID since we're not creating an auth user
-      const uuid = crypto.randomUUID();
-
-      // 1. Create the investor profile with the generated UUID
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: uuid,
-          email: values.email,
+      // Generate a random password for the initial user account
+      const tempPassword = Math.random().toString(36).substring(2, 15) + 
+                           Math.random().toString(36).substring(2, 15);
+      
+      // 1. Create a user in the auth system
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: values.email,
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: {
           first_name: values.first_name,
           last_name: values.last_name,
-          is_admin: false
-        })
-        .select('id')
-        .single();
-
-      if (profileError) {
-        throw profileError;
+          is_investor: true
+        }
+      });
+      
+      if (authError) {
+        // If the user already exists in auth system, continue with the profile creation
+        // We'll still need to create the profile and portfolio entries
+        console.log("Auth creation warning (user may already exist):", authError);
       }
+      
+      const userId = authData?.user?.id;
 
-      // Use the returned profile ID for portfolio entries
-      const userId = profileData.id;
+      if (!userId) {
+        throw new Error("Failed to create or find auth user");
+      }
 
       // 2. Create portfolio entries for this investor if balances are provided
       const portfolioEntries = [];
@@ -113,7 +117,7 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
         }
       }
 
-      // 3. Create an invitation for the investor
+      // Create an invitation link for the investor
       const inviteCode = Math.random().toString(36).substring(2, 15);
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7); // Invite expires in 7 days
