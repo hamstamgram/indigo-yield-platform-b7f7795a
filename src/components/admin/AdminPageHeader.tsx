@@ -1,0 +1,33 @@
+
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+
+interface AdminPageHeaderProps {
+  userName?: string;
+}
+
+const AdminPageHeader: React.FC<AdminPageHeaderProps> = ({ userName }) => {
+  return (
+    <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Admin Dashboard {userName ? `- Welcome ${userName}` : ''}
+        </h1>
+        <p className="text-gray-500 dark:text-gray-400">
+          Overview of all managed assets and yields
+        </p>
+      </div>
+      <div className="flex mt-4 md:mt-0 space-x-3">
+        <Button variant="outline" asChild>
+          <Link to="/admin?tab=users">Manage Users</Link>
+        </Button>
+        <Button asChild>
+          <Link to="/admin?tab=invites">Investor Invites</Link>
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default AdminPageHeader;
