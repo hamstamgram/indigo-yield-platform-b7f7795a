@@ -22,8 +22,18 @@ export default function Login() {
     const checkAuthSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        // If there's already a session, redirect to dashboard
-        navigate("/dashboard");
+        // If there's already a session, check if user is admin and redirect accordingly
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', session.user.id)
+          .single();
+          
+        if (profile?.is_admin) {
+          navigate("/admin-dashboard");
+        } else {
+          navigate("/dashboard");
+        }
       }
     };
     checkAuthSession();
@@ -51,7 +61,18 @@ export default function Login() {
           description: "You've successfully logged in.",
         });
         
-        navigate("/dashboard");
+        // Check if user is admin
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', data.user.id)
+          .single();
+          
+        if (profile?.is_admin) {
+          navigate("/admin-dashboard");
+        } else {
+          navigate("/dashboard");
+        }
       } else {
         // Since this is invitation-only, restrict self registration
         toast({

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LogOut, User, Settings, Home, X, Shield, Users } from "lucide-react";
+import { LogOut, User, Settings, Home, X, Shield, Users, Database, LayoutDashboard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -10,6 +10,7 @@ type NavItem = {
   title: string;
   href: string;
   icon: React.ReactNode;
+  adminOnly?: boolean;
 };
 
 const mainNav: NavItem[] = [
@@ -20,9 +21,16 @@ const mainNav: NavItem[] = [
   { title: "USDC", href: "/assets/usdc", icon: <CryptoIcon symbol="usdc" className="h-5 w-5" /> },
 ];
 
+const adminNav: NavItem[] = [
+  { title: "Admin Dashboard", href: "/admin-dashboard", icon: <LayoutDashboard className="h-5 w-5" />, adminOnly: true },
+  { title: "Investors", href: "/admin-investors", icon: <Users className="h-5 w-5" />, adminOnly: true },
+  { title: "Portfolio Management", href: "/admin?tab=portfolios", icon: <Database className="h-5 w-5" />, adminOnly: true },
+];
+
 const secondaryNav: NavItem[] = [
   { title: "Account", href: "/account", icon: <User className="h-5 w-5" /> },
   { title: "Settings", href: "/settings", icon: <Settings className="h-5 w-5" /> },
+  { title: "Admin Tools", href: "/admin", icon: <Shield className="h-5 w-5" />, adminOnly: true },
 ];
 
 type SidebarProps = {
@@ -87,6 +95,15 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     navigate(href);
   };
 
+  // Determine which navigation items to show based on admin status
+  const navItems = isAdmin ? 
+    [...adminNav, ...mainNav.filter(item => !item.adminOnly)] :
+    [...mainNav.filter(item => !item.adminOnly)];
+
+  const userNavItems = isAdmin ? 
+    [...secondaryNav] :
+    [...secondaryNav.filter(item => !item.adminOnly)];
+
   return (
     <>
       {/* Mobile sidebar backdrop */}
@@ -120,10 +137,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
           <nav className="flex-1 px-4 py-6 overflow-y-auto">
             <div className="mb-8">
               <h2 className="px-2 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Dashboard
+                {isAdmin ? "Admin Panel" : "Dashboard"}
               </h2>
               <ul className="space-y-1">
-                {mainNav.map((item) => (
+                {navItems.map((item) => (
                   <li key={item.href}>
                     <button
                       onClick={() => handleNavigation(item.href)}
@@ -146,12 +163,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 Account
               </h2>
               <ul className="space-y-1">
-                {secondaryNav.map((item) => (
+                {userNavItems.map((item) => (
                   <li key={item.href}>
                     <button
                       onClick={() => handleNavigation(item.href)}
                       className={`flex w-full items-center px-2 py-2 text-sm rounded-md group ${
-                        location.pathname === item.href
+                        (location.pathname === item.href) || 
+                        (item.href.includes('admin') && location.pathname.includes('admin') && !location.pathname.includes('admin-dashboard') && !location.pathname.includes('admin-investors'))
                           ? "text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20"
                           : "text-gray-700 hover:text-indigo-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-indigo-300 dark:hover:bg-gray-700"
                       }`}
@@ -161,42 +179,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     </button>
                   </li>
                 ))}
-                
-                {/* Admin section - only visible to admin users */}
-                {isAdmin && (
-                  <>
-                    <li>
-                      <button
-                        onClick={() => handleNavigation("/admin")}
-                        className={`flex w-full items-center px-2 py-2 text-sm rounded-md group ${
-                          location.pathname === "/admin" && !location.search.includes('tab=users')
-                            ? "text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20"
-                            : "text-gray-700 hover:text-indigo-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-indigo-300 dark:hover:bg-gray-700"
-                        }`}
-                      >
-                        <span className="mr-3">
-                          <Shield className="h-5 w-5" />
-                        </span>
-                        Admin Dashboard
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => handleNavigation("/admin?tab=users")}
-                        className={`flex w-full items-center px-2 py-2 text-sm rounded-md group ${
-                          location.pathname === "/admin" && location.search.includes('tab=users')
-                            ? "text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20"
-                            : "text-gray-700 hover:text-indigo-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-indigo-300 dark:hover:bg-gray-700"
-                        }`}
-                      >
-                        <span className="mr-3">
-                          <Users className="h-5 w-5" />
-                        </span>
-                        Manage Users
-                      </button>
-                    </li>
-                  </>
-                )}
                 
                 <li>
                   <button

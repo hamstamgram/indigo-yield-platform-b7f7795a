@@ -18,6 +18,8 @@ import { Toaster } from './components/ui/sonner';
 import DashboardLayout from './components/layout/DashboardLayout';
 import AdminTools from './pages/AdminTools';
 import AdminInvite from './pages/AdminInvite';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminInvestors from './pages/AdminInvestors';
 
 function App() {
   return (
@@ -30,6 +32,8 @@ function App() {
         {/* Dashboard routes with layout */}
         <Route path="/" element={<DashboardLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/admin-investors" element={<AdminInvestors />} />
           <Route path="/assets/:symbol" element={<AssetDetail />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/settings" element={<SettingsPage />} />
