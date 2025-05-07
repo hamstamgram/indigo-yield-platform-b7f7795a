@@ -2,14 +2,19 @@
 import { supabase } from "../integrations/supabase/client";
 
 // This is a utility script to create a test investor account for admin testing purposes
-// You can run this script to create a test investor account
-
 export async function createTestInvestor() {
   try {
-    // Create a test investor user
+    // Generate a unique email to avoid conflicts
+    const timestamp = new Date().getTime();
+    const testEmail = `test.investor${timestamp}@example.com`;
+    const testPassword = 'testinvestor123';
+    
+    console.log(`Creating test investor with email: ${testEmail}`);
+    
+    // Try to create a new user with the test credentials
     const { data: authUser, error: authError } = await supabase.auth.signUp({
-      email: 'test.investor@example.com',
-      password: 'testinvestor123',
+      email: testEmail,
+      password: testPassword,
       options: {
         data: {
           first_name: 'Test',
@@ -18,7 +23,10 @@ export async function createTestInvestor() {
       }
     });
 
-    if (authError) throw authError;
+    if (authError) {
+      console.error('Error creating auth user:', authError);
+      throw authError;
+    }
 
     console.log('Created auth user:', authUser);
 
@@ -32,7 +40,10 @@ export async function createTestInvestor() {
         })
         .eq('id', authUser.user.id);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Error updating profile:', profileError);
+        throw profileError;
+      }
     }
 
     // Add some sample assets to the investor's portfolio
@@ -41,7 +52,10 @@ export async function createTestInvestor() {
       .select('id, symbol')
       .limit(4);
 
-    if (assetsError) throw assetsError;
+    if (assetsError) {
+      console.error('Error fetching assets:', assetsError);
+      throw assetsError;
+    }
     
     if (assets && authUser.user) {
       // Create portfolio entries for each asset
@@ -55,14 +69,17 @@ export async function createTestInvestor() {
         .from('portfolios')
         .insert(portfolioEntries);
 
-      if (portfolioError) throw portfolioError;
+      if (portfolioError) {
+        console.error('Error creating portfolio entries:', portfolioError);
+        throw portfolioError;
+      }
     }
 
     return {
       success: true,
       message: 'Test investor created successfully',
-      email: 'test.investor@example.com',
-      password: 'testinvestor123'
+      email: testEmail,
+      password: testPassword
     };
     
   } catch (error) {

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -67,33 +68,31 @@ export default function Login() {
           password,
         });
 
-        if (error) throw error;
+        if (error) {
+          console.error("Login error:", error);
+          throw error;
+        }
+        
+        if (!data.user) {
+          throw new Error("No user returned from login");
+        }
         
         console.log("Login successful, user:", data.user);
         
-        // Use the function to check admin status
-        const { data: adminData, error: adminError } = await supabase
-          .rpc('get_user_admin_status', { user_id: data.user.id });
-          
-        if (adminError) {
-          console.error("Error checking admin status via function:", adminError);
-          
-          // Fallback to direct query
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('is_admin')
-            .eq('id', data.user.id)
-            .single();
+        // Get admin status
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', data.user.id)
+          .single();
             
-          if (profileError) {
-            console.error("Error checking profile:", profileError);
-          }
-          
-          console.log("Profile data after login:", profile);
-          var isAdmin = profile?.is_admin === true;
-        } else {
-          var isAdmin = adminData === true;
+        if (profileError) {
+          console.error("Error checking profile:", profileError);
+          throw profileError;
         }
+          
+        console.log("Profile data after login:", profile);
+        const isAdmin = profile?.is_admin === true;
         
         console.log("Is user admin:", isAdmin);
         
@@ -103,8 +102,8 @@ export default function Login() {
           description: `You've successfully logged in as ${isAdmin ? 'Administrator' : 'Investor'}.`,
         });
         
-        // Force page reload to ensure the app recognizes admin status
-        window.location.href = isAdmin ? "/admin-dashboard" : "/dashboard";
+        // Redirect to appropriate dashboard
+        navigate(isAdmin ? "/admin-dashboard" : "/dashboard", { replace: true });
       } else {
         // Since this is invitation-only, restrict self registration
         toast({
@@ -126,6 +125,7 @@ export default function Login() {
     }
   };
 
+  // Display loading indicator while checking authentication
   if (checkingAuth) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">

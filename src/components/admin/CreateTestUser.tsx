@@ -4,11 +4,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { createTestInvestor } from '@/scripts/createTestInvestor';
-import { Loader2, UserPlus } from 'lucide-react';
+import { Loader2, UserPlus, Copy, Check } from 'lucide-react';
 
 const CreateTestUser = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [createdUser, setCreatedUser] = useState<{ email: string; password: string } | null>(null);
+  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
   const handleCreateTestUser = async () => {
@@ -44,6 +45,31 @@ const CreateTestUser = () => {
       setIsLoading(false);
     }
   };
+  
+  const copyCredentials = () => {
+    if (!createdUser) return;
+    
+    const text = `Email: ${createdUser.email}\nPassword: ${createdUser.password}`;
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        setCopied(true);
+        toast({
+          title: 'Copied',
+          description: 'Credentials copied to clipboard',
+        });
+        
+        // Reset copy icon after 2 seconds
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(err => {
+        console.error('Failed to copy:', err);
+        toast({
+          title: 'Error',
+          description: 'Failed to copy credentials',
+          variant: 'destructive',
+        });
+      });
+  };
 
   return (
     <Card>
@@ -56,7 +82,17 @@ const CreateTestUser = () => {
       <CardContent>
         {createdUser ? (
           <div className="bg-green-50 dark:bg-green-900/20 rounded-md p-4 border border-green-200 dark:border-green-800">
-            <h3 className="font-medium mb-2">Test Investor Created</h3>
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="font-medium">Test Investor Created</h3>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 w-8 p-0" 
+                onClick={copyCredentials}
+              >
+                {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
             <p className="mb-1"><span className="font-medium">Email:</span> {createdUser.email}</p>
             <p><span className="font-medium">Password:</span> {createdUser.password}</p>
             <p className="text-sm mt-2 text-green-700 dark:text-green-400">
