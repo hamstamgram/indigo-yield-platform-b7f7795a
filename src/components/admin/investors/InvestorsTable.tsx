@@ -11,26 +11,7 @@ import InvestorTableRow from "./InvestorTableRow";
 import InvestorsTableHeader from "./InvestorsTableHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileInvestorCard from "./MobileInvestorCard";
-
-interface Investor {
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  created_at: string;
-  portfolio_summary?: {
-    [key: string]: {
-      balance: number;
-      usd_value: number;
-    }
-  }
-}
-
-interface Asset {
-  id: number;
-  symbol: string;
-  name: string;
-}
+import { Investor, Asset } from "@/types/investorTypes";
 
 interface InvestorsTableProps {
   investors: Investor[];
@@ -98,11 +79,7 @@ const InvestorsTable: React.FC<InvestorsTableProps> = ({
             investors.map((investor) => (
               <InvestorTableRow 
                 key={investor.id}
-                id={investor.id}
-                email={investor.email}
-                first_name={investor.first_name}
-                last_name={investor.last_name}
-                portfolio_summary={investor.portfolio_summary}
+                investor={investor}
                 assets={assets}
                 onViewDetails={onViewDetails}
                 onSendEmail={onSendEmail}

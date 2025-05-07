@@ -38,7 +38,6 @@ const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAuthChecked, setIsAuthChecked] = useState(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
@@ -79,21 +78,8 @@ const DashboardLayout = () => {
         console.log("Admin status:", adminStatus, "Current path:", currentPath);
         setIsAdmin(adminStatus);
         
-        // Set auth check flag to true to avoid infinite redirects
-        setIsAuthChecked(true);
-
-        if (adminStatus) {
-          // Only redirect on direct dashboard access
-          if (currentPath === '/dashboard') {
-            console.log("Admin on regular dashboard - redirecting to admin dashboard");
-            navigate('/admin-dashboard', { replace: true });
-          }
-          // Don't redirect if already on admin pages
-        } else if (isAdminRoute) {
-          // Non-admin users trying to access admin pages
-          console.log("Regular user on admin page - redirecting to regular dashboard");
-          navigate('/dashboard', { replace: true });
-        }
+        // Don't perform any redirects here to avoid redirect loops
+        // Let the individual components decide if they need to redirect
       } catch (error) {
         console.error("Auth check error:", error);
         if (isMounted) {
@@ -117,21 +103,25 @@ const DashboardLayout = () => {
     return () => {
       isMounted = false;
     };
-  }, [navigate, toast]);
+  }, [navigate, toast, currentPath]);
   
-  // This useEffect adds a dependency on currentPath to update redirects if needed
+  // For admin routes, perform access control at the layout level
   useEffect(() => {
-    // Only run redirect checks once authentication has been verified
-    if (!isAuthChecked || isLoading) return;
+    // Don't redirect while still loading
+    if (isLoading) return;
     
-    if (isAdmin) {
-      if (currentPath === '/dashboard') {
-        navigate('/admin-dashboard', { replace: true });
-      }
-    } else if (isAdminRoute) {
+    // For admin routes, only redirect if user is definitely not an admin
+    if (isAdminRoute && isAdmin === false) {
+      console.log("Non-admin trying to access admin route, redirecting to dashboard");
       navigate('/dashboard', { replace: true });
     }
-  }, [currentPath, isAdmin, isAdminRoute, isAuthChecked, isLoading, navigate]);
+    
+    // For regular dashboard, redirect admins to admin dashboard
+    if (currentPath === '/dashboard' && isAdmin) {
+      console.log("Admin on regular dashboard, redirecting to admin dashboard");
+      navigate('/admin-dashboard', { replace: true });
+    }
+  }, [currentPath, isAdmin, isAdminRoute, isLoading, navigate]);
   
   // Listen for auth state changes
   useEffect(() => {

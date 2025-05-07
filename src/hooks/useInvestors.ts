@@ -11,6 +11,7 @@ export const useInvestors = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null); // Initially null until checked
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -42,6 +43,7 @@ export const useInvestors = () => {
           return false;
         }
         
+        setIsAdmin(true); // Confirm admin status
         return true;
       } catch (error) {
         console.error("Error checking admin status:", error);
@@ -154,6 +156,7 @@ export const useInvestors = () => {
     searchTerm,
     setSearchTerm,
     loading,
-    assets
+    assets,
+    isAdmin // Explicitly expose isAdmin status
   };
 };
