@@ -23,7 +23,9 @@ const AdminDashboard = () => {
   if (error) {
     return (
       <div className="space-y-8">
-        <AdminPageHeader userName={userName} />
+        <div className="flex justify-center">
+          <AdminPageHeader userName={userName} />
+        </div>
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
@@ -35,8 +37,10 @@ const AdminDashboard = () => {
   
   return (
     <div className="space-y-8">
-      {/* Page header */}
-      <AdminPageHeader userName={userName} />
+      {/* Page header - centered */}
+      <div className="flex justify-center">
+        <AdminPageHeader userName={userName} />
+      </div>
 
       {/* Asset summaries */}
       <AssetOverview 

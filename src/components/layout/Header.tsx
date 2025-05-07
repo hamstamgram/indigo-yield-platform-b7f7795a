@@ -9,7 +9,7 @@ type HeaderProps = {
 const Header = ({ toggleSidebar }: HeaderProps) => {
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm z-10">
-      <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+      <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center">
         {/* Menu button */}
         <button
           onClick={toggleSidebar}
@@ -18,6 +18,10 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
         >
           <Menu className="h-6 w-6" />
         </button>
+        
+        <div className="flex-1 flex justify-center">
+          {/* This empty div creates space for centered content in AdminDashboard */}
+        </div>
         
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm">

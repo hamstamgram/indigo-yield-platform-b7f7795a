@@ -9,8 +9,8 @@ interface AdminPageHeaderProps {
 
 const AdminPageHeader: React.FC<AdminPageHeaderProps> = ({ userName }) => {
   return (
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-      <div>
+    <div className="flex flex-col items-center md:flex-row md:justify-between">
+      <div className="text-center md:text-left">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Admin Dashboard {userName ? `- Welcome ${userName}` : ''}
         </h1>
