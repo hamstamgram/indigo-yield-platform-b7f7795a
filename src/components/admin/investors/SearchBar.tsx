@@ -2,6 +2,7 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Search, X } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SearchBarProps {
   searchTerm: string;
@@ -9,15 +10,17 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ searchTerm, setSearchTerm }) => {
+  const isMobile = useIsMobile();
+  
   const clearSearch = () => {
     setSearchTerm("");
   };
 
   return (
-    <div className="relative flex-grow">
+    <div className={`relative ${isMobile ? 'w-full' : 'flex-grow'}`}>
       <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
       <Input
-        placeholder="Search by name or email..."
+        placeholder={isMobile ? "Search investors..." : "Search by name or email..."}
         className="pl-8 pr-8"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}

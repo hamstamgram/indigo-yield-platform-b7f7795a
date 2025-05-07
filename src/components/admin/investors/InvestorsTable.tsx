@@ -9,6 +9,8 @@ import {
 import { Loader2 } from "lucide-react";
 import InvestorTableRow from "./InvestorTableRow";
 import InvestorsTableHeader from "./InvestorsTableHeader";
+import { useIsMobile } from "@/hooks/use-mobile";
+import MobileInvestorCard from "./MobileInvestorCard";
 
 interface Investor {
   id: string;
@@ -47,6 +49,8 @@ const InvestorsTable: React.FC<InvestorsTableProps> = ({
   onViewDetails,
   onSendEmail
 }) => {
+  const isMobile = useIsMobile();
+  
   if (loading) {
     return (
       <div className="flex justify-center p-8">
@@ -55,6 +59,30 @@ const InvestorsTable: React.FC<InvestorsTableProps> = ({
     );
   }
 
+  // Show mobile card layout on mobile devices
+  if (isMobile) {
+    return (
+      <div className="space-y-4">
+        {investors.length === 0 ? (
+          <div className="text-center py-6 bg-white dark:bg-gray-800 rounded-md border p-4">
+            {searchTerm ? "No investors match your search" : "No investors found"}
+          </div>
+        ) : (
+          investors.map((investor) => (
+            <MobileInvestorCard
+              key={investor.id}
+              investor={investor}
+              assets={assets}
+              onViewDetails={onViewDetails}
+              onSendEmail={onSendEmail}
+            />
+          ))
+        )}
+      </div>
+    );
+  }
+
+  // Desktop table layout
   return (
     <div className="rounded-md border overflow-x-auto">
       <Table>
