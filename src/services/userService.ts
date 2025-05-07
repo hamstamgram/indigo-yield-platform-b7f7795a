@@ -6,18 +6,15 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
   try {
     console.log("Starting createOrFindInvestorUser with values:", values);
     
-    // Use auth API to search for existing user by email
-    const { data: existingUsers, error: searchError } = await supabase.auth.admin.listUsers({
-      filter: { email: values.email }
-    });
+    // First try to find if user already exists
+    const { data: existingUser, error: findError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', values.email)
+      .maybeSingle();
     
-    if (searchError) {
-      console.error("Error searching for existing user:", searchError);
-    }
-    
-    // If user exists, return their ID
-    if (existingUsers?.users?.length > 0) {
-      const existingUser = existingUsers.users[0];
+    // If found, return existing user ID
+    if (existingUser && !findError) {
       console.log("Found existing user:", existingUser.id);
       return existingUser.id;
     }
@@ -52,8 +49,8 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
     const tempPassword = generateStrongPassword();
     console.log(`Attempting to create new user for ${values.email} with a complex password...`);
     
-    // Create the user using admin API
-    const { data: adminAuthData, error: adminSignupError } = await supabase.auth.admin.createUser({
+    // Create the user using admin create user
+    const { data: userData, error: createError } = await supabase.auth.admin.createUser({
       email: values.email,
       password: tempPassword,
       email_confirm: true,
@@ -65,8 +62,8 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
       }
     });
     
-    if (adminSignupError) {
-      console.error("Admin signup error:", adminSignupError);
+    if (createError) {
+      console.error("Admin signup error:", createError);
       
       // Fall back to regular signup if admin fails
       const { data: authData, error: signupError } = await supabase.auth.signUp({
@@ -98,7 +95,7 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
       return userId;
     }
     
-    const userId = adminAuthData?.user.id;
+    const userId = userData?.user.id;
     
     if (!userId) {
       console.error("Admin user created but ID not returned");
