@@ -26,9 +26,9 @@ const checkAdminStatus = async (userId: string): Promise<boolean> => {
       return true;
     }
     
-    // Alternative check for known admin emails (fallback)
-    const { data: { user } } = await supabase.auth.getUser();
-    return user?.email?.toLowerCase() === 'hammadou@indigo.fund';
+    // Alternative check for user metadata
+    const { data } = await supabase.auth.admin.getUserById(userId);
+    return !!data?.user?.app_metadata?.is_admin;
   } catch (error) {
     console.error("Error checking admin status:", error);
     return false;
@@ -39,6 +39,7 @@ const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false); // New flag to prevent loops
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
@@ -54,6 +55,9 @@ const DashboardLayout = () => {
   
   // Check auth status and admin status - this runs once on component mount
   useEffect(() => {
+    // Skip if we've already checked authentication this session
+    if (authChecked) return;
+    
     let isMounted = true;
     
     const checkAuth = async () => {
@@ -69,15 +73,16 @@ const DashboardLayout = () => {
           return;
         }
 
-        console.log("Session exists, checking admin status");
+        console.log("Checking admin status for user:", session.user.id);
         
         // Check admin status through a dedicated function
         const adminStatus = await checkAdminStatus(session.user.id);
         
         if (!isMounted) return;
         
-        console.log("Admin status:", adminStatus, "Current path:", currentPath);
+        console.log("Admin status determined:", adminStatus);
         setIsAdmin(adminStatus);
+        setAuthChecked(true); // Mark auth as checked to prevent loops
       } catch (error) {
         console.error("Auth check error:", error);
         if (isMounted) {
@@ -101,12 +106,12 @@ const DashboardLayout = () => {
     return () => {
       isMounted = false;
     };
-  }, [navigate, toast, currentPath]);
+  }, [navigate, toast, authChecked]);
   
   // Redirect logic with improved checks to prevent loops
   useEffect(() => {
-    // Don't redirect while still loading
-    if (isLoading) return;
+    // Don't redirect while still loading or if auth hasn't been checked
+    if (isLoading || !authChecked) return;
     
     // For admin routes, only redirect if user is definitely not an admin
     if (isAdminRoute && isAdmin === false) {
@@ -122,13 +127,15 @@ const DashboardLayout = () => {
       navigate('/admin-dashboard', { replace: true });
       return;
     }
-  }, [currentPath, isAdmin, isAdminRoute, isLoading, navigate]);
+  }, [currentPath, isAdmin, isAdminRoute, isLoading, navigate, authChecked]);
   
   // Listen for auth state changes
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event) => {
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+          // Force a refresh when auth changes
+          setAuthChecked(false);
           window.location.reload();
         }
       }

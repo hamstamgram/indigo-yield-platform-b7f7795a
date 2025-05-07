@@ -25,7 +25,7 @@ export const useInvestors = () => {
         return;
       }
       
-      // Use the admin.getUser function instead of querying profiles directly
+      // Use the admin.getUserById function instead of querying profiles directly
       // This avoids the RLS recursion issue
       const { data: adminUserData, error: adminError } = await supabase.auth.admin.getUserById(user.id);
       
@@ -134,6 +134,7 @@ export const useInvestors = () => {
     }
   }, [toast]);
   
+  // Only fetch data once on mount
   useEffect(() => {
     fetchData();
   }, [fetchData]);
