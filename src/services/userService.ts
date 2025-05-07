@@ -4,11 +4,24 @@ import { InvestorFormValues } from "@/components/admin/investors/InvestorForm";
 
 export const createOrFindInvestorUser = async (values: InvestorFormValues): Promise<string | null> => {
   try {
+    // First try to find if user already exists
+    const { data: existingUser, error: findError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', values.email)
+      .single();
+    
+    // If found, return existing user ID
+    if (existingUser && !findError) {
+      console.log("Found existing user:", existingUser.id);
+      return existingUser.id;
+    }
+
     // Generate a random password for the initial user account
     const tempPassword = Math.random().toString(36).substring(2, 15) + 
-                        Math.random().toString(36).substring(2, 15);
+                       Math.random().toString(36).substring(2, 15);
     
-    // 1. Create a user in the auth system
+    // Create a user in the auth system if doesn't exist
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: values.email,
       password: tempPassword,
@@ -21,10 +34,10 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
     });
     
     if (authError) {
-      // If the user already exists in auth system, continue with the profile creation
+      // If the user already exists in auth system, fetch profile again
       console.log("Auth creation warning (user may already exist):", authError);
       
-      // Try to fetch the user by email to get their ID
+      // Try to fetch the user by email one more time
       const { data: profileData, error: profileFetchError } = await supabase
         .from('profiles')
         .select('id')
@@ -37,6 +50,7 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
       
       return profileData.id;
     } else {
+      // New user created successfully
       return authData?.user?.id || null;
     }
   } catch (error) {

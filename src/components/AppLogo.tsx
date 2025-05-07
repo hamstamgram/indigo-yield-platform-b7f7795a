@@ -15,7 +15,6 @@ const AppLogo = ({ className = "h-8 w-auto", showText = false, linkTo }: AppLogo
         alt="Indigo Digital Assets Yield" 
         className={className} 
       />
-      {/* Text has been removed as requested */}
     </>
   );
 

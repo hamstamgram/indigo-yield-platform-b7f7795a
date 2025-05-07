@@ -23,7 +23,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
         
         {/* Logo centered in header */}
         <div className="flex-1 flex justify-center">
-          <AppLogo linkTo="/dashboard" className="h-10 w-auto" />
+          <AppLogo linkTo="/dashboard" className="h-10 w-auto" showText={false} />
         </div>
         
         <div className="flex items-center space-x-2">

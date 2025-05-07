@@ -300,7 +300,7 @@ export type Database = {
     }
     Functions: {
       get_profile_by_id: {
-        Args: { profile_id: string }
+        Args: { profile_id: string } | { user_id: number }
         Returns: {
           avatar_url: string | null
           created_at: string | null
@@ -316,7 +316,7 @@ export type Database = {
         }[]
       }
       get_user_admin_status: {
-        Args: { user_id: string }
+        Args: Record<PropertyKey, never> | { user_id: string }
         Returns: boolean
       }
       is_admin: {

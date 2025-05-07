@@ -6,7 +6,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Save, Search, X } from "lucide-react";
+import { Loader2, Save, Search, X, Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 type UserPortfolio = {
   id: string;
@@ -40,67 +48,71 @@ const AdminPortfolios = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<string>("");
+  const [selectedAsset, setSelectedAsset] = useState<number>(0);
+  const [newBalance, setNewBalance] = useState<string>("0");
   const { toast } = useToast();
 
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch all required data in parallel
+      const [portfoliosResult, usersResult, assetsResult] = await Promise.all([
+        supabase
+          .from('portfolios')
+          .select('id, user_id, asset_id, balance, updated_at')
+          .order('updated_at', { ascending: false }),
+        
+        supabase
+          .from('profiles')
+          .select('id, email, first_name, last_name'),
+          
+        supabase
+          .from('assets')
+          .select('id, symbol, name')
+      ]);
+      
+      if (portfoliosResult.error) throw portfoliosResult.error;
+      if (usersResult.error) throw usersResult.error;
+      if (assetsResult.error) throw assetsResult.error;
+      
+      const portfolioData = portfoliosResult.data || [];
+      const userData = usersResult.data || [];
+      const assetData = assetsResult.data || [];
+      
+      setUsers(userData);
+      setAssets(assetData);
+      
+      // Enrich portfolio data with user and asset information
+      const enrichedPortfolios = portfolioData.map(portfolio => {
+        const user = userData.find(u => u.id === portfolio.user_id);
+        const asset = assetData.find(a => a.id === portfolio.asset_id);
+        
+        return {
+          ...portfolio,
+          user_email: user?.email || '',
+          asset_symbol: asset?.symbol || '',
+          asset_name: asset?.name || ''
+        };
+      });
+      
+      setPortfolios(enrichedPortfolios);
+      setFilteredPortfolios(enrichedPortfolios);
+    } catch (error) {
+      console.error('Error fetching portfolio data:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch portfolio data',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch all required data in parallel
-        const [portfoliosResult, usersResult, assetsResult] = await Promise.all([
-          supabase
-            .from('portfolios')
-            .select('id, user_id, asset_id, balance, updated_at')
-            .order('updated_at', { ascending: false }),
-          
-          supabase
-            .from('profiles')
-            .select('id, email, first_name, last_name'),
-            
-          supabase
-            .from('assets')
-            .select('id, symbol, name')
-        ]);
-        
-        if (portfoliosResult.error) throw portfoliosResult.error;
-        if (usersResult.error) throw usersResult.error;
-        if (assetsResult.error) throw assetsResult.error;
-        
-        const portfolioData = portfoliosResult.data || [];
-        const userData = usersResult.data || [];
-        const assetData = assetsResult.data || [];
-        
-        setUsers(userData);
-        setAssets(assetData);
-        
-        // Enrich portfolio data with user and asset information
-        const enrichedPortfolios = portfolioData.map(portfolio => {
-          const user = userData.find(u => u.id === portfolio.user_id);
-          const asset = assetData.find(a => a.id === portfolio.asset_id);
-          
-          return {
-            ...portfolio,
-            user_email: user?.email || '',
-            asset_symbol: asset?.symbol || '',
-            asset_name: asset?.name || ''
-          };
-        });
-        
-        setPortfolios(enrichedPortfolios);
-        setFilteredPortfolios(enrichedPortfolios);
-      } catch (error) {
-        console.error('Error fetching portfolio data:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to fetch portfolio data',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     fetchData();
   }, []);
 
@@ -164,15 +176,108 @@ const AdminPortfolios = () => {
     }
   };
 
+  const addNewPortfolio = async () => {
+    try {
+      setSaving(true);
+      
+      if (!selectedUser || !selectedAsset) {
+        toast({
+          title: 'Error',
+          description: 'Please select both a user and an asset',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const balance = parseFloat(newBalance);
+      if (isNaN(balance) || balance < 0) {
+        toast({
+          title: 'Error',
+          description: 'Please enter a valid balance amount',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Check if this user-asset combination already exists
+      const { data: existingEntry } = await supabase
+        .from('portfolios')
+        .select('id')
+        .eq('user_id', selectedUser)
+        .eq('asset_id', selectedAsset)
+        .single();
+
+      if (existingEntry) {
+        // Update existing entry
+        const { error } = await supabase
+          .from('portfolios')
+          .update({ 
+            balance: balance,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingEntry.id);
+          
+        if (error) throw error;
+        
+        toast({
+          title: 'Success',
+          description: 'Portfolio balance updated successfully',
+        });
+      } else {
+        // Insert new entry
+        const { error } = await supabase
+          .from('portfolios')
+          .insert({
+            user_id: selectedUser,
+            asset_id: selectedAsset,
+            balance: balance,
+            updated_at: new Date().toISOString()
+          });
+          
+        if (error) throw error;
+        
+        toast({
+          title: 'Success',
+          description: 'New portfolio entry added successfully',
+        });
+      }
+      
+      // Close dialog and refresh data
+      setAddDialogOpen(false);
+      fetchData();
+      
+      // Reset form values
+      setSelectedUser("");
+      setSelectedAsset(0);
+      setNewBalance("0");
+      
+    } catch (error) {
+      console.error('Error adding portfolio entry:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add portfolio entry',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const clearSearch = () => {
     setSearchTerm("");
   };
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Investor Portfolio Management</CardTitle>
-        <CardDescription>View and modify investor portfolio balances</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Investor Portfolio Management</CardTitle>
+          <CardDescription>View and modify investor portfolio balances</CardDescription>
+        </div>
+        <Button onClick={() => setAddDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Portfolio
+        </Button>
       </CardHeader>
       <CardContent>
         <div className="flex mb-4">
@@ -256,6 +361,75 @@ const AdminPortfolios = () => {
             </Table>
           </div>
         )}
+
+        {/* Add Portfolio Dialog */}
+        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Portfolio Entry</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="user">Investor</Label>
+                <select 
+                  id="user"
+                  value={selectedUser}
+                  onChange={(e) => setSelectedUser(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="">Select an investor</option>
+                  {users.map(user => (
+                    <option key={user.id} value={user.id}>
+                      {user.first_name} {user.last_name} ({user.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="asset">Asset</Label>
+                <select 
+                  id="asset"
+                  value={selectedAsset}
+                  onChange={(e) => setSelectedAsset(parseInt(e.target.value))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="0">Select an asset</option>
+                  {assets.map(asset => (
+                    <option key={asset.id} value={asset.id}>
+                      {asset.name} ({asset.symbol})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="balance">Balance</Label>
+                <Input
+                  id="balance"
+                  type="number"
+                  step="0.00000001"
+                  min="0"
+                  value={newBalance}
+                  onChange={(e) => setNewBalance(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setAddDialogOpen(false)}>Cancel</Button>
+              <Button onClick={addNewPortfolio} disabled={saving}>
+                {saving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : 'Add Portfolio Entry'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
