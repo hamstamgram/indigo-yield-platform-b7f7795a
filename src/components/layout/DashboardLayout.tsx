@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -7,9 +8,32 @@ import ContentArea from "./ContentArea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+/**
+ * Checks if a user has admin privileges
+ * @param userId The user ID to check
+ * @returns Boolean indicating admin status
+ */
+const checkAdminStatus = async (userId: string): Promise<boolean> => {
+  // First check using profile table for existing field
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', userId)
+    .single();
+    
+  if (profile?.is_admin) {
+    return true;
+  }
+  
+  // Alternative check for known admin emails (fallback)
+  const { data: { user } } = await supabase.auth.getUser();
+  return user?.email === 'hammadou@indigo.fund';
+};
+
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -18,6 +42,7 @@ const DashboardLayout = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        setIsLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session) {
@@ -28,22 +53,18 @@ const DashboardLayout = () => {
 
         console.log("Session exists, checking admin status");
         
-        // For testing admin status based on known admin email
-        // This is reliable even if the profiles query fails
-        const isKnownAdmin = session.user.email === 'hammadou@indigo.fund';
-        console.log("Is known admin email?", isKnownAdmin);
-        
-        // Set admin status based on email check
-        setIsAdmin(isKnownAdmin);
+        // Check admin status through a dedicated function
+        const adminStatus = await checkAdminStatus(session.user.id);
+        setIsAdmin(adminStatus);
         
         // Route based on admin status and current path
         const currentPath = window.location.pathname;
         console.log("Current path:", currentPath);
         
-        if (isKnownAdmin && currentPath === '/dashboard') {
+        if (adminStatus && currentPath === '/dashboard') {
           console.log("Admin on regular dashboard - redirecting to admin dashboard");
           navigate('/admin-dashboard');
-        } else if (!isKnownAdmin && currentPath.includes('admin')) {
+        } else if (!adminStatus && currentPath.includes('admin')) {
           console.log("Regular user on admin page - redirecting to regular dashboard");
           navigate('/dashboard');
         }
@@ -55,6 +76,8 @@ const DashboardLayout = () => {
           variant: "destructive",
         });
         navigate('/login');
+      } finally {
+        setIsLoading(false);
       }
     };
     
@@ -71,6 +94,12 @@ const DashboardLayout = () => {
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
+
+  if (isLoading) {
+    return <div className="flex h-screen items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
+    </div>;
+  }
 
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">

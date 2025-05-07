@@ -1,13 +1,39 @@
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AssetOverview from "@/components/admin/AssetOverview";
 import YieldSourcesTable from "@/components/admin/YieldSourcesTable";
 import QuickLinks from "@/components/admin/QuickLinks";
 import { useAssetData } from "@/hooks/useAssetData";
+import { useEffect } from "react";
 
 const AdminDashboard = () => {
-  const { loading, assetSummaries, yieldSources, userName } = useAssetData();
+  const { loading, error, assetSummaries, yieldSources, userName, isAdmin } = useAssetData();
+  const navigate = useNavigate();
+  
+  // Security check - redirect non-admin users
+  useEffect(() => {
+    if (!loading && !isAdmin) {
+      navigate('/dashboard');
+    }
+  }, [loading, isAdmin, navigate]);
+  
+  // Display error if any
+  if (error) {
+    return (
+      <div className="space-y-8">
+        <AdminPageHeader userName={userName} />
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-8">
