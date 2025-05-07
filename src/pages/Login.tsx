@@ -47,6 +47,7 @@ export default function Login() {
       // For testing, use these credentials:
       // Email: test@investor.com
       // Password: InvestorPass123
+      // Or for admin: hammadou@indigo.fund
       
       if (isLogin) {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -56,21 +57,29 @@ export default function Login() {
 
         if (error) throw error;
         
-        toast({
-          title: "Welcome back!",
-          description: "You've successfully logged in.",
-        });
-        
         // Check if user is admin
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('is_admin')
           .eq('id', data.user.id)
           .single();
-          
+        
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+          throw new Error("Could not verify admin status");
+        }
+        
+        toast({
+          title: "Welcome back!",
+          description: `You've successfully logged in as ${profile?.is_admin ? 'Administrator' : 'Investor'}.`,
+        });
+        
+        // Direct admin users to admin dashboard, regular users to normal dashboard
         if (profile?.is_admin) {
+          console.log("Admin user detected, redirecting to admin dashboard");
           navigate("/admin-dashboard");
         } else {
+          console.log("Regular user detected, redirecting to dashboard");
           navigate("/dashboard");
         }
       } else {
@@ -88,6 +97,7 @@ export default function Login() {
         description: error.message || "An error occurred during authentication.",
         variant: "destructive",
       });
+      console.error("Login error:", error);
     } finally {
       setLoading(false);
     }
