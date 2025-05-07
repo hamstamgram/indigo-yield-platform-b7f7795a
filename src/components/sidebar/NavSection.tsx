@@ -32,9 +32,9 @@ const NavSection: React.FC<NavSectionProps> = ({ title, items, onItemClick }) =>
       return location.search.includes(`tab=${tabParam}`);
     }
     
-    // Special case for admin routes
-    if (href === '/admin-investors' && location.pathname === '/admin-investors') {
-      return true;
+    // Special case for admin-investors route
+    if (href === '/admin-investors') {
+      return location.pathname === '/admin-investors';
     }
     
     return false;

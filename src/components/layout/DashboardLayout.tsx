@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -49,9 +48,6 @@ const DashboardLayout = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Skip if we've already done the initial check
-        if (initialAuthCheckDone.current) return;
-        
         setIsLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         
@@ -68,18 +64,18 @@ const DashboardLayout = () => {
         const adminStatus = await checkAdminStatus(session.user.id);
         setIsAdmin(adminStatus);
         
-        // Mark initial auth check as complete
-        initialAuthCheckDone.current = true;
-        
-        // Route based on admin status and current path - only on initial load
-        // This prevents unnecessary redirects when navigating within the app
-        if (!redirectAttempted.current) {
-          redirectAttempted.current = true;
+        // Only perform redirects on initial load or when admin status changes
+        if (!initialAuthCheckDone.current) {
+          initialAuthCheckDone.current = true;
           
-          if (adminStatus && currentPath === '/dashboard') {
-            console.log("Admin on regular dashboard - redirecting to admin dashboard");
-            navigate('/admin-dashboard', { replace: true });
-          } else if (!adminStatus && isAdminRoute) {
+          if (adminStatus) {
+            // Admin users on regular dashboard should go to admin dashboard
+            if (currentPath === '/dashboard') {
+              console.log("Admin on regular dashboard - redirecting to admin dashboard");
+              navigate('/admin-dashboard', { replace: true });
+            }
+          } else if (isAdminRoute) {
+            // Non-admin users on admin page should go to regular dashboard
             console.log("Regular user on admin page - redirecting to regular dashboard");
             navigate('/dashboard', { replace: true });
           }
