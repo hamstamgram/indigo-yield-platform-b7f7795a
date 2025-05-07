@@ -7,8 +7,10 @@ interface CryptoIconProps {
 }
 
 export const CryptoIcon: React.FC<CryptoIconProps> = ({ symbol, className = "h-10 w-10" }) => {
+  // Convert symbol to lowercase for consistent handling
   const lowerSymbol = symbol.toLowerCase();
   
+  // Return the appropriate icon based on symbol
   if (lowerSymbol === "btc") {
     return (
       <img 
