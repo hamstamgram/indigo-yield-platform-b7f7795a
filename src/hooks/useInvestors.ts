@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
 import { Investor, Asset } from "@/types/investorTypes";
 
 export const useInvestors = () => {
@@ -13,17 +12,18 @@ export const useInvestors = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null); // Initially null until checked
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const checkAdminStatus = async () => {
+    const fetchData = async () => {
       try {
+        setLoading(true);
+        
         // Check if user is logged in
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
-          navigate('/login');
-          return false;
+          setLoading(false);
+          return;
         }
         
         // Check if user is an admin
@@ -33,31 +33,18 @@ export const useInvestors = () => {
           .eq('id', user.id)
           .single();
         
-        if (error || !profile?.is_admin) {
-          toast({
-            title: "Access Denied",
-            description: "You don't have permission to access this page.",
-            variant: "destructive",
-          });
-          navigate('/dashboard');
-          return false;
+        if (error) {
+          console.error("Error fetching profile:", error);
+          setLoading(false);
+          return;
         }
         
-        setIsAdmin(true); // Confirm admin status
-        return true;
-      } catch (error) {
-        console.error("Error checking admin status:", error);
-        navigate('/dashboard');
-        return false;
-      }
-    };
-    
-    const fetchData = async () => {
-      try {
-        const isAdmin = await checkAdminStatus();
-        if (!isAdmin) return;
+        setIsAdmin(!!profile?.is_admin);
         
-        setLoading(true);
+        if (!profile?.is_admin) {
+          setLoading(false);
+          return;
+        }
         
         // Fetch all assets
         const { data: assetData, error: assetError } = await supabase
@@ -65,7 +52,15 @@ export const useInvestors = () => {
           .select('id, symbol, name')
           .order('id');
         
-        if (assetError) throw assetError;
+        if (assetError) {
+          console.error("Error fetching assets:", assetError);
+          toast({
+            title: "Error",
+            description: "Failed to load asset data",
+            variant: "destructive",
+          });
+        }
+        
         setAssets(assetData || []);
         
         // Get all non-admin users (investors)
@@ -75,7 +70,14 @@ export const useInvestors = () => {
           .eq('is_admin', false)
           .order('created_at', { ascending: false });
         
-        if (userError) throw userError;
+        if (userError) {
+          console.error("Error fetching users:", userError);
+          toast({
+            title: "Error",
+            description: "Failed to load investor data",
+            variant: "destructive",
+          });
+        }
         
         // Fetch portfolio data for each investor
         const investorsWithPortfolios = await Promise.all((userData || []).map(async (investor) => {
@@ -133,7 +135,7 @@ export const useInvestors = () => {
     };
     
     fetchData();
-  }, [navigate, toast]);
+  }, [toast]);
   
   // Handle search
   useEffect(() => {
@@ -157,6 +159,6 @@ export const useInvestors = () => {
     setSearchTerm,
     loading,
     assets,
-    isAdmin // Explicitly expose isAdmin status
+    isAdmin
   };
 };

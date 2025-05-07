@@ -77,9 +77,6 @@ const DashboardLayout = () => {
         
         console.log("Admin status:", adminStatus, "Current path:", currentPath);
         setIsAdmin(adminStatus);
-        
-        // Don't perform any redirects here to avoid redirect loops
-        // Let the individual components decide if they need to redirect
       } catch (error) {
         console.error("Auth check error:", error);
         if (isMounted) {
@@ -105,7 +102,7 @@ const DashboardLayout = () => {
     };
   }, [navigate, toast, currentPath]);
   
-  // For admin routes, perform access control at the layout level
+  // Redirect logic with improved checks to prevent loops
   useEffect(() => {
     // Don't redirect while still loading
     if (isLoading) return;
@@ -114,12 +111,15 @@ const DashboardLayout = () => {
     if (isAdminRoute && isAdmin === false) {
       console.log("Non-admin trying to access admin route, redirecting to dashboard");
       navigate('/dashboard', { replace: true });
+      return;
     }
     
     // For regular dashboard, redirect admins to admin dashboard
+    // ONLY if they're directly on /dashboard, not other dashboard pages
     if (currentPath === '/dashboard' && isAdmin) {
       console.log("Admin on regular dashboard, redirecting to admin dashboard");
       navigate('/admin-dashboard', { replace: true });
+      return;
     }
   }, [currentPath, isAdmin, isAdminRoute, isLoading, navigate]);
   

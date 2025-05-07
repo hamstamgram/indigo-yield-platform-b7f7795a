@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import InvestorsHeader from "@/components/admin/investors/InvestorsHeader";
@@ -19,14 +18,7 @@ const AdminInvestors = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Redirect non-admin users
-  useEffect(() => {
-    if (isAdmin === false) { // Only redirect if definitely not an admin
-      navigate('/dashboard', { replace: true });
-    }
-  }, [isAdmin, navigate]);
-  
-  // Show loading state while checking permissions
+  // Show loading state while checking permissions or loading data
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -40,6 +32,10 @@ const AdminInvestors = () => {
   const viewInvestorDetails = (investorId: string) => {
     // In a real app, this would navigate to a detailed investor view
     console.log("View investor details:", investorId);
+    toast({
+      title: "View investor",
+      description: `Viewing details for investor ID: ${investorId}`,
+    });
   };
   
   // Send email to investor
