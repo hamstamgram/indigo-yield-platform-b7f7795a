@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { fetchCryptoPrices, defaultPrices } from "@/services/cryptoService";
 
 type AssetSummary = {
   id: number;
@@ -102,19 +103,31 @@ const AdminDashboard = () => {
         if (!assets) {
           throw new Error("Failed to load assets");
         }
+
+        // Get real-time prices
+        const symbols = assets.map(asset => asset.symbol.toUpperCase());
+        let prices = {};
+        try {
+          prices = await fetchCryptoPrices(symbols);
+        } catch (e) {
+          console.error('Error fetching prices, using defaults:', e);
+          prices = defaultPrices;
+        }
         
-        // Create mock data for the asset summaries (in a real app this would be from the database)
-        // In production, you would aggregate this data from user portfolios
+        // Create asset summaries for all assets
         const mockSummaries: AssetSummary[] = assets.map(asset => {
-          const baseTotalBalance = asset.symbol === 'BTC' ? 12.5 : 
-                                  asset.symbol === 'ETH' ? 180 : 
-                                  asset.symbol === 'SOL' ? 2200 : 
-                                  asset.symbol === 'USDC' ? 425000 : 0;
+          const symbol = asset.symbol.toUpperCase();
+          const baseTotalBalance = symbol === 'BTC' ? 12.5 : 
+                                  symbol === 'ETH' ? 180 : 
+                                  symbol === 'SOL' ? 2200 : 
+                                  symbol === 'USDC' ? 425000 : 0;
                                   
-          const basePrice = asset.symbol === 'BTC' ? 67500 : 
-                           asset.symbol === 'ETH' ? 3200 : 
-                           asset.symbol === 'SOL' ? 148 : 
-                           asset.symbol === 'USDC' ? 1 : 0;
+          const priceData = prices[asset.symbol.toLowerCase()] || defaultPrices[asset.symbol.toLowerCase()];
+          const basePrice = priceData ? priceData.price : 
+                           symbol === 'BTC' ? 67500 : 
+                           symbol === 'ETH' ? 3200 : 
+                           symbol === 'SOL' ? 148 : 
+                           symbol === 'USDC' ? 1 : 0;
                            
           return {
             id: asset.id,
@@ -122,14 +135,14 @@ const AdminDashboard = () => {
             name: asset.name,
             totalBalance: baseTotalBalance,
             usdValue: baseTotalBalance * basePrice,
-            totalUsers: asset.symbol === 'BTC' ? 18 : 
-                       asset.symbol === 'ETH' ? 15 : 
-                       asset.symbol === 'SOL' ? 11 : 
-                       asset.symbol === 'USDC' ? 22 : 0,
-            avgYield: asset.symbol === 'BTC' ? 4.8 : 
-                     asset.symbol === 'ETH' ? 5.2 : 
-                     asset.symbol === 'SOL' ? 6.5 : 
-                     asset.symbol === 'USDC' ? 8.1 : 0
+            totalUsers: symbol === 'BTC' ? 18 : 
+                       symbol === 'ETH' ? 15 : 
+                       symbol === 'SOL' ? 11 : 
+                       symbol === 'USDC' ? 22 : 0,
+            avgYield: symbol === 'BTC' ? 4.8 : 
+                     symbol === 'ETH' ? 5.2 : 
+                     symbol === 'SOL' ? 6.5 : 
+                     symbol === 'USDC' ? 8.1 : 0
           };
         });
         
