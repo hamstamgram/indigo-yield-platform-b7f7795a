@@ -14,10 +14,11 @@ const NavSection: React.FC<NavSectionProps> = ({ title, items, onItemClick }) =>
   const navigate = useNavigate();
 
   const handleNavigation = (href: string) => {
+    navigate(href);
+    
     if (onItemClick) {
       onItemClick();
     }
-    navigate(href);
   };
 
   const isActive = (href: string) => {

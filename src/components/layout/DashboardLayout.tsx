@@ -39,6 +39,7 @@ const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
@@ -52,7 +53,7 @@ const DashboardLayout = () => {
     currentPath === '/admin-dashboard' || 
     currentPath === '/admin-investors';
   
-  // Check auth status and admin status
+  // Check auth status and admin status - this runs once on component mount
   useEffect(() => {
     let isMounted = true;
     
@@ -63,7 +64,9 @@ const DashboardLayout = () => {
         if (!session) {
           // If not authenticated, redirect to login
           console.log("No session found, redirecting to login");
-          navigate('/login', { replace: true });
+          if (isMounted) {
+            navigate('/login', { replace: true });
+          }
           return;
         }
 
@@ -77,7 +80,9 @@ const DashboardLayout = () => {
         console.log("Admin status:", adminStatus, "Current path:", currentPath);
         setIsAdmin(adminStatus);
         
-        // Handle redirects based on admin status
+        // Set auth check flag to true to avoid infinite redirects
+        setIsAuthChecked(true);
+
         if (adminStatus) {
           // Only redirect on direct dashboard access
           if (currentPath === '/dashboard') {
@@ -113,7 +118,21 @@ const DashboardLayout = () => {
     return () => {
       isMounted = false;
     };
-  }, [navigate, toast, currentPath, isAdminRoute]);
+  }, [navigate, toast]);
+  
+  // This useEffect adds a dependency on currentPath to update redirects if needed
+  useEffect(() => {
+    // Only run redirect checks once authentication has been verified
+    if (!isAuthChecked || isLoading) return;
+    
+    if (isAdmin) {
+      if (currentPath === '/dashboard') {
+        navigate('/admin-dashboard', { replace: true });
+      }
+    } else if (isAdminRoute) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [currentPath, isAdmin, isAdminRoute, isAuthChecked, isLoading, navigate]);
   
   // Listen for auth state changes
   useEffect(() => {
