@@ -65,34 +65,35 @@ const AssetSummaryCard: React.FC<AssetSummaryProps> = ({
           </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-4 flex-1">
-          <div className="space-y-1">
-            <p className="text-sm text-gray-500">Total Balance</p>
-            <div className="min-h-[40px] flex items-center">
-              <p className="text-base font-semibold text-gray-900 dark:text-white break-all">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
+          {/* Stacked Total Balance and USD Value */}
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Total Balance</p>
+              <p className="text-base font-semibold text-gray-900 dark:text-white truncate">
                 {formatCrypto(totalBalance, symbol)}
               </p>
             </div>
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm text-gray-500">USD Value</p>
-            <div className="min-h-[40px] flex items-center">
-              <p className="text-base font-semibold text-gray-900 dark:text-white break-all">
+            
+            <div>
+              <p className="text-sm text-gray-500 mb-1">USD Value</p>
+              <p className="text-base font-semibold text-gray-900 dark:text-white truncate">
                 {formatCurrency(usdValue)}
               </p>
             </div>
           </div>
-          <div className="space-y-1">
-            <p className="text-sm text-gray-500">Users</p>
-            <div className="min-h-[28px] flex items-center">
+          
+          {/* Users and Yield stats */}
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Users</p>
               <p className="text-lg font-semibold text-gray-900 dark:text-white">
                 {totalUsers}
               </p>
             </div>
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm text-gray-500">Avg Yield</p>
-            <div className="min-h-[28px] flex items-center">
+            
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Avg Yield</p>
               <p className="text-lg font-semibold text-indigo-600 dark:text-indigo-400">
                 {formatPercent(avgYield)}
               </p>
