@@ -1,16 +1,24 @@
+
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Investor, Asset } from "@/types/investorTypes";
+import { 
+  checkAdminStatus, 
+  fetchInvestors, 
+  fetchPendingInvites 
+} from "@/services/investorService";
+import { fetchAssets, enrichInvestorsWithPortfolioData } from "@/services/portfolioService";
+import { useInvestorSearch } from "./useInvestorSearch";
 
 export const useInvestors = () => {
   const [investors, setInvestors] = useState<Investor[]>([]);
-  const [filteredInvestors, setFilteredInvestors] = useState<Investor[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(false);
   const { toast } = useToast();
+  
+  // Set up search functionality
+  const { searchTerm, setSearchTerm, filteredInvestors } = useInvestorSearch(investors);
 
   // Define fetchData outside of useEffect to use with refetch
   const fetchData = useCallback(async () => {
@@ -18,282 +26,36 @@ export const useInvestors = () => {
       setLoading(true);
       console.log("Fetching investor data...");
       
-      // Check if user is logged in
-      const { data: { user } } = await supabase.auth.getUser();
+      // Check admin status
+      const { isAdmin: adminStatus } = await checkAdminStatus();
+      setIsAdmin(adminStatus);
       
-      if (!user) {
-        console.log("No user found, stopping fetch");
+      if (!adminStatus) {
+        console.log("User is not an admin, stopping fetch");
         setLoading(false);
+        setInvestors([]);
         return;
       }
       
-      console.log("Checking admin status for user:", user.id);
+      // Fetch assets
+      const assetsData = await fetchAssets();
+      setAssets(assetsData);
       
-      // Use the get_profile_by_id function to safely check admin status
-      // This avoids RLS recursion issues
-      try {
-        const { data: profileData, error: profileError } = await supabase
-          .rpc('get_profile_by_id', { profile_id: user.id });
-          
-        if (profileError) {
-          throw profileError;
-        }
-        
-        const isUserAdmin = profileData && profileData.length > 0 ? profileData[0]?.is_admin === true : false;
-        console.log("Admin status determined via function:", isUserAdmin);
-        setIsAdmin(isUserAdmin);
-        
-        if (!isUserAdmin) {
-          console.log("User is not an admin, stopping fetch");
-          setLoading(false);
-          setInvestors([]);
-          setFilteredInvestors([]);
-          return;
-        }
-      } catch (profileError) {
-        console.error("Error checking admin status via function:", profileError);
-        
-        // Direct admin check as fallback
-        try {
-          // Fallback to direct query
-          const { data: profileData, error: directError } = await supabase
-            .from('profiles')
-            .select('is_admin')
-            .eq('id', user.id)
-            .single();
-            
-          if (directError) {
-            throw directError;
-          }
-          
-          const isUserAdmin = profileData?.is_admin === true;
-          console.log("Admin status determined via direct query:", isUserAdmin);
-          setIsAdmin(isUserAdmin);
-          
-          if (!isUserAdmin) {
-            console.log("User is not an admin, stopping fetch");
-            setLoading(false);
-            setInvestors([]);
-            setFilteredInvestors([]);
-            return;
-          }
-        } catch (directError) {
-          console.error("Error checking admin status directly:", directError);
-          setIsAdmin(false);
-          setLoading(false);
-          toast({
-            title: "Error",
-            description: "Failed to verify admin status",
-            variant: "destructive",
-          });
-          return;
-        }
-      }
+      // Fetch investors
+      let investorsList: Investor[] = await fetchInvestors();
       
-      // Continue with fetching assets data
-      try {
-        const { data: assetData, error: assetError } = await supabase
-          .from('assets')
-          .select('id, symbol, name')
-          .order('symbol');
-        
-        if (assetError) {
-          console.error("Error fetching assets:", assetError);
-          toast({
-            title: "Error",
-            description: "Failed to load asset data",
-            variant: "destructive",
-          });
-          setAssets([]);
+      // If no investors found, try to get pending invites
+      if (investorsList.length === 0) {
+        const invitesData = await fetchPendingInvites();
+        if (invitesData.length > 0) {
+          setInvestors(invitesData);
         } else {
-          console.log("Fetched assets:", assetData?.length || 0);
-          setAssets(assetData || []);
-        }
-      } catch (error) {
-        console.error("Error fetching assets:", error);
-        setAssets([]);
-      }
-      
-      try {
-        // Use auth admin API to fetch users directly
-        const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-        
-        if (authError) {
-          console.error("Error fetching users:", authError);
-          throw authError;
-        }
-        
-        // Filter to only get non-admin users based on metadata
-        const nonAdminUsers = authUsers?.users?.filter(user => {
-          if (!user) return false;
-          
-          // Need to use explicit type assertion and null checks
-          const userMetadata = user.user_metadata as Record<string, unknown> | null | undefined;
-          return userMetadata && userMetadata.is_admin !== true;
-        }) || [];
-        
-        console.log("Found users via auth API:", nonAdminUsers?.length || 0);
-        
-        // Map them to our investor format
-        const mappedInvestors = nonAdminUsers.map(user => {
-          if (!user) {
-            return {
-              id: '',
-              email: '',
-              first_name: '',
-              last_name: '',
-              created_at: '',
-              portfolio_summary: {}
-            } as Investor;
-          }
-          
-          // Explicitly cast the user to avoid the 'never' type issue
-          const typedUser = user as any;
-          // Now we can safely access the user_metadata
-          const userMetadata = typedUser.user_metadata as Record<string, unknown> | null | undefined;
-          
-          return {
-            id: typedUser.id || '',
-            email: typedUser.email || '',
-            first_name: userMetadata?.first_name as string || '',
-            last_name: userMetadata?.last_name as string || '',
-            created_at: typedUser.created_at || '',
-            portfolio_summary: {}
-          } as Investor;
-        });
-        
-        // If we don't get users from auth API, try to get admin_invites as fallback
-        if (mappedInvestors.length === 0) {
-          try {
-            const { data: invitesData, error: invitesError } = await supabase
-              .from('admin_invites')
-              .select('email, created_at')
-              .eq('used', false);
-            
-            if (invitesError) throw invitesError;
-            
-            console.log("Found invites:", invitesData?.length || 0);
-            
-            if (invitesData && invitesData.length > 0) {
-              const simpleInvestorsList = invitesData.map(invite => ({
-                id: '',
-                email: invite.email,
-                first_name: '',
-                last_name: '',
-                created_at: invite.created_at,
-                portfolio_summary: {}
-              })) as Investor[];
-              
-              setInvestors(simpleInvestorsList);
-              setFilteredInvestors(simpleInvestorsList);
-            } else {
-              setInvestors([]);
-              setFilteredInvestors([]);
-            }
-          } catch (invitesError) {
-            console.error("Error fetching invites:", invitesError);
-            setInvestors([]);
-            setFilteredInvestors([]);
-          }
-        } else {
-          // Enrich with portfolio data if possible
-          const investorsWithPortfolios = await Promise.all(mappedInvestors.map(async (investor) => {
-            if (!investor.id) return investor;
-            
-            // Try to get portfolio data
-            try {
-              const { data: portfolioData, error: portfolioError } = await supabase
-                .from('portfolios')
-                .select(`
-                  balance,
-                  asset_id,
-                  assets (
-                    symbol
-                  )
-                `)
-                .eq('user_id', investor.id);
-                
-              if (portfolioError) {
-                console.error(`Error fetching portfolio for user ${investor.id}:`, portfolioError);
-                return investor;
-              }
-              
-              // Create portfolio summary by asset
-              const portfolioSummary: { [key: string]: { balance: number, usd_value: number } } = {};
-              
-              if (portfolioData && portfolioData.length > 0) {
-                portfolioData.forEach(item => {
-                  if (!item.assets) return;
-                  const symbol = item.assets.symbol;
-                  const balance = Number(item.balance);
-                  
-                  // Mock price calculation (in production, fetch real prices)
-                  const price = symbol === 'BTC' ? 67500 : 
-                              symbol === 'ETH' ? 3200 : 
-                              symbol === 'SOL' ? 148 : 
-                              symbol === 'USDC' ? 1 : 0;
-                  
-                  portfolioSummary[symbol] = {
-                    balance,
-                    usd_value: balance * price
-                  };
-                });
-              }
-              
-              return {
-                ...investor,
-                portfolio_summary: portfolioSummary
-              };
-            } catch (error) {
-              console.error(`Error enriching portfolio for ${investor.id}:`, error);
-              return investor;
-            }
-          }));
-          
-          setInvestors(investorsWithPortfolios);
-          setFilteredInvestors(investorsWithPortfolios);
-        }
-        
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        
-        // Try to get admin_invites as fallback
-        try {
-          const { data: invitesData, error: invitesError } = await supabase
-            .from('admin_invites')
-            .select('email, created_at')
-            .eq('used', false);
-          
-          if (invitesError) throw invitesError;
-          
-          console.log("Found invites:", invitesData?.length || 0);
-          
-          if (invitesData && invitesData.length > 0) {
-            const simpleInvestorsList = invitesData.map(invite => ({
-              id: '',
-              email: invite.email,
-              first_name: '',
-              last_name: '',
-              created_at: invite.created_at,
-              portfolio_summary: {}
-            })) as Investor[];
-            
-            setInvestors(simpleInvestorsList);
-            setFilteredInvestors(simpleInvestorsList);
-          } else {
-            setInvestors([]);
-            setFilteredInvestors([]);
-          }
-        } catch (invitesError) {
-          console.error("Error fetching invites:", invitesError);
-          toast({
-            title: "Error",
-            description: "Failed to load investor data",
-            variant: "destructive",
-          });
           setInvestors([]);
-          setFilteredInvestors([]);
         }
+      } else {
+        // Enrich investors with portfolio data
+        const enrichedInvestors = await enrichInvestorsWithPortfolioData(investorsList);
+        setInvestors(enrichedInvestors);
       }
     } catch (error) {
       console.error('Error in main investor data fetch:', error);
@@ -303,7 +65,6 @@ export const useInvestors = () => {
         variant: "destructive",
       });
       setInvestors([]);
-      setFilteredInvestors([]);
     } finally {
       setLoading(false);
     }
@@ -313,21 +74,6 @@ export const useInvestors = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-  
-  // Handle search
-  useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredInvestors(investors);
-    } else {
-      const term = searchTerm.toLowerCase();
-      const filtered = investors.filter(investor => 
-        investor.email?.toLowerCase().includes(term) || 
-        investor.first_name?.toLowerCase().includes(term) ||
-        investor.last_name?.toLowerCase().includes(term)
-      );
-      setFilteredInvestors(filtered);
-    }
-  }, [searchTerm, investors]);
   
   // Provide a refetch method to refresh data
   const refetch = useCallback(() => {

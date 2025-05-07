@@ -1,80 +1,88 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { Investor } from "@/types/investorTypes";
 import { Asset } from "@/types/investorTypes";
-import { InvestorFormValues } from "@/components/admin/investors/InvestorForm";
 
-export interface PortfolioEntry {
-  user_id: string;
-  asset_id: number;
-  balance: number;
-}
-
-export const createPortfolioEntries = async (
-  userId: string, 
-  formValues: InvestorFormValues, 
-  assets: Asset[]
-): Promise<boolean> => {
-  const portfolioEntries: PortfolioEntry[] = [];
-
-  // Add BTC balance if provided
-  if (formValues.btc_balance && parseFloat(formValues.btc_balance) > 0) {
-    const btcAsset = assets.find(a => a.symbol.toLowerCase() === 'btc');
-    if (btcAsset) {
-      portfolioEntries.push({
-        user_id: userId,
-        asset_id: btcAsset.id,
-        balance: parseFloat(formValues.btc_balance),
-      });
-    }
+/**
+ * Fetches all available assets from the database
+ * @returns Array of assets
+ */
+export const fetchAssets = async (): Promise<Asset[]> => {
+  try {
+    const { data: assetData, error: assetError } = await supabase
+      .from('assets')
+      .select('id, symbol, name')
+      .order('symbol');
+    
+    if (assetError) {
+      console.error("Error fetching assets:", assetError);
+      return [];
+    } 
+    
+    console.log("Fetched assets:", assetData?.length || 0);
+    return assetData || [];
+  } catch (error) {
+    console.error("Error fetching assets:", error);
+    return [];
   }
+};
 
-  // Add ETH balance if provided
-  if (formValues.eth_balance && parseFloat(formValues.eth_balance) > 0) {
-    const ethAsset = assets.find(a => a.symbol.toLowerCase() === 'eth');
-    if (ethAsset) {
-      portfolioEntries.push({
-        user_id: userId,
-        asset_id: ethAsset.id,
-        balance: parseFloat(formValues.eth_balance),
-      });
+/**
+ * Enriches investors with their portfolio data
+ * @param investors Array of investors to enrich
+ * @returns Investors with portfolio data
+ */
+export const enrichInvestorsWithPortfolioData = async (investors: Investor[]): Promise<Investor[]> => {
+  return Promise.all(investors.map(async (investor) => {
+    if (!investor.id) return investor;
+    
+    // Try to get portfolio data
+    try {
+      const { data: portfolioData, error: portfolioError } = await supabase
+        .from('portfolios')
+        .select(`
+          balance,
+          asset_id,
+          assets (
+            symbol
+          )
+        `)
+        .eq('user_id', investor.id);
+        
+      if (portfolioError) {
+        console.error(`Error fetching portfolio for user ${investor.id}:`, portfolioError);
+        return investor;
+      }
+      
+      // Create portfolio summary by asset
+      const portfolioSummary: { [key: string]: { balance: number, usd_value: number } } = {};
+      
+      if (portfolioData && portfolioData.length > 0) {
+        portfolioData.forEach(item => {
+          if (!item.assets) return;
+          const symbol = item.assets.symbol;
+          const balance = Number(item.balance);
+          
+          // Mock price calculation (in production, fetch real prices)
+          const price = symbol === 'BTC' ? 67500 : 
+                      symbol === 'ETH' ? 3200 : 
+                      symbol === 'SOL' ? 148 : 
+                      symbol === 'USDC' ? 1 : 0;
+          
+          portfolioSummary[symbol] = {
+            balance,
+            usd_value: balance * price
+          };
+        });
+      }
+      
+      return {
+        ...investor,
+        portfolio_summary: portfolioSummary
+      };
+    } catch (error) {
+      console.error(`Error enriching portfolio for ${investor.id}:`, error);
+      return investor;
     }
-  }
-
-  // Add SOL balance if provided
-  if (formValues.sol_balance && parseFloat(formValues.sol_balance) > 0) {
-    const solAsset = assets.find(a => a.symbol.toLowerCase() === 'sol');
-    if (solAsset) {
-      portfolioEntries.push({
-        user_id: userId,
-        asset_id: solAsset.id,
-        balance: parseFloat(formValues.sol_balance),
-      });
-    }
-  }
-
-  // Add USDC balance if provided
-  if (formValues.usdc_balance && parseFloat(formValues.usdc_balance) > 0) {
-    const usdcAsset = assets.find(a => a.symbol.toLowerCase() === 'usdc');
-    if (usdcAsset) {
-      portfolioEntries.push({
-        user_id: userId,
-        asset_id: usdcAsset.id,
-        balance: parseFloat(formValues.usdc_balance),
-      });
-    }
-  }
-
-  // Insert portfolio entries if any
-  if (portfolioEntries.length > 0) {
-    const { error } = await supabase
-      .from('portfolios')
-      .insert(portfolioEntries);
-
-    if (error) {
-      console.error("Portfolio insert error:", error);
-      return false;
-    }
-  }
-
-  return true;
+  }));
 };
