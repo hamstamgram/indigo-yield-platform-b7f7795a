@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -49,7 +50,8 @@ const CreateTestUser: React.FC<CreateTestUserProps> = ({ onUserCreated }) => {
         
         // Make sure to call onUserCreated to refresh the data
         if (onUserCreated) {
-          onUserCreated();
+          console.log("Test user created, refreshing data...");
+          setTimeout(() => onUserCreated(), 1000); // Small delay to ensure user is created in DB
         }
       }
     } catch (error: any) {

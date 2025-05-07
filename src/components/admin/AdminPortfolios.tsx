@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +24,7 @@ type UserPortfolio = {
   balance: number;
   updated_at: string;
   user_email?: string;
+  user_name?: string;
   asset_symbol?: string;
   asset_name?: string;
 };
@@ -78,41 +80,92 @@ const AdminPortfolios = ({
         setAssets(assetsResult || []);
       }
       
-      // Fetch all required data for portfolios
-      const [portfoliosResult, usersResult] = await Promise.all([
-        supabase
-          .from('portfolios')
-          .select('id, user_id, asset_id, balance, updated_at')
-          .order('updated_at', { ascending: false }),
-        
-        supabase
+      // Use provided investors or fetch them
+      let userData: UserProfile[] = [];
+      if (providedInvestors && providedInvestors.length > 0) {
+        userData = providedInvestors.map(investor => ({
+          id: investor.id,
+          email: investor.email,
+          first_name: investor.first_name,
+          last_name: investor.last_name
+        }));
+        setUsers(userData);
+      } else {
+        // Fallback to fetching users directly
+        const { data: usersResult, error: usersError } = await supabase
           .from('profiles')
-          .select('id, email, first_name, last_name')
-      ]);
+          .select('id, email, first_name, last_name');
+          
+        if (usersError) throw usersError;
+        userData = usersResult || [];
+        setUsers(userData);
+      }
       
-      if (portfoliosResult.error) throw portfoliosResult.error;
-      if (usersResult.error) throw usersResult.error;
+      console.log("Fetched users:", userData.length);
       
-      const portfolioData = portfoliosResult.data || [];
-      const userData = usersResult.data || [];
+      // Fetch all portfolios
+      const { data: portfoliosResult, error: portfoliosError } = await supabase
+        .from('portfolios')
+        .select('id, user_id, asset_id, balance, updated_at');
       
-      setUsers(userData);
+      if (portfoliosError) throw portfoliosError;
+      
+      const portfolioData = portfoliosResult || [];
+      console.log("Fetched portfolios:", portfolioData.length);
       
       // Enrich portfolio data with user and asset information
       const enrichedPortfolios = portfolioData.map(portfolio => {
         const user = userData.find(u => u.id === portfolio.user_id);
         const asset = assets.find(a => a.id === portfolio.asset_id);
         
+        const userName = user ? 
+          `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email.split('@')[0] 
+          : '';
+        
         return {
           ...portfolio,
           user_email: user?.email || '',
+          user_name: userName,
           asset_symbol: asset?.symbol || '',
           asset_name: asset?.name || ''
         };
       });
       
+      console.log("Enriched portfolios:", enrichedPortfolios.length);
       setPortfolios(enrichedPortfolios);
       setFilteredPortfolios(enrichedPortfolios);
+      
+      // If we have users but no portfolios, create empty portfolios for the users
+      if (userData.length > 0 && portfolioData.length === 0) {
+        console.log("No portfolios found, but we have users. Creating skeleton view.");
+        
+        // Create skeleton portfolios for UI display
+        const skeletonPortfolios: UserPortfolio[] = [];
+        userData.forEach(user => {
+          const userName = 
+            `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email.split('@')[0];
+          
+          // Add a skeleton portfolio entry for this user
+          skeletonPortfolios.push({
+            id: `skeleton-${user.id}`,
+            user_id: user.id,
+            asset_id: 0, // No asset assigned yet
+            balance: 0,
+            updated_at: new Date().toISOString(),
+            user_email: user.email,
+            user_name: userName,
+            asset_symbol: '-',
+            asset_name: 'No assets yet'
+          });
+        });
+        
+        if (skeletonPortfolios.length > 0) {
+          console.log("Created skeleton portfolios:", skeletonPortfolios.length);
+          setPortfolios(skeletonPortfolios);
+          setFilteredPortfolios(skeletonPortfolios);
+        }
+      }
+      
     } catch (error) {
       console.error('Error fetching portfolio data:', error);
       toast({
@@ -139,6 +192,7 @@ const AdminPortfolios = ({
       const term = searchTerm.toLowerCase();
       const filtered = portfolios.filter(portfolio => 
         portfolio.user_email?.toLowerCase().includes(term) || 
+        portfolio.user_name?.toLowerCase().includes(term) || 
         portfolio.asset_symbol?.toLowerCase().includes(term) ||
         portfolio.asset_name?.toLowerCase().includes(term)
       );
@@ -166,6 +220,17 @@ const AdminPortfolios = ({
       const portfolioToUpdate = portfolios.find(p => p.id === portfolioId);
       if (!portfolioToUpdate) return;
       
+      // Check if this is a skeleton portfolio (no real portfolio entry yet)
+      if (portfolioId.startsWith('skeleton-')) {
+        // This is just a placeholder, don't try to update
+        toast({
+          title: 'Info',
+          description: 'Please add an asset using the Add Portfolio button first',
+        });
+        setSaving(false);
+        return;
+      }
+      
       const { error } = await supabase
         .from('portfolios')
         .update({ 
@@ -178,7 +243,7 @@ const AdminPortfolios = ({
       
       toast({
         title: 'Success',
-        description: `Portfolio balance updated for ${portfolioToUpdate.user_email} (${portfolioToUpdate.asset_symbol})`,
+        description: `Portfolio balance updated for ${portfolioToUpdate.user_name} (${portfolioToUpdate.asset_symbol})`,
       });
 
       // Add timeout to ensure UI feedback before completing
@@ -205,7 +270,7 @@ const AdminPortfolios = ({
       if (!selectedUser || !selectedAsset) {
         toast({
           title: 'Error',
-          description: 'Please select both a user and an asset',
+          description: 'Please select both an investor and an asset',
           variant: 'destructive',
         });
         return;
@@ -294,8 +359,8 @@ const AdminPortfolios = ({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>Investor Portfolio Management</CardTitle>
-          <CardDescription>View and modify investor portfolio balances and accounts</CardDescription>
+          <CardTitle>Portfolio Management</CardTitle>
+          <CardDescription>View and modify investor portfolio balances</CardDescription>
         </div>
         <Button onClick={() => setAddDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
@@ -307,7 +372,7 @@ const AdminPortfolios = ({
           <div className="relative flex-grow">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by email or asset..."
+              placeholder="Search by investor or asset..."
               className="pl-8 pr-8"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -350,7 +415,7 @@ const AdminPortfolios = ({
                 ) : (
                   filteredPortfolios.map((portfolio) => (
                     <TableRow key={portfolio.id}>
-                      <TableCell>{portfolio.user_email}</TableCell>
+                      <TableCell>{portfolio.user_name || portfolio.user_email}</TableCell>
                       <TableCell>{portfolio.asset_name}</TableCell>
                       <TableCell>{portfolio.asset_symbol}</TableCell>
                       <TableCell>
@@ -361,6 +426,7 @@ const AdminPortfolios = ({
                           value={portfolio.balance}
                           onChange={(e) => handleBalanceChange(portfolio.id, e.target.value)}
                           className="min-w-[150px] h-10"
+                          disabled={portfolio.id.startsWith('skeleton-')}
                         />
                       </TableCell>
                       <TableCell>
@@ -368,7 +434,7 @@ const AdminPortfolios = ({
                           variant="outline"
                           size="sm"
                           onClick={() => savePortfolioChanges(portfolio.id)}
-                          disabled={saving}
+                          disabled={saving || portfolio.id.startsWith('skeleton-')}
                         >
                           {saving ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
