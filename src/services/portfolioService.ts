@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Investor } from "@/types/investorTypes";
 import { Asset } from "@/types/investorTypes";
@@ -31,19 +32,24 @@ export const fetchAssets = async (): Promise<Asset[]> => {
       ];
       
       console.log("No assets found, creating defaults...");
-      const { data: insertedAssets, error: insertError } = await supabase
-        .from('assets')
-        .insert(defaultAssets)
-        .select();
+      try {
+        const { data: insertedAssets, error: insertError } = await supabase
+          .from('assets')
+          .insert(defaultAssets)
+          .select();
+          
+        if (insertError) {
+          console.error("Error creating default assets:", insertError);
+          // Return default assets with dummy IDs if we can't insert them
+          return defaultAssets.map((asset, index) => ({ ...asset, id: index + 1 }));
+        }
         
-      if (insertError) {
-        console.error("Error creating default assets:", insertError);
-        // Return default assets with dummy IDs if we can't insert them
+        console.log("Created default assets:", insertedAssets);
+        return insertedAssets || [];
+      } catch (insertErr) {
+        console.error("Error creating default assets:", insertErr);
         return defaultAssets.map((asset, index) => ({ ...asset, id: index + 1 }));
       }
-      
-      console.log("Created default assets:", insertedAssets);
-      return insertedAssets || [];
     }
     
     return assetData || [];

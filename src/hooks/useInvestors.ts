@@ -43,7 +43,26 @@ export const useInvestors = () => {
       
       // Fetch investors
       const investorsList = await fetchInvestors();
-      setInvestors(investorsList);
+      
+      // Try to enrich investors with portfolio data
+      try {
+        const enrichedInvestors = await enrichInvestorsWithPortfolioData(investorsList);
+        setInvestors(enrichedInvestors);
+      } catch (enrichError) {
+        console.error("Error enriching investors with portfolio data:", enrichError);
+        // Fall back to using the unenriched list
+        setInvestors(investorsList);
+      }
+      
+      // Also check for pending invites to include
+      try {
+        const invitesData = await fetchPendingInvites();
+        if (invitesData.length > 0) {
+          setInvestors(prevInvestors => [...prevInvestors, ...invitesData]);
+        }
+      } catch (invitesError) {
+        console.error("Error fetching pending invites:", invitesError);
+      }
       
     } catch (error) {
       console.error('Error in main investor data fetch:', error);

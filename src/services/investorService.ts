@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Investor } from "@/types/investorTypes";
+import { Investor, Asset } from "@/types/investorTypes";
 
 /**
  * Checks if the current user has admin privileges
@@ -68,42 +68,87 @@ export const checkAdminStatus = async (): Promise<{isAdmin: boolean | null}> => 
  */
 export const fetchInvestors = async (): Promise<Investor[]> => {
   try {
-    // Instead of querying the profiles table directly, which may have RLS issues,
-    // use a mock approach for now with hardcoded data
-    // This can be replaced with an RPC function in the future
+    // Try to use our new security definer function to avoid RLS issues
+    const { data: profilesData, error: functionError } = await supabase
+      .rpc('get_all_non_admin_profiles');
     
-    // Create some sample investors for testing
-    const sampleInvestors: Investor[] = [
-      {
-        id: '1',
-        email: 'investor1@example.com',
-        first_name: 'John',
-        last_name: 'Doe',
-        created_at: new Date().toISOString(),
-        portfolio_summary: {
-          'BTC': { balance: 0.5, usd_value: 33750 },
-          'ETH': { balance: 2, usd_value: 6400 }
-        }
-      },
-      {
-        id: '2',
-        email: 'investor2@example.com',
-        first_name: 'Jane',
-        last_name: 'Smith',
-        created_at: new Date().toISOString(),
-        portfolio_summary: {
-          'SOL': { balance: 10, usd_value: 1480 },
-          'USDC': { balance: 5000, usd_value: 5000 }
-        }
+    if (functionError) {
+      console.error("Error fetching profiles via function:", functionError);
+      
+      // Fall back to direct query if function fails
+      const { data: directData, error: directError } = await supabase
+        .from('profiles')
+        .select('id, email, first_name, last_name, created_at')
+        .eq('is_admin', false);
+      
+      if (directError) {
+        console.error("Error fetching profiles directly:", directError);
+        
+        // If both approaches fail, use sample data as a last resort
+        console.log("Using sample investors data as fallback");
+        return getSampleInvestors();
       }
-    ];
+      
+      console.log("Found profiles via direct query:", directData?.length || 0);
+      return mapProfilesToInvestors(directData);
+    }
     
-    console.log("Using sample investors data until RLS is fixed");
-    return sampleInvestors;
+    console.log("Found profiles via function:", profilesData?.length || 0);
+    return mapProfilesToInvestors(profilesData);
+    
   } catch (error) {
     console.error("Error fetching investors:", error);
-    return [];
+    return getSampleInvestors();
   }
+};
+
+/**
+ * Helper function to map profiles data to investors format
+ */
+const mapProfilesToInvestors = (profiles: any[]): Investor[] => {
+  if (!profiles || profiles.length === 0) return [];
+  
+  return profiles.map(profile => {
+    return {
+      id: profile.id || '',
+      email: profile.email || '',
+      first_name: profile.first_name || '',
+      last_name: profile.last_name || '',
+      created_at: profile.created_at || '',
+      portfolio_summary: {}
+    } as Investor;
+  });
+};
+
+/**
+ * Returns sample investors as a fallback when database queries fail
+ */
+const getSampleInvestors = (): Investor[] => {
+  console.log("Using sample investors data as fallback");
+  return [
+    {
+      id: '1',
+      email: 'investor1@example.com',
+      first_name: 'John',
+      last_name: 'Doe',
+      created_at: new Date().toISOString(),
+      portfolio_summary: {
+        'BTC': { balance: 0.5, usd_value: 33750 },
+        'ETH': { balance: 2, usd_value: 6400 }
+      }
+    },
+    {
+      id: '2',
+      email: 'investor2@example.com',
+      first_name: 'Jane',
+      last_name: 'Smith',
+      created_at: new Date().toISOString(),
+      portfolio_summary: {
+        'SOL': { balance: 10, usd_value: 1480 },
+        'USDC': { balance: 5000, usd_value: 5000 }
+      }
+    }
+  ];
 };
 
 /**
@@ -112,7 +157,29 @@ export const fetchInvestors = async (): Promise<Investor[]> => {
  */
 export const fetchPendingInvites = async (): Promise<Investor[]> => {
   try {
-    // For now, return an empty array until the RLS issue is fixed
+    const { data: invitesData, error: invitesError } = await supabase
+      .from('admin_invites')
+      .select('email, created_at')
+      .eq('used', false);
+    
+    if (invitesError) {
+      console.error("Error fetching invites:", invitesError);
+      return [];
+    }
+    
+    console.log("Found invites:", invitesData?.length || 0);
+    
+    if (invitesData && invitesData.length > 0) {
+      return invitesData.map(invite => ({
+        id: '',
+        email: invite.email,
+        first_name: '',
+        last_name: '',
+        created_at: invite.created_at,
+        portfolio_summary: {}
+      })) as Investor[];
+    }
+    
     return [];
   } catch (error) {
     console.error("Error fetching invites:", error);

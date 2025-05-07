@@ -299,6 +299,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_all_non_admin_profiles: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          first_name: string | null
+          id: string
+          is_admin: boolean | null
+          last_name: string | null
+          phone: string | null
+          totp_enabled: boolean | null
+          totp_verified: boolean | null
+          updated_at: string | null
+        }[]
+      }
       get_profile_by_id: {
         Args: { profile_id: string } | { user_id: number }
         Returns: {
