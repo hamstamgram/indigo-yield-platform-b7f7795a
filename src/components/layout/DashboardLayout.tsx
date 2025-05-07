@@ -61,6 +61,7 @@ const DashboardLayout = () => {
     
     const checkAuth = async () => {
       try {
+        setIsLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session) {
@@ -82,6 +83,15 @@ const DashboardLayout = () => {
         console.log("Admin status determined:", adminStatus);
         setIsAdmin(adminStatus);
         setAuthChecked(true); // Mark auth as checked to prevent loops
+        
+        // Force immediate redirect if needed
+        if (adminStatus && currentPath === '/dashboard') {
+          console.log("Admin on regular dashboard, redirecting to admin dashboard");
+          navigate('/admin-dashboard', { replace: true });
+        } else if (!adminStatus && isAdminRoute) {
+          console.log("Non-admin trying to access admin route, redirecting to dashboard");
+          navigate('/dashboard', { replace: true });
+        }
       } catch (error) {
         console.error("Auth check error:", error);
         if (isMounted) {
@@ -105,28 +115,7 @@ const DashboardLayout = () => {
     return () => {
       isMounted = false;
     };
-  }, [navigate, toast, authChecked]);
-  
-  // Redirect logic with improved checks to prevent loops
-  useEffect(() => {
-    // Don't redirect while still loading or if auth hasn't been checked
-    if (isLoading || !authChecked) return;
-    
-    // For admin routes, only redirect if user is definitely not an admin
-    if (isAdminRoute && isAdmin === false) {
-      console.log("Non-admin trying to access admin route, redirecting to dashboard");
-      navigate('/dashboard', { replace: true });
-      return;
-    }
-    
-    // For regular dashboard, redirect admins to admin dashboard
-    // ONLY if they're directly on /dashboard, not other dashboard pages
-    if (currentPath === '/dashboard' && isAdmin) {
-      console.log("Admin on regular dashboard, redirecting to admin dashboard");
-      navigate('/admin-dashboard', { replace: true });
-      return;
-    }
-  }, [currentPath, isAdmin, isAdminRoute, isLoading, navigate, authChecked]);
+  }, [navigate, toast, authChecked, currentPath, isAdminRoute]);
   
   // Listen for auth state changes
   useEffect(() => {
@@ -135,7 +124,8 @@ const DashboardLayout = () => {
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
           // Force a refresh when auth changes
           setAuthChecked(false);
-          window.location.reload();
+          setIsLoading(true);
+          console.log("Auth state changed, refreshing...");
         }
       }
     );

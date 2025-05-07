@@ -36,7 +36,7 @@ export default function Login() {
           .eq('id', session.user.id)
           .single();
           
-        const isAdmin = profile?.is_admin || session.user.email === 'hammadou@indigo.fund';
+        const isAdmin = profile?.is_admin === true;
         
         // Redirect based on admin status, using replace to avoid browser history issues
         if (isAdmin) {
@@ -78,7 +78,7 @@ export default function Login() {
           .eq('id', data.user.id)
           .single();
         
-        const isAdmin = profile?.is_admin || email.toLowerCase() === 'hammadou@indigo.fund';
+        const isAdmin = profile?.is_admin === true;
         
         // Show success message
         toast({
@@ -86,15 +86,8 @@ export default function Login() {
           description: `You've successfully logged in as ${isAdmin ? 'Administrator' : 'Investor'}.`,
         });
         
-        // Direct admin users to admin dashboard, regular users to normal dashboard
-        // Use replace: true to avoid browser history issues
-        if (isAdmin) {
-          console.log("Admin user detected, redirecting to admin dashboard");
-          navigate("/admin-dashboard", { replace: true });
-        } else {
-          console.log("Regular user detected, redirecting to dashboard");
-          navigate("/dashboard", { replace: true });
-        }
+        // Force page reload to ensure the app recognizes admin status
+        window.location.href = isAdmin ? "/admin-dashboard" : "/dashboard";
       } else {
         // Since this is invitation-only, restrict self registration
         toast({
