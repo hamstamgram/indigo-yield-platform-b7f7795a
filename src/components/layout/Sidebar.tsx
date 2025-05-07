@@ -1,41 +1,12 @@
 
 import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LogOut, User, Settings, Home, X, Shield, Users, Database, LayoutDashboard } from "lucide-react";
+import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { CryptoIcon } from "@/components/CryptoIcons";
-
-type NavItem = {
-  title: string;
-  href: string;
-  icon: React.ReactNode;
-  adminOnly?: boolean;
-};
-
-const mainNav: NavItem[] = [
-  { title: "Overview", href: "/dashboard", icon: <Home className="h-5 w-5" /> },
-  { title: "Bitcoin", href: "/assets/btc", icon: <CryptoIcon symbol="btc" className="h-5 w-5" /> },
-  { title: "Ethereum", href: "/assets/eth", icon: <CryptoIcon symbol="eth" className="h-5 w-5" /> },
-  { title: "Solana", href: "/assets/sol", icon: <CryptoIcon symbol="sol" className="h-5 w-5" /> },
-  { title: "USDC", href: "/assets/usdc", icon: <CryptoIcon symbol="usdc" className="h-5 w-5" /> },
-];
-
-// Reorganized admin navigation menu
-const adminNav: NavItem[] = [
-  { title: "Admin Dashboard", href: "/admin-dashboard", icon: <LayoutDashboard className="h-5 w-5" />, adminOnly: true },
-  { title: "Investors", href: "/admin-investors", icon: <Users className="h-5 w-5" />, adminOnly: true },
-  { title: "Portfolio Management", href: "/admin?tab=portfolios", icon: <Database className="h-5 w-5" />, adminOnly: true },
-  { title: "Yield Settings", href: "/admin?tab=yields", icon: <Settings className="h-5 w-5" />, adminOnly: true },
-  { title: "Admin Invites", href: "/admin?tab=invites", icon: <Users className="h-5 w-5" />, adminOnly: true },
-];
-
-// Simplified secondary navigation without Admin Tools for admin users
-// since they already have the admin nav section
-const secondaryNav: NavItem[] = [
-  { title: "Account", href: "/account", icon: <User className="h-5 w-5" /> },
-  { title: "Settings", href: "/settings", icon: <Settings className="h-5 w-5" /> },
-];
+import { useNavigate } from "react-router-dom";
+import NavSection from "@/components/sidebar/NavSection";
+import UserProfile from "@/components/sidebar/UserProfile";
+import LogoutButton from "@/components/sidebar/LogoutButton";
+import { adminNav, mainNav, accountNav } from "@/config/navigation";
 
 type SidebarProps = {
   sidebarOpen: boolean;
@@ -45,11 +16,8 @@ type SidebarProps = {
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps) => {
   const [userName, setUserName] = useState("");
-  const location = useLocation();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
-  // We'll use the isAdmin prop passed from DashboardLayout instead of fetching it again
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -75,34 +43,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
     getUser();
   }, [navigate]);
 
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast({
-        title: "Logged out successfully",
-        description: "You have been logged out of your account.",
-      });
-      navigate('/');
-    } catch (error) {
-      toast({
-        title: "Log out failed",
-        description: "There was an error logging out. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleNavigation = (href: string) => {
-    // Close sidebar on mobile when navigating
-    setSidebarOpen(false);
-    navigate(href);
-  };
-
-  // Determine which navigation items to show based on admin status
-  const navItems = isAdmin ? mainNav : mainNav;
-
-  // For user navigation items, we don't include Admin Tools anymore since we have a dedicated admin section
-  const userNavItems = secondaryNav;
+  // Filter navigation items based on admin status
+  const filteredMainNav = isAdmin 
+    ? [] // Admins don't need the regular main nav
+    : mainNav;
 
   return (
     <>
@@ -137,54 +81,21 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
           <nav className="flex-1 px-4 py-6 overflow-y-auto">
             {/* Admin Navigation - Only shown to admin users */}
             {isAdmin && (
-              <div className="mb-8">
-                <h2 className="px-2 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Admin
-                </h2>
-                <ul className="space-y-1">
-                  {adminNav.map((item) => (
-                    <li key={item.href}>
-                      <button
-                        onClick={() => handleNavigation(item.href)}
-                        className={`flex w-full items-center px-2 py-2 text-sm rounded-md group ${
-                          location.pathname === item.href || 
-                          (item.href.includes('admin?tab=') && location.pathname === '/admin' && location.search.includes(item.href.split('tab=')[1]))
-                            ? "text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20"
-                            : "text-gray-700 hover:text-indigo-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-indigo-300 dark:hover:bg-gray-700"
-                        }`}
-                      >
-                        <span className="mr-3">{item.icon}</span>
-                        {item.title}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <NavSection 
+                title="Admin" 
+                items={adminNav} 
+                onItemClick={() => setSidebarOpen(false)}
+              />
             )}
             
-            {/* Main Navigation - Visible to everyone */}
-            <div className="mb-8">
-              <h2 className="px-2 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Dashboard
-              </h2>
-              <ul className="space-y-1">
-                {navItems.map((item) => (
-                  <li key={item.href}>
-                    <button
-                      onClick={() => handleNavigation(item.href)}
-                      className={`flex w-full items-center px-2 py-2 text-sm rounded-md group ${
-                        location.pathname === item.href
-                          ? "text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20"
-                          : "text-gray-700 hover:text-indigo-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-indigo-300 dark:hover:bg-gray-700"
-                      }`}
-                    >
-                      <span className="mr-3">{item.icon}</span>
-                      {item.title}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {/* Main Navigation - Only for non-admin users */}
+            {filteredMainNav.length > 0 && (
+              <NavSection 
+                title="Dashboard" 
+                items={filteredMainNav} 
+                onItemClick={() => setSidebarOpen(false)}
+              />
+            )}
             
             {/* Account Navigation */}
             <div>
@@ -192,15 +103,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                 Account
               </h2>
               <ul className="space-y-1">
-                {userNavItems.map((item) => (
+                {accountNav.map((item) => (
                   <li key={item.href}>
                     <button
-                      onClick={() => handleNavigation(item.href)}
-                      className={`flex w-full items-center px-2 py-2 text-sm rounded-md group ${
-                        location.pathname === item.href
-                          ? "text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20"
-                          : "text-gray-700 hover:text-indigo-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-indigo-300 dark:hover:bg-gray-700"
-                      }`}
+                      onClick={() => {
+                        setSidebarOpen(false);
+                        navigate(item.href);
+                      }}
+                      className={`flex w-full items-center px-2 py-2 text-sm rounded-md group text-gray-700 hover:text-indigo-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-indigo-300 dark:hover:bg-gray-700`}
                     >
                       <span className="mr-3">{item.icon}</span>
                       {item.title}
@@ -209,37 +119,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                 ))}
                 
                 <li>
-                  <button
-                    onClick={() => {
-                      setSidebarOpen(false);
-                      handleLogout();
-                    }}
-                    className="flex w-full items-center px-2 py-2 text-sm text-gray-700 hover:text-red-600 hover:bg-gray-100 rounded-md group dark:text-gray-300 dark:hover:text-red-400 dark:hover:bg-gray-700"
-                  >
-                    <span className="mr-3">
-                      <LogOut className="h-5 w-5" />
-                    </span>
-                    Log Out
-                  </button>
+                  <LogoutButton onLogout={() => setSidebarOpen(false)} />
                 </li>
               </ul>
             </div>
           </nav>
 
-          {/* User */}
-          <div className="flex items-center px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex-shrink-0">
-              <div className="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center text-white">
-                {userName.charAt(0).toUpperCase()}
-              </div>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{userName}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {isAdmin ? "Administrator" : "Investor"}
-              </p>
-            </div>
-          </div>
+          {/* User Profile */}
+          <UserProfile userName={userName} isAdmin={isAdmin} />
         </div>
       </div>
     </>
