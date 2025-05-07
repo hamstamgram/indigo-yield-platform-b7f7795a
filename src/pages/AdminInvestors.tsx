@@ -1,4 +1,5 @@
 
+import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import InvestorsHeader from "@/components/admin/investors/InvestorsHeader";
 import InvestorTableContainer from "@/components/admin/investors/InvestorTableContainer";
@@ -6,7 +7,6 @@ import { useInvestors } from "@/hooks/useInvestors";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { supabase } from "@/integrations/supabase/client";
 import AddInvestorDialog from "@/components/admin/investors/AddInvestorDialog";
-import { useEffect } from "react";
 
 const AdminInvestors = () => {
   const { 
@@ -19,15 +19,22 @@ const AdminInvestors = () => {
   } = useInvestors();
   const { toast } = useToast();
   
-  // IMPORTANT: useEffect must be called at the top level, not conditionally
+  // Load data when component mounts
   useEffect(() => {
+    console.log("AdminInvestors: Initial load");
     refetch();
-  }, [refetch]); // Added refetch as a dependency
+  }, [refetch]);
   
   // Show loading state while checking permissions or loading data
   if (loading) {
     return <LoadingSpinner />;
   }
+  
+  // Define handleInvestorAdded function for refreshing data
+  const handleInvestorAdded = () => {
+    console.log("AdminInvestors: Investor added, refreshing data...");
+    refetch();
+  };
   
   // Send email invitation
   const sendInviteToInvestor = async (email: string) => {
@@ -87,12 +94,6 @@ const AdminInvestors = () => {
         variant: "destructive",
       });
     }
-  };
-
-  // Define handleInvestorAdded function for refreshing data
-  const handleInvestorAdded = () => {
-    console.log("Investor added, refreshing data...");
-    refetch();
   };
 
   return (

@@ -75,8 +75,14 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
     }
   };
 
+  const handleOpenChange = (newOpen: boolean) => {
+    // Only allow closing if not currently loading
+    if (isLoading && !newOpen) return;
+    setOpen(newOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button>
           <UserPlus className="h-4 w-4 mr-2" />

@@ -10,7 +10,7 @@ export const useInvestors = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [assets, setAssets] = useState<Asset[]>([]);
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null); 
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(false); // Initialize as false
   const { toast } = useToast();
 
   const fetchData = useCallback(async () => {
@@ -29,7 +29,7 @@ export const useInvestors = () => {
       
       console.log("Checking admin status for user:", user.id);
       
-      // Use direct RPC call to avoid recursive RLS issues
+      // Check admin status
       const { data: adminStatus, error: adminError } = await supabase
         .rpc('get_user_admin_status', { user_id: user.id });
       
@@ -44,6 +44,7 @@ export const useInvestors = () => {
           
         if (profileError) {
           console.error("Error checking admin status:", profileError);
+          setIsAdmin(false);
           setLoading(false);
           return;
         }
@@ -53,13 +54,6 @@ export const useInvestors = () => {
       } else {
         setIsAdmin(adminStatus === true);
         console.log("Admin check result via function:", adminStatus);
-      }
-      
-      // Only proceed if admin
-      if (isAdmin === false) {
-        console.log("User is not an admin, stopping fetch");
-        setLoading(false);
-        return;
       }
       
       // Continue with fetching assets data
@@ -75,6 +69,7 @@ export const useInvestors = () => {
           description: "Failed to load asset data",
           variant: "destructive",
         });
+        setAssets([]);
       } else {
         console.log("Fetched assets:", assetData?.length || 0);
         setAssets(assetData || []);
@@ -94,6 +89,8 @@ export const useInvestors = () => {
           description: "Failed to load investor data",
           variant: "destructive",
         });
+        setInvestors([]);
+        setFilteredInvestors([]);
         setLoading(false);
         return;
       }
@@ -164,15 +161,12 @@ export const useInvestors = () => {
         description: "Failed to load investor data",
         variant: "destructive",
       });
+      setInvestors([]);
+      setFilteredInvestors([]);
     } finally {
       setLoading(false);
     }
-  }, [toast, isAdmin]);
-  
-  // Fetch data on mount
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  }, [toast]);
   
   // Handle search
   useEffect(() => {
