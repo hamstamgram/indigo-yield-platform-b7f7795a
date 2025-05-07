@@ -90,11 +90,11 @@ export const fetchInvestors = async (): Promise<Investor[]> => {
       }
       
       console.log("Found profiles via direct query:", directData?.length || 0);
-      return mapProfilesToInvestors(directData);
+      return mapProfilesToInvestors(directData || []);
     }
     
     console.log("Found profiles via function:", profilesData?.length || 0);
-    return mapProfilesToInvestors(profilesData);
+    return mapProfilesToInvestors(profilesData || []);
     
   } catch (error) {
     console.error("Error fetching investors:", error);
