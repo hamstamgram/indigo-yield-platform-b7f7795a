@@ -48,6 +48,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
     ? [] // Admins don't need the regular main nav
     : mainNav;
 
+  // Helper to close sidebar when navigating on mobile
+  const handleNavigationClick = () => {
+    if (window.innerWidth < 1024) { // lg breakpoint
+      setSidebarOpen(false);
+    }
+  };
+
   return (
     <>
       {/* Mobile sidebar backdrop */}
@@ -84,7 +91,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
               <NavSection 
                 title="Admin" 
                 items={adminNav} 
-                onItemClick={() => setSidebarOpen(false)}
+                onItemClick={handleNavigationClick}
               />
             )}
             
@@ -93,7 +100,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
               <NavSection 
                 title="Dashboard" 
                 items={filteredMainNav} 
-                onItemClick={() => setSidebarOpen(false)}
+                onItemClick={handleNavigationClick}
               />
             )}
             
@@ -107,7 +114,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                   <li key={item.href}>
                     <button
                       onClick={() => {
-                        setSidebarOpen(false);
+                        handleNavigationClick();
                         navigate(item.href);
                       }}
                       className={`flex w-full items-center px-2 py-2 text-sm rounded-md group text-gray-700 hover:text-indigo-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-indigo-300 dark:hover:bg-gray-700`}
@@ -119,7 +126,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                 ))}
                 
                 <li>
-                  <LogoutButton onLogout={() => setSidebarOpen(false)} />
+                  <LogoutButton onLogout={handleNavigationClick} />
                 </li>
               </ul>
             </div>

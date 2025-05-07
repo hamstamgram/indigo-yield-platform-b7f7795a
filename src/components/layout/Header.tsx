@@ -14,7 +14,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
         <button
           onClick={toggleSidebar}
           className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200 p-2 rounded-full bg-indigo-50 dark:bg-indigo-900/20 shadow-sm border border-indigo-100 dark:border-indigo-800 flex items-center justify-center"
-          aria-label="Open menu"
+          aria-label="Toggle menu"
         >
           <Menu className="h-6 w-6" />
         </button>

@@ -18,6 +18,8 @@ const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0
   }).format(value);
 };
 
@@ -56,13 +58,13 @@ const AssetSummaryCard: React.FC<AssetSummaryProps> = ({
         <div className="mt-4 grid grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-gray-500">Total Balance</p>
-            <p className="text-lg font-semibold text-gray-900 dark:text-white">
+            <p className="text-lg font-semibold text-gray-900 dark:text-white truncate">
               {formatCrypto(totalBalance, symbol)}
             </p>
           </div>
           <div>
             <p className="text-sm text-gray-500">USD Value</p>
-            <p className="text-lg font-semibold text-gray-900 dark:text-white">
+            <p className="text-lg font-semibold text-gray-900 dark:text-white truncate">
               {formatCurrency(usdValue)}
             </p>
           </div>
