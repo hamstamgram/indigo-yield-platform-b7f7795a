@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -26,7 +27,7 @@ const checkAdminStatus = async (userId: string): Promise<boolean> => {
   
   // Alternative check for known admin emails (fallback)
   const { data: { user } } = await supabase.auth.getUser();
-  return user?.email === 'hammadou@indigo.fund';
+  return user?.email?.toLowerCase() === 'hammadou@indigo.fund';
 };
 
 const DashboardLayout = () => {
@@ -40,6 +41,7 @@ const DashboardLayout = () => {
   
   // More precise control of auth and redirect logic
   const initialAuthCheckDone = useRef(false);
+  const redirectAttempted = useRef(false);
   const currentPath = location.pathname;
   const isAdminRoute = currentPath.includes('admin');
   
@@ -71,12 +73,16 @@ const DashboardLayout = () => {
         
         // Route based on admin status and current path - only on initial load
         // This prevents unnecessary redirects when navigating within the app
-        if (adminStatus && currentPath === '/dashboard') {
-          console.log("Admin on regular dashboard - redirecting to admin dashboard");
-          navigate('/admin-dashboard', { replace: true });
-        } else if (!adminStatus && isAdminRoute) {
-          console.log("Regular user on admin page - redirecting to regular dashboard");
-          navigate('/dashboard', { replace: true });
+        if (!redirectAttempted.current) {
+          redirectAttempted.current = true;
+          
+          if (adminStatus && currentPath === '/dashboard') {
+            console.log("Admin on regular dashboard - redirecting to admin dashboard");
+            navigate('/admin-dashboard', { replace: true });
+          } else if (!adminStatus && isAdminRoute) {
+            console.log("Regular user on admin page - redirecting to regular dashboard");
+            navigate('/dashboard', { replace: true });
+          }
         }
       } catch (error) {
         console.error("Auth check error:", error);
@@ -92,7 +98,7 @@ const DashboardLayout = () => {
     };
     
     checkAuth();
-  }, [navigate, toast]);
+  }, [navigate, toast, currentPath, isAdminRoute]);
   
   // Listen for auth state changes
   useEffect(() => {
@@ -101,6 +107,7 @@ const DashboardLayout = () => {
         // Reset the auth check when session changes
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
           initialAuthCheckDone.current = false;
+          redirectAttempted.current = false;
         }
       }
     );

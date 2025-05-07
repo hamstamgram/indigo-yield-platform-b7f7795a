@@ -30,6 +30,7 @@ export const useAssetData = () => {
         setIsAdmin(profileData.isAdmin);
         
         if (!profileData.isAdmin) {
+          console.log('User not authorized as admin');
           setError("Unauthorized: Admin access required");
           setLoading(false);
           return;
@@ -39,7 +40,9 @@ export const useAssetData = () => {
         let prices = {};
         try {
           const symbols = ['BTC', 'ETH', 'SOL', 'USDC'];
+          console.log('Attempting to fetch prices for:', symbols.join(', '));
           prices = await fetchCryptoPrices(symbols);
+          console.log('Successfully fetched price data:', prices);
         } catch (e) {
           console.error('Error fetching prices, using defaults:', e);
           prices = defaultPrices;

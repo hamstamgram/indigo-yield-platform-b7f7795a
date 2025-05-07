@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
@@ -7,12 +7,18 @@ import AssetOverview from "@/components/admin/AssetOverview";
 import YieldSourcesTable from "@/components/admin/YieldSourcesTable";
 import QuickLinks from "@/components/admin/QuickLinks";
 import { useAssetData } from "@/hooks/useAssetData";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
   const { loading, error, assetSummaries, yieldSources, userName, isAdmin } = useAssetData();
+  const navigate = useNavigate();
   
-  // The DashboardLayout component now handles unauthorized redirects,
-  // so we only need to handle data display and errors here
+  // If user is definitely not an admin after all checks, redirect them
+  useEffect(() => {
+    if (!loading && !isAdmin && !error) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [loading, isAdmin, error, navigate]);
   
   // Display error if any
   if (error) {
