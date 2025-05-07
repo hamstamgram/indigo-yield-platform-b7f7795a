@@ -17,7 +17,6 @@ interface InvestorTableContainerProps {
   loading: boolean;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  onViewDetails: (id: string) => void;
   onSendEmail: (email: string) => void;
 }
 
@@ -27,7 +26,6 @@ const InvestorTableContainer: React.FC<InvestorTableContainerProps> = ({
   loading,
   searchTerm,
   setSearchTerm,
-  onViewDetails,
   onSendEmail
 }) => {
   return (
@@ -35,7 +33,7 @@ const InvestorTableContainer: React.FC<InvestorTableContainerProps> = ({
       <CardHeader>
         <CardTitle>All Investors</CardTitle>
         <CardDescription>
-          View and manage all investor accounts and their portfolio data
+          Manage investors and send platform invites
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -51,7 +49,6 @@ const InvestorTableContainer: React.FC<InvestorTableContainerProps> = ({
           assets={assets}
           loading={loading}
           searchTerm={searchTerm}
-          onViewDetails={onViewDetails}
           onSendEmail={onSendEmail}
         />
       </CardContent>

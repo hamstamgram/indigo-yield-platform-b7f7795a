@@ -2,12 +2,7 @@
 import React from "react";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CryptoIcon } from "@/components/CryptoIcons";
-
-interface Asset {
-  id: number;
-  symbol: string;
-  name: string;
-}
+import { Asset } from "@/types/investorTypes";
 
 interface InvestorsTableHeaderProps {
   assets: Asset[];
@@ -26,7 +21,6 @@ const InvestorsTableHeader: React.FC<InvestorsTableHeaderProps> = ({ assets }) =
             </div>
           </TableHead>
         ))}
-        <TableHead>Total Value</TableHead>
         <TableHead className="text-right">Actions</TableHead>
       </TableRow>
     </TableHeader>

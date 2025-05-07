@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface InvestorsHeaderProps {
@@ -15,8 +15,8 @@ const InvestorsHeader: React.FC<InvestorsHeaderProps> = ({ onCreateInvestor }) =
     <div className={`flex ${isMobile ? 'flex-col gap-4' : 'flex-row items-center justify-between'}`}>
       <h1 className={`text-2xl font-bold ${isMobile ? 'mb-2' : ''}`}>Investor Management</h1>
       <Button onClick={onCreateInvestor} className={`${isMobile ? 'w-full' : ''}`}>
-        <Plus className="h-4 w-4 mr-2" />
-        {isMobile ? 'Invite Investor' : 'Invite New Investor'}
+        <UserPlus className="h-4 w-4 mr-2" />
+        Add Investor
       </Button>
     </div>
   );

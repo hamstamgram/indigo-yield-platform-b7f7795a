@@ -5,6 +5,7 @@ import InvestorsHeader from "@/components/admin/investors/InvestorsHeader";
 import InvestorTableContainer from "@/components/admin/investors/InvestorTableContainer";
 import { useInvestors } from "@/hooks/useInvestors";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminInvestors = () => {
   const { 
@@ -13,7 +14,8 @@ const AdminInvestors = () => {
     setSearchTerm,
     loading, 
     assets,
-    isAdmin 
+    isAdmin,
+    refetch
   } = useInvestors();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -23,27 +25,63 @@ const AdminInvestors = () => {
     return <LoadingSpinner />;
   }
   
-  // Navigate to create investor page
+  // Navigate to create investor page to add investor data
   const handleCreateInvestor = () => {
     navigate('/admin?tab=invites');
   };
   
-  // View investor details
-  const viewInvestorDetails = (investorId: string) => {
-    // In a real app, this would navigate to a detailed investor view
-    console.log("View investor details:", investorId);
-    toast({
-      title: "View investor",
-      description: `Viewing details for investor ID: ${investorId}`,
-    });
-  };
-  
-  // Send email to investor
-  const sendEmailToInvestor = (email: string) => {
-    toast({
-      title: "Email feature",
-      description: `Feature to email ${email} would be implemented here`,
-    });
+  // Send email invitation
+  const sendInviteToInvestor = async (email: string) => {
+    try {
+      // In a real implementation, this would generate an invite code and store it
+      // Then call the send-admin-invite edge function
+      const inviteCode = Math.random().toString(36).substring(2, 15);
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // Invite expires in 7 days
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Store invite in the database
+      const { data, error } = await supabase
+        .from('admin_invites')
+        .insert({
+          email: email,
+          invite_code: inviteCode,
+          created_by: user?.id,
+          expires_at: expiresAt.toISOString()
+        })
+        .select();
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Call edge function to send the email
+      const { error: inviteError } = await supabase.functions.invoke('send-admin-invite', {
+        body: { invite: data[0] }
+      });
+      
+      if (inviteError) {
+        throw inviteError;
+      }
+      
+      toast({
+        title: "Invite sent",
+        description: `An invitation has been sent to ${email}`,
+      });
+      
+      // Refresh the data
+      refetch();
+      
+    } catch (error) {
+      console.error("Error sending invite:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send invitation. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -56,8 +94,7 @@ const AdminInvestors = () => {
         loading={loading}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
-        onViewDetails={viewInvestorDetails}
-        onSendEmail={sendEmailToInvestor}
+        onSendEmail={sendInviteToInvestor}
       />
     </div>
   );

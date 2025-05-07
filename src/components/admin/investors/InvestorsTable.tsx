@@ -18,7 +18,6 @@ interface InvestorsTableProps {
   assets: Asset[];
   loading: boolean;
   searchTerm: string;
-  onViewDetails: (id: string) => void;
   onSendEmail: (email: string) => void;
 }
 
@@ -27,7 +26,6 @@ const InvestorsTable: React.FC<InvestorsTableProps> = ({
   assets,
   loading,
   searchTerm,
-  onViewDetails,
   onSendEmail
 }) => {
   const isMobile = useIsMobile();
@@ -54,7 +52,6 @@ const InvestorsTable: React.FC<InvestorsTableProps> = ({
               key={investor.id}
               investor={investor}
               assets={assets}
-              onViewDetails={onViewDetails}
               onSendEmail={onSendEmail}
             />
           ))
@@ -71,7 +68,7 @@ const InvestorsTable: React.FC<InvestorsTableProps> = ({
         <TableBody>
           {investors.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={assets.length + 3} className="text-center py-6">
+              <TableCell colSpan={assets.length + 2} className="text-center py-6">
                 {searchTerm ? "No investors match your search" : "No investors found"}
               </TableCell>
             </TableRow>
@@ -81,7 +78,6 @@ const InvestorsTable: React.FC<InvestorsTableProps> = ({
                 key={investor.id}
                 investor={investor}
                 assets={assets}
-                onViewDetails={onViewDetails}
                 onSendEmail={onSendEmail}
               />
             ))
