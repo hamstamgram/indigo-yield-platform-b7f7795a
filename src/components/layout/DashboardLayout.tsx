@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Sidebar from "./Sidebar";
@@ -38,8 +38,6 @@ const DashboardLayout = () => {
   const location = useLocation();
   const { toast } = useToast();
   
-  // More precise control of auth and redirect logic
-  const initialAuthCheckDone = useRef(false);
   const currentPath = location.pathname;
   const isAdminRoute = currentPath.startsWith('/admin');
   
@@ -64,22 +62,23 @@ const DashboardLayout = () => {
         console.log("Admin status:", adminStatus, "Current path:", currentPath);
         setIsAdmin(adminStatus);
         
-        // Only perform redirects on initial load
-        if (!initialAuthCheckDone.current) {
-          initialAuthCheckDone.current = true;
-          
-          if (adminStatus) {
-            // Admin users on regular dashboard should go to admin dashboard
-            if (currentPath === '/dashboard') {
-              console.log("Admin on regular dashboard - redirecting to admin dashboard");
-              navigate('/admin-dashboard', { replace: true });
-            }
-          } else if (isAdminRoute && !adminStatus) {
-            // Non-admin users on admin page should go to regular dashboard
-            console.log("Regular user on admin page - redirecting to regular dashboard");
-            navigate('/dashboard', { replace: true });
+        // Handle redirects based on admin status
+        if (adminStatus) {
+          // Only redirect on direct dashboard access
+          if (currentPath === '/dashboard') {
+            console.log("Admin on regular dashboard - redirecting to admin dashboard");
+            navigate('/admin-dashboard', { replace: true });
           }
+        } else if (
+          isAdminRoute || 
+          currentPath === '/admin-dashboard' || 
+          currentPath === '/admin-investors'
+        ) {
+          // Non-admin users trying to access admin pages
+          console.log("Regular user on admin page - redirecting to regular dashboard");
+          navigate('/dashboard', { replace: true });
         }
+        
       } catch (error) {
         console.error("Auth check error:", error);
         toast({
@@ -100,9 +99,8 @@ const DashboardLayout = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event) => {
-        // Reset the auth check when session changes
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-          initialAuthCheckDone.current = false;
+          window.location.reload();
         }
       }
     );
