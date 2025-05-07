@@ -48,6 +48,8 @@ export const useInvestors = () => {
       try {
         const enrichedInvestors = await enrichInvestorsWithPortfolioData(investorsList);
         setInvestors(enrichedInvestors);
+        
+        console.log("Enriched investors with portfolio data:", enrichedInvestors);
       } catch (enrichError) {
         console.error("Error enriching investors with portfolio data:", enrichError);
         // Fall back to using the unenriched list

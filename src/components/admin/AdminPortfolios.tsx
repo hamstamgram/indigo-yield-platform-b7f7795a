@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Investor, Asset } from "@/types/investorTypes";
 
 type UserPortfolio = {
   id: string;
@@ -35,13 +35,19 @@ type UserProfile = {
   last_name: string | null;
 };
 
-type Asset = {
-  id: number;
-  symbol: string;
-  name: string;
-};
+interface AdminPortfoliosProps {
+  investors?: Investor[];
+  assets?: Asset[];
+  loading?: boolean;
+  onRefresh?: () => void;
+}
 
-const AdminPortfolios = () => {
+const AdminPortfolios = ({
+  investors: providedInvestors,
+  assets: providedAssets,
+  loading: providedLoading,
+  onRefresh
+}: AdminPortfoliosProps) => {
   const [portfolios, setPortfolios] = useState<UserPortfolio[]>([]);
   const [filteredPortfolios, setFilteredPortfolios] = useState<UserPortfolio[]>([]);
   const [investors, setInvestors] = useState<UserProfile[]>([]);
@@ -64,8 +70,22 @@ const AdminPortfolios = () => {
     try {
       setLoading(true);
       
-      // Fetch all required data in parallel
-      const [portfoliosResult, usersResult, assetsResult] = await Promise.all([
+      // If assets and investors are provided as props, use them
+      if (providedAssets && providedAssets.length > 0) {
+        setAssets(providedAssets);
+      } else {
+        // Otherwise fetch assets
+        const { data: assetsResult, error: assetsError } = await supabase
+          .from('assets')
+          .select('id, symbol, name')
+          .order('symbol');
+          
+        if (assetsError) throw assetsError;
+        setAssets(assetsResult || []);
+      }
+      
+      // Fetch all required data for portfolios
+      const [portfoliosResult, usersResult] = await Promise.all([
         supabase
           .from('portfolios')
           .select('id, user_id, asset_id, balance, updated_at')
@@ -73,28 +93,21 @@ const AdminPortfolios = () => {
         
         supabase
           .from('profiles')
-          .select('id, email, first_name, last_name'),
-          
-        supabase
-          .from('assets')
-          .select('id, symbol, name')
+          .select('id, email, first_name, last_name')
       ]);
       
       if (portfoliosResult.error) throw portfoliosResult.error;
       if (usersResult.error) throw usersResult.error;
-      if (assetsResult.error) throw assetsResult.error;
       
       const portfolioData = portfoliosResult.data || [];
       const userData = usersResult.data || [];
-      const assetData = assetsResult.data || [];
       
       setUsers(userData);
-      setAssets(assetData);
       
       // Enrich portfolio data with user and asset information
       const enrichedPortfolios = portfolioData.map(portfolio => {
         const user = userData.find(u => u.id === portfolio.user_id);
-        const asset = assetData.find(a => a.id === portfolio.asset_id);
+        const asset = assets.find(a => a.id === portfolio.asset_id);
         
         return {
           ...portfolio,
@@ -122,7 +135,21 @@ const AdminPortfolios = () => {
     try {
       setLoadingInvestors(true);
       
-      // Fetch all investors (non-admin users)
+      // If investors are provided as props, use them
+      if (providedInvestors && providedInvestors.length > 0) {
+        const formattedInvestors = providedInvestors.map(investor => ({
+          id: investor.id,
+          email: investor.email,
+          first_name: investor.first_name,
+          last_name: investor.last_name
+        }));
+        setInvestors(formattedInvestors);
+        setFilteredInvestors(formattedInvestors);
+        setLoadingInvestors(false);
+        return;
+      }
+      
+      // Otherwise fetch investors directly
       const { data: investorsData, error } = await supabase
         .from('profiles')
         .select('id, email, first_name, last_name, created_at')
@@ -146,10 +173,13 @@ const AdminPortfolios = () => {
     }
   };
 
+  // Use both provided loading state and internal state
+  const isLoading = providedLoading !== undefined ? providedLoading : loading;
+
   useEffect(() => {
     fetchData();
     fetchInvestors();
-  }, []);
+  }, [providedInvestors, providedAssets]);
 
   useEffect(() => {
     if (searchTerm.trim() === '') {
@@ -217,6 +247,8 @@ const AdminPortfolios = () => {
       // Add timeout to ensure UI feedback before completing
       setTimeout(() => {
         setSaving(false);
+        // Call onRefresh if provided
+        if (onRefresh) onRefresh();
       }, 500);
     } catch (error) {
       console.error('Error updating portfolio balance:', error);
@@ -298,6 +330,7 @@ const AdminPortfolios = () => {
       // Close dialog and refresh data
       setAddDialogOpen(false);
       fetchData();
+      if (onRefresh) onRefresh();
       
       // Reset form values
       setSelectedUser("");
@@ -365,7 +398,7 @@ const AdminPortfolios = () => {
               </div>
             </div>
             
-            {loading ? (
+            {isLoading ? (
               <div className="flex justify-center p-4">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
