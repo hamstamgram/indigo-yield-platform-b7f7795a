@@ -7,23 +7,32 @@ import AssetOverview from "@/components/admin/AssetOverview";
 import YieldSourcesTable from "@/components/admin/YieldSourcesTable";
 import { useAssetData } from "@/hooks/useAssetData";
 import { useNavigate } from "react-router-dom";
+import QuickLinks from "@/components/admin/QuickLinks";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const AdminDashboard = () => {
   const { loading, error, assetSummaries, yieldSources, userName, isAdmin } = useAssetData();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
-  // If user is definitely not an admin after all checks, redirect them
+  // Only redirect if definitely not an admin after checks are complete
   useEffect(() => {
-    if (!loading && !isAdmin && !error) {
+    if (!loading && isAdmin === false) {
       navigate('/dashboard', { replace: true });
     }
-  }, [loading, isAdmin, error, navigate]);
+  }, [loading, isAdmin, navigate]);
+  
+  // Display loading state
+  if (loading) {
+    return <LoadingSpinner />;
+  }
   
   // Display error if any
   if (error) {
     return (
       <div className="space-y-8">
-        <div className="flex justify-center">
+        <div className={isMobile ? "px-2" : "flex justify-center"}>
           <AdminPageHeader userName={userName} />
         </div>
         <Alert variant="destructive">
@@ -37,10 +46,15 @@ const AdminDashboard = () => {
   
   return (
     <div className="space-y-8">
-      {/* Page header - centered */}
-      <div className="flex justify-center">
+      {/* Page header - centered on desktop, full width on mobile */}
+      <div className={isMobile ? "px-2" : "flex justify-center"}>
         <AdminPageHeader userName={userName} />
       </div>
+
+      {/* Quick links section - only visible on larger screens */}
+      {!isMobile && (
+        <QuickLinks />
+      )}
 
       {/* Asset summaries */}
       <AssetOverview 
