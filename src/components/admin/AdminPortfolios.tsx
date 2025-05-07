@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -164,6 +163,11 @@ const AdminPortfolios = () => {
         title: 'Success',
         description: `Portfolio balance updated for ${portfolioToUpdate.user_email} (${portfolioToUpdate.asset_symbol})`,
       });
+
+      // Add timeout to ensure UI feedback before completing
+      setTimeout(() => {
+        setSaving(false);
+      }, 500);
     } catch (error) {
       console.error('Error updating portfolio balance:', error);
       toast({
@@ -171,7 +175,6 @@ const AdminPortfolios = () => {
         description: 'Failed to update portfolio balance',
         variant: 'destructive',
       });
-    } finally {
       setSaving(false);
     }
   };
@@ -337,7 +340,7 @@ const AdminPortfolios = () => {
                           min="0"
                           value={portfolio.balance}
                           onChange={(e) => handleBalanceChange(portfolio.id, e.target.value)}
-                          className="w-32"
+                          className="min-w-[150px] h-10"
                         />
                       </TableCell>
                       <TableCell>
@@ -413,6 +416,7 @@ const AdminPortfolios = () => {
                   min="0"
                   value={newBalance}
                   onChange={(e) => setNewBalance(e.target.value)}
+                  className="h-10"
                 />
               </div>
             </div>

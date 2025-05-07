@@ -1,27 +1,29 @@
 
 import React, { useState, useEffect } from 'react';
-import { TableRow, TableCell } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Send, Save } from 'lucide-react';
-import { Asset, Investor } from '@/types/investorTypes';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import InvestorAssetDropdown from './InvestorAssetDropdown';
+import { Asset, Investor } from '@/types/investorTypes';
 
-interface EditableInvestorRowProps {
+// Import our new components
+import InvestorInfo from './InvestorInfo';
+import AssetBalanceItem from './AssetBalanceItem';
+import FeePercentageItem from './FeePercentageItem';
+import CardActions from './CardActions';
+
+interface MobileInvestorCardProps {
   investor: Investor;
   assets: Asset[];
   onSendEmail: (email: string) => void;
   onSaveSuccess: () => void;
 }
 
-const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
+const MobileInvestorCard = ({
   investor,
   assets,
   onSendEmail,
   onSaveSuccess
-}) => {
+}: MobileInvestorCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [fee, setFee] = useState<string>(investor.fee_percentage?.toString() || "2.0");
@@ -126,11 +128,12 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
         description: "Investor portfolio updated successfully",
       });
       
+      // Add timeout to ensure UI feedback before reverting to normal state
       setTimeout(() => {
         setIsSaving(false);
         setIsEditing(false);
         onSaveSuccess(); // Refresh data
-      }, 500); // Small delay to ensure UI feedback
+      }, 500);
       
     } catch (error) {
       console.error("Error saving investor data:", error);
@@ -148,89 +151,57 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
     : investor.email.split('@')[0];
 
   return (
-    <TableRow key={investor.id}>
-      <TableCell className="font-medium">{name}</TableCell>
-      
-      {/* Asset balances */}
-      {assets.map(asset => (
-        <TableCell key={asset.id}>
-          {isEditing ? (
-            <Input 
-              type="number"
-              step="0.00000001"
-              value={balances[asset.symbol] || '0'}
-              onChange={(e) => handleBalanceChange(asset.symbol, e.target.value)}
-              className="min-w-[120px] h-10"
-            />
-          ) : (
-            investor.portfolio_summary && investor.portfolio_summary[asset.symbol.toUpperCase()] 
-              ? `${investor.portfolio_summary[asset.symbol.toUpperCase()].balance.toFixed(4)}`
-              : '-'
-          )}
-        </TableCell>
-      ))}
-
-      {/* Fee percentage */}
-      <TableCell>
-        {isEditing ? (
-          <Input 
-            type="number"
-            step="0.1"
-            min="0"
-            max="100"
-            value={fee}
-            onChange={(e) => setFee(e.target.value)}
-            className="min-w-[100px] h-10"
-          />
-        ) : (
-          investor.fee_percentage !== null && investor.fee_percentage !== undefined
-            ? `${investor.fee_percentage.toFixed(1)}%`
-            : '2.0%'
-        )}
-      </TableCell>
-      
-      {/* Actions */}
-      <TableCell className="text-right">
-        <div className="flex justify-end gap-2">
-          {isEditing ? (
-            <Button 
-              variant="default" 
-              size="sm"
-              onClick={handleSave}
-              disabled={isSaving}
-            >
-              <Save className="h-4 w-4 mr-1" />
-              {isSaving ? 'Saving...' : 'Save'}
-            </Button>
-          ) : (
-            <>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setIsEditing(true)}
-              >
-                Edit
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => onSendEmail(investor.email)}
-              >
-                <Send className="h-4 w-4 mr-1" />
-                Send Invite
-              </Button>
-              <InvestorAssetDropdown 
-                userId={investor.id}
-                assets={assets}
-                existingAssets={existingAssetIds}
-                onAssetAdded={onSaveSuccess}
+    <Card className="mb-4">
+      <CardContent className="pt-4">
+        <InvestorInfo name={name} email={investor.email} />
+        
+        <div className="space-y-4">
+          {assets.map(asset => {
+            // Determine what to display for balance
+            const normalizedSymbol = asset.symbol.toUpperCase();
+            const displayBalance = isEditing
+              ? balances[asset.symbol] || '0'
+              : investor.portfolio_summary && investor.portfolio_summary[normalizedSymbol]
+                ? investor.portfolio_summary[normalizedSymbol].balance
+                : '-';
+                
+            return (
+              <AssetBalanceItem
+                key={asset.id}
+                symbol={asset.symbol}
+                balance={displayBalance}
+                isEditing={isEditing}
+                onChange={handleBalanceChange}
               />
-            </>
-          )}
+            );
+          })}
+
+          <FeePercentageItem 
+            fee={isEditing ? fee : investor.fee_percentage !== null && investor.fee_percentage !== undefined
+              ? investor.fee_percentage
+              : '2.0%'}
+            isEditing={isEditing}
+            onChange={setFee}
+          />
         </div>
-      </TableCell>
-    </TableRow>
+      </CardContent>
+      
+      <CardFooter>
+        <CardActions 
+          isEditing={isEditing}
+          isSaving={isSaving}
+          userId={investor.id}
+          existingAssets={existingAssetIds}
+          assets={assets}
+          onEdit={() => setIsEditing(true)}
+          onSave={handleSave}
+          onSendEmail={onSendEmail}
+          email={investor.email}
+          onAssetAdded={onSaveSuccess}
+        />
+      </CardFooter>
+    </Card>
   );
 };
 
-export default EditableInvestorRow;
+export default MobileInvestorCard;
