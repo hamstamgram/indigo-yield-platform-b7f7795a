@@ -1,6 +1,5 @@
 
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
@@ -11,15 +10,9 @@ import { useAssetData } from "@/hooks/useAssetData";
 
 const AdminDashboard = () => {
   const { loading, error, assetSummaries, yieldSources, userName, isAdmin } = useAssetData();
-  const navigate = useNavigate();
   
-  // Security check - redirect non-admin users, but only once
-  useEffect(() => {
-    if (!loading && !isAdmin) {
-      console.log("Non-admin detected, redirecting to dashboard");
-      navigate('/dashboard', { replace: true });
-    }
-  }, [loading, isAdmin, navigate]);
+  // The DashboardLayout component now handles unauthorized redirects,
+  // so we only need to handle data display and errors here
   
   // Display error if any
   if (error) {

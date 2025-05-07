@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,38 +15,39 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
 
-  // When the component loads, check if user is already authenticated
+  // Check if user is already authenticated
   useEffect(() => {
     const checkAuthSession = async () => {
       try {
         setCheckingAuth(true);
         const { data: { session } } = await supabase.auth.getSession();
         
-        if (session) {
-          // Get user profile to check admin status
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('is_admin')
-            .eq('id', session.user.id)
-            .single();
-            
-          const isAdmin = profile?.is_admin || session.user.email === 'hammadou@indigo.fund';
+        if (!session) {
+          setCheckingAuth(false);
+          return;
+        }
+        
+        // Get user profile to check admin status
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', session.user.id)
+          .single();
           
-          // If there's already a session, redirect based on admin status
-          if (isAdmin) {
-            console.log("Known admin detected, redirecting to admin dashboard");
-            navigate("/admin-dashboard", { replace: true });
-          } else {
-            console.log("Regular user detected, redirecting to dashboard");
-            navigate("/dashboard", { replace: true });
-          }
+        const isAdmin = profile?.is_admin || session.user.email === 'hammadou@indigo.fund';
+        
+        // Redirect based on admin status, using replace to avoid browser history issues
+        if (isAdmin) {
+          console.log("Known admin detected, redirecting to admin dashboard");
+          navigate("/admin-dashboard", { replace: true });
+        } else {
+          console.log("Regular user detected, redirecting to dashboard");
+          navigate("/dashboard", { replace: true });
         }
       } catch (error) {
         console.error("Error checking session:", error);
-      } finally {
         setCheckingAuth(false);
       }
     };
@@ -70,17 +71,24 @@ export default function Login() {
         
         console.log("Login successful, user:", data.user);
         
-        // Simple admin check based on email - more reliable approach
-        const isKnownAdmin = email.toLowerCase() === 'hammadou@indigo.fund';
+        // Check admin status after successful login
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', data.user.id)
+          .single();
+        
+        const isAdmin = profile?.is_admin || email.toLowerCase() === 'hammadou@indigo.fund';
         
         // Show success message
         toast({
           title: "Welcome back!",
-          description: `You've successfully logged in as ${isKnownAdmin ? 'Administrator' : 'Investor'}.`,
+          description: `You've successfully logged in as ${isAdmin ? 'Administrator' : 'Investor'}.`,
         });
         
         // Direct admin users to admin dashboard, regular users to normal dashboard
-        if (isKnownAdmin) {
+        // Use replace: true to avoid browser history issues
+        if (isAdmin) {
           console.log("Admin user detected, redirecting to admin dashboard");
           navigate("/admin-dashboard", { replace: true });
         } else {

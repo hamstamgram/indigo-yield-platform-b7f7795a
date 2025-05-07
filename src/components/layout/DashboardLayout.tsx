@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -39,22 +38,25 @@ const DashboardLayout = () => {
   const location = useLocation();
   const { toast } = useToast();
   
-  // Use a ref to prevent unnecessary redirects
-  const authCheckComplete = useRef(false);
-  const hasRedirected = useRef(false);
+  // More precise control of auth and redirect logic
+  const initialAuthCheckDone = useRef(false);
+  const currentPath = location.pathname;
+  const isAdminRoute = currentPath.includes('admin');
   
   // Check auth status and admin status
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        if (authCheckComplete.current) return;
+        // Skip if we've already done the initial check
+        if (initialAuthCheckDone.current) return;
         
         setIsLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session) {
           // If not authenticated, redirect to login
-          navigate('/login');
+          console.log("No session found, redirecting to login");
+          navigate('/login', { replace: true });
           return;
         }
 
@@ -64,23 +66,17 @@ const DashboardLayout = () => {
         const adminStatus = await checkAdminStatus(session.user.id);
         setIsAdmin(adminStatus);
         
-        // Set ref to true to prevent further checks
-        authCheckComplete.current = true;
+        // Mark initial auth check as complete
+        initialAuthCheckDone.current = true;
         
-        // Route based on admin status and current path only if we haven't redirected yet
-        if (hasRedirected.current) return;
-        
-        const currentPath = location.pathname;
-        console.log("Current path:", currentPath);
-        
+        // Route based on admin status and current path - only on initial load
+        // This prevents unnecessary redirects when navigating within the app
         if (adminStatus && currentPath === '/dashboard') {
           console.log("Admin on regular dashboard - redirecting to admin dashboard");
-          hasRedirected.current = true;
-          navigate('/admin-dashboard');
-        } else if (!adminStatus && currentPath.includes('admin')) {
+          navigate('/admin-dashboard', { replace: true });
+        } else if (!adminStatus && isAdminRoute) {
           console.log("Regular user on admin page - redirecting to regular dashboard");
-          hasRedirected.current = true;
-          navigate('/dashboard');
+          navigate('/dashboard', { replace: true });
         }
       } catch (error) {
         console.error("Auth check error:", error);
@@ -89,23 +85,22 @@ const DashboardLayout = () => {
           description: "There was a problem verifying your account. Please try logging in again.",
           variant: "destructive",
         });
-        navigate('/login');
+        navigate('/login', { replace: true });
       } finally {
         setIsLoading(false);
       }
     };
     
     checkAuth();
-  }, [navigate, toast, location.pathname]);
+  }, [navigate, toast]);
   
   // Listen for auth state changes
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (event) => {
         // Reset the auth check when session changes
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-          authCheckComplete.current = false;
-          hasRedirected.current = false;
+          initialAuthCheckDone.current = false;
         }
       }
     );
