@@ -40,9 +40,8 @@ const DashboardLayout = () => {
   
   // More precise control of auth and redirect logic
   const initialAuthCheckDone = useRef(false);
-  const redirectAttempted = useRef(false);
   const currentPath = location.pathname;
-  const isAdminRoute = currentPath.includes('admin');
+  const isAdminRoute = currentPath.startsWith('/admin');
   
   // Check auth status and admin status
   useEffect(() => {
@@ -62,9 +61,10 @@ const DashboardLayout = () => {
         
         // Check admin status through a dedicated function
         const adminStatus = await checkAdminStatus(session.user.id);
+        console.log("Admin status:", adminStatus, "Current path:", currentPath);
         setIsAdmin(adminStatus);
         
-        // Only perform redirects on initial load or when admin status changes
+        // Only perform redirects on initial load
         if (!initialAuthCheckDone.current) {
           initialAuthCheckDone.current = true;
           
@@ -74,7 +74,7 @@ const DashboardLayout = () => {
               console.log("Admin on regular dashboard - redirecting to admin dashboard");
               navigate('/admin-dashboard', { replace: true });
             }
-          } else if (isAdminRoute) {
+          } else if (isAdminRoute && !adminStatus) {
             // Non-admin users on admin page should go to regular dashboard
             console.log("Regular user on admin page - redirecting to regular dashboard");
             navigate('/dashboard', { replace: true });
@@ -103,7 +103,6 @@ const DashboardLayout = () => {
         // Reset the auth check when session changes
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
           initialAuthCheckDone.current = false;
-          redirectAttempted.current = false;
         }
       }
     );
