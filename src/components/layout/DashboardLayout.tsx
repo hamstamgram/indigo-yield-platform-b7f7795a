@@ -14,20 +14,25 @@ import { useToast } from "@/hooks/use-toast";
  * @returns Boolean indicating admin status
  */
 const checkAdminStatus = async (userId: string): Promise<boolean> => {
-  // First check using profile table for existing field
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('is_admin')
-    .eq('id', userId)
-    .single();
+  try {
+    // First check using profile table for existing field
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', userId)
+      .single();
+      
+    if (profile?.is_admin) {
+      return true;
+    }
     
-  if (profile?.is_admin) {
-    return true;
+    // Alternative check for known admin emails (fallback)
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.email?.toLowerCase() === 'hammadou@indigo.fund';
+  } catch (error) {
+    console.error("Error checking admin status:", error);
+    return false;
   }
-  
-  // Alternative check for known admin emails (fallback)
-  const { data: { user } } = await supabase.auth.getUser();
-  return user?.email?.toLowerCase() === 'hammadou@indigo.fund';
 };
 
 const DashboardLayout = () => {
@@ -41,7 +46,7 @@ const DashboardLayout = () => {
   
   const currentPath = location.pathname;
   
-  // Determine if path is admin route - simplify logic
+  // Determine if path is admin route with improved logic
   const isAdminRoute = 
     currentPath.startsWith('/admin') || 
     currentPath === '/admin-dashboard' || 
@@ -49,9 +54,10 @@ const DashboardLayout = () => {
   
   // Check auth status and admin status
   useEffect(() => {
+    let isMounted = true;
+    
     const checkAuth = async () => {
       try {
-        setIsLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session) {
@@ -65,6 +71,9 @@ const DashboardLayout = () => {
         
         // Check admin status through a dedicated function
         const adminStatus = await checkAdminStatus(session.user.id);
+        
+        if (!isMounted) return;
+        
         console.log("Admin status:", adminStatus, "Current path:", currentPath);
         setIsAdmin(adminStatus);
         
@@ -81,24 +90,29 @@ const DashboardLayout = () => {
           console.log("Regular user on admin page - redirecting to regular dashboard");
           navigate('/dashboard', { replace: true });
         }
-        
-        // Finish loading regardless of outcome
-        setIsLoading(false);
-        
       } catch (error) {
         console.error("Auth check error:", error);
-        toast({
-          title: "Authentication error",
-          description: "There was a problem verifying your account. Please try logging in again.",
-          variant: "destructive",
-        });
-        navigate('/login', { replace: true });
+        if (isMounted) {
+          toast({
+            title: "Authentication error",
+            description: "There was a problem verifying your account. Please try logging in again.",
+            variant: "destructive",
+          });
+          navigate('/login', { replace: true });
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
     
     checkAuth();
+    
+    // Cleanup function to prevent state updates after unmounting
+    return () => {
+      isMounted = false;
+    };
   }, [navigate, toast, currentPath, isAdminRoute]);
   
   // Listen for auth state changes
@@ -114,7 +128,7 @@ const DashboardLayout = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
   
   // Set sidebar open state based on screen size
   useEffect(() => {

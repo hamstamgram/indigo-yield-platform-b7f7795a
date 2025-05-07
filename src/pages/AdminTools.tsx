@@ -20,7 +20,11 @@ const AdminTools = () => {
   // Simplified initialization
   useEffect(() => {
     // Just check if the component is ready to render
-    setInitializing(false);
+    const timer = setTimeout(() => {
+      setInitializing(false);
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   // Show loading state while initializing
