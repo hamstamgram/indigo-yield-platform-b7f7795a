@@ -10,8 +10,7 @@ export const fetchAdminProfile = async () => {
   
   if (!user) return { userName: "", isAdmin: false };
   
-  // Check if admin email (case insensitive)
-  const isKnownAdminEmail = user.email?.toLowerCase() === 'hammadou@indigo.fund';
+  console.log("Checking admin status for user:", user.id);
   
   const { data: profile } = await supabase
     .from('profiles')
@@ -19,20 +18,18 @@ export const fetchAdminProfile = async () => {
     .eq('id', user.id)
     .single();
     
+  console.log("Profile data retrieved:", profile);
+  
   if (profile) {
     const userName = `${profile.first_name || ''} ${profile.last_name || ''}`;
     
-    // If either the profile indicates admin or it's a known admin email
-    if (profile.is_admin || isKnownAdminEmail) {
+    // Explicitly check for true value
+    if (profile.is_admin === true) {
+      console.log("User is confirmed admin via profile");
       return { userName, isAdmin: true };
     }
     
     return { userName, isAdmin: false };
-  }
-  
-  // Fallback to email check if profile not found
-  if (isKnownAdminEmail) {
-    return { userName: user.email || "", isAdmin: true };
   }
   
   return { userName: "", isAdmin: false };

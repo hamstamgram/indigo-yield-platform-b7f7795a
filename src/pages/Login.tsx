@@ -78,7 +78,10 @@ export default function Login() {
           .eq('id', data.user.id)
           .single();
         
+        console.log("Profile data after login:", profile);
+        
         const isAdmin = profile?.is_admin === true;
+        console.log("Is user admin:", isAdmin);
         
         // Show success message
         toast({

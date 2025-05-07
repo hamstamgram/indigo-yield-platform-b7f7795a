@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -14,6 +15,8 @@ import { useToast } from "@/hooks/use-toast";
  */
 const checkAdminStatus = async (userId: string): Promise<boolean> => {
   try {
+    console.log("Checking admin status directly from database for user:", userId);
+    
     // Check using profile table for existing field
     const { data: profile, error } = await supabase
       .from('profiles')
@@ -26,7 +29,9 @@ const checkAdminStatus = async (userId: string): Promise<boolean> => {
       return false;
     }
     
-    // Check if is_admin is true, or fallback to known admin email check
+    console.log("Admin check result:", profile);
+    
+    // Check if is_admin is true
     return profile?.is_admin === true;
   } catch (error) {
     console.error("Error checking admin status:", error);
