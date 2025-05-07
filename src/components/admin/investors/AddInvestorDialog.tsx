@@ -62,10 +62,10 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
       // Close dialog and refresh data
       setOpen(false);
       
-      // Force refresh parent component data
+      // Force refresh parent component data with a slight delay to ensure DB operations complete
       setTimeout(() => {
         onInvestorAdded();
-      }, 100);
+      }, 500);
 
     } catch (error) {
       console.error("Error adding investor:", error);

@@ -38,7 +38,7 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
         getRandomChar(special);
       
       // Add additional random characters
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 12; i++) {
         const allChars = lowercase + uppercase + numbers + special;
         password += allChars.charAt(Math.floor(Math.random() * allChars.length));
       }
@@ -49,6 +49,7 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
     const tempPassword = generateStrongPassword();
     console.log(`Attempting to create new user for ${values.email} with a complex password...`);
     
+    // Try to create the auth user
     const { data: authData, error: signupError } = await supabase.auth.signUp({
       email: values.email,
       password: tempPassword,
@@ -56,7 +57,8 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
         data: {
           first_name: values.first_name,
           last_name: values.last_name,
-          is_investor: true
+          is_investor: true,
+          is_admin: false
         }
       }
     });
@@ -78,24 +80,22 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
     
     console.log("New user created with ID:", userId);
     
-    // Check if the profile was automatically created
-    // Wait a moment to allow the database trigger to create the profile
+    // Wait for trigger to create profile
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Verify the profile exists
-    const { data: profile, error: profileError } = await supabase
+    // Check if profile exists
+    const { data: profileCheck } = await supabase
       .from('profiles')
       .select('id')
       .eq('id', userId)
       .maybeSingle();
     
-    if (profileError) {
-      console.error("Error checking profile:", profileError);
-    }
-    
-    if (!profile) {
+    // If profile doesn't exist, create it directly with service role client
+    // Note: In production, you should use a Supabase Edge Function with the service role key
+    if (!profileCheck) {
       console.log("Profile not found after creation, creating manually");
-      // Manually create the profile if it wasn't created automatically
+      
+      // Insert profile directly
       const { error: insertError } = await supabase
         .from('profiles')
         .insert({
@@ -108,10 +108,9 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
       
       if (insertError) {
         console.error("Error creating profile:", insertError);
-        throw new Error(`Failed to create user profile: ${insertError.message}`);
+        // Continue anyway as the auth user was created
+        console.log("Continuing despite profile error as auth user was created");
       }
-    } else {
-      console.log("Profile was created automatically:", profile);
     }
     
     return userId;

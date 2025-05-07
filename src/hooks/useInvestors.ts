@@ -30,54 +30,38 @@ export const useInvestors = () => {
       
       console.log("Checking admin status for user:", user.id);
       
-      // Check admin status - try RPC first
-      let isUserAdmin = false;
+      // Check admin status - direct query from profiles
       try {
-        const { data: adminStatus, error: adminRpcError } = await supabase
-          .rpc('get_user_admin_status', { user_id: user.id });
-        
-        if (adminRpcError) {
-          throw adminRpcError;
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', user.id)
+          .single();
+          
+        if (profileError) {
+          throw profileError;
         }
         
-        isUserAdmin = adminStatus === true;
-        console.log("Admin check result via function:", isUserAdmin);
-      } catch (rpcError) {
-        console.error("Error checking admin status via function:", rpcError);
-        // Fall back to direct query if RPC fails
-        try {
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('is_admin')
-            .eq('id', user.id)
-            .single();
-            
-          if (profileError) {
-            throw profileError;
-          }
-          
-          isUserAdmin = profileData?.is_admin === true;
-          console.log("Admin status determined from profiles:", isUserAdmin);
-        } catch (profileError) {
-          console.error("Error checking admin status from profiles:", profileError);
-          setIsAdmin(false);
+        const isUserAdmin = profileData?.is_admin === true;
+        console.log("Admin status determined from profiles:", isUserAdmin);
+        setIsAdmin(isUserAdmin);
+        
+        if (!isUserAdmin) {
+          console.log("User is not an admin, stopping fetch");
           setLoading(false);
-          toast({
-            title: "Error",
-            description: "Failed to verify admin status",
-            variant: "destructive",
-          });
+          setInvestors([]);
+          setFilteredInvestors([]);
           return;
         }
-      }
-      
-      setIsAdmin(isUserAdmin);
-      
-      if (!isUserAdmin) {
-        console.log("User is not an admin, stopping fetch");
+      } catch (profileError) {
+        console.error("Error checking admin status from profiles:", profileError);
+        setIsAdmin(false);
         setLoading(false);
-        setInvestors([]);
-        setFilteredInvestors([]);
+        toast({
+          title: "Error",
+          description: "Failed to verify admin status",
+          variant: "destructive",
+        });
         return;
       }
       
@@ -100,15 +84,14 @@ export const useInvestors = () => {
         setAssets(assetData || []);
       }
       
-      // Get all investor profiles (non-admin users)
-      const { data: investorProfiles, error: userError } = await supabase
+      // Get all investor profiles directly without filters to avoid RLS issues
+      console.log("Fetching all profiles without filtering for is_admin");
+      const { data: allProfiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, email, first_name, last_name, created_at, is_admin')
-        .eq('is_admin', false)
-        .order('created_at', { ascending: false });
+        .select('id, email, first_name, last_name, created_at, is_admin');
       
-      if (userError) {
-        console.error("Error fetching users:", userError);
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError);
         toast({
           title: "Error",
           description: "Failed to load investor data",
@@ -120,7 +103,9 @@ export const useInvestors = () => {
         return;
       }
 
-      console.log("Fetched investor profiles:", investorProfiles?.length || 0);
+      // Filter to get non-admin users
+      const investorProfiles = allProfiles?.filter(profile => !profile.is_admin) || [];
+      console.log("Filtered investor profiles:", investorProfiles.length);
       
       if (!investorProfiles || investorProfiles.length === 0) {
         console.log("No investors found");
