@@ -136,24 +136,28 @@ export const useInvestors = () => {
         
         // Map them to our investor format
         const mappedInvestors = nonAdminUsers.map(user => {
-          if (!user) return {
-            id: '',
-            email: '',
-            first_name: '',
-            last_name: '',
-            created_at: '',
-            portfolio_summary: {}
-          } as Investor;
+          if (!user) {
+            return {
+              id: '',
+              email: '',
+              first_name: '',
+              last_name: '',
+              created_at: '',
+              portfolio_summary: {}
+            } as Investor;
+          }
           
-          // Explicit type assertion with careful handling
-          const userMetadata = user.user_metadata as Record<string, unknown> | null | undefined;
+          // Explicitly cast the user to avoid the 'never' type issue
+          const typedUser = user as any;
+          // Now we can safely access the user_metadata
+          const userMetadata = typedUser.user_metadata as Record<string, unknown> | null | undefined;
           
           return {
-            id: user.id || '',
-            email: user.email || '',
+            id: typedUser.id || '',
+            email: typedUser.email || '',
             first_name: userMetadata?.first_name as string || '',
             last_name: userMetadata?.last_name as string || '',
-            created_at: user.created_at || '',
+            created_at: typedUser.created_at || '',
             portfolio_summary: {}
           } as Investor;
         });
