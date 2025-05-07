@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -26,38 +25,26 @@ const DashboardLayout = () => {
           navigate('/login');
           return;
         }
+
+        console.log("Session exists, checking admin status");
         
         // For testing admin status based on known admin email
-        // This is a fallback in case the profiles query fails
+        // This is reliable even if the profiles query fails
         const isKnownAdmin = session.user.email === 'hammadou@indigo.fund';
+        console.log("Is known admin email?", isKnownAdmin);
         
-        try {
-          // Try to check if user is admin from profiles table
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('is_admin')
-            .eq('id', session.user.id)
-            .single();
-            
-          if (error) {
-            console.error("Error fetching admin status from profile:", error);
-            // Fall back to email check if there's an error with profiles
-            setIsAdmin(isKnownAdmin);
-          } else {
-            setIsAdmin(profile?.is_admin || isKnownAdmin);
-          }
-        } catch (error) {
-          console.error("Exception when checking admin status:", error);
-          // Fall back to email check on exception
-          setIsAdmin(isKnownAdmin);
-        }
+        // Set admin status based on email check
+        setIsAdmin(isKnownAdmin);
         
         // Route based on admin status and current path
         const currentPath = window.location.pathname;
+        console.log("Current path:", currentPath);
         
         if (isKnownAdmin && currentPath === '/dashboard') {
+          console.log("Admin on regular dashboard - redirecting to admin dashboard");
           navigate('/admin-dashboard');
         } else if (!isKnownAdmin && currentPath.includes('admin')) {
+          console.log("Regular user on admin page - redirecting to regular dashboard");
           navigate('/dashboard');
         }
       } catch (error) {
@@ -88,7 +75,7 @@ const DashboardLayout = () => {
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
       {/* Sidebar */}
-      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} isAdmin={isAdmin} />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
