@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   Card, 
@@ -113,36 +112,32 @@ const AdminDashboard = () => {
           console.error('Error fetching prices, using defaults:', e);
           prices = defaultPrices;
         }
+
+        // Define default values for each supported asset type
+        const defaultValues = {
+          'BTC': { balance: 12.5, users: 18, yield: 4.8 },
+          'ETH': { balance: 180, users: 15, yield: 5.2 },
+          'SOL': { balance: 2200, users: 11, yield: 6.5 },
+          'USDC': { balance: 425000, users: 22, yield: 8.1 }
+        };
         
         // Create asset summaries for all assets
         const mockSummaries: AssetSummary[] = assets.map(asset => {
           const symbol = asset.symbol.toUpperCase();
-          const baseTotalBalance = symbol === 'BTC' ? 12.5 : 
-                                  symbol === 'ETH' ? 180 : 
-                                  symbol === 'SOL' ? 2200 : 
-                                  symbol === 'USDC' ? 425000 : 0;
-                                  
-          const priceData = prices[asset.symbol.toLowerCase()] || defaultPrices[asset.symbol.toLowerCase()];
-          const basePrice = priceData ? priceData.price : 
-                           symbol === 'BTC' ? 67500 : 
-                           symbol === 'ETH' ? 3200 : 
-                           symbol === 'SOL' ? 148 : 
-                           symbol === 'USDC' ? 1 : 0;
-                           
+          
+          // Get default values for this asset type or use zeros
+          const defaults = defaultValues[symbol] || { balance: 0, users: 0, yield: 0 };
+          
+          const priceData = prices[asset.symbol.toLowerCase()] || defaultPrices[asset.symbol.toLowerCase()] || { price: 0 };
+          
           return {
             id: asset.id,
             symbol: asset.symbol,
             name: asset.name,
-            totalBalance: baseTotalBalance,
-            usdValue: baseTotalBalance * basePrice,
-            totalUsers: symbol === 'BTC' ? 18 : 
-                       symbol === 'ETH' ? 15 : 
-                       symbol === 'SOL' ? 11 : 
-                       symbol === 'USDC' ? 22 : 0,
-            avgYield: symbol === 'BTC' ? 4.8 : 
-                     symbol === 'ETH' ? 5.2 : 
-                     symbol === 'SOL' ? 6.5 : 
-                     symbol === 'USDC' ? 8.1 : 0
+            totalBalance: defaults.balance,
+            usdValue: defaults.balance * priceData.price,
+            totalUsers: defaults.users,
+            avgYield: defaults.yield
           };
         });
         
