@@ -1,11 +1,11 @@
 
-import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import InvestorsHeader from "@/components/admin/investors/InvestorsHeader";
 import InvestorTableContainer from "@/components/admin/investors/InvestorTableContainer";
 import { useInvestors } from "@/hooks/useInvestors";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { supabase } from "@/integrations/supabase/client";
+import AddInvestorDialog from "@/components/admin/investors/AddInvestorDialog";
 
 const AdminInvestors = () => {
   const { 
@@ -14,10 +14,8 @@ const AdminInvestors = () => {
     setSearchTerm,
     loading, 
     assets,
-    isAdmin,
     refetch
   } = useInvestors();
-  const navigate = useNavigate();
   const { toast } = useToast();
   
   // Show loading state while checking permissions or loading data
@@ -25,9 +23,9 @@ const AdminInvestors = () => {
     return <LoadingSpinner />;
   }
   
-  // Navigate to create investor page to add investor data
+  // Handle creating/adding an investor
   const handleCreateInvestor = () => {
-    navigate('/admin?tab=invites');
+    // The dialog will be shown via the AddInvestorDialog component
   };
   
   // Send email invitation
@@ -86,7 +84,10 @@ const AdminInvestors = () => {
 
   return (
     <div className="space-y-6">
-      <InvestorsHeader onCreateInvestor={handleCreateInvestor} />
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Investor Management</h1>
+        <AddInvestorDialog assets={assets} onInvestorAdded={refetch} />
+      </div>
       
       <InvestorTableContainer
         investors={filteredInvestors}
