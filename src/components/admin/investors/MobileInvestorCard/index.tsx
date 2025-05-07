@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Asset, Investor } from '@/types/investorTypes';
-import InvestorAssetDropdown from './InvestorAssetDropdown';
+import InvestorAssetDropdown from '../InvestorAssetDropdown'; // Updated import path
 import InvestorInfo from './InvestorInfo';
 
 interface MobileInvestorCardProps {
