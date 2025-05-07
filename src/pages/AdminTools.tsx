@@ -1,56 +1,34 @@
 
-import { useState, useEffect } from "react";
-import { useSearchParams, useLocation } from "react-router-dom";
-import AdminToolsTabs from "@/components/admin/AdminToolsTabs";
-import AdminToolsHeader from "@/components/admin/AdminToolsHeader";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
-import AdminYieldRates from "@/components/admin/AdminYieldRates";
-import AdminPortfolios from "@/components/admin/AdminPortfolios";
-import AdminInvites from "@/components/admin/AdminInvites";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import AdminToolsHeader from '@/components/admin/AdminToolsHeader';
+import AdminToolsTabs from '@/components/admin/AdminToolsTabs';
+import AdminUsersList from '@/components/admin/AdminUsersList';
+import AdminInvites from '@/components/admin/AdminInvites';
+import AdminPortfolios from '@/components/admin/AdminPortfolios';
+import CreateTestUser from '@/components/admin/CreateTestUser';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 
 const AdminTools = () => {
-  const [initializing, setInitializing] = useState(true);
-  const [searchParams] = useSearchParams();
-  const location = useLocation();
-  const defaultTab = searchParams.get("tab") || "portfolios";
-  
-  // Determine if we should show just the specific component without header and tabs
-  const directAccess = location.search.includes('tab=') && !location.search.includes('showTabs=true');
+  const navigate = useNavigate();
 
-  // Simplified initialization
-  useEffect(() => {
-    // Just check if the component is ready to render
-    const timer = setTimeout(() => {
-      setInitializing(false);
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Show loading state while initializing
-  if (initializing) {
-    return <LoadingSpinner />;
-  }
-
-  // Direct access to specific admin components
-  if (directAccess) {
-    switch(defaultTab) {
-      case "yields":
-        return <AdminYieldRates />;
-      case "portfolios":
-        return <AdminPortfolios />;
-      case "invites":
-        return <AdminInvites />;
-      default:
-        return <AdminPortfolios />;
-    }
-  }
-
-  // Regular admin tools page with header and tabs
   return (
     <div className="space-y-6">
       <AdminToolsHeader />
-      <AdminToolsTabs defaultTab={defaultTab} />
+      <AdminToolsTabs defaultTab="users">
+        <TabsContent value="users" className="space-y-6">
+          <AdminUsersList />
+        </TabsContent>
+        <TabsContent value="invites" className="space-y-6">
+          <AdminInvites />
+        </TabsContent>
+        <TabsContent value="portfolios" className="space-y-6">
+          <AdminPortfolios />
+        </TabsContent>
+        <TabsContent value="test-users" className="space-y-6">
+          <CreateTestUser />
+        </TabsContent>
+      </AdminToolsTabs>
     </div>
   );
 };

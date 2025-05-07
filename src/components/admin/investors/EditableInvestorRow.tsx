@@ -24,6 +24,7 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [fee, setFee] = useState<string>(investor.fee_percentage?.toString() || "2.0");
   const { toast } = useToast();
   
   // Create state for each asset balance
@@ -60,6 +61,20 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
     try {
       setIsSaving(true);
       
+      // Update fee percentage in profile
+      const { error: feeError } = await supabase
+        .from('profiles')
+        .update({ 
+          fee_percentage: parseFloat(fee),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', investor.id);
+      
+      if (feeError) {
+        console.error("Error updating fee:", feeError);
+        throw feeError;
+      }
+      
       // Convert input values to portfolio entries
       const portfolioUpdates = assets.map(asset => {
         const symbol = asset.symbol;
@@ -68,7 +83,8 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
         return {
           user_id: investor.id,
           asset_id: asset.id,
-          balance: balance
+          balance: balance,
+          updated_at: new Date().toISOString()
         };
       });
       
@@ -133,6 +149,25 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
           )}
         </TableCell>
       ))}
+
+      {/* Fee percentage */}
+      <TableCell>
+        {isEditing ? (
+          <Input 
+            type="number"
+            step="0.1"
+            min="0"
+            max="100"
+            value={fee}
+            onChange={(e) => setFee(e.target.value)}
+            className="max-w-[80px]"
+          />
+        ) : (
+          investor.fee_percentage !== null && investor.fee_percentage !== undefined
+            ? `${investor.fee_percentage.toFixed(1)}`
+            : '2.0'
+        )}
+      </TableCell>
       
       {/* Actions */}
       <TableCell className="text-right">

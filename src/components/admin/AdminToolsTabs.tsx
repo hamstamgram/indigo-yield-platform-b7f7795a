@@ -1,39 +1,38 @@
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AdminUsersList from "@/components/admin/AdminUsersList";
-import YieldSourcesManagement from "@/pages/YieldSourcesManagement";
-import AdminPortfolios from "@/components/admin/AdminPortfolios";
-import AdminInvites from "@/components/admin/AdminInvites";
+import React from "react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UserCircle, Mail, Briefcase, TestTube } from "lucide-react";
 
 interface AdminToolsTabsProps {
-  defaultTab: string;
+  defaultTab?: string;
+  children: React.ReactNode;
 }
 
-const AdminToolsTabs = ({ defaultTab }: AdminToolsTabsProps) => {
+const AdminToolsTabs: React.FC<AdminToolsTabsProps> = ({ 
+  defaultTab = "users", 
+  children 
+}) => {
   return (
-    <Tabs defaultValue={defaultTab} className="w-full">
-      <TabsList className="mb-4">
-        <TabsTrigger value="portfolios">Portfolios</TabsTrigger>
-        <TabsTrigger value="yields">Yield Rates</TabsTrigger>
-        <TabsTrigger value="users">Manage Users</TabsTrigger>
-        <TabsTrigger value="invites">Admin Invites</TabsTrigger>
+    <Tabs defaultValue={defaultTab}>
+      <TabsList className="mb-6">
+        <TabsTrigger value="users">
+          <UserCircle className="h-4 w-4 mr-2" />
+          Users
+        </TabsTrigger>
+        <TabsTrigger value="invites">
+          <Mail className="h-4 w-4 mr-2" />
+          Invites
+        </TabsTrigger>
+        <TabsTrigger value="portfolios">
+          <Briefcase className="h-4 w-4 mr-2" />
+          Portfolios
+        </TabsTrigger>
+        <TabsTrigger value="test-users">
+          <TestTube className="h-4 w-4 mr-2" />
+          Test Users
+        </TabsTrigger>
       </TabsList>
-      
-      <TabsContent value="users">
-        <AdminUsersList />
-      </TabsContent>
-      
-      <TabsContent value="portfolios">
-        <AdminPortfolios />
-      </TabsContent>
-      
-      <TabsContent value="yields">
-        <YieldSourcesManagement />
-      </TabsContent>
-
-      <TabsContent value="invites">
-        <AdminInvites />
-      </TabsContent>
+      {children}
     </Tabs>
   );
 };

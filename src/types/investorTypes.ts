@@ -5,6 +5,7 @@ export interface Investor {
   first_name: string | null;
   last_name: string | null;
   created_at: string;
+  fee_percentage?: number;
   portfolio_summary?: {
     [key: string]: {
       balance: number;

@@ -78,7 +78,7 @@ export const fetchInvestors = async (): Promise<Investor[]> => {
       // Fall back to direct query if function fails
       const { data: directData, error: directError } = await supabase
         .from('profiles')
-        .select('id, email, first_name, last_name, created_at')
+        .select('id, email, first_name, last_name, created_at, fee_percentage')
         .eq('is_admin', false);
       
       if (directError) {
@@ -115,6 +115,7 @@ const mapProfilesToInvestors = (profiles: any[]): Investor[] => {
       first_name: profile.first_name || '',
       last_name: profile.last_name || '',
       created_at: profile.created_at || '',
+      fee_percentage: profile.fee_percentage || 2.0,
       portfolio_summary: {}
     } as Investor;
   });
@@ -131,6 +132,7 @@ const getSampleInvestors = (): Investor[] => {
       email: 'investor1@example.com',
       first_name: 'John',
       last_name: 'Doe',
+      fee_percentage: 2.0,
       created_at: new Date().toISOString(),
       portfolio_summary: {
         'BTC': { balance: 0.5, usd_value: 33750 },
@@ -142,6 +144,7 @@ const getSampleInvestors = (): Investor[] => {
       email: 'investor2@example.com',
       first_name: 'Jane',
       last_name: 'Smith',
+      fee_percentage: 1.5,
       created_at: new Date().toISOString(),
       portfolio_summary: {
         'SOL': { balance: 10, usd_value: 1480 },
