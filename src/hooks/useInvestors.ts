@@ -25,22 +25,21 @@ export const useInvestors = () => {
         return;
       }
       
-      // Check if user is an admin
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('id', user.id)
-        .single();
+      // Use the admin.getUser function instead of querying profiles directly
+      // This avoids the RLS recursion issue
+      const { data: userData, error: adminError } = await supabase.auth.admin.getUserById(user.id);
       
-      if (error) {
-        console.error("Error fetching profile:", error);
+      if (adminError) {
+        console.error("Error fetching user:", adminError);
         setLoading(false);
         return;
       }
       
-      setIsAdmin(!!profile?.is_admin);
+      // Check if user is an admin using user metadata
+      const isUserAdmin = userData?.user?.app_metadata?.is_admin === true;
+      setIsAdmin(isUserAdmin);
       
-      if (!profile?.is_admin) {
+      if (!isUserAdmin) {
         setLoading(false);
         return;
       }
@@ -62,10 +61,10 @@ export const useInvestors = () => {
       
       setAssets(assetData || []);
       
-      // Get all non-admin users (investors)
+      // Get all profiles (potentially investors)
       const { data: userData, error: userError } = await supabase
         .from('profiles')
-        .select('id, email, first_name, last_name, created_at')
+        .select('id, email, first_name, last_name, created_at, is_admin')
         .eq('is_admin', false)
         .order('created_at', { ascending: false });
       
@@ -76,6 +75,8 @@ export const useInvestors = () => {
           description: "Failed to load investor data",
           variant: "destructive",
         });
+        setLoading(false);
+        return;
       }
       
       // Fetch portfolio data for each investor
