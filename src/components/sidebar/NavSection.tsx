@@ -20,6 +20,21 @@ const NavSection: React.FC<NavSectionProps> = ({ title, items, onItemClick }) =>
     navigate(href);
   };
 
+  const isActive = (href: string) => {
+    // Direct path match
+    if (location.pathname === href) {
+      return true;
+    }
+    
+    // Check for tab parameter matches in admin routes
+    if (href.includes('admin?tab=') && location.pathname === '/admin') {
+      const tabParam = href.split('tab=')[1];
+      return location.search.includes(`tab=${tabParam}`);
+    }
+    
+    return false;
+  };
+
   return (
     <div className="mb-8">
       <h2 className="px-2 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -31,8 +46,7 @@ const NavSection: React.FC<NavSectionProps> = ({ title, items, onItemClick }) =>
             <button
               onClick={() => handleNavigation(item.href)}
               className={`flex w-full items-center px-2 py-2 text-sm rounded-md group ${
-                location.pathname === item.href || 
-                (item.href.includes('admin?tab=') && location.pathname === '/admin' && location.search.includes(item.href.split('tab=')[1]))
+                isActive(item.href)
                   ? "text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20"
                   : "text-gray-700 hover:text-indigo-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-indigo-300 dark:hover:bg-gray-700"
               }`}
