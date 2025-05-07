@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Investor } from "@/types/investorTypes";
 import { Asset } from "@/types/investorTypes";
+import { InvestorFormValues } from "@/components/admin/investors/InvestorForm";
 
 /**
  * Fetches all available assets from the database
@@ -85,4 +86,62 @@ export const enrichInvestorsWithPortfolioData = async (investors: Investor[]): P
       return investor;
     }
   }));
+};
+
+/**
+ * Creates portfolio entries for a new investor
+ * @param userId The ID of the investor user
+ * @param values Form values with initial balances
+ * @param assets Available assets
+ * @returns Boolean indicating success
+ */
+export const createPortfolioEntries = async (
+  userId: string, 
+  values: InvestorFormValues,
+  assets: Asset[]
+): Promise<boolean> => {
+  try {
+    console.log("Creating portfolio entries for user:", userId);
+    
+    // Filter assets that have balance values in the form
+    const portfolioEntries = assets
+      .filter(asset => {
+        const balanceKey = `balance_${asset.symbol.toLowerCase()}` as keyof typeof values;
+        const balance = values[balanceKey];
+        return balance !== undefined && Number(balance) > 0;
+      })
+      .map(asset => {
+        const balanceKey = `balance_${asset.symbol.toLowerCase()}` as keyof typeof values;
+        const balance = values[balanceKey];
+        
+        return {
+          user_id: userId,
+          asset_id: asset.id,
+          balance: Number(balance) || 0
+        };
+      });
+    
+    // If no entries, return success (nothing to insert)
+    if (portfolioEntries.length === 0) {
+      console.log("No portfolio entries to create");
+      return true;
+    }
+    
+    // Insert portfolio entries
+    const { error } = await supabase
+      .from('portfolios')
+      .insert(portfolioEntries);
+    
+    if (error) {
+      console.error("Error creating portfolio entries:", error);
+      return false;
+    }
+    
+    console.log(`Created ${portfolioEntries.length} portfolio entries`);
+    return true;
+    
+  } catch (error) {
+    console.error("Error in createPortfolioEntries:", error);
+    return false;
+  }
 };
