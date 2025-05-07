@@ -4,17 +4,20 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { createTestInvestor } from '@/scripts/createTestInvestor';
-import { Loader2, UserPlus, Copy, Check } from 'lucide-react';
+import { Loader2, UserPlus, Copy, Check, RefreshCcw } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const CreateTestUser = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [createdUser, setCreatedUser] = useState<{ email: string; password: string } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleCreateTestUser = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       const result = await createTestInvestor();
       
       if (result.success) {
@@ -28,14 +31,16 @@ const CreateTestUser = () => {
           description: 'Test investor account created successfully',
         });
       } else {
+        setError('Failed to create test investor account: ' + (result.error?.message || 'Unknown error'));
         toast({
           title: 'Error',
           description: 'Failed to create test investor account',
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating test user:', error);
+      setError(error.message || 'An unexpected error occurred');
       toast({
         title: 'Error',
         description: 'An unexpected error occurred',
@@ -79,7 +84,13 @@ const CreateTestUser = () => {
           Create a test investor account for demonstration purposes
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
         {createdUser ? (
           <div className="bg-green-50 dark:bg-green-900/20 rounded-md p-4 border border-green-200 dark:border-green-800">
             <div className="flex justify-between items-start mb-2">
@@ -106,7 +117,7 @@ const CreateTestUser = () => {
           </p>
         )}
       </CardContent>
-      <CardFooter>
+      <CardFooter className={createdUser ? "justify-between" : ""}>
         <Button 
           onClick={handleCreateTestUser} 
           disabled={isLoading}
@@ -123,6 +134,17 @@ const CreateTestUser = () => {
             </>
           )}
         </Button>
+        
+        {createdUser && (
+          <Button
+            variant="outline"
+            onClick={() => setCreatedUser(null)}
+            className="ml-2"
+          >
+            <RefreshCcw className="mr-2 h-4 w-4" />
+            Create Another
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

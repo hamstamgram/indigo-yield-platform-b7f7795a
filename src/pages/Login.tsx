@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -15,6 +16,7 @@ export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -30,21 +32,30 @@ export default function Login() {
           return;
         }
         
-        // Get user profile to check admin status
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', session.user.id)
-          .single();
-          
-        const isAdmin = profile?.is_admin === true;
+        // User is already authenticated, redirect based on admin status
+        console.log("User is authenticated, redirecting...");
         
-        // Redirect based on admin status, using replace to avoid browser history issues
-        if (isAdmin) {
-          console.log("Known admin detected, redirecting to admin dashboard");
-          navigate("/admin-dashboard", { replace: true });
-        } else {
-          console.log("Regular user detected, redirecting to dashboard");
+        try {
+          // Get user profile to check admin status
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', session.user.id)
+            .single();
+            
+          const isAdmin = profile?.is_admin === true;
+          
+          // Redirect based on admin status
+          if (isAdmin) {
+            console.log("Admin user detected, redirecting to admin dashboard");
+            navigate("/admin-dashboard", { replace: true });
+          } else {
+            console.log("Regular user detected, redirecting to dashboard");
+            navigate("/dashboard", { replace: true });
+          }
+        } catch (profileError) {
+          console.error("Error checking profile:", profileError);
+          // Default to regular dashboard if profile check fails
           navigate("/dashboard", { replace: true });
         }
       } catch (error) {
@@ -59,6 +70,7 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     console.log("Attempting login with:", email);
 
     try {
@@ -70,6 +82,7 @@ export default function Login() {
 
         if (error) {
           console.error("Login error:", error);
+          setError(error.message);
           throw error;
         }
         
@@ -79,33 +92,17 @@ export default function Login() {
         
         console.log("Login successful, user:", data.user);
         
-        // Get admin status
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', data.user.id)
-          .single();
-            
-        if (profileError) {
-          console.error("Error checking profile:", profileError);
-          throw profileError;
-        }
-          
-        console.log("Profile data after login:", profile);
-        const isAdmin = profile?.is_admin === true;
-        
-        console.log("Is user admin:", isAdmin);
-        
         // Show success message
         toast({
           title: "Welcome back!",
-          description: `You've successfully logged in as ${isAdmin ? 'Administrator' : 'Investor'}.`,
+          description: "You've successfully logged in.",
         });
         
-        // Redirect to appropriate dashboard
-        navigate(isAdmin ? "/admin-dashboard" : "/dashboard", { replace: true });
+        // Redirect to dashboard - admin check will be done in the dashboard component
+        navigate("/dashboard", { replace: true });
       } else {
         // Since this is invitation-only, restrict self registration
+        setError("This platform requires an invitation. Please contact the administrator.");
         toast({
           title: "Invitation Only",
           description: "This platform requires an invitation. Please contact the administrator.",
@@ -115,11 +112,7 @@ export default function Login() {
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      toast({
-        title: "Authentication error",
-        description: error.message || "An error occurred during authentication.",
-        variant: "destructive",
-      });
+      // No need to set error again as it's already set above
     } finally {
       setLoading(false);
     }
@@ -151,6 +144,13 @@ export default function Login() {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <div className="relative">

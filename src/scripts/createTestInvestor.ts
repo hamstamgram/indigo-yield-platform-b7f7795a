@@ -11,7 +11,25 @@ export async function createTestInvestor() {
     
     console.log(`Creating test investor with email: ${testEmail}`);
     
-    // Try to create a new user with the test credentials
+    // First check if user with similar email already exists
+    const { data: existingUsers, error: searchError } = await supabase
+      .from('profiles')
+      .select('id, email')
+      .ilike('email', 'test.investor%')
+      .limit(1);
+    
+    // If we found an existing test user, return its credentials
+    if (!searchError && existingUsers && existingUsers.length > 0) {
+      console.log('Found existing test user, returning credentials');
+      return {
+        success: true,
+        message: 'Existing test investor returned',
+        email: existingUsers[0].email,
+        password: testPassword
+      };
+    }
+    
+    // Create a new user with the test credentials
     const { data: authUser, error: authError } = await supabase.auth.signUp({
       email: testEmail,
       password: testPassword,
@@ -30,13 +48,18 @@ export async function createTestInvestor() {
 
     console.log('Created auth user:', authUser);
 
+    // Wait a moment for the user to be fully created
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     // Ensure the profile has the correct fee_percentage
     if (authUser.user) {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
           fee_percentage: 2.5,
-          is_admin: false
+          is_admin: false,
+          first_name: 'Test',
+          last_name: 'Investor'
         })
         .eq('id', authUser.user.id);
 
