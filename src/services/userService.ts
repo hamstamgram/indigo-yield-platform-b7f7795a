@@ -1,5 +1,7 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { InvestorFormValues } from "@/components/admin/investors/InvestorForm";
+import { User } from "@supabase/supabase-js";
 
 export const createOrFindInvestorUser = async (values: InvestorFormValues): Promise<string | null> => {
   try {
@@ -11,11 +13,11 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
       page: 1
     });
     
-    // Fix TypeScript error by checking if users exists and is an array
-    let existingUser = authUsers?.users ? authUsers.users.find(user => {
-      // Ensure user object and email property exist before comparison
-      return user && typeof user.email === 'string' && user.email === values.email;
-    }) : undefined;
+    // Use proper typing for users array and add null checks
+    const users = authUsers?.users as User[] | null;
+    const existingUser = users?.find(user => 
+      user && typeof user.email === 'string' && user.email === values.email
+    );
     
     // If found, return existing user ID
     if (!authError && existingUser && existingUser.id) {
