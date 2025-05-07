@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -126,8 +125,8 @@ export const useInvestors = () => {
         
         // Filter to only get non-admin users based on metadata
         const nonAdminUsers = authUsers?.users.filter(user => {
-          // Type guard to ensure user.user_metadata exists and is an object
-          const metadata = user.user_metadata as Record<string, unknown> | null;
+          // Type assertion for user_metadata to ensure TypeScript knows it's an object or null
+          const metadata = user?.user_metadata as Record<string, unknown> | null;
           return metadata && metadata.is_admin !== true;
         }) || [];
         
@@ -135,8 +134,8 @@ export const useInvestors = () => {
         
         // Map them to our investor format
         const mappedInvestors = nonAdminUsers.map(user => {
-          // Type guard for metadata as Record<string, unknown>
-          const metadata = user.user_metadata as Record<string, unknown> | null;
+          // Type assertion for metadata as Record<string, unknown>
+          const metadata = user?.user_metadata as Record<string, unknown> | null;
           return {
             id: user.id || '',
             email: user.email || '',
