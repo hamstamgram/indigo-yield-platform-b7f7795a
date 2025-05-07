@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -7,32 +6,42 @@ import Header from "./Header";
 import ContentArea from "./ContentArea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { fetchAdminProfile } from "@/services/adminService";
 
 /**
- * Checks if a user has admin privileges using the profiles table
+ * Checks if a user has admin privileges using the database function
  * @param userId The user ID to check
  * @returns Boolean indicating admin status
  */
 const checkAdminStatus = async (userId: string): Promise<boolean> => {
   try {
-    console.log("Checking admin status directly from database for user:", userId);
+    console.log("Checking admin status via function for user:", userId);
     
-    // Check using profile table for existing field
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', userId)
-      .single();
+    // Use the RPC function to check admin status to avoid RLS issues
+    const { data, error } = await supabase
+      .rpc('get_user_admin_status', { user_id: userId });
       
     if (error) {
-      console.error("Error checking admin status:", error);
-      return false;
+      console.error("Error checking admin status via function:", error);
+      
+      // Fallback to direct query if function fails
+      const { data: profile, error: queryError } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', userId)
+        .single();
+        
+      if (queryError) {
+        console.error("Error checking admin status via direct query:", queryError);
+        return false;
+      }
+      
+      console.log("Admin check result via direct query:", profile);
+      return profile?.is_admin === true;
     }
     
-    console.log("Admin check result:", profile);
-    
-    // Check if is_admin is true
-    return profile?.is_admin === true;
+    console.log("Admin check result via function:", data);
+    return data === true;
   } catch (error) {
     console.error("Error checking admin status:", error);
     return false;
@@ -80,7 +89,7 @@ const DashboardLayout = () => {
 
         console.log("Checking admin status for user:", session.user.id);
         
-        // Check admin status through the profiles table
+        // Check admin status through the function
         const adminStatus = await checkAdminStatus(session.user.id);
         
         if (!isMounted) return;

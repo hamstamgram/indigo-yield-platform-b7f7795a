@@ -71,16 +71,30 @@ export default function Login() {
         
         console.log("Login successful, user:", data.user);
         
-        // Check admin status after successful login
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', data.user.id)
-          .single();
+        // Use the function to check admin status
+        const { data: adminData, error: adminError } = await supabase
+          .rpc('get_user_admin_status', { user_id: data.user.id });
+          
+        if (adminError) {
+          console.error("Error checking admin status via function:", adminError);
+          
+          // Fallback to direct query
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', data.user.id)
+            .single();
+            
+          if (profileError) {
+            console.error("Error checking profile:", profileError);
+          }
+          
+          console.log("Profile data after login:", profile);
+          var isAdmin = profile?.is_admin === true;
+        } else {
+          var isAdmin = adminData === true;
+        }
         
-        console.log("Profile data after login:", profile);
-        
-        const isAdmin = profile?.is_admin === true;
         console.log("Is user admin:", isAdmin);
         
         // Show success message

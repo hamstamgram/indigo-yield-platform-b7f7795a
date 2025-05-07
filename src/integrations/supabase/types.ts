@@ -299,6 +299,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_profile_by_id: {
+        Args: { profile_id: string }
+        Returns: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          first_name: string | null
+          id: string
+          is_admin: boolean | null
+          last_name: string | null
+          phone: string | null
+          totp_enabled: boolean | null
+          totp_verified: boolean | null
+          updated_at: string | null
+        }[]
+      }
+      get_user_admin_status: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
