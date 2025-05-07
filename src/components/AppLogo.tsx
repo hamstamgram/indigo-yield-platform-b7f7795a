@@ -15,7 +15,7 @@ const AppLogo = ({ className = "h-8 w-auto", showText = false, linkTo }: AppLogo
         alt="Indigo Digital Assets Yield" 
         className={className} 
       />
-      {showText && <span className="ml-2 text-lg font-medium">Indigo</span>}
+      {/* Text has been removed as requested */}
     </>
   );
 

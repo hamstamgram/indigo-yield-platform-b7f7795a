@@ -21,13 +21,9 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           <Menu className="h-6 w-6" />
         </button>
         
-        {/* Logo in header, not sidebar */}
-        <div className="ml-4">
-          <AppLogo showText={true} linkTo="/dashboard" />
-        </div>
-        
-        <div className="flex-1 flex justify-end">
-          {/* Pushed content to the right */}
+        {/* Logo centered in header */}
+        <div className="flex-1 flex justify-center">
+          <AppLogo linkTo="/dashboard" className="h-10 w-auto" />
         </div>
         
         <div className="flex items-center space-x-2">
