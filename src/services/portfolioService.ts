@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Investor } from "@/types/investorTypes";
 import { Asset } from "@/types/investorTypes";

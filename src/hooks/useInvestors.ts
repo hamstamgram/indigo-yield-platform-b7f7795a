@@ -42,21 +42,9 @@ export const useInvestors = () => {
       setAssets(assetsData);
       
       // Fetch investors
-      let investorsList: Investor[] = await fetchInvestors();
+      const investorsList = await fetchInvestors();
+      setInvestors(investorsList);
       
-      // If no investors found, try to get pending invites
-      if (investorsList.length === 0) {
-        const invitesData = await fetchPendingInvites();
-        if (invitesData.length > 0) {
-          setInvestors(invitesData);
-        } else {
-          setInvestors([]);
-        }
-      } else {
-        // Enrich investors with portfolio data
-        const enrichedInvestors = await enrichInvestorsWithPortfolioData(investorsList);
-        setInvestors(enrichedInvestors);
-      }
     } catch (error) {
       console.error('Error in main investor data fetch:', error);
       toast({
