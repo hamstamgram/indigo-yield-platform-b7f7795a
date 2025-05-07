@@ -1,8 +1,12 @@
 
-import { useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { UserCircle, Mail } from "lucide-react";
 import InvestorsHeader from "@/components/admin/investors/InvestorsHeader";
 import InvestorTableContainer from "@/components/admin/investors/InvestorTableContainer";
+import AdminInvites from "@/components/admin/AdminInvites";
+import AdminUsersList from "@/components/admin/AdminUsersList";
 import { useInvestors } from "@/hooks/useInvestors";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +22,7 @@ const AdminInvestors = () => {
     refetch
   } = useInvestors();
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("users");
   
   // Load data when component mounts
   useEffect(() => {
@@ -98,20 +103,41 @@ const AdminInvestors = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Investor Management</h1>
         <AddInvestorDialog assets={assets} onInvestorAdded={handleInvestorAdded} />
       </div>
       
-      <InvestorTableContainer
-        investors={filteredInvestors}
-        assets={assets}
-        loading={loading}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        onSendEmail={sendInviteToInvestor}
-        onRefresh={refetch}
-      />
+      <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="users">
+            <UserCircle className="h-4 w-4 mr-2" />
+            Users
+          </TabsTrigger>
+          <TabsTrigger value="invites">
+            <Mail className="h-4 w-4 mr-2" />
+            Invites
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="users" className="space-y-6">
+          {activeTab === "users" && (
+            <InvestorTableContainer
+              investors={filteredInvestors}
+              assets={assets}
+              loading={loading}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              onSendEmail={sendInviteToInvestor}
+              onRefresh={refetch}
+            />
+          )}
+        </TabsContent>
+        
+        <TabsContent value="invites" className="space-y-6">
+          {activeTab === "invites" && <AdminInvites />}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

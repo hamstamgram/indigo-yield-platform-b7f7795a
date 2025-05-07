@@ -9,23 +9,15 @@ interface AdminToolsTabsProps {
 }
 
 const AdminToolsTabs: React.FC<AdminToolsTabsProps> = ({ 
-  defaultTab = "users", 
+  defaultTab = "portfolios", 
   children 
 }) => {
   return (
     <Tabs defaultValue={defaultTab}>
       <TabsList className="mb-6">
-        <TabsTrigger value="users">
-          <UserCircle className="h-4 w-4 mr-2" />
-          Users
-        </TabsTrigger>
-        <TabsTrigger value="invites">
-          <Mail className="h-4 w-4 mr-2" />
-          Invites
-        </TabsTrigger>
         <TabsTrigger value="portfolios">
           <Briefcase className="h-4 w-4 mr-2" />
-          Portfolios
+          Portfolio Management
         </TabsTrigger>
         <TabsTrigger value="test-users">
           <TestTube className="h-4 w-4 mr-2" />
