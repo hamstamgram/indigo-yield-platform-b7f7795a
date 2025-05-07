@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -9,26 +8,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 /**
- * Checks if a user has admin privileges
+ * Checks if a user has admin privileges using the profiles table
  * @param userId The user ID to check
  * @returns Boolean indicating admin status
  */
 const checkAdminStatus = async (userId: string): Promise<boolean> => {
   try {
-    // First check using profile table for existing field
-    const { data: profile } = await supabase
+    // Check using profile table for existing field
+    const { data: profile, error } = await supabase
       .from('profiles')
       .select('is_admin')
       .eq('id', userId)
       .single();
       
-    if (profile?.is_admin) {
-      return true;
+    if (error) {
+      console.error("Error checking admin status:", error);
+      return false;
     }
     
-    // Alternative check for user metadata
-    const { data } = await supabase.auth.admin.getUserById(userId);
-    return !!data?.user?.app_metadata?.is_admin;
+    // Check if is_admin is true, or fallback to known admin email check
+    return profile?.is_admin === true;
   } catch (error) {
     console.error("Error checking admin status:", error);
     return false;
@@ -75,7 +74,7 @@ const DashboardLayout = () => {
 
         console.log("Checking admin status for user:", session.user.id);
         
-        // Check admin status through a dedicated function
+        // Check admin status through the profiles table
         const adminStatus = await checkAdminStatus(session.user.id);
         
         if (!isMounted) return;

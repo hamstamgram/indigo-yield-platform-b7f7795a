@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -25,18 +24,21 @@ export const useInvestors = () => {
         return;
       }
       
-      // Use the admin.getUserById function instead of querying profiles directly
-      // This avoids the RLS recursion issue
-      const { data: adminUserData, error: adminError } = await supabase.auth.admin.getUserById(user.id);
-      
-      if (adminError) {
-        console.error("Error fetching user:", adminError);
+      // Check admin status through profiles table directly
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single();
+        
+      if (profileError) {
+        console.error("Error checking admin status:", profileError);
         setLoading(false);
         return;
       }
       
-      // Check if user is an admin using user metadata
-      const isUserAdmin = adminUserData?.user?.app_metadata?.is_admin === true;
+      // Set admin status based on profile data
+      const isUserAdmin = profileData?.is_admin === true;
       setIsAdmin(isUserAdmin);
       
       if (!isUserAdmin) {
@@ -44,7 +46,7 @@ export const useInvestors = () => {
         return;
       }
       
-      // Fetch all assets
+      // Continue with fetching assets data
       const { data: assetData, error: assetError } = await supabase
         .from('assets')
         .select('id, symbol, name')
@@ -61,7 +63,7 @@ export const useInvestors = () => {
       
       setAssets(assetData || []);
       
-      // Get all profiles (potentially investors)
+      // Get all investor profiles (non-admin users)
       const { data: investorProfiles, error: userError } = await supabase
         .from('profiles')
         .select('id, email, first_name, last_name, created_at, is_admin')
