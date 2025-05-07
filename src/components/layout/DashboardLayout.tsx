@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -157,7 +158,8 @@ const DashboardLayout = () => {
 
   // Function to toggle sidebar visibility
   const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
+    console.log("Toggle sidebar clicked, current state:", sidebarOpen);
+    setSidebarOpen(prevState => !prevState);
   };
 
   if (isLoading) {

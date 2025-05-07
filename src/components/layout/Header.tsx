@@ -1,6 +1,7 @@
 
 import { Menu, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import AppLogo from "@/components/AppLogo";
 
 type HeaderProps = {
   toggleSidebar: () => void;
@@ -20,8 +21,13 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           <Menu className="h-6 w-6" />
         </button>
         
-        <div className="flex-1 flex justify-center">
-          {/* Empty div creates space for centered content */}
+        {/* Logo in header, not sidebar */}
+        <div className="ml-4">
+          <AppLogo showText={true} linkTo="/dashboard" />
+        </div>
+        
+        <div className="flex-1 flex justify-end">
+          {/* Pushed content to the right */}
         </div>
         
         <div className="flex items-center space-x-2">
