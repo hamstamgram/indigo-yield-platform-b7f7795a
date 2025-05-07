@@ -16,33 +16,48 @@ export const useInvestors = () => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
+      console.log("Fetching investor data...");
       
       // Check if user is logged in
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
+        console.log("No user found, stopping fetch");
         setLoading(false);
         return;
       }
       
-      // Check admin status - using a direct query instead of function to avoid recursion
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('id', user.id)
-        .single();
+      console.log("Checking admin status for user:", user.id);
+      
+      // Use direct RPC call to avoid recursive RLS issues
+      const { data: adminStatus, error: adminError } = await supabase
+        .rpc('get_user_admin_status', { user_id: user.id });
+      
+      if (adminError) {
+        console.error("Error checking admin status via function:", adminError);
+        // Fall back to direct query if RPC fails
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', user.id)
+          .maybeSingle();
+          
+        if (profileError) {
+          console.error("Error checking admin status:", profileError);
+          setLoading(false);
+          return;
+        }
         
-      if (profileError) {
-        console.error("Error checking admin status:", profileError);
-        setLoading(false);
-        return;
+        setIsAdmin(profileData?.is_admin === true);
+        console.log("Admin status determined:", profileData?.is_admin);
+      } else {
+        setIsAdmin(adminStatus === true);
+        console.log("Admin check result via function:", adminStatus);
       }
       
-      // Set admin status based on profile data
-      const isUserAdmin = profileData?.is_admin === true;
-      setIsAdmin(isUserAdmin);
-      
-      if (!isUserAdmin) {
+      // Only proceed if admin
+      if (isAdmin === false) {
+        console.log("User is not an admin, stopping fetch");
         setLoading(false);
         return;
       }
@@ -60,9 +75,10 @@ export const useInvestors = () => {
           description: "Failed to load asset data",
           variant: "destructive",
         });
+      } else {
+        console.log("Fetched assets:", assetData?.length || 0);
+        setAssets(assetData || []);
       }
-      
-      setAssets(assetData || []);
       
       // Get all investor profiles (non-admin users)
       const { data: investorProfiles, error: userError } = await supabase
@@ -82,12 +98,20 @@ export const useInvestors = () => {
         return;
       }
 
-      console.log("Fetched investor profiles:", investorProfiles);
+      console.log("Fetched investor profiles:", investorProfiles?.length || 0);
+      
+      if (!investorProfiles || investorProfiles.length === 0) {
+        console.log("No investors found");
+        setInvestors([]);
+        setFilteredInvestors([]);
+        setLoading(false);
+        return;
+      }
       
       // Fetch portfolio data for each investor
-      const investorsWithPortfolios = await Promise.all((investorProfiles || []).map(async (investor) => {
+      const investorsWithPortfolios = await Promise.all(investorProfiles.map(async (investor) => {
         // Get portfolio data
-        const { data: portfolioData } = await supabase
+        const { data: portfolioData, error: portfolioError } = await supabase
           .from('portfolios')
           .select(`
             balance,
@@ -98,11 +122,16 @@ export const useInvestors = () => {
           `)
           .eq('user_id', investor.id);
           
+        if (portfolioError) {
+          console.error(`Error fetching portfolio for user ${investor.id}:`, portfolioError);
+        }
+        
         // Create portfolio summary by asset
         const portfolioSummary: { [key: string]: { balance: number, usd_value: number } } = {};
         
         if (portfolioData && portfolioData.length > 0) {
           portfolioData.forEach(item => {
+            if (!item.assets) return;
             const symbol = item.assets.symbol;
             const balance = Number(item.balance);
             
@@ -125,7 +154,7 @@ export const useInvestors = () => {
         };
       }));
       
-      console.log("Processed investors with portfolios:", investorsWithPortfolios);
+      console.log("Processed investors with portfolios:", investorsWithPortfolios.length);
       setInvestors(investorsWithPortfolios);
       setFilteredInvestors(investorsWithPortfolios);
     } catch (error) {
@@ -138,7 +167,7 @@ export const useInvestors = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, isAdmin]);
   
   // Fetch data on mount
   useEffect(() => {

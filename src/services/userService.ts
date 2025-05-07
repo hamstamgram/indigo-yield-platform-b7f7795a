@@ -9,7 +9,7 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
       .from('profiles')
       .select('id')
       .eq('email', values.email)
-      .single();
+      .maybeSingle(); // Changed from single to maybeSingle to prevent errors when no results found
     
     // If found, return existing user ID
     if (existingUser && !findError) {
@@ -17,13 +17,27 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
       return existingUser.id;
     }
 
-    // Generate a random password for the initial user account
-    const tempPassword = Math.random().toString(36).substring(2, 15) + 
-                       Math.random().toString(36).substring(2, 15);
+    // Generate a complex password that meets Supabase requirements
+    // Must include lowercase, uppercase, number, and special character
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const numbers = '0123456789';
+    const special = '!@#$%^&*()_+-=[]{};\'":|<>?,./`~';
     
-    // Create a user in the auth system if doesn't exist
-    // Since we can't use admin.createUser with a regular token, let's try using the signup endpoint
-    console.log("Attempting to create new user via signup...");
+    const getRandomChar = (charset: string) => charset.charAt(Math.floor(Math.random() * charset.length));
+    
+    // Ensure at least one of each required character type
+    const tempPassword = 
+      getRandomChar(lowercase) +
+      getRandomChar(uppercase) +
+      getRandomChar(numbers) +
+      getRandomChar(special) +
+      Array(8).fill(0).map(() => {
+        const allChars = lowercase + uppercase + numbers + special;
+        return allChars.charAt(Math.floor(Math.random() * allChars.length));
+      }).join('');
+    
+    console.log("Attempting to create new user via signup with complex password...");
     const { data: authData, error: signupError } = await supabase.auth.signUp({
       email: values.email,
       password: tempPassword,
@@ -44,14 +58,19 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
         .from('profiles')
         .select('id')
         .eq('email', values.email)
-        .single();
+        .maybeSingle();
         
-      if (profileFetchError || !profileData) {
+      if (profileFetchError) {
         console.error("Failed to find or create user:", profileFetchError);
         throw new Error("Failed to find or create user");
       }
       
-      return profileData.id;
+      if (profileData) {
+        console.log("Found existing profile despite signup error:", profileData.id);
+        return profileData.id;
+      } else {
+        throw new Error("User not found and could not be created");
+      }
     } else {
       // New user created successfully
       const userId = authData?.user?.id;
@@ -71,9 +90,13 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
         .from('profiles')
         .select('id')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
       
-      if (profileError || !profile) {
+      if (profileError) {
+        console.error("Error checking profile:", profileError);
+      }
+      
+      if (!profile) {
         console.log("Profile not found after creation, creating manually");
         // Manually create the profile if it wasn't created automatically
         const { error: insertError } = await supabase
