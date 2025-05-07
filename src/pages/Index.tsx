@@ -8,7 +8,7 @@ const Index = () => {
   const isMobile = useIsMobile();
   
   return (
-    <div className="min-h-screen bg-white font-sans">
+    <div className="min-h-screen w-full bg-white font-sans">
       {/* Navigation */}
       <nav className="container mx-auto px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between">

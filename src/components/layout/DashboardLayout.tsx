@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -150,13 +151,13 @@ const DashboardLayout = () => {
   };
 
   if (isLoading) {
-    return <div className="flex h-screen items-center justify-center">
+    return <div className="flex h-screen w-full items-center justify-center">
       <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
     </div>;
   }
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="flex h-screen w-full bg-gray-100 dark:bg-gray-900">
       {/* Sidebar */}
       <Sidebar 
         sidebarOpen={sidebarOpen} 
@@ -165,7 +166,7 @@ const DashboardLayout = () => {
       />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden w-full">
         {/* Top Header */}
         <Header toggleSidebar={toggleSidebar} />
 
