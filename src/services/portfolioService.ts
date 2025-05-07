@@ -24,6 +24,7 @@ export const fetchAssets = async (): Promise<Asset[]> => {
     
     // If no assets found, create default assets (only once)
     if (!assetData || assetData.length === 0) {
+      // Normalized default assets (all uppercase symbols)
       const defaultAssets = [
         { symbol: 'BTC', name: 'Bitcoin' },
         { symbol: 'ETH', name: 'Ethereum' },
@@ -52,7 +53,20 @@ export const fetchAssets = async (): Promise<Asset[]> => {
       }
     }
     
-    return assetData || [];
+    // Normalize data to ensure no duplicate symbols (uppercase all symbols)
+    const normalizedAssets = assetData.map(asset => ({
+      ...asset,
+      symbol: asset.symbol.toUpperCase()
+    }));
+    
+    // Remove duplicates by creating a map keyed by symbol
+    const uniqueAssetsMap = new Map();
+    normalizedAssets.forEach(asset => {
+      uniqueAssetsMap.set(asset.symbol, asset);
+    });
+    
+    // Convert map back to array
+    return Array.from(uniqueAssetsMap.values());
   } catch (error) {
     console.error("Error fetching assets:", error);
     return [];

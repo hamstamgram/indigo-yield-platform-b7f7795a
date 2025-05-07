@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -30,8 +29,10 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
     const initialBalances: Record<string, string> = {};
     assets.forEach(asset => {
       const symbol = asset.symbol;
-      const balance = investor.portfolio_summary && investor.portfolio_summary[symbol] 
-        ? investor.portfolio_summary[symbol].balance.toString()
+      // Normalize symbol to uppercase for lookup in portfolio_summary
+      const normalizedSymbol = symbol.toUpperCase();
+      const balance = investor.portfolio_summary && investor.portfolio_summary[normalizedSymbol] 
+        ? investor.portfolio_summary[normalizedSymbol].balance.toString()
         : '0';
       initialBalances[symbol] = balance;
     });
@@ -116,8 +117,8 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
               className="max-w-[100px]"
             />
           ) : (
-            investor.portfolio_summary && investor.portfolio_summary[asset.symbol] 
-              ? `${investor.portfolio_summary[asset.symbol].balance.toFixed(4)}`
+            investor.portfolio_summary && investor.portfolio_summary[asset.symbol.toUpperCase()] 
+              ? `${investor.portfolio_summary[asset.symbol.toUpperCase()].balance.toFixed(4)}`
               : '-'
           )}
         </TableCell>
