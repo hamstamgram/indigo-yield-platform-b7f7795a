@@ -24,22 +24,28 @@ export const createDefaultAssetSummaries = (prices: Record<string, any>) => {
     'USDC': { balance: 425000, users: 22, yield: 8.1 }
   };
   
-  // Create asset summaries for default assets
-  return defaultAssets.map(asset => {
+  // Create asset summaries for default assets - ensure uniqueness by symbol
+  const uniqueAssets = new Map();
+  
+  defaultAssets.forEach(asset => {
     const symbol = asset.symbol.toUpperCase();
-    const defaults = defaultValues[symbol] || { balance: 0, users: 0, yield: 0 };
-    const priceData = prices[asset.symbol.toLowerCase()] || defaultPrices[asset.symbol.toLowerCase()] || { price: 0 };
-    
-    return {
-      id: asset.id,
-      symbol: asset.symbol,
-      name: asset.name,
-      totalBalance: defaults.balance,
-      usdValue: defaults.balance * priceData.price,
-      totalUsers: defaults.users,
-      avgYield: defaults.yield
-    };
+    if (!uniqueAssets.has(symbol)) {
+      const defaults = defaultValues[symbol] || { balance: 0, users: 0, yield: 0 };
+      const priceData = prices[asset.symbol.toLowerCase()] || defaultPrices[asset.symbol.toLowerCase()] || { price: 0 };
+      
+      uniqueAssets.set(symbol, {
+        id: asset.id,
+        symbol: asset.symbol,
+        name: asset.name,
+        totalBalance: defaults.balance,
+        usdValue: defaults.balance * priceData.price,
+        totalUsers: defaults.users,
+        avgYield: defaults.yield
+      });
+    }
   });
+  
+  return Array.from(uniqueAssets.values());
 };
 
 /**
@@ -58,24 +64,30 @@ export const createAssetSummariesFromDb = (assets: any[], prices: Record<string,
   };
   
   // Create asset summaries for all assets
-  return assets.map(asset => {
+  const uniqueAssets = new Map();
+  
+  assets.forEach(asset => {
     const symbol = asset.symbol.toUpperCase();
     
-    // Get default values for this asset type or use zeros
-    const defaults = defaultValues[symbol] || { balance: 0, users: 0, yield: 0 };
-    
-    const priceData = prices[asset.symbol.toLowerCase()] || defaultPrices[asset.symbol.toLowerCase()] || { price: 0 };
-    
-    return {
-      id: asset.id,
-      symbol: asset.symbol,
-      name: asset.name,
-      totalBalance: defaults.balance,
-      usdValue: defaults.balance * priceData.price,
-      totalUsers: defaults.users,
-      avgYield: defaults.yield
-    };
+    if (!uniqueAssets.has(symbol)) {
+      // Get default values for this asset type or use zeros
+      const defaults = defaultValues[symbol] || { balance: 0, users: 0, yield: 0 };
+      
+      const priceData = prices[asset.symbol.toLowerCase()] || defaultPrices[asset.symbol.toLowerCase()] || { price: 0 };
+      
+      uniqueAssets.set(symbol, {
+        id: asset.id,
+        symbol: asset.symbol,
+        name: asset.name,
+        totalBalance: defaults.balance,
+        usdValue: defaults.balance * priceData.price,
+        totalUsers: defaults.users,
+        avgYield: defaults.yield
+      });
+    }
   });
+  
+  return Array.from(uniqueAssets.values());
 };
 
 /**

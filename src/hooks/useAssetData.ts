@@ -113,9 +113,6 @@ export const useAssetData = () => {
                 };
               }
             });
-            
-            console.log("Asset totals calculated:", assetTotals);
-            console.log("Updated crypto prices with totals:", cryptoPrices);
           } catch (portfolioError) {
             console.error("Error fetching portfolios:", portfolioError);
           }
@@ -123,10 +120,20 @@ export const useAssetData = () => {
         
         // Fetch asset summaries (with the enriched crypto prices)
         const summaries = await fetchAssetSummaries(cryptoPrices);
-        setAssetSummaries(summaries);
+        
+        // Fix: Make sure each asset appears only once
+        const uniqueAssetMap = new Map();
+        summaries.forEach(asset => {
+          if (!uniqueAssetMap.has(asset.symbol)) {
+            uniqueAssetMap.set(asset.symbol, asset);
+          }
+        });
+        
+        const uniqueAssets = Array.from(uniqueAssetMap.values());
+        setAssetSummaries(uniqueAssets);
         
         // Calculate total portfolio value
-        const total = summaries.reduce((sum, asset) => {
+        const total = uniqueAssets.reduce((sum, asset) => {
           return sum + (asset.usdValue || 0);
         }, 0);
         setTotalPortfolioValue(total);
