@@ -18,6 +18,7 @@ interface InvestorTableContainerProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   onSendEmail: (email: string) => void;
+  onRefresh: () => void;
 }
 
 const InvestorTableContainer: React.FC<InvestorTableContainerProps> = ({
@@ -26,7 +27,8 @@ const InvestorTableContainer: React.FC<InvestorTableContainerProps> = ({
   loading,
   searchTerm,
   setSearchTerm,
-  onSendEmail
+  onSendEmail,
+  onRefresh
 }) => {
   return (
     <Card className="border-0 shadow-md">
@@ -50,6 +52,7 @@ const InvestorTableContainer: React.FC<InvestorTableContainerProps> = ({
           loading={loading}
           searchTerm={searchTerm}
           onSendEmail={onSendEmail}
+          onRefresh={onRefresh}
         />
       </CardContent>
     </Card>

@@ -97,6 +97,7 @@ const AdminInvestors = () => {
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         onSendEmail={sendInviteToInvestor}
+        onRefresh={refetch}
       />
     </div>
   );

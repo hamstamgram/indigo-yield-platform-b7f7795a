@@ -7,7 +7,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
-import InvestorTableRow from "./InvestorTableRow";
+import EditableInvestorRow from "./EditableInvestorRow";
 import InvestorsTableHeader from "./InvestorsTableHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileInvestorCard from "./MobileInvestorCard";
@@ -19,6 +19,7 @@ interface InvestorsTableProps {
   loading: boolean;
   searchTerm: string;
   onSendEmail: (email: string) => void;
+  onRefresh: () => void;
 }
 
 const InvestorsTable: React.FC<InvestorsTableProps> = ({
@@ -26,7 +27,8 @@ const InvestorsTable: React.FC<InvestorsTableProps> = ({
   assets,
   loading,
   searchTerm,
-  onSendEmail
+  onSendEmail,
+  onRefresh
 }) => {
   const isMobile = useIsMobile();
   
@@ -53,6 +55,7 @@ const InvestorsTable: React.FC<InvestorsTableProps> = ({
               investor={investor}
               assets={assets}
               onSendEmail={onSendEmail}
+              onSaveSuccess={onRefresh}
             />
           ))
         )}
@@ -74,11 +77,12 @@ const InvestorsTable: React.FC<InvestorsTableProps> = ({
             </TableRow>
           ) : (
             investors.map((investor) => (
-              <InvestorTableRow 
+              <EditableInvestorRow 
                 key={investor.id}
                 investor={investor}
                 assets={assets}
                 onSendEmail={onSendEmail}
+                onSaveSuccess={onRefresh}
               />
             ))
           )}
