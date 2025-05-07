@@ -22,7 +22,7 @@ const MobileInvestorCard: React.FC<MobileInvestorCardProps> = ({
     : investor.email.split('@')[0];
 
   return (
-    <Card>
+    <Card className="w-full">
       <CardContent className="p-4">
         <div className="flex justify-between items-center mb-2">
           <h3 className="font-semibold text-lg">{name}</h3>
@@ -47,10 +47,10 @@ const MobileInvestorCard: React.FC<MobileInvestorCardProps> = ({
                 <CryptoIcon symbol={asset.symbol} className="h-4 w-4 mr-2" />
                 <span className="font-medium">{asset.symbol}</span>
               </div>
-              <span>
+              <span className="font-mono">
                 {investor.portfolio_summary && investor.portfolio_summary[asset.symbol]
                   ? investor.portfolio_summary[asset.symbol].balance.toFixed(4)
-                  : "-"}
+                  : "0.0000"}
               </span>
             </div>
           ))}

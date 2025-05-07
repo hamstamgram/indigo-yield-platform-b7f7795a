@@ -30,11 +30,16 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
   const handleSubmit = async (values: InvestorFormValues) => {
     try {
       setIsLoading(true);
+      
+      // Generate a UUID for the new investor profile
+      // We'll use this as the profile ID since we're not creating an auth user
+      const uuid = crypto.randomUUID();
 
-      // 1. Create the investor profile
+      // 1. Create the investor profile with the generated UUID
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .insert({
+          id: uuid,
           email: values.email,
           first_name: values.first_name,
           last_name: values.last_name,
@@ -47,6 +52,9 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
         throw profileError;
       }
 
+      // Use the returned profile ID for portfolio entries
+      const userId = profileData.id;
+
       // 2. Create portfolio entries for this investor if balances are provided
       const portfolioEntries = [];
 
@@ -54,7 +62,7 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
         const btcAsset = assets.find(a => a.symbol.toLowerCase() === 'btc');
         if (btcAsset) {
           portfolioEntries.push({
-            user_id: profileData.id,
+            user_id: userId,
             asset_id: btcAsset.id,
             balance: parseFloat(values.btc_balance),
           });
@@ -65,7 +73,7 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
         const ethAsset = assets.find(a => a.symbol.toLowerCase() === 'eth');
         if (ethAsset) {
           portfolioEntries.push({
-            user_id: profileData.id,
+            user_id: userId,
             asset_id: ethAsset.id,
             balance: parseFloat(values.eth_balance),
           });
@@ -76,7 +84,7 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
         const solAsset = assets.find(a => a.symbol.toLowerCase() === 'sol');
         if (solAsset) {
           portfolioEntries.push({
-            user_id: profileData.id,
+            user_id: userId,
             asset_id: solAsset.id,
             balance: parseFloat(values.sol_balance),
           });
@@ -87,7 +95,7 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
         const usdcAsset = assets.find(a => a.symbol.toLowerCase() === 'usdc');
         if (usdcAsset) {
           portfolioEntries.push({
-            user_id: profileData.id,
+            user_id: userId,
             asset_id: usdcAsset.id,
             balance: parseFloat(values.usdc_balance),
           });
@@ -110,11 +118,15 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7); // Invite expires in 7 days
 
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { error: inviteError } = await supabase
         .from('admin_invites')
         .insert({
           email: values.email,
           invite_code: inviteCode,
+          created_by: user?.id,
           expires_at: expiresAt.toISOString()
         });
 
