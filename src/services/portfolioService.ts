@@ -21,6 +21,32 @@ export const fetchAssets = async (): Promise<Asset[]> => {
     } 
     
     console.log("Fetched assets:", assetData?.length || 0);
+    
+    // If no assets found, create default assets (only once)
+    if (!assetData || assetData.length === 0) {
+      const defaultAssets = [
+        { symbol: 'BTC', name: 'Bitcoin' },
+        { symbol: 'ETH', name: 'Ethereum' },
+        { symbol: 'SOL', name: 'Solana' },
+        { symbol: 'USDC', name: 'USD Coin' }
+      ];
+      
+      console.log("No assets found, creating defaults...");
+      const { data: insertedAssets, error: insertError } = await supabase
+        .from('assets')
+        .insert(defaultAssets)
+        .select();
+        
+      if (insertError) {
+        console.error("Error creating default assets:", insertError);
+        // Return default assets with dummy IDs if we can't insert them
+        return defaultAssets.map((asset, index) => ({ ...asset, id: index + 1 }));
+      }
+      
+      console.log("Created default assets:", insertedAssets);
+      return insertedAssets || [];
+    }
+    
     return assetData || [];
   } catch (error) {
     console.error("Error fetching assets:", error);

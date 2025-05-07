@@ -68,48 +68,28 @@ export const checkAdminStatus = async (): Promise<{isAdmin: boolean | null}> => 
  */
 export const fetchInvestors = async (): Promise<Investor[]> => {
   try {
-    // Use auth admin API to fetch users directly
-    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-    
-    if (authError) {
-      console.error("Error fetching users:", authError);
-      throw authError;
+    // Instead of using auth.admin API which requires special permissions,
+    // fetch profiles from the profiles table directly
+    const { data: profilesData, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, email, first_name, last_name, created_at')
+      .eq('is_admin', false);
+      
+    if (profilesError) {
+      console.error("Error fetching profiles:", profilesError);
+      return [];
     }
     
-    // Filter to only get non-admin users based on metadata
-    const nonAdminUsers = authUsers?.users?.filter(user => {
-      if (!user) return false;
-      
-      // Explicitly cast the user to avoid type issues
-      const userMeta = (user as any).user_metadata;
-      return userMeta && userMeta.is_admin !== true;
-    }) || [];
+    console.log("Found profiles:", profilesData?.length || 0);
     
-    console.log("Found users via auth API:", nonAdminUsers?.length || 0);
-    
-    // Map them to our investor format
-    const mappedInvestors = nonAdminUsers.map(user => {
-      if (!user) {
-        return {
-          id: '',
-          email: '',
-          first_name: '',
-          last_name: '',
-          created_at: '',
-          portfolio_summary: {}
-        } as Investor;
-      }
-      
-      // Explicitly cast to avoid type issues
-      const typedUser = user as any;
-      const userMetadata = typedUser.user_metadata as Record<string, unknown> | null | undefined;
-      
+    // Map to our investor format
+    const mappedInvestors = profilesData.map(profile => {
       return {
-        id: typedUser.id || '',
-        email: typedUser.email || '',
-        first_name: userMetadata?.first_name as string || '',
-        last_name: userMetadata?.last_name as string || '',
-        created_at: typedUser.created_at || '',
+        id: profile.id || '',
+        email: profile.email || '',
+        first_name: profile.first_name || '',
+        last_name: profile.last_name || '',
+        created_at: profile.created_at || '',
         portfolio_summary: {}
       } as Investor;
     });
