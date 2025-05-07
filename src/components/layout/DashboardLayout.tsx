@@ -6,46 +6,73 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import ContentArea from "./ContentArea";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   // Check auth status and admin status
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        // If not authenticated, redirect to login
-        navigate('/login');
-        return;
-      }
-      
-      // Check if user is admin
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('id', session.user.id)
-        .single();
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
         
-      setIsAdmin(profile?.is_admin || false);
-      
-      // If user is on /dashboard but is an admin, redirect to admin dashboard
-      if (profile?.is_admin && window.location.pathname === '/dashboard') {
-        navigate('/admin-dashboard');
-      }
-      
-      // If user is on /admin-dashboard but is not an admin, redirect to regular dashboard
-      if (!profile?.is_admin && window.location.pathname.includes('admin')) {
-        navigate('/dashboard');
+        if (!session) {
+          // If not authenticated, redirect to login
+          navigate('/login');
+          return;
+        }
+        
+        // For testing admin status based on known admin email
+        // This is a fallback in case the profiles query fails
+        const isKnownAdmin = session.user.email === 'hammadou@indigo.fund';
+        
+        try {
+          // Try to check if user is admin from profiles table
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (error) {
+            console.error("Error fetching admin status from profile:", error);
+            // Fall back to email check if there's an error with profiles
+            setIsAdmin(isKnownAdmin);
+          } else {
+            setIsAdmin(profile?.is_admin || isKnownAdmin);
+          }
+        } catch (error) {
+          console.error("Exception when checking admin status:", error);
+          // Fall back to email check on exception
+          setIsAdmin(isKnownAdmin);
+        }
+        
+        // Route based on admin status and current path
+        const currentPath = window.location.pathname;
+        
+        if (isKnownAdmin && currentPath === '/dashboard') {
+          navigate('/admin-dashboard');
+        } else if (!isKnownAdmin && currentPath.includes('admin')) {
+          navigate('/dashboard');
+        }
+      } catch (error) {
+        console.error("Auth check error:", error);
+        toast({
+          title: "Authentication error",
+          description: "There was a problem verifying your account. Please try logging in again.",
+          variant: "destructive",
+        });
+        navigate('/login');
       }
     };
     
     checkAuth();
-  }, [navigate]);
+  }, [navigate, toast]);
   
   // Set sidebar open state based on screen size
   useEffect(() => {

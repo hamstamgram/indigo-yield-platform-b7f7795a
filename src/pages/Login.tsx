@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -22,17 +21,31 @@ export default function Login() {
     const checkAuthSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        // If there's already a session, check if user is admin and redirect accordingly
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', session.user.id)
-          .single();
-          
-        if (profile?.is_admin) {
+        // If there's already a session, check if user is admin based on email
+        // This is a fallback in case the profiles query fails
+        if (session.user.email === 'hammadou@indigo.fund') {
           navigate("/admin-dashboard");
         } else {
-          navigate("/dashboard");
+          try {
+            // Try to check if user is admin from profiles
+            const { data: profile, error } = await supabase
+              .from('profiles')
+              .select('is_admin')
+              .eq('id', session.user.id)
+              .single();
+              
+            if (error || !profile) {
+              console.error("Error checking profile for admin status:", error);
+              navigate("/dashboard");
+            } else if (profile.is_admin) {
+              navigate("/admin-dashboard");
+            } else {
+              navigate("/dashboard");
+            }
+          } catch (error) {
+            console.error("Exception checking admin status:", error);
+            navigate("/dashboard");
+          }
         }
       }
     };
@@ -57,30 +70,56 @@ export default function Login() {
 
         if (error) throw error;
         
-        // Check if user is admin
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', data.user.id)
-          .single();
+        // Known admin emails - hardcoded as fallback
+        const isKnownAdmin = email === 'hammadou@indigo.fund';
         
-        if (profileError) {
-          console.error("Error fetching profile:", profileError);
-          throw new Error("Could not verify admin status");
-        }
-        
-        toast({
-          title: "Welcome back!",
-          description: `You've successfully logged in as ${profile?.is_admin ? 'Administrator' : 'Investor'}.`,
-        });
-        
-        // Direct admin users to admin dashboard, regular users to normal dashboard
-        if (profile?.is_admin) {
-          console.log("Admin user detected, redirecting to admin dashboard");
-          navigate("/admin-dashboard");
-        } else {
-          console.log("Regular user detected, redirecting to dashboard");
-          navigate("/dashboard");
+        try {
+          // Try to check if user is admin from profiles table
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', data.user.id)
+            .single();
+          
+          // Determine admin status from profile or fallback
+          let adminStatus = false;
+          
+          if (profileError) {
+            console.warn("Using fallback admin detection due to profile error:", profileError);
+            adminStatus = isKnownAdmin;
+          } else {
+            adminStatus = profile?.is_admin || isKnownAdmin;
+          }
+          
+          toast({
+            title: "Welcome back!",
+            description: `You've successfully logged in as ${adminStatus ? 'Administrator' : 'Investor'}.`,
+          });
+          
+          // Direct admin users to admin dashboard, regular users to normal dashboard
+          if (adminStatus) {
+            console.log("Admin user detected, redirecting to admin dashboard");
+            navigate("/admin-dashboard");
+          } else {
+            console.log("Regular user detected, redirecting to dashboard");
+            navigate("/dashboard");
+          }
+        } catch (error) {
+          console.error("Error checking admin status:", error);
+          // Fall back to email check
+          if (isKnownAdmin) {
+            toast({
+              title: "Welcome back, Admin!",
+              description: "You've successfully logged in as Administrator.",
+            });
+            navigate("/admin-dashboard");
+          } else {
+            toast({
+              title: "Welcome back!",
+              description: "You've successfully logged in as Investor.",
+            });
+            navigate("/dashboard");
+          }
         }
       } else {
         // Since this is invitation-only, restrict self registration
