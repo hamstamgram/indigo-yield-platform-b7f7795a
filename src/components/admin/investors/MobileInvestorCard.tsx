@@ -126,8 +126,12 @@ const MobileInvestorCard = ({
         description: "Investor portfolio updated successfully",
       });
       
-      setIsEditing(false);
-      onSaveSuccess(); // Refresh data
+      setTimeout(() => {
+        setIsSaving(false);
+        setIsEditing(false);
+        onSaveSuccess(); // Refresh data
+      }, 500); // Small delay to ensure UI feedback
+      
     } catch (error) {
       console.error("Error saving investor data:", error);
       toast({
@@ -135,7 +139,6 @@ const MobileInvestorCard = ({
         description: "Failed to update investor portfolio",
         variant: "destructive",
       });
-    } finally {
       setIsSaving(false);
     }
   };
