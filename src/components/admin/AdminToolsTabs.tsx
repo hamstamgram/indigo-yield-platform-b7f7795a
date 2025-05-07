@@ -1,7 +1,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdminUsersList from "@/components/admin/AdminUsersList";
-import AdminYieldRates from "@/components/admin/AdminYieldRates";
+import YieldSourcesManagement from "@/pages/YieldSourcesManagement";
 import AdminPortfolios from "@/components/admin/AdminPortfolios";
 import AdminInvites from "@/components/admin/AdminInvites";
 
@@ -28,7 +28,7 @@ const AdminToolsTabs = ({ defaultTab }: AdminToolsTabsProps) => {
       </TabsContent>
       
       <TabsContent value="yields">
-        <AdminYieldRates />
+        <YieldSourcesManagement />
       </TabsContent>
 
       <TabsContent value="invites">

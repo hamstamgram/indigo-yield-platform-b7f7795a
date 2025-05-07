@@ -60,7 +60,7 @@ export const fetchAssets = async (): Promise<Asset[]> => {
     }));
     
     // Remove duplicates by creating a map keyed by symbol
-    const uniqueAssetsMap = new Map();
+    const uniqueAssetsMap = new Map<string, Asset>();
     normalizedAssets.forEach(asset => {
       uniqueAssetsMap.set(asset.symbol, asset);
     });
@@ -106,7 +106,7 @@ export const enrichInvestorsWithPortfolioData = async (investors: Investor[]): P
       if (portfolioData && portfolioData.length > 0) {
         portfolioData.forEach(item => {
           if (!item.assets) return;
-          const symbol = item.assets.symbol;
+          const symbol = item.assets.symbol.toUpperCase();
           const balance = Number(item.balance);
           
           // Mock price calculation (in production, fetch real prices)

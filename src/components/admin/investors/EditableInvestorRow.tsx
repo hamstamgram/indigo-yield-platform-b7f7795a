@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Send, Save } from 'lucide-react';
@@ -6,6 +7,7 @@ import { Asset, Investor } from '@/types/investorTypes';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import InvestorAssetDropdown from './InvestorAssetDropdown';
 
 interface EditableInvestorRowProps {
   investor: Investor;
@@ -38,6 +40,14 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
     });
     return initialBalances;
   });
+
+  // Get list of asset IDs that this investor already has
+  const existingAssetIds = investor.portfolio_summary 
+    ? Object.keys(investor.portfolio_summary).map(symbol => {
+        const asset = assets.find(a => a.symbol.toUpperCase() === symbol);
+        return asset ? asset.id : -1;
+      }).filter(id => id !== -1)
+    : [];
 
   const handleBalanceChange = (symbol: string, value: string) => {
     setBalances(prev => ({
@@ -154,6 +164,12 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
                 <Send className="h-4 w-4 mr-1" />
                 Send Invite
               </Button>
+              <InvestorAssetDropdown 
+                userId={investor.id}
+                assets={assets}
+                existingAssetIds={existingAssetIds}
+                onAssetAdded={onSaveSuccess}
+              />
             </>
           )}
         </div>
