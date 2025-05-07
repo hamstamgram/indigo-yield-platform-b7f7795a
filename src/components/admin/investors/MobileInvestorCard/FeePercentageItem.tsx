@@ -3,15 +3,17 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 
 interface FeePercentageItemProps {
-  fee: string | number;
+  fee: string;
+  feePercentage?: number | null;
   isEditing: boolean;
-  onChange?: (value: string) => void;
+  onChange: (value: string) => void;
 }
 
-const FeePercentageItem: React.FC<FeePercentageItemProps> = ({ 
-  fee, 
-  isEditing, 
-  onChange 
+const FeePercentageItem: React.FC<FeePercentageItemProps> = ({
+  fee,
+  feePercentage,
+  isEditing,
+  onChange
 }) => {
   return (
     <div className="flex justify-between items-center border-t pt-3 mt-3">
@@ -22,13 +24,15 @@ const FeePercentageItem: React.FC<FeePercentageItemProps> = ({
           step="0.1"
           min="0"
           max="100"
-          value={typeof fee === 'string' ? fee : fee.toString()}
-          onChange={(e) => onChange && onChange(e.target.value)}
-          className="min-w-[150px] h-10"
+          value={fee}
+          onChange={(e) => onChange(e.target.value)}
+          className="max-w-[80px]"
         />
       ) : (
         <div>
-          {typeof fee === 'number' ? `${fee.toFixed(1)}%` : fee}
+          {feePercentage !== null && feePercentage !== undefined
+            ? `${feePercentage.toFixed(1)}%`
+            : '2.0%'}
         </div>
       )}
     </div>

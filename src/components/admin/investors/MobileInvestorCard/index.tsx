@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Asset, Investor } from '@/types/investorTypes';
@@ -167,16 +166,16 @@ const MobileInvestorCard = ({
 
           <FeePercentageItem
             fee={fee}
+            feePercentage={investor.fee_percentage}
             isEditing={isEditing}
             onChange={setFee}
-            feePercentage={investor.fee_percentage}
           />
         </div>
       </CardContent>
       
       <CardFooter className="flex justify-end gap-2 pt-0">
         <CardActions
-          isEditing={isEditing}
+          isEditing={isEditing} 
           isSaving={isSaving}
           userId={investor.id}
           existingAssets={existingAssetIds}

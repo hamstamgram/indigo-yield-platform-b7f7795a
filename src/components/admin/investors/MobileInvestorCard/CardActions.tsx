@@ -30,7 +30,7 @@ const CardActions: React.FC<CardActionsProps> = ({
   onAssetAdded
 }) => {
   return (
-    <div className="flex justify-end gap-2 pt-0">
+    <>
       {isEditing ? (
         <Button 
           variant="default" 
@@ -66,7 +66,7 @@ const CardActions: React.FC<CardActionsProps> = ({
           />
         </>
       )}
-    </div>
+    </>
   );
 };
 
