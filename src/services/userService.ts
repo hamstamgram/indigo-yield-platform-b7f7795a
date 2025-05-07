@@ -6,15 +6,18 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
   try {
     console.log("Starting createOrFindInvestorUser with values:", values);
     
-    // First try to find if user already exists
-    const { data: existingUser, error: findError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('email', values.email)
-      .maybeSingle();
+    // Use auth API to search for existing user by email
+    const { data: existingUsers, error: searchError } = await supabase.auth.admin.listUsers({
+      filter: { email: values.email }
+    });
     
-    // If found, return existing user ID
-    if (existingUser && !findError) {
+    if (searchError) {
+      console.error("Error searching for existing user:", searchError);
+    }
+    
+    // If user exists, return their ID
+    if (existingUsers?.users?.length > 0) {
+      const existingUser = existingUsers.users[0];
       console.log("Found existing user:", existingUser.id);
       return existingUser.id;
     }
@@ -49,71 +52,62 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
     const tempPassword = generateStrongPassword();
     console.log(`Attempting to create new user for ${values.email} with a complex password...`);
     
-    // Try to create the auth user
-    const { data: authData, error: signupError } = await supabase.auth.signUp({
+    // Create the user using admin API
+    const { data: adminAuthData, error: adminSignupError } = await supabase.auth.admin.createUser({
       email: values.email,
       password: tempPassword,
-      options: {
-        data: {
-          first_name: values.first_name,
-          last_name: values.last_name,
-          is_investor: true,
-          is_admin: false
-        }
+      email_confirm: true,
+      user_metadata: {
+        first_name: values.first_name,
+        last_name: values.last_name,
+        is_investor: true,
+        is_admin: false
       }
     });
     
-    console.log("Signup response:", authData ? "Success" : "Failed", signupError ? `Error: ${signupError.message}` : "No errors");
-    
-    if (signupError) {
-      console.error("Signup error:", signupError);
-      throw new Error(`Signup failed: ${signupError.message}`);
+    if (adminSignupError) {
+      console.error("Admin signup error:", adminSignupError);
+      
+      // Fall back to regular signup if admin fails
+      const { data: authData, error: signupError } = await supabase.auth.signUp({
+        email: values.email,
+        password: tempPassword,
+        options: {
+          data: {
+            first_name: values.first_name,
+            last_name: values.last_name,
+            is_investor: true,
+            is_admin: false
+          }
+        }
+      });
+      
+      if (signupError) {
+        console.error("Signup error:", signupError);
+        throw new Error(`Signup failed: ${signupError.message}`);
+      }
+      
+      const userId = authData?.user?.id;
+      
+      if (!userId) {
+        console.error("User created but ID not returned");
+        throw new Error("User created but ID not returned");
+      }
+      
+      console.log("New user created with ID:", userId);
+      return userId;
     }
     
-    // New user created successfully
-    const userId = authData?.user?.id;
+    const userId = adminAuthData?.user.id;
     
     if (!userId) {
-      console.error("User created but ID not returned");
+      console.error("Admin user created but ID not returned");
       throw new Error("User created but ID not returned");
     }
     
     console.log("New user created with ID:", userId);
-    
-    // Wait for trigger to create profile
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Check if profile exists
-    const { data: profileCheck } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('id', userId)
-      .maybeSingle();
-    
-    // If profile doesn't exist, create it directly with service role client
-    // Note: In production, you should use a Supabase Edge Function with the service role key
-    if (!profileCheck) {
-      console.log("Profile not found after creation, creating manually");
-      
-      // Insert profile directly
-      const { error: insertError } = await supabase
-        .from('profiles')
-        .insert({
-          id: userId,
-          email: values.email,
-          first_name: values.first_name,
-          last_name: values.last_name,
-          is_admin: false
-        });
-      
-      if (insertError) {
-        console.error("Error creating profile:", insertError);
-        // Continue anyway as the auth user was created
-        console.log("Continuing despite profile error as auth user was created");
-      }
-    }
-    
     return userId;
+    
   } catch (error) {
     console.error("Error in createOrFindInvestorUser:", error);
     throw error; // Re-throw to be handled by the caller

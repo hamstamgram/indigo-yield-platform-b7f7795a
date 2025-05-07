@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { UserPlus } from "lucide-react";
@@ -51,7 +52,7 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
         throw new Error("Failed to create portfolio entries");
       }
 
-      // Create an invitation for the investor
+      // Also create an invite entry to track this investor
       await createInvite(values.email);
 
       toast({
@@ -59,13 +60,13 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
         description: `${values.first_name} ${values.last_name} has been added successfully.`,
       });
 
-      // Close dialog and refresh data
+      // Close dialog first, then refresh data after a delay
       setOpen(false);
       
-      // Force refresh parent component data with a slight delay to ensure DB operations complete
+      // Refresh the parent component after dialog is closed
       setTimeout(() => {
         onInvestorAdded();
-      }, 500);
+      }, 1000);
 
     } catch (error) {
       console.error("Error adding investor:", error);
@@ -96,6 +97,9 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Add New Investor</DialogTitle>
+          <DialogDescription>
+            Add a new investor to the platform.
+          </DialogDescription>
         </DialogHeader>
         <InvestorForm
           onSubmit={handleSubmit}
