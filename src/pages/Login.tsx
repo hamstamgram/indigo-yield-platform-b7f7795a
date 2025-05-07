@@ -197,8 +197,6 @@ export default function Login() {
         
         <div className="mt-8 text-center text-sm text-gray-600">
           <p>Investor Portal - Invitation Only Access</p>
-          <p className="mt-1">Test Credentials: test@investor.com / InvestorPass123</p>
-          <p className="mt-4">Note: To create a Supabase user account, please contact admin</p>
         </div>
       </div>
     </div>
