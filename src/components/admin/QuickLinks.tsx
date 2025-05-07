@@ -7,15 +7,15 @@ import { Link } from "react-router-dom";
 const QuickLinks: React.FC = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md flex flex-col">
         <CardHeader>
           <CardTitle>Investor Management</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col h-full">
-          <p className="mb-4 text-gray-500">
+        <CardContent className="flex-1 flex flex-col">
+          <p className="text-gray-500">
             View and manage all investor accounts and their portfolio data.
           </p>
-          <div className="mt-auto">
+          <div className="mt-auto pt-4">
             <Button className="w-full text-center" asChild>
               <Link to="/admin-investors">Manage Investors</Link>
             </Button>
@@ -23,15 +23,15 @@ const QuickLinks: React.FC = () => {
         </CardContent>
       </Card>
       
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md flex flex-col">
         <CardHeader>
           <CardTitle>Portfolio Management</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col h-full">
-          <p className="mb-4 text-gray-500">
+        <CardContent className="flex-1 flex flex-col">
+          <p className="text-gray-500">
             Update investor portfolios and manage asset allocations.
           </p>
-          <div className="mt-auto">
+          <div className="mt-auto pt-4">
             <Button className="w-full text-center" asChild>
               <Link to="/admin?tab=portfolios">Update Portfolios</Link>
             </Button>
@@ -39,15 +39,15 @@ const QuickLinks: React.FC = () => {
         </CardContent>
       </Card>
       
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md flex flex-col">
         <CardHeader>
           <CardTitle>Yield Settings</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col h-full">
-          <p className="mb-4 text-gray-500">
+        <CardContent className="flex-1 flex flex-col">
+          <p className="text-gray-500">
             Configure yield rates and distribution settings for each asset.
           </p>
-          <div className="mt-auto">
+          <div className="mt-auto pt-4">
             <Button className="w-full text-center" asChild>
               <Link to="/admin?tab=yields">Manage Yields</Link>
             </Button>
