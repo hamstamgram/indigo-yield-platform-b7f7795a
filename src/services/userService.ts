@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { InvestorFormValues } from "@/components/admin/investors/InvestorForm";
 
@@ -14,14 +13,12 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
     
     // Fix TypeScript error by checking if users exists and is an array
     let existingUser = authUsers?.users ? authUsers.users.find(user => {
-      if (user && user.email) {
-        return user.email === values.email;
-      }
-      return false;
+      // Ensure user object and email property exist before comparison
+      return user && typeof user.email === 'string' && user.email === values.email;
     }) : undefined;
     
     // If found, return existing user ID
-    if (!authError && existingUser) {
+    if (!authError && existingUser && existingUser.id) {
       console.log("Found existing user:", existingUser.id);
       return existingUser.id;
     }
