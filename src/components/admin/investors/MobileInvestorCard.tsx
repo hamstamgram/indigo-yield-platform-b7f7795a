@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Send, Save } from 'lucide-react';
@@ -26,6 +26,11 @@ const MobileInvestorCard = ({
   const [isSaving, setIsSaving] = useState(false);
   const [fee, setFee] = useState<string>(investor.fee_percentage?.toString() || "2.0");
   const { toast } = useToast();
+  
+  // Update fee state when investor prop changes
+  useEffect(() => {
+    setFee(investor.fee_percentage?.toString() || "2.0");
+  }, [investor]);
   
   // Create state for each asset balance
   const [balances, setBalances] = useState<Record<string, string>>(() => {
@@ -60,20 +65,30 @@ const MobileInvestorCard = ({
   const handleSave = async () => {
     try {
       setIsSaving(true);
+      console.log("Saving fee:", fee, "for investor:", investor.id);
+      
+      // Parse fee as float for database update, ensuring it's a valid number
+      const feeValue = parseFloat(fee);
+      if (isNaN(feeValue)) {
+        throw new Error("Invalid fee percentage");
+      }
       
       // Update fee percentage in profile
-      const { error: feeError } = await supabase
+      const { data: feeData, error: feeError } = await supabase
         .from('profiles')
         .update({ 
-          fee_percentage: parseFloat(fee),
+          fee_percentage: feeValue,
           updated_at: new Date().toISOString()
         })
-        .eq('id', investor.id);
+        .eq('id', investor.id)
+        .select();
       
       if (feeError) {
         console.error("Error updating fee:", feeError);
         throw feeError;
       }
+      
+      console.log("Fee update response:", feeData);
       
       // Convert input values to portfolio entries
       const portfolioUpdates = assets.map(asset => {
@@ -86,22 +101,24 @@ const MobileInvestorCard = ({
           balance: balance,
           updated_at: new Date().toISOString()
         };
-      });
+      }).filter(update => update.balance > 0); // Only update assets with positive balances
       
-      // Use upsert to add or update portfolio entries
-      const { error } = await supabase
-        .from('portfolios')
-        .upsert(
-          portfolioUpdates,
-          { 
-            onConflict: 'user_id,asset_id',
-            ignoreDuplicates: false 
-          }
-        );
-      
-      if (error) {
-        console.error("Error updating portfolio:", error);
-        throw error;
+      if (portfolioUpdates.length > 0) {
+        // Use upsert to add or update portfolio entries
+        const { error } = await supabase
+          .from('portfolios')
+          .upsert(
+            portfolioUpdates,
+            { 
+              onConflict: 'user_id,asset_id',
+              ignoreDuplicates: false 
+            }
+          );
+        
+        if (error) {
+          console.error("Error updating portfolio:", error);
+          throw error;
+        }
       }
       
       toast({
@@ -170,8 +187,8 @@ const MobileInvestorCard = ({
             ) : (
               <div>
                 {investor.fee_percentage !== null && investor.fee_percentage !== undefined
-                  ? `${investor.fee_percentage.toFixed(1)}`
-                  : '2.0'}
+                  ? `${investor.fee_percentage.toFixed(1)}%`
+                  : '2.0%'}
               </div>
             )}
           </div>
