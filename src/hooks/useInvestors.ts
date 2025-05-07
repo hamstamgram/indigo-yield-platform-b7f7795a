@@ -126,18 +126,22 @@ export const useInvestors = () => {
         
         // Filter to only get non-admin users based on metadata
         const nonAdminUsers = authUsers?.users.filter(user => {
-          return !user.user_metadata?.is_admin;
+          // Type guard to ensure user.user_metadata exists and is an object
+          const metadata = user.user_metadata as Record<string, unknown> | null;
+          return metadata && metadata.is_admin !== true;
         }) || [];
         
         console.log("Found users via auth API:", nonAdminUsers?.length || 0);
         
         // Map them to our investor format
         const mappedInvestors = nonAdminUsers.map(user => {
+          // Type guard for metadata as Record<string, unknown>
+          const metadata = user.user_metadata as Record<string, unknown> | null;
           return {
             id: user.id || '',
             email: user.email || '',
-            first_name: user.user_metadata?.first_name || '',
-            last_name: user.user_metadata?.last_name || '',
+            first_name: metadata?.first_name as string || '',
+            last_name: metadata?.last_name as string || '',
             created_at: user.created_at || '',
             portfolio_summary: {}
           } as Investor;

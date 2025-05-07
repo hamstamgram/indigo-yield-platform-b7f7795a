@@ -7,18 +7,20 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
     console.log("Starting createOrFindInvestorUser with values:", values);
     
     // Try to find if user already exists by email 
+    // Instead of using the filter property which doesn't exist in PageParams type,
+    // use the search option that's valid for the listUsers method
     const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers({
-      perPage: 1,
-      page: 1,
-      filter: {
-        email: `eq.${values.email}`
-      }
+      perPage: 100, // Get more users to search through
+      page: 1
     });
     
+    // Manually filter users by email if we got results
+    const existingUser = authUsers?.users?.find(user => user.email === values.email);
+    
     // If found, return existing user ID
-    if (!authError && authUsers?.users && authUsers.users.length > 0) {
-      console.log("Found existing user:", authUsers.users[0].id);
-      return authUsers.users[0].id;
+    if (!authError && existingUser) {
+      console.log("Found existing user:", existingUser.id);
+      return existingUser.id;
     }
     
     console.log("No existing user found, will create new user...");
