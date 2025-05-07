@@ -21,7 +21,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
         </button>
         
         <div className="flex-1 flex justify-center">
-          {/* This empty div creates space for centered content in AdminDashboard */}
+          {/* Empty div creates space for centered content */}
         </div>
         
         <div className="flex items-center space-x-2">
