@@ -22,22 +22,23 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
                        Math.random().toString(36).substring(2, 15);
     
     // Create a user in the auth system if doesn't exist
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    // Since we can't use admin.createUser with a regular token, let's try using the signup endpoint
+    const { data: authData, error: signupError } = await supabase.auth.signUp({
       email: values.email,
       password: tempPassword,
-      email_confirm: true,
-      user_metadata: {
-        first_name: values.first_name,
-        last_name: values.last_name,
-        is_investor: true
+      options: {
+        data: {
+          first_name: values.first_name,
+          last_name: values.last_name,
+          is_investor: true
+        }
       }
     });
     
-    if (authError) {
-      // If the user already exists in auth system, fetch profile again
-      console.log("Auth creation warning (user may already exist):", authError);
+    if (signupError) {
+      console.log("Signup error:", signupError);
       
-      // Try to fetch the user by email one more time
+      // Try to fetch the user by email again to see if the user was already created
       const { data: profileData, error: profileFetchError } = await supabase
         .from('profiles')
         .select('id')
@@ -51,7 +52,42 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
       return profileData.id;
     } else {
       // New user created successfully
-      return authData?.user?.id || null;
+      const userId = authData?.user?.id;
+      
+      if (!userId) {
+        throw new Error("User created but ID not returned");
+      }
+      
+      // Check if the profile was automatically created
+      // Wait a moment to allow the database trigger to create the profile
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Verify the profile exists
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .single();
+      
+      if (profileError || !profile) {
+        // Manually create the profile if it wasn't created automatically
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            email: values.email,
+            first_name: values.first_name,
+            last_name: values.last_name,
+            is_admin: false
+          });
+        
+        if (insertError) {
+          console.error("Error creating profile:", insertError);
+          throw new Error("Failed to create user profile");
+        }
+      }
+      
+      return userId;
     }
   } catch (error) {
     console.error("Error creating/finding investor user:", error);

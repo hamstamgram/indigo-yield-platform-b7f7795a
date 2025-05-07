@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -9,7 +10,7 @@ export const useInvestors = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [assets, setAssets] = useState<Asset[]>([]);
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null); // Initially null until checked
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null); 
   const { toast } = useToast();
 
   const fetchData = useCallback(async () => {
@@ -24,7 +25,7 @@ export const useInvestors = () => {
         return;
       }
       
-      // Check admin status through profiles table directly
+      // Check admin status - using a direct query instead of function to avoid recursion
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('is_admin')
@@ -50,7 +51,7 @@ export const useInvestors = () => {
       const { data: assetData, error: assetError } = await supabase
         .from('assets')
         .select('id, symbol, name')
-        .order('id');
+        .order('symbol');
       
       if (assetError) {
         console.error("Error fetching assets:", assetError);
@@ -136,7 +137,7 @@ export const useInvestors = () => {
     }
   }, [toast]);
   
-  // Only fetch data once on mount
+  // Fetch data on mount
   useEffect(() => {
     fetchData();
   }, [fetchData]);
