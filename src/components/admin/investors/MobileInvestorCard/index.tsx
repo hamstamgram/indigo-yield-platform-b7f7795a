@@ -16,12 +16,12 @@ interface MobileInvestorCardProps {
   onSaveSuccess: () => void;
 }
 
-const MobileInvestorCard = ({
+const MobileInvestorCard: React.FC<MobileInvestorCardProps> = ({
   investor,
   assets,
   onSendEmail,
   onSaveSuccess
-}: MobileInvestorCardProps) => {
+}) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [fee, setFee] = useState<string>(investor.fee_percentage?.toString() || "2.0");
@@ -143,14 +143,14 @@ const MobileInvestorCard = ({
     }
   };
 
-  const name = investor.first_name && investor.last_name 
-    ? `${investor.first_name} ${investor.last_name}`
-    : investor.email.split('@')[0];
-
   return (
     <Card className="mb-4">
       <CardContent className="pt-4">
-        <InvestorInfo name={name} email={investor.email} />
+        <InvestorInfo 
+          firstName={investor.first_name}
+          lastName={investor.last_name}
+          email={investor.email}
+        />
         
         <div className="space-y-3">
           {assets.map(asset => (
@@ -175,7 +175,7 @@ const MobileInvestorCard = ({
       
       <CardFooter className="flex justify-end gap-2 pt-0">
         <CardActions
-          isEditing={isEditing} 
+          isEditing={isEditing}
           isSaving={isSaving}
           userId={investor.id}
           existingAssets={existingAssetIds}

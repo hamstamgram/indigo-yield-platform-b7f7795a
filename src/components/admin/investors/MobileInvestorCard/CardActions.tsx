@@ -37,6 +37,7 @@ const CardActions: React.FC<CardActionsProps> = ({
           size="sm"
           onClick={onSave}
           disabled={isSaving}
+          className="ml-auto"
         >
           <Save className="h-4 w-4 mr-1" />
           {isSaving ? 'Saving...' : 'Save'}
