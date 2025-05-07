@@ -1,18 +1,8 @@
-
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import AssetSummaryCard from "./AssetSummaryCard";
-
-interface AssetSummary {
-  id: number;
-  symbol: string;
-  name: string;
-  totalBalance: number;
-  usdValue: number;
-  totalUsers: number;
-  avgYield: number;
-}
+import { AssetSummary } from "@/models/assetTypes";
 
 interface AssetOverviewProps {
   loading: boolean;

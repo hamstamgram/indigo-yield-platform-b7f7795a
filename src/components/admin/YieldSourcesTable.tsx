@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { 
@@ -11,15 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
-
-interface YieldSource {
-  id: string;
-  name: string;
-  btcYield: number;
-  ethYield: number;
-  solYield: number;
-  usdcYield: number;
-}
+import { YieldSource } from "@/models/assetTypes";
 
 interface YieldSourcesTableProps {
   loading: boolean;
