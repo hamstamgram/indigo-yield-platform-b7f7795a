@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { 
   Card, 
@@ -99,49 +100,93 @@ const AdminDashboard = () => {
           .select('*')
           .order('id');
           
-        if (!assets) {
-          throw new Error("Failed to load assets");
-        }
+        if (!assets || assets.length === 0) {
+          console.log("No assets found, using default assets");
+          // Create default assets if none exist
+          const defaultAssets = [
+            { id: 1, symbol: 'BTC', name: 'Bitcoin' },
+            { id: 2, symbol: 'ETH', name: 'Ethereum' },
+            { id: 3, symbol: 'SOL', name: 'Solana' },
+            { id: 4, symbol: 'USDC', name: 'USD Coin' }
+          ];
+          
+          // Get real-time prices
+          const symbols = defaultAssets.map(asset => asset.symbol.toUpperCase());
+          let prices = {};
+          try {
+            prices = await fetchCryptoPrices(symbols);
+          } catch (e) {
+            console.error('Error fetching prices, using defaults:', e);
+            prices = defaultPrices;
+          }
 
-        // Get real-time prices
-        const symbols = assets.map(asset => asset.symbol.toUpperCase());
-        let prices = {};
-        try {
-          prices = await fetchCryptoPrices(symbols);
-        } catch (e) {
-          console.error('Error fetching prices, using defaults:', e);
-          prices = defaultPrices;
-        }
-
-        // Define default values for each supported asset type
-        const defaultValues = {
-          'BTC': { balance: 12.5, users: 18, yield: 4.8 },
-          'ETH': { balance: 180, users: 15, yield: 5.2 },
-          'SOL': { balance: 2200, users: 11, yield: 6.5 },
-          'USDC': { balance: 425000, users: 22, yield: 8.1 }
-        };
-        
-        // Create asset summaries for all assets
-        const mockSummaries: AssetSummary[] = assets.map(asset => {
-          const symbol = asset.symbol.toUpperCase();
-          
-          // Get default values for this asset type or use zeros
-          const defaults = defaultValues[symbol] || { balance: 0, users: 0, yield: 0 };
-          
-          const priceData = prices[asset.symbol.toLowerCase()] || defaultPrices[asset.symbol.toLowerCase()] || { price: 0 };
-          
-          return {
-            id: asset.id,
-            symbol: asset.symbol,
-            name: asset.name,
-            totalBalance: defaults.balance,
-            usdValue: defaults.balance * priceData.price,
-            totalUsers: defaults.users,
-            avgYield: defaults.yield
+          // Define default values for each supported asset type
+          const defaultValues = {
+            'BTC': { balance: 12.5, users: 18, yield: 4.8 },
+            'ETH': { balance: 180, users: 15, yield: 5.2 },
+            'SOL': { balance: 2200, users: 11, yield: 6.5 },
+            'USDC': { balance: 425000, users: 22, yield: 8.1 }
           };
-        });
-        
-        setAssetSummaries(mockSummaries);
+          
+          // Create asset summaries for default assets
+          const mockSummaries: AssetSummary[] = defaultAssets.map(asset => {
+            const symbol = asset.symbol.toUpperCase();
+            const defaults = defaultValues[symbol] || { balance: 0, users: 0, yield: 0 };
+            const priceData = prices[asset.symbol.toLowerCase()] || defaultPrices[asset.symbol.toLowerCase()] || { price: 0 };
+            
+            return {
+              id: asset.id,
+              symbol: asset.symbol,
+              name: asset.name,
+              totalBalance: defaults.balance,
+              usdValue: defaults.balance * priceData.price,
+              totalUsers: defaults.users,
+              avgYield: defaults.yield
+            };
+          });
+          
+          setAssetSummaries(mockSummaries);
+        } else {
+          // Get real-time prices
+          const symbols = assets.map(asset => asset.symbol.toUpperCase());
+          let prices = {};
+          try {
+            prices = await fetchCryptoPrices(symbols);
+          } catch (e) {
+            console.error('Error fetching prices, using defaults:', e);
+            prices = defaultPrices;
+          }
+
+          // Define default values for each supported asset type
+          const defaultValues = {
+            'BTC': { balance: 12.5, users: 18, yield: 4.8 },
+            'ETH': { balance: 180, users: 15, yield: 5.2 },
+            'SOL': { balance: 2200, users: 11, yield: 6.5 },
+            'USDC': { balance: 425000, users: 22, yield: 8.1 }
+          };
+          
+          // Create asset summaries for all assets
+          const mockSummaries: AssetSummary[] = assets.map(asset => {
+            const symbol = asset.symbol.toUpperCase();
+            
+            // Get default values for this asset type or use zeros
+            const defaults = defaultValues[symbol] || { balance: 0, users: 0, yield: 0 };
+            
+            const priceData = prices[asset.symbol.toLowerCase()] || defaultPrices[asset.symbol.toLowerCase()] || { price: 0 };
+            
+            return {
+              id: asset.id,
+              symbol: asset.symbol,
+              name: asset.name,
+              totalBalance: defaults.balance,
+              usdValue: defaults.balance * priceData.price,
+              totalUsers: defaults.users,
+              avgYield: defaults.yield
+            };
+          });
+          
+          setAssetSummaries(mockSummaries);
+        }
         
         // Mock yield sources for the demonstration
         const mockYieldSources: YieldSource[] = [
