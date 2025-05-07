@@ -4,13 +4,11 @@ import {
   Table, 
   TableBody, 
   TableCell, 
-  TableHead, 
-  TableHeader, 
   TableRow 
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
-import { CryptoIcon } from "@/components/CryptoIcons";
 import InvestorTableRow from "./InvestorTableRow";
+import InvestorsTableHeader from "./InvestorsTableHeader";
 
 interface Investor {
   id: string;
@@ -60,21 +58,7 @@ const InvestorsTable: React.FC<InvestorsTableProps> = ({
   return (
     <div className="rounded-md border overflow-x-auto">
       <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Investor</TableHead>
-            {assets.map(asset => (
-              <TableHead key={asset.id}>
-                <div className="flex items-center">
-                  <CryptoIcon symbol={asset.symbol} className="h-5 w-5 mr-2" />
-                  {asset.symbol}
-                </div>
-              </TableHead>
-            ))}
-            <TableHead>Total Value</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
+        <InvestorsTableHeader assets={assets} />
         <TableBody>
           {investors.length === 0 ? (
             <TableRow>
