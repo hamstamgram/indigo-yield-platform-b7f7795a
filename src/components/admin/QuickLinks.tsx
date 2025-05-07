@@ -15,7 +15,7 @@ const QuickLinks: React.FC = () => {
           <p className="mb-4 text-gray-500">
             View and manage all investor accounts and their portfolio data.
           </p>
-          <Button className="w-full" asChild>
+          <Button className="w-full text-center" asChild>
             <Link to="/admin-investors">Manage Investors</Link>
           </Button>
         </CardContent>
@@ -29,7 +29,7 @@ const QuickLinks: React.FC = () => {
           <p className="mb-4 text-gray-500">
             Update investor portfolios and manage asset allocations.
           </p>
-          <Button className="w-full" asChild>
+          <Button className="w-full text-center" asChild>
             <Link to="/admin?tab=portfolios">Update Portfolios</Link>
           </Button>
         </CardContent>
@@ -43,7 +43,7 @@ const QuickLinks: React.FC = () => {
           <p className="mb-4 text-gray-500">
             Configure yield rates and distribution settings for each asset.
           </p>
-          <Button className="w-full" asChild>
+          <Button className="w-full text-center" asChild>
             <Link to="/admin?tab=yields">Manage Yields</Link>
           </Button>
         </CardContent>

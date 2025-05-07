@@ -1,7 +1,5 @@
 
 import React from "react";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 
 interface AdminPageHeaderProps {
   userName?: string;
@@ -17,14 +15,6 @@ const AdminPageHeader: React.FC<AdminPageHeaderProps> = ({ userName }) => {
         <p className="text-gray-500 dark:text-gray-400">
           Overview of all managed assets and yields
         </p>
-      </div>
-      <div className="flex mt-4 md:mt-0 space-x-3">
-        <Button variant="outline" asChild>
-          <Link to="/admin-investors">Manage Investors</Link>
-        </Button>
-        <Button asChild>
-          <Link to="/admin?tab=portfolios">Portfolio Management</Link>
-        </Button>
       </div>
     </div>
   );
