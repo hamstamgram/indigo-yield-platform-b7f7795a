@@ -12,7 +12,9 @@ import { UserPlus } from "lucide-react";
 import InvestorForm, { InvestorFormValues } from "./InvestorForm";
 import { Asset } from "@/types/investorTypes";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { createOrFindInvestorUser } from "@/services/userService";
+import { createPortfolioEntries } from "@/services/portfolioService";
+import { useInvestorInvite } from "@/hooks/useInvestorInvite";
 
 interface AddInvestorDialogProps {
   assets: Asset[];
@@ -26,47 +28,15 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { createInvite } = useInvestorInvite();
 
   const handleSubmit = async (values: InvestorFormValues) => {
     try {
       setIsLoading(true);
       console.log("Creating investor with values:", values);
       
-      // Generate a random password for the initial user account
-      const tempPassword = Math.random().toString(36).substring(2, 15) + 
-                           Math.random().toString(36).substring(2, 15);
-      
-      // 1. Create a user in the auth system
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: values.email,
-        password: tempPassword,
-        email_confirm: true,
-        user_metadata: {
-          first_name: values.first_name,
-          last_name: values.last_name,
-          is_investor: true
-        }
-      });
-      
-      if (authError) {
-        // If the user already exists in auth system, continue with the profile creation
-        console.log("Auth creation warning (user may already exist):", authError);
-        
-        // Try to fetch the user by email to get their ID
-        const { data: profileData, error: profileFetchError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('email', values.email)
-          .single();
-          
-        if (profileFetchError || !profileData) {
-          throw new Error("Failed to find or create user");
-        }
-        
-        var userId = profileData.id;
-      } else {
-        var userId = authData?.user?.id;
-      }
+      // Create user or find existing one
+      const userId = await createOrFindInvestorUser(values);
 
       if (!userId) {
         throw new Error("Failed to create or find auth user");
@@ -74,88 +44,15 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
 
       console.log("User created/found with ID:", userId);
 
-      // 2. Create portfolio entries for this investor if balances are provided
-      const portfolioEntries = [];
+      // Create portfolio entries for this investor
+      const portfolioCreated = await createPortfolioEntries(userId, values, assets);
 
-      if (values.btc_balance && parseFloat(values.btc_balance) > 0) {
-        const btcAsset = assets.find(a => a.symbol.toLowerCase() === 'btc');
-        if (btcAsset) {
-          portfolioEntries.push({
-            user_id: userId,
-            asset_id: btcAsset.id,
-            balance: parseFloat(values.btc_balance),
-          });
-        }
+      if (!portfolioCreated) {
+        throw new Error("Failed to create portfolio entries");
       }
 
-      if (values.eth_balance && parseFloat(values.eth_balance) > 0) {
-        const ethAsset = assets.find(a => a.symbol.toLowerCase() === 'eth');
-        if (ethAsset) {
-          portfolioEntries.push({
-            user_id: userId,
-            asset_id: ethAsset.id,
-            balance: parseFloat(values.eth_balance),
-          });
-        }
-      }
-
-      if (values.sol_balance && parseFloat(values.sol_balance) > 0) {
-        const solAsset = assets.find(a => a.symbol.toLowerCase() === 'sol');
-        if (solAsset) {
-          portfolioEntries.push({
-            user_id: userId,
-            asset_id: solAsset.id,
-            balance: parseFloat(values.sol_balance),
-          });
-        }
-      }
-
-      if (values.usdc_balance && parseFloat(values.usdc_balance) > 0) {
-        const usdcAsset = assets.find(a => a.symbol.toLowerCase() === 'usdc');
-        if (usdcAsset) {
-          portfolioEntries.push({
-            user_id: userId,
-            asset_id: usdcAsset.id,
-            balance: parseFloat(values.usdc_balance),
-          });
-        }
-      }
-
-      // Insert portfolio entries if any
-      if (portfolioEntries.length > 0) {
-        console.log("Creating portfolio entries:", portfolioEntries);
-        const { error: portfolioError } = await supabase
-          .from('portfolios')
-          .insert(portfolioEntries);
-
-        if (portfolioError) {
-          console.error("Portfolio insert error:", portfolioError);
-          throw portfolioError;
-        }
-      }
-
-      // Create an invitation link for the investor
-      const inviteCode = Math.random().toString(36).substring(2, 15);
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7); // Invite expires in 7 days
-
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      console.log("Creating invite for user:", values.email);
-      const { error: inviteError } = await supabase
-        .from('admin_invites')
-        .insert({
-          email: values.email,
-          invite_code: inviteCode,
-          created_by: user?.id,
-          expires_at: expiresAt.toISOString()
-        });
-
-      if (inviteError) {
-        console.error("Invite creation error:", inviteError);
-        throw inviteError;
-      }
+      // Create an invitation for the investor
+      await createInvite(values.email);
 
       toast({
         title: "Investor added",
