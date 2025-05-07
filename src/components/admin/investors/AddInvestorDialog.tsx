@@ -61,13 +61,17 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
 
       // Close dialog and refresh data
       setOpen(false);
-      onInvestorAdded();
+      
+      // Force refresh parent component data
+      setTimeout(() => {
+        onInvestorAdded();
+      }, 100);
 
     } catch (error) {
       console.error("Error adding investor:", error);
       toast({
         title: "Error",
-        description: "Failed to add investor. Please try again.",
+        description: `Failed to add investor: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     } finally {

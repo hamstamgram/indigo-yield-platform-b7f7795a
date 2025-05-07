@@ -11,7 +11,7 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
       .from('profiles')
       .select('id')
       .eq('email', values.email)
-      .maybeSingle(); // Changed from single to maybeSingle to prevent errors when no results found
+      .maybeSingle();
     
     // If found, return existing user ID
     if (existingUser && !findError) {
@@ -22,25 +22,31 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
     console.log("No existing user found, will create new user...");
 
     // Generate a complex password that meets Supabase requirements
-    // Must include lowercase, uppercase, number, and special character
-    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
-    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const numbers = '0123456789';
-    const special = '!@#$%^&*()_+-=[]{};\'":|<>?,./`~';
-    
-    const getRandomChar = (charset: string) => charset.charAt(Math.floor(Math.random() * charset.length));
-    
-    // Ensure at least one of each required character type
-    const tempPassword = 
-      getRandomChar(lowercase) +
-      getRandomChar(uppercase) +
-      getRandomChar(numbers) +
-      getRandomChar(special) +
-      Array(8).fill(0).map(() => {
+    const generateStrongPassword = () => {
+      const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+      const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const numbers = '0123456789';
+      const special = '!@#$%^&*()_+-=[]{};\'":|<>?,./`~';
+      
+      const getRandomChar = (charset: string) => charset.charAt(Math.floor(Math.random() * charset.length));
+      
+      // Ensure at least one of each required character type
+      let password = 
+        getRandomChar(lowercase) +
+        getRandomChar(uppercase) +
+        getRandomChar(numbers) +
+        getRandomChar(special);
+      
+      // Add additional random characters
+      for (let i = 0; i < 8; i++) {
         const allChars = lowercase + uppercase + numbers + special;
-        return allChars.charAt(Math.floor(Math.random() * allChars.length));
-      }).join('');
+        password += allChars.charAt(Math.floor(Math.random() * allChars.length));
+      }
+      
+      return password;
+    };
     
+    const tempPassword = generateStrongPassword();
     console.log(`Attempting to create new user for ${values.email} with a complex password...`);
     
     const { data: authData, error: signupError } = await supabase.auth.signUp({
@@ -58,27 +64,8 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
     console.log("Signup response:", authData ? "Success" : "Failed", signupError ? `Error: ${signupError.message}` : "No errors");
     
     if (signupError) {
-      console.log("Signup error:", signupError);
-      
-      // Try to fetch the user by email again to see if the user was already created
-      const { data: profileData, error: profileFetchError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', values.email)
-        .maybeSingle();
-        
-      if (profileFetchError) {
-        console.error("Failed to find user after signup error:", profileFetchError);
-        throw new Error("Failed to find or create user");
-      }
-      
-      if (profileData) {
-        console.log("Found existing profile despite signup error:", profileData.id);
-        return profileData.id;
-      } else {
-        console.error("User not found and could not be created");
-        throw new Error("User not found and could not be created");
-      }
+      console.error("Signup error:", signupError);
+      throw new Error(`Signup failed: ${signupError.message}`);
     }
     
     // New user created successfully
@@ -121,7 +108,7 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
       
       if (insertError) {
         console.error("Error creating profile:", insertError);
-        throw new Error("Failed to create user profile");
+        throw new Error(`Failed to create user profile: ${insertError.message}`);
       }
     } else {
       console.log("Profile was created automatically:", profile);
@@ -130,6 +117,6 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
     return userId;
   } catch (error) {
     console.error("Error in createOrFindInvestorUser:", error);
-    return null;
+    throw error; // Re-throw to be handled by the caller
   }
 };

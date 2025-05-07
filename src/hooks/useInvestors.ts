@@ -10,9 +10,10 @@ export const useInvestors = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [assets, setAssets] = useState<Asset[]>([]);
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(false); // Initialize as false
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(false);
   const { toast } = useToast();
 
+  // Define fetchData outside of useEffect to use with refetch
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
@@ -29,31 +30,55 @@ export const useInvestors = () => {
       
       console.log("Checking admin status for user:", user.id);
       
-      // Check admin status
-      const { data: adminStatus, error: adminError } = await supabase
-        .rpc('get_user_admin_status', { user_id: user.id });
-      
-      if (adminError) {
-        console.error("Error checking admin status via function:", adminError);
-        // Fall back to direct query if RPC fails
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', user.id)
-          .maybeSingle();
-          
-        if (profileError) {
-          console.error("Error checking admin status:", profileError);
-          setIsAdmin(false);
-          setLoading(false);
-          return;
+      // Check admin status - try RPC first
+      let isUserAdmin = false;
+      try {
+        const { data: adminStatus, error: adminRpcError } = await supabase
+          .rpc('get_user_admin_status', { user_id: user.id });
+        
+        if (adminRpcError) {
+          throw adminRpcError;
         }
         
-        setIsAdmin(profileData?.is_admin === true);
-        console.log("Admin status determined:", profileData?.is_admin);
-      } else {
-        setIsAdmin(adminStatus === true);
-        console.log("Admin check result via function:", adminStatus);
+        isUserAdmin = adminStatus === true;
+        console.log("Admin check result via function:", isUserAdmin);
+      } catch (rpcError) {
+        console.error("Error checking admin status via function:", rpcError);
+        // Fall back to direct query if RPC fails
+        try {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', user.id)
+            .single();
+            
+          if (profileError) {
+            throw profileError;
+          }
+          
+          isUserAdmin = profileData?.is_admin === true;
+          console.log("Admin status determined from profiles:", isUserAdmin);
+        } catch (profileError) {
+          console.error("Error checking admin status from profiles:", profileError);
+          setIsAdmin(false);
+          setLoading(false);
+          toast({
+            title: "Error",
+            description: "Failed to verify admin status",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+      
+      setIsAdmin(isUserAdmin);
+      
+      if (!isUserAdmin) {
+        console.log("User is not an admin, stopping fetch");
+        setLoading(false);
+        setInvestors([]);
+        setFilteredInvestors([]);
+        return;
       }
       
       // Continue with fetching assets data
@@ -167,6 +192,11 @@ export const useInvestors = () => {
       setLoading(false);
     }
   }, [toast]);
+  
+  // Initial data fetch
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
   
   // Handle search
   useEffect(() => {
