@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LogOut, User, Settings, Home, X, Shield, Users, Database, LayoutDashboard } from "lucide-react";
@@ -36,15 +35,16 @@ const secondaryNav: NavItem[] = [
 type SidebarProps = {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+  isAdmin?: boolean; // Added isAdmin prop with optional typing
 };
 
-const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
+const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps) => {
   const [userName, setUserName] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // We'll use the isAdmin prop passed from DashboardLayout instead of fetching it again
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -53,16 +53,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         // Get profile data
         const { data: profile } = await supabase
           .from('profiles')
-          .select('first_name, last_name, is_admin')
+          .select('first_name, last_name')
           .eq('id', user.id)
           .single();
         
         if (profile) {
           setUserName(`${profile.first_name || ''} ${profile.last_name || ''}`);
-          setIsAdmin(profile.is_admin || false);
         } else {
           setUserName(user.email?.split('@')[0] || 'User');
-          setIsAdmin(false);
         }
       } else {
         navigate('/login');
