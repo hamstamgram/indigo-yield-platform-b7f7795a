@@ -52,7 +52,7 @@ export const useAssetData = () => {
         // Fetch crypto prices
         const cryptoPrices = await fetchCryptoPrices();
         
-        // If admin, also fetch all investor portfolios to show total assets
+        // If admin, fetch all investor portfolios to show total assets
         if (isAdmin) {
           try {
             const { data: portfoliosData, error: portfoliosError } = await supabase
@@ -61,31 +61,61 @@ export const useAssetData = () => {
                 asset_id,
                 balance,
                 assets (
-                  symbol
+                  id,
+                  symbol,
+                  name
                 )
               `);
               
             if (portfoliosError) throw portfoliosError;
             
             // Aggregate portfolio balances by asset
-            const assetTotals: Record<string, number> = {};
+            const assetTotals: Record<string, { totalBalance: number, assetId: number, name: string }> = {};
             
-            portfoliosData?.forEach(item => {
-              if (!item.assets) return;
-              
-              const symbol = item.assets.symbol.toUpperCase();
-              const balance = Number(item.balance || 0);
-              
-              assetTotals[symbol] = (assetTotals[symbol] || 0) + balance;
-            });
+            if (portfoliosData && portfoliosData.length > 0) {
+              portfoliosData.forEach(item => {
+                if (!item.assets) return;
+                
+                const symbol = item.assets.symbol.toUpperCase();
+                const balance = Number(item.balance || 0);
+                const assetId = item.assets.id;
+                const name = item.assets.name;
+                
+                if (!assetTotals[symbol]) {
+                  assetTotals[symbol] = {
+                    totalBalance: 0,
+                    assetId,
+                    name
+                  };
+                }
+                
+                assetTotals[symbol].totalBalance += balance;
+              });
+            }
             
             // Add these totals to the crypto prices for asset summaries
             Object.keys(assetTotals).forEach(symbol => {
-              cryptoPrices[symbol] = {
-                ...(cryptoPrices[symbol] || { price: 0, change_24h: 0 }),
-                totalBalance: assetTotals[symbol]
-              };
+              if (cryptoPrices[symbol]) {
+                cryptoPrices[symbol] = {
+                  ...cryptoPrices[symbol],
+                  totalBalance: assetTotals[symbol].totalBalance,
+                  assetId: assetTotals[symbol].assetId,
+                  name: assetTotals[symbol].name
+                };
+              } else {
+                // If the symbol doesn't exist in cryptoPrices, add it
+                cryptoPrices[symbol] = {
+                  price: 0,
+                  change_24h: 0,
+                  totalBalance: assetTotals[symbol].totalBalance,
+                  assetId: assetTotals[symbol].assetId,
+                  name: assetTotals[symbol].name
+                };
+              }
             });
+            
+            console.log("Asset totals calculated:", assetTotals);
+            console.log("Updated crypto prices with totals:", cryptoPrices);
           } catch (portfolioError) {
             console.error("Error fetching portfolios:", portfolioError);
           }
