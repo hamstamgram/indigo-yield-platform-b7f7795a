@@ -27,7 +27,7 @@ export const useInvestors = () => {
       
       // Use the admin.getUser function instead of querying profiles directly
       // This avoids the RLS recursion issue
-      const { data: userData, error: adminError } = await supabase.auth.admin.getUserById(user.id);
+      const { data: adminUserData, error: adminError } = await supabase.auth.admin.getUserById(user.id);
       
       if (adminError) {
         console.error("Error fetching user:", adminError);
@@ -36,7 +36,7 @@ export const useInvestors = () => {
       }
       
       // Check if user is an admin using user metadata
-      const isUserAdmin = userData?.user?.app_metadata?.is_admin === true;
+      const isUserAdmin = adminUserData?.user?.app_metadata?.is_admin === true;
       setIsAdmin(isUserAdmin);
       
       if (!isUserAdmin) {
@@ -62,7 +62,7 @@ export const useInvestors = () => {
       setAssets(assetData || []);
       
       // Get all profiles (potentially investors)
-      const { data: userData, error: userError } = await supabase
+      const { data: investorProfiles, error: userError } = await supabase
         .from('profiles')
         .select('id, email, first_name, last_name, created_at, is_admin')
         .eq('is_admin', false)
@@ -80,7 +80,7 @@ export const useInvestors = () => {
       }
       
       // Fetch portfolio data for each investor
-      const investorsWithPortfolios = await Promise.all((userData || []).map(async (investor) => {
+      const investorsWithPortfolios = await Promise.all((investorProfiles || []).map(async (investor) => {
         // Get portfolio data
         const { data: portfolioData } = await supabase
           .from('portfolios')
