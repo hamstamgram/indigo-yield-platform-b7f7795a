@@ -7,7 +7,6 @@ import AssetOverview from "@/components/admin/AssetOverview";
 import YieldSourcesTable from "@/components/admin/YieldSourcesTable";
 import { useAssetData } from "@/hooks/useAssetData";
 import { useNavigate } from "react-router-dom";
-import QuickLinks from "@/components/admin/QuickLinks";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -50,11 +49,6 @@ const AdminDashboard = () => {
       <div className={isMobile ? "px-2" : "flex justify-center"}>
         <AdminPageHeader userName={userName} />
       </div>
-
-      {/* Quick links section - only visible on larger screens */}
-      {!isMobile && (
-        <QuickLinks />
-      )}
 
       {/* Asset summaries */}
       <AssetOverview 
