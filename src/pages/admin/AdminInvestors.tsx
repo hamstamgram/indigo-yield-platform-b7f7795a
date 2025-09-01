@@ -1,0 +1,145 @@
+
+import React, { useState, useEffect } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { UserCircle, Mail } from "lucide-react";
+import InvestorsHeader from "@/components/admin/investors/InvestorsHeader";
+import InvestorTableContainer from "@/components/admin/investors/InvestorTableContainer";
+import AdminInvites from "@/components/admin/AdminInvites";
+import AdminUsersList from "@/components/admin/AdminUsersList";
+import { useInvestors } from "@/hooks/useInvestors";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { supabase } from "@/integrations/supabase/client";
+import AddInvestorDialog from "@/components/admin/investors/AddInvestorDialog";
+
+const AdminInvestors = () => {
+  const { 
+    filteredInvestors, 
+    searchTerm, 
+    setSearchTerm,
+    loading, 
+    assets,
+    refetch
+  } = useInvestors();
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("users");
+  
+  // Load data when component mounts
+  useEffect(() => {
+    console.log("AdminInvestors: Initial load");
+    refetch();
+  }, [refetch]);
+  
+  // Show loading state while checking permissions or loading data
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+  
+  // Define handleInvestorAdded function for refreshing data
+  const handleInvestorAdded = () => {
+    console.log("AdminInvestors: Investor added, refreshing data...");
+    refetch();
+  };
+  
+  // Send email invitation
+  const sendInviteToInvestor = async (email: string) => {
+    try {
+      console.log("Sending invite to:", email);
+      
+      // Generate a new invite code each time we send an invite
+      const inviteCode = Math.random().toString(36).substring(2, 15);
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // Invite expires in 7 days
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Store or update invite in the database
+      const { data, error } = await supabase
+        .from('admin_invites')
+        .upsert({
+          email: email,
+          invite_code: inviteCode,
+          created_by: user?.id,
+          expires_at: expiresAt.toISOString(),
+          used: false, // Reset to false if re-sending
+        })
+        .select();
+      
+      if (error) {
+        console.error("Error creating invite:", error);
+        throw error;
+      }
+      
+      console.log("Invite created:", data);
+      
+      // Call edge function to send the email
+      const { error: inviteError } = await supabase.functions.invoke('send-admin-invite', {
+        body: { invite: data[0] }
+      });
+      
+      if (inviteError) {
+        console.error("Error invoking edge function:", inviteError);
+        throw inviteError;
+      }
+      
+      toast({
+        title: "Invite sent",
+        description: `An invitation has been sent to ${email}`,
+      });
+      
+      // Refresh the data
+      refetch();
+      
+    } catch (error) {
+      console.error("Error sending invite:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send invitation. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Investor Management</h1>
+        <AddInvestorDialog assets={assets} onInvestorAdded={handleInvestorAdded} />
+      </div>
+      
+      <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="users">
+            <UserCircle className="h-4 w-4 mr-2" />
+            Users
+          </TabsTrigger>
+          <TabsTrigger value="invites">
+            <Mail className="h-4 w-4 mr-2" />
+            Invites
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="users" className="space-y-6">
+          {activeTab === "users" && (
+            <InvestorTableContainer
+              investors={filteredInvestors}
+              assets={assets}
+              loading={loading}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              onSendEmail={sendInviteToInvestor}
+              onRefresh={refetch}
+            />
+          )}
+        </TabsContent>
+        
+        <TabsContent value="invites" className="space-y-6">
+          {activeTab === "invites" && <AdminInvites />}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default AdminInvestors;
