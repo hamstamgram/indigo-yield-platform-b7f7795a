@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
+import { getStatementSignedUrl } from "@/utils/statementStorage";
 import { Download, FileText, Calendar, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -86,16 +87,14 @@ const StatementsPage = () => {
       setDownloading(statement.id);
 
       // Generate a signed URL for the statement PDF
-      const { data, error } = await supabase.storage
-        .from('statements')
-        .createSignedUrl(statement.storage_path, 60); // URL valid for 60 seconds
+      const signedUrl = await getStatementSignedUrl(statement.storage_path);
 
-      if (error || !data) {
+      if (!signedUrl) {
         throw new Error('Failed to generate download link');
       }
 
       // Open the signed URL in a new tab to trigger download
-      window.open(data.signedUrl, '_blank');
+      window.open(signedUrl, '_blank');
       toast.success("Statement download started");
       
     } catch (error) {
