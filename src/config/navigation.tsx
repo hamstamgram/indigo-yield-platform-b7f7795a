@@ -15,10 +15,10 @@ import { NavItem } from "@/types/navigation";
 
 // Admin navigation menu
 export const adminNav: NavItem[] = [
-  { title: "Admin Dashboard", href: "/admin-dashboard", icon: <LayoutDashboard className="h-5 w-5" />, adminOnly: true },
-  { title: "Investor Management", href: "/admin-investors", icon: <Users className="h-5 w-5" />, adminOnly: true },
-  { title: "Portfolio Management", href: "/admin", icon: <Database className="h-5 w-5" />, adminOnly: true },
-  { title: "Yield Settings", href: "/admin?tab=yields", icon: <Percent className="h-5 w-5" />, adminOnly: true },
+  { title: "Admin Dashboard", href: "/admin", icon: <LayoutDashboard className="h-5 w-5" />, adminOnly: true },
+  { title: "Investor Management", href: "/admin/investors", icon: <Users className="h-5 w-5" />, adminOnly: true },
+  { title: "Yield Settings", href: "/admin/yield-settings", icon: <Percent className="h-5 w-5" />, adminOnly: true },
+  { title: "Portfolio Management", href: "/admin-tools", icon: <Database className="h-5 w-5" />, adminOnly: true },
 ];
 
 // Main navigation menu
