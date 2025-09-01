@@ -1,143 +1,182 @@
 
 import React, { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { RefreshCw, Search, Eye, Users as UsersIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { UserCircle, Mail } from "lucide-react";
-import InvestorsHeader from "@/components/admin/investors/InvestorsHeader";
-import InvestorTableContainer from "@/components/admin/investors/InvestorTableContainer";
-import AdminInvites from "@/components/admin/AdminInvites";
-import AdminUsersList from "@/components/admin/AdminUsersList";
-import { useInvestors } from "@/hooks/useInvestors";
+import { listInvestors } from "@/services/adminService";
+import type { InvestorSummary } from "@/server/admin";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-import { supabase } from "@/integrations/supabase/client";
-import AddInvestorDialog from "@/components/admin/investors/AddInvestorDialog";
 
 const AdminInvestors = () => {
-  const { 
-    filteredInvestors, 
-    searchTerm, 
-    setSearchTerm,
-    loading, 
-    assets,
-    refetch
-  } = useInvestors();
+  const [loading, setLoading] = useState(true);
+  const [investors, setInvestors] = useState<InvestorSummary[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredInvestors, setFilteredInvestors] = useState<InvestorSummary[]>([]);
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("users");
   
-  // Load data when component mounts
-  useEffect(() => {
-    console.log("AdminInvestors: Initial load");
-    refetch();
-  }, [refetch]);
-  
-  // Show loading state while checking permissions or loading data
-  if (loading) {
-    return <LoadingSpinner />;
-  }
-  
-  // Define handleInvestorAdded function for refreshing data
-  const handleInvestorAdded = () => {
-    console.log("AdminInvestors: Investor added, refreshing data...");
-    refetch();
+  const fetchInvestors = async () => {
+    try {
+      setLoading(true);
+      const data = await listInvestors({ search: searchTerm });
+      setInvestors(data);
+      setFilteredInvestors(data);
+    } catch (error) {
+      console.error('Error fetching investors:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load investors. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   
-  // Send email invitation
-  const sendInviteToInvestor = async (email: string) => {
-    try {
-      console.log("Sending invite to:", email);
-      
-      // Generate a new invite code each time we send an invite
-      const inviteCode = Math.random().toString(36).substring(2, 15);
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7); // Invite expires in 7 days
-      
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      // Store or update invite in the database
-      const { data, error } = await supabase
-        .from('admin_invites')
-        .upsert({
-          email: email,
-          invite_code: inviteCode,
-          created_by: user?.id,
-          expires_at: expiresAt.toISOString(),
-          used: false, // Reset to false if re-sending
-        })
-        .select();
-      
-      if (error) {
-        console.error("Error creating invite:", error);
-        throw error;
-      }
-      
-      console.log("Invite created:", data);
-      
-      // Call edge function to send the email
-      const { error: inviteError } = await supabase.functions.invoke('send-admin-invite', {
-        body: { invite: data[0] }
-      });
-      
-      if (inviteError) {
-        console.error("Error invoking edge function:", inviteError);
-        throw inviteError;
-      }
-      
-      toast({
-        title: "Invite sent",
-        description: `An invitation has been sent to ${email}`,
-      });
-      
-      // Refresh the data
-      refetch();
-      
-    } catch (error) {
-      console.error("Error sending invite:", error);
-      toast({
-        title: "Error",
-        description: "Failed to send invitation. Please try again.",
-        variant: "destructive",
-      });
+  useEffect(() => {
+    fetchInvestors();
+  }, []);
+  
+  // Filter investors based on search term
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredInvestors(investors);
+    } else {
+      const filtered = investors.filter(
+        (investor) =>
+          investor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          investor.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredInvestors(filtered);
+    }
+  }, [searchTerm, investors]);
+  
+  const getStatusVariant = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'default';
+      case 'pending':
+        return 'secondary';
+      case 'inactive':
+        return 'outline';
+      default:
+        return 'secondary';
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Investor Management</h1>
-        <AddInvestorDialog assets={assets} onInvestorAdded={handleInvestorAdded} />
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold">Investor Management</h1>
+          <p className="text-muted-foreground">
+            View and manage all investor accounts and portfolios
+          </p>
+        </div>
+        <Button onClick={fetchInvestors} variant="outline" disabled={loading}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
       </div>
       
-      <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="users">
-            <UserCircle className="h-4 w-4 mr-2" />
-            Users
-          </TabsTrigger>
-          <TabsTrigger value="invites">
-            <Mail className="h-4 w-4 mr-2" />
-            Invites
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="users" className="space-y-6">
-          {activeTab === "users" && (
-            <InvestorTableContainer
-              investors={filteredInvestors}
-              assets={assets}
-              loading={loading}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              onSendEmail={sendInviteToInvestor}
-              onRefresh={refetch}
-            />
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <UsersIcon className="h-5 w-5" />
+                All Investors
+              </CardTitle>
+              <CardDescription>
+                {filteredInvestors.length} investor{filteredInvestors.length === 1 ? '' : 's'} found
+              </CardDescription>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by email or name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <LoadingSpinner />
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Investor</TableHead>
+                    <TableHead className="text-right">Principal</TableHead>
+                    <TableHead className="text-right">Earned</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredInvestors.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                        {searchTerm ? 'No investors found matching your search.' : 'No investors found.'}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredInvestors.map((investor) => (
+                      <TableRow key={investor.id}>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="font-medium">
+                              {investor.name || 'Unnamed'}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {investor.email}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-mono">
+                          {investor.totalPrincipal}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-green-600">
+                          {investor.totalEarned}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={getStatusVariant(investor.status)}>
+                            {investor.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            asChild
+                          >
+                            <Link to={`/admin/investors/${investor.id}`}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Details
+                            </Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           )}
-        </TabsContent>
-        
-        <TabsContent value="invites" className="space-y-6">
-          {activeTab === "invites" && <AdminInvites />}
-        </TabsContent>
-      </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 };

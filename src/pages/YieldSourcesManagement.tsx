@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Save, Loader2 } from "lucide-react";
+import { Plus, Save, Loader2, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface YieldSource {
@@ -193,6 +193,19 @@ const YieldSourcesManagement = () => {
   return (
     <Card>
       <CardHeader>
+        <div className="mb-4 p-4 border border-orange-200 bg-orange-50 rounded-lg">
+          <div className="flex items-center space-x-2 text-orange-800">
+            <AlertCircle className="h-5 w-5" />
+            <span className="font-medium">Page Deprecated</span>
+          </div>
+          <p className="mt-1 text-sm text-orange-700">
+            This page has been moved to the new admin panel. Please use the{' '}
+            <a href="/admin/yield-settings" className="underline font-medium hover:text-orange-900">
+              Yield Settings
+            </a>{' '}
+            page instead.
+          </p>
+        </div>
         <CardTitle>Yield Rates Management</CardTitle>
         <CardDescription>
           Set the daily yield rates for each asset, which will be reflected in the dashboard
