@@ -4,6 +4,9 @@ import './App.css';
 import Index from './pages/Index';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import EnhancedDashboard from './pages/EnhancedDashboard';
+import StatementsPage from './pages/StatementsPage';
+import TransactionsPage from './pages/TransactionsPage';
 import NotFound from './pages/NotFound';
 import AssetDetail from './pages/AssetDetail';
 import AccountPage from './pages/AccountPage';
@@ -14,12 +17,15 @@ import Contact from './pages/Contact';
 import About from './pages/About';
 import Strategies from './pages/Strategies';
 import FAQ from './pages/FAQ';
+import Health from './pages/Health';
 import { Toaster } from './components/ui/sonner';
 import DashboardLayout from './components/layout/DashboardLayout';
 import AdminTools from './pages/AdminTools';
 import AdminInvite from './pages/AdminInvite';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminInvestors from './pages/AdminInvestors';
+import AdminOperations from './pages/AdminOperations';
+import AdminAudit from './pages/AdminAudit';
 
 function App() {
   return (
@@ -31,16 +37,21 @@ function App() {
         
         {/* Dashboard routes with layout */}
         <Route path="/" element={<DashboardLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<EnhancedDashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/statements" element={<StatementsPage />} />
+          <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/admin-investors" element={<AdminInvestors />} />
           <Route path="/assets/:symbol" element={<AssetDetail />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/admin" element={<AdminTools />} />
+          <Route path="/admin-operations" element={<AdminOperations />} />
+          <Route path="/admin/audit" element={<AdminAudit />} />
         </Route>
         
         {/* Other routes */}
+        <Route path="/health" element={<Health />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/contact" element={<Contact />} />

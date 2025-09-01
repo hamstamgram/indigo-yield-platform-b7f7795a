@@ -1,0 +1,139 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+  ENVIRONMENT: 'staging'
+
+jobs:
+  deploy:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: ${{ steps.deploy.outputs.url }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Run database migrations
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_STAGING_DB_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_STAGING_SERVICE_ROLE_KEY }}
+        run: |
+          npx supabase db push --db-url "$SUPABASE_DB_URL" || echo "Using direct psql"
+          # Fallback to direct psql if supabase CLI fails
+          for migration in supabase/migrations/*.sql; do
+            echo "Applying migration: $migration"
+            psql "$SUPABASE_DB_URL" -f "$migration" || exit 1
+          done
+      
+      - name: Build application
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+          VITE_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          VITE_POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+          VITE_APP_VERSION: ${{ github.sha }}
+          NODE_ENV: production
+        run: pnpm build
+      
+      - name: Deploy to Vercel Staging
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          npm install -g vercel
+          DEPLOYMENT_URL=$(vercel deploy --prod --token=$VERCEL_TOKEN --env=staging)
+          echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          echo "Deployed to: $DEPLOYMENT_URL"
+      
+      - name: Create Sentry Release
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          npm install -g @sentry/cli
+          export SENTRY_RELEASE="${{ github.sha }}"
+          
+          # Create release
+          sentry-cli releases new $SENTRY_RELEASE
+          
+          # Upload source maps
+          sentry-cli releases files $SENTRY_RELEASE upload-sourcemaps ./dist \
+            --url-prefix "~/" \
+            --rewrite
+          
+          # Set commits
+          sentry-cli releases set-commits $SENTRY_RELEASE --auto
+          
+          # Finalize release
+          sentry-cli releases finalize $SENTRY_RELEASE
+          
+          # Mark as deployed
+          sentry-cli releases deploys $SENTRY_RELEASE new -e staging
+      
+      - name: Run smoke tests
+        env:
+          STAGING_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          # Wait for deployment to be ready
+          sleep 30
+          
+          # Check if site is up
+          curl -f -s -o /dev/null -w "%{http_code}" $STAGING_URL || exit 1
+          
+          # Check critical endpoints
+          curl -f -s -o /dev/null -w "%{http_code}" $STAGING_URL/health || exit 1
+          curl -f -s -o /dev/null -w "%{http_code}" $STAGING_URL/status || exit 1
+      
+      - name: Notify deployment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ job.status }}' === 'success' ? '✅' : '❌';
+            const url = '${{ steps.deploy.outputs.url }}';
+            const sha = context.sha.substring(0, 7);
+            
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: '${{ job.status }}' === 'success' ? 'success' : 'failure',
+              target_url: url,
+              description: `Staging deployment ${status}`,
+              context: 'vercel/staging'
+            });
+            
+            // Comment on commit
+            await github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: `## Staging Deployment ${status}\n\n` +
+                    `**Version:** \`${sha}\`\n` +
+                    `**URL:** ${url}\n` +
+                    `**Time:** ${new Date().toISOString()}\n` +
+                    `**Status:** ${{ job.status }}`
+            });
