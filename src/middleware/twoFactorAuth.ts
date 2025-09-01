@@ -1,3 +1,4 @@
+import React from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Navigate } from 'react-router-dom';
 

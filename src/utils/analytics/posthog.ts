@@ -198,5 +198,14 @@ function getAmountRange(amount: number): string {
   return '100000+';
 }
 
+// Shutdown function for consent withdrawal
+export function shutdownPostHog() {
+  if (isInitialized) {
+    posthog.opt_out_capturing();
+    isInitialized = false;
+    console.log('PostHog: Shut down due to consent withdrawal');
+  }
+}
+
 // Export PostHog instance for advanced usage
 export { posthog };
