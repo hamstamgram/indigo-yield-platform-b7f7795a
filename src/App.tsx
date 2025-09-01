@@ -26,6 +26,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminInvestors from './pages/AdminInvestors';
 import AdminOperations from './pages/AdminOperations';
 import AdminAudit from './pages/AdminAudit';
+import Status from './pages/Status';
+import { CookieConsent } from './components/privacy/CookieConsent';
 
 function App() {
   return (
@@ -52,6 +54,7 @@ function App() {
         
         {/* Other routes */}
         <Route path="/health" element={<Health />} />
+        <Route path="/status" element={<Status />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/contact" element={<Contact />} />
@@ -61,6 +64,7 @@ function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
+      <CookieConsent />
     </Router>
   );
 }
