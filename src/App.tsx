@@ -4,6 +4,9 @@ import './App.css';
 import Index from './pages/Index';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import EnhancedDashboard from './pages/EnhancedDashboard';
+import StatementsPage from './pages/StatementsPage';
+import TransactionsPage from './pages/TransactionsPage';
 import NotFound from './pages/NotFound';
 import AssetDetail from './pages/AssetDetail';
 import AccountPage from './pages/AccountPage';
@@ -31,8 +34,10 @@ function App() {
         
         {/* Dashboard routes with layout */}
         <Route path="/" element={<DashboardLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<EnhancedDashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/statements" element={<StatementsPage />} />
+          <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/admin-investors" element={<AdminInvestors />} />
           <Route path="/assets/:symbol" element={<AssetDetail />} />
           <Route path="/account" element={<AccountPage />} />
