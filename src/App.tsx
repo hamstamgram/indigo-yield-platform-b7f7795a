@@ -35,6 +35,22 @@ import { InstallPrompt } from './components/pwa/InstallPrompt';
 import { InstallPrompt as SimpleInstallPrompt } from './pwa/installPrompt';
 import RequireAdmin from './components/auth/RequireAdmin';
 
+// LP Pages
+import WithdrawalsPage from './pages/WithdrawalsPage';
+import SupportPage from './pages/SupportPage';
+import ProfileSettingsPage from './pages/settings/ProfileSettingsPage';
+import NotificationSettingsPage from './pages/settings/NotificationSettingsPage';
+
+// Admin Pages
+import AdminInvestorNewPage from './pages/admin/investors/AdminInvestorNewPage';
+import AdminInvestorDetailPage from './pages/admin/investors/AdminInvestorDetailPage';
+import AdminInvestorPositionsPage from './pages/admin/investors/AdminInvestorPositionsPage';
+import AdminInvestorTransactionsPage from './pages/admin/investors/AdminInvestorTransactionsPage';
+import AdminYieldSettingsPage from './pages/admin/AdminYieldSettingsPage';
+import AdminRequestsQueuePage from './pages/admin/AdminRequestsQueuePage';
+import AdminStatementsPage from './pages/admin/AdminStatementsPage';
+import AdminSupportQueuePage from './pages/admin/AdminSupportQueuePage';
+
 function App() {
   return (
     <Router>
@@ -48,11 +64,23 @@ function App() {
           {/* LP Dashboard route */}
           <Route path="/dashboard" element={<EnhancedDashboard />} />
           
+          {/* LP Routes */}
+          <Route path="/withdrawals" element={<WithdrawalsPage />} />
+          <Route path="/support" element={<SupportPage />} />
+          <Route path="/settings/profile" element={<ProfileSettingsPage />} />
+          <Route path="/settings/notifications" element={<NotificationSettingsPage />} />
+          
           {/* Admin routes - all protected with RequireAdmin */}
           <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
-          <Route path="/admin/yield-settings" element={<RequireAdmin><YieldSettings /></RequireAdmin>} />
+          <Route path="/admin/yield-settings" element={<RequireAdmin><AdminYieldSettingsPage /></RequireAdmin>} />
           <Route path="/admin/investors" element={<RequireAdmin><AdminInvestors /></RequireAdmin>} />
-          <Route path="/admin/investors/:id" element={<RequireAdmin><InvestorDetail /></RequireAdmin>} />
+          <Route path="/admin/investors/new" element={<RequireAdmin><AdminInvestorNewPage /></RequireAdmin>} />
+          <Route path="/admin/investors/:id" element={<RequireAdmin><AdminInvestorDetailPage /></RequireAdmin>} />
+          <Route path="/admin/investors/:id/positions" element={<RequireAdmin><AdminInvestorPositionsPage /></RequireAdmin>} />
+          <Route path="/admin/investors/:id/transactions" element={<RequireAdmin><AdminInvestorTransactionsPage /></RequireAdmin>} />
+          <Route path="/admin/requests" element={<RequireAdmin><AdminRequestsQueuePage /></RequireAdmin>} />
+          <Route path="/admin/statements" element={<RequireAdmin><AdminStatementsPage /></RequireAdmin>} />
+          <Route path="/admin/support" element={<RequireAdmin><AdminSupportQueuePage /></RequireAdmin>} />
           
           {/* Legacy admin routes - redirects to new structure */}
           <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />
