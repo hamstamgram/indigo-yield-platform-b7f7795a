@@ -28,6 +28,8 @@ import AdminOperations from './pages/AdminOperations';
 import AdminAudit from './pages/AdminAudit';
 import Status from './pages/Status';
 import { CookieConsent } from './components/privacy/CookieConsent';
+import { InstallPrompt } from './components/pwa/InstallPrompt';
+import { InstallPrompt as SimpleInstallPrompt } from './pwa/installPrompt';
 
 function App() {
   return (
@@ -65,6 +67,7 @@ function App() {
       </Routes>
       <Toaster />
       <CookieConsent />
+      <SimpleInstallPrompt />
     </Router>
   );
 }
