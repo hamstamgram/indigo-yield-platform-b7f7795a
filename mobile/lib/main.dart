@@ -48,7 +48,7 @@ class _IndigoWebViewState extends State<IndigoWebView> {
           launchUrl(uri, mode: LaunchMode.externalApplication);
           return NavigationDecision.prevent;
         },
-        onHttpAuthRequest: (c, r) async => null,
+        onHttpAuthRequest: (HttpAuthRequest request) {},
       ))
       ..loadRequest(start);
   }

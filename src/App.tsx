@@ -1,6 +1,9 @@
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import './App.css';
+import { initSentry } from './lib/sentry';
+import { initPostHog } from './lib/posthog';
 import Index from './pages/Index';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -72,6 +75,17 @@ import { AuditDrilldown } from './pages/admin/AuditDrilldown';
 import { PDFGenerationDemo } from './components/pdf/PDFGenerationDemo';
 
 function App() {
+  // Initialize observability tools on app startup
+  useEffect(() => {
+    // Initialize error tracking
+    initSentry();
+    
+    // Initialize analytics
+    initPostHog();
+    
+    console.log('🚀 Indigo Yield Platform initialized with observability');
+  }, []);
+
   return (
     <Router>
       <Routes>
