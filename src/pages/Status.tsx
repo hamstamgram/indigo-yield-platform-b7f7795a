@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, AlertCircle, Clock, Database, Cloud, Shield, Activity } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { CheckCircle, XCircle, AlertCircle, Clock, Database, Cloud, Shield, Activity, Bug } from 'lucide-react';
+import * as Sentry from '@sentry/react';
 
 interface HealthCheck {
   name: string;
@@ -354,6 +356,47 @@ export default function Status() {
           </Card>
         ))}
       </div>
+
+      {/* Sentry Error Tracking Test */}
+      <Card className="p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Bug className="h-5 w-5" />
+              Error Tracking Test
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Test Sentry integration by triggering a controlled error
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                Sentry.captureMessage('Test message from Status page', 'info');
+                console.log('✅ Test message sent to Sentry');
+              }}
+            >
+              Send Test Message
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => {
+                throw new Error('This is your first error!');
+              }}
+            >
+              Break the world
+            </Button>
+          </div>
+        </div>
+        <div className="text-sm text-muted-foreground">
+          <p>• <strong>Send Test Message:</strong> Sends an info message to Sentry</p>
+          <p>• <strong>Break the world:</strong> Triggers a test error for Sentry error tracking</p>
+          <p>• Check your Sentry dashboard to see the events: <a href="https://sentry.io" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">sentry.io</a></p>
+        </div>
+      </Card>
 
       {/* Memory Usage */}
       {systemStatus.metrics.memory.total > 0 && (
