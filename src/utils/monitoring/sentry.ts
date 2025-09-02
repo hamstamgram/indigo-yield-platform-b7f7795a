@@ -4,6 +4,9 @@ export function initSentry() {
   // Get the Sentry DSN from environment or use the token from .env
   const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
   
+  console.log('🔍 Sentry DSN found:', sentryDsn ? 'Yes' : 'No');
+  console.log('🔍 Environment:', import.meta.env.MODE);
+  
   if (!sentryDsn || sentryDsn === 'your_sentry_dsn_here') {
     console.log('Sentry: No DSN configured, skipping initialization');
     return;

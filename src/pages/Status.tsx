@@ -374,8 +374,10 @@ export default function Status() {
               variant="outline"
               size="sm"
               onClick={() => {
+                console.log('📨 Sending test message to Sentry...');
                 Sentry.captureMessage('Test message from Status page', 'info');
                 console.log('✅ Test message sent to Sentry');
+                alert('✅ Test message sent to Sentry! Check your Sentry dashboard.');
               }}
             >
               Send Test Message
@@ -384,7 +386,19 @@ export default function Status() {
               variant="destructive"
               size="sm"
               onClick={() => {
-                throw new Error('This is your first error!');
+                console.log('🚀 Triggering test error for Sentry...');
+                try {
+                  // Force an error that will be caught by Sentry
+                  throw new Error('This is your first error!');
+                } catch (error) {
+                  console.error('💥 Error caught:', error);
+                  // Explicitly send to Sentry
+                  Sentry.captureException(error);
+                  // Also trigger an uncaught error for testing
+                  setTimeout(() => {
+                    throw error;
+                  }, 0);
+                }
               }}
             >
               Break the world
