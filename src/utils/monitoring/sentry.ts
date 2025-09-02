@@ -12,6 +12,9 @@ export function initSentry() {
   try {
     Sentry.init({
       dsn: sentryDsn,
+      // Setting this option to true will send default PII data to Sentry.
+      // For example, automatic IP address collection on events
+      sendDefaultPii: true,
       integrations: [
         Sentry.replayIntegration({
           maskAllText: true,

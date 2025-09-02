@@ -33,7 +33,7 @@
   ],
   "env": {
     "VITE_APP_VERSION": "1.0.0",
-    "VITE_SENTRY_DSN": "https://68cc458c375acde5d6657ed8a36f1e43@o4509944393629696.ingest.de.sentry.io/4509949717643344",
+    "VITE_SENTRY_DSN": "https://d9c2a485401aa221a88caa3c007eee4a@o4509944393629696.ingest.de.sentry.io/4509949718233168",
     "VITE_APP_ENV": "production"
   }
 }
