@@ -2,8 +2,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import './App.css';
-import { initSentry } from './lib/sentry';
-import { initPostHog } from './lib/posthog';
+import { initSentry } from './utils/monitoring/sentry';
+import { initPostHog } from './utils/analytics/posthog';
 import Index from './pages/Index';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
