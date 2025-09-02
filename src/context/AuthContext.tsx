@@ -68,19 +68,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const checkAdminStatusFromDB = async (userId: string): Promise<boolean> => {
     try {
-      // Use the existing RPC function to check admin status
+      // Try RPC function first (if available)
       const { data, error } = await supabase
         .rpc('get_user_admin_status', { user_id: userId });
         
       if (error) {
-        console.warn('Admin status check failed, falling back to metadata:', error);
-        return false;
+        console.warn('RPC function failed, using direct query fallback:', error);
+        
+        // Fallback to direct query if RPC function doesn't exist or fails
+        const { data: profile, error: queryError } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', userId)
+          .single();
+          
+        if (queryError) {
+          console.error('Direct query also failed:', queryError);
+          return false;
+        }
+        
+        console.log('Admin status from direct query:', profile?.is_admin);
+        return profile?.is_admin === true;
       }
       
+      console.log('Admin status from RPC function:', data);
       return data === true;
     } catch (error) {
-      console.warn('Error checking admin status:', error);
-      return false;
+      console.warn('Error checking admin status, trying direct fallback:', error);
+      
+      // Final fallback - direct query
+      try {
+        const { data: profile, error: queryError } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', userId)
+          .single();
+          
+        if (queryError) {
+          console.error('Final fallback failed:', queryError);
+          return false;
+        }
+        
+        console.log('Admin status from final fallback:', profile?.is_admin);
+        return profile?.is_admin === true;
+      } catch (fallbackError) {
+        console.error('All admin status checks failed:', fallbackError);
+        return false;
+      }
     }
   };
 
