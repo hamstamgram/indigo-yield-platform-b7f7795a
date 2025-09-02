@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import EnhancedDashboard from './pages/EnhancedDashboard';
 import StatementsPage from './pages/StatementsPage';
 import TransactionsPage from './pages/TransactionsPage';
+import DocumentsPage from './pages/DocumentsPage';
 import NotFound from './pages/NotFound';
 import AssetDetail from './pages/AssetDetail';
 import AccountPage from './pages/AccountPage';
@@ -34,12 +35,18 @@ import { CookieConsent } from './components/privacy/CookieConsent';
 import { InstallPrompt } from './components/pwa/InstallPrompt';
 import { InstallPrompt as SimpleInstallPrompt } from './pwa/installPrompt';
 import RequireAdmin from './components/auth/RequireAdmin';
+import OnboardingWizard from './components/onboarding/OnboardingWizard';
 
 // LP Pages
 import WithdrawalsPage from './pages/WithdrawalsPage';
 import SupportPage from './pages/SupportPage';
+import SupportTicketsPage from './pages/SupportTicketsPage';
+import NotificationsPage from './pages/NotificationsPage';
+import PortfolioAnalyticsPage from './pages/PortfolioAnalyticsPage';
+import SessionManagementPage from './pages/SessionManagementPage';
 import ProfileSettingsPage from './pages/settings/ProfileSettingsPage';
 import NotificationSettingsPage from './pages/settings/NotificationSettingsPage';
+import SecuritySettings from './pages/settings/SecuritySettings';
 
 // Admin Pages
 import AdminInvestorNewPage from './pages/admin/investors/AdminInvestorNewPage';
@@ -50,6 +57,17 @@ import AdminYieldSettingsPage from './pages/admin/AdminYieldSettingsPage';
 import AdminRequestsQueuePage from './pages/admin/AdminRequestsQueuePage';
 import AdminStatementsPage from './pages/admin/AdminStatementsPage';
 import AdminSupportQueuePage from './pages/admin/AdminSupportQueuePage';
+import AdminDocumentsPage from './pages/admin/AdminDocumentsPage';
+import AdminBatchReportsPage from './pages/admin/AdminBatchReportsPage';
+import { InvestorAccountCreation } from './pages/admin/InvestorAccountCreation';
+import { BalanceAdjustments } from './pages/admin/BalanceAdjustments';
+import { InvestorStatusTracking } from './pages/admin/InvestorStatusTracking';
+import { FeeConfigurationManagement } from './pages/admin/FeeConfigurationManagement';
+import { YieldSettingsManagement } from './pages/admin/YieldSettingsManagement';
+import { AuditDrilldown } from './pages/admin/AuditDrilldown';
+
+// PDF Generation Demo
+import { PDFGenerationDemo } from './components/pdf/PDFGenerationDemo';
 
 function App() {
   return (
@@ -57,6 +75,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/onboarding" element={<OnboardingWizard />} />
         <Route path="/admin-invite" element={<AdminInvite />} />
         
         {/* Dashboard routes with layout */}
@@ -67,8 +86,13 @@ function App() {
           {/* LP Routes */}
           <Route path="/withdrawals" element={<WithdrawalsPage />} />
           <Route path="/support" element={<SupportPage />} />
+          <Route path="/support-tickets" element={<SupportTicketsPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/portfolio/analytics" element={<PortfolioAnalyticsPage />} />
+          <Route path="/settings/sessions" element={<SessionManagementPage />} />
           <Route path="/settings/profile" element={<ProfileSettingsPage />} />
           <Route path="/settings/notifications" element={<NotificationSettingsPage />} />
+          <Route path="/settings/security" element={<SecuritySettings />} />
           
           {/* Admin routes - all protected with RequireAdmin */}
           <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
@@ -81,6 +105,19 @@ function App() {
           <Route path="/admin/requests" element={<RequireAdmin><AdminRequestsQueuePage /></RequireAdmin>} />
           <Route path="/admin/statements" element={<RequireAdmin><AdminStatementsPage /></RequireAdmin>} />
           <Route path="/admin/support" element={<RequireAdmin><AdminSupportQueuePage /></RequireAdmin>} />
+          <Route path="/admin/documents" element={<RequireAdmin><AdminDocumentsPage /></RequireAdmin>} />
+          <Route path="/admin/reports" element={<RequireAdmin><AdminBatchReportsPage /></RequireAdmin>} />
+          
+          {/* Phase 3.1 Admin Features */}
+          <Route path="/admin/investors/create" element={<RequireAdmin><InvestorAccountCreation /></RequireAdmin>} />
+          <Route path="/admin/balances/adjust" element={<RequireAdmin><BalanceAdjustments /></RequireAdmin>} />
+          <Route path="/admin/investors/status" element={<RequireAdmin><InvestorStatusTracking /></RequireAdmin>} />
+          <Route path="/admin/fees" element={<RequireAdmin><FeeConfigurationManagement /></RequireAdmin>} />
+          <Route path="/admin/yield" element={<RequireAdmin><YieldSettingsManagement /></RequireAdmin>} />
+          <Route path="/admin/audit-drilldown" element={<RequireAdmin><AuditDrilldown /></RequireAdmin>} />
+          
+          {/* Phase 3.2 Admin Features */}
+          <Route path="/admin/pdf-demo" element={<RequireAdmin><PDFGenerationDemo /></RequireAdmin>} />
           
           {/* Legacy admin routes - redirects to new structure */}
           <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />
@@ -89,6 +126,7 @@ function App() {
           {/* Other existing routes */}
           <Route path="/statements" element={<StatementsPage />} />
           <Route path="/transactions" element={<TransactionsPage />} />
+          <Route path="/documents" element={<DocumentsPage />} />
           <Route path="/assets/:symbol" element={<AssetDetail />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/settings" element={<SettingsPage />} />
