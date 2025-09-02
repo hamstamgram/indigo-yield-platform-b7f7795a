@@ -1,0 +1,57 @@
+{
+  "timestamp": "2025-09-02T14:21:44.739Z",
+  "supabaseUrl": "https://nkfimvovosdehmyyjubn.supabase.co",
+  "tests": {
+    "lp": [
+      {
+        "test": "LP can read own profile",
+        "passed": false,
+        "error": "infinite recursion detected in policy for relation \"profiles\"",
+        "data": null
+      },
+      {
+        "test": "LP cannot read other profiles",
+        "passed": {
+          "code": "42P17",
+          "details": null,
+          "hint": null,
+          "message": "infinite recursion detected in policy for relation \"profiles\""
+        },
+        "message": "Properly restricted"
+      },
+      {
+        "test": "LP cannot insert deposits",
+        "passed": true,
+        "error": "Could not find the 'asset_code' column of 'deposits' in the schema cache"
+      },
+      {
+        "test": "LP cannot insert withdrawals",
+        "passed": true,
+        "error": "Unexpected success - RLS missing"
+      },
+      {
+        "test": "LP can only read own statements",
+        "passed": false,
+        "message": "No statements found"
+      }
+    ],
+    "admin": [],
+    "storage": [
+      {
+        "test": "Statements bucket not publicly listable",
+        "passed": true,
+        "message": "Found 0 items (potential issue)"
+      },
+      {
+        "test": "Documents bucket access control",
+        "passed": true,
+        "message": "Found 0 items"
+      }
+    ]
+  },
+  "summary": {
+    "total": 7,
+    "passed": 5,
+    "failed": 2
+  }
+}
