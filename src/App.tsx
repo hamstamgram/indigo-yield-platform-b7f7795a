@@ -47,6 +47,8 @@ import SessionManagementPage from './pages/SessionManagementPage';
 import ProfileSettingsPage from './pages/settings/ProfileSettingsPage';
 import NotificationSettingsPage from './pages/settings/NotificationSettingsPage';
 import SecuritySettings from './pages/settings/SecuritySettings';
+import DocumentsVault from './pages/documents/DocumentsVault';
+import Support from './pages/support/Support';
 
 // Admin Pages
 import AdminInvestorNewPage from './pages/admin/investors/AdminInvestorNewPage';
@@ -93,6 +95,7 @@ function App() {
           <Route path="/settings/profile" element={<ProfileSettingsPage />} />
           <Route path="/settings/notifications" element={<NotificationSettingsPage />} />
           <Route path="/settings/security" element={<SecuritySettings />} />
+          <Route path="/documents" element={<DocumentsVault />} />
           
           {/* Admin routes - all protected with RequireAdmin */}
           <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
