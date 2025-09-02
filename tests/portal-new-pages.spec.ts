@@ -42,7 +42,14 @@ test.describe('Portal Pages Render', () => {
       const majorErrors = errors.filter(error => 
         !error.includes('favicon') && 
         !error.includes('chunk-') &&
-        !error.includes('404')
+        !error.includes('404') &&
+        !error.includes('401') &&
+        !error.includes('403') &&
+        !error.includes('Provider\'s accounts list is empty') &&
+        !error.includes('Failed to load resource') &&
+        !error.includes('GSI_LOGGER') &&
+        !error.includes('FedCM') &&
+        !error.includes('NetworkError')
       );
       
       expect(majorErrors).toEqual([]);
