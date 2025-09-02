@@ -133,7 +133,14 @@ export default function Status() {
   const checkAPI = async (): Promise<HealthCheck> => {
     const start = performance.now();
     try {
-      const response = await fetch('/health');
+      // Try new /api/health endpoint first
+      let response = await fetch('/api/health');
+      
+      // Fallback to /health if /api/health is not available
+      if (response.status === 404) {
+        response = await fetch('/health');
+      }
+      
       const latency = performance.now() - start;
       
       if (!response.ok) {
@@ -145,12 +152,25 @@ export default function Status() {
         };
       }
       
-      return {
-        name: 'API',
-        status: latency < 500 ? 'healthy' : 'degraded',
-        latency,
-        message: 'API responding normally',
-      };
+      // Try to parse JSON response for more details
+      try {
+        const data = await response.json();
+        return {
+          name: 'API',
+          status: data.ok && latency < 500 ? 'healthy' : 'degraded',
+          latency,
+          message: 'API responding normally',
+          details: { buildSha: data.buildSha, environment: data.environment },
+        };
+      } catch {
+        // If not JSON, still consider it healthy if status was ok
+        return {
+          name: 'API',
+          status: latency < 500 ? 'healthy' : 'degraded',
+          latency,
+          message: 'API responding normally',
+        };
+      }
     } catch (error) {
       return {
         name: 'API',
