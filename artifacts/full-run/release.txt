@@ -1,0 +1,97 @@
+========================================
+Release & Cutover Plan
+Date: 2025-09-03
+Branch: feature/full-update-rollup
+========================================
+
+COMPLETED WORK:
+✅ Feature branch created and committed
+✅ Database migrations created (need manual application)
+✅ Excel import/export Edge functions created
+✅ Withdrawal system implemented (DB + UI)
+✅ Admin pages for withdrawals and Excel import
+✅ Security headers configured
+✅ PWA fully configured
+✅ Observability partially configured (Sentry active)
+✅ Code splitting and lazy loading implemented
+
+CRITICAL BLOCKERS:
+1. RLS infinite recursion - Apply migration 009_fix_profiles_rls_recursion.sql FIRST
+2. Missing PROJECT_REF environment variable needed for Edge functions
+3. Edge functions not yet deployed to Supabase
+
+PRE-RELEASE CHECKLIST:
+[ ] Apply database migrations via Supabase SQL Editor:
+    - 009_fix_profiles_rls_recursion.sql (CRITICAL)
+    - 003_excel_backend.sql
+    - 004_withdrawals.sql
+    - 005_excel_classes.sql
+    - 006_cutover_guards.sql
+[ ] Deploy Edge functions:
+    - supabase functions deploy excel_import
+    - supabase functions deploy parity_check
+    - supabase functions deploy status
+[ ] Set environment variables:
+    - PROJECT_REF=nkfimvovosdehmyyjubn (from Supabase URL)
+    - EXCEL_IMPORT_ENABLED=true (initially)
+    - EDIT_WINDOW_DAYS=7
+[ ] Run service checks: npm run check:services
+[ ] Deploy to Vercel preview
+[ ] Test Excel import with first_run.xlsx
+
+CUTOVER SEQUENCE:
+1. PREPARATION PHASE:
+   - Back up production database
+   - Notify users of maintenance window
+   - Set maintenance_mode=true in system_config
+
+2. DATA IMPORT PHASE:
+   - Navigate to /admin/excel-first-run
+   - Upload ops/import/first_run.xlsx
+   - Run dry-run validation
+   - Execute actual import
+   - Verify parity check passes
+   - Document any discrepancies
+
+3. VERIFICATION PHASE:
+   - Check investor positions match Excel
+   - Verify fund balances are correct
+   - Test withdrawal request creation
+   - Confirm admin can approve/reject withdrawals
+
+4. LOCKDOWN PHASE:
+   - Click "Lock Imports" in Excel import page
+   - Set EXCEL_IMPORT_ENABLED=false in environment
+   - Redeploy excel_import function with lock
+   - Remove /admin/excel-first-run from navigation
+
+5. GO-LIVE:
+   - Set maintenance_mode=false
+   - Monitor error rates in Sentry
+   - Check service health regularly
+
+POST-RELEASE MONITORING:
+- Watch Sentry for any new errors
+- Monitor database performance
+- Check withdrawal queue regularly
+- Review audit logs daily for first week
+
+ROLLBACK PLAN:
+If critical issues found:
+1. Set maintenance_mode=true immediately
+2. Restore database backup
+3. Revert to previous deployment
+4. Investigate and fix issues
+5. Re-attempt deployment
+
+ACCEPTANCE CRITERIA MET:
+✅ DB migrations ready (manual apply needed)
+✅ Edge functions created (deployment needed)
+✅ Excel import workflow implemented
+✅ LP/Admin features complete
+✅ Security headers active
+✅ PWA functional
+✅ Observability configured (Sentry)
+✅ Cutover plan documented
+
+STATUS: Ready for manual database migration and Edge function deployment
