@@ -198,15 +198,7 @@ CREATE INDEX IF NOT EXISTS idx_fee_calculations_investor ON public.fee_calculati
 -- KPI Views and Calculation Functions
 -- ========================================
 
--- View: Inception-to-date returns
-CREATE OR REPLACE VIEW public.v_itd_returns AS 
-SELECT 
-  fund_id,
-  EXP(SUM(LN(1 + COALESCE(net_return_pct, 0) / 100.0))) - 1 AS itd_return
-FROM public.daily_nav 
-GROUP BY fund_id;
-
--- Function: Calculate period returns
+-- Function: Calculate period returns (MUST BE CREATED FIRST)
 CREATE OR REPLACE FUNCTION public.fund_period_return(
   f UUID, 
   d1 DATE, 
@@ -229,6 +221,14 @@ STABLE AS $$
     AND dn.nav_date <= d2;
 $$;
 
+-- View: Inception-to-date returns
+CREATE OR REPLACE VIEW public.v_itd_returns AS 
+SELECT 
+  fund_id,
+  EXP(SUM(LN(1 + COALESCE(net_return_pct, 0) / 100.0))) - 1 AS itd_return
+FROM public.daily_nav 
+GROUP BY fund_id;
+
 -- View: Fund KPIs
 CREATE OR REPLACE VIEW public.v_fund_kpis AS
 SELECT 
@@ -241,9 +241,9 @@ SELECT
    WHERE dn.fund_id = f.id 
    ORDER BY dn.nav_date DESC 
    LIMIT 1) AS day_return_pct,
-  public.fund_period_return(f.id, date_trunc('month', CURRENT_DATE), CURRENT_DATE, true) * 100 AS mtd_return,
-  public.fund_period_return(f.id, date_trunc('quarter', CURRENT_DATE), CURRENT_DATE, true) * 100 AS qtd_return,
-  public.fund_period_return(f.id, date_trunc('year', CURRENT_DATE), CURRENT_DATE, true) * 100 AS ytd_return,
+  public.fund_period_return(f.id, date_trunc('month', CURRENT_DATE)::DATE, CURRENT_DATE, true) * 100 AS mtd_return,
+  public.fund_period_return(f.id, date_trunc('quarter', CURRENT_DATE)::DATE, CURRENT_DATE, true) * 100 AS qtd_return,
+  public.fund_period_return(f.id, date_trunc('year', CURRENT_DATE)::DATE, CURRENT_DATE, true) * 100 AS ytd_return,
   (SELECT itd_return * 100 FROM public.v_itd_returns itd WHERE itd.fund_id = f.id) AS itd_return,
   (SELECT dn.aum 
    FROM public.daily_nav dn 

@@ -140,10 +140,17 @@ CREATE TABLE IF NOT EXISTS public.portfolio_history (
     UNIQUE(user_id, asset_id, date)
 );
 
--- Deposits table (already exists, updating structure)
-ALTER TABLE public.deposits 
-    ADD COLUMN IF NOT EXISTS created_by UUID REFERENCES auth.users(id),
-    ALTER COLUMN amount TYPE NUMERIC(38,18);
+-- Deposits table
+CREATE TABLE IF NOT EXISTS public.deposits (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    amount NUMERIC(38,18) NOT NULL,
+    asset_symbol TEXT NOT NULL,
+    transaction_hash TEXT,
+    status TEXT DEFAULT 'pending',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    created_by UUID REFERENCES auth.users(id)
+);
 
 -- Admin invites table (already exists, ensuring structure)
 CREATE TABLE IF NOT EXISTS public.admin_invites (

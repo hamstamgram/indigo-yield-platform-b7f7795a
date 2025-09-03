@@ -61,7 +61,12 @@ CREATE TABLE IF NOT EXISTS public.notifications (
 );
 
 -- Fund configurations table
-CREATE TYPE fund_status AS ENUM ('active', 'inactive');
+DO $$ 
+BEGIN 
+  CREATE TYPE fund_status AS ENUM ('active', 'inactive'); 
+EXCEPTION 
+  WHEN duplicate_object THEN NULL; 
+END $$;
 CREATE TYPE benchmark_type AS ENUM ('BTC', 'ETH', 'STABLE', 'CUSTOM');
 
 CREATE TABLE IF NOT EXISTS public.fund_configurations (
