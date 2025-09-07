@@ -1,0 +1,36 @@
+{
+  "timestamp": "2025-09-02T10:33:00Z",
+  "findings": {
+    "client_env_vars": [
+      "VITE_SUPABASE_URL",
+      "VITE_SUPABASE_ANON_KEY",
+      "VITE_PREVIEW_ADMIN",
+      "VITE_APP_ENV"
+    ],
+    "server_env_vars": [
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "SUPABASE_DEV_DB_URL",
+      "SUPABASE_PROD_DB_URL",
+      "GITHUB_TOKEN",
+      "VERCEL_TOKEN",
+      "SENTRY_TOKEN",
+      "MAILERLITE_API_TOKEN",
+      "SMTP_HOST",
+      "SMTP_PORT",
+      "SMTP_USER",
+      "SMTP_PASS"
+    ],
+    "security_issues": [
+      {
+        "severity": "HIGH",
+        "issue": "Supabase credentials hardcoded in src/integrations/supabase/client.ts",
+        "file": "src/integrations/supabase/client.ts",
+        "recommendation": "Move to VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables"
+      }
+    ],
+    "missing_required_vars": [
+      "SENTRY_DSN",
+      "POSTHOG_API_KEY"
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "timestamp": "2025-09-02T10:33:00Z",
+  "mcp_tools": [
+    "filesystem (read_files, create_file, edit_files, find_files)",
+    "search_codebase",
+    "run_command (shell execution)",
+    "grep (text search)",
+    "github (gh CLI)",
+    "playwright (browser automation)",
+    "todo_management"
+  ],
+  "versions": {
+    "node": "$(node --version)",
+    "npm": "$(npm --version)",
+    "gh": "$(gh --version | head -1)",
+    "playwright": "$(npx playwright --version)"
+  },
+  "working_directory": "/Users/mama/indigo-yield-platform-v01",
+  "shell": "zsh"
+}

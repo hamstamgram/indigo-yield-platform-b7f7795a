@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentry Integration Test</title>
+    <script
+      src="https://browser.sentry-cdn.com/8.43.0/bundle.tracing.min.js"
+      integrity="sha384-FqNDLXaOcYiARG6+qCiVgNhEy8dWQh5dN9G+KJj3Xvyq8ksGfWW1kNnN/IimDJ1Q"
+      crossorigin="anonymous"
+    ></script>
+</head>
+<body>
+    <div style="max-width: 600px; margin: 50px auto; padding: 20px; font-family: Arial, sans-serif;">
+        <h1>🚀 Sentry Integration Test - Indigo Yield Platform</h1>
+        
+        <div style="background: #f0f8ff; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #4a90e2;">
+            <h2>🔧 Sentry Configuration Status</h2>
+            <p><strong>DSN:</strong> https://68cc458c375acde5d6657ed8a36f1e43@o4509944393629696.ingest.de.sentry.io/4509949717643344</p>
+            <p><strong>Environment:</strong> <span id="env">production</span></p>
+            <p><strong>Status:</strong> <span id="status">Initializing...</span></p>
+        </div>
+
+        <div style="margin: 30px 0;">
+            <h2>🧪 Test Sentry Integration</h2>
+            <p>Click the buttons below to test different Sentry features:</p>
+            
+            <button onclick="testMessage()" style="margin: 10px; padding: 12px 20px; background: #4a90e2; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                📨 Send Test Message
+            </button>
+            
+            <button onclick="testError()" style="margin: 10px; padding: 12px 20px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                💥 Trigger Test Error
+            </button>
+            
+            <button onclick="testUserContext()" style="margin: 10px; padding: 12px 20px; background: #f39c12; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                👤 Set User Context
+            </button>
+        </div>
+
+        <div id="results" style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 20px;">
+            <h3>📋 Test Results:</h3>
+            <div id="log"></div>
+        </div>
+
+        <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin-top: 20px; border: 1px solid #ffc107;">
+            <p><strong>💡 Instructions:</strong></p>
+            <ul>
+                <li>Click the test buttons above</li>
+                <li>Check the console for confirmation messages</li>
+                <li>Visit your <a href="https://sentry.io" target="_blank">Sentry dashboard</a> to see the events</li>
+                <li>Events should appear in your Indigo Yield Platform project</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#e74c3c' : type === 'success' ? '#27ae60' : '#3498db';
+            logDiv.innerHTML += `<div style="margin: 5px 0; color: ${color};">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(`[Sentry Test] ${message}`);
+        }
+
+        // Initialize Sentry
+        try {
+            Sentry.init({
+                dsn: "https://68cc458c375acde5d6657ed8a36f1e43@o4509944393629696.ingest.de.sentry.io/4509949717643344",
+                environment: "production",
+                sendDefaultPii: true,
+                integrations: [
+                    new Sentry.BrowserTracing({
+                        tracingOrigins: ["localhost", /^\//]
+                    })
+                ],
+                tracesSampleRate: 1.0,
+                beforeSend(event) {
+                    // Add platform-specific tags
+                    event.tags = {
+                        ...event.tags,
+                        platform: 'indigo-yield',
+                        test_page: 'sentry-test',
+                        deployment: 'production'
+                    };
+                    return event;
+                }
+            });
+
+            document.getElementById('status').textContent = '✅ Successfully Initialized';
+            document.getElementById('status').style.color = '#27ae60';
+            log('✅ Sentry initialized successfully', 'success');
+            
+        } catch (error) {
+            document.getElementById('status').textContent = '❌ Initialization Failed';
+            document.getElementById('status').style.color = '#e74c3c';
+            log('❌ Sentry initialization failed: ' + error.message, 'error');
+        }
+
+        function testMessage() {
+            try {
+                Sentry.captureMessage('Test message from Indigo Yield Platform - Sentry integration working!', 'info');
+                log('📨 Test message sent to Sentry', 'success');
+            } catch (error) {
+                log('❌ Failed to send message: ' + error.message, 'error');
+            }
+        }
+
+        function testError() {
+            try {
+                // Create and throw a test error
+                const testError = new Error('This is a test error from Indigo Yield Platform!');
+                testError.name = 'IndigoYieldTestError';
+                
+                Sentry.captureException(testError);
+                log('💥 Test error sent to Sentry', 'success');
+                
+                // Also trigger a real JavaScript error for demonstration
+                setTimeout(() => {
+                    try {
+                        throw new Error('Indigo Yield Platform - Break the world test error!');
+                    } catch (e) {
+                        log('💥 Live error thrown and captured', 'success');
+                    }
+                }, 100);
+                
+            } catch (error) {
+                log('❌ Failed to send error: ' + error.message, 'error');
+            }
+        }
+
+        function testUserContext() {
+            try {
+                Sentry.setUser({
+                    email: 'test@indigoyield.com',
+                    id: 'test-user-12345',
+                    username: 'testuser',
+                    platform: 'indigo-yield-portal'
+                });
+                
+                Sentry.setContext('platform_info', {
+                    version: '1.0.0',
+                    environment: 'production',
+                    platform: 'indigo-yield',
+                    test_mode: true
+                });
+                
+                log('👤 User context and platform info set', 'success');
+                
+                // Send a message with the context
+                Sentry.captureMessage('Test message with user context and platform info', 'info');
+                log('📨 Message with context sent to Sentry', 'success');
+                
+            } catch (error) {
+                log('❌ Failed to set user context: ' + error.message, 'error');
+            }
+        }
+
+        // Automatically run a basic test on page load
+        setTimeout(() => {
+            log('🔄 Running automatic initialization test...');
+            testMessage();
+        }, 1000);
+    </script>
+</body>
+</html>

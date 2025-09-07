@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, AlertCircle, Clock, Database, Cloud, Shield, Activity } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { CheckCircle, XCircle, AlertCircle, Clock, Database, Cloud, Shield, Activity, Bug } from 'lucide-react';
+import * as Sentry from '@sentry/react';
 
 interface HealthCheck {
   name: string;
@@ -131,7 +133,14 @@ export default function Status() {
   const checkAPI = async (): Promise<HealthCheck> => {
     const start = performance.now();
     try {
-      const response = await fetch('/health');
+      // Try new /api/health endpoint first
+      let response = await fetch('/api/health');
+      
+      // Fallback to /health if /api/health is not available
+      if (response.status === 404) {
+        response = await fetch('/health');
+      }
+      
       const latency = performance.now() - start;
       
       if (!response.ok) {
@@ -143,12 +152,25 @@ export default function Status() {
         };
       }
       
-      return {
-        name: 'API',
-        status: latency < 500 ? 'healthy' : 'degraded',
-        latency,
-        message: 'API responding normally',
-      };
+      // Try to parse JSON response for more details
+      try {
+        const data = await response.json();
+        return {
+          name: 'API',
+          status: data.ok && latency < 500 ? 'healthy' : 'degraded',
+          latency,
+          message: 'API responding normally',
+          details: { buildSha: data.buildSha, environment: data.environment },
+        };
+      } catch {
+        // If not JSON, still consider it healthy if status was ok
+        return {
+          name: 'API',
+          status: latency < 500 ? 'healthy' : 'degraded',
+          latency,
+          message: 'API responding normally',
+        };
+      }
     } catch (error) {
       return {
         name: 'API',
@@ -354,6 +376,61 @@ export default function Status() {
           </Card>
         ))}
       </div>
+
+      {/* Sentry Error Tracking Test */}
+      <Card className="p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Bug className="h-5 w-5" />
+              Error Tracking Test
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Test Sentry integration by triggering a controlled error
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                console.log('📨 Sending test message to Sentry...');
+                Sentry.captureMessage('Test message from Status page', 'info');
+                console.log('✅ Test message sent to Sentry');
+                alert('✅ Test message sent to Sentry! Check your Sentry dashboard.');
+              }}
+            >
+              Send Test Message
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => {
+                console.log('🚀 Triggering test error for Sentry...');
+                try {
+                  // Force an error that will be caught by Sentry
+                  throw new Error('This is your first error!');
+                } catch (error) {
+                  console.error('💥 Error caught:', error);
+                  // Explicitly send to Sentry
+                  Sentry.captureException(error);
+                  // Also trigger an uncaught error for testing
+                  setTimeout(() => {
+                    throw error;
+                  }, 0);
+                }
+              }}
+            >
+              Break the world
+            </Button>
+          </div>
+        </div>
+        <div className="text-sm text-muted-foreground">
+          <p>• <strong>Send Test Message:</strong> Sends an info message to Sentry</p>
+          <p>• <strong>Break the world:</strong> Triggers a test error for Sentry error tracking</p>
+          <p>• Check your Sentry dashboard to see the events: <a href="https://sentry.io" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">sentry.io</a></p>
+        </div>
+      </Card>
 
       {/* Memory Usage */}
       {systemStatus.metrics.memory.total > 0 && (

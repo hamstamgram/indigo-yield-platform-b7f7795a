@@ -1,0 +1,56 @@
+Path,Component,Layout,Role,Nav Present,Key Features,Data Dependencies,Issues
+/,Index,Public,Public,N/A,Landing page with marketing content,Static content,None
+/login,Login,Public,Public,N/A,"Authentication form, SSO",auth.users table,None
+/onboarding,OnboardingWizard,Public,Public,N/A,"KYC wizard, user setup",profiles table,Needs gating validation
+/admin-invite,AdminInvite,Public,Public,N/A,Admin invitation system,admin_invites table,None
+/dashboard,EnhancedDashboard,DashboardLayout,LP,mainNav,Portfolio overview with KPIs,positions+transactions+portfolio_history,Links to missing /deposits
+/withdrawals,WithdrawalsPage,DashboardLayout,LP,No,Withdrawal requests,transactions table,None
+/support,SupportPage,DashboardLayout,LP,No,Support ticket creation,support_tickets,None
+/support-tickets,SupportTicketsPage,DashboardLayout,LP,No,Support ticket history,support_tickets,None
+/notifications,NotificationsPage,DashboardLayout,LP,No,In-app notifications,notifications table,None
+/portfolio/analytics,PortfolioAnalyticsPage,DashboardLayout,LP,No,Advanced portfolio analytics,positions+transactions,None
+/settings/sessions,SessionManagementPage,DashboardLayout,LP,No,Active session management,auth.sessions,None
+/settings/profile,ProfileSettingsPage,DashboardLayout,LP,No,Profile information update,profiles table,None
+/settings/notifications,NotificationSettingsPage,DashboardLayout,LP,No,Notification preferences,profiles table,None
+/settings/security,SecuritySettings,DashboardLayout,LP,No,Security settings including 2FA,profiles table,None
+/documents,DocumentsVault,DashboardLayout,LP,No,Document vault for LP,documents table,CONFLICT: Also mapped to DocumentsPage
+/statements,StatementsPage,DashboardLayout,LP,No,Monthly/quarterly statements,statements table,None
+/transactions,TransactionsPage,DashboardLayout,LP,No,Transaction history,transactions table,None
+/assets/:symbol,AssetDetail,DashboardLayout,LP,mainNav,Asset-specific details and performance,assets+positions+yield_rates,None
+/account,AccountPage,DashboardLayout,LP,accountNav,Account management overview,profiles table,None
+/settings,SettingsPage,DashboardLayout,LP,accountNav,General settings (overlaps with /settings/*),profiles table,Fragmented with specific settings pages
+/admin,AdminDashboard,DashboardLayout,Admin,adminNav,Admin KPI dashboard,All tables for aggregation,None
+/admin/yield-settings,AdminYieldSettingsPage,DashboardLayout,Admin,adminNav,Yield rate management,yield_rates+assets,None
+/admin/investors,AdminInvestors,DashboardLayout,Admin,adminNav,Investor list and management,profiles+positions,None
+/admin/investors/new,AdminInvestorNewPage,DashboardLayout,Admin,No,Create new investor account,profiles+admin_invites,None
+/admin/investors/:id,AdminInvestorDetailPage,DashboardLayout,Admin,No,Individual investor details,profiles+positions+transactions,None
+/admin/investors/:id/positions,AdminInvestorPositionsPage,DashboardLayout,Admin,No,Investor position details,positions table,None
+/admin/investors/:id/transactions,AdminInvestorTransactionsPage,DashboardLayout,Admin,No,Investor transaction history,transactions table,None
+/admin/requests,AdminRequestsQueuePage,DashboardLayout,Admin,No,Deposit/withdrawal approval queue,transactions table,None
+/admin/statements,AdminStatementsPage,DashboardLayout,Admin,No,Statement generation and management,statements table,None
+/admin/support,AdminSupportQueuePage,DashboardLayout,Admin,No,Support ticket queue management,support_tickets,None
+/admin/documents,AdminDocumentsPage,DashboardLayout,Admin,No,Document management (admin view),documents table,None
+/admin/reports,AdminBatchReportsPage,DashboardLayout,Admin,No,Batch report generation,Multiple tables,None
+/admin/investors/create,InvestorAccountCreation,DashboardLayout,Admin,No,Create investor accounts,profiles+admin_invites,Overlaps with /admin/investors/new
+/admin/balances/adjust,BalanceAdjustments,DashboardLayout,Admin,No,Manual balance adjustments,positions+transactions+audit_log,Critical: Must be audit logged
+/admin/investors/status,InvestorStatusTracking,DashboardLayout,Admin,No,Track investor status changes,profiles+audit_log,None
+/admin/fees,FeeConfigurationManagement,DashboardLayout,Admin,No,Fee structure management,fees+profiles,None
+/admin/yield,YieldSettingsManagement,DashboardLayout,Admin,No,Advanced yield settings,yield_rates+assets,May overlap with /admin/yield-settings
+/admin/audit-drilldown,AuditDrilldown,DashboardLayout,Admin,No,Audit trail investigation,audit_log table,None
+/admin/pdf-demo,PDFGenerationDemo,DashboardLayout,Admin,No,PDF generation testing,Demo data,None
+/admin-tools,AdminTools,DashboardLayout,Admin,adminNav,Legacy admin portfolio tools,Multiple tables,Legacy route
+/admin-operations,AdminOperations,DashboardLayout,Admin,No,Legacy admin operations,Multiple tables,Legacy route
+/admin/audit,AdminAudit,DashboardLayout,Admin,No,Audit log viewing,audit_log table,None
+/admin-dashboard,Navigate,DashboardLayout,Admin,No,Redirect to /admin,N/A,REDIRECT: Creates double hop
+/admin-investors,Navigate,DashboardLayout,Admin,No,Redirect to /admin/investors,N/A,REDIRECT: Legacy
+/yield-sources,Navigate,DashboardLayout,Admin,No,Redirect to /admin/yield-settings,N/A,REDIRECT: Legacy
+/documents,DocumentsPage,DashboardLayout,LP,No,Document listing (LP view),documents table,CONFLICT: Duplicate mapping with DocumentsVault
+/health,Health,Public,Public,N/A,Health check endpoint,System status,None
+/status,Status,Public,Public,N/A,System status page,System metrics,None
+/terms,Terms,Public,Public,Footer,Terms of service,Static content,None
+/privacy,Privacy,Public,Public,Footer,Privacy policy,Static content,None
+/contact,Contact,Public,Public,Header+Footer,Contact information and form,Contact submissions,None
+/about,About,Public,Public,Header+Footer,About company information,Static content,None
+/strategies,Strategies,Public,Public,Header+Footer,Investment strategies overview,Static content,None
+/faq,FAQ,Public,Public,Header+Footer,Frequently asked questions,Static content,None
+*,NotFound,Public,Public,N/A,404 error page,N/A,None

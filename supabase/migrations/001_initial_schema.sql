@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS public.assets (
 
 -- Positions table (current investor positions)
 CREATE TABLE IF NOT EXISTS public.positions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     investor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     asset_code asset_code NOT NULL,
     principal NUMERIC(38,18) DEFAULT 0 NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS public.positions (
 
 -- Transactions table (complete ledger)
 CREATE TABLE IF NOT EXISTS public.transactions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     investor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     asset_code asset_code NOT NULL,
     amount NUMERIC(38,18) NOT NULL,
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS public.transactions (
 
 -- Statements table (monthly reports)
 CREATE TABLE IF NOT EXISTS public.statements (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     investor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     period_year INTEGER NOT NULL CHECK (period_year >= 2024 AND period_year <= 2100),
     period_month INTEGER NOT NULL CHECK (period_month >= 1 AND period_month <= 12),
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS public.statements (
 
 -- Fees table (management and performance fees)
 CREATE TABLE IF NOT EXISTS public.fees (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     investor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     asset_code asset_code NOT NULL,
     amount NUMERIC(38,18) NOT NULL,
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS public.fees (
 
 -- Audit log table (compliance and tracking)
 CREATE TABLE IF NOT EXISTS public.audit_log (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     actor_user UUID REFERENCES auth.users(id),
     action TEXT NOT NULL,
     entity TEXT NOT NULL,
@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS public.audit_log (
 
 -- Yield rates table (already exists, but ensuring structure)
 CREATE TABLE IF NOT EXISTS public.yield_rates (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     asset_id INTEGER NOT NULL REFERENCES public.assets(id),
     daily_yield_percentage NUMERIC(10,8) NOT NULL,
     date DATE NOT NULL,
@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS public.yield_rates (
 
 -- Portfolio history table (already exists, ensuring structure)
 CREATE TABLE IF NOT EXISTS public.portfolio_history (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     asset_id INTEGER NOT NULL REFERENCES public.assets(id),
     balance NUMERIC(38,18) NOT NULL,
@@ -140,14 +140,21 @@ CREATE TABLE IF NOT EXISTS public.portfolio_history (
     UNIQUE(user_id, asset_id, date)
 );
 
--- Deposits table (already exists, updating structure)
-ALTER TABLE public.deposits 
-    ADD COLUMN IF NOT EXISTS created_by UUID REFERENCES auth.users(id),
-    ALTER COLUMN amount TYPE NUMERIC(38,18);
+-- Deposits table
+CREATE TABLE IF NOT EXISTS public.deposits (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    amount NUMERIC(38,18) NOT NULL,
+    asset_symbol TEXT NOT NULL,
+    transaction_hash TEXT,
+    status TEXT DEFAULT 'pending',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    created_by UUID REFERENCES auth.users(id)
+);
 
 -- Admin invites table (already exists, ensuring structure)
 CREATE TABLE IF NOT EXISTS public.admin_invites (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email TEXT NOT NULL,
     invite_code TEXT UNIQUE NOT NULL,
     created_by UUID REFERENCES auth.users(id),

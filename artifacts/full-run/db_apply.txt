@@ -1,0 +1,34 @@
+========================================
+Database Migration Status
+Date: 2025-09-03
+========================================
+
+MIGRATIONS TO APPLY:
+1. 009_fix_profiles_rls_recursion.sql - CRITICAL (fixes infinite recursion)
+2. 004_withdrawals.sql - NEW (withdrawal requests system) 
+3. 005_excel_classes.sql - NEW (fund class support)
+4. 006_cutover_guards.sql - NEW (import control mechanisms)
+
+CURRENT STATUS:
+- Migrations created locally but NOT applied to database
+- RLS infinite recursion issue persists (blocking database queries)
+- Docker not running, cannot apply via local Supabase CLI
+
+ACTION REQUIRED:
+1. Go to Supabase Dashboard: https://supabase.com/dashboard
+2. Navigate to SQL Editor
+3. Apply migrations in this order:
+   a) 009_fix_profiles_rls_recursion.sql (FIRST - fixes critical issue)
+   b) 003_excel_backend.sql (if not already applied)
+   c) 004_withdrawals.sql
+   d) 005_excel_classes.sql
+   e) 006_cutover_guards.sql
+
+ALTERNATIVE:
+1. Start Docker Desktop
+2. Run: npx supabase start
+3. Run: npx supabase db push --include-all
+
+VERIFICATION:
+After applying, run: npm run check:services
+All services should show as "healthy"

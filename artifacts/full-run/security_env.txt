@@ -1,0 +1,39 @@
+========================================
+Security & Environment Configuration
+Date: 2025-09-03
+========================================
+
+SECURITY HEADERS (vercel.json):
+✅ Strict-Transport-Security: max-age=63072000
+✅ X-Content-Type-Options: nosniff
+✅ X-Frame-Options: DENY
+✅ Referrer-Policy: strict-origin-when-cross-origin
+✅ Permissions-Policy: Restrictive (camera, mic, geo disabled)
+✅ Cross-Origin-Opener-Policy: same-origin
+✅ Cross-Origin-Resource-Policy: same-site
+✅ Content-Security-Policy: Comprehensive with Supabase, Sentry, PostHog allowed
+
+ENVIRONMENT VARIABLES FOUND:
+✅ VITE_SUPABASE_URL (in .env.production)
+✅ VITE_SUPABASE_ANON_KEY (in .env.production)
+✅ SUPABASE_SERVICE_ROLE_KEY (in .env.production)
+✅ VITE_SENTRY_DSN (in vercel.json)
+
+MISSING VARIABLES:
+❌ PROJECT_REF (needed for Edge function URLs)
+❌ VITE_POSTHOG_KEY
+❌ VITE_POSTHOG_HOST
+❌ SENTRY_DSN_EDGE (for Edge functions)
+❌ EXCEL_IMPORT_ENABLED (for cutover control)
+❌ EDIT_WINDOW_DAYS
+
+ACTION REQUIRED:
+1. Add PROJECT_REF to .env files (get from Supabase dashboard URL)
+2. Optional: Add PostHog configuration if using analytics
+3. Optional: Add Edge Sentry DSN for Edge function monitoring
+4. Add EXCEL_IMPORT_ENABLED=true initially, set to false after cutover
+5. Add EDIT_WINDOW_DAYS=7 (or desired number)
+
+VERCEL DEPLOYMENT:
+- Ensure all VITE_ variables are added to Vercel environment variables
+- Do NOT add SUPABASE_SERVICE_ROLE_KEY to Vercel (Edge functions only)
