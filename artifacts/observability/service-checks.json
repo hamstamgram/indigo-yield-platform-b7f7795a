@@ -1,41 +1,35 @@
 {
-  "timestamp": "2025-09-02T14:48:40.468Z",
+  "timestamp": "2025-09-03T14:54:48.170Z",
   "supabaseUrl": "https://nkfimvovosdehmyyjubn.supabase.co",
   "checks": [
     {
       "service": "Database",
-      "status": "unhealthy",
-      "latency": 816,
-      "error": "infinite recursion detected in policy for relation \"profiles\"",
-      "details": {
-        "code": "42P17",
-        "details": null,
-        "hint": null,
-        "message": "infinite recursion detected in policy for relation \"profiles\""
-      }
+      "status": "degraded",
+      "latency": 1000,
+      "message": "Database connection successful"
     },
     {
       "service": "Storage",
       "status": "healthy",
-      "latency": 779,
+      "latency": 692,
       "message": "Storage accessible"
     },
     {
       "service": "Authentication",
       "status": "healthy",
-      "latency": 23,
+      "latency": 17,
       "message": "Auth service available"
     },
     {
       "service": "Realtime",
       "status": "healthy",
-      "latency": 1025,
+      "latency": 1018,
       "message": "Realtime service available"
     }
   ],
   "overall": {
     "healthy": 3,
-    "degraded": 0,
-    "unhealthy": 1
+    "degraded": 1,
+    "unhealthy": 0
   }
 }

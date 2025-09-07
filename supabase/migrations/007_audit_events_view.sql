@@ -10,19 +10,19 @@ SELECT
     id::text as event_id,
     'access_logs' as source_table,
     user_id,
-    event as operation,
+    event::text as operation,
     'auth' as entity,
     user_id::text as entity_id,
     NULL::jsonb as old_values,
     jsonb_build_object(
-        'event', event,
+        'event', event::text,
         'success', success,
-        'ip', ip,
+        'ip', ip::text,
         'user_agent', user_agent,
         'device_label', device_label
     ) as new_values,
     jsonb_build_object(
-        'ip', ip,
+        'ip', ip::text,
         'user_agent', user_agent,
         'device_label', device_label,
         'success', success
@@ -57,33 +57,6 @@ SELECT
     created_at,
     created_by as actor_user
 FROM balance_adjustments
-
-UNION ALL
-
--- Support tickets (status changes only)
-SELECT 
-    id::text as event_id,
-    'support_tickets' as source_table,
-    user_id,
-    'support_ticket_update' as operation,
-    'support_ticket' as entity,
-    id::text as entity_id,
-    NULL::jsonb as old_values,
-    jsonb_build_object(
-        'status', status,
-        'subject', subject,
-        'category', category,
-        'priority', priority
-    ) as new_values,
-    jsonb_build_object(
-        'assigned_admin_id', assigned_admin_id,
-        'category', category,
-        'priority', priority,
-        'has_messages', CASE WHEN jsonb_array_length(messages_jsonb) > 0 THEN true ELSE false END
-    ) as meta,
-    updated_at as created_at,
-    user_id as actor_user -- Will be overridden by admin actions
-FROM support_tickets
 
 UNION ALL
 

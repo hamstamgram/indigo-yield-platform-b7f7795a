@@ -3,19 +3,11 @@
 -- Create tables for TOTP secrets, backup codes, and enhanced access logging
 
 -- Enable extensions for encryption
-CREATE EXTENSION IF NOT EXISTS pgsodium;
--- Fallback to pgcrypto if pgsodium is not available
-DO $$ BEGIN
-    CREATE EXTENSION IF NOT EXISTS pgcrypto;
-EXCEPTION
-    WHEN duplicate_object THEN NULL;
-END $$;
+-- Using pgcrypto for encryption functions
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- Create a master encryption key for sensitive data
--- This will be used for TOTP secrets and other sensitive fields
-INSERT INTO pgsodium.key (name, secret) 
-SELECT 'totp_master_key', pgsodium.crypto_aead_det_keygen()
-WHERE NOT EXISTS (SELECT 1 FROM pgsodium.key WHERE name = 'totp_master_key');
+-- Note: TOTP secrets will be encrypted using pgcrypto functions
+-- The application layer should handle encryption/decryption using a secure key
 
 -- TOTP Configuration table
 -- Stores TOTP settings and encrypted secrets for users

@@ -10,7 +10,7 @@ CREATE TYPE ticket_category AS ENUM ('account', 'portfolio', 'statement', 'techn
 
 -- Support tickets table
 CREATE TABLE IF NOT EXISTS public.support_tickets (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     subject TEXT NOT NULL,
     category ticket_category DEFAULT 'general' NOT NULL,

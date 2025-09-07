@@ -56,7 +56,7 @@ BEGIN
     -- Generate secure path without PII in filename
     -- Format: documents/{user_id}/{type}/{uuid}_{sanitized_filename}
     RETURN 'documents/' || user_id::text || '/' || document_type || '/' || 
-           uuid_generate_v4()::text || '_' || 
+           gen_random_uuid()::text || '_' || 
            regexp_replace(filename, '[^a-zA-Z0-9.-]', '_', 'g');
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

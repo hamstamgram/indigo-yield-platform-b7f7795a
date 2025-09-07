@@ -5,7 +5,7 @@
 
 -- Yield settings table
 CREATE TABLE IF NOT EXISTS public.yield_settings (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     frequency TEXT CHECK (frequency IN ('daily', 'weekly')) DEFAULT 'daily' NOT NULL,
     rate_bps INTEGER NOT NULL,
     effective_from TIMESTAMPTZ DEFAULT NOW() NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS public.yield_settings (
 CREATE TYPE document_type AS ENUM ('statement', 'notice', 'terms', 'tax', 'other');
 
 CREATE TABLE IF NOT EXISTS public.documents (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     fund_id UUID, -- nullable for global documents
     type document_type NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS public.documents (
 
 -- User sessions table for session management
 CREATE TABLE IF NOT EXISTS public.user_sessions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     device_label TEXT,
     user_agent TEXT,
@@ -49,7 +49,7 @@ CREATE TYPE notification_type AS ENUM ('deposit', 'statement', 'performance', 's
 CREATE TYPE notification_priority AS ENUM ('low', 'medium', 'high');
 
 CREATE TABLE IF NOT EXISTS public.notifications (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     type notification_type NOT NULL,
     title TEXT NOT NULL,
@@ -70,7 +70,7 @@ END $$;
 CREATE TYPE benchmark_type AS ENUM ('BTC', 'ETH', 'STABLE', 'CUSTOM');
 
 CREATE TABLE IF NOT EXISTS public.fund_configurations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
     currency TEXT DEFAULT 'USD' NOT NULL,
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS public.fund_configurations (
 CREATE TYPE access_event AS ENUM ('login', 'logout', '2fa_setup', '2fa_verify', 'session_revoked', 'password_change');
 
 CREATE TABLE IF NOT EXISTS public.access_logs (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     event access_event NOT NULL,
     ip INET,
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS public.access_logs (
 CREATE TYPE share_scope AS ENUM ('portfolio', 'documents', 'statement');
 
 CREATE TABLE IF NOT EXISTS public.secure_shares (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     owner_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     fund_id UUID, -- nullable
     scope share_scope NOT NULL,
@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS public.secure_shares (
 
 -- Web push subscriptions
 CREATE TABLE IF NOT EXISTS public.web_push_subscriptions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     endpoint TEXT UNIQUE NOT NULL,
     p256dh TEXT NOT NULL,
@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS public.benchmarks (
 
 -- Balance adjustments table
 CREATE TABLE IF NOT EXISTS public.balance_adjustments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     fund_id UUID, -- nullable
     amount NUMERIC(38,18) NOT NULL,
@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS public.balance_adjustments (
 
 -- Fund fee history table
 CREATE TABLE IF NOT EXISTS public.fund_fee_history (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     fund_id UUID NOT NULL REFERENCES public.fund_configurations(id) ON DELETE CASCADE,
     mgmt_fee_bps INTEGER NOT NULL,
     perf_fee_bps INTEGER NOT NULL,

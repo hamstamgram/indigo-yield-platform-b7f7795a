@@ -1,0 +1,540 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0C41989E5524138F8D162A74 /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE0D0E087CC6C308B2823831 /* AuthenticationView.swift */; };
+		0E8AFAA623B90EE30AE20761 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = B4FE8087ECD88C6C2685D9E4 /* KeychainAccess */; };
+		18C071534BF342D42D62A051 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE01593B54DB36BFDE1D3DE4 /* SupabaseConfig.swift */; };
+		1CBEAE7CB48F47A58D4390F3 /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBA899EFD5E8FB7BB5A5A2E8 /* Package.swift */; };
+		3DDB469A8851755CDB447A25 /* Charts in Frameworks */ = {isa = PBXBuildFile; productRef = E5A92F73298524719439669E /* Charts */; };
+		46A9D0D948A6867C6337AD58 /* IndigoInvestorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951987BE5295E8BF0116EC1C /* IndigoInvestorApp.swift */; };
+		742842F380F4C0036D330230 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135ACEF8377F849B0E36684B /* AuthViewModel.swift */; };
+		85518E3BC238205C66220FEA /* ServiceLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 551BFC96C38228D3B6196E27 /* ServiceLocator.swift */; };
+		891BBC0C435EA6A583BDC840 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A133BA85E50755E8FC2E6479 /* DashboardView.swift */; };
+		91ED76AC61071D005C2AC0D1 /* PlaceholderViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9520784DE730879C150EB72 /* PlaceholderViews.swift */; };
+		99DE2DF88DABAC4F343F9D1B /* BiometricAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CAD2080143DC9067C853FAD /* BiometricAuthManager.swift */; };
+		9EAC1AD80CF418A747AAC977 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BD83474EE4ACD4891E8CE78 /* KeychainManager.swift */; };
+		BDF3FA1079D79EA7FD37283F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADDADB3F5657362D503B3D36 /* RootView.swift */; };
+		CB1F85697AC0260B46588DDA /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = D7BC3BE765832F9C2DB15A80 /* Supabase */; };
+		F015996CD3224DCE1B79D391 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 3FBC6AEB837032081F74388B /* Kingfisher */; };
+		FF3B3788B7D6D4B0B3CA04AD /* Portfolio.swift in Sources */ = {isa = PBXBuildFile; fileRef = B830443C8A20580A22B6AD52 /* Portfolio.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		135ACEF8377F849B0E36684B /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		3BD83474EE4ACD4891E8CE78 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
+		4EA401C187F5CBBFDA194FD2 /* IndigoInvestor.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = IndigoInvestor.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		551BFC96C38228D3B6196E27 /* ServiceLocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceLocator.swift; sourceTree = "<group>"; };
+		6F3360526DCA9409BCCFA856 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		951987BE5295E8BF0116EC1C /* IndigoInvestorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndigoInvestorApp.swift; sourceTree = "<group>"; };
+		9CAD2080143DC9067C853FAD /* BiometricAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricAuthManager.swift; sourceTree = "<group>"; };
+		A133BA85E50755E8FC2E6479 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		ADDADB3F5657362D503B3D36 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		B830443C8A20580A22B6AD52 /* Portfolio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Portfolio.swift; sourceTree = "<group>"; };
+		EE01593B54DB36BFDE1D3DE4 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
+		F9520784DE730879C150EB72 /* PlaceholderViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderViews.swift; sourceTree = "<group>"; };
+		FBA899EFD5E8FB7BB5A5A2E8 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
+		FE0D0E087CC6C308B2823831 /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3A5CECC19DFB37ACBC525637 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CB1F85697AC0260B46588DDA /* Supabase in Frameworks */,
+				3DDB469A8851755CDB447A25 /* Charts in Frameworks */,
+				F015996CD3224DCE1B79D391 /* Kingfisher in Frameworks */,
+				0E8AFAA623B90EE30AE20761 /* KeychainAccess in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0152E34C26770BD63281D18A /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				135ACEF8377F849B0E36684B /* AuthViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		02025D3B4BC465B3141F098A /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				F9520784DE730879C150EB72 /* PlaceholderViews.swift */,
+				ADDADB3F5657362D503B3D36 /* RootView.swift */,
+				22CB01DAFA71C6C2FF6CC7AD /* Authentication */,
+				3260E3C4914D43BE9EE9A4CD /* Dashboard */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		20A3C986FAA3B27BD0AAFA7A /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				EE01593B54DB36BFDE1D3DE4 /* SupabaseConfig.swift */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		22CB01DAFA71C6C2FF6CC7AD /* Authentication */ = {
+			isa = PBXGroup;
+			children = (
+				FE0D0E087CC6C308B2823831 /* AuthenticationView.swift */,
+			);
+			path = Authentication;
+			sourceTree = "<group>";
+		};
+		3260E3C4914D43BE9EE9A4CD /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				A133BA85E50755E8FC2E6479 /* DashboardView.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		46042F92EAC2E4EA19CCFAE0 /* IndigoInvestor */ = {
+			isa = PBXGroup;
+			children = (
+				6F3360526DCA9409BCCFA856 /* Info.plist */,
+				FBA899EFD5E8FB7BB5A5A2E8 /* Package.swift */,
+				880728F11FA0ADEDF515E045 /* App */,
+				20A3C986FAA3B27BD0AAFA7A /* Config */,
+				C6E752E5106E8AEBDF8E2617 /* Core */,
+				626A51B3E384535FDA3318C0 /* Models */,
+				0152E34C26770BD63281D18A /* ViewModels */,
+				02025D3B4BC465B3141F098A /* Views */,
+			);
+			path = IndigoInvestor;
+			sourceTree = "<group>";
+		};
+		5499AFE7B8852B5301814B50 = {
+			isa = PBXGroup;
+			children = (
+				46042F92EAC2E4EA19CCFAE0 /* IndigoInvestor */,
+				DFF23F44038FAAD911E25AA4 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		626A51B3E384535FDA3318C0 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				B830443C8A20580A22B6AD52 /* Portfolio.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		880728F11FA0ADEDF515E045 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				951987BE5295E8BF0116EC1C /* IndigoInvestorApp.swift */,
+				551BFC96C38228D3B6196E27 /* ServiceLocator.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		C6E752E5106E8AEBDF8E2617 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				E4BBFA85029E136476E7CBFC /* Security */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		DFF23F44038FAAD911E25AA4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4EA401C187F5CBBFDA194FD2 /* IndigoInvestor.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E4BBFA85029E136476E7CBFC /* Security */ = {
+			isa = PBXGroup;
+			children = (
+				9CAD2080143DC9067C853FAD /* BiometricAuthManager.swift */,
+				3BD83474EE4ACD4891E8CE78 /* KeychainManager.swift */,
+			);
+			path = Security;
+			sourceTree = "<group>";
+		};
+		"TEMP_C6A9FC9A-04E2-4E43-9248-9E56A53AEB0C" /* Features */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		27E9E71348EF8FEC010EA7E1 /* IndigoInvestor */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C1431E0CCD0EC16A330E94DD /* Build configuration list for PBXNativeTarget "IndigoInvestor" */;
+			buildPhases = (
+				E863357BE35EC017736CFBED /* Copy Secrets */,
+				31DB31906E36BFD7EB069575 /* Sources */,
+				3A5CECC19DFB37ACBC525637 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = IndigoInvestor;
+			packageProductDependencies = (
+				D7BC3BE765832F9C2DB15A80 /* Supabase */,
+				E5A92F73298524719439669E /* Charts */,
+				3FBC6AEB837032081F74388B /* Kingfisher */,
+				B4FE8087ECD88C6C2685D9E4 /* KeychainAccess */,
+			);
+			productName = IndigoInvestor;
+			productReference = 4EA401C187F5CBBFDA194FD2 /* IndigoInvestor.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E96F7260A8D80B351458192B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					27E9E71348EF8FEC010EA7E1 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 686E0881AC385E3AF25AC5F7 /* Build configuration list for PBXProject "IndigoInvestor" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 5499AFE7B8852B5301814B50;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				180832E7A52735CF2E57C9BD /* XCRemoteSwiftPackageReference "Charts" */,
+				7943423F7D4B897E758E9C86 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
+				73579FE95DA49CD72565B18E /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				87A5FA2FD1FB333BCF36D3D4 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				27E9E71348EF8FEC010EA7E1 /* IndigoInvestor */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		E863357BE35EC017736CFBED /* Copy Secrets */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Secrets";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ -f \"${PROJECT_DIR}/Config/Secrets.xcconfig\" ]; then\n  cp \"${PROJECT_DIR}/Config/Secrets.xcconfig\" \"${CONFIGURATION_BUILD_DIR}\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		31DB31906E36BFD7EB069575 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				742842F380F4C0036D330230 /* AuthViewModel.swift in Sources */,
+				0C41989E5524138F8D162A74 /* AuthenticationView.swift in Sources */,
+				99DE2DF88DABAC4F343F9D1B /* BiometricAuthManager.swift in Sources */,
+				891BBC0C435EA6A583BDC840 /* DashboardView.swift in Sources */,
+				46A9D0D948A6867C6337AD58 /* IndigoInvestorApp.swift in Sources */,
+				9EAC1AD80CF418A747AAC977 /* KeychainManager.swift in Sources */,
+				1CBEAE7CB48F47A58D4390F3 /* Package.swift in Sources */,
+				91ED76AC61071D005C2AC0D1 /* PlaceholderViews.swift in Sources */,
+				FF3B3788B7D6D4B0B3CA04AD /* Portfolio.swift in Sources */,
+				BDF3FA1079D79EA7FD37283F /* RootView.swift in Sources */,
+				85518E3BC238205C66220FEA /* ServiceLocator.swift in Sources */,
+				18C071534BF342D42D62A051 /* SupabaseConfig.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		0A3E897473A57DC070D45039 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_BITCODE = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = IndigoInvestor;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Debug;
+		};
+		6F58323E25A37BC22A701D66 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				INFOPLIST_FILE = IndigoInvestor/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.indigo.investor;
+				SDKROOT = iphoneos;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B333C64A5BFED27D060EFCA7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_BITCODE = NO;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = IndigoInvestor;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Release;
+		};
+		F2A7844863314711676B1566 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				INFOPLIST_FILE = IndigoInvestor/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.indigo.investor;
+				SDKROOT = iphoneos;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SWIFT_COMPILATION_MODE = singlefile;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		686E0881AC385E3AF25AC5F7 /* Build configuration list for PBXProject "IndigoInvestor" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0A3E897473A57DC070D45039 /* Debug */,
+				B333C64A5BFED27D060EFCA7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C1431E0CCD0EC16A330E94DD /* Build configuration list for PBXNativeTarget "IndigoInvestor" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F2A7844863314711676B1566 /* Debug */,
+				6F58323E25A37BC22A701D66 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		180832E7A52735CF2E57C9BD /* XCRemoteSwiftPackageReference "Charts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/danielgindi/Charts";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
+		73579FE95DA49CD72565B18E /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.10.0;
+			};
+		};
+		7943423F7D4B897E758E9C86 /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.2.2;
+			};
+		};
+		87A5FA2FD1FB333BCF36D3D4 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3FBC6AEB837032081F74388B /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 73579FE95DA49CD72565B18E /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+		B4FE8087ECD88C6C2685D9E4 /* KeychainAccess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7943423F7D4B897E758E9C86 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
+			productName = KeychainAccess;
+		};
+		D7BC3BE765832F9C2DB15A80 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 87A5FA2FD1FB333BCF36D3D4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+		E5A92F73298524719439669E /* Charts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 180832E7A52735CF2E57C9BD /* XCRemoteSwiftPackageReference "Charts" */;
+			productName = Charts;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = E96F7260A8D80B351458192B /* Project object */;
+}

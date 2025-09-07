@@ -1,22 +1,17 @@
 {
-  "timestamp": "2025-09-02T14:21:44.739Z",
+  "timestamp": "2025-09-03T14:17:39.671Z",
   "supabaseUrl": "https://nkfimvovosdehmyyjubn.supabase.co",
   "tests": {
     "lp": [
       {
         "test": "LP can read own profile",
         "passed": false,
-        "error": "infinite recursion detected in policy for relation \"profiles\"",
+        "error": "JSON object requested, multiple (or no) rows returned",
         "data": null
       },
       {
         "test": "LP cannot read other profiles",
-        "passed": {
-          "code": "42P17",
-          "details": null,
-          "hint": null,
-          "message": "infinite recursion detected in policy for relation \"profiles\""
-        },
+        "passed": true,
         "message": "Properly restricted"
       },
       {
@@ -31,8 +26,8 @@
       },
       {
         "test": "LP can only read own statements",
-        "passed": false,
-        "message": "No statements found"
+        "passed": true,
+        "message": "Found 0 statements"
       }
     ],
     "admin": [],
@@ -51,7 +46,7 @@
   },
   "summary": {
     "total": 7,
-    "passed": 5,
-    "failed": 2
+    "passed": 6,
+    "failed": 1
   }
 }
