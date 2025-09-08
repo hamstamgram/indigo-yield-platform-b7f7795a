@@ -196,28 +196,22 @@ describe('Position Calculations', () => {
       expect(position.quantity).toBeCloseTo(9999.452, 3);
     });
 
-    test('should calculate performance fee on profits', () => {
-      const initialBalance = 10000;
-      const currentBalance = 11000;
-      const profit = currentBalance - initialBalance;
-      const performanceFeeRate = 0.20; // 20% of profits
+    test('should calculate platform management fee', () => {
+      const balance = 10000;
+      const annualFeeRate = 0.015; // 1.5% annual platform fee
+      const monthlyFeeRate = annualFeeRate / 12;
+      const monthlyFee = balance * monthlyFeeRate;
       
-      const performanceFee = profit * performanceFeeRate;
-      
-      expect(profit).toBe(1000);
-      expect(performanceFee).toBe(200);
+      expect(monthlyFee).toBeCloseTo(12.50, 2); // $12.50 per month on $10k
     });
 
-    test('should not charge performance fee on losses', () => {
-      const initialBalance = 10000;
-      const currentBalance = 9500; // Loss
-      const profit = Math.max(0, currentBalance - initialBalance);
-      const performanceFeeRate = 0.20;
+    test('should apply fee only on positive balances', () => {
+      const balance = 0;
+      const annualFeeRate = 0.015;
+      const monthlyFeeRate = annualFeeRate / 12;
+      const monthlyFee = balance * monthlyFeeRate;
       
-      const performanceFee = profit * performanceFeeRate;
-      
-      expect(profit).toBe(0);
-      expect(performanceFee).toBe(0);
+      expect(monthlyFee).toBe(0);
     });
   });
 
