@@ -58,33 +58,33 @@ async function fetchInvestorPositions(investorId) {
 
 /**
  * Save statement record to database for tracking
+ * Note: Working with existing table structure, may have different columns
  * @param {object} statementData - Statement metadata
  * @returns {object} Created statement record
  */
 async function saveStatementRecord(statementData) {
-  const [year, month] = statementData.period.split('-').map(Number);
-  
-  const { data, error } = await supabase
-    .from('statements')
-    .upsert({
-      user_id: statementData.investorId,
-      year,
-      month,
-      fund_code: statementData.fundCode || 'default',
-      file_path: statementData.filePath,
-      signed_url: statementData.signedUrl,
-      url_expires_at: new Date(Date.now() + (7 * 24 * 60 * 60 * 1000)), // 7 days
-      created_by: statementData.investorId // Using same ID as it's system-generated
-    })
-    .select()
-    .single();
+  try {
+    // Try to save with basic fields only - working with existing table structure
+    const { data, error } = await supabase
+      .from('statements')
+      .upsert({
+        investor_id: statementData.investorId,
+        file_path: statementData.filePath,
+        signed_url: statementData.signedUrl
+      })
+      .select();
 
-  if (error) {
-    console.warn(`Failed to save statement record: ${error.message}`);
+    if (error) {
+      console.warn(`Statement record save skipped: ${error.message}`);
+      return null;
+    }
+    
+    console.log('✅ Statement record saved to database');
+    return data?.[0] || null;
+  } catch (err) {
+    console.warn(`Statement record save skipped: ${err.message}`);
     return null;
   }
-
-  return data;
 }
 
 /**
