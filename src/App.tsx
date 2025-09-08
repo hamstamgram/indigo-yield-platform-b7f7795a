@@ -42,6 +42,7 @@ import { PageLoadingSpinner } from './components/ui/loading-spinner';
 const AdminTools = lazy(() => import('./pages/AdminTools'));
 const AdminInvite = lazy(() => import('./pages/AdminInvite'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const PortfolioDashboard = lazy(() => import('./pages/admin/PortfolioDashboard'));
 const AdminInvestors = lazy(() => import('./pages/admin/AdminInvestors'));
 const InvestorDetail = lazy(() => import('./pages/admin/InvestorDetail'));
 const YieldSettings = lazy(() => import('./pages/admin/YieldSettings'));
@@ -127,6 +128,7 @@ function App() {
           
           {/* Admin routes - all protected with RequireAdmin */}
           <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+          <Route path="/admin/portfolio" element={<RequireAdmin><PortfolioDashboard /></RequireAdmin>} />
           <Route path="/admin/yield-settings" element={<RequireAdmin><AdminYieldSettingsPage /></RequireAdmin>} />
           <Route path="/admin/investors" element={<RequireAdmin><AdminInvestors /></RequireAdmin>} />
           <Route path="/admin/investors/new" element={<RequireAdmin><AdminInvestorNewPage /></RequireAdmin>} />

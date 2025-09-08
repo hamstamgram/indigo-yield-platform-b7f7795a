@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { SentryTestButton } from '@/components/SentryTestButton';
 
 const SettingsPage = () => {
   const [theme, setTheme] = useState('system');
@@ -37,6 +38,7 @@ const SettingsPage = () => {
         <TabsList className="mb-4 bg-gray-100 dark:bg-gray-800">
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
           <TabsTrigger value="preferences">Preferences</TabsTrigger>
+          <TabsTrigger value="developer">Developer</TabsTrigger>
         </TabsList>
         
         <TabsContent value="appearance">
@@ -166,6 +168,30 @@ const SettingsPage = () => {
               >
                 {saveLoading ? 'Saving...' : 'Save Preferences'}
               </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="developer">
+          <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <CardHeader>
+              <CardTitle className="text-xl">Developer Tools</CardTitle>
+              <CardDescription>Test monitoring and debugging features</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Sentry Test Component */}
+              <SentryTestButton />
+              
+              <Separator />
+              
+              <div className="p-4 bg-gray-100 dark:bg-gray-900 rounded-lg">
+                <h4 className="font-medium mb-2">Environment Information</h4>
+                <div className="text-sm space-y-1 font-mono">
+                  <p>Mode: {import.meta.env.MODE}</p>
+                  <p>Version: {import.meta.env.VITE_APP_VERSION || '1.0.0'}</p>
+                  <p>Build: {import.meta.env.PROD ? 'Production' : 'Development'}</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
