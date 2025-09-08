@@ -62,16 +62,19 @@ async function fetchInvestorPositions(investorId) {
  * @returns {object} Created statement record
  */
 async function saveStatementRecord(statementData) {
+  const [year, month] = statementData.period.split('-').map(Number);
+  
   const { data, error } = await supabase
     .from('statements')
-    .insert({
-      investor_id: statementData.investorId,
-      period: statementData.period,
+    .upsert({
+      user_id: statementData.investorId,
+      year,
+      month,
+      fund_code: statementData.fundCode || 'default',
       file_path: statementData.filePath,
       signed_url: statementData.signedUrl,
-      file_size: statementData.fileSize,
-      generated_at: new Date().toISOString(),
-      status: 'generated'
+      url_expires_at: new Date(Date.now() + (7 * 24 * 60 * 60 * 1000)), // 7 days
+      created_by: statementData.investorId // Using same ID as it's system-generated
     })
     .select()
     .single();
