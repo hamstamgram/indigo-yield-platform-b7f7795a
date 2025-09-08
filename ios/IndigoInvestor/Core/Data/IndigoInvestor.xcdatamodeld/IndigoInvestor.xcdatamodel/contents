@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22225" systemVersion="23B92" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    
+    <!-- Portfolio Entity -->
+    <entity name="PortfolioEntity" representedClassName="PortfolioEntity" syncable="YES">
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="investorId" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="totalValue" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="totalCost" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="totalGain" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="totalGainPercent" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="dayChange" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="dayChangePercent" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="lastUpdated" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="syncedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="positions" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="PositionEntity" inverseName="portfolio" inverseEntity="PositionEntity"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    
+    <!-- Position Entity -->
+    <entity name="PositionEntity" representedClassName="PositionEntity" syncable="YES">
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="portfolioId" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="assetSymbol" attributeType="String"/>
+        <attribute name="assetName" attributeType="String"/>
+        <attribute name="quantity" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="averageCost" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="currentPrice" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="marketValue" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="totalGain" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="totalGainPercent" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="dayChange" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="dayChangePercent" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="allocation" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="syncedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="portfolio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="PortfolioEntity" inverseName="positions" inverseEntity="PortfolioEntity"/>
+    </entity>
+    
+    <!-- Transaction Entity -->
+    <entity name="TransactionEntity" representedClassName="TransactionEntity" syncable="YES">
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="investorId" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="type" attributeType="String"/>
+        <attribute name="amount" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="currency" attributeType="String" defaultValueString="USD"/>
+        <attribute name="status" attributeType="String"/>
+        <attribute name="transactionDescription" optional="YES" attributeType="String"/>
+        <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="settledDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="reference" optional="YES" attributeType="String"/>
+        <attribute name="metadata" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromDataTransformer"/>
+        <attribute name="syncedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    
+    <!-- Statement Entity -->
+    <entity name="StatementEntity" representedClassName="StatementEntity" syncable="YES">
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="investorId" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="period" attributeType="String"/>
+        <attribute name="startDate" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="endDate" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="fileUrl" optional="YES" attributeType="String"/>
+        <attribute name="signedUrl" optional="YES" attributeType="String"/>
+        <attribute name="signedUrlExpiry" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="generatedAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="type" attributeType="String"/>
+        <attribute name="status" attributeType="String"/>
+        <attribute name="syncedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    
+    <!-- Document Entity -->
+    <entity name="DocumentEntity" representedClassName="DocumentEntity" syncable="YES">
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="investorId" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="title" attributeType="String"/>
+        <attribute name="type" attributeType="String"/>
+        <attribute name="category" attributeType="String"/>
+        <attribute name="fileSize" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="mimeType" optional="YES" attributeType="String"/>
+        <attribute name="uploadedAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="isFavorite" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="lastAccessedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="syncedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    
+    <!-- Price Entity for caching -->
+    <entity name="PriceEntity" representedClassName="PriceEntity" syncable="YES">
+        <attribute name="symbol" attributeType="String"/>
+        <attribute name="price" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="change24h" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="change24hPercent" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="high24h" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="low24h" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="volume24h" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="marketCap" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="lastUpdated" attributeType="Date" usesScalarValueType="NO"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="symbol"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    
+    <!-- Withdrawal Request Entity (for offline queue) -->
+    <entity name="WithdrawalRequestEntity" representedClassName="WithdrawalRequestEntity" syncable="YES">
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="investorId" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="amount" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="currency" attributeType="String" defaultValueString="USD"/>
+        <attribute name="status" attributeType="String" defaultValueString="pending"/>
+        <attribute name="destinationType" attributeType="String"/>
+        <attribute name="destinationDetails" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromDataTransformer"/>
+        <attribute name="reason" optional="YES" attributeType="String"/>
+        <attribute name="requestedAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="idempotencyKey" attributeType="String"/>
+        <attribute name="isOfflineRequest" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="syncedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="idempotencyKey"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    
+    <!-- User Settings Entity -->
+    <entity name="UserSettingsEntity" representedClassName="UserSettingsEntity" syncable="YES">
+        <attribute name="userId" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="biometricEnabled" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="pushNotificationsEnabled" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="emailNotificationsEnabled" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="notifyTransactions" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="notifyYieldPayments" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="notifyWithdrawals" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="notifyStatements" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="preferredCurrency" attributeType="String" defaultValueString="USD"/>
+        <attribute name="theme" attributeType="String" defaultValueString="system"/>
+        <attribute name="syncedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="userId"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    
+    <!-- Sync Metadata Entity -->
+    <entity name="SyncMetadataEntity" representedClassName="SyncMetadataEntity" syncable="YES">
+        <attribute name="entityName" attributeType="String"/>
+        <attribute name="lastSyncDate" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="syncStatus" attributeType="String" defaultValueString="idle"/>
+        <attribute name="recordCount" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="errorMessage" optional="YES" attributeType="String"/>
+        <attribute name="nextSyncToken" optional="YES" attributeType="String"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="entityName"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    
+</model>
