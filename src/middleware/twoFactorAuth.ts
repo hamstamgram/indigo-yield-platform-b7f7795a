@@ -42,10 +42,6 @@ export async function checkMFAStatus(): Promise<MFAStatus> {
 }
 
 export async function enforceAdminMFA(): Promise<boolean> {
-  if (!import.meta.env.VITE_ENABLE_2FA_ENFORCEMENT) {
-    return true; // Skip in development if disabled
-  }
-
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
@@ -55,11 +51,11 @@ export async function enforceAdminMFA(): Promise<boolean> {
   // Check if user is admin/staff
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('is_admin')
     .eq('id', user.id)
     .single();
 
-  if (!profile || !['admin', 'staff'].includes(profile.role)) {
+  if (!profile?.is_admin) {
     return true; // Not an admin, no MFA required
   }
 
