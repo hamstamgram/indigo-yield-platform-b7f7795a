@@ -1,0 +1,256 @@
+{
+  "summary": {
+    "overallStatus": "issues found",
+    "criticalFindings": [
+      "addAssetsToInvestor workflow failing due to missing RLS insert policy on portfolios table",
+      "Missing x-frame-options security header",
+      "CSP allows unsafe-inline and unsafe-eval scripts"
+    ],
+    "recommendations": [
+      "Add RLS policy for portfolios table allowing admin inserts",
+      "Add x-frame-options: DENY header to vercel.json",
+      "Restrict CSP to remove unsafe-inline and unsafe-eval",
+      "Test investor asset addition workflow end-to-end"
+    ]
+  },
+  "frontend": {
+    "pages": [
+      {
+        "name": "Index",
+        "status": "pass",
+        "issues": [],
+        "connectedRoutes": ["/login", "/dashboard"]
+      },
+      {
+        "name": "Login",
+        "status": "pass", 
+        "issues": [],
+        "connectedRoutes": ["/dashboard", "/admin"]
+      },
+      {
+        "name": "Dashboard",
+        "status": "pass",
+        "issues": [],
+        "connectedRoutes": ["/portfolio/analytics", "/settings/profile"]
+      },
+      {
+        "name": "AdminInvestors",
+        "status": "warning",
+        "issues": [
+          {
+            "description": "InvestorAssetDropdown component may fail on portfolio inserts due to RLS policies",
+            "severity": "high",
+            "actionable": true
+          }
+        ],
+        "connectedRoutes": ["/admin/investors/new", "/admin/investors/:id"]
+      },
+      {
+        "name": "EnhancedDashboard",
+        "status": "pass",
+        "issues": [],
+        "connectedRoutes": ["/transactions", "/statements", "/documents"]
+      }
+    ]
+  },
+  "backend": {
+    "supabase": {
+      "status": "warning",
+      "endpoints": [
+        {
+          "name": "GET /rest/v1/profiles",
+          "status": "pass",
+          "issues": []
+        },
+        {
+          "name": "GET /rest/v1/portfolios", 
+          "status": "pass",
+          "issues": []
+        },
+        {
+          "name": "POST /rest/v1/portfolios",
+          "status": "fail",
+          "issues": [
+            {
+              "description": "Insert operations likely blocked by missing RLS policy for admin users",
+              "severity": "high", 
+              "actionable": true
+            }
+          ]
+        },
+        {
+          "name": "GET /rest/v1/assets",
+          "status": "pass",
+          "issues": []
+        },
+        {
+          "name": "POST /auth/v1/token",
+          "status": "pass",
+          "issues": []
+        }
+      ]
+    }
+  },
+  "routing": {
+    "routes": [
+      {
+        "path": "/",
+        "connected": true,
+        "missing": false,
+        "issues": []
+      },
+      {
+        "path": "/login",
+        "connected": true,
+        "missing": false,
+        "issues": []
+      },
+      {
+        "path": "/dashboard", 
+        "connected": true,
+        "missing": false,
+        "issues": []
+      },
+      {
+        "path": "/admin/investors",
+        "connected": true,
+        "missing": false,
+        "issues": ["Requires admin role verification"]
+      },
+      {
+        "path": "/admin/investors/:id",
+        "connected": true,
+        "missing": false,
+        "issues": ["Dynamic route with admin protection"]
+      },
+      {
+        "path": "/portfolio/analytics",
+        "connected": true,
+        "missing": false,
+        "issues": []
+      },
+      {
+        "path": "/settings/profile",
+        "connected": true,
+        "missing": false,
+        "issues": []
+      },
+      {
+        "path": "/withdrawals",
+        "connected": true,
+        "missing": false,
+        "issues": []
+      },
+      {
+        "path": "/documents",
+        "connected": true,
+        "missing": false,
+        "issues": []
+      }
+    ]
+  },
+  "appConnectivity": {
+    "components": [
+      {
+        "component": "InvestorAssetDropdown",
+        "connectedTo": ["Supabase REST API", "portfolios table"],
+        "issues": ["Insert mutation may fail due to RLS policy"]
+      },
+      {
+        "component": "Dashboard",
+        "connectedTo": ["profiles table", "portfolios table", "assets table", "crypto price API"],
+        "issues": []
+      },
+      {
+        "component": "AuthProvider",
+        "connectedTo": ["Supabase Auth"],
+        "issues": []
+      },
+      {
+        "component": "RequireAdmin",
+        "connectedTo": ["profiles.is_admin check"],
+        "issues": []
+      }
+    ]
+  },
+  "notableWorkflows": {
+    "addAssetsToInvestor": {
+      "status": "fail",
+      "issues": [
+        {
+          "description": "Portfolio insert operation fails with RLS policy violation - likely 42501 error code when admin tries to add assets for investors",
+          "severity": "high",
+          "actionable": true
+        },
+        {
+          "description": "No error handling or user feedback when mutation fails silently",
+          "severity": "medium", 
+          "actionable": true
+        }
+      ]
+    }
+  },
+  "integrations": {
+    "toolsAndServices": [
+      {
+        "name": "Supabase",
+        "status": "pass",
+        "integrationPoints": ["client init in supabase/client.ts", "REST API endpoints", "Auth flows", "RLS policies", "Storage buckets"],
+        "issues": [
+          {
+            "description": "Hardcoded fallback URL and anon key in client.ts - should use environment variables only",
+            "severity": "medium",
+            "actionable": true
+          }
+        ]
+      },
+      {
+        "name": "Sentry",
+        "status": "pass",
+        "integrationPoints": ["client init in utils/monitoring/sentry.ts", "error capturing", "session replay"],
+        "issues": [
+          {
+            "description": "Two different Sentry init files exist (lib/sentry.ts and utils/monitoring/sentry.ts) - consolidate to avoid conflicts",
+            "severity": "low",
+            "actionable": true
+          }
+        ]
+      },
+      {
+        "name": "PostHog",
+        "status": "pass",
+        "integrationPoints": ["client init in lib/posthog.ts", "event tracking", "session recording with masked inputs"],
+        "issues": [
+          {
+            "description": "Multiple PostHog init files exist - choose one implementation",
+            "severity": "low",
+            "actionable": true
+          }
+        ]
+      },
+      {
+        "name": "MailerLite", 
+        "status": "pass",
+        "integrationPoints": ["MCP server in mcp-servers/mailerlite-server.js", "API token via env"],
+        "issues": []
+      },
+      {
+        "name": "Vercel",
+        "status": "warning", 
+        "integrationPoints": ["deployment platform", "security headers via vercel.json", "environment variables"],
+        "issues": [
+          {
+            "description": "Missing x-frame-options header in security configuration",
+            "severity": "medium",
+            "actionable": true
+          },
+          {
+            "description": "CSP allows unsafe-inline and unsafe-eval which reduces XSS protection", 
+            "severity": "medium",
+            "actionable": true
+          }
+        ]
+      }
+    ]
+  }
+}

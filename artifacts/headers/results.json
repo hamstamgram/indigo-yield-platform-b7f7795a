@@ -1,0 +1,109 @@
+{
+  "url": "https://indigo-yield-platform-v01-hamstamgrams-projects.vercel.app",
+  "timestamp": "2025-09-07T16:50:48.601Z",
+  "statusCode": 200,
+  "headers": {
+    "strict-transport-security": {
+      "name": "strict-transport-security",
+      "present": true,
+      "value": "max-age=63072000; includeSubDomains; preload",
+      "valid": true,
+      "issues": [],
+      "description": "Forces HTTPS connections",
+      "required": true
+    },
+    "x-content-type-options": {
+      "name": "x-content-type-options",
+      "present": true,
+      "value": "nosniff",
+      "valid": true,
+      "issues": [],
+      "description": "Prevents MIME type sniffing",
+      "required": true
+    },
+    "x-frame-options": {
+      "name": "x-frame-options",
+      "present": false,
+      "valid": false,
+      "issues": [
+        "Header is missing"
+      ],
+      "description": "Prevents clickjacking",
+      "required": true
+    },
+    "referrer-policy": {
+      "name": "referrer-policy",
+      "present": true,
+      "value": "strict-origin-when-cross-origin",
+      "valid": true,
+      "issues": [],
+      "description": "Controls referrer information",
+      "required": true
+    },
+    "permissions-policy": {
+      "name": "permissions-policy",
+      "present": true,
+      "value": "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), speaker=(), vibrate=(), fullscreen=(self)",
+      "valid": true,
+      "issues": [],
+      "description": "Restricts browser features",
+      "required": true
+    },
+    "content-security-policy": {
+      "name": "content-security-policy",
+      "present": true,
+      "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.vercel.app *.supabase.co *.posthog.com *.sentry.io *.sentry-cdn.com unpkg.com browser.sentry-cdn.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src 'self' fonts.gstatic.com; img-src 'self' data: *.supabase.co *.vercel.app; connect-src 'self' *.supabase.co *.posthog.com *.sentry.io *.vercel.app *.ingest.de.sentry.io; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';",
+      "valid": true,
+      "issues": [],
+      "description": "Prevents XSS and data injection",
+      "required": true
+    },
+    "cross-origin-opener-policy": {
+      "name": "cross-origin-opener-policy",
+      "present": false,
+      "valid": false,
+      "issues": [],
+      "description": "Isolates browsing context",
+      "required": false
+    },
+    "cross-origin-resource-policy": {
+      "name": "cross-origin-resource-policy",
+      "present": false,
+      "valid": false,
+      "issues": [],
+      "description": "Prevents resource loading from other origins",
+      "required": false
+    }
+  },
+  "summary": {
+    "total": 8,
+    "present": 5,
+    "valid": 5,
+    "missing": 1,
+    "invalid": 0
+  },
+  "score": 83,
+  "cspAnalysis": {
+    "directives": {
+      "default-src": "'self'",
+      "script-src": "'self' 'unsafe-inline' 'unsafe-eval' *.vercel.app *.supabase.co *.posthog.com *.sentry.io *.sentry-cdn.com unpkg.com browser.sentry-cdn.com",
+      "style-src": "'self' 'unsafe-inline' fonts.googleapis.com",
+      "font-src": "'self' fonts.gstatic.com",
+      "img-src": "'self' data: *.supabase.co *.vercel.app",
+      "connect-src": "'self' *.supabase.co *.posthog.com *.sentry.io *.vercel.app *.ingest.de.sentry.io",
+      "object-src": "'none'",
+      "base-uri": "'self'",
+      "form-action": "'self'",
+      "frame-ancestors": "'none'"
+    },
+    "analysis": {
+      "hasDefaultSrc": true,
+      "hasScriptSrc": true,
+      "hasStyleSrc": true,
+      "hasFrameAncestors": true,
+      "hasObjectSrc": true,
+      "allowsUnsafeInline": true,
+      "allowsUnsafeEval": true
+    }
+  }
+}
