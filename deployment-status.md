@@ -54,18 +54,26 @@
 #### Blocking Issue
 - **Git Author Access**: Vercel is blocking deployments with error:
   ```
-  Git author hamstamgram@gmail.com must have access to the team hamstamgram's projects
+  Git author hammadou@indigo.fund must have access to the team hamstamgram's projects
   ```
-  - This appears to be a team permissions issue on Vercel
-  - The account is authenticated but lacks deployment permissions
+  - Git config has been updated to use `hammadou@indigo.fund`
+  - This email needs deployment permissions on the Vercel team
 
 ### 🚀 Next Steps to Resolve
 
-1. **Immediate Actions Needed**:
-   - Log into Vercel web dashboard at https://vercel.com
-   - Navigate to Team Settings > Members
-   - Ensure hamstamgram@gmail.com has deployment permissions
-   - OR: Create a new deployment token with appropriate permissions
+1. **Option A - Add Team Member** (Recommended):
+   - Log into Vercel at https://vercel.com
+   - Navigate to: https://vercel.com/teams/hamstamgrams-projects/settings/members
+   - Click "Invite Members"
+   - Add `hammadou@indigo.fund` with deployment permissions
+   - Accept invitation from email
+   - Run: `vercel deploy`
+
+2. **Option B - Use Deployment Token**:
+   - Go to: https://vercel.com/account/tokens
+   - Create a new token with deployment permissions
+   - Export: `export VERCEL_TOKEN='your-token'`
+   - Run: `./scripts/deploy-with-token.sh preview`
 
 2. **Alternative Deployment Options**:
    - Deploy via GitHub integration (push to main branch)
