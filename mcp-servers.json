@@ -5,6 +5,60 @@
       "args": ["@modelcontextprotocol/server-filesystem", "/Users/mama/indigo-yield-platform-v01"],
       "description": "File system operations for the project directory"
     },
+    "memory": {
+      "command": "node",
+      "args": [
+        "/Users/mama/Desktop/mcp-servers/mcp-servers-official/src/memory/dist/index.js"
+      ],
+      "env": {
+        "MEMORY_DB_PATH": "/Users/mama/indigo-yield-platform-v01/.mcp/memory.sqlite"
+      },
+      "description": "Persistent memory storage for context and information"
+    },
+    "sequentialthinking": {
+      "command": "node",
+      "args": [
+        "/Users/mama/Desktop/mcp-servers/mcp-servers-official/src/sequentialthinking/dist/index.js"
+      ],
+      "env": {
+        "SEQTHINK_MAX_STEPS": "10"
+      },
+      "description": "Sequential thinking and reasoning capabilities"
+    },
+    "brightdata": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@brightdata/mcp@2.5.0"
+      ],
+      "env": {
+        "BRIGHTDATA_API_TOKEN": "{{env.BRIGHTDATA_API_TOKEN}}"
+      },
+      "description": "Web scraping and data collection via Bright Data"
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@1.0.17"
+      ],
+      "env": {
+        "UPSTASH_VECTOR_REST_URL": "{{env.UPSTASH_VECTOR_REST_URL}}",
+        "UPSTASH_VECTOR_REST_TOKEN": "{{env.UPSTASH_VECTOR_REST_TOKEN}}"
+      },
+      "description": "Vector database and context management via Upstash"
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@brave/brave-search-mcp-server@1.3.7"
+      ],
+      "env": {
+        "BRAVE_API_KEY": "{{env.BRAVE_API_KEY}}"
+      },
+      "description": "Web search using Brave Search API with AI summaries and rich results"
+    },
     "enhanced-postgres-dev": {
       "command": "npx",
       "args": ["enhanced-postgres-mcp-server"],

@@ -25,3 +25,4 @@ dist-ssr
 mcp-jotform/
 .vercel
 .env*.local
+.env.mcp

@@ -11,7 +11,7 @@
 		0E8AFAA623B90EE30AE20761 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = B4FE8087ECD88C6C2685D9E4 /* KeychainAccess */; };
 		18C071534BF342D42D62A051 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE01593B54DB36BFDE1D3DE4 /* SupabaseConfig.swift */; };
 		1CBEAE7CB48F47A58D4390F3 /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBA899EFD5E8FB7BB5A5A2E8 /* Package.swift */; };
-		3DDB469A8851755CDB447A25 /* Charts in Frameworks */ = {isa = PBXBuildFile; productRef = E5A92F73298524719439669E /* Charts */; };
+		3DDB469A8851755CDB447A25 /* DGCharts in Frameworks */ = {isa = PBXBuildFile; productRef = E5A92F73298524719439669E /* DGCharts */; };
 		46A9D0D948A6867C6337AD58 /* IndigoInvestorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951987BE5295E8BF0116EC1C /* IndigoInvestorApp.swift */; };
 		742842F380F4C0036D330230 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135ACEF8377F849B0E36684B /* AuthViewModel.swift */; };
 		85518E3BC238205C66220FEA /* ServiceLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 551BFC96C38228D3B6196E27 /* ServiceLocator.swift */; };
@@ -48,7 +48,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CB1F85697AC0260B46588DDA /* Supabase in Frameworks */,
-				3DDB469A8851755CDB447A25 /* Charts in Frameworks */,
+				3DDB469A8851755CDB447A25 /* DGCharts in Frameworks */,
 				F015996CD3224DCE1B79D391 /* Kingfisher in Frameworks */,
 				0E8AFAA623B90EE30AE20761 /* KeychainAccess in Frameworks */,
 			);
@@ -190,7 +190,7 @@
 			name = IndigoInvestor;
 			packageProductDependencies = (
 				D7BC3BE765832F9C2DB15A80 /* Supabase */,
-				E5A92F73298524719439669E /* Charts */,
+				E5A92F73298524719439669E /* DGCharts */,
 				3FBC6AEB837032081F74388B /* Kingfisher */,
 				B4FE8087ECD88C6C2685D9E4 /* KeychainAccess */,
 			);
@@ -529,10 +529,10 @@
 			package = 87A5FA2FD1FB333BCF36D3D4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Supabase;
 		};
-		E5A92F73298524719439669E /* Charts */ = {
+		E5A92F73298524719439669E /* DGCharts */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 180832E7A52735CF2E57C9BD /* XCRemoteSwiftPackageReference "Charts" */;
-			productName = Charts;
+			productName = DGCharts;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
