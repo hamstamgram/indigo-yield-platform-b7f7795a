@@ -81,14 +81,14 @@ const PortfolioDashboard: React.FC = () => {
   const fetchPortfolioData = async () => {
     setLoading(true);
     try {
-      // Fetch portfolio sync data
+      // Fetch portfolio sync data from Indigo Fund Vision Supabase
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/portfolio-sync-all-v2`,
+        `${import.meta.env.VITE_PORTFOLIO_SUPABASE_URL}/functions/v1/portfolio-sync-all-v2`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'Authorization': `Bearer ${import.meta.env.VITE_PORTFOLIO_SUPABASE_ANON_KEY}`,
           },
         }
       );
@@ -99,14 +99,14 @@ const PortfolioDashboard: React.FC = () => {
         setLastSync(new Date());
       }
 
-      // Fetch consolidated portfolio data
+      // Fetch consolidated portfolio data from Indigo Fund Vision Supabase
       const consolidatedResponse = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/consolidate-portfolio`,
+        `${import.meta.env.VITE_PORTFOLIO_SUPABASE_URL}/functions/v1/consolidate-portfolio`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'Authorization': `Bearer ${import.meta.env.VITE_PORTFOLIO_SUPABASE_ANON_KEY}`,
           },
         }
       );

@@ -45,8 +45,6 @@ struct MainTabView: View {
                             AssetDetailView(symbol: symbol)
                         case .yieldHistory:
                             YieldHistoryView()
-                        case .performanceAnalytics:
-                            PerformanceAnalyticsView()
                         }
                     }
             }
@@ -83,8 +81,6 @@ struct MainTabView: View {
                             DocumentViewerView(documentId: id)
                         case .statement(let id):
                             StatementView(statementId: id)
-                        case .taxDocuments:
-                            TaxDocumentsView()
                         }
                     }
             }
@@ -219,7 +215,6 @@ enum DashboardDestination: Hashable {
 enum PortfolioDestination: Hashable {
     case assetDetail(symbol: String)
     case yieldHistory
-    case performanceAnalytics
 }
 
 enum TransactionDestination: Hashable {
@@ -231,7 +226,6 @@ enum TransactionDestination: Hashable {
 enum DocumentDestination: Hashable {
     case viewer(id: String)
     case statement(id: String)
-    case taxDocuments
 }
 
 enum AccountDestination: Hashable {

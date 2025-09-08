@@ -56,7 +56,6 @@ export default function DocumentsVault() {
   const getDocumentTypeLabel = (type: string) => {
     switch (type) {
       case 'statement': return 'Statements';
-      case 'tax': return 'Tax Documents';
       case 'legal': return 'Legal Documents';
       case 'notice': return 'Notices';
       case 'other': return 'Other';
@@ -95,7 +94,7 @@ export default function DocumentsVault() {
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
           <h1 className="text-2xl font-semibold text-gray-900 mb-2">Document Vault</h1>
-          <p className="text-gray-600">Access your statements, tax documents, and other important files</p>
+          <p className="text-gray-600">Access your statements and other important files</p>
         </div>
 
         <Card>
@@ -116,7 +115,6 @@ export default function DocumentsVault() {
                   <SelectContent>
                     <SelectItem value="all">All Documents</SelectItem>
                     <SelectItem value="statement">Statements</SelectItem>
-                    <SelectItem value="tax">Tax Documents</SelectItem>
                     <SelectItem value="legal">Legal Documents</SelectItem>
                     <SelectItem value="notice">Notices</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
@@ -158,7 +156,6 @@ export default function DocumentsVault() {
           <h3 className="text-sm font-medium text-blue-800 mb-2">Document Access</h3>
           <ul className="text-xs text-blue-700 space-y-1">
             <li>• Monthly statements are available within 5 business days of month-end</li>
-            <li>• Tax documents are generated annually and available by January 31st</li>
             <li>• All downloads use secure, time-limited links for your protection</li>
             <li>• Contact support if you're missing any expected documents</li>
           </ul>

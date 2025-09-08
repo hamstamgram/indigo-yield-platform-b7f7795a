@@ -43,6 +43,27 @@ else
     echo "✓ Brave Search API key found"
 fi
 
+# Airtable MCP Server
+if [ -z "$AIRTABLE_API_KEY" ]; then
+    echo "⚠️  AIRTABLE_API_KEY not set - Airtable MCP will not work"
+    echo "   Get your Personal Access Token from: https://airtable.com/create/tokens"
+else
+    echo "✓ Airtable API key found"
+    # Check if it starts with 'pat' (Personal Access Token format)
+    if [[ "$AIRTABLE_API_KEY" =~ ^pat ]]; then
+        echo "   Token format looks correct (starts with 'pat')"
+    else
+        echo "   ⚠️  Warning: Token doesn't start with 'pat' - ensure it's a Personal Access Token"
+    fi
+    # Export additional Airtable variables
+    export AIRTABLE_API_KEY
+    export AIRTABLE_BASE_IDS="${AIRTABLE_BASE_IDS:-}"
+    export AIRTABLE_API_URL="${AIRTABLE_API_URL:-https://api.airtable.com}"
+    if [ -n "$AIRTABLE_BASE_IDS" ]; then
+        echo "   Restricted to specific bases: $AIRTABLE_BASE_IDS"
+    fi
+fi
+
 echo ""
 echo "Environment setup complete!"
 echo ""

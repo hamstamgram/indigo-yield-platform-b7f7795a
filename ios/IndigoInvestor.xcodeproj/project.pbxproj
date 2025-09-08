@@ -10,7 +10,6 @@
 		0C41989E5524138F8D162A74 /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE0D0E087CC6C308B2823831 /* AuthenticationView.swift */; };
 		0E8AFAA623B90EE30AE20761 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = B4FE8087ECD88C6C2685D9E4 /* KeychainAccess */; };
 		18C071534BF342D42D62A051 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE01593B54DB36BFDE1D3DE4 /* SupabaseConfig.swift */; };
-		1CBEAE7CB48F47A58D4390F3 /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBA899EFD5E8FB7BB5A5A2E8 /* Package.swift */; };
 		3DDB469A8851755CDB447A25 /* DGCharts in Frameworks */ = {isa = PBXBuildFile; productRef = E5A92F73298524719439669E /* DGCharts */; };
 		46A9D0D948A6867C6337AD58 /* IndigoInvestorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951987BE5295E8BF0116EC1C /* IndigoInvestorApp.swift */; };
 		742842F380F4C0036D330230 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135ACEF8377F849B0E36684B /* AuthViewModel.swift */; };
@@ -38,7 +37,6 @@
 		B830443C8A20580A22B6AD52 /* Portfolio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Portfolio.swift; sourceTree = "<group>"; };
 		EE01593B54DB36BFDE1D3DE4 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
 		F9520784DE730879C150EB72 /* PlaceholderViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderViews.swift; sourceTree = "<group>"; };
-		FBA899EFD5E8FB7BB5A5A2E8 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		FE0D0E087CC6C308B2823831 /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -104,7 +102,6 @@
 			isa = PBXGroup;
 			children = (
 				6F3360526DCA9409BCCFA856 /* Info.plist */,
-				FBA899EFD5E8FB7BB5A5A2E8 /* Package.swift */,
 				880728F11FA0ADEDF515E045 /* App */,
 				20A3C986FAA3B27BD0AAFA7A /* Config */,
 				C6E752E5106E8AEBDF8E2617 /* Core */,
@@ -270,7 +267,6 @@
 				891BBC0C435EA6A583BDC840 /* DashboardView.swift in Sources */,
 				46A9D0D948A6867C6337AD58 /* IndigoInvestorApp.swift in Sources */,
 				9EAC1AD80CF418A747AAC977 /* KeychainManager.swift in Sources */,
-				1CBEAE7CB48F47A58D4390F3 /* Package.swift in Sources */,
 				91ED76AC61071D005C2AC0D1 /* PlaceholderViews.swift in Sources */,
 				FF3B3788B7D6D4B0B3CA04AD /* Portfolio.swift in Sources */,
 				BDF3FA1079D79EA7FD37283F /* RootView.swift in Sources */,

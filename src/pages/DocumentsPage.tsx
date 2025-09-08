@@ -75,26 +75,6 @@ const sampleDocuments: Document[] = [
     },
   },
   {
-    id: 'doc_002',
-    user_id: 'user_123',
-    fund_id: 'fund_001',
-    type: 'tax',
-    title: '2023 Tax Documents',
-    description: 'Year-end tax forms and supporting documentation',
-    storage_path: 'documents/user_123/2024/01/tax/doc_002',
-    filename: 'tax_2023_doc_002.pdf',
-    file_size: 1024000,
-    mime_type: 'application/pdf',
-    tax_year: 2023,
-    status: 'ready',
-    created_at: new Date('2024-01-15'),
-    created_by: 'admin_456',
-    checksum: 'def456ghi789',
-    metadata: {
-      confidentiality: 'restricted',
-    },
-  },
-  {
     id: 'doc_003',
     fund_id: 'fund_001',
     type: 'notice',
@@ -120,7 +100,6 @@ const typeIcons: Record<DocumentType, React.ComponentType<any>> = {
   statement: FileText,
   notice: Bell,
   terms: ScrollText,
-  tax: Receipt,
   agreement: FileSignature,
   report: BarChart3,
   certificate: Award,
@@ -219,7 +198,7 @@ export default function DocumentsPage() {
         <div>
           <h1 className="text-3xl font-bold">Documents</h1>
           <p className="text-gray-600 mt-2">
-            Access your account statements, tax documents, and fund information
+            Access your account statements and fund information
           </p>
         </div>
       </div>

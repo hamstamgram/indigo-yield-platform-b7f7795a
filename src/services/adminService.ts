@@ -111,48 +111,60 @@ export const listInvestors = async (options?: {
   limit?: number;
   offset?: number;
 }): Promise<InvestorSummary[]> => {
-  if (shouldUseStubs()) {
-    return adminStubs.listInvestors(options);
-  }
-
   try {
-    // TODO: Implement real Supabase queries for investor list
     console.log("Fetching investors from database...", options);
     
-    // Example of what real implementation might look like:
-    // let query = supabase
-    //   .from('profiles')
-    //   .select(`
-    //     id,
-    //     first_name,
-    //     last_name,
-    //     email,
-    //     portfolios (
-    //       total_principal,
-    //       total_earned
-    //     )
-    //   `)
-    //   .eq('is_admin', false);
+    // Use the new RPC function to get all investors with summaries
+    const { data, error } = await supabase
+      .rpc('get_all_investors_with_summary');
     
-    // if (options?.search) {
-    //   query = query.or(`email.ilike.%${options.search}%,first_name.ilike.%${options.search}%,last_name.ilike.%${options.search}%`);
-    // }
+    if (error) {
+      console.error("Error fetching investors from database:", error);
+      // Fall back to stubs if there's an error
+      if (shouldUseStubs()) {
+        return adminStubs.listInvestors(options);
+      }
+      throw error;
+    }
     
-    // if (options?.limit) {
-    //   query = query.limit(options.limit);
-    // }
+    if (!data || data.length === 0) {
+      console.log("No investors found in database");
+      return [];
+    }
     
-    // if (options?.offset) {
-    //   query = query.range(options.offset, options.offset + (options.limit || 10) - 1);
-    // }
+    // Transform the data to match InvestorSummary interface
+    let investors: InvestorSummary[] = data.map(investor => ({
+      id: investor.id,
+      email: investor.email,
+      name: `${investor.first_name || ''} ${investor.last_name || ''}`.trim() || 'Unnamed',
+      totalPrincipal: `$${investor.total_aum?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}`,
+      totalEarned: '$0.00', // This would need to be calculated from transactions
+      lastActive: investor.last_statement_date || undefined,
+      status: 'active' as const // Default to active, could be enhanced with actual status
+    }));
     
-    // const { data, error } = await query;
+    // Apply client-side search filter if provided
+    if (options?.search) {
+      const searchTerm = options.search.toLowerCase();
+      investors = investors.filter(
+        investor =>
+          investor.email.toLowerCase().includes(searchTerm) ||
+          investor.name?.toLowerCase().includes(searchTerm)
+      );
+    }
     
-    // For preview, fall back to stubs
-    return adminStubs.listInvestors(options);
+    // Apply pagination
+    const limit = options?.limit || 100;
+    const offset = options?.offset || 0;
+    
+    return investors.slice(offset, offset + limit);
   } catch (error) {
     console.error("Error fetching investors:", error);
-    return adminStubs.listInvestors(options);
+    // Fall back to stubs as last resort
+    if (shouldUseStubs()) {
+      return adminStubs.listInvestors(options);
+    }
+    return [];
   }
 };
 
@@ -162,46 +174,92 @@ export const listInvestors = async (options?: {
  * @returns Investor detail or null if not found
  */
 export const getInvestorById = async (id: string): Promise<InvestorDetail | null> => {
-  if (shouldUseStubs()) {
-    return adminStubs.getInvestorById(id);
-  }
-
   try {
-    // TODO: Implement real Supabase queries for investor detail
     console.log("Fetching investor detail from database...", id);
     
-    // Example of what real implementation might look like:
-    // const { data: profile, error } = await supabase
-    //   .from('profiles')
-    //   .select(`
-    //     id,
-    //     first_name,
-    //     last_name,
-    //     email,
-    //     kyc_status,
-    //     portfolios (
-    //       asset_symbol,
-    //       principal,
-    //       earned,
-    //       current_apy
-    //     ),
-    //     transactions (
-    //       id,
-    //       type,
-    //       asset_symbol,
-    //       amount,
-    //       created_at,
-    //       status
-    //     )
-    //   `)
-    //   .eq('id', id)
-    //   .single();
+    // Get profile data
+    const { data: profileData, error: profileError } = await supabase
+      .rpc('get_profile_by_id', { profile_id: id });
     
-    // For preview, fall back to stubs
-    return adminStubs.getInvestorById(id);
+    if (profileError) {
+      console.error("Error fetching investor profile:", profileError);
+      if (shouldUseStubs()) {
+        return adminStubs.getInvestorById(id);
+      }
+      throw profileError;
+    }
+    
+    if (!profileData || profileData.length === 0) {
+      return null;
+    }
+    
+    const profile = profileData[0];
+    
+    // Get portfolio summary
+    const { data: summaryData, error: summaryError } = await supabase
+      .rpc('get_investor_portfolio_summary', { investor_id: id });
+    
+    if (summaryError) {
+      console.error("Error fetching portfolio summary:", summaryError);
+    }
+    
+    const summary = summaryData?.[0] || { total_aum: 0, portfolio_count: 0 };
+    
+    // Get portfolios for positions
+    const { data: portfolios, error: portfoliosError } = await supabase
+      .from('portfolios')
+      .select('asset_symbol, current_value')
+      .eq('profile_id', id);
+    
+    if (portfoliosError) {
+      console.error("Error fetching portfolios:", portfoliosError);
+    }
+    
+    // Get recent transactions
+    const { data: transactions, error: transactionsError } = await supabase
+      .from('transactions')
+      .select('id, type, asset_symbol, amount, created_at, status')
+      .eq('user_id', id)
+      .order('created_at', { ascending: false })
+      .limit(10);
+    
+    if (transactionsError) {
+      console.error("Error fetching transactions:", transactionsError);
+    }
+    
+    // Transform to InvestorDetail interface
+    const detail: InvestorDetail = {
+      id: profile.id,
+      email: profile.email,
+      name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Unnamed',
+      totalPrincipal: `$${summary.total_aum?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}`,
+      totalEarned: '$0.00', // Would need calculation from transactions
+      lastActive: summary.last_statement_date || undefined,
+      status: 'active' as const,
+      kycStatus: 'approved' as const, // Default, would need actual KYC status
+      positions: (portfolios || []).map(p => ({
+        asset: p.asset_symbol || 'Unknown',
+        principal: `$${p.current_value?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}`,
+        earned: '$0.00', // Would need calculation
+        apy: '0.0%' // Would need calculation
+      })),
+      transactions: (transactions || []).map(t => ({
+        id: t.id,
+        type: t.type as 'deposit' | 'withdrawal' | 'interest',
+        asset: t.asset_symbol || 'Unknown',
+        amount: `$${Math.abs(t.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        date: new Date(t.created_at).toLocaleDateString(),
+        status: (t.status || 'completed') as 'completed' | 'pending' | 'failed'
+      }))
+    };
+    
+    return detail;
   } catch (error) {
     console.error("Error fetching investor detail:", error);
-    return adminStubs.getInvestorById(id);
+    if (shouldUseStubs()) {
+      return adminStubs.getInvestorById(id);
+    }
+    return null;
   }
 };
 

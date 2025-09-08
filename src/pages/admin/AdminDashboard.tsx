@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, DollarSign, Users, Zap, Clock, ArrowRight } from "lucide-react";
+import { AlertCircle, DollarSign, Users, Zap, Clock, ArrowRight, TrendingUp } from "lucide-react";
 import { getAdminKPIs, fetchAdminProfile } from "@/services/adminService";
 import type { AdminKPIs } from "@/server/admin";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -142,7 +142,25 @@ const AdminDashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
+        <Card className="border-2 border-indigo-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-indigo-600" />
+              Portfolio Dashboard
+            </CardTitle>
+            <CardDescription>
+              Real-time crypto portfolio tracking and analytics
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate('/admin/portfolio')} className="w-full bg-indigo-600 hover:bg-indigo-700">
+              View Portfolio
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </CardContent>
+        </Card>
+        
         <Card>
           <CardHeader>
             <CardTitle>Investor Management</CardTitle>

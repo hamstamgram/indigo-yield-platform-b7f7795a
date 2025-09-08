@@ -37,6 +37,14 @@
       "env": {
         "DATABASE_URL": "{{env.SUPABASE_DEV_DB_URL}}"
       }
+    },
+    "airtable": {
+      "command": "bash",
+      "args": [
+        "-lc",
+        "source /Users/mama/indigo-yield-platform-v01/.env.mcp && npx -y @felores/airtable-mcp-server"
+      ],
+      "disabled": false
     }
   }
 }

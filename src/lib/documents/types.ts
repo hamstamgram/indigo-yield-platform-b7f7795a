@@ -7,7 +7,6 @@ export type DocumentType =
   | 'statement'
   | 'notice' 
   | 'terms'
-  | 'tax'
   | 'agreement'
   | 'report'
   | 'certificate'
@@ -123,14 +122,6 @@ export const DOCUMENT_TYPE_CONFIG: Record<DocumentType, {
     allowedMimeTypes: ['application/pdf'],
     requiresPeriod: false,
     description: 'Fund terms and legal agreements',
-  },
-  tax: {
-    label: 'Tax Document',
-    icon: 'Receipt',
-    maxSize: 10 * 1024 * 1024, // 10MB
-    allowedMimeTypes: ['application/pdf'],
-    requiresPeriod: true,
-    description: 'Tax forms and supporting documents',
   },
   agreement: {
     label: 'Legal Agreement',
