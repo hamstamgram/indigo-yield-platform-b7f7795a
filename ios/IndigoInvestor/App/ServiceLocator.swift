@@ -37,6 +37,14 @@ class ServiceLocator: ObservableObject {
     // MARK: - Core Data
     private(set) var coreDataStack: CoreDataStack!
     
+    // MARK: - Convenience accessors
+    var supabase: SupabaseClient {
+        guard let client = supabaseClient else {
+            fatalError("Supabase client not configured. Call configureSupabase first.")
+        }
+        return client
+    }
+    
     private init() {
         setupServices()
     }

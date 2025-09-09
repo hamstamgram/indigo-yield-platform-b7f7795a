@@ -20,7 +20,8 @@ class PushNotificationManager: NSObject, ObservableObject {
     @Published var notificationSettings: UNNotificationSettings?
     
     // MARK: - Private Properties
-    private let supabaseManager = SupabaseManager.shared
+    private let authService = ServiceLocator.shared.authService
+    private let supabase = ServiceLocator.shared.supabase
     private var cancellables = Set<AnyCancellable>()
     
     // Notification Categories
@@ -161,7 +162,7 @@ class PushNotificationManager: NSObject, ObservableObject {
         do {
             // Register token with Supabase
             let data: [String: Any] = [
-                "user_id": supabaseManager.currentUserId ?? "",
+                "user_id": authService.currentUser?.id.uuidString ?? "",
                 "push_token": token,
                 "platform": "ios",
                 "app_version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0",
@@ -172,7 +173,7 @@ class PushNotificationManager: NSObject, ObservableObject {
             
             let jsonData = try JSONSerialization.data(withJSONObject: data)
             
-            _ = try await supabaseManager.client
+            _ = try await supabase
                 .from("push_tokens")
                 .upsert(jsonData)
                 .execute()
@@ -185,10 +186,10 @@ class PushNotificationManager: NSObject, ObservableObject {
     
     func unregisterToken() async {
         guard let token = pushToken,
-              let userId = supabaseManager.currentUserId else { return }
+              let userId = authService.currentUser?.id.uuidString else { return }
         
         do {
-            _ = try await supabaseManager.client
+            _ = try await supabase
                 .from("push_tokens")
                 .delete()
                 .eq("user_id", value: userId)
@@ -352,7 +353,7 @@ class PushNotificationManager: NSObject, ObservableObject {
         Task {
             do {
                 let data: [String: Any] = [
-                    "user_id": supabaseManager.currentUserId ?? "",
+                    "user_id": authService.currentUser?.id.uuidString ?? "",
                     "notification_id": response.notification.request.identifier,
                     "action": response.actionIdentifier,
                     "category": response.notification.request.content.categoryIdentifier,
@@ -362,7 +363,7 @@ class PushNotificationManager: NSObject, ObservableObject {
                 
                 let jsonData = try JSONSerialization.data(withJSONObject: data)
                 
-                _ = try await supabaseManager.client
+                _ = try await supabase
                     .from("notification_interactions")
                     .insert(jsonData)
                     .execute()

@@ -12,7 +12,9 @@ class CoreDataStack {
     static let shared = CoreDataStack()
     
     lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "IndigoInvestor")
+        // Use programmatic model instead of .xcdatamodeld file
+        let model = CoreDataStack.createModel()
+        let container = NSPersistentContainer(name: "IndigoInvestor", managedObjectModel: model)
         
         // Configure for CloudKit sync if needed
         let storeDescription = container.persistentStoreDescriptions.first

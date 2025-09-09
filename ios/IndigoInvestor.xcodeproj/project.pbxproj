@@ -13,6 +13,7 @@
 		18C071534BF342D42D62A051 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE01593B54DB36BFDE1D3DE4 /* SupabaseConfig.swift */; };
 		1ED84EF007EF89A3041EED10 /* PortfolioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D96F0FCD93FBE6877B49CB /* PortfolioService.swift */; };
 		27355EA769DDAB39639A1AA1 /* ViewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 077E1DD5D78BF497638FE6EA /* ViewModels.swift */; };
+		35BBDADC863C11B851A527B7 /* CoreDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 354D98DCE9563C8CE8CF9DCF /* CoreDataModel.swift */; };
 		3DDB469A8851755CDB447A25 /* DGCharts in Frameworks */ = {isa = PBXBuildFile; productRef = E5A92F73298524719439669E /* DGCharts */; };
 		46A9D0D948A6867C6337AD58 /* IndigoInvestorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951987BE5295E8BF0116EC1C /* IndigoInvestorApp.swift */; };
 		49420F85B4525F5198B426C4 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40023F5C2FFD488B692181E7 /* AuthService.swift */; };
@@ -42,6 +43,7 @@
 		135ACEF8377F849B0E36684B /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		27D96F0FCD93FBE6877B49CB /* PortfolioService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PortfolioService.swift; sourceTree = "<group>"; };
 		30726D86AACD8AE9D2B801F3 /* Types.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Types.swift; sourceTree = "<group>"; };
+		354D98DCE9563C8CE8CF9DCF /* CoreDataModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CoreDataModel.swift; path = IndigoInvestor/Core/Data/CoreDataModel.swift; sourceTree = SOURCE_ROOT; };
 		3BD83474EE4ACD4891E8CE78 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		40023F5C2FFD488B692181E7 /* AuthService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		42720E5F4BBDEB71F5C7D600 /* PushNotificationManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PushNotificationManager.swift; sourceTree = "<group>"; };
@@ -167,6 +169,7 @@
 				02025D3B4BC465B3141F098A /* Views */,
 				0DED1EAA4CDD0DDC8455469F /* Services */,
 				4CE206677B9C194083029BBA /* Repositories */,
+				A58AB6B873A9A9CDDB4819C7 /* Core */,
 			);
 			path = IndigoInvestor;
 			sourceTree = "<group>";
@@ -205,6 +208,22 @@
 				551BFC96C38228D3B6196E27 /* ServiceLocator.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		A58AB6B873A9A9CDDB4819C7 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				BDBAC1778C687115A685875E /* Data */,
+			);
+			name = Core;
+			sourceTree = "<group>";
+		};
+		BDBAC1778C687115A685875E /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				354D98DCE9563C8CE8CF9DCF /* CoreDataModel.swift */,
+			);
+			name = Data;
 			sourceTree = "<group>";
 		};
 		C6E752E5106E8AEBDF8E2617 /* Core */ = {
@@ -350,6 +369,7 @@
 				DFE2388AFE645EB686AA4D29 /* Types.swift in Sources */,
 				74EFE91E3108971BB16203C5 /* ServiceProtocols.swift in Sources */,
 				01E6229365B8CA5154340C17 /* DocumentModels.swift in Sources */,
+				35BBDADC863C11B851A527B7 /* CoreDataModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -57,12 +57,12 @@ class DashboardViewModel: ObservableObject {
             async let portfolioTask = loadPortfolio(for: investorId)
             async let transactionsTask = loadRecentTransactions(for: investorId)
             
-            let (portfolio, transactions) = try await (portfolioTask, transactionsTask)
+            let (portfolio, _) = try await (portfolioTask, transactionsTask)
             
             // Update UI on main thread
             self.portfolio = portfolio
-            self.recentTransactions = transactions
-            self.performanceData = portfolio.performanceHistory
+            self.recentTransactions = [] // TODO: Fix when transactions are available
+            self.performanceData = portfolio?.performanceHistory ?? []
             
             // Setup real-time subscriptions
             setupRealtimeSubscriptions(for: investorId)
@@ -91,9 +91,10 @@ class DashboardViewModel: ObservableObject {
             // let transactions = try await transactionService.fetchRecentTransactions(for: investorId)
             
             // Update UI
-            self.portfolio = portfolio
-            self.recentTransactions = transactions
-            self.performanceData = portfolio.performanceHistory
+            // TODO: Implement when services are connected
+            // self.portfolio = portfolio
+            // self.recentTransactions = transactions  
+            // self.performanceData = portfolio?.performanceHistory ?? []
             
         } catch {
             handleError(error)
@@ -136,8 +137,11 @@ class DashboardViewModel: ObservableObject {
         portfolioSubscription?.cancel()
         transactionSubscription?.cancel()
         
+        // TODO: Implement real-time subscriptions when services are available
+        /*
         // Portfolio updates subscription
         portfolioSubscription = Task {
+            let portfolioService = ServiceLocator.shared.portfolioService
             for await updatedPortfolio in portfolioService.subscribeToPortfolioUpdates(investorId: investorId) {
                 await MainActor.run {
                     self.portfolio = updatedPortfolio
@@ -148,6 +152,7 @@ class DashboardViewModel: ObservableObject {
         
         // Transaction updates subscription
         transactionSubscription = Task {
+            let transactionService = ServiceLocator.shared.transactionService
             for await newTransaction in transactionService.subscribeToTransactionUpdates(for: investorId) {
                 await MainActor.run {
                     // Add new transaction to the beginning of the list
@@ -160,14 +165,21 @@ class DashboardViewModel: ObservableObject {
                 }
             }
         }
+        */
     }
     
-    private func loadPortfolio(for investorId: UUID) async throws -> Portfolio {
-        return try await portfolioService.fetchPortfolio(for: investorId)
+    private func loadPortfolio(for investorId: UUID) async throws -> Portfolio? {
+        // TODO: Implement when services are connected
+        // let portfolioService = ServiceLocator.shared.portfolioService
+        // return try await portfolioService.fetchPortfolio(for: investorId)
+        return nil
     }
     
     private func loadRecentTransactions(for investorId: UUID) async throws -> [Transaction] {
-        return try await transactionService.fetchRecentTransactions(for: investorId)
+        // TODO: Implement when services are connected
+        // let transactionService = ServiceLocator.shared.transactionService
+        // return try await transactionService.fetchRecentTransactions(for: investorId)
+        return []
     }
     
     private func getCurrentInvestorId() -> UUID? {
@@ -213,7 +225,7 @@ class DashboardViewModel: ObservableObject {
         // In production, you would send this to your analytics service
         let errorInfo = [
             "error": error.localizedDescription,
-            "timestamp": Date().iso8601String,
+            "timestamp": ISO8601DateFormatter().string(from: Date()),
             "user_id": "unknown", // authViewModel.user?.id.uuidString ?? "unknown",
             "screen": "Dashboard"
         ]
