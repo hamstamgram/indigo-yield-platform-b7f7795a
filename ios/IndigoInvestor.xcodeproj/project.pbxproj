@@ -100,6 +100,8 @@
 		F309AEFCEB8585BDBEA20AB8 /* Montserrat-BlackItalic.ttf */ = {isa = PBXFileReference; includeInIndex = 1; path = "Montserrat-BlackItalic.ttf"; sourceTree = "<group>"; };
 		F9520784DE730879C150EB72 /* PlaceholderViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderViews.swift; sourceTree = "<group>"; };
 		FE0D0E087CC6C308B2823831 /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
+		B1B2C3D4E5F6789012345678 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Debug.xcconfig; sourceTree = "<group>"; };
+		B1B2C3D4E5F6789012345679 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Release.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -477,6 +479,7 @@
 /* Begin XCBuildConfiguration section */
 		0A3E897473A57DC070D45039 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B1B2C3D4E5F6789012345678 /* Debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -546,6 +549,7 @@
 		};
 		6F58323E25A37BC22A701D66 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B1B2C3D4E5F6789012345679 /* Release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -567,6 +571,7 @@
 		};
 		B333C64A5BFED27D060EFCA7 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B1B2C3D4E5F6789012345679 /* Release.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -629,6 +634,7 @@
 		};
 		F2A7844863314711676B1566 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B1B2C3D4E5F6789012345678 /* Debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";

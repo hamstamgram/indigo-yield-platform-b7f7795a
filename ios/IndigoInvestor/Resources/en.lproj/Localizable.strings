@@ -1,0 +1,284 @@
+/* 
+  Localizable.strings
+  IndigoInvestor
+  
+  Created by Indigo Yield Platform
+  Copyright © 2024 Indigo. All rights reserved.
+*/
+
+// MARK: - General
+"app.name" = "Indigo Yield";
+"loading" = "Loading...";
+"error" = "Error";
+"success" = "Success";
+"cancel" = "Cancel";
+"done" = "Done";
+"save" = "Save";
+"delete" = "Delete";
+"edit" = "Edit";
+"close" = "Close";
+"ok" = "OK";
+"yes" = "Yes";
+"no" = "No";
+"retry" = "Retry";
+"refresh" = "Refresh";
+"search" = "Search";
+"filter" = "Filter";
+"sort" = "Sort";
+"share" = "Share";
+"download" = "Download";
+"upload" = "Upload";
+"copied" = "Copied to clipboard";
+
+// MARK: - Authentication
+"auth.signin.title" = "Sign In";
+"auth.signin.subtitle" = "Welcome back to Indigo Yield";
+"auth.signin.email" = "Email";
+"auth.signin.password" = "Password";
+"auth.signin.button" = "Sign In";
+"auth.signin.forgot" = "Forgot Password?";
+"auth.signin.biometric" = "Sign in with Face ID";
+"auth.signin.biometric.touchid" = "Sign in with Touch ID";
+"auth.signin.error.invalid" = "Invalid email or password";
+"auth.signin.error.network" = "Network error. Please try again.";
+
+"auth.signup.title" = "Create Account";
+"auth.signup.subtitle" = "Join Indigo Yield Platform";
+"auth.signup.firstname" = "First Name";
+"auth.signup.lastname" = "Last Name";
+"auth.signup.email" = "Email";
+"auth.signup.password" = "Password";
+"auth.signup.confirm" = "Confirm Password";
+"auth.signup.button" = "Create Account";
+"auth.signup.terms" = "By signing up, you agree to our Terms of Service and Privacy Policy";
+
+"auth.reset.title" = "Reset Password";
+"auth.reset.subtitle" = "Enter your email to receive reset instructions";
+"auth.reset.email" = "Email";
+"auth.reset.button" = "Send Reset Link";
+"auth.reset.success" = "Password reset link sent to your email";
+"auth.reset.back" = "Back to Sign In";
+
+"auth.2fa.title" = "Two-Factor Authentication";
+"auth.2fa.subtitle" = "Enter the 6-digit code from your authenticator app";
+"auth.2fa.code" = "Verification Code";
+"auth.2fa.verify" = "Verify";
+"auth.2fa.error" = "Invalid code. Please try again.";
+
+"auth.logout" = "Sign Out";
+"auth.logout.confirm" = "Are you sure you want to sign out?";
+
+// MARK: - Dashboard
+"dashboard.title" = "Dashboard";
+"dashboard.welcome" = "Welcome back, %@";
+"dashboard.portfolio.title" = "Portfolio Overview";
+"dashboard.portfolio.value" = "Total Value";
+"dashboard.portfolio.returns" = "Total Returns";
+"dashboard.portfolio.ytd" = "YTD Performance";
+"dashboard.portfolio.monthly" = "Monthly Yield";
+"dashboard.portfolio.pending" = "Pending Withdrawals";
+
+"dashboard.quickactions" = "Quick Actions";
+"dashboard.quickactions.withdraw" = "Request Withdrawal";
+"dashboard.quickactions.documents" = "View Documents";
+"dashboard.quickactions.statements" = "Statements";
+"dashboard.quickactions.support" = "Contact Support";
+
+"dashboard.recent.title" = "Recent Activity";
+"dashboard.recent.empty" = "No recent activity";
+"dashboard.recent.viewall" = "View All Transactions";
+
+"dashboard.performance.title" = "Performance";
+"dashboard.performance.1m" = "1M";
+"dashboard.performance.3m" = "3M";
+"dashboard.performance.6m" = "6M";
+"dashboard.performance.1y" = "1Y";
+"dashboard.performance.all" = "All";
+
+// MARK: - Portfolio
+"portfolio.title" = "Portfolio";
+"portfolio.holdings" = "Holdings";
+"portfolio.allocation" = "Asset Allocation";
+"portfolio.performance" = "Performance";
+"portfolio.transactions" = "Transactions";
+
+"portfolio.asset.name" = "Asset";
+"portfolio.asset.balance" = "Balance";
+"portfolio.asset.value" = "Value";
+"portfolio.asset.change" = "24h Change";
+"portfolio.asset.allocation" = "Allocation";
+
+"portfolio.transaction.type" = "Type";
+"portfolio.transaction.amount" = "Amount";
+"portfolio.transaction.date" = "Date";
+"portfolio.transaction.status" = "Status";
+"portfolio.transaction.deposit" = "Deposit";
+"portfolio.transaction.withdrawal" = "Withdrawal";
+"portfolio.transaction.yield" = "Yield Payment";
+"portfolio.transaction.fee" = "Fee";
+
+// MARK: - Documents
+"documents.title" = "Documents";
+"documents.statements" = "Monthly Statements";
+"documents.tax" = "Tax Documents";
+"documents.agreements" = "Agreements";
+"documents.reports" = "Reports";
+"documents.empty" = "No documents available";
+"documents.download" = "Download";
+"documents.view" = "View";
+"documents.share" = "Share";
+
+"documents.statement.monthly" = "Monthly Statement - %@";
+"documents.statement.annual" = "Annual Statement - %d";
+"documents.tax.1099" = "Form 1099 - %d";
+"documents.tax.k1" = "Schedule K-1 - %d";
+
+// MARK: - Withdrawals
+"withdrawal.title" = "Withdrawals";
+"withdrawal.request" = "Request Withdrawal";
+"withdrawal.amount" = "Amount";
+"withdrawal.available" = "Available Balance: %@";
+"withdrawal.minimum" = "Minimum: %@";
+"withdrawal.maximum" = "Maximum: %@";
+"withdrawal.bank" = "Bank Account";
+"withdrawal.processing" = "Processing Time: 3-5 business days";
+"withdrawal.submit" = "Submit Request";
+"withdrawal.history" = "Withdrawal History";
+"withdrawal.pending" = "Pending";
+"withdrawal.completed" = "Completed";
+"withdrawal.cancelled" = "Cancelled";
+
+"withdrawal.confirm.title" = "Confirm Withdrawal";
+"withdrawal.confirm.amount" = "Amount: %@";
+"withdrawal.confirm.fee" = "Fee: %@";
+"withdrawal.confirm.total" = "You will receive: %@";
+"withdrawal.confirm.button" = "Confirm";
+
+"withdrawal.success" = "Withdrawal request submitted successfully";
+"withdrawal.error.insufficient" = "Insufficient funds";
+"withdrawal.error.minimum" = "Amount below minimum withdrawal";
+"withdrawal.error.maximum" = "Amount exceeds maximum withdrawal";
+
+// MARK: - Support
+"support.title" = "Support";
+"support.contact" = "Contact Us";
+"support.faq" = "FAQ";
+"support.help" = "Help Center";
+"support.tickets" = "Support Tickets";
+"support.new" = "New Ticket";
+
+"support.ticket.subject" = "Subject";
+"support.ticket.message" = "Message";
+"support.ticket.priority" = "Priority";
+"support.ticket.priority.low" = "Low";
+"support.ticket.priority.medium" = "Medium";
+"support.ticket.priority.high" = "High";
+"support.ticket.status.open" = "Open";
+"support.ticket.status.pending" = "Pending";
+"support.ticket.status.resolved" = "Resolved";
+"support.ticket.status.closed" = "Closed";
+
+"support.email" = "support@indigoyield.com";
+"support.phone" = "+1 (800) 123-4567";
+"support.hours" = "Mon-Fri 9AM-5PM EST";
+
+// MARK: - Settings
+"settings.title" = "Settings";
+"settings.profile" = "Profile";
+"settings.security" = "Security";
+"settings.notifications" = "Notifications";
+"settings.preferences" = "Preferences";
+"settings.legal" = "Legal";
+"settings.about" = "About";
+
+"settings.profile.name" = "Name";
+"settings.profile.email" = "Email";
+"settings.profile.phone" = "Phone";
+"settings.profile.address" = "Address";
+"settings.profile.taxid" = "Tax ID";
+"settings.profile.edit" = "Edit Profile";
+"settings.profile.save" = "Save Changes";
+
+"settings.security.password" = "Change Password";
+"settings.security.2fa" = "Two-Factor Authentication";
+"settings.security.biometric" = "Biometric Login";
+"settings.security.sessions" = "Active Sessions";
+"settings.security.devices" = "Trusted Devices";
+
+"settings.notifications.push" = "Push Notifications";
+"settings.notifications.email" = "Email Notifications";
+"settings.notifications.sms" = "SMS Notifications";
+"settings.notifications.transactions" = "Transaction Alerts";
+"settings.notifications.statements" = "Statement Available";
+"settings.notifications.marketing" = "Marketing Communications";
+
+"settings.preferences.theme" = "Theme";
+"settings.preferences.theme.light" = "Light";
+"settings.preferences.theme.dark" = "Dark";
+"settings.preferences.theme.system" = "System";
+"settings.preferences.currency" = "Currency";
+"settings.preferences.language" = "Language";
+
+"settings.legal.terms" = "Terms of Service";
+"settings.legal.privacy" = "Privacy Policy";
+"settings.legal.disclosures" = "Disclosures";
+
+"settings.about.version" = "Version %@";
+"settings.about.build" = "Build %@";
+"settings.about.copyright" = "© 2024 Indigo Yield Platform";
+
+// MARK: - Admin
+"admin.title" = "Admin Dashboard";
+"admin.investors" = "Investors";
+"admin.operations" = "Operations";
+"admin.reports" = "Reports";
+"admin.settings" = "Admin Settings";
+
+"admin.investor.list" = "Investor List";
+"admin.investor.add" = "Add Investor";
+"admin.investor.edit" = "Edit Investor";
+"admin.investor.details" = "Investor Details";
+"admin.investor.status" = "Status";
+"admin.investor.status.active" = "Active";
+"admin.investor.status.pending" = "Pending";
+"admin.investor.status.suspended" = "Suspended";
+
+"admin.operations.deposits" = "Process Deposits";
+"admin.operations.withdrawals" = "Process Withdrawals";
+"admin.operations.yield" = "Distribute Yield";
+"admin.operations.statements" = "Generate Statements";
+
+"admin.reports.portfolio" = "Portfolio Report";
+"admin.reports.transactions" = "Transaction Report";
+"admin.reports.audit" = "Audit Report";
+"admin.reports.export" = "Export to CSV";
+
+// MARK: - Error Messages
+"error.network" = "Network connection error";
+"error.server" = "Server error. Please try again later.";
+"error.unauthorized" = "Unauthorized access";
+"error.session.expired" = "Your session has expired. Please sign in again.";
+"error.unknown" = "An unknown error occurred";
+"error.data.loading" = "Failed to load data";
+"error.data.save" = "Failed to save data";
+
+// MARK: - Success Messages
+"success.profile.updated" = "Profile updated successfully";
+"success.password.changed" = "Password changed successfully";
+"success.settings.saved" = "Settings saved successfully";
+"success.document.downloaded" = "Document downloaded successfully";
+"success.ticket.submitted" = "Support ticket submitted successfully";
+
+// MARK: - Accessibility
+"accessibility.button.back" = "Back";
+"accessibility.button.menu" = "Menu";
+"accessibility.button.close" = "Close";
+"accessibility.image.profile" = "Profile picture";
+"accessibility.chart.performance" = "Performance chart";
+"accessibility.list.transactions" = "Transaction list";
+
+// MARK: - Plurals (use stringsdict for proper plural handling)
+"transactions.count" = "%d transactions";
+"documents.count" = "%d documents";
+"days.remaining" = "%d days remaining";
+"investors.count" = "%d investors";

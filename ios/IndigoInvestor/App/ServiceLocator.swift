@@ -54,8 +54,8 @@ class ServiceLocator: ObservableObject {
             fatalError("Invalid Supabase URL: \(url)")
         }
         
-        // Use Keychain storage for auth
-        let storage = KeychainLocalStorage()
+        // Use KeychainLocalStorage for secure token storage
+        let storage = KeychainLocalStorage(service: "com.indigo.investor")
         
         supabaseClient = SupabaseClient(
             supabaseURL: url,
@@ -64,8 +64,7 @@ class ServiceLocator: ObservableObject {
                 db: .init(schema: "public"),
                 auth: .init(
                     storage: storage,
-                    storageKey: "sb-local-auth-token",  // Provide explicit storage key
-                    autoRefreshToken: true
+                    autoRefreshToken: true  // Enable auto refresh for production
                 ),
                 global: .init(
                     headers: ["apikey": anonKey],

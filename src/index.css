@@ -1,3 +1,5 @@
+@import './fonts/montserrat.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,4 +100,18 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Image optimization animations */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
 }

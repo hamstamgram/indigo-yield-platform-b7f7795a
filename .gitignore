@@ -26,3 +26,6 @@ mcp-jotform/
 .vercel
 .env*.local
 .env.mcp
+
+*storybook.log
+storybook-static

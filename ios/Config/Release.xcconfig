@@ -2,9 +2,9 @@
 // This file contains non-sensitive configuration values
 // IMPORTANT: Update these values with your production Supabase project
 
-// Supabase Configuration - REPLACE WITH YOUR PRODUCTION VALUES
-SUPABASE_URL = https:/$()/YOUR_PROJECT.supabase.co
-SUPABASE_ANON_KEY = YOUR_PRODUCTION_ANON_KEY
+// Supabase Configuration - Production
+SUPABASE_URL = https://nkfimvovosdehmyyjubn.supabase.co
+SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZmltdm92b3NkZWhteXlqdWJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0NTQ1OTgsImV4cCI6MjA2MjAzMDU5OH0.pZrIyCCd7dlvvNMGdW8-71BxSVfoKhxs9a5Ezbkmjgg
 
 // App Configuration
 APP_ENVIRONMENT = Production

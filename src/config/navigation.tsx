@@ -8,7 +8,8 @@ import {
   Shield, 
   User, 
   LayoutDashboard,
-  Percent
+  Percent,
+  TrendingDown
 } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { NavItem } from "@/types/navigation";
@@ -17,6 +18,7 @@ import { NavItem } from "@/types/navigation";
 export const adminNav: NavItem[] = [
   { title: "Admin Dashboard", href: "/admin", icon: <LayoutDashboard className="h-5 w-5" />, adminOnly: true },
   { title: "Investor Management", href: "/admin/investors", icon: <Users className="h-5 w-5" />, adminOnly: true },
+  { title: "Withdrawals", href: "/admin/withdrawals", icon: <TrendingDown className="h-5 w-5" />, adminOnly: true },
   { title: "Yield Settings", href: "/admin/yield-settings", icon: <Percent className="h-5 w-5" />, adminOnly: true },
   { title: "Portfolio Management", href: "/admin-tools", icon: <Database className="h-5 w-5" />, adminOnly: true },
 ];
