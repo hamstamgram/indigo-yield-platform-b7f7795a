@@ -21,9 +21,7 @@ class DashboardViewModel: ObservableObject {
     @Published var showError = false
     
     // MARK: - Dependencies
-    private let portfolioService: PortfolioServiceProtocol
-    private let transactionService: TransactionServiceProtocol
-    private let authViewModel: AuthViewModel
+    // Services will be injected via ServiceLocator
     
     // MARK: - Private Properties
     private var cancellables = Set<AnyCancellable>()
@@ -32,14 +30,9 @@ class DashboardViewModel: ObservableObject {
     
     // MARK: - Initialization
     
-    init(portfolioService: PortfolioServiceProtocol, 
-         transactionService: TransactionServiceProtocol,
-         authViewModel: AuthViewModel) {
-        self.portfolioService = portfolioService
-        self.transactionService = transactionService
-        self.authViewModel = authViewModel
-        
-        setupSubscriptions()
+    init() {
+        // Services will be accessed via ServiceLocator.shared
+        // setupSubscriptions()
     }
     
     deinit {
@@ -64,12 +57,12 @@ class DashboardViewModel: ObservableObject {
             async let portfolioTask = loadPortfolio(for: investorId)
             async let transactionsTask = loadRecentTransactions(for: investorId)
             
-            let (portfolio, transactions) = try await (portfolioTask, transactionsTask)
+            let (portfolio, _) = try await (portfolioTask, transactionsTask)
             
             // Update UI on main thread
             self.portfolio = portfolio
-            self.recentTransactions = transactions
-            self.performanceData = portfolio.performanceHistory
+            self.recentTransactions = [] // TODO: Fix when transactions are available
+            self.performanceData = portfolio?.performanceHistory ?? []
             
             // Setup real-time subscriptions
             setupRealtimeSubscriptions(for: investorId)
@@ -93,13 +86,15 @@ class DashboardViewModel: ObservableObject {
             }
             
             // Force refresh from network
-            let portfolio = try await portfolioService.refreshPortfolioData(for: investorId)
-            let transactions = try await transactionService.fetchRecentTransactions(for: investorId)
+            // TODO: Implement when services are connected
+            // let portfolio = try await portfolioService.refreshPortfolioData(for: investorId)
+            // let transactions = try await transactionService.fetchRecentTransactions(for: investorId)
             
             // Update UI
-            self.portfolio = portfolio
-            self.recentTransactions = transactions
-            self.performanceData = portfolio.performanceHistory
+            // TODO: Implement when services are connected
+            // self.portfolio = portfolio
+            // self.recentTransactions = transactions  
+            // self.performanceData = portfolio?.performanceHistory ?? []
             
         } catch {
             handleError(error)
@@ -123,7 +118,8 @@ class DashboardViewModel: ObservableObject {
     
     private func setupSubscriptions() {
         // Listen for authentication changes
-        authViewModel.$isAuthenticated
+        // TODO: Connect to auth view model
+        /*authViewModel.$isAuthenticated
             .sink { [weak self] isAuthenticated in
                 if isAuthenticated {
                     Task {
@@ -133,7 +129,7 @@ class DashboardViewModel: ObservableObject {
                     self?.clearData()
                 }
             }
-            .store(in: &cancellables)
+            .store(in: &cancellables)*/
     }
     
     private func setupRealtimeSubscriptions(for investorId: UUID) {
@@ -141,8 +137,11 @@ class DashboardViewModel: ObservableObject {
         portfolioSubscription?.cancel()
         transactionSubscription?.cancel()
         
+        // TODO: Implement real-time subscriptions when services are available
+        /*
         // Portfolio updates subscription
         portfolioSubscription = Task {
+            let portfolioService = ServiceLocator.shared.portfolioService
             for await updatedPortfolio in portfolioService.subscribeToPortfolioUpdates(investorId: investorId) {
                 await MainActor.run {
                     self.portfolio = updatedPortfolio
@@ -153,6 +152,7 @@ class DashboardViewModel: ObservableObject {
         
         // Transaction updates subscription
         transactionSubscription = Task {
+            let transactionService = ServiceLocator.shared.transactionService
             for await newTransaction in transactionService.subscribeToTransactionUpdates(for: investorId) {
                 await MainActor.run {
                     // Add new transaction to the beginning of the list
@@ -165,19 +165,27 @@ class DashboardViewModel: ObservableObject {
                 }
             }
         }
+        */
     }
     
-    private func loadPortfolio(for investorId: UUID) async throws -> Portfolio {
-        return try await portfolioService.fetchPortfolio(for: investorId)
+    private func loadPortfolio(for investorId: UUID) async throws -> Portfolio? {
+        // TODO: Implement when services are connected
+        // let portfolioService = ServiceLocator.shared.portfolioService
+        // return try await portfolioService.fetchPortfolio(for: investorId)
+        return nil
     }
     
     private func loadRecentTransactions(for investorId: UUID) async throws -> [Transaction] {
-        return try await transactionService.fetchRecentTransactions(for: investorId)
+        // TODO: Implement when services are connected
+        // let transactionService = ServiceLocator.shared.transactionService
+        // return try await transactionService.fetchRecentTransactions(for: investorId)
+        return []
     }
     
     private func getCurrentInvestorId() -> UUID? {
         // Get investor ID from authenticated user
-        return authViewModel.user?.id
+        // TODO: Connect to auth service
+        return nil // authViewModel.user?.id
     }
     
     private func filterPerformanceData(_ data: [PerformanceData], for timeRange: DashboardView.TimeRange) -> [PerformanceData] {
@@ -217,8 +225,8 @@ class DashboardViewModel: ObservableObject {
         // In production, you would send this to your analytics service
         let errorInfo = [
             "error": error.localizedDescription,
-            "timestamp": Date().iso8601String,
-            "user_id": authViewModel.user?.id.uuidString ?? "unknown",
+            "timestamp": ISO8601DateFormatter().string(from: Date()),
+            "user_id": "unknown", // authViewModel.user?.id.uuidString ?? "unknown",
             "screen": "Dashboard"
         ]
         
@@ -284,6 +292,7 @@ enum DashboardError: LocalizedError {
 // MARK: - Mock Data for Previews
 
 #if DEBUG
+/*
 extension DashboardViewModel {
     static var preview: DashboardViewModel {
         // Create mock services for SwiftUI previews
@@ -338,4 +347,5 @@ private class MockTransactionService: TransactionServiceProtocol {
         return AsyncStream { _ in }
     }
 }
+*/
 #endif

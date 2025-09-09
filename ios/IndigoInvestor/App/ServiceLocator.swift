@@ -26,6 +26,7 @@ class ServiceLocator: ObservableObject {
     private(set) var offlineManager: OfflineManager!
     private(set) var keychainManager: KeychainManager!
     private(set) var biometricManager: BiometricAuthManager!
+    private(set) var networkMonitor: NetworkMonitor!
     
     // MARK: - Repositories
     private(set) var portfolioRepository: PortfolioRepository!
@@ -36,8 +37,15 @@ class ServiceLocator: ObservableObject {
     // MARK: - Core Data
     private(set) var coreDataStack: CoreDataStack!
     
-    override init() {
-        super.init()
+    // MARK: - Convenience accessors
+    var supabase: SupabaseClient {
+        guard let client = supabaseClient else {
+            fatalError("Supabase client not configured. Call configureSupabase first.")
+        }
+        return client
+    }
+    
+    private init() {
         setupServices()
     }
     
@@ -57,7 +65,7 @@ class ServiceLocator: ObservableObject {
                 ),
                 global: .init(
                     headers: ["apikey": anonKey],
-                    session: URLSession(configuration: .default, delegate: CertificatePinningDelegate(), delegateQueue: nil)
+                    session: URLSession(configuration: .default)
                 )
             )
         )
@@ -68,130 +76,89 @@ class ServiceLocator: ObservableObject {
     
     private func setupServices() {
         // Initialize Core Data
-        coreDataStack = CoreDataStack()
+        coreDataStack = CoreDataStack.shared
         
         // Initialize security services
         keychainManager = KeychainManager.shared
         biometricManager = BiometricAuthManager()
         
-        // Initialize offline manager
-        offlineManager = OfflineManager(coreDataStack: coreDataStack)
+        // Initialize network monitor
+        networkMonitor = NetworkMonitor()
     }
     
     private func initializeServices() {
         guard let client = supabaseClient else { return }
         
+        // Initialize offline manager
+        offlineManager = OfflineManager(coreDataStack: coreDataStack, networkMonitor: networkMonitor)
+        
         // Initialize core services first
-        realtimeService = RealtimeService(client: client)
-        storageService = StorageService(client: client)
-        offlineManager = OfflineManager(coreDataStack: coreDataStack)
+        realtimeService = RealtimeService(supabase: client)
+        storageService = StorageService(supabase: client)
         
-        // Initialize repositories with dependencies
-        // Note: These repository protocols need to be implemented in Phase 2
-        // For now, we'll create placeholder implementations to unblock compilation
-        portfolioRepository = PortfolioRepositoryImpl(
-            supabase: client,
-            coreData: coreDataStack,
-            offlineManager: offlineManager
-        )
+        // Initialize repositories
+        portfolioRepository = PortfolioRepository(coreDataStack: coreDataStack)
+        transactionRepository = TransactionRepository(coreDataStack: coreDataStack)
+        statementRepository = StatementRepository(coreDataStack: coreDataStack)
+        withdrawalRepository = WithdrawalRepository(coreDataStack: coreDataStack)
         
-        transactionRepository = TransactionRepositoryImpl(
-            supabase: client,
-            coreData: coreDataStack,
-            offlineManager: offlineManager
-        )
+        // Initialize auth service first (as other services depend on it)
+        authService = AuthService(supabase: client)
         
-        statementRepository = StatementRepositoryImpl(
-            supabase: client,
-            storageService: storageService,
-            coreData: coreDataStack
-        )
-        
-        withdrawalRepository = WithdrawalRepositoryImpl(
-            supabase: client,
-            coreData: coreDataStack,
-            offlineManager: offlineManager
-        )
-        
-        // Initialize business services with repository dependencies
+        // Initialize business services
         portfolioService = PortfolioService(
-            repository: portfolioRepository,
-            realtimeService: realtimeService
+            supabase: client,
+            authService: authService
         )
         
         transactionService = TransactionService(
-            repository: transactionRepository,
-            realtimeService: realtimeService
+            supabase: client,
+            authService: authService
         )
         
         documentService = DocumentService(
-            repository: statementRepository,
-            storageService: storageService
+            supabase: client,
+            authService: authService
         )
         
         withdrawalService = WithdrawalService(
-            repository: withdrawalRepository
+            supabase: client,
+            authService: authService
         )
         
-        adminService = AdminService(
-            supabaseClient: client
-        )
-        
-        authService = AuthService(
-            client: client,
-            keychainManager: keychainManager
-        )
+        adminService = AdminService(supabase: client)
         
         print("✅ All services initialized successfully")
     }
     
     // MARK: - ViewModel Factory Methods
     
+    @MainActor
     func makeDashboardViewModel() -> DashboardViewModel {
-        return DashboardViewModel(
-            portfolioService: portfolioService,
-            transactionService: transactionService,
-            authViewModel: AuthViewModel() // TODO: Inject shared instance
-        )
+        return DashboardViewModel()
     }
     
     func makePortfolioViewModel() -> PortfolioViewModel {
         return PortfolioViewModel(
-            portfolioService: portfolioService
-        )
-    }
-    
-    func makeTransactionViewModel() -> TransactionViewModel {
-        return TransactionViewModel(
+            portfolioService: portfolioService,
             transactionService: transactionService
         )
     }
     
+    func makeTransactionViewModel() -> TransactionViewModel {
+        return TransactionViewModel(transactionService: transactionService)
+    }
+    
     func makeAdminDashboardViewModel() -> AdminDashboardViewModel {
-        return AdminDashboardViewModel(
-            adminService: adminService
-        )
+        return AdminDashboardViewModel(adminService: adminService)
     }
     
     func makeWithdrawalViewModel() -> WithdrawalViewModel {
-        return WithdrawalViewModel(
-            withdrawalService: withdrawalService
-        )
+        return WithdrawalViewModel(withdrawalService: withdrawalService)
     }
     
     private func setupRealtimeSubscriptions() {
-        // Portfolio updates
-        realtimeService.subscribeToChannel("portfolios:updates") { [weak self] event in
-            Task {
-                await self?.portfolioRepository.refreshCache()
-            }
-        }
-        
-        // Withdrawal status updates
-        realtimeService.subscribeToChannel("withdrawal_requests:status") { [weak self] event in
-            Task {
-                await self?.withdrawalRepository.refreshCache()
-            }
-        }
+        // Real-time subscriptions will be set up per user after authentication
+        // This ensures subscriptions are specific to authenticated users
     }
 }
