@@ -113,7 +113,7 @@ struct PortfolioValueCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Total Portfolio Value")
-                .font(.headline)
+                .font(Typography.headline)
                 .foregroundColor(.secondary)
             
             if isLoading {
@@ -122,7 +122,7 @@ struct PortfolioValueCard: View {
             } else if let portfolio = portfolio {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(portfolio.formattedTotalValue)
-                        .font(.system(size: 36, weight: .bold))
+                        .font(Typography.largeTitle)
                     
                     HStack(spacing: 12) {
                         ChangeIndicator(
@@ -172,19 +172,18 @@ struct ChangeIndicator: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(label)
-                .font(.caption)
+                .font(Typography.caption1)
                 .foregroundColor(.secondary)
             
             HStack(spacing: 4) {
                 Image(systemName: icon)
-                    .font(.caption)
+                    .font(Typography.caption1)
                 
                 Text(value.formatted(.currency(code: "USD")))
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
+                    .font(Typography.bodyMedium)
                 
                 Text("(\(String(format: "%.2f", percentage))%)")
-                    .font(.caption)
+                    .font(Typography.caption1)
             }
             .foregroundColor(color)
         }

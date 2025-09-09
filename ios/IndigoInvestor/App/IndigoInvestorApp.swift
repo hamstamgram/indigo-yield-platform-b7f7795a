@@ -15,6 +15,8 @@ struct IndigoInvestorApp: App {
     @StateObject private var networkMonitor = NetworkMonitor()
     
     init() {
+        // Register custom fonts first
+        FontRegistration.registerFonts()
         configureApp()
     }
     
