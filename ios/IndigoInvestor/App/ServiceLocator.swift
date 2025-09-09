@@ -54,8 +54,8 @@ class ServiceLocator: ObservableObject {
             fatalError("Invalid Supabase URL: \(url)")
         }
         
-        // Use Keychain storage for auth tokens
-        let storage = KeychainLocalStorage()
+        // Create a custom auth storage that doesn't require Keychain
+        let storage = InMemoryAuthStorage()
         
         supabaseClient = SupabaseClient(
             supabaseURL: url,
@@ -64,7 +64,8 @@ class ServiceLocator: ObservableObject {
                 db: .init(schema: "public"),
                 auth: .init(
                     storage: storage,
-                    autoRefreshToken: true
+                    autoRefreshToken: true,
+                    storageKey: "sb-local-auth-token"  // Provide explicit storage key
                 ),
                 global: .init(
                     headers: ["apikey": anonKey],
