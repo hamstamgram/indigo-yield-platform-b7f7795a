@@ -1,0 +1,20 @@
+src/App.css:  filter: drop-shadow(0 0 2em #646cffaa);
+src/App.css:  filter: drop-shadow(0 0 2em #61dafbaa);
+src/App.css:  color: #888;
+src/components/ui/chart.tsx:          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
+src/components/SentryErrorButton.tsx:      border: '2px dashed #e74c3c',
+src/components/SentryErrorButton.tsx:      backgroundColor: '#fff5f5',
+src/components/SentryErrorButton.tsx:      <h3 style={{ color: '#e74c3c', marginBottom: '15px' }}>
+src/components/SentryErrorButton.tsx:      <p style={{ marginBottom: '15px', color: '#666' }}>
+src/components/SentryErrorButton.tsx:            backgroundColor: '#e74c3c',
+src/components/SentryErrorButton.tsx:          onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#c0392b'}
+src/components/SentryErrorButton.tsx:          onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#e74c3c'}
+src/components/SentryErrorButton.tsx:            backgroundColor: '#3498db',
+src/components/SentryErrorButton.tsx:          onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2980b9'}
+src/components/SentryErrorButton.tsx:          onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3498db'}
+src/components/SentryErrorButton.tsx:            backgroundColor: '#f39c12',
+src/components/SentryErrorButton.tsx:          onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e67e22'}
+src/components/SentryErrorButton.tsx:          onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f39c12'}
+src/components/SentryErrorButton.tsx:      <p style={{ marginTop: '15px', fontSize: '12px', color: '#999' }}>
+src/components/pdf/PDFGenerationDemo.tsx:    color: '#f7931a',
+src/components/pdf/PDFGenerationDemo.tsx:    color: '#627eea',

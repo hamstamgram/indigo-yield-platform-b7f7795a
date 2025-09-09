@@ -8,8 +8,7 @@ import {
   TrendingUp, 
   TrendingDown, 
   Users, 
-  DollarSign, 
-  RefreshCw,
+  DollarSign,
   ChevronRight,
   AlertCircle,
   Bitcoin,
@@ -18,6 +17,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { fetchCryptoPrices, startPriceAutoRefresh, CryptoPrice, formatPrice } from "@/services/cryptoPriceService";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -86,52 +86,7 @@ interface InvestorHolding {
   valueUSD: number;
 }
 
-interface CryptoPrice {
-  symbol: string;
-  price: number;
-  change24h: number;
-}
 
-// CoinMarketCap API Service
-const COINMARKETCAP_API_KEY = import.meta.env.VITE_COINMARKETCAP_API_KEY || '';
-const CMC_PROXY_URL = '/api/crypto-prices'; // You'll need to set up a proxy endpoint
-
-const fetchCryptoPrices = async (): Promise<Record<string, CryptoPrice>> => {
-  try {
-    // In production, use your backend proxy to avoid CORS issues
-    const response = await fetch(CMC_PROXY_URL, {
-      headers: {
-        'X-CMC-API-KEY': COINMARKETCAP_API_KEY
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch crypto prices');
-    }
-    
-    const data = await response.json();
-    
-    // Map the response to our format
-    const prices: Record<string, CryptoPrice> = {};
-    
-    // Mock data for development - replace with actual CMC API response parsing
-    prices['BTC'] = { symbol: 'BTC', price: 67500, change24h: 2.5 };
-    prices['ETH'] = { symbol: 'ETH', price: 3200, change24h: -1.2 };
-    prices['SOL'] = { symbol: 'SOL', price: 148, change24h: 5.3 };
-    prices['USDT'] = { symbol: 'USDT', price: 1, change24h: 0.01 };
-    
-    return prices;
-  } catch (error) {
-    console.error('Error fetching crypto prices:', error);
-    // Return mock prices as fallback
-    return {
-      BTC: { symbol: 'BTC', price: 67500, change24h: 2.5 },
-      ETH: { symbol: 'ETH', price: 3200, change24h: -1.2 },
-      SOL: { symbol: 'SOL', price: 148, change24h: 5.3 },
-      USDT: { symbol: 'USDT', price: 1, change24h: 0.01 }
-    };
-  }
-};
 
 // Asset Card Component
 const AssetCard = ({ 
@@ -226,7 +181,6 @@ const AssetCard = ({
 // Main Dashboard Component
 const AdminPortfolioDashboard = () => {
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [assets, setAssets] = useState<AssetData[]>([]);
   const [totalFundValue, setTotalFundValue] = useState(0);
   const [totalInvestors, setTotalInvestors] = useState(0);
@@ -355,7 +309,6 @@ const AdminPortfolioDashboard = () => {
       });
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
@@ -363,26 +316,21 @@ const AdminPortfolioDashboard = () => {
   useEffect(() => {
     fetchPortfolioData();
     
-    const interval = setInterval(() => {
-      fetchCryptoPrices().then(prices => {
-        setCryptoPrices(prices);
-        // Update asset prices without full refresh
-        setAssets(prev => prev.map(asset => ({
-          ...asset,
-          price: asset.symbol === 'EUR' ? 1.08 : prices[asset.symbol]?.price || asset.price,
-          priceChange24h: asset.symbol === 'EUR' ? 0.1 : prices[asset.symbol]?.change24h || asset.priceChange24h,
-          marketValueUSD: asset.totalHoldings * (asset.symbol === 'EUR' ? 1.08 : prices[asset.symbol]?.price || asset.price)
-        })));
-      });
+    // Start auto-refresh with proper service
+    const cleanup = startPriceAutoRefresh((prices) => {
+      setCryptoPrices(prices);
+      // Update asset prices without full refresh
+      setAssets(prev => prev.map(asset => ({
+        ...asset,
+        price: asset.symbol === 'EUR' ? 1.08 : prices[asset.symbol]?.price || asset.price,
+        priceChange24h: asset.symbol === 'EUR' ? 0.1 : prices[asset.symbol]?.change24h || asset.priceChange24h,
+        marketValueUSD: asset.totalHoldings * (asset.symbol === 'EUR' ? 1.08 : prices[asset.symbol]?.price || asset.price)
+      })));
     }, 60000); // Update every minute
 
-    return () => clearInterval(interval);
+    return cleanup;
   }, []);
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchPortfolioData();
-  };
 
   if (loading) {
     return (
@@ -413,18 +361,9 @@ const AdminPortfolioDashboard = () => {
         <div>
           <h1 className="text-2xl font-bold">Portfolio Dashboard</h1>
           <p className="text-muted-foreground">
-            Real-time multi-asset portfolio management
+            Real-time multi-asset portfolio management • Auto-updates every minute
           </p>
         </div>
-        <Button 
-          onClick={handleRefresh} 
-          variant="outline" 
-          disabled={refreshing}
-          size={isMobile ? "sm" : "default"}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
       </div>
 
       {/* Summary Cards */}
