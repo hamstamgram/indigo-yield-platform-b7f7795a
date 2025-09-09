@@ -54,8 +54,8 @@ class ServiceLocator: ObservableObject {
             fatalError("Invalid Supabase URL: \(url)")
         }
         
-        // Create a simple in-memory storage for development
-        let storage = InMemoryLocalStorage()
+        // Use Keychain storage for auth tokens
+        let storage = KeychainLocalStorage()
         
         supabaseClient = SupabaseClient(
             supabaseURL: url,

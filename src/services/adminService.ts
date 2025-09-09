@@ -78,26 +78,56 @@ export const fetchAdminProfile = async () => {
  * @returns Admin KPI data
  */
 export const getAdminKPIs = async (): Promise<AdminKPIs> => {
-  if (shouldUseStubs()) {
-    return adminStubs.getAdminKPIs();
-  }
-
   try {
-    // TODO: Implement real Supabase queries for KPIs
-    // For now, fall back to stubs when real data is not available
     console.log("Fetching admin KPIs from database...");
     
-    // Example of what real implementation might look like:
-    // const { data: aumData } = await supabase.rpc('get_total_aum');
-    // const { data: investorCount } = await supabase.rpc('get_investor_count');
-    // const { data: interestData } = await supabase.rpc('get_24h_interest');
-    // const { data: withdrawalData } = await supabase.rpc('get_pending_withdrawals');
+    // Fetch all KPIs in parallel for better performance
+    const [aumResult, investorResult, interestResult, withdrawalResult] = await Promise.all([
+      supabase.rpc('get_total_aum'),
+      supabase.rpc('get_investor_count'),
+      supabase.rpc('get_24h_interest'),
+      supabase.rpc('get_pending_withdrawals')
+    ]);
     
-    // For preview, fall back to stubs
-    return adminStubs.getAdminKPIs();
+    // Check for errors
+    if (aumResult.error) {
+      console.error("Error fetching AUM:", aumResult.error);
+    }
+    if (investorResult.error) {
+      console.error("Error fetching investor count:", investorResult.error);
+    }
+    if (interestResult.error) {
+      console.error("Error fetching interest:", interestResult.error);
+    }
+    if (withdrawalResult.error) {
+      console.error("Error fetching withdrawals:", withdrawalResult.error);
+    }
+    
+    // Process the data
+    const totalAUM = aumResult.data?.[0]?.total_aum || 0;
+    const totalInvestors = investorResult.data?.[0]?.count || 0;
+    const interest24h = interestResult.data?.[0]?.interest || 0;
+    const pendingWithdrawals = withdrawalResult.data?.[0]?.count || 0;
+    
+    return {
+      totalAUM: `$${totalAUM.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      totalInvestors: totalInvestors,
+      last24hInterest: `$${interest24h.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      pendingWithdrawals: pendingWithdrawals
+    };
   } catch (error) {
     console.error("Error fetching admin KPIs:", error);
-    return adminStubs.getAdminKPIs();
+    // Fall back to stubs only if there's an error
+    if (shouldUseStubs()) {
+      return adminStubs.getAdminKPIs();
+    }
+    // Return zeros if no stub fallback
+    return {
+      totalAUM: '$0.00',
+      totalInvestors: 0,
+      last24hInterest: '$0.00',
+      pendingWithdrawals: 0
+    };
   }
 };
 

@@ -541,3 +541,11 @@ struct NotificationButton: View {
     DashboardView()
             .environmentObject(ServiceLocator.shared)
 }
+
+// MARK: - Typography
+private struct Typography {
+    static let largeTitle = Font.system(size: 34, weight: .bold)
+    static let headline = Font.system(size: 17, weight: .semibold)
+    static let bodyMedium = Font.system(size: 17, weight: .medium)
+    static let caption1 = Font.system(size: 12, weight: .regular)
+}
