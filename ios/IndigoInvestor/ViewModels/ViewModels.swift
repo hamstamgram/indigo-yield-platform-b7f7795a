@@ -73,7 +73,7 @@ class TransactionViewModel: ObservableObject {
     @Published var filteredTransactions: [Transaction] = []
     @Published var isLoading = false
     @Published var error: Error?
-    @Published var selectedFilter: TransactionType?
+    @Published var selectedFilter: Transaction.TransactionType?
     @Published var searchText = ""
     
     private let transactionService: TransactionService
@@ -90,24 +90,30 @@ class TransactionViewModel: ObservableObject {
             .assign(to: &$isLoading)
         
         // Setup filtering
-        Publishers.CombineLatest3($transactions, $selectedFilter, $searchText)
-            .map { transactions, filter, search in
+        $transactions
+            .combineLatest($selectedFilter, $searchText)
+            .map { [weak self] transactions, filter, search -> [Transaction] in
                 var filtered = transactions
                 
                 if let filter = filter {
-                    filtered = filtered.filter { $0.type == filter }
+                    filtered = filtered.filter { transaction in
+                        transaction.type.rawValue == filter.rawValue
+                    }
                 }
                 
                 if !search.isEmpty {
                     filtered = filtered.filter { transaction in
                         transaction.type.rawValue.localizedCaseInsensitiveContains(search) ||
-                        String(transaction.amount).contains(search)
+                        String(describing: transaction.amount).contains(search)
                     }
                 }
                 
                 return filtered
             }
-            .assign(to: &$filteredTransactions)
+            .sink { [weak self] filtered in
+                self?.filteredTransactions = filtered
+            }
+            .store(in: &cancellables)
     }
     
     func loadTransactions() {
@@ -157,7 +163,8 @@ class AdminDashboardViewModel: ObservableObject {
             .sink { [weak self] investors in
                 self?.investors = investors
                 self?.totalInvestors = investors.count
-                self?.totalAUM = investors.reduce(0) { $0 + ($1.portfolio?.currentBalance ?? 0) }
+                // TODO: Calculate AUM when InvestorProfile has portfolio property
+                self?.totalAUM = 0
             }
             .store(in: &cancellables)
         
@@ -169,7 +176,10 @@ class AdminDashboardViewModel: ObservableObject {
             .store(in: &cancellables)
         
         adminService.$isLoading
-            .assign(to: &$isLoading)
+            .sink { [weak self] loading in
+                self?.isLoading = loading
+            }
+            .store(in: &cancellables)
     }
     
     func loadDashboard() {

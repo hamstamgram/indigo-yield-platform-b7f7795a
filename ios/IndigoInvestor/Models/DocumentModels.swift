@@ -9,13 +9,19 @@ import Foundation
 
 // MARK: - Statement
 
-struct Statement: Identifiable {
+struct Statement: Identifiable, Codable {
     let id: UUID
-    let periodStart: Date
-    let periodEnd: Date
-    let fileName: String
-    let fileUrl: String
-    let createdAt: Date
+    let investorId: UUID
+    let period: String
+    let url: String
+    let generatedAt: Date
+    
+    // Legacy support for old implementation
+    var periodStart: Date { generatedAt }
+    var periodEnd: Date { generatedAt }
+    var fileName: String { "statement_\(period).pdf" }
+    var fileUrl: String { url }
+    var createdAt: Date { generatedAt }
 }
 
 // MARK: - Withdrawal Request

@@ -46,9 +46,9 @@ struct DashboardView: View {
                         }
                     
                     // Performance Chart
-                    if let performanceData = viewModel.performanceData {
+                    if !viewModel.performanceData.isEmpty {
                         PerformanceChartCard(
-                            data: performanceData,
+                            data: viewModel.performanceData,
                             timeRange: selectedTimeRange
                         )
                         .frame(height: 250)

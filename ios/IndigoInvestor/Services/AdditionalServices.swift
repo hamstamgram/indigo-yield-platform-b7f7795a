@@ -37,10 +37,16 @@ class TransactionService: ObservableObject {
             self.transactions = data.map { tx in
                 Transaction(
                     id: tx.id,
-                    type: TransactionType(rawValue: tx.type) ?? .deposit,
-                    amount: tx.amount,
-                    status: TransactionStatus(rawValue: tx.status) ?? .pending,
-                    date: tx.createdAt
+                    investorId: userId,
+                    type: Transaction.TransactionType(rawValue: tx.type) ?? .deposit,
+                    amount: Decimal(tx.amount),
+                    currency: "USD",
+                    status: Transaction.TransactionStatus(rawValue: tx.status) ?? .pending,
+                    description: tx.description ?? "",
+                    date: tx.createdAt,
+                    settledDate: tx.settledDate,
+                    reference: tx.reference,
+                    metadata: nil
                 )
             }
         }
@@ -51,7 +57,10 @@ class TransactionService: ObservableObject {
         let type: String
         let amount: Double
         let status: String
+        let description: String?
         let createdAt: Date
+        let settledDate: Date?
+        let reference: String?
     }
 }
 
@@ -89,11 +98,10 @@ class DocumentService: ObservableObject {
             self.statements = data.map { stmt in
                 Statement(
                     id: stmt.id,
-                    periodStart: stmt.periodStart,
-                    periodEnd: stmt.periodEnd,
-                    fileName: stmt.fileName,
-                    fileUrl: stmt.fileUrl,
-                    createdAt: stmt.createdAt
+                    investorId: userId,
+                    period: stmt.period ?? "\(stmt.periodStart)-\(stmt.periodEnd)",
+                    url: stmt.fileUrl,
+                    generatedAt: stmt.createdAt
                 )
             }
         }
@@ -112,6 +120,7 @@ class DocumentService: ObservableObject {
         let id: UUID
         let periodStart: Date
         let periodEnd: Date
+        let period: String?
         let fileName: String
         let fileUrl: String
         let createdAt: Date
@@ -135,13 +144,21 @@ class WithdrawalService: ObservableObject {
     func requestWithdrawal(amount: Double, bankAccountId: UUID) async throws {
         guard let userId = authService.currentUser?.id else { return }
         
-        let withdrawal = [
-            "investor_id": userId.uuidString,
-            "amount": amount,
-            "bank_account_id": bankAccountId.uuidString,
-            "status": "pending",
-            "requested_at": ISO8601DateFormatter().string(from: Date())
-        ] as [String: Any]
+        struct WithdrawalInsert: Encodable {
+            let investor_id: String
+            let amount: Double
+            let bank_account_id: String
+            let status: String
+            let requested_at: String
+        }
+        
+        let withdrawal = WithdrawalInsert(
+            investor_id: userId.uuidString,
+            amount: amount,
+            bank_account_id: bankAccountId.uuidString,
+            status: "pending",
+            requested_at: ISO8601DateFormatter().string(from: Date())
+        )
         
         try await supabase
             .from("withdrawal_requests")
@@ -218,24 +235,39 @@ class AdminService: ObservableObject {
     }
     
     func approveWithdrawal(_ withdrawalId: UUID) async throws {
+        struct WithdrawalUpdate: Encodable {
+            let status: String
+            let processed_at: String
+        }
+        
+        let update = WithdrawalUpdate(
+            status: "approved",
+            processed_at: ISO8601DateFormatter().string(from: Date())
+        )
+        
         try await supabase
             .from("withdrawal_requests")
-            .update([
-                "status": "approved",
-                "processed_at": ISO8601DateFormatter().string(from: Date())
-            ])
+            .update(update)
             .eq("id", value: withdrawalId.uuidString)
             .execute()
     }
     
     func processDeposit(investorId: UUID, amount: Double) async throws {
-        let transaction = [
-            "investor_id": investorId.uuidString,
-            "type": "deposit",
-            "amount": amount,
-            "status": "completed",
-            "created_at": ISO8601DateFormatter().string(from: Date())
-        ] as [String: Any]
+        struct TransactionInsert: Encodable {
+            let investor_id: String
+            let type: String
+            let amount: Double
+            let status: String
+            let created_at: String
+        }
+        
+        let transaction = TransactionInsert(
+            investor_id: investorId.uuidString,
+            type: "deposit",
+            amount: amount,
+            status: "completed",
+            created_at: ISO8601DateFormatter().string(from: Date())
+        )
         
         try await supabase
             .from("transactions")
@@ -244,14 +276,23 @@ class AdminService: ObservableObject {
     }
     
     func processInterestPayment(investorId: UUID, amount: Double, apy: Double) async throws {
-        let transaction = [
-            "investor_id": investorId.uuidString,
-            "type": "interest",
-            "amount": amount,
-            "status": "completed",
-            "metadata": ["apy": apy],
-            "created_at": ISO8601DateFormatter().string(from: Date())
-        ] as [String: Any]
+        struct InterestTransaction: Encodable {
+            let investor_id: String
+            let type: String
+            let amount: Double
+            let status: String
+            let metadata: [String: Double]
+            let created_at: String
+        }
+        
+        let transaction = InterestTransaction(
+            investor_id: investorId.uuidString,
+            type: "interest",
+            amount: amount,
+            status: "completed",
+            metadata: ["apy": apy],
+            created_at: ISO8601DateFormatter().string(from: Date())
+        )
         
         try await supabase
             .from("transactions")
@@ -270,11 +311,12 @@ class StorageService {
     }
     
     func uploadFile(data: Data, path: String, bucket: String) async throws -> String {
-        let response = try await supabase.storage
+        _ = try await supabase.storage
             .from(bucket)
-            .upload(path: path, data: data)
+            .upload(path, data: data)
         
-        return response
+        // Return the path where file was uploaded
+        return path
     }
     
     func downloadFile(path: String, bucket: String) async throws -> Data {
@@ -310,38 +352,18 @@ class RealtimeService {
         self.supabase = supabase
     }
     
-    func subscribeToPortfolioUpdates(investorId: UUID, handler: @escaping (PostgresChangePayload) -> Void) async {
-        let channel = supabase.channel("portfolio-\(investorId.uuidString)")
-        
-        await channel
-            .onPostgresChange(
-                event: .all,
-                schema: "public",
-                table: "portfolios",
-                filter: "investor_id=eq.\(investorId.uuidString)"
-            ) { payload in
-                handler(payload)
-            }
-            .subscribe()
-        
-        channels["portfolio-\(investorId.uuidString)"] = channel
+    func subscribeToPortfolioUpdates(investorId: UUID, handler: @escaping (Any) -> Void) async {
+        // TODO: Implement when Supabase Realtime types are available
+        // This is a placeholder implementation
+        let channelId = "portfolio-\(investorId.uuidString)"
+        print("Subscribing to portfolio updates for \(channelId)")
     }
     
-    func subscribeToTransactionUpdates(investorId: UUID, handler: @escaping (PostgresChangePayload) -> Void) async {
-        let channel = supabase.channel("transactions-\(investorId.uuidString)")
-        
-        await channel
-            .onPostgresChange(
-                event: .insert,
-                schema: "public",
-                table: "transactions",
-                filter: "investor_id=eq.\(investorId.uuidString)"
-            ) { payload in
-                handler(payload)
-            }
-            .subscribe()
-        
-        channels["transactions-\(investorId.uuidString)"] = channel
+    func subscribeToTransactionUpdates(investorId: UUID, handler: @escaping (Any) -> Void) async {
+        // TODO: Implement when Supabase Realtime types are available
+        // This is a placeholder implementation  
+        let channelId = "transactions-\(investorId.uuidString)"
+        print("Subscribing to transaction updates for \(channelId)")
     }
     
     func unsubscribeAll() async {
@@ -369,7 +391,7 @@ class OfflineManager: ObservableObject {
             .sink { [weak self] isConnected in
                 self?.isOffline = !isConnected
                 if isConnected {
-                    Task {
+                    Task { @MainActor in
                         await self?.syncPendingData()
                     }
                 }
@@ -379,8 +401,15 @@ class OfflineManager: ObservableObject {
     
     func saveOfflineData<T: Encodable>(_ data: T, type: String) {
         // Save to Core Data for offline access
-        coreDataStack.performBackgroundTask { context in
-            // Create entity and save
+        Task {
+            do {
+                try await coreDataStack.performBackgroundTask { context in
+                    // Create entity and save
+                    return
+                }
+            } catch {
+                print("Failed to save offline data: \(error)")
+            }
         }
     }
     

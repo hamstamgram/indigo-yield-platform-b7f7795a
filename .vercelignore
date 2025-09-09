@@ -1,0 +1,40 @@
+# iOS build files
+ios/.build/
+ios/build/
+ios/DerivedData/
+ios/*.xcworkspace/
+ios/*.xcodeproj/xcuserdata/
+
+# Mobile/Flutter build files
+mobile/
+mobile/.dart_tool/
+mobile/build/
+
+# Test and documentation files
+tests/
+docs/
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+
+# Build output files
+ios/build_*.txt
+ios/final_build.txt
+
+# Development files
+.env.local
+.env.development
+*.log
+*.skip
+
+# Git files
+.git/
+.gitignore
+
+# Other unnecessary files for deployment
+README_OLD.md
+PROGRESS_REPORT_*.md
+PRE_DEPLOYMENT_CHECKLIST.md
+DEPLOYMENT_SUMMARY.md
+NEXT_STEPS_GUIDE.md
