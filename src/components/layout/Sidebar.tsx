@@ -85,7 +85,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
             </div>
             <button
               onClick={closeSidebar}
-              className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              className="lg:hidden text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
             >
               <span className="sr-only">Close sidebar</span>
               <X className="h-6 w-6" />

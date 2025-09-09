@@ -111,9 +111,9 @@ const Privacy = () => {
             </p>
           </div>
           <div className="flex space-x-4 sm:space-x-6">
-            <Link className="text-gray-500 hover:text-gray-700" to="/terms">Terms</Link>
-            <Link className="text-gray-500 hover:text-gray-700" to="/privacy">Privacy</Link>
-            <Link className="text-gray-500 hover:text-gray-700" to="/contact">Contact</Link>
+            <Link className="text-gray-600 hover:text-gray-900" to="/terms">Terms</Link>
+            <Link className="text-gray-600 hover:text-gray-900" to="/privacy">Privacy</Link>
+            <Link className="text-gray-600 hover:text-gray-900" to="/contact">Contact</Link>
           </div>
         </div>
       </footer>
