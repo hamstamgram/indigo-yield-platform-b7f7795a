@@ -71,7 +71,6 @@ interface AssetData {
   investorCount: number;
   percentageOfFund: number;
   price: number;
-  priceChange24h: number;
   holders: InvestorHolding[];
 }
 
@@ -162,12 +161,12 @@ const AdminDashboard = () => {
           investorCount: 0,
           percentageOfFund: 0,
           price: asset.symbol === 'EUR' ? 1.08 : prices[asset.symbol]?.price || 0,
-          priceChange24h: asset.symbol === 'EUR' ? 0.1 : prices[asset.symbol]?.change24h || 0,
           holders: []
         });
       });
 
       // Process portfolio data
+      console.log('Processing portfolio data:', portfolioData);
       portfolioData?.forEach(portfolio => {
         const symbol = portfolio.assets?.symbol?.toUpperCase() || 'USDT';
         const balance = Number(portfolio.balance) || 0;
@@ -182,18 +181,20 @@ const AdminDashboard = () => {
         asset.marketValueUSD += valueUSD;
         totalValue += valueUSD;
 
-        if (portfolio.profiles) {
+        // Check if we have profile data (might be under different key)
+        const profile = portfolio.profiles || portfolio.user_id;
+        if (profile && typeof profile === 'object') {
           // Add to holders list
-          const existingHolder = asset.holders.find(h => h.id === portfolio.profiles.id);
+          const existingHolder = asset.holders.find(h => h.id === profile.id);
           if (existingHolder) {
             existingHolder.holdings += balance;
             existingHolder.valueUSD += valueUSD;
           } else {
-            const fullName = `${portfolio.profiles.first_name || ''} ${portfolio.profiles.last_name || ''}`.trim();
+            const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
             asset.holders.push({
-              id: portfolio.profiles.id,
+              id: profile.id,
               name: fullName || 'Anonymous',
-              email: portfolio.profiles.email,
+              email: profile.email,
               holdings: balance,
               percentage: 0, // Will calculate later
               valueUSD: valueUSD
@@ -259,7 +260,6 @@ const AdminDashboard = () => {
       setAssets(prev => prev.map(asset => ({
         ...asset,
         price: asset.symbol === 'EUR' ? 1.08 : prices[asset.symbol]?.price || asset.price,
-        priceChange24h: asset.symbol === 'EUR' ? 0.1 : prices[asset.symbol]?.change24h || asset.priceChange24h,
         marketValueUSD: asset.totalHoldings * (asset.symbol === 'EUR' ? 1.08 : prices[asset.symbol]?.price || asset.price)
       })));
     }, 60000); // Update every minute
@@ -368,11 +368,8 @@ const AdminDashboard = () => {
             ? 'grid-cols-1' 
             : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'
         }`}>
-          {assets.map(asset => {
-            const isPositive = asset.priceChange24h >= 0;
-            
-            return (
-              <Card 
+          {assets.map(asset => (
+              <Card
                 key={asset.symbol}
                 className="hover:shadow-lg transition-all duration-200 cursor-pointer border-2 hover:border-primary/20"
                 onClick={() => setSelectedAsset(asset)}
@@ -386,15 +383,6 @@ const AdminDashboard = () => {
                         <CardDescription className="text-xs">{asset.name}</CardDescription>
                       </div>
                     </div>
-                    <Badge 
-                      variant={isPositive ? "default" : "destructive"}
-                      className="ml-auto"
-                    >
-                      <span className="flex items-center gap-1">
-                        {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                        {Math.abs(asset.priceChange24h).toFixed(2)}%
-                      </span>
-                    </Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -413,19 +401,11 @@ const AdminDashboard = () => {
                   </div>
 
                   {/* Current Price */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Price</p>
-                      <p className="font-medium">
-                        ${asset.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">24h Change</p>
-                      <p className={`font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                        {isPositive ? '+' : ''}${(asset.priceChange24h * asset.price / 100).toFixed(2)}
-                      </p>
-                    </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Current Price</p>
+                    <p className="text-lg font-medium">
+                      ${asset.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    </p>
                   </div>
 
                   {/* Fund Allocation */}
@@ -447,8 +427,7 @@ const AdminDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
-            );
-          })}
+          ))}
         </div>
       </div>
 

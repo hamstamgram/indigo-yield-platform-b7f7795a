@@ -51,8 +51,11 @@ class ServiceLocator: ObservableObject {
     
     func configureSupabase(url: String, anonKey: String) {
         guard let url = URL(string: url) else {
-            fatalError("Invalid Supabase URL")
+            fatalError("Invalid Supabase URL: \(url)")
         }
+        
+        // Create a simple in-memory storage for development
+        let storage = InMemoryLocalStorage()
         
         supabaseClient = SupabaseClient(
             supabaseURL: url,
@@ -60,7 +63,7 @@ class ServiceLocator: ObservableObject {
             options: SupabaseClientOptions(
                 db: .init(schema: "public"),
                 auth: .init(
-                    storage: KeychainLocalStorage(),
+                    storage: storage,
                     autoRefreshToken: true
                 ),
                 global: .init(
