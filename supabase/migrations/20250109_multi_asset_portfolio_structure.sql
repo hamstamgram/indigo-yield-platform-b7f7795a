@@ -1,0 +1,180 @@
+-- Multi-Asset Portfolio Structure Migration
+-- Ensures proper structure for USDT, BTC, ETH, SOL, EUR asset management
+
+-- Ensure assets table has all required assets
+INSERT INTO assets (symbol, name) 
+VALUES 
+  ('USDT', 'Tether'),
+  ('BTC', 'Bitcoin'),
+  ('ETH', 'Ethereum'),
+  ('SOL', 'Solana'),
+  ('EUR', 'Euro')
+ON CONFLICT (symbol) DO UPDATE
+SET name = EXCLUDED.name;
+
+-- Add index for faster portfolio queries
+CREATE INDEX IF NOT EXISTS idx_portfolios_user_asset 
+ON portfolios(user_id, asset_id);
+
+-- Add index for asset symbol lookups
+CREATE INDEX IF NOT EXISTS idx_assets_symbol 
+ON assets(symbol);
+
+-- Create or update function to get portfolio summary by asset
+CREATE OR REPLACE FUNCTION get_portfolio_summary_by_asset()
+RETURNS TABLE (
+  asset_symbol TEXT,
+  asset_name TEXT,
+  total_holdings DECIMAL,
+  investor_count INTEGER,
+  total_value_usd DECIMAL
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    a.symbol::TEXT,
+    a.name::TEXT,
+    COALESCE(SUM(p.balance), 0)::DECIMAL as total_holdings,
+    COUNT(DISTINCT p.user_id)::INTEGER as investor_count,
+    -- Mock prices for now, replace with real price feed
+    COALESCE(SUM(
+      CASE 
+        WHEN a.symbol = 'BTC' THEN p.balance * 67500
+        WHEN a.symbol = 'ETH' THEN p.balance * 3200
+        WHEN a.symbol = 'SOL' THEN p.balance * 148
+        WHEN a.symbol = 'USDT' THEN p.balance * 1
+        WHEN a.symbol = 'EUR' THEN p.balance * 1.08
+        ELSE p.balance
+      END
+    ), 0)::DECIMAL as total_value_usd
+  FROM assets a
+  LEFT JOIN portfolios p ON a.id = p.asset_id
+  WHERE a.symbol IN ('USDT', 'BTC', 'ETH', 'SOL', 'EUR')
+  GROUP BY a.symbol, a.name
+  ORDER BY a.symbol;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create function to get investor holdings by asset
+CREATE OR REPLACE FUNCTION get_investor_holdings_by_asset(p_asset_symbol TEXT)
+RETURNS TABLE (
+  investor_id UUID,
+  investor_name TEXT,
+  investor_email TEXT,
+  holdings DECIMAL,
+  percentage DECIMAL,
+  value_usd DECIMAL
+) AS $$
+BEGIN
+  RETURN QUERY
+  WITH asset_totals AS (
+    SELECT 
+      a.id as asset_id,
+      a.symbol,
+      SUM(p.balance) as total_balance
+    FROM assets a
+    JOIN portfolios p ON a.id = p.asset_id
+    WHERE a.symbol = p_asset_symbol
+    GROUP BY a.id, a.symbol
+  )
+  SELECT 
+    pr.id as investor_id,
+    COALESCE(pr.full_name, 'Anonymous')::TEXT as investor_name,
+    pr.email::TEXT as investor_email,
+    p.balance::DECIMAL as holdings,
+    CASE 
+      WHEN at.total_balance > 0 THEN ROUND((p.balance / at.total_balance * 100)::NUMERIC, 2)
+      ELSE 0
+    END::DECIMAL as percentage,
+    -- Mock price calculation
+    CASE 
+      WHEN a.symbol = 'BTC' THEN (p.balance * 67500)::DECIMAL
+      WHEN a.symbol = 'ETH' THEN (p.balance * 3200)::DECIMAL
+      WHEN a.symbol = 'SOL' THEN (p.balance * 148)::DECIMAL
+      WHEN a.symbol = 'USDT' THEN (p.balance * 1)::DECIMAL
+      WHEN a.symbol = 'EUR' THEN (p.balance * 1.08)::DECIMAL
+      ELSE p.balance::DECIMAL
+    END as value_usd
+  FROM portfolios p
+  JOIN assets a ON p.asset_id = a.id
+  JOIN profiles pr ON p.user_id = pr.id
+  JOIN asset_totals at ON a.id = at.asset_id
+  WHERE a.symbol = p_asset_symbol
+  ORDER BY p.balance DESC;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Grant execute permissions to authenticated users
+GRANT EXECUTE ON FUNCTION get_portfolio_summary_by_asset() TO authenticated;
+GRANT EXECUTE ON FUNCTION get_investor_holdings_by_asset(TEXT) TO authenticated;
+
+-- Create view for total fund value
+CREATE OR REPLACE VIEW fund_summary AS
+SELECT 
+  COUNT(DISTINCT p.user_id) as total_investors,
+  SUM(
+    CASE 
+      WHEN a.symbol = 'BTC' THEN p.balance * 67500
+      WHEN a.symbol = 'ETH' THEN p.balance * 3200
+      WHEN a.symbol = 'SOL' THEN p.balance * 148
+      WHEN a.symbol = 'USDT' THEN p.balance * 1
+      WHEN a.symbol = 'EUR' THEN p.balance * 1.08
+      ELSE p.balance
+    END
+  ) as total_fund_value_usd
+FROM portfolios p
+JOIN assets a ON p.asset_id = a.id
+WHERE a.symbol IN ('USDT', 'BTC', 'ETH', 'SOL', 'EUR');
+
+-- Grant select permission on the view
+GRANT SELECT ON fund_summary TO authenticated;
+
+-- Add RLS policies for portfolio access (admin only for management)
+ALTER TABLE portfolios ENABLE ROW LEVEL SECURITY;
+
+-- Admin can see all portfolios
+CREATE POLICY "Admins can view all portfolios" ON portfolios
+  FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
+    )
+  );
+
+-- Admin can update all portfolios
+CREATE POLICY "Admins can update all portfolios" ON portfolios
+  FOR UPDATE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
+    )
+  );
+
+-- Admin can insert portfolios
+CREATE POLICY "Admins can insert portfolios" ON portfolios
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
+    )
+  );
+
+-- Users can see their own portfolios
+CREATE POLICY "Users can view own portfolios" ON portfolios
+  FOR SELECT
+  TO authenticated
+  USING (user_id = auth.uid());
+
+-- Add comment for documentation
+COMMENT ON FUNCTION get_portfolio_summary_by_asset() IS 'Returns aggregated portfolio data for each supported asset (USDT, BTC, ETH, SOL, EUR)';
+COMMENT ON FUNCTION get_investor_holdings_by_asset(TEXT) IS 'Returns detailed investor holdings for a specific asset symbol';
+COMMENT ON VIEW fund_summary IS 'Provides total fund value and investor count across all supported assets';

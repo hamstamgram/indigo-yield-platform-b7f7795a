@@ -29,18 +29,12 @@ let package = Package(
                 .product(name: "DGCharts", package: "Charts")
             ],
             path: "IndigoInvestor",
-            exclude: ["Info.plist"],
-            sources: [
-                "App",
-                "Config",
-                "Core",
-                "Models",
-                "Services",
-                "Repositories",
-                "ViewModels",
-                "Views",
-                "Theme",
-                "Features"
+            exclude: [
+                "Info.plist",
+                "Assets.xcassets",
+                "IndigoInvestor.xcdatamodeld",
+                "Resources",
+                "Tests"
             ]
         ),
         .testTarget(

@@ -5,13 +5,11 @@
     <key>destination</key>
     <string>export</string>
     <key>method</key>
-    <string>app-store</string>
-    <key>teamID</key>
-    <string>YOUR_TEAM_ID</string>
+    <string>development</string>
     <key>uploadBitcode</key>
-    <true/>
+    <false/>
     <key>compileBitcode</key>
-    <true/>
+    <false/>
     <key>uploadSymbols</key>
     <true/>
     <key>signingStyle</key>
@@ -20,7 +18,7 @@
     <true/>
     <key>provisioningProfiles</key>
     <dict>
-        <key>com.indigo.IndigoInvestor</key>
+        <key>com.indigo.investor</key>
         <string>Automatic</string>
     </dict>
 </dict>

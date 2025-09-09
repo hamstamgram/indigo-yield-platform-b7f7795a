@@ -143,18 +143,18 @@ const AdminDashboard = () => {
 
       {/* Quick Actions */}
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
-        <Card className="border-2 border-indigo-200">
+        <Card className="border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-indigo-600" />
               Portfolio Dashboard
             </CardTitle>
             <CardDescription>
-              Real-time crypto portfolio tracking and analytics
+              Multi-asset portfolio: USDT, BTC, ETH, SOL, EUR
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => navigate('/admin/portfolio')} className="w-full bg-indigo-600 hover:bg-indigo-700">
+            <Button onClick={() => navigate('/admin/portfolio-dashboard')} className="w-full bg-indigo-600 hover:bg-indigo-700">
               View Portfolio
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
