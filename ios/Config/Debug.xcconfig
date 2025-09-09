@@ -2,7 +2,8 @@
 // This file contains non-sensitive configuration values
 
 // Supabase Configuration
-SUPABASE_URL = http://127.0.0.1:8080
+// Using localhost.supabase.co format to satisfy SDK's URL parsing requirements
+SUPABASE_URL = http://localhost.supabase.co:8080
 SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJvbGUiOiJhbm9uIiwiZXhwIjoxOTgzODEyOTk2fQ.tGdv7klPK1PZ-zVAhS_gdTCwv8I5p0CbSJqjVH8MJHI
 
 // App Configuration
