@@ -72,8 +72,20 @@
     <dict>
         <key>NSAllowsArbitraryLoads</key>
         <false/>
+        <key>NSAllowsLocalNetworking</key>
+        <true/>
         <key>NSExceptionDomains</key>
         <dict>
+            <key>localhost</key>
+            <dict>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+            </dict>
+            <key>127.0.0.1</key>
+            <dict>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+            </dict>
             <key>supabase.co</key>
             <dict>
                 <key>NSIncludesSubdomains</key>
@@ -85,5 +97,9 @@
     </dict>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
+    <key>SUPABASE_URL</key>
+    <string>$(SUPABASE_URL)</string>
+    <key>SUPABASE_ANON_KEY</key>
+    <string>$(SUPABASE_ANON_KEY)</string>
 </dict>
 </plist>

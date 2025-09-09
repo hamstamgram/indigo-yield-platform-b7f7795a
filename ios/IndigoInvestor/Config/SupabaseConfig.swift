@@ -11,21 +11,33 @@ struct SupabaseConfig {
     static let current = SupabaseConfig()
     
     var url: String {
+        // Read from Info.plist which is populated from xcconfig
+        if let url = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_URL") as? String,
+           !url.isEmpty {
+            return url
+        }
+        
         #if DEBUG
-        // Development environment
-        return ProcessInfo.processInfo.environment["SUPABASE_URL"] ?? "https://uxpzrxsnxlptkamkkaae.supabase.co"
+        // Fallback for development
+        return "http://127.0.0.1:54321"
         #else
-        // Production environment
+        // Fallback for production
         return "https://uxpzrxsnxlptkamkkaae.supabase.co"
         #endif
     }
     
     var anonKey: String {
+        // Read from Info.plist which is populated from xcconfig
+        if let key = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_ANON_KEY") as? String,
+           !key.isEmpty {
+            return key
+        }
+        
         #if DEBUG
-        // Development environment - should be loaded from environment or secure config
-        return ProcessInfo.processInfo.environment["SUPABASE_ANON_KEY"] ?? ""
+        // Fallback for development - using the standard Supabase local anon key
+        return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
         #else
-        // Production environment - should be loaded from secure configuration
+        // Production key should be provided via xcconfig
         return ""
         #endif
     }

@@ -44,11 +44,10 @@ struct AuthenticationView: View {
                     VStack(spacing: 30) {
                         // Logo and Title
                         VStack(spacing: 16) {
-                            Image(systemName: "chart.line.uptrend.xyaxis.circle.fill")
+                            Image("Logo")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 100, height: 100)
-                                .foregroundColor(.white)
+                                .frame(width: 120, height: 120)
                                 .shadow(radius: 10)
                             
                             Text("Indigo Investor")
