@@ -208,8 +208,14 @@ export const getInvestorById = async (id: string): Promise<InvestorDetail | null
     // Get portfolios for positions
     const { data: portfolios, error: portfoliosError } = await supabase
       .from('portfolios')
-      .select('asset_symbol, current_value')
-      .eq('profile_id', id);
+      .select(`
+        balance,
+        assets:asset_id (
+          symbol,
+          name
+        )
+      `)
+      .eq('user_id', id);
     
     if (portfoliosError) {
       console.error("Error fetching portfolios:", portfoliosError);
@@ -238,8 +244,8 @@ export const getInvestorById = async (id: string): Promise<InvestorDetail | null
       status: 'active' as const,
       kycStatus: 'approved' as const, // Default, would need actual KYC status
       positions: (portfolios || []).map(p => ({
-        asset: p.asset_symbol || 'Unknown',
-        principal: `$${p.current_value?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}`,
+        asset: p.assets?.symbol || 'Unknown',
+        principal: `$${p.balance?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}`,
         earned: '$0.00', // Would need calculation
         apy: '0.0%' // Would need calculation
       })),

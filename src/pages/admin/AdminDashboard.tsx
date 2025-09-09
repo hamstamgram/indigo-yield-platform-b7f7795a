@@ -130,12 +130,13 @@ const AdminDashboard = () => {
         .from('portfolios')
         .select(`
           *,
-          profiles!portfolios_user_id_fkey (
+          profiles:user_id (
             id,
-            full_name,
+            first_name,
+            last_name,
             email
           ),
-          assets (
+          assets:asset_id (
             symbol,
             name
           )
@@ -188,9 +189,10 @@ const AdminDashboard = () => {
             existingHolder.holdings += balance;
             existingHolder.valueUSD += valueUSD;
           } else {
+            const fullName = `${portfolio.profiles.first_name || ''} ${portfolio.profiles.last_name || ''}`.trim();
             asset.holders.push({
               id: portfolio.profiles.id,
-              name: portfolio.profiles.full_name || 'Anonymous',
+              name: fullName || 'Anonymous',
               email: portfolio.profiles.email,
               holdings: balance,
               percentage: 0, // Will calculate later

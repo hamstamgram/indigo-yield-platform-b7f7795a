@@ -29,15 +29,9 @@ export function SentryTestButton() {
 
   const testTransaction = () => {
     setTestStatus('Testing performance...');
-    const transaction = Sentry.startTransaction({
-      op: 'test',
-      name: 'Test Transaction',
-    });
-
-    Sentry.getCurrentHub().configureScope(scope => scope.setSpan(transaction));
-
+    // Performance monitoring is now handled differently in newer Sentry versions
+    Sentry.captureMessage('Performance test event', 'info');
     setTimeout(() => {
-      transaction.finish();
       setTestStatus('Performance test sent to Sentry!');
     }, 1000);
   };
