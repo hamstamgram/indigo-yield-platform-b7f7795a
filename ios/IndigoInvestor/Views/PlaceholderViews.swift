@@ -22,9 +22,7 @@ struct LoadingView: View {
     }
 }
 
-struct NetworkMonitor: ObservableObject {
-    @Published var isConnected = true
-}
+// NetworkMonitor moved to Core/Network/NetworkMonitor.swift
 
 // MARK: - LP Views
 
@@ -120,27 +118,4 @@ struct AdminSettingsView: View {
     }
 }
 
-// MARK: - Dashboard ViewModel
-
-@MainActor
-class DashboardViewModel: ObservableObject {
-    @Published var portfolio: Portfolio?
-    @Published var isLoading = false
-    @Published var performanceData: [PerformanceData]?
-    @Published var recentTransactions: [Transaction] = []
-    
-    func loadData() async {
-        isLoading = true
-        // Simulate loading
-        try? await Task.sleep(nanoseconds: 1_000_000_000)
-        isLoading = false
-    }
-    
-    func refreshData() async {
-        await loadData()
-    }
-    
-    func loadPerformanceData(for range: DashboardView.TimeRange) async {
-        // Load performance data for range
-    }
-}
+// MARK: - Dashboard ViewModel moved to ViewModels/DashboardViewModel.swift

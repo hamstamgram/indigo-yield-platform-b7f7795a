@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "IndigoInvestor",
     platforms: [
-        .iOS(.v14),
+        .iOS(.v15),
         .watchOS(.v9)
     ],
     products: [
@@ -24,14 +24,29 @@ let package = Package(
             name: "IndigoInvestor",
             dependencies: [
                 .product(name: "Supabase", package: "supabase-swift"),
-                .product(name: "DGCharts", package: "Charts"),
-                .product(name: "Kingfisher", package: "Kingfisher"),
                 .product(name: "KeychainAccess", package: "KeychainAccess"),
+                .product(name: "Kingfisher", package: "Kingfisher"),
+                .product(name: "DGCharts", package: "Charts")
+            ],
+            path: "IndigoInvestor",
+            exclude: ["Info.plist"],
+            sources: [
+                "App",
+                "Config",
+                "Core",
+                "Models",
+                "Services",
+                "Repositories",
+                "ViewModels",
+                "Views",
+                "Theme",
+                "Features"
             ]
         ),
         .testTarget(
             name: "IndigoInvestorTests",
-            dependencies: ["IndigoInvestor"]
+            dependencies: ["IndigoInvestor"],
+            path: "IndigoInvestorTests"
         ),
     ]
 )

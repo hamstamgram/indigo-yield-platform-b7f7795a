@@ -10,7 +10,7 @@ import Supabase
 
 @main
 struct IndigoInvestorApp: App {
-    @StateObject private var serviceLocator = ServiceLocator()
+    @StateObject private var serviceLocator = ServiceLocator.shared
     @StateObject private var authViewModel = AuthViewModel()
     @StateObject private var networkMonitor = NetworkMonitor()
     
@@ -61,17 +61,13 @@ struct IndigoInvestorApp: App {
     }
     
     private func configureSecurity() {
-        // Certificate pinning
-        CertificatePinningManager.shared.configure()
+        // Certificate pinning will be configured later
+        // CertificatePinningManager.shared.configure()
         
-        // Jailbreak detection
-        if SecurityManager.isJailbroken() {
-            // Handle jailbroken device
-            print("⚠️ Warning: Device appears to be jailbroken")
-        }
-        
-        // Configure App Transport Security
-        SecurityManager.configureATS()
+        // Jailbreak detection will be added later
+        // if SecurityManager.isJailbroken() {
+        //     print("⚠️ Warning: Device appears to be jailbroken")
+        // }
     }
     
     private func configureAppearance() {
