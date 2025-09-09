@@ -21,9 +21,7 @@ class DashboardViewModel: ObservableObject {
     @Published var showError = false
     
     // MARK: - Dependencies
-    private let portfolioService: PortfolioServiceProtocol
-    private let transactionService: TransactionServiceProtocol
-    private let authViewModel: AuthViewModel
+    // Services will be injected via ServiceLocator
     
     // MARK: - Private Properties
     private var cancellables = Set<AnyCancellable>()
@@ -32,14 +30,9 @@ class DashboardViewModel: ObservableObject {
     
     // MARK: - Initialization
     
-    init(portfolioService: PortfolioServiceProtocol, 
-         transactionService: TransactionServiceProtocol,
-         authViewModel: AuthViewModel) {
-        self.portfolioService = portfolioService
-        self.transactionService = transactionService
-        self.authViewModel = authViewModel
-        
-        setupSubscriptions()
+    init() {
+        // Services will be accessed via ServiceLocator.shared
+        // setupSubscriptions()
     }
     
     deinit {
@@ -93,8 +86,9 @@ class DashboardViewModel: ObservableObject {
             }
             
             // Force refresh from network
-            let portfolio = try await portfolioService.refreshPortfolioData(for: investorId)
-            let transactions = try await transactionService.fetchRecentTransactions(for: investorId)
+            // TODO: Implement when services are connected
+            // let portfolio = try await portfolioService.refreshPortfolioData(for: investorId)
+            // let transactions = try await transactionService.fetchRecentTransactions(for: investorId)
             
             // Update UI
             self.portfolio = portfolio
@@ -123,7 +117,8 @@ class DashboardViewModel: ObservableObject {
     
     private func setupSubscriptions() {
         // Listen for authentication changes
-        authViewModel.$isAuthenticated
+        // TODO: Connect to auth view model
+        /*authViewModel.$isAuthenticated
             .sink { [weak self] isAuthenticated in
                 if isAuthenticated {
                     Task {
@@ -133,7 +128,7 @@ class DashboardViewModel: ObservableObject {
                     self?.clearData()
                 }
             }
-            .store(in: &cancellables)
+            .store(in: &cancellables)*/
     }
     
     private func setupRealtimeSubscriptions(for investorId: UUID) {
@@ -177,7 +172,8 @@ class DashboardViewModel: ObservableObject {
     
     private func getCurrentInvestorId() -> UUID? {
         // Get investor ID from authenticated user
-        return authViewModel.user?.id
+        // TODO: Connect to auth service
+        return nil // authViewModel.user?.id
     }
     
     private func filterPerformanceData(_ data: [PerformanceData], for timeRange: DashboardView.TimeRange) -> [PerformanceData] {
@@ -218,7 +214,7 @@ class DashboardViewModel: ObservableObject {
         let errorInfo = [
             "error": error.localizedDescription,
             "timestamp": Date().iso8601String,
-            "user_id": authViewModel.user?.id.uuidString ?? "unknown",
+            "user_id": "unknown", // authViewModel.user?.id.uuidString ?? "unknown",
             "screen": "Dashboard"
         ]
         
@@ -284,6 +280,7 @@ enum DashboardError: LocalizedError {
 // MARK: - Mock Data for Previews
 
 #if DEBUG
+/*
 extension DashboardViewModel {
     static var preview: DashboardViewModel {
         // Create mock services for SwiftUI previews
@@ -338,4 +335,5 @@ private class MockTransactionService: TransactionServiceProtocol {
         return AsyncStream { _ in }
     }
 }
+*/
 #endif

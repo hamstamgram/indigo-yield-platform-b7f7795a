@@ -540,5 +540,5 @@ struct NotificationButton: View {
 
 #Preview {
     DashboardView()
-        .environmentObject(ServiceLocator())
+            .environmentObject(ServiceLocator.shared)
 }

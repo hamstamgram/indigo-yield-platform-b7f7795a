@@ -345,5 +345,5 @@ struct CodeDigitView: View {
 #Preview {
     AuthenticationView()
         .environmentObject(AuthViewModel())
-        .environmentObject(ServiceLocator())
+            .environmentObject(ServiceLocator.shared)
 }

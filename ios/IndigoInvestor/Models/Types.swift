@@ -53,9 +53,16 @@ enum WithdrawalStatus: String, Codable {
 
 // MARK: - Performance Data
 
-struct PerformanceData: Identifiable {
-    let id = UUID()
+struct PerformanceData: Identifiable, Codable {
+    let id: UUID
     let date: Date
     let value: Double
     let percentageChange: Double
+    
+    init(id: UUID = UUID(), date: Date, value: Double, percentageChange: Double) {
+        self.id = id
+        self.date = date
+        self.value = value
+        self.percentageChange = percentageChange
+    }
 }

@@ -400,24 +400,8 @@ class OfflineManager: ObservableObject {
 }
 
 // MARK: - Supporting Types
+// Statement is defined in DocumentModels.swift
 
-struct Statement: Identifiable {
-    let id: UUID
-    let periodStart: Date
-    let periodEnd: Date
-    let fileName: String
-    let fileUrl: String
-    let createdAt: Date
-}
-
-// WithdrawalRequest and WithdrawalStatus are defined in Models/Types.swift
-
-struct WithdrawalRequest: Identifiable {
-    let id: UUID
-    let amount: Double
-    let status: WithdrawalStatus
-    let requestedAt: Date
-    let processedAt: Date?
-}
+// WithdrawalRequest and WithdrawalStatus are defined in DocumentModels.swift and Types.swift
 
 // InvestorProfile moved to Models

@@ -125,6 +125,7 @@ class ServiceLocator: ObservableObject {
     
     // MARK: - ViewModel Factory Methods
     
+    @MainActor
     func makeDashboardViewModel() -> DashboardViewModel {
         return DashboardViewModel()
     }

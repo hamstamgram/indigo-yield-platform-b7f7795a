@@ -27,6 +27,15 @@ struct Portfolio: Codable, Identifiable {
     let assetAllocation: [AssetAllocation]
     let performanceHistory: [PerformanceData]
     
+    // CodingKeys to exclude computed properties
+    enum CodingKeys: String, CodingKey {
+        case id, investorId, totalValue, totalCost, totalGain
+        case totalGainPercent, dayChange, dayChangePercent
+        case weekChange, weekChangePercent, monthChange
+        case monthChangePercent, yearChange, yearChangePercent
+        case lastUpdated, positions, assetAllocation, performanceHistory
+    }
+    
     var formattedTotalValue: String {
         return totalValue.formatted(.currency(code: "USD"))
     }
@@ -73,24 +82,26 @@ struct Position: Codable, Identifiable {
 }
 
 struct AssetAllocation: Codable, Identifiable {
-    let id = UUID()
+    let id: UUID
     let assetType: String
     let value: Decimal
     let percentage: Double
     let color: String
+    
+    init(id: UUID = UUID(), assetType: String, value: Decimal, percentage: Double, color: String) {
+        self.id = id
+        self.assetType = assetType
+        self.value = value
+        self.percentage = percentage
+        self.color = color
+    }
     
     var formattedPercentage: String {
         return "\(String(format: "%.1f", percentage))%"
     }
 }
 
-struct PerformanceData: Codable, Identifiable {
-    let id = UUID()
-    let date: Date
-    let value: Decimal
-    let gain: Decimal
-    let gainPercent: Double
-}
+// PerformanceData is defined in Models/Types.swift
 
 // MARK: - Transaction Models
 
@@ -144,7 +155,8 @@ struct Transaction: Codable, Identifiable {
 }
 
 // MARK: - Statement Models
-
+// Statement is defined in AdditionalServices.swift
+/*
 struct Statement: Codable, Identifiable {
     let id: UUID
     let investorId: UUID
@@ -183,9 +195,11 @@ struct Statement: Codable, Identifiable {
         return "\(formatter.string(from: startDate)) - \(formatter.string(from: endDate))"
     }
 }
+*/
 
 // MARK: - Withdrawal Models
-
+// WithdrawalRequest is defined in AdditionalServices.swift
+/*
 struct WithdrawalRequest: Codable, Identifiable {
     let id: UUID
     let investorId: UUID
@@ -234,13 +248,11 @@ struct WithdrawalRequest: Codable, Identifiable {
         }
     }
 }
+*/
 
 // MARK: - User Models
 
-enum UserRole: String, Codable {
-    case investor = "investor"
-    case admin = "admin"
-}
+// UserRole is defined in Models/Types.swift
 
 struct User: Codable, Identifiable {
     let id: UUID

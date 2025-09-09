@@ -133,31 +133,42 @@ class AuthService: ObservableObject {
         
         let profile = try decoder.decode(UserProfile.self, from: data)
         
-        return User(
+        // Create user with available fields
+        let user = User(
             id: userId,
             email: profile.email,
             fullName: profile.fullName,
             role: UserRole(rawValue: profile.role) ?? .investor,
-            isVerified: profile.emailVerifiedAt != nil,
-            createdAt: profile.createdAt
+            isActive: true,
+            createdAt: profile.createdAt,
+            lastLogin: Date(),
+            profile: nil
         )
+        return user
     }
     
     func updateProfile(fullName: String?, phoneNumber: String?) async throws {
-        guard let userId = currentUser?.id else { throw AuthError.notAuthenticated }
+        guard let userId = currentUser?.id else { 
+            struct NotAuthenticatedError: Error {}
+            throw NotAuthenticatedError()
+        }
         
-        var updates: [String: Any] = [:]
-        if let fullName = fullName {
-            updates["full_name"] = fullName
+        // Create a proper Encodable struct for updates
+        struct ProfileUpdate: Encodable {
+            let full_name: String?
+            let phone_number: String?
+            let updated_at: String
         }
-        if let phoneNumber = phoneNumber {
-            updates["phone_number"] = phoneNumber
-        }
-        updates["updated_at"] = ISO8601DateFormatter().string(from: Date())
+        
+        let update = ProfileUpdate(
+            full_name: fullName,
+            phone_number: phoneNumber,
+            updated_at: ISO8601DateFormatter().string(from: Date())
+        )
         
         try await supabase
             .from("profiles")
-            .update(updates)
+            .update(update)
             .eq("id", value: userId.uuidString)
             .execute()
         

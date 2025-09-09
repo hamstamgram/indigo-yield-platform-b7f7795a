@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		01E6229365B8CA5154340C17 /* DocumentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 625D8A15ADE34387FD7CF0A6 /* DocumentModels.swift */; };
 		0C41989E5524138F8D162A74 /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE0D0E087CC6C308B2823831 /* AuthenticationView.swift */; };
 		0E8AFAA623B90EE30AE20761 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = B4FE8087ECD88C6C2685D9E4 /* KeychainAccess */; };
 		18C071534BF342D42D62A051 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE01593B54DB36BFDE1D3DE4 /* SupabaseConfig.swift */; };
@@ -18,6 +19,7 @@
 		68EA748913FADB9D8A288049 /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A659650CFB721C1ECC410F84 /* DashboardViewModel.swift */; };
 		696D4AE1DD5115C62340B54D /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66CB012D2C69911F475C5D25 /* CoreDataStack.swift */; };
 		742842F380F4C0036D330230 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135ACEF8377F849B0E36684B /* AuthViewModel.swift */; };
+		74EFE91E3108971BB16203C5 /* ServiceProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = D043A505E34894470ABCCFE9 /* ServiceProtocols.swift */; };
 		7BE344DEF1C9EE0E7DB919B1 /* Repositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC96E1C4E6D379D3B7E7DF04 /* Repositories.swift */; };
 		85518E3BC238205C66220FEA /* ServiceLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 551BFC96C38228D3B6196E27 /* ServiceLocator.swift */; };
 		891BBC0C435EA6A583BDC840 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A133BA85E50755E8FC2E6479 /* DashboardView.swift */; };
@@ -45,6 +47,7 @@
 		42720E5F4BBDEB71F5C7D600 /* PushNotificationManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PushNotificationManager.swift; sourceTree = "<group>"; };
 		4EA401C187F5CBBFDA194FD2 /* IndigoInvestor.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = IndigoInvestor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		551BFC96C38228D3B6196E27 /* ServiceLocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceLocator.swift; sourceTree = "<group>"; };
+		625D8A15ADE34387FD7CF0A6 /* DocumentModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DocumentModels.swift; sourceTree = "<group>"; };
 		66CB012D2C69911F475C5D25 /* CoreDataStack.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
 		6F3360526DCA9409BCCFA856 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		791D439FCB2519B9BB497B79 /* NetworkMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
@@ -55,6 +58,7 @@
 		ADDADB3F5657362D503B3D36 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		B830443C8A20580A22B6AD52 /* Portfolio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Portfolio.swift; sourceTree = "<group>"; };
 		BC96E1C4E6D379D3B7E7DF04 /* Repositories.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Repositories.swift; sourceTree = "<group>"; };
+		D043A505E34894470ABCCFE9 /* ServiceProtocols.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServiceProtocols.swift; sourceTree = "<group>"; };
 		EE01593B54DB36BFDE1D3DE4 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
 		F9520784DE730879C150EB72 /* PlaceholderViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderViews.swift; sourceTree = "<group>"; };
 		FE0D0E087CC6C308B2823831 /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
@@ -103,6 +107,7 @@
 				27D96F0FCD93FBE6877B49CB /* PortfolioService.swift */,
 				0278928A83A8AFD424A490FC /* AdditionalServices.swift */,
 				42720E5F4BBDEB71F5C7D600 /* PushNotificationManager.swift */,
+				D043A505E34894470ABCCFE9 /* ServiceProtocols.swift */,
 			);
 			name = Services;
 			path = Services;
@@ -188,6 +193,7 @@
 			children = (
 				B830443C8A20580A22B6AD52 /* Portfolio.swift */,
 				30726D86AACD8AE9D2B801F3 /* Types.swift */,
+				625D8A15ADE34387FD7CF0A6 /* DocumentModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -342,6 +348,8 @@
 				696D4AE1DD5115C62340B54D /* CoreDataStack.swift in Sources */,
 				FF98A49DECAD558D69DCFAAA /* NetworkMonitor.swift in Sources */,
 				DFE2388AFE645EB686AA4D29 /* Types.swift in Sources */,
+				74EFE91E3108971BB16203C5 /* ServiceProtocols.swift in Sources */,
+				01E6229365B8CA5154340C17 /* DocumentModels.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -403,7 +411,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -424,7 +432,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				INFOPLIST_FILE = IndigoInvestor/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -487,7 +495,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -507,7 +515,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				INFOPLIST_FILE = IndigoInvestor/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
