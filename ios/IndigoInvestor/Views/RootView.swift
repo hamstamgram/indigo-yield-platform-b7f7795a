@@ -26,8 +26,10 @@ struct RootView: View {
             }
         }
         .overlay(networkBanner, alignment: .top)
-        .task {
-            await initializeApp()
+        .onAppear {
+            Task {
+                await initializeApp()
+            }
         }
     }
     

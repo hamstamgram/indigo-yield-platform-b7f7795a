@@ -1,17 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { generateStatementFilename } from './statementPdfGenerator';
 
-// Create a Supabase client with the service role key for admin operations
-const supabaseAdmin = createClient(
-  'https://nkfimvovosdehmyyjubn.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZmltdm92b3NkZWhteXlqdWJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjQ1NDU5OCwiZXhwIjoyMDYyMDMwNTk4fQ.2dG7IemW8SVQ7FcEe7Dcv41B7utJy0LtEjZhSMESa1k',
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
+// IMPORTANT: Statement operations must be done server-side with service role key
+// This file should only be used for client-side operations with signed URLs
+// Actual PDF generation and storage should be handled by an Edge Function or backend service
 
 export async function uploadStatementToStorage(
   pdfBlob: Blob,
@@ -23,8 +15,9 @@ export async function uploadStatementToStorage(
     const filename = generateStatementFilename(investor_id, period_year, period_month);
     const storagePath = `statements/${investor_id}/${period_year}/${filename}`;
 
-    // Upload to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+    // SECURITY: This should be called from a backend/Edge Function only
+    // For now, using client with proper RLS policies
+    const { data: uploadData, error: uploadError } = await supabase.storage
       .from('statements')
       .upload(storagePath, pdfBlob, {
         contentType: 'application/pdf',
@@ -36,7 +29,7 @@ export async function uploadStatementToStorage(
       
       // If bucket doesn't exist, create it
       if (uploadError.message?.includes('Bucket not found')) {
-        const { error: createError } = await supabaseAdmin.storage.createBucket('statements', {
+        const { error: createError } = await supabase.storage.createBucket('statements', {
           public: false, // Private bucket
           fileSizeLimit: 10485760, // 10MB limit
           allowedMimeTypes: ['application/pdf']
@@ -48,7 +41,7 @@ export async function uploadStatementToStorage(
         }
 
         // Retry upload
-        const { data: retryData, error: retryError } = await supabaseAdmin.storage
+        const { data: retryData, error: retryError } = await supabase.storage
           .from('statements')
           .upload(storagePath, pdfBlob, {
             contentType: 'application/pdf',
@@ -65,7 +58,7 @@ export async function uploadStatementToStorage(
     }
 
     // Generate a signed URL (valid for 5 minutes)
-    const { data: signedUrlData, error: signedUrlError } = await supabaseAdmin.storage
+    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
       .from('statements')
       .createSignedUrl(storagePath, 300); // 5 minutes expiry
 
@@ -86,7 +79,7 @@ export async function uploadStatementToStorage(
 
 export async function getStatementSignedUrl(storage_path: string): Promise<string | null> {
   try {
-    const { data, error } = await supabaseAdmin.storage
+    const { data, error } = await supabase.storage
       .from('statements')
       .createSignedUrl(storage_path, 300); // 5 minutes expiry
 
@@ -104,7 +97,7 @@ export async function getStatementSignedUrl(storage_path: string): Promise<strin
 
 export async function deleteStatement(storage_path: string): Promise<boolean> {
   try {
-    const { error } = await supabaseAdmin.storage
+    const { error } = await supabase.storage
       .from('statements')
       .remove([storage_path]);
 

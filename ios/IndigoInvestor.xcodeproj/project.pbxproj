@@ -7,34 +7,60 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		01E6229365B8CA5154340C17 /* DocumentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 625D8A15ADE34387FD7CF0A6 /* DocumentModels.swift */; };
 		0C41989E5524138F8D162A74 /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE0D0E087CC6C308B2823831 /* AuthenticationView.swift */; };
 		0E8AFAA623B90EE30AE20761 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = B4FE8087ECD88C6C2685D9E4 /* KeychainAccess */; };
 		18C071534BF342D42D62A051 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE01593B54DB36BFDE1D3DE4 /* SupabaseConfig.swift */; };
+		1ED84EF007EF89A3041EED10 /* PortfolioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D96F0FCD93FBE6877B49CB /* PortfolioService.swift */; };
+		27355EA769DDAB39639A1AA1 /* ViewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 077E1DD5D78BF497638FE6EA /* ViewModels.swift */; };
+		35BBDADC863C11B851A527B7 /* CoreDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 354D98DCE9563C8CE8CF9DCF /* CoreDataModel.swift */; };
 		3DDB469A8851755CDB447A25 /* DGCharts in Frameworks */ = {isa = PBXBuildFile; productRef = E5A92F73298524719439669E /* DGCharts */; };
 		46A9D0D948A6867C6337AD58 /* IndigoInvestorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951987BE5295E8BF0116EC1C /* IndigoInvestorApp.swift */; };
+		49420F85B4525F5198B426C4 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40023F5C2FFD488B692181E7 /* AuthService.swift */; };
+		68EA748913FADB9D8A288049 /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A659650CFB721C1ECC410F84 /* DashboardViewModel.swift */; };
+		696D4AE1DD5115C62340B54D /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66CB012D2C69911F475C5D25 /* CoreDataStack.swift */; };
 		742842F380F4C0036D330230 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135ACEF8377F849B0E36684B /* AuthViewModel.swift */; };
+		74EFE91E3108971BB16203C5 /* ServiceProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = D043A505E34894470ABCCFE9 /* ServiceProtocols.swift */; };
+		7BE344DEF1C9EE0E7DB919B1 /* Repositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC96E1C4E6D379D3B7E7DF04 /* Repositories.swift */; };
 		85518E3BC238205C66220FEA /* ServiceLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 551BFC96C38228D3B6196E27 /* ServiceLocator.swift */; };
 		891BBC0C435EA6A583BDC840 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A133BA85E50755E8FC2E6479 /* DashboardView.swift */; };
 		91ED76AC61071D005C2AC0D1 /* PlaceholderViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9520784DE730879C150EB72 /* PlaceholderViews.swift */; };
 		99DE2DF88DABAC4F343F9D1B /* BiometricAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CAD2080143DC9067C853FAD /* BiometricAuthManager.swift */; };
+		9B13E8DC84BB2C1CF5C4A820 /* PushNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42720E5F4BBDEB71F5C7D600 /* PushNotificationManager.swift */; };
 		9EAC1AD80CF418A747AAC977 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BD83474EE4ACD4891E8CE78 /* KeychainManager.swift */; };
 		BDF3FA1079D79EA7FD37283F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADDADB3F5657362D503B3D36 /* RootView.swift */; };
+		C7720649C15322BC4A9A6BDC /* AdditionalServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0278928A83A8AFD424A490FC /* AdditionalServices.swift */; };
 		CB1F85697AC0260B46588DDA /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = D7BC3BE765832F9C2DB15A80 /* Supabase */; };
+		DFE2388AFE645EB686AA4D29 /* Types.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30726D86AACD8AE9D2B801F3 /* Types.swift */; };
 		F015996CD3224DCE1B79D391 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 3FBC6AEB837032081F74388B /* Kingfisher */; };
 		FF3B3788B7D6D4B0B3CA04AD /* Portfolio.swift in Sources */ = {isa = PBXBuildFile; fileRef = B830443C8A20580A22B6AD52 /* Portfolio.swift */; };
+		FF98A49DECAD558D69DCFAAA /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D439FCB2519B9BB497B79 /* NetworkMonitor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0278928A83A8AFD424A490FC /* AdditionalServices.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AdditionalServices.swift; sourceTree = "<group>"; };
+		077E1DD5D78BF497638FE6EA /* ViewModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ViewModels.swift; sourceTree = "<group>"; };
 		135ACEF8377F849B0E36684B /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		27D96F0FCD93FBE6877B49CB /* PortfolioService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PortfolioService.swift; sourceTree = "<group>"; };
+		30726D86AACD8AE9D2B801F3 /* Types.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Types.swift; sourceTree = "<group>"; };
+		354D98DCE9563C8CE8CF9DCF /* CoreDataModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CoreDataModel.swift; path = IndigoInvestor/Core/Data/CoreDataModel.swift; sourceTree = SOURCE_ROOT; };
 		3BD83474EE4ACD4891E8CE78 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
+		40023F5C2FFD488B692181E7 /* AuthService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		42720E5F4BBDEB71F5C7D600 /* PushNotificationManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PushNotificationManager.swift; sourceTree = "<group>"; };
 		4EA401C187F5CBBFDA194FD2 /* IndigoInvestor.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = IndigoInvestor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		551BFC96C38228D3B6196E27 /* ServiceLocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceLocator.swift; sourceTree = "<group>"; };
+		625D8A15ADE34387FD7CF0A6 /* DocumentModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DocumentModels.swift; sourceTree = "<group>"; };
+		66CB012D2C69911F475C5D25 /* CoreDataStack.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
 		6F3360526DCA9409BCCFA856 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		791D439FCB2519B9BB497B79 /* NetworkMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		951987BE5295E8BF0116EC1C /* IndigoInvestorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndigoInvestorApp.swift; sourceTree = "<group>"; };
 		9CAD2080143DC9067C853FAD /* BiometricAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricAuthManager.swift; sourceTree = "<group>"; };
 		A133BA85E50755E8FC2E6479 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		A659650CFB721C1ECC410F84 /* DashboardViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
 		ADDADB3F5657362D503B3D36 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		B830443C8A20580A22B6AD52 /* Portfolio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Portfolio.swift; sourceTree = "<group>"; };
+		BC96E1C4E6D379D3B7E7DF04 /* Repositories.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Repositories.swift; sourceTree = "<group>"; };
+		D043A505E34894470ABCCFE9 /* ServiceProtocols.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServiceProtocols.swift; sourceTree = "<group>"; };
 		EE01593B54DB36BFDE1D3DE4 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
 		F9520784DE730879C150EB72 /* PlaceholderViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderViews.swift; sourceTree = "<group>"; };
 		FE0D0E087CC6C308B2823831 /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
@@ -59,6 +85,8 @@
 			isa = PBXGroup;
 			children = (
 				135ACEF8377F849B0E36684B /* AuthViewModel.swift */,
+				077E1DD5D78BF497638FE6EA /* ViewModels.swift */,
+				A659650CFB721C1ECC410F84 /* DashboardViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -72,6 +100,37 @@
 				3260E3C4914D43BE9EE9A4CD /* Dashboard */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		0DED1EAA4CDD0DDC8455469F /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				40023F5C2FFD488B692181E7 /* AuthService.swift */,
+				27D96F0FCD93FBE6877B49CB /* PortfolioService.swift */,
+				0278928A83A8AFD424A490FC /* AdditionalServices.swift */,
+				42720E5F4BBDEB71F5C7D600 /* PushNotificationManager.swift */,
+				D043A505E34894470ABCCFE9 /* ServiceProtocols.swift */,
+			);
+			name = Services;
+			path = Services;
+			sourceTree = "<group>";
+		};
+		0F5A09FF04C4E6FA47C3E3CA /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				791D439FCB2519B9BB497B79 /* NetworkMonitor.swift */,
+			);
+			name = Network;
+			path = Network;
+			sourceTree = "<group>";
+		};
+		1BAE87C792D9F1153A5C6BC8 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				66CB012D2C69911F475C5D25 /* CoreDataStack.swift */,
+			);
+			name = Data;
+			path = Data;
 			sourceTree = "<group>";
 		};
 		20A3C986FAA3B27BD0AAFA7A /* Config */ = {
@@ -108,8 +167,20 @@
 				626A51B3E384535FDA3318C0 /* Models */,
 				0152E34C26770BD63281D18A /* ViewModels */,
 				02025D3B4BC465B3141F098A /* Views */,
+				0DED1EAA4CDD0DDC8455469F /* Services */,
+				4CE206677B9C194083029BBA /* Repositories */,
+				A58AB6B873A9A9CDDB4819C7 /* Core */,
 			);
 			path = IndigoInvestor;
+			sourceTree = "<group>";
+		};
+		4CE206677B9C194083029BBA /* Repositories */ = {
+			isa = PBXGroup;
+			children = (
+				BC96E1C4E6D379D3B7E7DF04 /* Repositories.swift */,
+			);
+			name = Repositories;
+			path = Repositories;
 			sourceTree = "<group>";
 		};
 		5499AFE7B8852B5301814B50 = {
@@ -124,6 +195,8 @@
 			isa = PBXGroup;
 			children = (
 				B830443C8A20580A22B6AD52 /* Portfolio.swift */,
+				30726D86AACD8AE9D2B801F3 /* Types.swift */,
+				625D8A15ADE34387FD7CF0A6 /* DocumentModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -137,10 +210,28 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		A58AB6B873A9A9CDDB4819C7 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				BDBAC1778C687115A685875E /* Data */,
+			);
+			name = Core;
+			sourceTree = "<group>";
+		};
+		BDBAC1778C687115A685875E /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				354D98DCE9563C8CE8CF9DCF /* CoreDataModel.swift */,
+			);
+			name = Data;
+			sourceTree = "<group>";
+		};
 		C6E752E5106E8AEBDF8E2617 /* Core */ = {
 			isa = PBXGroup;
 			children = (
 				E4BBFA85029E136476E7CBFC /* Security */,
+				1BAE87C792D9F1153A5C6BC8 /* Data */,
+				0F5A09FF04C4E6FA47C3E3CA /* Network */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -160,13 +251,6 @@
 				3BD83474EE4ACD4891E8CE78 /* KeychainManager.swift */,
 			);
 			path = Security;
-			sourceTree = "<group>";
-		};
-		"TEMP_C6A9FC9A-04E2-4E43-9248-9E56A53AEB0C" /* Features */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Features;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -227,6 +311,7 @@
 				87A5FA2FD1FB333BCF36D3D4 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
+			productRefGroup = DFF23F44038FAAD911E25AA4 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -272,6 +357,19 @@
 				BDF3FA1079D79EA7FD37283F /* RootView.swift in Sources */,
 				85518E3BC238205C66220FEA /* ServiceLocator.swift in Sources */,
 				18C071534BF342D42D62A051 /* SupabaseConfig.swift in Sources */,
+				49420F85B4525F5198B426C4 /* AuthService.swift in Sources */,
+				1ED84EF007EF89A3041EED10 /* PortfolioService.swift in Sources */,
+				C7720649C15322BC4A9A6BDC /* AdditionalServices.swift in Sources */,
+				9B13E8DC84BB2C1CF5C4A820 /* PushNotificationManager.swift in Sources */,
+				7BE344DEF1C9EE0E7DB919B1 /* Repositories.swift in Sources */,
+				27355EA769DDAB39639A1AA1 /* ViewModels.swift in Sources */,
+				68EA748913FADB9D8A288049 /* DashboardViewModel.swift in Sources */,
+				696D4AE1DD5115C62340B54D /* CoreDataStack.swift in Sources */,
+				FF98A49DECAD558D69DCFAAA /* NetworkMonitor.swift in Sources */,
+				DFE2388AFE645EB686AA4D29 /* Types.swift in Sources */,
+				74EFE91E3108971BB16203C5 /* ServiceProtocols.swift in Sources */,
+				01E6229365B8CA5154340C17 /* DocumentModels.swift in Sources */,
+				35BBDADC863C11B851A527B7 /* CoreDataModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -333,7 +431,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -354,7 +452,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				INFOPLIST_FILE = IndigoInvestor/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -417,7 +515,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -437,7 +535,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				INFOPLIST_FILE = IndigoInvestor/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
