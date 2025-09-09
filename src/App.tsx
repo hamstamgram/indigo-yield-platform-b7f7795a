@@ -1,9 +1,11 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useEffect, lazy, Suspense } from 'react';
 import './App.css';
 import { initSentry } from './utils/monitoring/sentry';
 import { initPostHog } from './utils/analytics/posthog';
+import { SkipLink } from './components/accessibility/SkipLink';
+import { ErrorBoundary } from './components/error/ErrorBoundary';
 
 // Core pages loaded immediately
 import Index from './pages/Index';
@@ -89,6 +91,123 @@ const AuditDrilldown = lazy(() => import('./pages/admin/AuditDrilldown').then(m 
 // PDF Generation Demo - lazy load
 const PDFGenerationDemo = lazy(() => import('./components/pdf/PDFGenerationDemo').then(m => ({ default: m.PDFGenerationDemo })));
 
+// Focus management hook
+function useFocusManagement() {
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Focus main content on route change
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) {
+      mainContent.setAttribute('tabindex', '-1');
+      mainContent.focus();
+      mainContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [location.pathname]);
+}
+
+// Main app content with focus management
+function AppContent() {
+  useFocusManagement();
+  
+  return (
+    <>
+      <SkipLink />
+      <main id="main-content" className="focus:outline-none">
+        <Suspense fallback={<PageLoadingSpinner />}>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/onboarding" element={<OnboardingWizard />} />
+            <Route path="/admin-invite" element={<AdminInvite />} />
+          
+          {/* Dashboard routes with layout */}
+          <Route path="/" element={<DashboardLayout />}>
+            {/* LP Dashboard route */}
+            <Route path="/dashboard" element={<EnhancedDashboard />} />
+            
+            {/* LP Routes */}
+            <Route path="/withdrawals" element={<WithdrawalsPage />} />
+            <Route path="/support" element={<SupportPage />} />
+            <Route path="/support-tickets" element={<SupportTicketsPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/portfolio/analytics" element={<PortfolioAnalyticsPage />} />
+            <Route path="/settings/sessions" element={<SessionManagementPage />} />
+            <Route path="/settings/profile" element={<ProfileSettingsPage />} />
+            <Route path="/settings/notifications" element={<NotificationSettingsPage />} />
+            <Route path="/settings/security" element={<SecuritySettings />} />
+            <Route path="/documents" element={<DocumentsVault />} />
+            
+            {/* Admin routes - all protected with RequireAdmin */}
+            <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+            <Route path="/admin/portfolio" element={<RequireAdmin><PortfolioDashboard /></RequireAdmin>} />
+            <Route path="/admin/portfolio-dashboard" element={<RequireAdmin><AdminPortfolioDashboard /></RequireAdmin>} />
+            <Route path="/admin/yield-settings" element={<RequireAdmin><AdminYieldSettingsPage /></RequireAdmin>} />
+            <Route path="/admin/investors" element={<RequireAdmin><AdminInvestors /></RequireAdmin>} />
+            <Route path="/admin/investors/new" element={<RequireAdmin><AdminInvestorNewPage /></RequireAdmin>} />
+            <Route path="/admin/investors/:id" element={<RequireAdmin><AdminInvestorDetailPage /></RequireAdmin>} />
+            <Route path="/admin/investors/:id/positions" element={<RequireAdmin><AdminInvestorPositionsPage /></RequireAdmin>} />
+            <Route path="/admin/investors/:id/transactions" element={<RequireAdmin><AdminInvestorTransactionsPage /></RequireAdmin>} />
+            <Route path="/admin/requests" element={<RequireAdmin><AdminRequestsQueuePage /></RequireAdmin>} />
+            <Route path="/admin/statements" element={<RequireAdmin><AdminStatementsPage /></RequireAdmin>} />
+            <Route path="/admin/support" element={<RequireAdmin><AdminSupportQueuePage /></RequireAdmin>} />
+            <Route path="/admin/documents" element={<RequireAdmin><AdminDocumentsPage /></RequireAdmin>} />
+            <Route path="/admin/reports" element={<RequireAdmin><AdminBatchReportsPage /></RequireAdmin>} />
+            <Route path="/admin/withdrawals" element={<RequireAdmin><AdminWithdrawalsPage /></RequireAdmin>} />
+            <Route path="/admin/excel-first-run" element={<RequireAdmin><ExcelImportFirstRun /></RequireAdmin>} />
+            
+            {/* Phase 3.1 Admin Features */}
+            <Route path="/admin/investors/create" element={<RequireAdmin><InvestorAccountCreation /></RequireAdmin>} />
+            <Route path="/admin/balances/adjust" element={<RequireAdmin><BalanceAdjustments /></RequireAdmin>} />
+            <Route path="/admin/investors/status" element={<RequireAdmin><InvestorStatusTracking /></RequireAdmin>} />
+            <Route path="/admin/fees" element={<RequireAdmin><FeeConfigurationManagement /></RequireAdmin>} />
+            <Route path="/admin/yield" element={<RequireAdmin><YieldSettingsManagement /></RequireAdmin>} />
+            <Route path="/admin/audit-drilldown" element={<RequireAdmin><AuditDrilldown /></RequireAdmin>} />
+            
+            {/* Phase 3.2 Admin Features */}
+            <Route path="/admin/pdf-demo" element={<RequireAdmin><PDFGenerationDemo /></RequireAdmin>} />
+            
+            {/* Legacy admin routes - redirects to new structure */}
+            <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />
+            <Route path="/admin-investors" element={<Navigate to="/admin/investors" replace />} />
+            
+            {/* Other existing routes */}
+            <Route path="/statements" element={<StatementsPage />} />
+            <Route path="/transactions" element={<TransactionsPage />} />
+            <Route path="/documents" element={<DocumentsPage />} />
+            <Route path="/assets/:symbol" element={<AssetDetail />} />
+            <Route path="/account" element={<AccountPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            
+            {/* Keep existing admin tools routes for now */}
+            <Route path="/admin-tools" element={<RequireAdmin><AdminTools /></RequireAdmin>} />
+            <Route path="/admin-operations" element={<RequireAdmin><AdminOperations /></RequireAdmin>} />
+            <Route path="/admin/audit" element={<RequireAdmin><AdminAudit /></RequireAdmin>} />
+            
+            {/* Deprecated yield management route with redirect */}
+            <Route path="/yield-sources" element={<Navigate to="/admin/yield-settings" replace />} />
+          </Route>
+          
+          {/* Other routes */}
+          <Route path="/health" element={<Health />} />
+          <Route path="/status" element={<Status />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/strategies" element={<Strategies />} />
+          <Route path="/faq" element={<FAQ />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </main>
+      <Toaster />
+      <CookieConsent />
+      <SimpleInstallPrompt />
+    </>
+  );
+}
+
 function App() {
   // Initialize observability tools on app startup
   useEffect(() => {
@@ -102,97 +221,11 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <Suspense fallback={<PageLoadingSpinner />}>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/onboarding" element={<OnboardingWizard />} />
-          <Route path="/admin-invite" element={<AdminInvite />} />
-        
-        {/* Dashboard routes with layout */}
-        <Route path="/" element={<DashboardLayout />}>
-          {/* LP Dashboard route */}
-          <Route path="/dashboard" element={<EnhancedDashboard />} />
-          
-          {/* LP Routes */}
-          <Route path="/withdrawals" element={<WithdrawalsPage />} />
-          <Route path="/support" element={<SupportPage />} />
-          <Route path="/support-tickets" element={<SupportTicketsPage />} />
-          <Route path="/notifications" element={<NotificationsPage />} />
-          <Route path="/portfolio/analytics" element={<PortfolioAnalyticsPage />} />
-          <Route path="/settings/sessions" element={<SessionManagementPage />} />
-          <Route path="/settings/profile" element={<ProfileSettingsPage />} />
-          <Route path="/settings/notifications" element={<NotificationSettingsPage />} />
-          <Route path="/settings/security" element={<SecuritySettings />} />
-          <Route path="/documents" element={<DocumentsVault />} />
-          
-          {/* Admin routes - all protected with RequireAdmin */}
-          <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
-          <Route path="/admin/portfolio" element={<RequireAdmin><PortfolioDashboard /></RequireAdmin>} />
-          <Route path="/admin/portfolio-dashboard" element={<RequireAdmin><AdminPortfolioDashboard /></RequireAdmin>} />
-          <Route path="/admin/yield-settings" element={<RequireAdmin><AdminYieldSettingsPage /></RequireAdmin>} />
-          <Route path="/admin/investors" element={<RequireAdmin><AdminInvestors /></RequireAdmin>} />
-          <Route path="/admin/investors/new" element={<RequireAdmin><AdminInvestorNewPage /></RequireAdmin>} />
-          <Route path="/admin/investors/:id" element={<RequireAdmin><AdminInvestorDetailPage /></RequireAdmin>} />
-          <Route path="/admin/investors/:id/positions" element={<RequireAdmin><AdminInvestorPositionsPage /></RequireAdmin>} />
-          <Route path="/admin/investors/:id/transactions" element={<RequireAdmin><AdminInvestorTransactionsPage /></RequireAdmin>} />
-          <Route path="/admin/requests" element={<RequireAdmin><AdminRequestsQueuePage /></RequireAdmin>} />
-          <Route path="/admin/statements" element={<RequireAdmin><AdminStatementsPage /></RequireAdmin>} />
-          <Route path="/admin/support" element={<RequireAdmin><AdminSupportQueuePage /></RequireAdmin>} />
-          <Route path="/admin/documents" element={<RequireAdmin><AdminDocumentsPage /></RequireAdmin>} />
-          <Route path="/admin/reports" element={<RequireAdmin><AdminBatchReportsPage /></RequireAdmin>} />
-          <Route path="/admin/withdrawals" element={<RequireAdmin><AdminWithdrawalsPage /></RequireAdmin>} />
-          <Route path="/admin/excel-first-run" element={<RequireAdmin><ExcelImportFirstRun /></RequireAdmin>} />
-          
-          {/* Phase 3.1 Admin Features */}
-          <Route path="/admin/investors/create" element={<RequireAdmin><InvestorAccountCreation /></RequireAdmin>} />
-          <Route path="/admin/balances/adjust" element={<RequireAdmin><BalanceAdjustments /></RequireAdmin>} />
-          <Route path="/admin/investors/status" element={<RequireAdmin><InvestorStatusTracking /></RequireAdmin>} />
-          <Route path="/admin/fees" element={<RequireAdmin><FeeConfigurationManagement /></RequireAdmin>} />
-          <Route path="/admin/yield" element={<RequireAdmin><YieldSettingsManagement /></RequireAdmin>} />
-          <Route path="/admin/audit-drilldown" element={<RequireAdmin><AuditDrilldown /></RequireAdmin>} />
-          
-          {/* Phase 3.2 Admin Features */}
-          <Route path="/admin/pdf-demo" element={<RequireAdmin><PDFGenerationDemo /></RequireAdmin>} />
-          
-          {/* Legacy admin routes - redirects to new structure */}
-          <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />
-          <Route path="/admin-investors" element={<Navigate to="/admin/investors" replace />} />
-          
-          {/* Other existing routes */}
-          <Route path="/statements" element={<StatementsPage />} />
-          <Route path="/transactions" element={<TransactionsPage />} />
-          <Route path="/documents" element={<DocumentsPage />} />
-          <Route path="/assets/:symbol" element={<AssetDetail />} />
-          <Route path="/account" element={<AccountPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          
-          {/* Keep existing admin tools routes for now */}
-          <Route path="/admin-tools" element={<RequireAdmin><AdminTools /></RequireAdmin>} />
-          <Route path="/admin-operations" element={<RequireAdmin><AdminOperations /></RequireAdmin>} />
-          <Route path="/admin/audit" element={<RequireAdmin><AdminAudit /></RequireAdmin>} />
-          
-          {/* Deprecated yield management route with redirect */}
-          <Route path="/yield-sources" element={<Navigate to="/admin/yield-settings" replace />} />
-        </Route>
-        
-        {/* Other routes */}
-        <Route path="/health" element={<Health />} />
-        <Route path="/status" element={<Status />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/strategies" element={<Strategies />} />
-        <Route path="/faq" element={<FAQ />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
-      <Toaster />
-      <CookieConsent />
-      <SimpleInstallPrompt />
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <AppContent />
+      </Router>
+    </ErrorBoundary>
   );
 }
 
