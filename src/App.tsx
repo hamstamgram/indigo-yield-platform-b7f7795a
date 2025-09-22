@@ -6,6 +6,7 @@ import { initSentry } from './utils/monitoring/sentry';
 import { initPostHog } from './utils/analytics/posthog';
 import { SkipLink } from './components/accessibility/SkipLink';
 import { ErrorBoundary } from './components/error/ErrorBoundary';
+import { AuthProvider } from './contexts/AuthContext';
 
 // Core pages loaded immediately
 import Index from './pages/Index';
@@ -41,6 +42,7 @@ import DashboardLayout from './components/layout/DashboardLayout';
 import { CookieConsent } from './components/privacy/CookieConsent';
 import { InstallPrompt } from './components/pwa/InstallPrompt';
 import { InstallPrompt as SimpleInstallPrompt } from './pwa/installPrompt';
+import RequireAuth from './components/auth/RequireAuth';
 import RequireAdmin from './components/auth/RequireAdmin';
 import { PageLoadingSpinner } from './components/ui/loading-spinner';
 
@@ -129,20 +131,28 @@ function AppContent() {
           
           {/* Dashboard routes with layout */}
           <Route path="/" element={<DashboardLayout />}>
-            {/* LP Dashboard route */}
-            <Route path="/dashboard" element={<EnhancedDashboard />} />
+            {/* LP Dashboard route - protected */}
+            <Route path="/dashboard" element={<RequireAuth><EnhancedDashboard /></RequireAuth>} />
             
-            {/* LP Routes */}
-            <Route path="/withdrawals" element={<WithdrawalsPage />} />
-            <Route path="/support" element={<SupportPage />} />
-            <Route path="/support-tickets" element={<SupportTicketsPage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/portfolio/analytics" element={<PortfolioAnalyticsPage />} />
-            <Route path="/settings/sessions" element={<SessionManagementPage />} />
-            <Route path="/settings/profile" element={<ProfileSettingsPage />} />
-            <Route path="/settings/notifications" element={<NotificationSettingsPage />} />
-            <Route path="/settings/security" element={<SecuritySettings />} />
-            <Route path="/documents" element={<DocumentsVault />} />
+            {/* LP Routes - all protected */}
+            <Route path="/withdrawals" element={<RequireAuth><WithdrawalsPage /></RequireAuth>} />
+            <Route path="/support" element={<RequireAuth><SupportPage /></RequireAuth>} />
+            <Route path="/support-tickets" element={<RequireAuth><SupportTicketsPage /></RequireAuth>} />
+            <Route path="/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
+            <Route path="/portfolio/analytics" element={<RequireAuth><PortfolioAnalyticsPage /></RequireAuth>} />
+            <Route path="/settings/sessions" element={<RequireAuth><SessionManagementPage /></RequireAuth>} />
+            <Route path="/settings/profile" element={<RequireAuth><ProfileSettingsPage /></RequireAuth>} />
+            <Route path="/settings/notifications" element={<RequireAuth><NotificationSettingsPage /></RequireAuth>} />
+            <Route path="/settings/security" element={<RequireAuth><SecuritySettings /></RequireAuth>} />
+            <Route path="/documents" element={<RequireAuth><DocumentsVault /></RequireAuth>} />
+            
+            {/* Other existing routes - protected */}
+            <Route path="/statements" element={<RequireAuth><StatementsPage /></RequireAuth>} />
+            <Route path="/transactions" element={<RequireAuth><TransactionsPage /></RequireAuth>} />
+            <Route path="/documents" element={<RequireAuth><DocumentsPage /></RequireAuth>} />
+            <Route path="/assets/:symbol" element={<RequireAuth><AssetDetail /></RequireAuth>} />
+            <Route path="/account" element={<RequireAuth><AccountPage /></RequireAuth>} />
+            <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
             
             {/* Admin routes - all protected with RequireAdmin */}
             <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
@@ -228,9 +238,11 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <Router>
-        <AppContent />
-      </Router>
+      <AuthProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

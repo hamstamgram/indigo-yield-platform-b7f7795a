@@ -16,9 +16,35 @@ export interface AssetKPI {
   };
 }
 
-export const calculateTotalAUM = () => Promise.resolve(0);
-export const calculateDailyInterest = () => Promise.resolve(0);
-export const calculateInvestorCount = () => Promise.resolve(0);
+export const calculateTotalAUM = async () => {
+  try {
+    const { data } = await supabase.rpc('get_total_aum');
+    return data?.[0]?.total_aum || 0;
+  } catch (error) {
+    console.error('Error calculating total AUM:', error);
+    return 0;
+  }
+};
+
+export const calculateDailyInterest = async () => {
+  try {
+    const { data } = await supabase.rpc('get_24h_interest');
+    return data?.[0]?.interest || 0;
+  } catch (error) {
+    console.error('Error calculating daily interest:', error);
+    return 0;
+  }
+};
+
+export const calculateInvestorCount = async () => {
+  try {
+    const { data } = await supabase.rpc('get_investor_count');
+    return data?.[0]?.count || 0;
+  } catch (error) {
+    console.error('Error calculating investor count:', error);
+    return 0;
+  }
+};
 
 export const formatAssetValue = (value: number, assetCode?: string) => {
   if (assetCode === 'USDC' || assetCode === 'USDT' || assetCode === 'EURC') {
