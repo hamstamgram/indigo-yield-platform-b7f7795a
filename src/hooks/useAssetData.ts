@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchAssetSummaries } from '@/services/assetService';
@@ -32,7 +31,6 @@ export const useAssetData = () => {
           .rpc('get_profile_by_id', { profile_id: user.id });
           
         if (profileError) {
-          console.error("Profile fetch error:", profileError);
           // Fall back to direct query
           const { data: directProfile, error: directError } = await supabase
             .from('profiles')
@@ -52,76 +50,10 @@ export const useAssetData = () => {
         // Fetch crypto prices
         const cryptoPrices = await fetchCryptoPrices();
         
-        // If admin, fetch all investor portfolios to show total assets
-        if (isAdmin) {
-          try {
-            const { data: portfoliosData, error: portfoliosError } = await supabase
-              .from('portfolios')
-              .select(`
-                asset_id,
-                balance,
-                assets (
-                  id,
-                  symbol,
-                  name
-                )
-              `);
-              
-            if (portfoliosError) throw portfoliosError;
-            
-            // Aggregate portfolio balances by asset
-            const assetTotals: Record<string, { totalBalance: number, assetId: number, name: string }> = {};
-            
-            if (portfoliosData && portfoliosData.length > 0) {
-              portfoliosData.forEach(item => {
-                if (!item.assets) return;
-                
-                const symbol = item.assets.symbol.toUpperCase();
-                const balance = Number(item.balance || 0);
-                const assetId = item.assets.id;
-                const name = item.assets.name;
-                
-                if (!assetTotals[symbol]) {
-                  assetTotals[symbol] = {
-                    totalBalance: 0,
-                    assetId,
-                    name
-                  };
-                }
-                
-                assetTotals[symbol].totalBalance += balance;
-              });
-            }
-            
-            // Add these totals to the crypto prices for asset summaries
-            Object.keys(assetTotals).forEach(symbol => {
-              if (cryptoPrices[symbol]) {
-                cryptoPrices[symbol] = {
-                  ...cryptoPrices[symbol],
-                  totalBalance: assetTotals[symbol].totalBalance,
-                  assetId: assetTotals[symbol].assetId,
-                  name: assetTotals[symbol].name
-                };
-              } else {
-                // If the symbol doesn't exist in cryptoPrices, add it
-                cryptoPrices[symbol] = {
-                  price: 0,
-                  change_24h: 0,
-                  totalBalance: assetTotals[symbol].totalBalance,
-                  assetId: assetTotals[symbol].assetId,
-                  name: assetTotals[symbol].name
-                };
-              }
-            });
-          } catch (portfolioError) {
-            console.error("Error fetching portfolios:", portfolioError);
-          }
-        }
-        
-        // Fetch asset summaries (with the enriched crypto prices)
+        // Fetch asset summaries
         const summaries = await fetchAssetSummaries(cryptoPrices);
         
-        // Fix: Make sure each asset appears only once
+        // Make sure each asset appears only once
         const uniqueAssetMap = new Map();
         summaries.forEach(asset => {
           if (!uniqueAssetMap.has(asset.symbol)) {
@@ -138,39 +70,8 @@ export const useAssetData = () => {
         }, 0);
         setTotalPortfolioValue(total);
         
-        // Fetch yield sources (protocols)
-        try {
-          // Look for latest yield rates
-          const today = new Date().toISOString().split('T')[0];
-          const { data: yieldRates, error: yieldError } = await supabase
-            .from('yield_rates')
-            .select(`
-              asset_id,
-              daily_yield_percentage,
-              assets (
-                symbol,
-                name
-              )
-            `)
-            .eq('date', today);
-            
-          if (yieldError) throw yieldError;
-          
-          // Transform to yield sources format
-          const sources = yieldRates?.map(rate => ({
-            id: `yield-${rate.asset_id}`,
-            name: rate.assets?.name || 'Unknown Asset',
-            symbol: rate.assets?.symbol || '???',
-            rate: rate.daily_yield_percentage,
-            balance: cryptoPrices[rate.assets?.symbol?.toUpperCase()]?.totalBalance || 0,
-            price: cryptoPrices[rate.assets?.symbol?.toUpperCase()]?.price || 0
-          })) || [];
-          
-          setYieldSources(sources);
-        } catch (yieldError) {
-          console.error("Error fetching yield sources:", yieldError);
-          setYieldSources([]);
-        }
+        // Set empty yield sources for now
+        setYieldSources([]);
         
       } catch (err: any) {
         console.error("Error in fetchData:", err);

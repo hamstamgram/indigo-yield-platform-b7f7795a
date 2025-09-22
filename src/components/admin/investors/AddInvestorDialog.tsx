@@ -46,7 +46,7 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
       console.log("User created/found with ID:", userId);
 
       // Create portfolio entries for this investor
-      const portfolioCreated = await createPortfolioEntries(userId, values, assets);
+      const portfolioCreated = await createPortfolioEntries(userId, assets);
 
       if (!portfolioCreated) {
         throw new Error("Failed to create portfolio entries");
