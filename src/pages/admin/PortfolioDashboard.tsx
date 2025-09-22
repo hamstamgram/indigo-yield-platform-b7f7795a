@@ -29,6 +29,9 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 
+const PORTFOLIO_SUPABASE_URL = 'https://nkfimvovosdehmyyjubn.supabase.co';
+const PORTFOLIO_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZmltdm92b3NkZWhteXlqdWJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0NTQ1OTgsImV4cCI6MjA2MjAzMDU5OH0.pZrIyCCd7dlvvNMGdW8-71BxSVfoKhxs9a5Ezbkmjgg';
+
 interface PortfolioData {
   success: boolean;
   timestamp: string;
@@ -83,12 +86,12 @@ const PortfolioDashboard: React.FC = () => {
     try {
       // Fetch portfolio sync data from Indigo Fund Vision Supabase
       const response = await fetch(
-        `${import.meta.env.VITE_PORTFOLIO_SUPABASE_URL}/functions/v1/portfolio-sync-all-v2`,
+        `${PORTFOLIO_SUPABASE_URL}/functions/v1/portfolio-sync-all-v2`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_PORTFOLIO_SUPABASE_ANON_KEY}`,
+            'Authorization': `Bearer ${PORTFOLIO_SUPABASE_ANON_KEY}`,
           },
         }
       );
@@ -101,12 +104,12 @@ const PortfolioDashboard: React.FC = () => {
 
       // Fetch consolidated portfolio data from Indigo Fund Vision Supabase
       const consolidatedResponse = await fetch(
-        `${import.meta.env.VITE_PORTFOLIO_SUPABASE_URL}/functions/v1/consolidate-portfolio`,
+        `${PORTFOLIO_SUPABASE_URL}/functions/v1/consolidate-portfolio`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_PORTFOLIO_SUPABASE_ANON_KEY}`,
+            'Authorization': `Bearer ${PORTFOLIO_SUPABASE_ANON_KEY}`,
           },
         }
       );
