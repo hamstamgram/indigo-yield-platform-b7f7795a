@@ -71,7 +71,7 @@ export function usePDFGeneration(options: UsePDFGenerationOptions = {}) {
     }
 
     try {
-      const blob = new Blob([result.data], { type: 'application/pdf' });
+      const blob = new Blob([new Uint8Array(result.data)], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       
       const link = document.createElement('a');
@@ -95,7 +95,7 @@ export function usePDFGeneration(options: UsePDFGenerationOptions = {}) {
     }
 
     try {
-      const blob = new Blob([result.data], { type: 'application/pdf' });
+      const blob = new Blob([new Uint8Array(result.data)], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
       

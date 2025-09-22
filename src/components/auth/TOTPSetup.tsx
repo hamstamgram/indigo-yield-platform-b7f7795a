@@ -111,7 +111,7 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
 
     try {
       // Generate secret and initialize TOTP
-      const { secret: totpSecret } = await TOTPService.initializeTOTPSetup(user.id);
+      const { secret: totpSecret } = await TOTPService.initializeTOTP(user.id);
       setSecret(totpSecret);
 
       // Generate QR code
@@ -151,7 +151,17 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
       // Complete TOTP setup with verification
       const result = await TOTPService.completeTOTPSetup(user.id, verificationCode);
       
-      setBackupCodes(result);
+      if (result.success && result.backupCodes) {
+        setBackupCodes({ 
+          success: true, 
+          codes: result.backupCodes 
+        });
+      } else {
+        setBackupCodes({ 
+          success: false, 
+          codes: [] 
+        });
+      }
       updateStepCompletion(2, true);
       setCurrentStep(3);
 
@@ -182,7 +192,6 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
       'Store these codes in a safe place!',
       '',
       'Generated on: ' + new Date().toLocaleDateString(),
-      'Batch ID: ' + backupCodes.batch_id,
       '',
       'Backup Codes:',
       ...backupCodes.codes.map((code, index) => `${index + 1}. ${code}`),

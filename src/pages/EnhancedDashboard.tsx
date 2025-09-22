@@ -230,8 +230,7 @@ const EnhancedDashboard = () => {
                 <div className="flex items-center space-x-3">
                   <CryptoIcon 
                     symbol={asset.assetCode} 
-                    className="h-8 w-8" 
-                    style={{ color: assetColors[asset.assetCode] }}
+                    className="h-8 w-8 text-primary" 
                   />
                   <div>
                     <CardTitle>{asset.assetCode}</CardTitle>

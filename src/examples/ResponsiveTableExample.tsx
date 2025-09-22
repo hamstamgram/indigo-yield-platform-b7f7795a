@@ -107,8 +107,8 @@ export const TransactionsTableExample: React.FC = () => {
       accessor: (row) => (
         <Badge 
           variant={
-            row.status === 'completed' ? 'success' :
-            row.status === 'pending' ? 'warning' :
+            row.status === 'completed' ? 'default' :
+            row.status === 'pending' ? 'secondary' :
             'destructive'
           }
         >
@@ -175,7 +175,7 @@ export const TransactionsTableExample: React.FC = () => {
         <PaginatedResponsiveTable
           data={[...transactions, ...transactions, ...transactions]} // Duplicate for pagination demo
           columns={columns}
-          keyExtractor={(row, index) => `${row.id}-${index}`}
+          keyExtractor={(row) => `${row.id}`}
           pageSize={5}
           currentPage={currentPage}
           onPageChange={setCurrentPage}

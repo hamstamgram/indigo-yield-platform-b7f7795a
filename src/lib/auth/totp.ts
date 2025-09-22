@@ -52,9 +52,8 @@ export interface TOTPVerificationResult {
 }
 
 export interface BackupCodeGenerationResult {
-  codes: string[]; // Plain text codes (only returned once)
-  batch_id: string;
-  created_at: string;
+  success: boolean;
+  codes: string[];
 }
 
 export class TOTPUtils {

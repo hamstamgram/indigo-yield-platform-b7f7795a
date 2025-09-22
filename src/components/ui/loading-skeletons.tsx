@@ -92,8 +92,7 @@ export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({
             {Array.from({ length: columns }).map((_, colIndex) => (
               <Skeleton 
                 key={colIndex} 
-                className="h-6" 
-                style={{ width: colIndex === 0 ? '100%' : '80%' }}
+                className={`h-6 ${colIndex === 0 ? 'w-full' : 'w-4/5'}`}
               />
             ))}
           </div>
@@ -123,8 +122,7 @@ export const ChartSkeleton: React.FC<{ className?: string }> = ({ className }) =
           {Array.from({ length: 12 }).map((_, i) => (
             <Skeleton
               key={i}
-              className="w-8"
-              style={{ height: `${Math.random() * 80 + 20}%` }}
+              className={`w-8 h-${Math.floor(Math.random() * 8) + 5}`}
             />
           ))}
         </div>

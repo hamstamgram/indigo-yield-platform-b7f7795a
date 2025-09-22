@@ -76,8 +76,8 @@ const AdminOperations = () => {
       const { data: deposits } = await supabase
         .from('transactions')
         .select('amount')
-        .eq('kind', 'deposit')
-        .eq('status', 'completed');
+        .eq('type', 'DEPOSIT')
+        .eq('status', 'confirmed');
       
       const totalDeposits = deposits?.reduce((sum, d) => sum + d.amount, 0) || 0;
 
@@ -86,7 +86,7 @@ const AdminOperations = () => {
         .from('transactions')
         .select('amount')
         .eq('kind', 'withdrawal')
-        .in('status', ['completed', 'pending']);
+        .in('status', ['confirmed', 'pending']);
       
       const totalWithdrawals = withdrawals?.reduce((sum, w) => sum + w.amount, 0) || 0;
 
@@ -94,8 +94,8 @@ const AdminOperations = () => {
       const { data: interest } = await supabase
         .from('transactions')
         .select('amount')
-        .eq('kind', 'interest')
-        .eq('status', 'completed');
+        .eq('type', 'INTEREST')
+        .eq('status', 'confirmed');
       
       const totalInterestPaid = interest?.reduce((sum, i) => sum + i.amount, 0) || 0;
 

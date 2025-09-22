@@ -187,7 +187,9 @@ const InterestCalculationEngine: React.FC<InterestCalculationEngineProps> = ({ o
             calculation_date: new Date().toISOString()
           },
           meta: {
-            results: calculationResults
+            summary: 'Interest calculation completed',
+            total_portfolios: totalPortfolios,
+            successful_calculations: calculationResults.length
           }
         });
 

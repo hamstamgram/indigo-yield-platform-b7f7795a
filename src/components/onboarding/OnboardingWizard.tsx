@@ -104,7 +104,8 @@ const OnboardingWizard: React.FC = () => {
         .order('name');
 
       if (funds) {
-        setAvailableFunds(funds);
+        // Cast to match the expected type structure
+        setAvailableFunds(funds as any);
       }
     } catch (error) {
       console.error('Error loading funds:', error);
