@@ -128,7 +128,7 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white p-4 font-['Space_Grotesk']">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         <div className="mb-8 flex justify-center">
           <img 
@@ -220,7 +220,7 @@ export default function Login() {
             
             {isLogin && (
               <div className="mt-4 text-center text-sm">
-                <a href="#" className="text-indigo-600 hover:text-indigo-800 hover:underline">
+                <a href="/forgot-password" className="text-indigo-600 hover:text-indigo-800 hover:underline">
                   Forgot password?
                 </a>
               </div>
