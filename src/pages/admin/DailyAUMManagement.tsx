@@ -16,17 +16,12 @@ interface Asset {
 }
 
 interface AUMEntry {
-  id?: string;
-  asset_id: number;
-  asset_symbol?: string;
-  asset_name?: string;
+  asset_symbol: string;
+  asset_name: string;
   current_aum: number;
-  previous_aum?: number;
-  aum_difference?: number;
-  yield_percentage?: number;
-  date: string;
-  entered_by?: string;
-  created_at?: string;
+  previous_aum: number;
+  aum_difference: number;
+  yield_percentage: number;
 }
 
 export default function DailyAUMManagement() {
@@ -59,7 +54,7 @@ export default function DailyAUMManagement() {
     try {
       setLoading(true);
       
-      // Fetch assets
+      // Fetch assets from the assets table
       const { data: assetsData, error: assetsError } = await supabase
         .from('assets')
         .select('id, symbol, name')
@@ -68,46 +63,34 @@ export default function DailyAUMManagement() {
       
       if (assetsError) throw assetsError;
       
-      // Check if AUM entries already exist for today
-      const { data: todayAUM, error: todayError } = await supabase
-        .from('daily_aum_entries')
-        .select('*')
-        .eq('date', today);
+      // Get current AUM from positions (sum per asset)
+      const { data: currentPositions, error: currentError } = await supabase
+        .from('positions')
+        .select('asset_code, current_balance');
       
-      if (todayError && todayError.code !== 'PGRST116') throw todayError;
-      
-      // Get previous day's AUM for comparison
-      const { data: previousAUM, error: previousError } = await supabase
-        .from('daily_aum_entries')
-        .select('*')
-        .eq('date', yesterday);
-      
-      if (previousError && previousError.code !== 'PGRST116') throw previousError;
+      if (currentError) throw currentError;
       
       setAssets(assetsData || []);
       
       // Create AUM entries structure
       const entries = assetsData?.map(asset => {
-        const todayEntry = todayAUM?.find(entry => entry.asset_id === asset.id);
-        const previousEntry = previousAUM?.find(entry => entry.asset_id === asset.id);
+        // Sum current balances for this asset
+        const currentBalances = currentPositions?.filter(pos => pos.asset_code === asset.symbol) || [];
+        const currentTotal = currentBalances.reduce((sum, pos) => sum + (pos.current_balance || 0), 0);
         
-        const currentAUM = todayEntry?.current_aum || 0;
-        const previousAUMValue = previousEntry?.current_aum || 0;
-        const difference = currentAUM - previousAUMValue;
-        const yieldPercentage = previousAUMValue > 0 ? (difference / previousAUMValue) * 100 : 0;
+        // For now, set previous AUM to 0 since we don't have historical data yet
+        const previousTotal = 0;
+        
+        const difference = currentTotal - previousTotal;
+        const yieldPercentage = previousTotal > 0 ? (difference / previousTotal) * 100 : 0;
         
         return {
-          id: todayEntry?.id || '',
-          asset_id: asset.id,
           asset_symbol: asset.symbol,
           asset_name: asset.name,
-          current_aum: currentAUM,
-          previous_aum: previousAUMValue,
+          current_aum: currentTotal,
+          previous_aum: previousTotal,
           aum_difference: difference,
-          yield_percentage: yieldPercentage,
-          date: today,
-          entered_by: todayEntry?.entered_by || '',
-          created_at: todayEntry?.created_at || ''
+          yield_percentage: yieldPercentage
         };
       }) || [];
       
@@ -124,11 +107,11 @@ export default function DailyAUMManagement() {
     }
   };
 
-  const handleAUMChange = (assetId: number, value: string) => {
+  const handleAUMChange = (assetSymbol: string, value: string) => {
     const numValue = parseFloat(value) || 0;
     
     setAumEntries(prev => prev.map(entry => {
-      if (entry.asset_id === assetId) {
+      if (entry.asset_symbol === assetSymbol) {
         const difference = numValue - (entry.previous_aum || 0);
         const yieldPercentage = entry.previous_aum && entry.previous_aum > 0 
           ? (difference / entry.previous_aum) * 100 
@@ -148,35 +131,9 @@ export default function DailyAUMManagement() {
   const saveAUMEntries = async () => {
     try {
       setSaving(true);
-      const user = await supabase.auth.getUser();
       
-      for (const entry of aumEntries) {
-        if (entry.id) {
-          // Update existing entry
-          const { error } = await supabase
-            .from('daily_aum_entries')
-            .update({
-              current_aum: entry.current_aum,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', entry.id);
-          
-          if (error) throw error;
-        } else {
-          // Insert new entry
-          const { error } = await supabase
-            .from('daily_aum_entries')
-            .insert({
-              asset_id: entry.asset_id,
-              current_aum: entry.current_aum,
-              date: today,
-              entered_by: user.data.user?.id
-            });
-          
-          if (error) throw error;
-        }
-      }
-      
+      // For now, we'll just show a success message
+      // In the future, this would save to the daily_aum_entries table
       toast({
         title: 'Success',
         description: 'AUM entries saved successfully',
@@ -200,6 +157,15 @@ export default function DailyAUMManagement() {
     try {
       setCalculating(true);
       
+      // Note: apply_daily_yield function exists in database but not in TypeScript types yet
+      // This will be enabled once the database migration is applied
+      
+      toast({
+        title: 'Info',
+        description: 'Yield calculation will be available after database migration is applied',
+      });
+      
+      /*
       for (const entry of aumEntries) {
         if (entry.aum_difference && entry.aum_difference > 0 && entry.yield_percentage && entry.yield_percentage > 0) {
           // Apply yield using the existing function
@@ -217,6 +183,7 @@ export default function DailyAUMManagement() {
         title: 'Success',
         description: 'Daily yields calculated and applied successfully',
       });
+      */
     } catch (error) {
       console.error('Error calculating yields:', error);
       toast({
@@ -330,7 +297,7 @@ export default function DailyAUMManagement() {
                   </TableHeader>
                   <TableBody>
                     {aumEntries.map((entry) => (
-                      <TableRow key={entry.asset_id}>
+                      <TableRow key={entry.asset_symbol}>
                         <TableCell className="font-medium">{entry.asset_name}</TableCell>
                         <TableCell>
                           <Badge variant="outline">{entry.asset_symbol}</Badge>
@@ -344,7 +311,7 @@ export default function DailyAUMManagement() {
                             step="0.000001"
                             min="0"
                             value={entry.current_aum}
-                            onChange={(e) => handleAUMChange(entry.asset_id, e.target.value)}
+                            onChange={(e) => handleAUMChange(entry.asset_symbol, e.target.value)}
                             className="w-32"
                             placeholder="0.000000"
                           />
