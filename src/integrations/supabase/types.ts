@@ -49,7 +49,7 @@ export type Database = {
       }
       admin_invites: {
         Row: {
-          created_at: string | null
+          created_at: string
           created_by: string | null
           email: string
           expires_at: string
@@ -58,7 +58,7 @@ export type Database = {
           used: boolean | null
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           created_by?: string | null
           email: string
           expires_at: string
@@ -67,7 +67,7 @@ export type Database = {
           used?: boolean | null
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           created_by?: string | null
           email?: string
           expires_at?: string
@@ -77,33 +77,146 @@ export type Database = {
         }
         Relationships: []
       }
-      assets: {
+      admin_users: {
         Row: {
-          created_at: string | null
-          decimal_places: number | null
-          icon_url: string | null
-          id: number
-          is_active: boolean | null
-          name: string
-          symbol: string
+          granted_at: string
+          granted_by: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          user_id: string
         }
         Insert: {
-          created_at?: string | null
-          decimal_places?: number | null
-          icon_url?: string | null
-          id?: number
-          is_active?: boolean | null
-          name: string
-          symbol: string
+          granted_at?: string
+          granted_by?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          user_id: string
         }
         Update: {
-          created_at?: string | null
-          decimal_places?: number | null
+          granted_at?: string
+          granted_by?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      asset_prices: {
+        Row: {
+          as_of: string
+          asset_id: string
+          created_at: string
+          high_24h: number | null
+          low_24h: number | null
+          market_cap: number | null
+          price_usd: number
+          source: string
+          volume_24h: number | null
+        }
+        Insert: {
+          as_of: string
+          asset_id: string
+          created_at?: string
+          high_24h?: number | null
+          low_24h?: number | null
+          market_cap?: number | null
+          price_usd: number
+          source: string
+          volume_24h?: number | null
+        }
+        Update: {
+          as_of?: string
+          asset_id?: string
+          created_at?: string
+          high_24h?: number | null
+          low_24h?: number | null
+          market_cap?: number | null
+          price_usd?: number
+          source?: string
+          volume_24h?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_prices_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets_v2"
+            referencedColumns: ["asset_id"]
+          },
+        ]
+      }
+      assets: {
+        Row: {
+          created_at: string
+          decimal_places: number
+          icon_url: string | null
+          id: number
+          is_active: boolean
+          name: string
+          symbol: Database["public"]["Enums"]["asset_code"]
+        }
+        Insert: {
+          created_at?: string
+          decimal_places?: number
           icon_url?: string | null
           id?: number
-          is_active?: boolean | null
+          is_active?: boolean
+          name: string
+          symbol: Database["public"]["Enums"]["asset_code"]
+        }
+        Update: {
+          created_at?: string
+          decimal_places?: number
+          icon_url?: string | null
+          id?: number
+          is_active?: boolean
           name?: string
+          symbol?: Database["public"]["Enums"]["asset_code"]
+        }
+        Relationships: []
+      }
+      assets_v2: {
+        Row: {
+          asset_id: string
+          chain: string | null
+          coingecko_id: string | null
+          created_at: string
+          decimals: number
+          is_active: boolean
+          kind: string
+          metadata: Json
+          name: string
+          price_source: string
+          symbol: string
+          updated_at: string
+        }
+        Insert: {
+          asset_id: string
+          chain?: string | null
+          coingecko_id?: string | null
+          created_at?: string
+          decimals: number
+          is_active?: boolean
+          kind: string
+          metadata?: Json
+          name: string
+          price_source?: string
+          symbol: string
+          updated_at?: string
+        }
+        Update: {
+          asset_id?: string
+          chain?: string | null
+          coingecko_id?: string | null
+          created_at?: string
+          decimals?: number
+          is_active?: boolean
+          kind?: string
+          metadata?: Json
+          name?: string
+          price_source?: string
           symbol?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -275,6 +388,13 @@ export type Database = {
             foreignKeyName: "daily_nav_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "daily_nav_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -290,6 +410,13 @@ export type Database = {
             columns: ["fund_id"]
             isOneToOne: false
             referencedRelation: "v_fund_kpis"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "daily_nav_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
             referencedColumns: ["fund_id"]
           },
         ]
@@ -342,6 +469,13 @@ export type Database = {
             foreignKeyName: "data_edit_audit_edited_by_fkey"
             columns: ["edited_by"]
             isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "data_edit_audit_edited_by_fkey"
+            columns: ["edited_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -357,50 +491,35 @@ export type Database = {
       deposits: {
         Row: {
           amount: number
-          asset_id: number
-          confirmed_at: string | null
+          asset_symbol: string
           created_at: string | null
+          created_by: string | null
           id: string
           status: string | null
-          tx_hash: string | null
-          user_id: string
+          transaction_hash: string | null
+          user_id: string | null
         }
         Insert: {
           amount: number
-          asset_id: number
-          confirmed_at?: string | null
+          asset_symbol: string
           created_at?: string | null
+          created_by?: string | null
           id?: string
           status?: string | null
-          tx_hash?: string | null
-          user_id: string
+          transaction_hash?: string | null
+          user_id?: string | null
         }
         Update: {
           amount?: number
-          asset_id?: number
-          confirmed_at?: string | null
+          asset_symbol?: string
           created_at?: string | null
+          created_by?: string | null
           id?: string
           status?: string | null
-          tx_hash?: string | null
-          user_id?: string
+          transaction_hash?: string | null
+          user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "deposits_asset_id_fkey"
-            columns: ["asset_id"]
-            isOneToOne: false
-            referencedRelation: "assets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "deposits_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       documents: {
         Row: {
@@ -498,6 +617,13 @@ export type Database = {
             foreignKeyName: "excel_import_log_imported_by_fkey"
             columns: ["imported_by"]
             isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "excel_import_log_imported_by_fkey"
+            columns: ["imported_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -554,6 +680,13 @@ export type Database = {
             foreignKeyName: "fee_calculations_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "fee_calculations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -572,6 +705,20 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
+            foreignKeyName: "fee_calculations_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fee_calculations_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "fee_calculations_investor_id_fkey"
             columns: ["investor_id"]
             isOneToOne: false
@@ -583,6 +730,13 @@ export type Database = {
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "fee_calculations_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
             referencedColumns: ["investor_id"]
           },
           {
@@ -601,10 +755,10 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
-          investor_id: string
           kind: Database["public"]["Enums"]["fee_kind"]
           period_month: number | null
           period_year: number | null
+          user_id: string
         }
         Insert: {
           amount: number
@@ -612,10 +766,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
-          investor_id: string
           kind: Database["public"]["Enums"]["fee_kind"]
           period_month?: number | null
           period_year?: number | null
+          user_id: string
         }
         Update: {
           amount?: number
@@ -623,10 +777,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
-          investor_id?: string
           kind?: Database["public"]["Enums"]["fee_kind"]
           period_month?: number | null
           period_year?: number | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -816,8 +970,22 @@ export type Database = {
             foreignKeyName: "import_locks_locked_by_fkey"
             columns: ["locked_by"]
             isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "import_locks_locked_by_fkey"
+            columns: ["locked_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_locks_unlocked_by_fkey"
+            columns: ["unlocked_by"]
+            isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "import_locks_unlocked_by_fkey"
@@ -827,48 +995,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      indigo_users: {
-        Row: {
-          created_at: string
-          email: string
-          first_name: string
-          generates_yield: boolean
-          id: string
-          is_crypto_investor: boolean
-          last_name: string
-          subscribe_newsletter: boolean
-          telegram_id: string
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          first_name: string
-          generates_yield: boolean
-          id?: string
-          is_crypto_investor: boolean
-          last_name: string
-          subscribe_newsletter?: boolean
-          telegram_id: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          first_name?: string
-          generates_yield?: boolean
-          id?: string
-          is_crypto_investor?: boolean
-          last_name?: string
-          subscribe_newsletter?: boolean
-          telegram_id?: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
       }
       investor_positions: {
         Row: {
@@ -935,6 +1061,20 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
+            foreignKeyName: "investor_positions_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "investor_positions_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "investor_positions_investor_id_fkey"
             columns: ["investor_id"]
             isOneToOne: false
@@ -946,6 +1086,13 @@ export type Database = {
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "investor_positions_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
             referencedColumns: ["investor_id"]
           },
         ]
@@ -1007,6 +1154,13 @@ export type Database = {
             foreignKeyName: "investors_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "investors_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1052,7 +1206,7 @@ export type Database = {
         Row: {
           asset_id: number
           balance: number
-          created_at: string | null
+          created_at: string
           date: string
           id: string
           usd_value: number | null
@@ -1062,7 +1216,7 @@ export type Database = {
         Insert: {
           asset_id: number
           balance: number
-          created_at?: string | null
+          created_at?: string
           date: string
           id?: string
           usd_value?: number | null
@@ -1072,7 +1226,7 @@ export type Database = {
         Update: {
           asset_id?: number
           balance?: number
-          created_at?: string | null
+          created_at?: string
           date?: string
           id?: string
           usd_value?: number | null
@@ -1087,135 +1241,231 @@ export type Database = {
             referencedRelation: "assets"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "portfolio_history_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
-      portfolios: {
+      portfolio_members: {
         Row: {
-          asset_id: number
-          balance: number
-          created_by: string | null
-          id: string
-          updated_at: string | null
-          updated_by: string | null
+          granted_at: string
+          granted_by: string | null
+          portfolio_id: string
+          role: string
           user_id: string
         }
         Insert: {
-          asset_id: number
-          balance?: number
-          created_by?: string | null
-          id?: string
-          updated_at?: string | null
-          updated_by?: string | null
+          granted_at?: string
+          granted_by?: string | null
+          portfolio_id: string
+          role?: string
           user_id: string
         }
         Update: {
-          asset_id?: number
-          balance?: number
-          created_by?: string | null
-          id?: string
-          updated_at?: string | null
-          updated_by?: string | null
+          granted_at?: string
+          granted_by?: string | null
+          portfolio_id?: string
+          role?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "portfolios_asset_id_fkey"
-            columns: ["asset_id"]
+            foreignKeyName: "portfolio_members_portfolio_id_fkey"
+            columns: ["portfolio_id"]
             isOneToOne: false
-            referencedRelation: "assets"
+            referencedRelation: "admin_portfolio_overview_v"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "portfolios_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "portfolio_members_portfolio_id_fkey"
+            columns: ["portfolio_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "portfolio_overview_v"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "portfolio_members_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "portfolios_v2"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portfolio_members_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "positions_current_v"
+            referencedColumns: ["portfolio_id"]
+          },
         ]
+      }
+      portfolio_nav_snapshots: {
+        Row: {
+          as_of: string
+          created_at: string
+          details: Json
+          nav_usd: number
+          portfolio_id: string
+        }
+        Insert: {
+          as_of: string
+          created_at?: string
+          details: Json
+          nav_usd: number
+          portfolio_id: string
+        }
+        Update: {
+          as_of?: string
+          created_at?: string
+          details?: Json
+          nav_usd?: number
+          portfolio_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_nav_snapshots_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "admin_portfolio_overview_v"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portfolio_nav_snapshots_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_overview_v"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portfolio_nav_snapshots_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "portfolios_v2"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portfolio_nav_snapshots_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "positions_current_v"
+            referencedColumns: ["portfolio_id"]
+          },
+        ]
+      }
+      portfolios_v2: {
+        Row: {
+          base_currency: string
+          created_at: string
+          id: string
+          inception_date: string
+          metadata: Json
+          name: string
+          owner_user_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          base_currency?: string
+          created_at?: string
+          id?: string
+          inception_date?: string
+          metadata?: Json
+          name: string
+          owner_user_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          base_currency?: string
+          created_at?: string
+          id?: string
+          inception_date?: string
+          metadata?: Json
+          name?: string
+          owner_user_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       positions: {
         Row: {
           asset_code: Database["public"]["Enums"]["asset_code"]
           current_balance: number
           id: string
-          investor_id: string
           principal: number
           total_earned: number
           updated_at: string
+          user_id: string
         }
         Insert: {
           asset_code: Database["public"]["Enums"]["asset_code"]
           current_balance?: number
           id?: string
-          investor_id: string
           principal?: number
           total_earned?: number
           updated_at?: string
+          user_id: string
         }
         Update: {
           asset_code?: Database["public"]["Enums"]["asset_code"]
           current_balance?: number
           id?: string
-          investor_id?: string
           principal?: number
           total_earned?: number
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
       profiles: {
         Row: {
           avatar_url: string | null
-          created_at: string | null
+          created_at: string
           email: string
           fee_percentage: number | null
           first_name: string | null
+          full_name: string | null
           id: string
-          is_admin: boolean | null
+          is_admin: boolean
           last_name: string | null
           phone: string | null
           status: string | null
           totp_enabled: boolean | null
           totp_verified: boolean | null
-          updated_at: string | null
+          updated_at: string
+          user_type: string | null
         }
         Insert: {
           avatar_url?: string | null
-          created_at?: string | null
+          created_at?: string
           email: string
           fee_percentage?: number | null
           first_name?: string | null
+          full_name?: string | null
           id: string
-          is_admin?: boolean | null
+          is_admin?: boolean
           last_name?: string | null
           phone?: string | null
           status?: string | null
           totp_enabled?: boolean | null
           totp_verified?: boolean | null
-          updated_at?: string | null
+          updated_at?: string
+          user_type?: string | null
         }
         Update: {
           avatar_url?: string | null
-          created_at?: string | null
+          created_at?: string
           email?: string
           fee_percentage?: number | null
           first_name?: string | null
+          full_name?: string | null
           id?: string
-          is_admin?: boolean | null
+          is_admin?: boolean
           last_name?: string | null
           phone?: string | null
           status?: string | null
           totp_enabled?: boolean | null
           totp_verified?: boolean | null
-          updated_at?: string | null
+          updated_at?: string
+          user_type?: string | null
         }
         Relationships: []
       }
@@ -1290,6 +1540,20 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
+            foreignKeyName: "reconciliation_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "reconciliation_reconciled_by_fkey"
+            columns: ["reconciled_by"]
+            isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["profile_id"]
+          },
+          {
             foreignKeyName: "reconciliation_reconciled_by_fkey"
             columns: ["reconciled_by"]
             isOneToOne: false
@@ -1350,7 +1614,6 @@ export type Database = {
           file_path: string | null
           fund_code: string | null
           id: string
-          investor_id: string
           month: number | null
           net_income: number
           period_month: number
@@ -1363,6 +1626,7 @@ export type Database = {
           signed_url: string | null
           storage_path: string | null
           url_expires_at: string | null
+          user_id: string
           year: number | null
         }
         Insert: {
@@ -1374,7 +1638,6 @@ export type Database = {
           file_path?: string | null
           fund_code?: string | null
           id?: string
-          investor_id: string
           month?: number | null
           net_income: number
           period_month: number
@@ -1387,6 +1650,7 @@ export type Database = {
           signed_url?: string | null
           storage_path?: string | null
           url_expires_at?: string | null
+          user_id: string
           year?: number | null
         }
         Update: {
@@ -1398,7 +1662,6 @@ export type Database = {
           file_path?: string | null
           fund_code?: string | null
           id?: string
-          investor_id?: string
           month?: number | null
           net_income?: number
           period_month?: number
@@ -1411,6 +1674,7 @@ export type Database = {
           signed_url?: string | null
           storage_path?: string | null
           url_expires_at?: string | null
+          user_id?: string
           year?: number | null
         }
         Relationships: []
@@ -1523,6 +1787,13 @@ export type Database = {
             foreignKeyName: "system_config_updated_by_fkey"
             columns: ["updated_by"]
             isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "system_config_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1536,11 +1807,11 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
-          investor_id: string
           note: string | null
           status: Database["public"]["Enums"]["transaction_status"]
           tx_hash: string | null
           type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
         }
         Insert: {
           amount: number
@@ -1549,11 +1820,11 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
-          investor_id: string
           note?: string | null
           status?: Database["public"]["Enums"]["transaction_status"]
           tx_hash?: string | null
           type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
         }
         Update: {
           amount?: number
@@ -1562,11 +1833,11 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
-          investor_id?: string
           note?: string | null
           status?: Database["public"]["Enums"]["transaction_status"]
           tx_hash?: string | null
           type?: Database["public"]["Enums"]["transaction_type"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -1576,6 +1847,7 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           asset: string
+          asset_id: string | null
           balance_after: number | null
           balance_before: number | null
           created_at: string | null
@@ -1585,9 +1857,16 @@ export type Database = {
           id: string
           investor_id: string
           notes: string | null
+          occurred_at: string
+          portfolio_id: string | null
+          price_per_unit: number | null
+          quantity: number | null
+          ref_code: string | null
           reference_id: string | null
+          total_value: number | null
           tx_date: string
           tx_hash: string | null
+          txn_type: string | null
           type: Database["public"]["Enums"]["tx_type"]
           value_date: string
         }
@@ -1596,6 +1875,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           asset: string
+          asset_id?: string | null
           balance_after?: number | null
           balance_before?: number | null
           created_at?: string | null
@@ -1605,9 +1885,16 @@ export type Database = {
           id?: string
           investor_id: string
           notes?: string | null
+          occurred_at?: string
+          portfolio_id?: string | null
+          price_per_unit?: number | null
+          quantity?: number | null
+          ref_code?: string | null
           reference_id?: string | null
+          total_value?: number | null
           tx_date?: string
           tx_hash?: string | null
+          txn_type?: string | null
           type: Database["public"]["Enums"]["tx_type"]
           value_date?: string
         }
@@ -1616,6 +1903,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           asset?: string
+          asset_id?: string | null
           balance_after?: number | null
           balance_before?: number | null
           created_at?: string | null
@@ -1625,9 +1913,16 @@ export type Database = {
           id?: string
           investor_id?: string
           notes?: string | null
+          occurred_at?: string
+          portfolio_id?: string | null
+          price_per_unit?: number | null
+          quantity?: number | null
+          ref_code?: string | null
           reference_id?: string | null
+          total_value?: number | null
           tx_date?: string
           tx_hash?: string | null
+          txn_type?: string | null
           type?: Database["public"]["Enums"]["tx_type"]
           value_date?: string
         }
@@ -1636,8 +1931,29 @@ export type Database = {
             foreignKeyName: "transactions_v2_approved_by_fkey"
             columns: ["approved_by"]
             isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "transactions_v2_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_v2_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets_v2"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "transactions_v2_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "transactions_v2_created_by_fkey"
@@ -1661,6 +1977,20 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
+            foreignKeyName: "transactions_v2_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "transactions_v2_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "transactions_v2_investor_id_fkey"
             columns: ["investor_id"]
             isOneToOne: false
@@ -1673,6 +2003,41 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "transactions_v2_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "transactions_v2_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "admin_portfolio_overview_v"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_v2_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_overview_v"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_v2_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "portfolios_v2"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_v2_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "positions_current_v"
+            referencedColumns: ["portfolio_id"]
           },
         ]
       }
@@ -1906,6 +2271,62 @@ export type Database = {
         }
         Relationships: []
       }
+      withdrawal_audit_logs: {
+        Row: {
+          action: Database["public"]["Enums"]["withdrawal_action"]
+          actor_id: string | null
+          created_at: string
+          details: Json | null
+          id: string
+          request_id: string
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["withdrawal_action"]
+          actor_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          request_id: string
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["withdrawal_action"]
+          actor_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_audit_logs_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_audit_logs_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       withdrawal_requests: {
         Row: {
           admin_notes: string | null
@@ -1999,6 +2420,13 @@ export type Database = {
             foreignKeyName: "withdrawal_requests_approved_by_fkey"
             columns: ["approved_by"]
             isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -2006,8 +2434,22 @@ export type Database = {
             foreignKeyName: "withdrawal_requests_cancelled_by_fkey"
             columns: ["cancelled_by"]
             isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "withdrawal_requests_created_by_fkey"
@@ -2031,6 +2473,20 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "withdrawal_requests_investor_id_fkey"
             columns: ["investor_id"]
             isOneToOne: false
@@ -2045,6 +2501,20 @@ export type Database = {
             referencedColumns: ["investor_id"]
           },
           {
+            foreignKeyName: "withdrawal_requests_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["profile_id"]
+          },
+          {
             foreignKeyName: "withdrawal_requests_rejected_by_fkey"
             columns: ["rejected_by"]
             isOneToOne: false
@@ -2056,33 +2526,33 @@ export type Database = {
       yield_rates: {
         Row: {
           asset_id: number
-          created_at: string | null
+          created_at: string
           daily_yield_percentage: number
           date: string
           entered_by: string | null
           id: string
           is_api_sourced: boolean | null
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
           asset_id: number
-          created_at?: string | null
+          created_at?: string
           daily_yield_percentage: number
           date: string
           entered_by?: string | null
           id?: string
           is_api_sourced?: boolean | null
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
           asset_id?: number
-          created_at?: string | null
+          created_at?: string
           daily_yield_percentage?: number
           date?: string
           entered_by?: string | null
           id?: string
           is_api_sourced?: boolean | null
-          updated_at?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -2090,13 +2560,6 @@ export type Database = {
             columns: ["asset_id"]
             isOneToOne: false
             referencedRelation: "assets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "yield_rates_entered_by_fkey"
-            columns: ["entered_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2130,6 +2593,26 @@ export type Database = {
       }
     }
     Views: {
+      admin_portfolio_overview_v: {
+        Row: {
+          asset_count: number | null
+          base_currency: string | null
+          created_at: string | null
+          email: string | null
+          first_name: string | null
+          full_name: string | null
+          id: string | null
+          inception_date: string | null
+          last_name: string | null
+          metadata: Json | null
+          name: string | null
+          owner_user_id: string | null
+          status: string | null
+          total_value_usd: number | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
       audit_events_v: {
         Row: {
           actor_user: string | null
@@ -2157,6 +2640,22 @@ export type Database = {
         }
         Relationships: []
       }
+      investor_directory: {
+        Row: {
+          aml_status: string | null
+          created_at: string | null
+          email: string | null
+          fee_percentage: number | null
+          first_name: string | null
+          investor_id: string | null
+          investor_name: string | null
+          investor_status: string | null
+          kyc_status: string | null
+          last_name: string | null
+          profile_id: string | null
+        }
+        Relationships: []
+      }
       investor_positions_by_class: {
         Row: {
           fund_class: string | null
@@ -2176,6 +2675,13 @@ export type Database = {
             foreignKeyName: "investor_positions_investor_id_fkey"
             columns: ["investor_id"]
             isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "investor_positions_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
             referencedRelation: "investors"
             referencedColumns: ["id"]
           },
@@ -2186,7 +2692,42 @@ export type Database = {
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
+          {
+            foreignKeyName: "investor_positions_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["investor_id"]
+          },
         ]
+      }
+      portfolio_overview_v: {
+        Row: {
+          asset_count: number | null
+          created_at: string | null
+          id: string | null
+          inception_date: string | null
+          name: string | null
+          owner_user_id: string | null
+          status: string | null
+          total_value_usd: number | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
+      positions_current_v: {
+        Row: {
+          asset_id: string | null
+          asset_name: string | null
+          last_price_usd: number | null
+          owner_user_id: string | null
+          portfolio_id: string | null
+          portfolio_name: string | null
+          quantity: number | null
+          symbol: string | null
+          value_usd: number | null
+        }
+        Relationships: []
       }
       v_fund_kpis: {
         Row: {
@@ -2269,23 +2810,51 @@ export type Database = {
             referencedRelation: "v_fund_kpis"
             referencedColumns: ["fund_id"]
           },
+          {
+            foreignKeyName: "daily_nav_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["fund_id"]
+          },
         ]
       }
       withdrawal_queue: {
         Row: {
+          admin_notes: string | null
           approved_amount: number | null
+          approved_at: string | null
+          approved_by_email: string | null
+          approved_by_name: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by_email: string | null
+          cancelled_by_name: string | null
           current_position_value: number | null
           current_shares: number | null
           expected_withdrawal: number | null
           fund_class: string | null
           fund_code: string | null
+          fund_id: string | null
           fund_name: string | null
           id: string | null
           investor_email: string | null
+          investor_id: string | null
           investor_name: string | null
+          notes: string | null
+          processed_amount: number | null
+          processed_at: string | null
+          rejected_at: string | null
+          rejected_by_email: string | null
+          rejected_by_name: string | null
+          rejection_reason: string | null
           request_date: string | null
           requested_amount: number | null
+          settlement_date: string | null
           status: Database["public"]["Enums"]["withdrawal_status"] | null
+          tx_hash: string | null
+          updated_at: string | null
+          withdrawal_type: string | null
         }
         Relationships: []
       }
@@ -2299,20 +2868,41 @@ export type Database = {
         }
         Returns: boolean
       }
-      can_access_investor: {
-        Args: { investor_uuid: string }
-        Returns: boolean
+      calculate_positions: {
+        Args: { p_portfolio_id: string }
+        Returns: {
+          asset_id: string
+          last_price_usd: number
+          quantity: number
+          value_usd: number
+        }[]
       }
       can_access_notification: {
         Args: { notification_id: string }
+        Returns: boolean
+      }
+      can_access_user: {
+        Args: { user_uuid: string }
         Returns: boolean
       }
       can_withdraw: {
         Args: { p_amount: number; p_fund_id: string; p_investor_id: string }
         Returns: Json
       }
+      cancel_withdrawal_by_admin: {
+        Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
+        Returns: boolean
+      }
       check_is_admin: {
         Args: { user_id: string }
+        Returns: boolean
+      }
+      complete_withdrawal: {
+        Args: {
+          p_admin_notes?: string
+          p_request_id: string
+          p_tx_hash?: string
+        }
         Returns: boolean
       }
       create_withdrawal_request: {
@@ -2333,6 +2923,10 @@ export type Database = {
         Args: { secret_text: string }
         Returns: string
       }
+      ensure_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       fund_period_return: {
         Args: { d1: string; d2: string; f: string; net?: boolean }
         Returns: number
@@ -2350,26 +2944,50 @@ export type Database = {
         }
         Returns: string
       }
+      get_24h_interest: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          interest: number
+        }[]
+      }
       get_admin_name: {
         Args: { admin_id: string }
         Returns: string
       }
+      get_all_investors_with_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          last_statement_date: string
+          total_aum: number
+        }[]
+      }
       get_all_non_admin_profiles: {
         Args: Record<PropertyKey, never>
         Returns: {
-          avatar_url: string | null
-          created_at: string | null
+          created_at: string
           email: string
-          fee_percentage: number | null
-          first_name: string | null
+          fee_percentage: number
+          first_name: string
           id: string
-          is_admin: boolean | null
-          last_name: string | null
-          phone: string | null
-          status: string | null
-          totp_enabled: boolean | null
-          totp_verified: boolean | null
-          updated_at: string | null
+          last_name: string
+        }[]
+      }
+      get_investor_count: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          count: number
+        }[]
+      }
+      get_investor_portfolio_summary: {
+        Args: { p_investor_id: string }
+        Returns: {
+          last_statement_date: string
+          portfolio_count: number
+          total_aum: number
         }[]
       }
       get_investor_positions_by_class: {
@@ -2381,26 +2999,44 @@ export type Database = {
           total_value: number
         }[]
       }
-      get_profile_by_id: {
-        Args: { profile_id: string } | { user_id: number }
+      get_pending_withdrawals: {
+        Args: Record<PropertyKey, never>
         Returns: {
-          avatar_url: string | null
-          created_at: string | null
+          count: number
+        }[]
+      }
+      get_profile_by_id: {
+        Args: { profile_id: string }
+        Returns: {
+          created_at: string
           email: string
-          fee_percentage: number | null
-          first_name: string | null
+          fee_percentage: number
+          first_name: string
           id: string
-          is_admin: boolean | null
-          last_name: string | null
-          phone: string | null
-          status: string | null
-          totp_enabled: boolean | null
-          totp_verified: boolean | null
-          updated_at: string | null
+          is_admin: boolean
+          last_name: string
+        }[]
+      }
+      get_total_aum: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_aum: number
         }[]
       }
       get_user_admin_status: {
-        Args: Record<PropertyKey, never> | { user_id: string }
+        Args: { user_id: string }
+        Returns: boolean
+      }
+      get_user_portfolio_summary: {
+        Args: { p_user_id: string }
+        Returns: {
+          last_statement_date: string
+          portfolio_count: number
+          total_aum: number
+        }[]
+      }
+      has_portfolio_access: {
+        Args: { p_portfolio_id: string }
         Returns: boolean
       }
       is_2fa_required: {
@@ -2412,6 +3048,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_admin_v2: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
@@ -2454,9 +3094,31 @@ export type Database = {
         }
         Returns: string
       }
+      log_withdrawal_action: {
+        Args: {
+          p_action: Database["public"]["Enums"]["withdrawal_action"]
+          p_details?: Json
+          p_request_id: string
+        }
+        Returns: undefined
+      }
       process_excel_import_with_classes: {
         Args: { p_data: Json; p_import_type?: string }
         Returns: Json
+      }
+      reject_withdrawal: {
+        Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
+        Returns: boolean
+      }
+      start_processing_withdrawal: {
+        Args: {
+          p_admin_notes?: string
+          p_processed_amount?: number
+          p_request_id: string
+          p_settlement_date?: string
+          p_tx_hash?: string
+        }
+        Returns: boolean
       }
       test_profiles_access: {
         Args: Record<PropertyKey, never>
@@ -2503,6 +3165,14 @@ export type Database = {
       transaction_status: "pending" | "confirmed" | "failed" | "cancelled"
       transaction_type: "DEPOSIT" | "WITHDRAWAL" | "INTEREST" | "FEE"
       tx_type: "DEPOSIT" | "WITHDRAWAL" | "INTEREST" | "FEE" | "ADJUSTMENT"
+      withdrawal_action:
+        | "create"
+        | "approve"
+        | "reject"
+        | "processing"
+        | "complete"
+        | "cancel"
+        | "update"
       withdrawal_status:
         | "pending"
         | "approved"
@@ -2671,6 +3341,15 @@ export const Constants = {
       transaction_status: ["pending", "confirmed", "failed", "cancelled"],
       transaction_type: ["DEPOSIT", "WITHDRAWAL", "INTEREST", "FEE"],
       tx_type: ["DEPOSIT", "WITHDRAWAL", "INTEREST", "FEE", "ADJUSTMENT"],
+      withdrawal_action: [
+        "create",
+        "approve",
+        "reject",
+        "processing",
+        "complete",
+        "cancel",
+        "update",
+      ],
       withdrawal_status: [
         "pending",
         "approved",

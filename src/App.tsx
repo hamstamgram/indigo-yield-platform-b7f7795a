@@ -12,6 +12,10 @@ import Index from './pages/Index';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
 
+// Password reset pages
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+
 // Lazy load heavy components
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const EnhancedDashboard = lazy(() => import('./pages/EnhancedDashboard'));
@@ -118,6 +122,8 @@ function AppContent() {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/onboarding" element={<OnboardingWizard />} />
             <Route path="/admin-invite" element={<AdminInvite />} />
           
