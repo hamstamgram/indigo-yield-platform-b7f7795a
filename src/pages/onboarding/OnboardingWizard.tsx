@@ -212,7 +212,7 @@ export default function OnboardingWizard() {
                       <CardTitle className="text-lg">{asset.symbol}</CardTitle>
                       <Checkbox 
                         checked={selectedAssets.includes(asset.symbol)}
-                        readOnly
+                        disabled
                       />
                     </div>
                     <p className="text-sm text-gray-600">{asset.name}</p>

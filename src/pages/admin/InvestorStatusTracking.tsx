@@ -108,8 +108,12 @@ export function InvestorStatusTracking() {
 
       if (error) throw error;
 
-      const investors = data || [];
-      setInvestors(investors);
+      const transformedInvestors: Investor[] = (data || []).map(investor => ({
+        ...investor,
+        status: investor.status === 'active' ? 'Active' : 
+                investor.status === 'pending' ? 'Pending' : 'Closed'
+      }));
+      setInvestors(transformedInvestors);
       
       // Calculate stats
       const stats = investors.reduce(

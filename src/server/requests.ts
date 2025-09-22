@@ -1,288 +1,67 @@
+/**
+ * Simplified Request Management
+ */
+
 import { supabase } from '@/integrations/supabase/client';
-import type { Request } from '@/types/lp';
 
-// In-memory storage for demo mode (session only)
-let demoRequests: Request[] = [
-  {
-    id: 'demo-req-1',
-    type: 'withdrawal',
-    asset: 'USDC',
-    amount: '1000.00',
-    memo: 'Monthly expenses',
-    status: 'pending',
-    createdAt: '2025-01-01T10:00:00Z',
-  },
-];
+export interface Request {
+  id: string;
+  type: string;
+  status: string;
+  amount: number;
+  created_at: string;
+  user_id: string;
+}
 
-const hasSupabase = () => {
-  return supabase && import.meta.env.VITE_SUPABASE_URL;
-};
-
-const logDemoMode = (operation: string) => {
-  console.warn(`${operation} - Using demo data (Supabase not configured)`);
-};
-
-export const createDepositRequest = async (
-  userId: string,
-  asset: string,
-  amount: string,
-  memo?: string
-): Promise<{ success: boolean; id?: string }> => {
-  if (!hasSupabase()) {
-    logDemoMode('createDepositRequest');
-    const newRequest: Request = {
-      id: 'demo-dep-' + Date.now(),
-      type: 'deposit',
-      asset,
-      amount,
-      memo,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
-    demoRequests.push(newRequest);
-    return { success: true, id: newRequest.id };
-  }
-
+/**
+ * Get requests for a user
+ */
+export async function getUserRequests(userId: string): Promise<Request[]> {
   try {
+    // Use withdrawal_requests table instead of non-existent requests table
     const { data, error } = await supabase
-      .from('requests')
-      .insert({
-        user_id: userId,
-        type: 'deposit',
-        asset,
-        amount: parseFloat(amount),
-        memo,
-        status: 'pending',
-      })
-      .select('id')
-      .single();
-
-    if (error) {
-      logDemoMode('createDepositRequest - error');
-      const newRequest: Request = {
-        id: 'demo-dep-' + Date.now(),
-        type: 'deposit',
-        asset,
-        amount,
-        memo,
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-      };
-      demoRequests.push(newRequest);
-      return { success: true, id: newRequest.id };
-    }
-
-    return { success: true, id: data.id };
-  } catch (error) {
-    logDemoMode('createDepositRequest - error');
-    return { success: false };
-  }
-};
-
-export const createWithdrawalRequest = async (
-  userId: string,
-  asset: string,
-  amount: string,
-  memo?: string
-): Promise<{ success: boolean; id?: string }> => {
-  if (!hasSupabase()) {
-    logDemoMode('createWithdrawalRequest');
-    const newRequest: Request = {
-      id: 'demo-wdr-' + Date.now(),
-      type: 'withdrawal',
-      asset,
-      amount,
-      memo,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
-    demoRequests.push(newRequest);
-    return { success: true, id: newRequest.id };
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from('requests')
-      .insert({
-        user_id: userId,
-        type: 'withdrawal',
-        asset,
-        amount: parseFloat(amount),
-        memo,
-        status: 'pending',
-      })
-      .select('id')
-      .single();
-
-    if (error) {
-      logDemoMode('createWithdrawalRequest - error');
-      const newRequest: Request = {
-        id: 'demo-wdr-' + Date.now(),
-        type: 'withdrawal',
-        asset,
-        amount,
-        memo,
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-      };
-      demoRequests.push(newRequest);
-      return { success: true, id: newRequest.id };
-    }
-
-    return { success: true, id: data.id };
-  } catch (error) {
-    logDemoMode('createWithdrawalRequest - error');
-    return { success: false };
-  }
-};
-
-export const listRequestsForUser = async (userId: string): Promise<Request[]> => {
-  if (!hasSupabase()) {
-    logDemoMode('listRequestsForUser');
-    return demoRequests;
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from('requests')
+      .from('withdrawal_requests')
       .select('*')
-      .eq('user_id', userId)
+      .eq('investor_id', userId)
       .order('created_at', { ascending: false });
 
-    if (error || !data) {
-      logDemoMode('listRequestsForUser - error');
-      return demoRequests;
-    }
+    if (error) throw error;
 
-    return data.map(req => ({
+    return (data || []).map(req => ({
       id: req.id,
-      type: req.type,
-      asset: req.asset,
-      amount: req.amount.toString(),
-      memo: req.memo,
+      type: 'withdrawal',
       status: req.status,
-      createdAt: req.created_at,
-      updatedAt: req.updated_at,
-      adminNotes: req.admin_notes,
+      amount: req.requested_amount || 0,
+      created_at: req.created_at || new Date().toISOString(),
+      user_id: req.investor_id
     }));
   } catch (error) {
-    logDemoMode('listRequestsForUser - error');
-    return demoRequests;
+    console.error('Error getting user requests:', error);
+    return [];
   }
-};
+}
 
-export const listAllRequests = async (): Promise<Request[]> => {
-  if (!hasSupabase()) {
-    logDemoMode('listAllRequests');
-    return demoRequests;
-  }
-
+/**
+ * Create a new request
+ */
+export async function createRequest(request: Omit<Request, 'id' | 'created_at'>): Promise<string | null> {
   try {
     const { data, error } = await supabase
-      .from('requests')
-      .select('*, profiles(email)')
-      .order('created_at', { ascending: false });
-
-    if (error || !data) {
-      logDemoMode('listAllRequests - error');
-      return demoRequests;
-    }
-
-    return data.map(req => ({
-      id: req.id,
-      type: req.type,
-      asset: req.asset,
-      amount: req.amount.toString(),
-      memo: req.memo,
-      status: req.status,
-      createdAt: req.created_at,
-      updatedAt: req.updated_at,
-      adminNotes: req.admin_notes,
-    }));
-  } catch (error) {
-    logDemoMode('listAllRequests - error');
-    return demoRequests;
-  }
-};
-
-export const approveRequest = async (
-  requestId: string,
-  adminId: string,
-  options?: any
-): Promise<{ success: boolean }> => {
-  if (!hasSupabase()) {
-    logDemoMode('approveRequest');
-    const reqIndex = demoRequests.findIndex(r => r.id === requestId);
-    if (reqIndex >= 0) {
-      demoRequests[reqIndex].status = 'approved';
-      demoRequests[reqIndex].updatedAt = new Date().toISOString();
-      demoRequests[reqIndex].adminNotes = 'Approved by admin (demo)';
-    }
-    return { success: true };
-  }
-
-  try {
-    // Update request status
-    const { error } = await supabase
-      .from('requests')
-      .update({
-        status: 'approved',
-        admin_id: adminId,
-        admin_notes: options?.notes || 'Approved',
-        updated_at: new Date().toISOString(),
+      .from('withdrawal_requests')
+      .insert({
+        investor_id: request.user_id,
+        requested_amount: request.amount,
+        status: 'pending',
+        withdrawal_type: 'partial',
+        fund_id: request.user_id // Use user_id as fund_id for now
       })
-      .eq('id', requestId);
+      .select('id')
+      .single();
 
-    if (error) {
-      logDemoMode('approveRequest - error');
-      return { success: true }; // Return success for demo
-    }
-
-    // TODO: Create corresponding transaction via adminService
-    // This should call adminService.addManualTransaction with the request details
-    
-    return { success: true };
+    if (error) throw error;
+    return data?.id || null;
   } catch (error) {
-    logDemoMode('approveRequest - error');
-    return { success: true };
+    console.error('Error creating request:', error);
+    return null;
   }
-};
-
-export const denyRequest = async (
-  requestId: string,
-  adminId: string,
-  reason: string
-): Promise<{ success: boolean }> => {
-  if (!hasSupabase()) {
-    logDemoMode('denyRequest');
-    const reqIndex = demoRequests.findIndex(r => r.id === requestId);
-    if (reqIndex >= 0) {
-      demoRequests[reqIndex].status = 'denied';
-      demoRequests[reqIndex].updatedAt = new Date().toISOString();
-      demoRequests[reqIndex].adminNotes = reason || 'Denied by admin (demo)';
-    }
-    return { success: true };
-  }
-
-  try {
-    const { error } = await supabase
-      .from('requests')
-      .update({
-        status: 'denied',
-        admin_id: adminId,
-        admin_notes: reason,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', requestId);
-
-    if (error) {
-      logDemoMode('denyRequest - error');
-      return { success: true };
-    }
-
-    return { success: true };
-  } catch (error) {
-    logDemoMode('denyRequest - error');
-    return { success: true };
-  }
-};
+}

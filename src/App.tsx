@@ -86,7 +86,7 @@ const BalanceAdjustments = lazy(() => import('./pages/admin/BalanceAdjustments')
 const InvestorStatusTracking = lazy(() => import('./pages/admin/InvestorStatusTracking').then(m => ({ default: m.InvestorStatusTracking })));
 const FeeConfigurationManagement = lazy(() => import('./pages/admin/FeeConfigurationManagement').then(m => ({ default: m.FeeConfigurationManagement })));
 const YieldSettingsManagement = lazy(() => import('./pages/admin/YieldSettingsManagement').then(m => ({ default: m.YieldSettingsManagement })));
-const AuditDrilldown = lazy(() => import('./pages/admin/AuditDrilldown').then(m => ({ default: m.AuditDrilldown })));
+const AuditDrilldown = lazy(() => import('./pages/admin/AuditDrilldown'));
 
 // PDF Generation Demo - lazy load
 const PDFGenerationDemo = lazy(() => import('./components/pdf/PDFGenerationDemo').then(m => ({ default: m.PDFGenerationDemo })));

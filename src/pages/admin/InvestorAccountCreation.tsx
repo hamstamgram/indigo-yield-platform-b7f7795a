@@ -73,7 +73,12 @@ export function InvestorAccountCreation() {
         .order('name');
 
       if (error) throw error;
-      setAvailableFunds(data || []);
+      
+      const transformedFunds: Fund[] = (data || []).map(fund => ({
+        ...fund,
+        status: fund.status === 'suspended' ? 'inactive' : fund.status
+      }));
+      setAvailableFunds(transformedFunds);
     } catch (error) {
       console.error('Error loading funds:', error);
       toast.error('Failed to load available funds');

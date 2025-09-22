@@ -1,6 +1,6 @@
 // Common type definitions to fix build errors
 
-export type FundStatus = 'active' | 'inactive';
+export type FundStatus = 'active' | 'inactive' | 'suspended';
 
 export interface FundConfiguration {
   id: string;
@@ -102,6 +102,69 @@ export interface SupportTicket {
   updated_at: string;
   attachments: string[];
   messages_jsonb: TicketMessage[];
+}
+
+export interface WithdrawalRequest {
+  id: string;
+  investor_id: string;
+  fund_id: string;
+  fund_class: string;
+  fund_code: string;
+  fund_name: string;
+  investor_name: string;
+  investor_email: string;
+  requested_amount: number;
+  approved_amount: number;
+  current_position_value: number;
+  current_shares: number;
+  expected_withdrawal: number;
+  request_date: string;
+  status: 'pending' | 'approved' | 'processing' | 'completed' | 'rejected' | 'cancelled';
+}
+
+export interface AuditLogEntry {
+  id: string;
+  action: string;
+  details: Record<string, any>;
+  created_at: string;
+}
+
+export interface AuditEvent {
+  event_id: string;
+  user_id: string;
+  actor_user: string;
+  entity: string;
+  entity_id: string;
+  operation: string;
+  source_table: string;
+  old_values: Record<string, any>;
+  new_values: Record<string, any>;
+  meta: Record<string, any>;
+  created_at: string;
+}
+
+export interface Fund {
+  id: string;
+  code: string;
+  name: string;
+  status: 'active' | 'inactive';
+  fund_class?: string;
+  asset?: string;
+  inception_date?: string;
+  mgmt_fee_bps?: number;
+  perf_fee_bps?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Investor {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  status: 'Active' | 'Pending' | 'Closed';
+  created_at: string;
+  updated_at: string;
 }
 
 export interface TicketMessage {

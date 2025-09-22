@@ -110,7 +110,11 @@ export function FeeConfigurationManagement() {
         .order('name');
 
       if (error) throw error;
-      setFunds(data || []);
+        const transformedFunds: Fund[] = (data || []).map(fund => ({
+          ...fund,
+          status: fund.status === 'suspended' ? 'inactive' : fund.status
+        }));
+        setFunds(transformedFunds);
     } catch (error) {
       console.error('Error loading funds:', error);
       toast.error('Failed to load fund configurations');

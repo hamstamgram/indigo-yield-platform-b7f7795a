@@ -10,6 +10,7 @@ export interface Fund {
   code: string;
   name: string;
   asset: string;
+  fund_class?: string;
   strategy?: string;
   inception_date: string;
   status: 'active' | 'inactive' | 'suspended';
@@ -83,9 +84,15 @@ export async function getFund(fundId: string) {
  * Create new fund
  */
 export async function createFund(fund: Omit<Fund, 'id' | 'created_at' | 'updated_at'>) {
+  const fundWithDefaults = {
+    ...fund,
+    fund_class: fund.fund_class || 'default',
+    asset: fund.asset || 'BTC'
+  };
+  
   const { data, error } = await supabase
     .from('funds')
-    .insert(fund)
+    .insert(fundWithDefaults)
     .select()
     .single();
 
