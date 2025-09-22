@@ -7,10 +7,10 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "127.0.0.1",
-    port: 8082,
+    port: 8080,
     strictPort: true,
     hmr: {
-      clientPort: 8082,
+      clientPort: 8080,
     },
   },
   plugins: [
@@ -47,7 +47,7 @@ export default defineConfig(({ mode }) => ({
         },
         // Optimize asset file names
         assetFileNames: (assetInfo) => {
-          const info = assetInfo.name.split('.');
+          const info = assetInfo.name?.split('.') || [];
           const ext = info[info.length - 1];
           if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext)) {
             return `assets/images/[name]-[hash][extname]`;
