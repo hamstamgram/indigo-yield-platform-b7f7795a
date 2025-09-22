@@ -207,4 +207,4 @@ export const RedactionPresets = {
   }
 } as const;
 
-import { redactForLogging, redactForAdmin, redactForAudit } from '@/lib/security/redact-pii-simple';
+export { redactForLogging, redactForAdmin, redactForAudit } from './redact-pii-simple';
