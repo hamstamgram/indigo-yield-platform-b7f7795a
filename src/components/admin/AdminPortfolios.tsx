@@ -21,7 +21,9 @@ type UserPortfolio = {
   id: string;
   user_id: string;
   asset_id: number;
+  asset_code: string;
   balance: number;
+  current_balance: number;
   updated_at: string;
   user_email?: string;
   user_name?: string;
@@ -103,10 +105,10 @@ const AdminPortfolios = ({
       
       console.log("Fetched users:", userData.length);
       
-      // Fetch all portfolios
+      // Fetch all portfolios (using positions table)
       const { data: portfoliosResult, error: portfoliosError } = await supabase
-        .from('portfolios')
-        .select('id, user_id, asset_id, balance, updated_at');
+        .from('positions')
+        .select('id, user_id, asset_code, current_balance, updated_at');
       
       if (portfoliosError) throw portfoliosError;
       
@@ -116,7 +118,7 @@ const AdminPortfolios = ({
       // Enrich portfolio data with user and asset information
       const enrichedPortfolios = portfolioData.map(portfolio => {
         const user = userData.find(u => u.id === portfolio.user_id);
-        const asset = assets.find(a => a.id === portfolio.asset_id);
+        const asset = assets.find(a => a.symbol === portfolio.asset_code);
         
         const userName = user ? 
           `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email.split('@')[0] 
@@ -124,9 +126,11 @@ const AdminPortfolios = ({
         
         return {
           ...portfolio,
+          asset_id: asset?.id || 0,
+          balance: portfolio.current_balance,
           user_email: user?.email || '',
           user_name: userName,
-          asset_symbol: asset?.symbol || '',
+          asset_symbol: asset?.symbol || portfolio.asset_code,
           asset_name: asset?.name || ''
         };
       });
@@ -146,17 +150,19 @@ const AdminPortfolios = ({
             `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email.split('@')[0];
           
           // Add a skeleton portfolio entry for this user
-          skeletonPortfolios.push({
-            id: `skeleton-${user.id}`,
-            user_id: user.id,
-            asset_id: 0, // No asset assigned yet
-            balance: 0,
-            updated_at: new Date().toISOString(),
-            user_email: user.email,
-            user_name: userName,
-            asset_symbol: '-',
-            asset_name: 'No assets yet'
-          });
+            skeletonPortfolios.push({
+              id: `skeleton-${user.id}`,
+              user_id: user.id,
+              asset_id: 0, // No asset assigned yet
+              asset_code: 'USD',
+              balance: 0,
+              current_balance: 0,
+              updated_at: new Date().toISOString(),
+              user_email: user.email,
+              user_name: userName,
+              asset_symbol: '-',
+              asset_name: 'No assets yet'
+            });
         });
         
         if (skeletonPortfolios.length > 0) {
@@ -232,9 +238,9 @@ const AdminPortfolios = ({
       }
       
       const { error } = await supabase
-        .from('portfolios')
+        .from('positions')
         .update({ 
-          balance: portfolioToUpdate.balance,
+          current_balance: portfolioToUpdate.balance,
           updated_at: new Date().toISOString()
         })
         .eq('id', portfolioId);
@@ -286,20 +292,24 @@ const AdminPortfolios = ({
         return;
       }
 
+      // Find the asset symbol for the selected asset (ensure it's a valid asset code)
+      const selectedAssetData = assets.find(a => a.id === selectedAsset);
+      const assetSymbol = selectedAssetData?.symbol as "BTC" | "ETH" | "SOL" | "USDT" | "USDC" | "EURC" || 'USDT';
+
       // Check if this user-asset combination already exists
       const { data: existingEntry } = await supabase
-        .from('portfolios')
+        .from('positions')
         .select('id')
         .eq('user_id', selectedUser)
-        .eq('asset_id', selectedAsset)
-        .single();
+        .eq('asset_code', assetSymbol)
+        .maybeSingle();
 
       if (existingEntry) {
         // Update existing entry
         const { error } = await supabase
-          .from('portfolios')
+          .from('positions')
           .update({ 
-            balance: balance,
+            current_balance: balance,
             updated_at: new Date().toISOString()
           })
           .eq('id', existingEntry.id);
@@ -313,11 +323,13 @@ const AdminPortfolios = ({
       } else {
         // Insert new entry
         const { error } = await supabase
-          .from('portfolios')
+          .from('positions')
           .insert({
             user_id: selectedUser,
-            asset_id: selectedAsset,
-            balance: balance,
+            asset_code: assetSymbol,
+            current_balance: balance,
+            principal: balance, // Set initial principal
+            total_earned: 0,
             updated_at: new Date().toISOString()
           });
           

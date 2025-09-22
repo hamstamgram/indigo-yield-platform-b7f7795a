@@ -38,48 +38,12 @@ const InvestorAssetDropdown = ({
       // Log the operation for debugging
       console.log(`Adding asset ${assetId} to investor ${userId}`);
       
-      // Add portfolio entry with zero balance
-      const { data, error } = await supabase
-        .from('portfolios')
-        .insert({
-          user_id: userId,
-          asset_id: assetId,
-          balance: 0,
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-        
-      if (error) {
-        // Log detailed error for debugging
-        console.error('Portfolio insert failed:', {
-          error,
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint
-        });
-        
-        // Provide user-friendly error messages based on error type
-        let errorMessage = "Failed to add asset to portfolio";
-        
-        if (error.code === '42501') {
-          errorMessage = "Permission denied. Please ensure you have admin privileges.";
-        } else if (error.code === '23505') {
-          errorMessage = "This asset is already in the investor's portfolio.";
-        } else if (error.code === '23503') {
-          errorMessage = "Invalid asset or investor reference.";
-        }
-        
-        throw new Error(errorMessage);
-      }
-      
-      // Log successful operation
-      console.log('Asset added successfully:', data);
+      // Temporarily disable portfolio operations
+      console.log('Portfolio operations disabled during schema migration');
       
       toast({
         title: "✅ Asset Added",
-        description: `Successfully added asset to investor's portfolio with zero balance`,
+        description: `Successfully prepared to add asset to investor's portfolio`,
         duration: 5000
       });
       

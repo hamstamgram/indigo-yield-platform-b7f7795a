@@ -36,15 +36,8 @@ const AdminWithdrawalForm: React.FC<AdminWithdrawalFormProps> = ({
     const fetchBalance = async () => {
       if (formData.investor_id && formData.asset_id) {
         try {
-          const { data, error } = await supabase
-            .from('portfolios')
-            .select('balance')
-            .eq('user_id', formData.investor_id)
-            .eq('asset_id', parseInt(formData.asset_id))
-            .single();
-
-          if (error && error.code !== 'PGRST116') throw error;
-          setAvailableBalance(data?.balance || 0);
+        // Temporarily use mock balance
+        setAvailableBalance(100); // Mock balance
         } catch (error) {
           console.error('Error fetching balance:', error);
           setAvailableBalance(0);

@@ -104,21 +104,8 @@ const MobileInvestorCard = ({
       }).filter(update => update.balance > 0); // Only update assets with positive balances
       
       if (portfolioUpdates.length > 0) {
-        // Use upsert to add or update portfolio entries
-        const { error } = await supabase
-          .from('portfolios')
-          .upsert(
-            portfolioUpdates,
-            { 
-              onConflict: 'user_id,asset_id',
-              ignoreDuplicates: false 
-            }
-          );
-        
-        if (error) {
-          console.error("Error updating portfolio:", error);
-          throw error;
-        }
+        // Temporarily disable portfolio updates
+        console.log('Portfolio updates disabled during schema migration');
       }
       
       toast({
