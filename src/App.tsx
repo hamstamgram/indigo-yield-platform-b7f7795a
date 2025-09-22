@@ -1,7 +1,7 @@
 
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useEffect, lazy, Suspense } from 'react';
-import './App.css';
+import './index.css';
 import { initSentry } from './utils/monitoring/sentry';
 import { initPostHog } from './utils/analytics/posthog';
 import { SkipLink } from './components/accessibility/SkipLink';
@@ -54,8 +54,6 @@ const PortfolioDashboard = lazy(() => import('./pages/admin/PortfolioDashboard')
 const AdminPortfolioDashboard = lazy(() => import('./pages/admin/AdminPortfolioDashboard'));
 const AdminInvestors = lazy(() => import('./pages/admin/AdminInvestors'));
 const InvestorDetail = lazy(() => import('./pages/admin/InvestorDetail'));
-const YieldSettings = lazy(() => import('./pages/admin/YieldSettings'));
-const YieldSourcesManagement = lazy(() => import('./pages/YieldSourcesManagement'));
 const AdminOperations = lazy(() => import('./pages/AdminOperations'));
 const AdminAudit = lazy(() => import('./pages/AdminAudit'));
 
@@ -149,7 +147,6 @@ function AppContent() {
             {/* Other existing routes - protected */}
             <Route path="/statements" element={<RequireAuth><StatementsPage /></RequireAuth>} />
             <Route path="/transactions" element={<RequireAuth><TransactionsPage /></RequireAuth>} />
-            <Route path="/documents" element={<RequireAuth><DocumentsPage /></RequireAuth>} />
             <Route path="/assets/:symbol" element={<RequireAuth><AssetDetail /></RequireAuth>} />
             <Route path="/account" element={<RequireAuth><AccountPage /></RequireAuth>} />
             <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
@@ -187,13 +184,6 @@ function AppContent() {
             <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />
             <Route path="/admin-investors" element={<Navigate to="/admin/investors" replace />} />
             
-            {/* Other existing routes */}
-            <Route path="/statements" element={<StatementsPage />} />
-            <Route path="/transactions" element={<TransactionsPage />} />
-            <Route path="/documents" element={<DocumentsPage />} />
-            <Route path="/assets/:symbol" element={<AssetDetail />} />
-            <Route path="/account" element={<AccountPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
             
             {/* Keep existing admin tools routes for now */}
             <Route path="/admin-tools" element={<RequireAdmin><AdminTools /></RequireAdmin>} />
@@ -233,7 +223,7 @@ function App() {
     // Initialize analytics
     initPostHog();
     
-    console.log('🚀 Indigo Yield Platform initialized with observability');
+    
   }, []);
 
   return (

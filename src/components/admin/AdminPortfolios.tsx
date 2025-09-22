@@ -135,13 +135,11 @@ const AdminPortfolios = ({
         };
       });
       
-      console.log("Enriched portfolios:", enrichedPortfolios.length);
       setPortfolios(enrichedPortfolios);
       setFilteredPortfolios(enrichedPortfolios);
       
       // If we have users but no portfolios, create empty portfolios for the users
       if (userData.length > 0 && portfolioData.length === 0) {
-        console.log("No portfolios found, but we have users. Creating skeleton view.");
         
         // Create skeleton portfolios for UI display
         const skeletonPortfolios: UserPortfolio[] = [];
@@ -166,14 +164,12 @@ const AdminPortfolios = ({
         });
         
         if (skeletonPortfolios.length > 0) {
-          console.log("Created skeleton portfolios:", skeletonPortfolios.length);
-          setPortfolios(skeletonPortfolios);
-          setFilteredPortfolios(skeletonPortfolios);
+        setPortfolios(skeletonPortfolios);
+        setFilteredPortfolios(skeletonPortfolios);
         }
       }
       
     } catch (error) {
-      console.error('Error fetching portfolio data:', error);
       toast({
         title: 'Error',
         description: 'Failed to fetch portfolio data',
@@ -259,7 +255,6 @@ const AdminPortfolios = ({
         if (onRefresh) onRefresh();
       }, 500);
     } catch (error) {
-      console.error('Error updating portfolio balance:', error);
       toast({
         title: 'Error',
         description: 'Failed to update portfolio balance',
@@ -352,7 +347,6 @@ const AdminPortfolios = ({
       setNewBalance("0");
       
     } catch (error) {
-      console.error('Error adding portfolio entry:', error);
       toast({
         title: 'Error',
         description: 'Failed to add portfolio entry',

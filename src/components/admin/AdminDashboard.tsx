@@ -31,15 +31,15 @@ export function AdminDashboard() {
           calculateInvestorCount(),
         ]);
 
-        setMetrics({
-          totalAUM,
-          dailyInterest,
-          investorCount,
-          pendingWithdrawals: 0, // TODO: Implement when withdrawal system is ready
-        });
-      } catch (error) {
-        console.error('Error fetching admin metrics:', error);
-      } finally {
+          setMetrics({
+            totalAUM,
+            dailyInterest,
+            investorCount,
+            pendingWithdrawals: 0, // Implement when withdrawal system is ready
+          });
+        } catch (error) {
+          // Error loading metrics, will show loading state
+        } finally {
         setLoading(false);
       }
     };
