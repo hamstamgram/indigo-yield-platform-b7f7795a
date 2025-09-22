@@ -62,12 +62,12 @@ export default function DocumentRow({
       const signedUrl = await onDownload(document);
       
       // Create a temporary link and trigger download
-      const link = document.createElement('a');
+      const link = window.document.createElement('a');
       link.href = signedUrl;
       link.download = document.name;
-      document.body.appendChild(link);
+      window.document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      window.document.body.removeChild(link);
     } catch (error) {
       console.error('Failed to download document:', error);
     } finally {

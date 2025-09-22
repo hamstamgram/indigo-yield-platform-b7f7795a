@@ -129,23 +129,20 @@ const InterestCalculationEngine: React.FC<InterestCalculationEngineProps> = ({ o
 
         if (updateError) throw updateError;
 
+        const txData = {
+          investor_id: portfolio.user_id,
+          asset_code: (portfolio.asset?.symbol as 'BTC' | 'ETH' | 'SOL' | 'USDT' | 'USDC' | 'EURC') || 'USDT',
+          amount: interestEarned,
+          type: 'INTEREST' as const,
+          status: 'confirmed' as const,
+          confirmed_at: new Date().toISOString(),
+          created_by: user.id
+        };
+
         // Record interest transaction
         const { error: txError } = await supabase
           .from('transactions')
-          .insert({
-            investor_id: portfolio.user_id,
-            asset_code: portfolio.asset?.symbol || 'UNKNOWN',
-            amount: interestEarned,
-            kind: 'interest',
-            status: 'completed',
-            meta: {
-              rate_applied: dailyRate,
-              principal: portfolio.balance,
-              new_balance: newBalance,
-              calculation_date: new Date().toISOString(),
-              processed_by: user.id
-            }
-          });
+          .insert(txData);
 
         if (txError) throw txError;
 

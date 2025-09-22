@@ -204,14 +204,14 @@ const AdminStatementGenerator: React.FC<AdminStatementGeneratorProps> = ({
         };
       }
 
-      // Save to database
+      // Save to database - using a supported asset code
       const { error: dbError } = await supabase
         .from('statements')
         .upsert({
           investor_id,
           period_year: year,
           period_month: month,
-          asset_code: 'ALL', // Combined statement
+          asset_code: 'USDT', // Use USDT as default for combined statements
           begin_balance: statementData.summary.begin_balance,
           additions: statementData.summary.additions,
           redemptions: statementData.summary.redemptions,

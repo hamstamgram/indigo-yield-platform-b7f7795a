@@ -35,7 +35,8 @@ import {
 } from 'lucide-react';
 
 import { useTOTP } from '@/lib/auth/totp';
-import { TOTPService, type BackupCodeGenerationResult } from '@/lib/auth/totp-service';
+import { TOTPService } from '@/lib/auth/totp-service';
+import { BackupCodeGenerationResult } from '@/lib/auth/totp';
 import { useAuth } from '@/lib/auth/context';
 
 interface TOTPSetupProps {

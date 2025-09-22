@@ -3,7 +3,7 @@
  * Handles 2FA setup, verification, and backup codes
  */
 
-import { supabase } from '../supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { TOTPSettings, BackupCode, TOTPVerificationResult, BackupCodeGenerationResult } from './totp';
 import { TOTPUtils } from './totp';
 

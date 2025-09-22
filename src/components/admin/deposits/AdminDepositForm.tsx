@@ -104,13 +104,11 @@ const AdminDepositForm: React.FC<AdminDepositFormProps> = ({
           investor_id: formData.investor_id,
           asset_code: assets.find(a => a.id === parseInt(formData.asset_id))?.symbol || 'UNKNOWN',
           amount: parseFloat(formData.amount),
-          kind: 'deposit',
-          status: 'completed',
-          meta: {
-            tx_hash: formData.tx_hash,
-            notes: formData.notes,
-            processed_by: user.id
-          }
+          type: 'DEPOSIT',
+          status: 'confirmed',
+          tx_hash: formData.tx_hash,
+          note: formData.notes,
+          created_by: user.id
         });
 
       if (txError) throw txError;

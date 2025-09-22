@@ -122,15 +122,11 @@ const AdminWithdrawalForm: React.FC<AdminWithdrawalFormProps> = ({
           investor_id: formData.investor_id,
           asset_code: assets.find(a => a.id === parseInt(formData.asset_id))?.symbol || 'UNKNOWN',
           amount: withdrawalAmount,
-          kind: 'withdrawal',
+          type: 'WITHDRAWAL',
           status: 'pending', // Withdrawals start as pending
-          meta: {
-            destination_address: formData.destination_address,
-            notes: formData.notes,
-            processed_by: user.id,
-            previous_balance: portfolio.balance,
-            new_balance: newBalance
-          }
+          tx_hash: null,
+          note: `${formData.notes || ''} - Destination: ${formData.destination_address}`,
+          created_by: user.id
         })
         .select()
         .single();
