@@ -159,31 +159,31 @@ export async function computeStatement(
           const txRecord: Transaction = {
             id: tx.id,
             date: tx.created_at,
-            type: tx.kind as any,
+            type: tx.type as any,
             amount: tx.amount,
-            description: getTransactionDescription(tx.kind, tx.amount),
+            description: getTransactionDescription(tx.type, tx.amount),
             running_balance: 0
           };
 
           assetStatement.transactions.push(txRecord);
 
-          switch (tx.kind) {
-            case 'deposit':
+          switch (tx.type) {
+            case 'DEPOSIT':
               assetStatement.deposits += tx.amount;
               assetStatement.end_balance += tx.amount;
               totalDeposits += tx.amount;
               break;
-            case 'withdrawal':
+            case 'WITHDRAWAL':
               assetStatement.withdrawals += tx.amount;
               assetStatement.end_balance -= tx.amount;
               totalWithdrawals += tx.amount;
               break;
-            case 'interest':
+            case 'INTEREST':
               assetStatement.interest += tx.amount;
               assetStatement.end_balance += tx.amount;
               totalInterest += tx.amount;
               break;
-            case 'fee':
+            case 'FEE':
               assetStatement.fees += tx.amount;
               assetStatement.end_balance -= tx.amount;
               totalFees += tx.amount;

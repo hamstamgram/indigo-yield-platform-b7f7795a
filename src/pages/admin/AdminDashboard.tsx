@@ -14,7 +14,7 @@ import {
   TrendingDown, ChevronRight, Bitcoin, Coins 
 } from "lucide-react";
 import { getAdminKPIs, fetchAdminProfile } from "@/services/adminService";
-import type { AdminKPIs } from "@/server/admin";
+import type { AdminKPIs } from "@/types/common";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";

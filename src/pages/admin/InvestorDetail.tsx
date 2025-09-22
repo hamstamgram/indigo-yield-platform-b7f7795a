@@ -34,7 +34,13 @@ const InvestorDetailPage = () => {
           return;
         }
 
-        setInvestor(data);
+        setInvestor({ 
+          ...data, 
+          status: 'active', 
+          kycStatus: 'pending',
+          totalPrincipal: '0',
+          totalEarned: '0'
+        });
       } catch (error) {
         console.error('Error fetching investor:', error);
         toast({

@@ -38,7 +38,7 @@ export async function calculateAssetKPIs(
       .from('positions')
       .select('*')
       .eq('investor_id', investorId)
-      .eq('asset_code', assetCode)
+      .eq('asset_code', assetCode as any)
       .single();
 
     if (positionError || !position) {
@@ -51,7 +51,7 @@ export async function calculateAssetKPIs(
       .from('transactions')
       .select('*')
       .eq('investor_id', investorId)
-      .eq('asset_code', assetCode)
+      .eq('asset_code', assetCode as any)
       .eq('status', 'confirmed')
       .order('created_at', { ascending: true });
 

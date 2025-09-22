@@ -32,7 +32,7 @@ export async function getUserRequests(userId: string): Promise<Request[]> {
       type: 'withdrawal',
       status: req.status,
       amount: req.requested_amount || 0,
-      created_at: req.created_at || new Date().toISOString(),
+      created_at: req.request_date || new Date().toISOString(),
       user_id: req.investor_id
     }));
   } catch (error) {

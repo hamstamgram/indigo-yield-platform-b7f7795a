@@ -40,12 +40,12 @@ export function initSentry() {
       // Filter out common non-errors
       beforeSend(event, hint) {
         // Filter out cancelled requests
-        if (hint.originalException?.message?.includes('cancelled')) {
+        if ((hint.originalException as any)?.message?.includes('cancelled')) {
           return null;
         }
         
         // Filter out network errors in development
-        if (!import.meta.env.PROD && hint.originalException?.message?.includes('NetworkError')) {
+        if (!import.meta.env.PROD && (hint.originalException as any)?.message?.includes('NetworkError')) {
           return null;
         }
         

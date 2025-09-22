@@ -199,3 +199,12 @@ export function getStatusBadgeVariant(status: string): 'default' | 'destructive'
     default: return 'secondary';
   }
 }
+
+export interface AdminKPIs {
+  totalAUM: number;
+  totalInvestors: number;
+  investorCount: number;
+  dailyInterest: number;
+  last24hInterest: number;
+  pendingWithdrawals: number;
+}

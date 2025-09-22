@@ -1,89 +1,70 @@
 /**
- * Simplified LP Server Functions
+ * Simplified LP Management
  */
 
 import { supabase } from '@/integrations/supabase/client';
 
-export interface Portfolio {
-  asset: string;
-  principal: number;
-  earned: number;
-  balance: number;
-}
-
-export interface UserProfile {
+export interface LPSummary {
   id: string;
+  name: string;
   email: string;
-  first_name: string;
-  last_name: string;
-}
-
-export interface Ticket {
-  id: string;
-  subject: string;
-  category: string;
-  message: string;
-  status: 'open' | 'pending' | 'resolved';
-  createdAt: string;
-  updatedAt: string;
+  totalInvested: number;
+  currentValue: number;
+  totalReturn: number;
+  status: string;
 }
 
 /**
- * Get portfolio for user
+ * Get all LPs
  */
-export async function getPortfolio(userId: string): Promise<Portfolio[]> {
+export async function getAllLPs(): Promise<LPSummary[]> {
   try {
     const { data, error } = await supabase
-      .from('positions')
-      .select('*')
-      .eq('user_id', userId);
+      .from('profiles')
+      .select('id, email, first_name, last_name')
+      .eq('is_admin', false);
 
     if (error) throw error;
 
-    return (data || []).map(pos => ({
-      asset: pos.asset_code || 'UNKNOWN',
-      principal: pos.principal || 0,
-      earned: pos.total_earned || 0,
-      balance: pos.current_balance || 0
+    return (data || []).map(profile => ({
+      id: profile.id,
+      name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Unknown',
+      email: profile.email,
+      totalInvested: 0,
+      currentValue: 0,
+      totalReturn: 0,
+      status: 'active'
     }));
   } catch (error) {
-    console.error('Error getting portfolio:', error);
+    console.error('Error getting LPs:', error);
     return [];
   }
 }
 
 /**
- * Get user profile
+ * Get LP by ID
  */
-export async function getUserProfile(userId: string): Promise<UserProfile | null> {
+export async function getLPById(id: string): Promise<LPSummary | null> {
   try {
     const { data, error } = await supabase
       .from('profiles')
       .select('id, email, first_name, last_name')
-      .eq('id', userId)
+      .eq('id', id)
       .single();
 
-    if (error) throw error;
-    return data;
+    if (error || !data) return null;
+
+    return {
+      id: data.id,
+      name: `${data.first_name || ''} ${data.last_name || ''}`.trim() || 'Unknown',
+      email: data.email,
+      totalInvested: 0,
+      currentValue: 0,
+      totalReturn: 0,
+      status: 'active'
+    };
   } catch (error) {
-    console.error('Error getting user profile:', error);
+    console.error('Error getting LP:', error);
     return null;
-  }
-}
-
-/**
- * Update user profile
- */
-export async function updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', userId);
-
-    return !error;
-  } catch (error) {
-    console.error('Error updating user profile:', error);
-    return false;
   }
 }

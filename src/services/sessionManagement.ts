@@ -108,7 +108,7 @@ export async function logSecurityEvent(
       .from('access_logs')
       .insert({
         user_id: userId,
-        event: eventType,
+        event: eventType as any,
         ip: ipAddress,
         user_agent: userAgent,
         success: success
