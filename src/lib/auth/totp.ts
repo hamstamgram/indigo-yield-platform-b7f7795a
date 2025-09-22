@@ -239,10 +239,13 @@ export class TOTPUtils {
     const timeView = new DataView(timeBytes);
     timeView.setUint32(4, timeStep, false);
 
-    // Import secret as HMAC key
+    // Import secret as HMAC key  
+    const secretBuffer = secret.buffer instanceof ArrayBuffer 
+      ? secret.buffer 
+      : new ArrayBuffer(secret.byteLength);
     const key = await crypto.subtle.importKey(
       'raw',
-      secret,
+      secretBuffer,
       { name: 'HMAC', hash: `SHA-${algorithm.substring(3)}` },
       false,
       ['sign']

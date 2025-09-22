@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 interface RateLimitConfig {
   windowMs: number;
   maxRequests: number;
-  keyGenerator?: (req: Request) => string;
+  keyGenerator?: (req: Request) => string | Promise<string>;
 }
 
 interface RateLimitStore {
@@ -28,11 +28,11 @@ class RateLimiter {
     setInterval(() => this.cleanup(), 60000);
   }
 
-  private defaultKeyGenerator(req: Request): string {
+  private async defaultKeyGenerator(req: Request): Promise<string> {
     // Try to get user ID from auth, fallback to IP
-    const user = supabase.auth.getUser();
-    if (user) {
-      return `user:${user.data.user?.id}`;
+    const { data } = await supabase.auth.getUser();
+    if (data.user) {
+      return `user:${data.user.id}`;
     }
     
     // Fallback to IP address from headers
@@ -55,7 +55,7 @@ class RateLimiter {
       return { allowed: true };
     }
 
-    const key = this.config.keyGenerator!(req);
+    const key = await this.config.keyGenerator!(req);
     const now = Date.now();
     
     if (!this.store[key] || this.store[key].resetTime < now) {

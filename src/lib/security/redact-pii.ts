@@ -91,7 +91,7 @@ export function redactObject<T extends Record<string, any>>(
   }
 
   const { keys = [] } = options;
-  const result = { ...obj };
+  const result = { ...obj } as any;
 
   // Redact specific keys if provided
   if (keys.length > 0) {
@@ -207,9 +207,4 @@ export const RedactionPresets = {
   }
 } as const;
 
-/**
- * Convenience functions for common use cases
- */
-export const redactForLogging = <T>(data: T) => redactPII(data, RedactionPresets.LOGGING);
-export const redactForAdmin = <T>(data: T) => redactPII(data, RedactionPresets.ADMIN_DISPLAY);
-export const redactForAudit = <T>(data: T) => redactPII(data, RedactionPresets.AUDIT);
+import { redactForLogging, redactForAdmin, redactForAudit } from '@/lib/security/redact-pii-simple';

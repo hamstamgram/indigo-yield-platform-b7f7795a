@@ -207,7 +207,8 @@ export class StatementPDFGenerator {
     const boxHeight = 200;
 
     // Background
-    this.doc.setFillColor(this.hexToRgb(this.branding.colors.primary + '10')); // 10% opacity
+    const bgColor = this.hexToRgb(this.branding.colors.primary + '10'); // 10% opacity
+    this.doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
     this.doc.rect(this.margin, boxY, this.pageWidth - 2 * this.margin, boxHeight, 'F');
 
     // Border
@@ -422,7 +423,8 @@ export class StatementPDFGenerator {
     }
 
     // Draw header
-    this.doc.setFillColor(this.hexToRgb(this.branding.colors.primary));
+    const headerColor = this.hexToRgb(this.branding.colors.primary);
+    this.doc.setFillColor(headerColor[0], headerColor[1], headerColor[2]);
     this.doc.rect(this.margin, this.currentY, colWidths.reduce((a, b) => a + b, 0), headerHeight, 'F');
 
     this.doc.setFont(this.branding.fonts.primary, 'bold');

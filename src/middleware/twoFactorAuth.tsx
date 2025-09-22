@@ -33,7 +33,11 @@ export async function checkMFAStatus(): Promise<MFAStatus> {
     return {
       enrolled: factors?.totp?.length > 0,
       verified: verifiedFactors.length > 0,
-      factors: factors?.totp || [],
+      factors: factors?.totp?.map(f => ({ 
+        ...f, 
+        type: 'totp' as const, 
+        status: f.status as 'verified' | 'unverified' 
+      })) || [],
     };
   } catch (error) {
     console.error('MFA status check failed:', error);
@@ -95,8 +99,17 @@ export async function setupMFA() {
 
 export async function verifyMFA(factorId: string, code: string) {
   try {
+    // First create a challenge
+    const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({
+      factorId
+    });
+
+    if (challengeError) throw challengeError;
+
+    // Then verify with the challenge ID
     const { data, error } = await supabase.auth.mfa.verify({
       factorId,
+      challengeId: challenge.id,
       code,
     });
 
@@ -144,6 +157,7 @@ export async function verifyMFAChallenge(challengeId: string, code: string) {
   try {
     const { data, error } = await supabase.auth.mfa.verify({
       factorId: challengeId,
+      challengeId: challengeId,
       code,
     });
 
