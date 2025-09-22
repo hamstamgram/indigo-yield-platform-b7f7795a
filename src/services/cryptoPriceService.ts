@@ -7,7 +7,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 // Supabase Edge Function for crypto prices
-const SUPABASE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-crypto-prices`;
+const SUPABASE_FUNCTION_URL = `https://nkfimvovosdehmyyjubn.supabase.co/functions/v1/get-crypto-prices`;
 
 // Cache configuration
 const PRICE_CACHE_KEY = 'crypto_prices_cache';
@@ -96,7 +96,7 @@ export async function fetchCryptoPrices(forceRefresh = false): Promise<Record<st
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZmltdm92b3NkZWhteXlqdWJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0NTQ1OTgsImV4cCI6MjA2MjAzMDU5OH0.pZrIyCCd7dlvvNMGdW8-71BxSVfoKhxs9a5Ezbkmjgg'
       }
     });
 

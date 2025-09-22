@@ -51,8 +51,8 @@ export default function ExcelImportFirstRun() {
   const [importLocked, setImportLocked] = useState(false);
   const { toast } = useToast();
 
-  const PROJECT_REF = import.meta.env.VITE_SUPABASE_PROJECT_REF || 'nkfimvovosdehmyyjubn';
-  const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const PROJECT_REF = 'nkfimvovosdehmyyjubn';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZmltdm92b3NkZWhteXlqdWJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0NTQ1OTgsImV4cCI6MjA2MjAzMDU5OH0.pZrIyCCd7dlvvNMGdW8-71BxSVfoKhxs9a5Ezbkmjgg';
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];

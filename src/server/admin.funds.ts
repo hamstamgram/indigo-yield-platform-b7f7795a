@@ -245,7 +245,7 @@ export async function importFundData(file: File) {
     throw new Error('No active session');
   }
 
-  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/excel_import`, {
+  const response = await fetch(`https://nkfimvovosdehmyyjubn.supabase.co/functions/v1/excel_import`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${session.access_token}`,
@@ -276,7 +276,7 @@ export async function exportFundData(type: string = 'full', startDate?: string, 
   if (endDate) params.append('endDate', endDate);
 
   const response = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/excel_export?${params}`,
+    `https://nkfimvovosdehmyyjubn.supabase.co/functions/v1/excel_export?${params}`,
     {
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
