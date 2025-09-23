@@ -88,13 +88,19 @@ export function BalanceAdjustments() {
   const loadInvestors = async () => {
     try {
       const { data, error } = await supabase
-        .from('profiles')
-        .select('id, email, first_name, last_name, status')
-        .eq('is_admin', false)
-        .order('email');
+        .rpc('get_all_non_admin_profiles');
 
       if (error) throw error;
-      setInvestors(data || []);
+
+      const mapped = (data as any[] | null)?.map((p) => ({
+        id: p.id,
+        email: p.email,
+        first_name: p.first_name,
+        last_name: p.last_name,
+        status: 'Active' as string,
+      })) || [];
+
+      setInvestors(mapped);
     } catch (error) {
       console.error('Error loading investors:', error);
       toast.error('Failed to load investors');
