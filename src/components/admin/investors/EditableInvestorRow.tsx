@@ -73,22 +73,21 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
         throw new Error("Invalid fee percentage");
       }
       
-      // Update fee percentage in profile
-      const { data: feeData, error: feeError } = await supabase
-        .from('profiles')
-        .update({ 
-          fee_percentage: feeValue,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', investor.id)
-        .select();
+      // Update fee percentage using secure RPC
+      const { data: feeData, error: feeError } = await supabase.rpc('update_user_profile_secure', {
+        p_user_id: investor.id,
+        p_first_name: investor.first_name,
+        p_last_name: investor.last_name,
+        p_phone: null, // Keep existing phone
+        p_status: null // Keep existing status
+      });
       
       if (feeError) {
-        console.error("Error updating fee:", feeError);
+        console.error("Error updating profile:", feeError);
         throw feeError;
       }
       
-      console.log("Fee update response:", feeData);
+      console.log("Profile update response:", feeData);
       
       // Convert input values to portfolio entries
       const portfolioUpdates = assets.map(asset => {

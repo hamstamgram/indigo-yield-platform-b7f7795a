@@ -31,7 +31,7 @@ export interface InvestorSummary {
 export async function getDashboardStats(): Promise<DashboardStats> {
   try {
     const [investorsResult, withdrawalsResult] = await Promise.all([
-      supabase.from('profiles').select('id').eq('is_admin', false),
+      supabase.rpc('get_all_non_admin_profiles'),
       supabase.from('withdrawal_requests').select('id').eq('status', 'pending')
     ]);
 

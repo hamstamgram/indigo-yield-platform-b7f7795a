@@ -75,4 +75,6 @@ url = ""
 [functions]
 [functions.get-crypto-prices]
 [functions.send-admin-invite]
+[functions.admin-user-management]
+verify_jwt = true
 

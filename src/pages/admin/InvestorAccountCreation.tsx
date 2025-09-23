@@ -100,116 +100,37 @@ export function InvestorAccountCreation() {
     setCreationResult(null);
 
     try {
-      // Create user via Supabase Admin API
-      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-        email: data.email,
-        email_confirm: false, // Will be confirmed via invite link
-        user_metadata: {
-          first_name: data.firstName,
-          last_name: data.lastName,
-          phone: data.phone || null,
-          is_admin: data.role === 'admin',
-          created_by_admin: true,
+      // Use secure Edge Function for admin user creation
+      const { data: result, error } = await supabase.functions.invoke('admin-user-management', {
+        body: {
+          action: 'createUser',
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone,
+          role: data.role,
+          selectedFunds: data.selectedFunds,
+          sendWelcomeEmail: data.sendWelcomeEmail,
         }
       });
 
-      if (createError) {
-        throw new Error(`Failed to create user: ${createError.message}`);
+      if (error) {
+        throw new Error(`Failed to create user: ${error.message}`);
       }
 
-      if (!newUser.user) {
-        throw new Error('User creation failed - no user returned');
-      }
-
-      // Create profile record
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: newUser.user.id,
-          email: data.email,
-          first_name: data.firstName,
-          last_name: data.lastName,
-          phone: data.phone || null,
-          is_admin: data.role === 'admin',
-          status: 'Pending',
-        });
-
-      if (profileError) {
-        throw new Error(`Failed to create profile: ${profileError.message}`);
-      }
-
-      // Create fund associations if LP
-      if (data.role === 'LP' && data.selectedFunds.length > 0) {
-        // Note: This would require a user_funds table or similar
-        // For now, we'll store the fund preferences in the user metadata
-        const { error: updateError } = await supabase.auth.admin.updateUserById(
-          newUser.user.id,
-          {
-            user_metadata: {
-              ...newUser.user.user_metadata,
-              fund_preferences: data.selectedFunds,
-            }
-          }
-        );
-
-        if (updateError) {
-          console.warn('Failed to store fund preferences:', updateError);
-        }
-      }
-
-      // Create admin invite record
-      const inviteCode = `invite_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
-
-      const { data: invite, error: inviteError } = await supabase
-        .from('admin_invites')
-        .insert({
-          email: data.email,
-          invite_code: inviteCode,
-          expires_at: expiresAt.toISOString(),
-          created_by: (await supabase.auth.getUser()).data.user?.id,
-        })
-        .select()
-        .single();
-
-      if (inviteError) {
-        throw new Error(`Failed to create invite: ${inviteError.message}`);
-      }
-
-      // Send welcome email if requested
-      if (data.sendWelcomeEmail) {
-        try {
-          const { error: notificationError } = await supabase.functions.invoke('ef_send_notification', {
-            body: {
-              user_id: newUser.user.id,
-              type: 'system',
-              title: 'Welcome to Indigo Yield',
-              body: `Your investor account has been created. Please check your email for setup instructions.`,
-              data: {
-                invite_code: inviteCode,
-                expires_at: expiresAt.toISOString(),
-              },
-              send_email: true,
-            }
-          });
-
-          if (notificationError) {
-            console.warn('Failed to send welcome notification:', notificationError);
-          }
-        } catch (emailError) {
-          console.warn('Email sending failed:', emailError);
-        }
+      if (!result?.success) {
+        throw new Error(result?.error || 'Failed to create user');
       }
 
       // Log audit event
+      const { data: { user } } = await supabase.auth.getUser();
       await supabase
         .from('audit_log')
         .insert({
-          actor_user: (await supabase.auth.getUser()).data.user?.id,
+          actor_user: user?.id,
           action: 'CREATE_INVESTOR_ACCOUNT',
           entity: 'profiles',
-          entity_id: newUser.user.id,
+          entity_id: result.user_id,
           new_values: {
             email: data.email,
             role: data.role,
@@ -217,14 +138,14 @@ export function InvestorAccountCreation() {
           },
           meta: {
             invite_sent: data.sendWelcomeEmail,
-            invite_code: inviteCode,
+            invite_code: result.invite_code,
           }
         });
 
       setCreationResult({
         success: true,
-        message: `Investor account created successfully for ${data.email}. ${data.sendWelcomeEmail ? 'Welcome email sent.' : 'No email sent.'}`,
-        inviteId: invite.id,
+        message: result.message,
+        inviteId: result.invite_id,
       });
 
       toast.success('Investor account created successfully');

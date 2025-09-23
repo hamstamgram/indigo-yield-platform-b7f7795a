@@ -100,18 +100,19 @@ export function InvestorStatusTracking() {
   const loadInvestors = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, email, first_name, last_name, status, created_at, updated_at, is_admin')
-        .eq('is_admin', false)
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.rpc('get_all_investors_with_details');
 
       if (error) throw error;
 
-      const transformedInvestors: Investor[] = (data || []).map(investor => ({
-        ...investor,
-        status: investor.status === 'active' ? 'Active' : 
-                investor.status === 'pending' ? 'Pending' : 'Closed'
+      const transformedInvestors: Investor[] = (data || []).map((investor: any) => ({
+        id: investor.id,
+        email: investor.email,
+        first_name: investor.first_name,
+        last_name: investor.last_name,
+        status: investor.status || 'Active',
+        created_at: investor.created_at,
+        updated_at: investor.created_at, // Use created_at as fallback
+        is_admin: false,
       }));
       setInvestors(transformedInvestors);
       
@@ -204,17 +205,19 @@ export function InvestorStatusTracking() {
       const currentUser = await supabase.auth.getUser();
       if (!currentUser.data.user) throw new Error('Not authenticated');
 
-      // Update investor statuses
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ 
-          status: data.newStatus,
-          updated_at: new Date().toISOString()
-        })
-        .in('id', data.selectedUsers);
+      // Update investor statuses using secure RPC function
+      const updatePromises = data.selectedUsers.map(async (userId) => {
+        return supabase.rpc('update_user_profile_secure', {
+          p_user_id: userId,
+          p_status: data.newStatus
+        });
+      });
 
-      if (updateError) {
-        throw new Error(`Failed to update status: ${updateError.message}`);
+      const updateResults = await Promise.allSettled(updatePromises);
+      const failedUpdates = updateResults.filter(result => result.status === 'rejected');
+      
+      if (failedUpdates.length > 0) {
+        throw new Error(`Failed to update ${failedUpdates.length} investor(s)`);
       }
 
       // Log audit events for each investor

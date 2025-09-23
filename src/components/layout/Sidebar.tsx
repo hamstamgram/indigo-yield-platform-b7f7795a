@@ -30,8 +30,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
           setUserName(user.email?.split('@')[0] || 'User');
           return;
         }
-        const first = (data as any)?.first_name || '';
-        const last = (data as any)?.last_name || '';
+        // RPC returns single object or null, not array
+        const profile = data as { first_name?: string; last_name?: string } | null;
+        const first = profile?.first_name || '';
+        const last = profile?.last_name || '';
         const name = `${first} ${last}`.trim();
         setUserName(name.length > 0 ? name : (user.email?.split('@')[0] || 'User'));
       } else {

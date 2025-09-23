@@ -134,7 +134,7 @@ export function AppRoutes() {
           <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="/admin/portfolio" element={<AdminRoute><PortfolioDashboard /></AdminRoute>} />
           <Route path="/admin/portfolio-dashboard" element={<AdminRoute><AdminPortfolioDashboard /></AdminRoute>} />
-          <Route path="/admin/yield-settings" element={<AdminRoute><AdminYieldSettingsPage /></AdminRoute>} />
+          <Route path="/admin/yield-settings" element={<Navigate to="/admin/yield" replace />} />
           <Route path="/admin/investors" element={<AdminRoute><AdminInvestors /></AdminRoute>} />
           <Route path="/admin/investors/new" element={<AdminRoute><AdminInvestorNewPage /></AdminRoute>} />
           <Route path="/admin/investors/:id" element={<AdminRoute><AdminInvestorDetailPage /></AdminRoute>} />

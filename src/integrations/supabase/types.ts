@@ -3085,6 +3085,16 @@ export type Database = {
         Args: { p_entry_date?: string; p_fund_id?: string }
         Returns: Json
       }
+      create_investor_profile: {
+        Args: {
+          p_email: string
+          p_first_name: string
+          p_last_name: string
+          p_phone?: string
+          p_send_invite?: boolean
+        }
+        Returns: Json
+      }
       create_withdrawal_request: {
         Args: {
           p_amount: number
@@ -3141,6 +3151,21 @@ export type Database = {
       get_admin_name: {
         Args: { admin_id: string }
         Returns: string
+      }
+      get_all_investors_with_details: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          aml_status: string
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          investor_status: string
+          kyc_status: string
+          last_name: string
+          phone: string
+          status: string
+        }[]
       }
       get_all_investors_with_summary: {
         Args: Record<PropertyKey, never>
@@ -3238,6 +3263,14 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: boolean
       }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_admin_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_admin_secure: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -3326,6 +3359,16 @@ export type Database = {
       unlock_imports: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      update_user_profile_secure: {
+        Args: {
+          p_first_name?: string
+          p_last_name?: string
+          p_phone?: string
+          p_status?: string
+          p_user_id: string
+        }
+        Returns: Json
       }
     }
     Enums: {
