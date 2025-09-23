@@ -63,8 +63,7 @@ const DashboardLayout = () => {
   // Determine if path is admin route with improved logic
   const isAdminRoute = 
     currentPath.startsWith('/admin') || 
-    currentPath === '/admin-dashboard' || 
-    currentPath === '/admin-investors';
+    currentPath === '/admin-operations';
   
   // Check auth status and admin status - this runs once on component mount
   useEffect(() => {
@@ -98,10 +97,12 @@ const DashboardLayout = () => {
         setIsAdmin(adminStatus);
         setAuthChecked(true); // Mark auth as checked to prevent loops
         
-        // Force immediate redirect if needed
-        if (adminStatus && currentPath === '/dashboard') {
+        // Only redirect on initial load, not on every navigation
+        if (currentPath === '/dashboard' && adminStatus) {
           console.log("Admin on regular dashboard, redirecting to admin dashboard");
-          navigate('/admin-dashboard', { replace: true });
+          navigate('/admin', { replace: true });
+        } else if (currentPath === '/dashboard' && !adminStatus) {
+          // Regular user on dashboard is fine, no redirect needed
         } else if (!adminStatus && isAdminRoute) {
           console.log("Non-admin trying to access admin route, redirecting to dashboard");
           navigate('/dashboard', { replace: true });
@@ -129,7 +130,7 @@ const DashboardLayout = () => {
     return () => {
       isMounted = false;
     };
-  }, [navigate, toast, authChecked, currentPath, isAdminRoute]);
+  }, [navigate, toast, authChecked]); // Removed currentPath and isAdminRoute to prevent redirect loops
   
   // Listen for auth state changes
   useEffect(() => {
