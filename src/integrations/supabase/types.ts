@@ -1087,6 +1087,89 @@ export type Database = {
           },
         ]
       }
+      investor_monthly_reports: {
+        Row: {
+          additions: number | null
+          asset_code: string
+          aum_manual_override: number | null
+          closing_balance: number | null
+          created_at: string
+          edited_by: string | null
+          entry_date: string | null
+          exit_date: string | null
+          id: string
+          investor_id: string
+          opening_balance: number | null
+          report_month: string
+          updated_at: string
+          withdrawals: number | null
+          yield_earned: number | null
+        }
+        Insert: {
+          additions?: number | null
+          asset_code: string
+          aum_manual_override?: number | null
+          closing_balance?: number | null
+          created_at?: string
+          edited_by?: string | null
+          entry_date?: string | null
+          exit_date?: string | null
+          id?: string
+          investor_id: string
+          opening_balance?: number | null
+          report_month: string
+          updated_at?: string
+          withdrawals?: number | null
+          yield_earned?: number | null
+        }
+        Update: {
+          additions?: number | null
+          asset_code?: string
+          aum_manual_override?: number | null
+          closing_balance?: number | null
+          created_at?: string
+          edited_by?: string | null
+          entry_date?: string | null
+          exit_date?: string | null
+          id?: string
+          investor_id?: string
+          opening_balance?: number | null
+          report_month?: string
+          updated_at?: string
+          withdrawals?: number | null
+          yield_earned?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investor_monthly_reports_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "investor_monthly_reports_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_monthly_reports_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "investor_monthly_reports_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["investor_id"]
+          },
+        ]
+      }
       investor_positions: {
         Row: {
           cost_basis: number
@@ -3127,6 +3210,10 @@ export type Database = {
       }
       generate_historical_statements: {
         Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      generate_monthly_report_template: {
+        Args: { p_investor_id?: string; p_month?: string }
         Returns: Json
       }
       generate_statement_data: {

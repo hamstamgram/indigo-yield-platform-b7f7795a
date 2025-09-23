@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { formatAssetValue } from '@/utils/kpiCalculations';
+import MonthlyReportsTable from '@/components/admin/investors/MonthlyReportsTable';
 import { 
   User, 
   Mail, 
@@ -51,9 +52,14 @@ const AdminInvestorDetailPage = () => {
   useEffect(() => {
     if (id) {
       fetchInvestorDetails();
-      fetchPositions();
     }
   }, [id]);
+
+  useEffect(() => {
+    if (investor) {
+      fetchPositions();
+    }
+  }, [investor]);
 
   const fetchInvestorDetails = async () => {
     try {
@@ -77,10 +83,16 @@ const AdminInvestorDetailPage = () => {
 
   const fetchPositions = async () => {
     try {
+      if (!investor?.profile_id) {
+        setPositions([]);
+        setIsLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('positions')
         .select('*')
-        .eq('user_id', id);
+        .eq('user_id', investor.profile_id);
 
       if (error) throw error;
       setPositions(data || []);
@@ -153,9 +165,9 @@ const AdminInvestorDetailPage = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalAUM.toFixed(2)}</div>
+            <div className="text-2xl font-bold">{totalAUM.toFixed(4)}</div>
             <p className="text-xs text-muted-foreground">
-              Current portfolio value
+              Total portfolio tokens
             </p>
           </CardContent>
         </Card>
@@ -166,9 +178,9 @@ const AdminInvestorDetailPage = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalEarned.toFixed(2)}</div>
+            <div className="text-2xl font-bold">{totalEarned.toFixed(4)}</div>
             <p className="text-xs text-muted-foreground">
-              Yield generated to date
+              Total tokens earned
             </p>
           </CardContent>
         </Card>
@@ -179,9 +191,9 @@ const AdminInvestorDetailPage = () => {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalPrincipal.toFixed(2)}</div>
+            <div className="text-2xl font-bold">{totalPrincipal.toFixed(4)}</div>
             <p className="text-xs text-muted-foreground">
-              Initial investment
+              Principal tokens
             </p>
           </CardContent>
         </Card>
@@ -204,7 +216,7 @@ const AdminInvestorDetailPage = () => {
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="positions">Positions</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsTrigger value="activity">Historical Reports</TabsTrigger>
         </TabsList>
         
         <TabsContent value="profile" className="space-y-4">
@@ -313,17 +325,10 @@ const AdminInvestorDetailPage = () => {
         </TabsContent>
         
         <TabsContent value="activity" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>Transaction history and account activity</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center text-muted-foreground p-8">
-                Activity history coming soon...
-              </p>
-            </CardContent>
-          </Card>
+          <MonthlyReportsTable 
+            investorId={id!}
+            investorName={investor.name}
+          />
         </TabsContent>
       </Tabs>
     </div>

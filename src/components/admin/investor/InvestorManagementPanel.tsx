@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +17,7 @@ interface InvestorManagementPanelProps {
 }
 
 export function InvestorManagementPanel({ investors, onDataChange }: InvestorManagementPanelProps) {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [updating, setUpdating] = useState<string | null>(null);
@@ -139,7 +141,7 @@ export function InvestorManagementPanel({ investors, onDataChange }: InvestorMan
                     }
                   </TableCell>
                   <TableCell>{investor.email}</TableCell>
-                  <TableCell>${investor.total_aum?.toLocaleString() || '0'}</TableCell>
+                  <TableCell>{investor.total_aum?.toLocaleString() || '0'}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{investor.positions_count || 0}</Badge>
                   </TableCell>
@@ -149,10 +151,7 @@ export function InvestorManagementPanel({ investors, onDataChange }: InvestorMan
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => {
-                          // View investor details - could navigate to detail page
-                          toast.info('Investor details view coming soon');
-                        }}
+                        onClick={() => navigate(`/admin/investors/${investor.id}`)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
