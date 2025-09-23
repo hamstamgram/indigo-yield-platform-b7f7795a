@@ -3338,7 +3338,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      migrate_legacy_to_new_system: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       populate_yield_sources: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      populate_yield_sources_simple: {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
