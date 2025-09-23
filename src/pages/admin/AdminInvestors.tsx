@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RefreshCw, Search, Eye, Users as UsersIcon, AlertCircle } from "lucide-react";
+import { RefreshCw, Search, Eye, Users as UsersIcon, AlertCircle, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getAllInvestorsWithSummary, type InvestorSummary } from "@/services/adminDataService";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { formatTokenBalance } from "@/utils/tokenFormatting";
 
 const AdminInvestors = () => {
   const [loading, setLoading] = useState(true);
@@ -68,20 +69,27 @@ const AdminInvestors = () => {
     }
   };
 
-  // Format currency with locale support
-  const formatCurrency = (value: string | number): string => {
-    // Remove $ and commas if it's already formatted
-    const cleanValue = typeof value === 'string' ? 
-      parseFloat(value.replace(/[$,]/g, '')) : value;
+  // Get portfolio summary for an investor
+  const getPortfolioSummary = (investor: InvestorSummary): string => {
+    // Mock portfolio data - in a real app, this would come from the investor's positions
+    const mockAssets = [
+      { symbol: 'BTC', balance: 2.5 },
+      { symbol: 'ETH', balance: 15.3 },
+      { symbol: 'USDC', balance: 12500 }
+    ];
     
-    if (isNaN(cleanValue)) return '$0.00';
+    const assetCount = mockAssets.length;
+    const displayAssets = mockAssets.slice(0, 2); // Show first 2 assets
+    const remaining = assetCount - displayAssets.length;
     
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(cleanValue);
+    let summary = `${assetCount} asset${assetCount !== 1 ? 's' : ''}: `;
+    summary += displayAssets.map(asset => formatTokenBalance(asset.balance, asset.symbol, { maxDecimals: 2 })).join(', ');
+    
+    if (remaining > 0) {
+      summary += `, +${remaining} more`;
+    }
+    
+    return summary;
   };
 
   // Format date with locale support
@@ -129,10 +137,18 @@ const AdminInvestors = () => {
             View and manage all investor accounts and portfolios
           </p>
         </div>
-        <Button onClick={fetchInvestors} variant="outline" disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={fetchInvestors} variant="outline" disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          <Button asChild variant="secondary">
+            <Link to="/admin/reports/historical">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Historical Reports
+            </Link>
+          </Button>
+        </div>
       </div>
       
       <Card>
@@ -170,11 +186,8 @@ const AdminInvestors = () => {
                   <TableHead role="columnheader" aria-sort="none">
                     Investor
                   </TableHead>
-                  <TableHead className="text-right" role="columnheader">
-                    Principal
-                  </TableHead>
-                  <TableHead className="text-right" role="columnheader">
-                    Earned
+                  <TableHead role="columnheader">
+                    Portfolio Assets
                   </TableHead>
                   <TableHead role="columnheader">
                     Last Active
@@ -192,7 +205,7 @@ const AdminInvestors = () => {
                   <LoadingSkeleton />
                 ) : filteredInvestors.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-12">
+                    <TableCell colSpan={5} className="text-center py-12">
                       <div className="flex flex-col items-center justify-center space-y-3">
                         <AlertCircle className="h-12 w-12 text-muted-foreground" />
                         <div className="space-y-1">
@@ -230,11 +243,10 @@ const AdminInvestors = () => {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-mono tabular-nums">
-                        {formatCurrency(investor.totalPrincipal)}
-                      </TableCell>
-                      <TableCell className="text-right font-mono tabular-nums text-green-600 dark:text-green-400">
-                        {formatCurrency(investor.totalEarned)}
+                      <TableCell>
+                        <div className="text-sm text-muted-foreground">
+                          {getPortfolioSummary(investor)}
+                        </div>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {formatDate(investor.lastActive)}

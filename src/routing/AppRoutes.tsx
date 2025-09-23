@@ -64,6 +64,7 @@ const AdminStatementsPage = lazy(() => import('@/pages/admin/AdminStatementsPage
 const AdminSupportQueue = lazy(() => import('@/pages/admin/AdminSupportQueue'));
 const AdminReports = lazy(() => import('@/pages/admin/AdminReports'));
 const AdminDocumentsPage = lazy(() => import('@/pages/admin/AdminDocumentsPage'));
+const HistoricalReportsDashboard = lazy(() => import('@/components/admin/investors/HistoricalReportsDashboard'));
 const AdminBatchReportsPage = lazy(() => import('@/pages/admin/AdminBatchReportsPage'));
 const AdminWithdrawalsPage = lazy(() => import('@/pages/admin/AdminWithdrawalsPage'));
 const ExcelImportFirstRun = lazy(() => import('@/pages/admin/ExcelImportFirstRun'));
@@ -146,6 +147,7 @@ export function AppRoutes() {
           <Route path="/admin/support" element={<AdminRoute><AdminSupportQueue /></AdminRoute>} />
           <Route path="/admin/documents" element={<AdminRoute><AdminDocumentsPage /></AdminRoute>} />
           <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
+          <Route path="/admin/reports/historical" element={<AdminRoute><HistoricalReportsDashboard /></AdminRoute>} />
           <Route path="/admin/withdrawals" element={<AdminRoute><AdminWithdrawalsPage /></AdminRoute>} />
           <Route path="/admin/excel-first-run" element={<AdminRoute><ExcelImportFirstRun /></AdminRoute>} />
           

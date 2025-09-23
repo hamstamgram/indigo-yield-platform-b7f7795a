@@ -61,6 +61,7 @@ export const adminNav: NavItem[] = [
   { title: "Withdrawals", href: "/admin/withdrawals", icon: <TrendingDown className="h-5 w-5" />, adminOnly: true },
   { title: "Yield Settings", href: "/admin/yield", icon: <Percent className="h-5 w-5" />, adminOnly: true },
   { title: "Reports", href: "/admin/reports", icon: <BarChart3 className="h-5 w-5" />, adminOnly: true },
+  { title: "Historical Reports", href: "/admin/reports/historical", icon: <BarChart3 className="h-5 w-5" />, adminOnly: true },
   { title: "Support Queue", href: "/admin/support", icon: <MessageSquare className="h-5 w-5" />, adminOnly: true },
   { title: "Requests", href: "/admin/requests", icon: <ClipboardList className="h-5 w-5" />, adminOnly: true },
   { title: "Documents", href: "/admin/documents", icon: <FolderOpen className="h-5 w-5" />, adminOnly: true },
