@@ -93,6 +93,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         supabase.rpc('get_user_admin_status', { user_id: userId })
       ]);
 
+      // Try to get TOTP status (may fail if table doesn't exist yet)
+      let totpData: { enabled?: boolean; verified?: boolean } | null = null;
+      try {
+        const totpResponse = await supabase
+          .from('user_totp_settings' as any)
+          .select('enabled, verified')
+          .eq('user_id', userId)
+          .maybeSingle();
+        
+        if (!totpResponse.error && totpResponse.data) {
+          totpData = totpResponse.data as { enabled?: boolean; verified?: boolean };
+        }
+      } catch (e) {
+        console.warn('TOTP settings not available:', e);
+      }
+
       if (basicProfile.data && basicProfile.data.length > 0) {
         const p = basicProfile.data[0];
         setProfile({
@@ -101,20 +117,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           first_name: p.first_name,
           last_name: p.last_name,
           is_admin: adminStatus.data === true,
-          totp_enabled: false,
-          totp_verified: false
+          totp_enabled: totpData?.enabled || false,
+          totp_verified: totpData?.verified || false
         });
       } else {
         setProfile({
           id: userId,
           email: user?.email || '',
           is_admin: adminStatus.data === true,
-          totp_enabled: false,
-          totp_verified: false
+          totp_enabled: totpData?.enabled || false,
+          totp_verified: totpData?.verified || false
         });
       }
+
+      // Log successful authentication (ignore errors)
+      try {
+        await supabase.rpc('log_security_event', {
+          event_type: 'PROFILE_ACCESS',
+          details: { 
+            user_id: userId, 
+            has_2fa: totpData?.verified || false,
+            timestamp: new Date().toISOString()
+          }
+        });
+      } catch (e) {
+        console.warn('Failed to log security event:', e);
+      }
+
     } catch (error) {
       console.error('Error fetching profile:', error);
+      
+      // Log failed profile fetch (ignore errors)
+      try {
+        await supabase.rpc('log_security_event', {
+          event_type: 'PROFILE_ACCESS_FAILED', 
+          details: { user_id: userId, error: (error as Error).message }
+        });
+      } catch (e) {
+        console.warn('Failed to log security event:', e);
+      }
+      
       // Fallback to minimal profile with user metadata
       setProfile({
         id: userId,

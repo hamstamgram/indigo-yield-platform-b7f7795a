@@ -8,6 +8,7 @@ import './utils/cleanup/debugCleanup'; // Initialize cleanup on app start
 import { SkipLink } from './components/accessibility/SkipLink';
 import { ErrorBoundary } from './components/error/ErrorBoundary';
 import { AuthProvider } from './lib/auth/context';
+import { SecurityProvider } from './components/security/SecurityProvider';
 
 // UI Components
 import { Toaster } from './components/ui/sonner';
@@ -70,11 +71,13 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </AuthProvider>
+      <SecurityProvider>
+        <AuthProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </AuthProvider>
+      </SecurityProvider>
     </ErrorBoundary>
   );
 }
