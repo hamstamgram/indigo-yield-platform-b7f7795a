@@ -3125,6 +3125,10 @@ export type Database = {
         Args: { document_type: string; filename: string; user_id: string }
         Returns: string
       }
+      generate_historical_statements: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       generate_statement_data: {
         Args: {
           p_investor_id: string
@@ -3325,6 +3329,14 @@ export type Database = {
           p_request_id: string
         }
         Returns: undefined
+      }
+      migrate_legacy_positions: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      populate_yield_sources: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       process_excel_import_with_classes: {
         Args: { p_data: Json; p_import_type?: string }
