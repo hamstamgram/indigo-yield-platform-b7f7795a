@@ -923,6 +923,61 @@ export type Database = {
         }
         Relationships: []
       }
+      fund_daily_aum: {
+        Row: {
+          aum_date: string
+          created_at: string
+          fund_id: string
+          id: string
+          investor_count: number
+          total_aum: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          aum_date?: string
+          created_at?: string
+          fund_id: string
+          id?: string
+          investor_count?: number
+          total_aum?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          aum_date?: string
+          created_at?: string
+          fund_id?: string
+          id?: string
+          investor_count?: number
+          total_aum?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fund_daily_aum_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_daily_aum_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_fund_kpis"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fund_daily_aum_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["fund_id"]
+          },
+        ]
+      }
       fund_fee_history: {
         Row: {
           created_at: string
@@ -1172,6 +1227,7 @@ export type Database = {
       }
       investor_positions: {
         Row: {
+          aum_percentage: number | null
           cost_basis: number
           current_value: number
           fund_class: string | null
@@ -1190,6 +1246,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          aum_percentage?: number | null
           cost_basis?: number
           current_value?: number
           fund_class?: string | null
@@ -1208,6 +1265,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          aum_percentage?: number | null
           cost_basis?: number
           current_value?: number
           fund_class?: string | null
@@ -3153,11 +3211,27 @@ export type Database = {
       }
     }
     Functions: {
+      add_fund_to_investor: {
+        Args: {
+          p_fund_id: string
+          p_initial_investment?: number
+          p_investor_id: string
+        }
+        Returns: boolean
+      }
       apply_daily_yield: {
         Args: {
           p_application_date?: string
           p_asset_code: string
           p_daily_yield_percentage: number
+        }
+        Returns: Json
+      }
+      apply_daily_yield_to_fund: {
+        Args: {
+          p_application_date?: string
+          p_daily_yield_percentage: number
+          p_fund_id: string
         }
         Returns: Json
       }
@@ -3530,6 +3604,10 @@ export type Database = {
         Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
         Returns: boolean
       }
+      set_fund_daily_aum: {
+        Args: { p_aum_amount: number; p_aum_date?: string; p_fund_id: string }
+        Returns: Json
+      }
       start_processing_withdrawal: {
         Args: {
           p_admin_notes?: string
@@ -3550,6 +3628,10 @@ export type Database = {
       }
       unlock_imports: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      update_investor_aum_percentages: {
+        Args: { p_fund_id: string; p_total_aum?: number }
         Returns: boolean
       }
       update_user_profile_secure: {
