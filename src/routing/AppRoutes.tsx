@@ -32,7 +32,7 @@ const OnboardingWizard = lazy(() => import('@/components/onboarding/OnboardingWi
 // Admin pages - lazy load all
 const AdminTools = lazy(() => import('@/pages/AdminTools'));
 const AdminInvite = lazy(() => import('@/pages/AdminInvite'));
-const AdminDashboardV2 = lazy(() => import('@/components/admin/AdminDashboardV2').then(m => ({ default: m.AdminDashboardV2 })));
+const AdminDashboardV2 = lazy(() => import('@/components/admin/AdminDashboardV2'));
 const PortfolioDashboard = lazy(() => import('@/pages/admin/PortfolioDashboard'));
 const AdminPortfolioDashboard = lazy(() => import('@/pages/admin/AdminPortfolioDashboard'));
 const InvestorManagementView = lazy(() => import('@/components/admin/InvestorManagementView'));

@@ -11,7 +11,7 @@ import { InvestorManagementPanel } from "./investor/InvestorManagementPanel";
 import { WithdrawalRequestsPanel } from "./withdrawal/WithdrawalRequestsPanel";
 import { RealtimeNotifications } from "./RealtimeNotifications";
 
-export function AdminDashboardV2() {
+function AdminDashboardV2() {
   const [dashboardStats, setDashboardStats] = useState<DashboardStatsV2 | null>(null);
   const [yieldRates, setYieldRates] = useState<YieldRate[]>([]);
   const [recentInvestors, setRecentInvestors] = useState<InvestorSummaryV2[]>([]);
@@ -229,3 +229,5 @@ export function AdminDashboardV2() {
     </div>
   );
 }
+
+export default AdminDashboardV2;
