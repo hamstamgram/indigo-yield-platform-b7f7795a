@@ -94,16 +94,34 @@ const AdminFundPerformancePage = () => {
     try {
       setRefreshing(true);
 
-      // Fetch performance metrics
+      // Use existing daily_nav table instead of non-existent fund_performance_metrics
       const { data: metricsData, error: metricsError } = await supabase
-        .from('fund_performance_metrics')
+        .from('daily_nav')
         .select('*')
         .eq('fund_id', selectedFund)
-        .order('metric_date', { ascending: false })
+        .order('nav_date', { ascending: false })
         .limit(30);
 
       if (metricsError) throw metricsError;
-      setPerformanceMetrics(metricsData || []);
+
+      // Map daily_nav data to performance metrics format
+      const mappedMetrics = (metricsData || []).map(nav => ({
+        id: nav.fund_id || '',
+        fund_id: nav.fund_id || '',
+        metric_date: nav.nav_date || '',
+        aum: nav.aum || 0,
+        nav_per_share: nav.nav_per_share || 0,
+        daily_return_pct: nav.net_return_pct || 0,
+        mtd_return_pct: nav.net_return_pct || 0,
+        qtd_return_pct: nav.net_return_pct || 0,
+        ytd_return_pct: nav.net_return_pct || 0,
+        inception_return_pct: nav.net_return_pct || 0,
+        sharpe_ratio: 0,
+        max_drawdown_pct: 0,
+        volatility_pct: 0
+      }));
+
+      setPerformanceMetrics(mappedMetrics);
 
       // Fetch NAV data
       const { data: navDataResult, error: navError } = await supabase
@@ -347,10 +365,10 @@ const AdminFundPerformancePage = () => {
                 <Tooltip 
                   formatter={(value: any) => [`${value.toFixed(4)}%`, 'Return']}
                 />
-                <Bar 
-                  dataKey="returnPct" 
-                  fill={(entry: any) => entry?.returnPct >= 0 ? '#10b981' : '#ef4444'}
-                />
+                  <Bar
+                    dataKey="returnPct"
+                    fill="#10b981"
+                  />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

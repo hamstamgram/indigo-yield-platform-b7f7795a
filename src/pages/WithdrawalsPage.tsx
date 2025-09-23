@@ -92,7 +92,14 @@ const WithdrawalsPage = () => {
 
       if (withdrawalsError) throw withdrawalsError;
 
-      setWithdrawals(withdrawalsData || []);
+      // Map data to ensure created_at is included and properly typed
+      const mappedData = (withdrawalsData || []).map((item: any) => ({
+        ...item,
+        created_at: item.created_at || new Date().toISOString(),
+        funds: item.funds || { name: 'Unknown Fund', code: 'N/A', fund_class: 'N/A' }
+      }));
+
+      setWithdrawals(mappedData);
     } catch (error: any) {
       console.error('Error fetching withdrawals:', error);
       toast({
