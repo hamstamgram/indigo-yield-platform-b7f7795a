@@ -172,7 +172,7 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
             className="min-w-[100px] h-10"
           />
          ) : (
-           "2.0%" {/* Default fee since InvestorSummaryV2 doesn't have fee_percentage */}
+           "2.0%"
          )}
       </TableCell>
       

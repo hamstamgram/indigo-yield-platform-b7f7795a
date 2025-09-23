@@ -171,7 +171,7 @@ const MobileInvestorCard = ({
               />
              ) : (
                <div>
-                 2.0% {/* Default fee since InvestorSummaryV2 doesn't have fee_percentage */}
+                 "2.0%"
                </div>
              )}
           </div>
