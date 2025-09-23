@@ -1178,6 +1178,8 @@ export type Database = {
           fund_id: string
           high_water_mark: number | null
           investor_id: string
+          last_modified_at: string | null
+          last_modified_by: string | null
           last_transaction_date: string | null
           lock_until_date: string | null
           mgmt_fees_paid: number | null
@@ -1194,6 +1196,8 @@ export type Database = {
           fund_id: string
           high_water_mark?: number | null
           investor_id: string
+          last_modified_at?: string | null
+          last_modified_by?: string | null
           last_transaction_date?: string | null
           lock_until_date?: string | null
           mgmt_fees_paid?: number | null
@@ -1210,6 +1214,8 @@ export type Database = {
           fund_id?: string
           high_water_mark?: number | null
           investor_id?: string
+          last_modified_at?: string | null
+          last_modified_by?: string | null
           last_transaction_date?: string | null
           lock_until_date?: string | null
           mgmt_fees_paid?: number | null
@@ -1564,6 +1570,8 @@ export type Database = {
           asset_code: Database["public"]["Enums"]["asset_code"]
           current_balance: number
           id: string
+          last_modified_at: string | null
+          last_modified_by: string | null
           principal: number
           total_earned: number
           updated_at: string
@@ -1573,6 +1581,8 @@ export type Database = {
           asset_code: Database["public"]["Enums"]["asset_code"]
           current_balance?: number
           id?: string
+          last_modified_at?: string | null
+          last_modified_by?: string | null
           principal?: number
           total_earned?: number
           updated_at?: string
@@ -1582,6 +1592,8 @@ export type Database = {
           asset_code?: Database["public"]["Enums"]["asset_code"]
           current_balance?: number
           id?: string
+          last_modified_at?: string | null
+          last_modified_by?: string | null
           principal?: number
           total_earned?: number
           updated_at?: string
