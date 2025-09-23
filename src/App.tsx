@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, lazy, Suspense } from 'react';
 import './index.css';
 import { initSentry } from './utils/monitoring/sentry';
@@ -113,6 +113,22 @@ function useFocusManagement() {
 // Main app content with focus management
 function AppContent() {
   useFocusManagement();
+  const navigate = useNavigate();
+  
+  // Handle Supabase recovery links that arrive with tokens in the URL hash
+  // Example: https://site/#access_token=...&refresh_token=...&type=recovery
+  useEffect(() => {
+    const rawHash = window.location.hash || '';
+    const hash = rawHash.startsWith('#') ? rawHash.slice(1) : rawHash;
+    if (hash && hash.includes('access_token') && hash.includes('type=recovery')) {
+      const hashParams = new URLSearchParams(hash);
+      const access = hashParams.get('access_token');
+      const refresh = hashParams.get('refresh_token');
+      if (access && refresh) {
+        navigate(`/reset-password?access_token=${encodeURIComponent(access)}&refresh_token=${encodeURIComponent(refresh)}`, { replace: true });
+      }
+    }
+  }, [navigate]);
   
   return (
     <>

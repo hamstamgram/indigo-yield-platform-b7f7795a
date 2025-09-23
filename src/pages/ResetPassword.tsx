@@ -21,10 +21,27 @@ export default function ResetPassword() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if we have the required tokens
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
-    
+    // Try to get tokens from query params first
+    let accessToken = searchParams.get('access_token') || undefined;
+    let refreshToken = searchParams.get('refresh_token') || undefined;
+
+    // If not found, parse from URL hash (Supabase sometimes sends recovery tokens in the hash)
+    if (!accessToken || !refreshToken) {
+      const rawHash = window.location.hash || '';
+      const hash = rawHash.startsWith('#') ? rawHash.slice(1) : rawHash;
+      if (hash) {
+        const hashParams = new URLSearchParams(hash);
+        const type = hashParams.get('type');
+        accessToken = accessToken || hashParams.get('access_token') || undefined;
+        refreshToken = refreshToken || hashParams.get('refresh_token') || undefined;
+        // If we found tokens in hash, normalize URL to query-string form for consistency
+        if (accessToken && refreshToken && (type === 'recovery' || type === 'recovery_token')) {
+          const cleanUrl = `${window.location.pathname}?access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
+          window.history.replaceState({}, '', cleanUrl);
+        }
+      }
+    }
+
     if (!accessToken || !refreshToken) {
       setError("Invalid or expired reset link. Please request a new password reset.");
       return;
