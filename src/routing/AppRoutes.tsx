@@ -73,7 +73,7 @@ const InvestorAccountCreation = lazy(() => import('@/pages/admin/InvestorAccount
 const BalanceAdjustments = lazy(() => import('@/pages/admin/BalanceAdjustments').then(m => ({ default: m.BalanceAdjustments })));
 const InvestorStatusTracking = lazy(() => import('@/pages/admin/InvestorStatusTracking').then(m => ({ default: m.InvestorStatusTracking })));
 const FeeConfigurationManagement = lazy(() => import('@/pages/admin/FeeConfigurationManagement').then(m => ({ default: m.FeeConfigurationManagement })));
-const YieldSettingsManagement = lazy(() => import('@/pages/admin/YieldSettingsManagement').then(m => ({ default: m.YieldSettingsManagement })));
+const YieldSettings = lazy(() => import('@/pages/admin/YieldSettings'));
 const AuditDrilldown = lazy(() => import('@/pages/admin/AuditDrilldown'));
 
 // PDF Generation Demo - lazy load
@@ -154,7 +154,7 @@ export function AppRoutes() {
           <Route path="/admin/balances/adjust" element={<AdminRoute><BalanceAdjustments /></AdminRoute>} />
           <Route path="/admin/investors/status" element={<AdminRoute><InvestorStatusTracking /></AdminRoute>} />
           <Route path="/admin/fees" element={<AdminRoute><FeeConfigurationManagement /></AdminRoute>} />
-          <Route path="/admin/yield" element={<AdminRoute><YieldSettingsManagement /></AdminRoute>} />
+          <Route path="/admin/yield" element={<AdminRoute><YieldSettings /></AdminRoute>} />
           <Route path="/admin/audit-drilldown" element={<AdminRoute><AuditDrilldown /></AdminRoute>} />
           
           {/* Phase 3.2 Admin Features */}

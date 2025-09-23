@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RefreshCw, Search, Eye, Users as UsersIcon, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { listInvestors, type InvestorSummary } from "@/services/adminService";
+import { getAllInvestorsWithSummary, type InvestorSummary } from "@/services/adminDataService";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 const AdminInvestors = () => {
@@ -22,7 +22,7 @@ const AdminInvestors = () => {
   const fetchInvestors = async () => {
     try {
       setLoading(true);
-      const data = await listInvestors();
+      const data = await getAllInvestorsWithSummary();
       setInvestors(data);
       setFilteredInvestors(data);
     } catch (error) {
