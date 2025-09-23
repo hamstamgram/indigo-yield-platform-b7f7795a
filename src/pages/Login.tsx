@@ -36,14 +36,11 @@ export default function Login() {
         console.log("User is authenticated, redirecting...");
         
         try {
-          // Get user profile to check admin status
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('is_admin')
-            .eq('id', session.user.id)
-            .single();
+          // Check admin status using the secure function
+          const { data: adminStatus } = await supabase
+            .rpc('get_user_admin_status', { user_id: session.user.id });
             
-          const isAdmin = profile?.is_admin === true;
+          const isAdmin = adminStatus === true;
           
           // Redirect based on admin status
           if (isAdmin) {

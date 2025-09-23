@@ -4,59 +4,16 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import ContentArea from "./ContentArea";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { fetchAdminProfile } from "@/services/adminService";
+import { useAuth } from "@/lib/auth/context";
 
-/**
- * Checks if a user has admin privileges using the database function
- * @param userId The user ID to check
- * @returns Boolean indicating admin status
- */
-const checkAdminStatus = async (userId: string): Promise<boolean> => {
-  try {
-    console.log("Checking admin status via function for user:", userId);
-    
-    // Use the RPC function to check admin status to avoid RLS issues
-    const { data, error } = await supabase
-      .rpc('get_user_admin_status', { user_id: userId });
-      
-    if (error) {
-      console.error("Error checking admin status via function:", error);
-      
-      // Fallback to direct query if function fails
-      const { data: profile, error: queryError } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('id', userId)
-        .single();
-        
-      if (queryError) {
-        console.error("Error checking admin status via direct query:", queryError);
-        return false;
-      }
-      
-      console.log("Admin check result via direct query:", profile);
-      return profile?.is_admin === true;
-    }
-    
-    console.log("Admin check result via function:", data);
-    return data === true;
-  } catch (error) {
-    console.error("Error checking admin status:", error);
-    return false;
-  }
-};
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [authChecked, setAuthChecked] = useState(false); // New flag to prevent loops
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
   
   const currentPath = location.pathname;
   
@@ -65,90 +22,30 @@ const DashboardLayout = () => {
     currentPath.startsWith('/admin') || 
     currentPath === '/admin-operations';
   
-  // Check auth status and admin status - this runs once on component mount
-  useEffect(() => {
-    // Skip if we've already checked authentication this session
-    if (authChecked) return;
-    
-    let isMounted = true;
-    
-    const checkAuth = async () => {
-      try {
-        setIsLoading(true);
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          // If not authenticated, redirect to login
-          console.log("No session found, redirecting to login");
-          if (isMounted) {
-            navigate('/login', { replace: true });
-          }
-          return;
-        }
-
-        console.log("Checking admin status for user:", session.user.id);
-        
-        // Check admin status through the function
-        const adminStatus = await checkAdminStatus(session.user.id);
-        
-        if (!isMounted) return;
-        
-        console.log("Admin status determined:", adminStatus);
-        setIsAdmin(adminStatus);
-        setAuthChecked(true); // Mark auth as checked to prevent loops
-        
-        // Only redirect on initial load, not on every navigation
-        if (currentPath === '/dashboard' && adminStatus) {
-          console.log("Admin on regular dashboard, redirecting to admin dashboard");
-          navigate('/admin', { replace: true });
-        } else if (currentPath === '/dashboard' && !adminStatus) {
-          // Regular user on dashboard is fine, no redirect needed
-        } else if (!adminStatus && isAdminRoute) {
-          console.log("Non-admin trying to access admin route, redirecting to dashboard");
-          navigate('/dashboard', { replace: true });
-        }
-      } catch (error) {
-        console.error("Auth check error:", error);
-        if (isMounted) {
-          toast({
-            title: "Authentication error",
-            description: "There was a problem verifying your account. Please try logging in again.",
-            variant: "destructive",
-          });
-          navigate('/login', { replace: true });
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-    
-    checkAuth();
-    
-    // Cleanup function to prevent state updates after unmounting
-    return () => {
-      isMounted = false;
-    };
-  }, [navigate, toast, authChecked]); // Removed currentPath and isAdminRoute to prevent redirect loops
+  // Get auth status from context - no need for complex checking since AuthProvider handles it
+  const { user, loading: authLoading, isAdmin: userIsAdmin } = useAuth();
   
-  // Listen for auth state changes
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event) => {
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-          // Force a refresh when auth changes
-          setAuthChecked(false);
-          setIsLoading(true);
-          console.log("Auth state changed, refreshing...");
-        }
+    if (!authLoading) {
+      if (!user) {
+        console.log("No user found, redirecting to login");
+        navigate('/login', { replace: true });
+        return;
       }
-    );
-    
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+      
+      setIsAdmin(userIsAdmin);
+      setIsLoading(false);
+      
+      // Simple redirect logic - only redirect on initial dashboard access
+      if (currentPath === '/dashboard' && userIsAdmin) {
+        console.log("Admin on regular dashboard, redirecting to admin dashboard");
+        navigate('/admin', { replace: true });
+      } else if (!userIsAdmin && isAdminRoute) {
+        console.log("Non-admin trying to access admin route, redirecting to dashboard");
+        navigate('/dashboard', { replace: true });
+      }
+    }
+  }, [user, authLoading, userIsAdmin, navigate, currentPath, isAdminRoute]);
   
   // Set sidebar open state based on screen size
   useEffect(() => {

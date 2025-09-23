@@ -87,16 +87,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      // Use secure functions to bypass RLS issues
+      const [basicProfile, adminStatus] = await Promise.all([
+        supabase.rpc('get_profile_basic', { user_id: userId }),
+        supabase.rpc('get_user_admin_status', { user_id: userId })
+      ]);
 
-      if (error) throw error;
-      setProfile(data);
+      if (basicProfile.data && basicProfile.data.length > 0) {
+        const p = basicProfile.data[0];
+        setProfile({
+          id: userId,
+          email: user?.email || '',
+          first_name: p.first_name,
+          last_name: p.last_name,
+          is_admin: adminStatus.data === true,
+          totp_enabled: false,
+          totp_verified: false
+        });
+      } else {
+        setProfile({
+          id: userId,
+          email: user?.email || '',
+          is_admin: adminStatus.data === true,
+          totp_enabled: false,
+          totp_verified: false
+        });
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      // Fallback to minimal profile with user metadata
+      setProfile({
+        id: userId,
+        email: user?.email || '',
+        is_admin: user?.user_metadata?.is_admin || false,
+        totp_enabled: false,
+        totp_verified: false
+      });
     } finally {
       setLoading(false);
     }
