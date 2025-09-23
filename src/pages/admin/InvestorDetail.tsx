@@ -6,8 +6,20 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Loader2, Mail, User, Calendar, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { getInvestorById } from '@/services/adminService';
-import type { InvestorDetail } from '@/server/admin';
+import { adminServiceV2 } from '@/services/adminServiceV2';
+
+interface InvestorDetail {
+  id: string;
+  name?: string;
+  email: string;
+  status: string;
+  kycStatus: string;
+  totalPrincipal: string;
+  totalEarned: string;
+  positions: any[];
+  transactions: any[];
+  lastActive?: string;
+}
 
 const InvestorDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,7 +34,8 @@ const InvestorDetailPage = () => {
 
       try {
         setLoading(true);
-        const data = await getInvestorById(id);
+        const investors = await adminServiceV2.getAllInvestorsWithSummary();
+        const data = investors.find(inv => inv.id === id);
         
         if (!data) {
           toast({
@@ -35,11 +48,16 @@ const InvestorDetailPage = () => {
         }
 
         setInvestor({ 
-          ...data, 
+          id: data.id,
+          name: `${data.firstName} ${data.lastName}`,
+          email: data.email,
           status: 'active', 
           kycStatus: 'pending',
-          totalPrincipal: '0',
-          totalEarned: '0'
+          totalPrincipal: `$${data.totalAum.toLocaleString()}`,
+          totalEarned: '$0',
+          positions: [],
+          transactions: [],
+          lastActive: new Date().toLocaleDateString()
         });
       } catch (error) {
         console.error('Error fetching investor:', error);

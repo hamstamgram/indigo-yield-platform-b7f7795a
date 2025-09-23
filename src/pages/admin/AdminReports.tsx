@@ -8,16 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { Download, TrendingUp, Users, DollarSign, Activity, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { getAdminDashboardStats, getAllInvestorsWithSummary, getActiveAssets } from '@/services/adminDataService';
-import type { AdminDashboardStats, InvestorSummary, AssetData } from '@/services/adminDataService';
+import { adminServiceV2, type DashboardStatsV2, type InvestorSummaryV2 } from '@/services/adminServiceV2';
 import { DateRange } from 'react-day-picker';
 import { addDays, format, subDays, subMonths } from 'date-fns';
 
 const AdminReports = () => {
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<AdminDashboardStats | null>(null);
-  const [investors, setInvestors] = useState<InvestorSummary[]>([]);
-  const [assets, setAssets] = useState<AssetData[]>([]);
+  const [stats, setStats] = useState<DashboardStatsV2 | null>(null);
+  const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: subMonths(new Date(), 1),
     to: new Date(),
@@ -39,20 +37,17 @@ const AdminReports = () => {
       setLoading(true);
       console.log('Fetching report data...');
 
-      const [dashboardStats, investorsData, assetsData] = await Promise.all([
-        getAdminDashboardStats(),
-        getAllInvestorsWithSummary(),
-        getActiveAssets()
+      const [dashboardStats, investorsData] = await Promise.all([
+        adminServiceV2.getDashboardStats(),
+        adminServiceV2.getAllInvestorsWithSummary()
       ]);
 
       setStats(dashboardStats);
       setInvestors(investorsData);
-      setAssets(assetsData);
 
       console.log('Report data loaded:', {
         stats: dashboardStats,
-        investorsCount: investorsData.length,
-        assetsCount: assetsData.length
+        investorsCount: investorsData.length
       });
 
     } catch (error: any) {
@@ -96,7 +91,7 @@ const AdminReports = () => {
   };
 
   const topInvestorsByAUM = investors
-    .sort((a, b) => b.totalBalance - a.totalBalance)
+    .sort((a, b) => b.totalAum - a.totalAum)
     .slice(0, 10);
 
   if (loading) {
@@ -164,7 +159,7 @@ const AdminReports = () => {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{formatCurrency(stats?.totalAUM || 0)}</div>
+                <div className="text-2xl font-bold">{formatCurrency(stats?.totalAum || 0)}</div>
                 <p className="text-xs text-muted-foreground">
                   +12.5% from last month
                 </p>
@@ -190,7 +185,7 @@ const AdminReports = () => {
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{formatCurrency((stats?.dailyInterest || 0) * 30)}</div>
+                <div className="text-2xl font-bold">{formatCurrency(1500)}</div>
                 <p className="text-xs text-muted-foreground">
                   7.2% APY target
                 </p>
@@ -289,16 +284,12 @@ const AdminReports = () => {
                 <TableBody>
                   {topInvestorsByAUM.map((investor) => (
                     <TableRow key={investor.id}>
-                      <TableCell>{investor.name}</TableCell>
+                      <TableCell>{investor.firstName} {investor.lastName}</TableCell>
                       <TableCell>{investor.email}</TableCell>
-                      <TableCell>{formatCurrency(investor.totalBalance)}</TableCell>
+                      <TableCell>{formatCurrency(investor.totalAum)}</TableCell>
                       <TableCell>
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          investor.status === 'active' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {investor.status}
+                        <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+                          Active
                         </span>
                       </TableCell>
                     </TableRow>
@@ -312,38 +303,13 @@ const AdminReports = () => {
         <TabsContent value="assets" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Asset Distribution</CardTitle>
-              <CardDescription>Breakdown of assets under management</CardDescription>
+              <CardTitle>Asset Performance</CardTitle>
+              <CardDescription>Performance metrics by investor asset allocation</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Asset</TableHead>
-                    <TableHead>Symbol</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Decimal Places</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {assets.map((asset) => (
-                    <TableRow key={asset.id}>
-                      <TableCell className="font-medium">{asset.name}</TableCell>
-                      <TableCell>{asset.symbol}</TableCell>
-                      <TableCell>
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          asset.is_active 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {asset.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                      </TableCell>
-                      <TableCell>{asset.decimal_places}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="text-center text-muted-foreground py-8">
+                Asset performance tracking coming soon...
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

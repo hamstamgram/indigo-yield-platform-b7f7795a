@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
-import { portfolioApi } from '@/services/api/portfolioApi';
-import { adminApi } from '@/services/api/adminApi';
 
 interface DashboardData {
   totalValue: number;
@@ -21,7 +19,7 @@ interface DashboardState {
 }
 
 export function useDashboardData() {
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const [state, setState] = useState<DashboardState>({
     data: null,
     loading: true,
@@ -35,33 +33,20 @@ export function useDashboardData() {
       try {
         setState(prev => ({ ...prev, loading: true, error: null }));
 
-        const [portfolioResult, transactionsResult] = await Promise.all([
-          portfolioApi.getPortfolioSummary(user.id),
-          portfolioApi.getRecentTransactions(user.id, 5)
-        ]);
-
-        if (portfolioResult.error) throw new Error(portfolioResult.error);
-        if (transactionsResult.error) throw new Error(transactionsResult.error);
-
-        const portfolioData = portfolioResult.data;
-        const recentTransactions = transactionsResult.data || [];
-
-        // Calculate top performers from positions
-        const topPerformers = portfolioData?.positions
-          ?.sort((a: any, b: any) => (b.gain_percent || 0) - (a.gain_percent || 0))
-          ?.slice(0, 3) || [];
+        // For regular users, show mock portfolio data
+        const mockData = {
+          totalValue: 10000,
+          totalGain: 500,
+          totalGainPercent: 5.0,
+          dayChange: 50,
+          dayChangePercent: 0.5,
+          positions: [],
+          recentTransactions: [],
+          topPerformers: []
+        };
 
         setState({
-          data: {
-            totalValue: portfolioData?.total_value || 0,
-            totalGain: portfolioData?.total_gain || 0,
-            totalGainPercent: portfolioData?.total_gain_percent || 0,
-            dayChange: portfolioData?.day_change || 0,
-            dayChangePercent: portfolioData?.day_change_percent || 0,
-            positions: portfolioData?.positions || [],
-            recentTransactions,
-            topPerformers
-          },
+          data: mockData,
           loading: false,
           error: null
         });

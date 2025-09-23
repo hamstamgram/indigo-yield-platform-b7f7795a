@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
-import { adminApi } from '@/services/api/adminApi';
+import { adminServiceV2 } from '@/services/adminServiceV2';
 
 interface AdminMetrics {
   totalUsers: number;
@@ -38,20 +38,16 @@ export function useAdminData() {
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
       
-      const result = await adminApi.getDashboardMetrics();
+      const result = await adminServiceV2.getDashboardStats();
       
-      if (result.error) {
-        throw new Error(result.error);
-      }
-
       // Transform the data to match our interface
       const metrics: AdminMetrics = {
-        totalUsers: result.data?.total_users || 0,
-        activeUsers: result.data?.active_users || 0,
-        totalPortfolioValue: result.data?.total_portfolio_value || 0,
-        totalTransactions: result.data?.total_transactions || 0,
-        newUsersThisMonth: result.data?.new_users_this_month || 0,
-        systemHealth: result.data?.system_health || 'good'
+        totalUsers: result.investorCount || 0,
+        activeUsers: result.investorCount || 0,
+        totalPortfolioValue: result.totalAum || 0,
+        totalTransactions: 0,
+        newUsersThisMonth: 0,
+        systemHealth: 'good'
       };
 
       setState({

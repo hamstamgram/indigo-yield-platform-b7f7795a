@@ -4,7 +4,7 @@ import { RouteSuspense } from './RouteSuspense';
 // Lazy load main pages
 export const Dashboard = lazy(() => import('@/pages/Dashboard'));
 export const TransactionsPage = lazy(() => import('@/pages/TransactionsPage'));
-export const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'));
+export const AdminDashboard = lazy(() => import('@/pages/AdminDashboardV2'));
 export const Login = lazy(() => import('@/pages/Login'));
 export const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
 

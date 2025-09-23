@@ -26,8 +26,7 @@ import {
   Filter
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { getAllInvestorsWithSummary } from '@/services/adminDataService';
-import type { InvestorSummary } from '@/services/adminDataService';
+import { adminServiceV2, type InvestorSummaryV2 } from '@/services/adminServiceV2';
 
 interface SupportTicket {
   id: string;
@@ -48,7 +47,7 @@ interface SupportTicket {
 const AdminSupportQueue = () => {
   const [loading, setLoading] = useState(true);
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
-  const [investors, setInvestors] = useState<InvestorSummary[]>([]);
+  const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -113,7 +112,7 @@ const AdminSupportQueue = () => {
       setTickets(mockTickets);
 
       // Fetch investors for ticket assignment
-      const investorsData = await getAllInvestorsWithSummary();
+      const investorsData = await adminServiceV2.getAllInvestorsWithSummary();
       setInvestors(investorsData);
 
       console.log('Support data loaded:', {

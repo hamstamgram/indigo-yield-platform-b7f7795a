@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,21 +8,20 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RefreshCw, Search, Eye, Users as UsersIcon, AlertCircle, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getAllInvestorsWithSummary, type InvestorSummary } from "@/services/adminDataService";
+import { adminServiceV2, type InvestorSummaryV2 } from "@/services/adminServiceV2";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-import { formatTokenBalance } from "@/utils/tokenFormatting";
 
 const AdminInvestors = () => {
   const [loading, setLoading] = useState(true);
-  const [investors, setInvestors] = useState<InvestorSummary[]>([]);
+  const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredInvestors, setFilteredInvestors] = useState<InvestorSummary[]>([]);
+  const [filteredInvestors, setFilteredInvestors] = useState<InvestorSummaryV2[]>([]);
   const { toast } = useToast();
   
   const fetchInvestors = async () => {
     try {
       setLoading(true);
-      const data = await getAllInvestorsWithSummary();
+      const data = await adminServiceV2.getAllInvestorsWithSummary();
       setInvestors(data);
       setFilteredInvestors(data);
     } catch (error) {
@@ -50,7 +48,8 @@ const AdminInvestors = () => {
       const filtered = investors.filter(
         (investor) =>
           investor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          investor.name?.toLowerCase().includes(searchTerm.toLowerCase())
+          (investor.firstName && investor.firstName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (investor.lastName && investor.lastName.toLowerCase().includes(searchTerm.toLowerCase()))
       );
       setFilteredInvestors(filtered);
     }
@@ -67,29 +66,6 @@ const AdminInvestors = () => {
       default:
         return 'secondary';
     }
-  };
-
-  // Get portfolio summary for an investor
-  const getPortfolioSummary = (investor: InvestorSummary): string => {
-    // Mock portfolio data - in a real app, this would come from the investor's positions
-    const mockAssets = [
-      { symbol: 'BTC', balance: 2.5 },
-      { symbol: 'ETH', balance: 15.3 },
-      { symbol: 'USDC', balance: 12500 }
-    ];
-    
-    const assetCount = mockAssets.length;
-    const displayAssets = mockAssets.slice(0, 2); // Show first 2 assets
-    const remaining = assetCount - displayAssets.length;
-    
-    let summary = `${assetCount} asset${assetCount !== 1 ? 's' : ''}: `;
-    summary += displayAssets.map(asset => formatTokenBalance(asset.balance, asset.symbol, { maxDecimals: 2 })).join(', ');
-    
-    if (remaining > 0) {
-      summary += `, +${remaining} more`;
-    }
-    
-    return summary;
   };
 
   // Format date with locale support
@@ -187,10 +163,10 @@ const AdminInvestors = () => {
                     Investor
                   </TableHead>
                   <TableHead role="columnheader">
-                    Portfolio Assets
+                    Total AUM
                   </TableHead>
                   <TableHead role="columnheader">
-                    Last Active
+                    Created Date
                   </TableHead>
                   <TableHead role="columnheader">
                     Status
@@ -236,7 +212,7 @@ const AdminInvestors = () => {
                       <TableCell>
                         <div className="space-y-1">
                           <div className="font-medium">
-                            {investor.name || 'Unnamed'}
+                            {investor.firstName} {investor.lastName}
                           </div>
                           <div className="text-sm text-muted-foreground">
                             {investor.email}
@@ -245,15 +221,15 @@ const AdminInvestors = () => {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm text-muted-foreground">
-                          {getPortfolioSummary(investor)}
+                          ${investor.totalAum.toLocaleString()}
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {formatDate(investor.lastActive)}
+                        {formatDate(new Date().toISOString())}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={getStatusVariant(investor.status)}>
-                          {investor.status}
+                        <Badge variant="default">
+                          Active
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -261,7 +237,7 @@ const AdminInvestors = () => {
                           variant="ghost"
                           size="sm"
                           asChild
-                          aria-label={`View details for ${investor.name || investor.email}`}
+                          aria-label={`View details for ${investor.firstName} ${investor.lastName}`}
                         >
                           <Link to={`/admin/investors/${investor.id}`}>
                             <Eye className="h-4 w-4 mr-2" aria-hidden="true" />

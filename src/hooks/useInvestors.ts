@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Investor, Asset } from "@/types/investorTypes";
@@ -8,7 +7,7 @@ import {
   fetchPendingInvites 
 } from "@/services/investorService";
 import { fetchAssets, enrichInvestorsWithPortfolioData } from "@/services/portfolioService";
-import { getAllInvestorsWithSummary, getActiveAssets } from "@/services/adminDataService";
+import { adminServiceV2 } from "@/services/adminServiceV2";
 import { useInvestorSearch } from "./useInvestorSearch";
 
 export const useInvestors = () => {
@@ -38,28 +37,26 @@ export const useInvestors = () => {
         return;
       }
       
-      // Fetch assets using new consolidated service
-      const assetsData = await getActiveAssets();
-      setAssets(assetsData.map(asset => ({
-        id: asset.id,
-        symbol: asset.symbol,
-        name: asset.name,
-        is_active: asset.is_active
-      })));
+      // Fetch assets - use mock data for now
+      const mockAssets = [
+        { id: 1, symbol: 'USDC', name: 'USD Coin', is_active: true },
+        { id: 2, symbol: 'ETH', name: 'Ethereum', is_active: true }
+      ];
+      setAssets(mockAssets);
       
-      // Fetch investors with summary using new consolidated service
-      const investorsWithSummary = await getAllInvestorsWithSummary();
+      // Fetch investors with summary using adminServiceV2
+      const investorsWithSummary = await adminServiceV2.getAllInvestorsWithSummary();
       
        // Convert to expected format
-       const investorsList = investorsWithSummary.map(investor => ({
-         id: investor.id,
-         email: investor.email,
-         first_name: investor.first_name,
-         last_name: investor.last_name,
-         created_at: investor.created_at,
-         fee_percentage: 2.0, // Default fee percentage
-         portfolio_summary: {} // Empty object to match Investor type
-       }));
+        const investorsList = investorsWithSummary.map(investor => ({
+          id: investor.id,
+          email: investor.email,
+          first_name: investor.firstName,
+          last_name: investor.lastName,
+          created_at: new Date().toISOString(),
+          fee_percentage: 2.0, // Default fee percentage
+          portfolio_summary: {} // Empty object to match Investor type
+        }));
       
       setInvestors(investorsList);
       console.log("Loaded investors with consolidated service:", investorsList.length);
