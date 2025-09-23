@@ -36,13 +36,10 @@ const DashboardLayout = () => {
       setIsAdmin(userIsAdmin);
       setIsLoading(false);
       
-      // Simple redirect logic - only redirect on initial dashboard access
+      // Simple redirect logic - only redirect admin from /dashboard to /admin
       if (currentPath === '/dashboard' && userIsAdmin) {
         console.log("Admin on regular dashboard, redirecting to admin dashboard");
         navigate('/admin', { replace: true });
-      } else if (!userIsAdmin && isAdminRoute) {
-        console.log("Non-admin trying to access admin route, redirecting to dashboard");
-        navigate('/dashboard', { replace: true });
       }
     }
   }, [user, authLoading, userIsAdmin, navigate, currentPath, isAdminRoute]);
