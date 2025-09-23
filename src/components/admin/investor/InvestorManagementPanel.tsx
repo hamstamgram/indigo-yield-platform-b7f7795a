@@ -85,9 +85,6 @@ export function InvestorManagementPanel({ investors, onDataChange }: InvestorMan
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           Investor Management
-          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-            Live
-          </Badge>
         </CardTitle>
         <CardDescription>
           Manage investor accounts and positions ({investors.length} total)

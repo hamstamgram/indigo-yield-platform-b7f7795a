@@ -89,52 +89,89 @@ class AdminServiceV2 {
 
   async getAllInvestorsWithSummary(): Promise<InvestorSummaryV2[]> {
     try {
-      // Get all non-admin profiles with their actual position data
-      const { data: profiles, error } = await supabase
+      // Step 1: Get all non-admin profiles
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select(`
           id,
           email,
           first_name,
           last_name,
-          positions (
-            asset_code,
-            current_balance,
-            total_earned,
-            principal
-          ),
-          investors (
-            status,
-            kyc_status,
-            onboarding_date
-          )
+          created_at
         `)
         .eq('is_admin', false)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching investors with summary:', error);
-        throw error;
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
       }
 
-      return profiles?.map((profile: any) => {
+      if (!profiles || profiles.length === 0) {
+        return [];
+      }
+
+      const userIds = profiles.map(p => p.id);
+
+      // Step 2: Get all positions for these users
+      const { data: positions, error: positionsError } = await supabase
+        .from('positions')
+        .select(`
+          user_id,
+          asset_code,
+          current_balance,
+          total_earned,
+          principal
+        `)
+        .in('user_id', userIds)
+        .gt('current_balance', 0);
+
+      if (positionsError) {
+        console.error('Error fetching positions:', positionsError);
+        // Don't throw - some users might not have positions yet
+      }
+
+      // Step 3: Get investor data if available
+      const { data: investors, error: investorsError } = await supabase
+        .from('investors')
+        .select(`
+          profile_id,
+          status,
+          kyc_status,
+          onboarding_date
+        `)
+        .in('profile_id', userIds);
+
+      if (investorsError) {
+        console.error('Error fetching investors:', investorsError);
+        // Don't throw - some profiles might not have investor records yet
+      }
+
+      // Step 4: Combine all data manually
+      return profiles.map((profile: any) => {
+        // Get positions for this profile
+        const userPositions = positions?.filter(pos => pos.user_id === profile.id) || [];
+        
+        // Get investor data for this profile
+        const investorData = investors?.find(inv => inv.profile_id === profile.id);
+
         // Calculate total AUM from actual positions
-        const totalAum = profile.positions?.reduce((sum: number, pos: any) => 
-          sum + Number(pos.current_balance || 0), 0) || 0;
+        const totalAum = userPositions.reduce((sum: number, pos: any) => 
+          sum + Number(pos.current_balance || 0), 0);
 
         // Create asset breakdown from real positions
         const assetBreakdown: Record<string, number> = {};
-        profile.positions?.forEach((pos: any) => {
+        userPositions.forEach((pos: any) => {
           if (pos.current_balance > 0) {
             assetBreakdown[pos.asset_code] = Number(pos.current_balance);
           }
         });
 
         // Calculate performance metrics from real data
-        const totalEarned = profile.positions?.reduce((sum: number, pos: any) => 
-          sum + Number(pos.total_earned || 0), 0) || 0;
-        const totalPrincipal = profile.positions?.reduce((sum: number, pos: any) => 
-          sum + Number(pos.principal || 0), 0) || 0;
+        const totalEarned = userPositions.reduce((sum: number, pos: any) => 
+          sum + Number(pos.total_earned || 0), 0);
+        const totalPrincipal = userPositions.reduce((sum: number, pos: any) => 
+          sum + Number(pos.principal || 0), 0);
         
         const totalReturn = totalPrincipal > 0 ? totalEarned / totalPrincipal : 0;
 
@@ -144,6 +181,9 @@ class AdminServiceV2 {
           firstName: profile.first_name,
           lastName: profile.last_name,
           totalAum,
+          status: investorData?.status || 'active',
+          kycStatus: investorData?.kyc_status || 'pending',
+          onboardingDate: investorData?.onboarding_date || null,
           lastStatementDate: null, // Will be populated when statements are implemented
           portfolioDetails: {
             assetBreakdown,
@@ -154,7 +194,7 @@ class AdminServiceV2 {
             }
           }
         };
-      }) || [];
+      });
     } catch (error) {
       console.error('Error in getAllInvestorsWithSummary:', error);
       throw error;
