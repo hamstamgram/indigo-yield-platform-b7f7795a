@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Monitor, Shield, Clock, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/lib/auth/context';
 
 interface SimpleSession {
   id: string;
@@ -22,6 +23,7 @@ interface SimpleAccessLog {
 }
 
 export default function SessionManagementPage() {
+  const { user } = useAuth();
   const [sessions, setSessions] = useState<SimpleSession[]>([]);
   const [accessLogs, setAccessLogs] = useState<SimpleAccessLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,14 +35,16 @@ export default function SessionManagementPage() {
 
   const fetchSessionData = async () => {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       // Fetch sessions with basic data only
       const { data: sessionData } = await supabase
         .from('user_sessions')
         .select('id, device_label, user_agent, created_at, last_seen_at')
-        .eq('user_id', userData.user.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (sessionData) {
@@ -51,7 +55,7 @@ export default function SessionManagementPage() {
       const { data: logsData } = await supabase
         .from('access_logs')
         .select('id, event, created_at, success')
-        .eq('user_id', userData.user.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(20);
 

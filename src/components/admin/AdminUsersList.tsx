@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth/context";
 import { Loader2, UserCheck, UserMinus, Mail } from "lucide-react";
 import {
   Dialog,
@@ -28,6 +29,7 @@ type UserProfile = {
 };
 
 const AdminUsersList = () => {
+  const { user } = useAuth();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -113,8 +115,7 @@ const AdminUsersList = () => {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
 
-      // Get current user ID
-      const { data: { user } } = await supabase.auth.getUser();
+      // Use current user ID from auth context
 
       // Insert the invite into the database
       const { data: invite, error: inviteError } = await supabase
