@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { adminServiceV2 } from "@/services/adminServiceV2";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { toast } from "sonner";
 import { Check, X, Play, Eye, Loader2 } from "lucide-react";
 
@@ -54,6 +55,17 @@ export function WithdrawalRequestsPanel({ onDataChange }: WithdrawalRequestsPane
       setLoading(false);
     }
   };
+
+  // Real-time subscription for withdrawal requests
+  useRealtimeSubscription({
+    table: 'withdrawal_requests',
+    event: '*',
+    onUpdate: () => {
+      console.log('Withdrawal requests updated, refreshing...');
+      loadRequests();
+      onDataChange();
+    }
+  });
 
   const handleApprove = async () => {
     if (!selectedRequest) return;
@@ -163,7 +175,12 @@ export function WithdrawalRequestsPanel({ onDataChange }: WithdrawalRequestsPane
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Withdrawal Requests</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          Withdrawal Requests
+          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+            Live
+          </Badge>
+        </CardTitle>
         <CardDescription>
           Review and process withdrawal requests ({requests.length} total)
         </CardDescription>

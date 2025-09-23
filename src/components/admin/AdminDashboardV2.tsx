@@ -9,6 +9,7 @@ import { ArrowUpIcon, ArrowDownIcon, DollarSign, Users, TrendingUp, Activity } f
 import { YieldManagementPanel } from "./yield/YieldManagementPanel";
 import { InvestorManagementPanel } from "./investor/InvestorManagementPanel";
 import { WithdrawalRequestsPanel } from "./withdrawal/WithdrawalRequestsPanel";
+import { RealtimeNotifications } from "./RealtimeNotifications";
 
 export function AdminDashboardV2() {
   const [dashboardStats, setDashboardStats] = useState<DashboardStatsV2 | null>(null);
@@ -78,9 +79,12 @@ export function AdminDashboardV2() {
             Manage your yield fund platform
           </p>
         </div>
-        <Button onClick={loadDashboardData} variant="outline">
-          Refresh Data
-        </Button>
+        <div className="flex items-center gap-2">
+          <RealtimeNotifications />
+          <Button onClick={loadDashboardData} variant="outline">
+            Refresh Data
+          </Button>
+        </div>
       </div>
 
       {/* Key Performance Indicators */}

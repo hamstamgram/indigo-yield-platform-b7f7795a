@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { yieldService, YieldRate, YieldApplication } from "@/services/yieldService";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -35,6 +36,27 @@ export function YieldManagementPanel({ onDataChange }: YieldManagementPanelProps
       setLoading(false);
     }
   };
+
+  // Real-time subscriptions
+  useRealtimeSubscription({
+    table: 'daily_yield_applications',
+    event: 'INSERT',
+    onUpdate: () => {
+      console.log('New yield application detected, refreshing data...');
+      loadData();
+      onDataChange();
+    }
+  });
+
+  useRealtimeSubscription({
+    table: 'yield_rates',
+    event: 'UPDATE',
+    onUpdate: () => {
+      console.log('Yield rates updated, refreshing data...');
+      loadData();
+      onDataChange();
+    }
+  });
 
   const updateYieldRate = async (assetSymbol: string, assetId: number) => {
     const newRate = parseFloat(newRates[assetSymbol]);
@@ -93,7 +115,12 @@ export function YieldManagementPanel({ onDataChange }: YieldManagementPanelProps
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Yield Management</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          Yield Management
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+            Live
+          </Badge>
+        </CardTitle>
         <CardDescription>
           Manage daily yield rates and distribution
         </CardDescription>
@@ -177,8 +204,8 @@ export function YieldManagementPanel({ onDataChange }: YieldManagementPanelProps
                     <TableCell>{new Date(app.application_date).toLocaleDateString()}</TableCell>
                     <TableCell>{app.asset_code}</TableCell>
                     <TableCell>{app.daily_yield_percentage.toFixed(4)}%</TableCell>
-                    <TableCell>${app.total_aum.toLocaleString()}</TableCell>
-                    <TableCell>${app.total_yield_generated.toLocaleString()}</TableCell>
+                    <TableCell>{app.total_aum.toLocaleString()} tokens</TableCell>
+                    <TableCell>{app.total_yield_generated.toLocaleString()} tokens</TableCell>
                     <TableCell>
                       <Badge variant="secondary">{app.investors_affected}</Badge>
                     </TableCell>

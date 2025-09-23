@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { InvestorSummaryV2, adminServiceV2 } from "@/services/adminServiceV2";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { toast } from "sonner";
 import { Eye, UserCheck, UserX, Search } from "lucide-react";
 
@@ -18,6 +19,26 @@ export function InvestorManagementPanel({ investors, onDataChange }: InvestorMan
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [updating, setUpdating] = useState<string | null>(null);
+
+  // Real-time subscription for investor updates
+  useRealtimeSubscription({
+    table: 'investors',
+    event: 'UPDATE',
+    onUpdate: () => {
+      console.log('Investor data updated, refreshing...');
+      onDataChange();
+    }
+  });
+
+  // Real-time subscription for investor positions
+  useRealtimeSubscription({
+    table: 'investor_positions',
+    event: '*',
+    onUpdate: () => {
+      console.log('Investor positions updated, refreshing...');
+      onDataChange();
+    }
+  });
 
   const filteredInvestors = investors.filter(investor => {
     const matchesSearch = 
@@ -60,7 +81,12 @@ export function InvestorManagementPanel({ investors, onDataChange }: InvestorMan
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Investor Management</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          Investor Management
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            Live
+          </Badge>
+        </CardTitle>
         <CardDescription>
           Manage investor accounts and positions ({investors.length} total)
         </CardDescription>
