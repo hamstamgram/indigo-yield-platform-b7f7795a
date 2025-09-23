@@ -32,7 +32,7 @@ const OnboardingWizard = lazy(() => import('@/components/onboarding/OnboardingWi
 // Admin pages - lazy load all
 const AdminTools = lazy(() => import('@/pages/AdminTools'));
 const AdminInvite = lazy(() => import('@/pages/AdminInvite'));
-const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'));
+const AdminDashboardV2 = lazy(() => import('@/components/admin/AdminDashboardV2').then(m => ({ default: m.AdminDashboardV2 })));
 const PortfolioDashboard = lazy(() => import('@/pages/admin/PortfolioDashboard'));
 const AdminPortfolioDashboard = lazy(() => import('@/pages/admin/AdminPortfolioDashboard'));
 const InvestorManagementView = lazy(() => import('@/components/admin/InvestorManagementView'));
@@ -133,7 +133,7 @@ export function AppRoutes() {
           <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
           
           {/* Admin routes - all protected with AdminRoute */}
-          <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+          <Route path="/admin" element={<AdminRoute><AdminDashboardV2 /></AdminRoute>} />
           <Route path="/admin/portfolio" element={<AdminRoute><PortfolioDashboard /></AdminRoute>} />
           <Route path="/admin/portfolio-dashboard" element={<AdminRoute><AdminPortfolioDashboard /></AdminRoute>} />
           <Route path="/admin/yield-settings" element={<Navigate to="/admin/yield" replace />} />
