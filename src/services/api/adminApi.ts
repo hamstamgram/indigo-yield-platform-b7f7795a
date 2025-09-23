@@ -258,7 +258,73 @@ export function withAdminErrorHandling<T extends any[], R>(
   };
 }
 
+// API object for easy consumption
+const getDashboardMetrics = async () => {
+  try {
+    const data = await fetchAdminDashboardStats();
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+const getAllUsers = async () => {
+  try {
+    const data = await fetchInvestorsWithSummary();
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+const getUserById = async (userId: string) => {
+  try {
+    // Placeholder implementation
+    return { data: null, error: null };
+  } catch (error) {
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+const updateUserStatus = async (userId: string, status: string, notes?: string) => {
+  try {
+    await updateInvestorStatus(userId, status, notes);
+    return { data: null, error: null };
+  } catch (error) {
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+const deleteUser = async (userId: string) => {
+  try {
+    // Placeholder implementation
+    return { data: null, error: null };
+  } catch (error) {
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+const getSystemHealth = async () => {
+  try {
+    // Placeholder implementation
+    return { data: { status: 'good' }, error: null };
+  } catch (error) {
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+export const adminApi = {
+  getDashboardMetrics,
+  getAllUsers,
+  getUserById,
+  updateUserStatus,
+  deleteUser,
+  getSystemHealth
+};
+
 // Export wrapped functions for additional error handling
 export const safeFetchAdminDashboardStats = withAdminErrorHandling(fetchAdminDashboardStats);
 export const safeFetchInvestorsWithSummary = withAdminErrorHandling(fetchInvestorsWithSummary);
 export const safeFetchPendingWithdrawals = withAdminErrorHandling(fetchPendingWithdrawals);
+
+export default adminApi;

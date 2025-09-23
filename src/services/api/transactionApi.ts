@@ -58,9 +58,9 @@ export async function fetchTransactions(filter: TransactionFilter = {}): Promise
 
 // Simplified implementations for Phase 1 - will be enhanced in Phase 2
 export async function fetchTransactionById(id: string): Promise<any> { return null; }
-export async function createTransaction(transaction: any): Promise<any> { return null; }
-export async function updateTransaction(id: string, updates: any): Promise<any> { return null; }
-export async function deleteTransaction(id: string): Promise<void> { }
+export async function createTransactionRecord(transaction: any): Promise<any> { return null; }
+export async function updateTransactionRecord(id: string, updates: any): Promise<any> { return null; }
+export async function deleteTransactionRecord(id: string): Promise<void> { }
 export async function fetchTransactionSummary(userId: string): Promise<TransactionSummary> {
   return {
     totalCount: 0,
@@ -87,7 +87,63 @@ export function withTransactionErrorHandling<T extends any[], R>(
   };
 }
 
+// API object for easy consumption
+const getTransactionHistory = async (userId: string, options: any = {}) => {
+  try {
+    const data = await fetchTransactions({ userId, ...options });
+    return { data: data.data, error: null };
+  } catch (error) {
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+const createTransaction = async (userId: string, transactionData: any) => {
+  try {
+    const data = await createTransactionRecord(transactionData);
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+const updateTransaction = async (transactionId: string, updates: any) => {
+  try {
+    const data = await updateTransactionRecord(transactionId, updates);
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+const deleteTransaction = async (transactionId: string) => {
+  try {
+    await deleteTransactionRecord(transactionId);
+    return { data: null, error: null };
+  } catch (error) {
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+const getTransactionById = async (transactionId: string) => {
+  try {
+    const data = await fetchTransactionById(transactionId);
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+export const transactionApi = {
+  getTransactionHistory,
+  createTransaction,
+  updateTransaction,
+  deleteTransaction,
+  getTransactionById
+};
+
 // Export wrapped functions for additional error handling
 export const safeFetchTransactions = withTransactionErrorHandling(fetchTransactions);
 export const safeFetchTransactionById = withTransactionErrorHandling(fetchTransactionById);
 export const safeFetchTransactionSummary = withTransactionErrorHandling(fetchTransactionSummary);
+
+export default transactionApi;

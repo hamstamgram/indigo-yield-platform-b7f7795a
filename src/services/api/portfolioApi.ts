@@ -163,7 +163,57 @@ export function withPortfolioErrorHandling<T extends any[], R>(
   };
 }
 
+// API object for easy consumption
+const getPortfolioSummary = async (userId: string) => {
+  try {
+    const data = await fetchPortfolioSummary(userId);
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+const getPositions = async (userId: string) => {
+  try {
+    const data = await fetchUserPositions(userId);
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+const getRecentTransactions = async (userId: string, limit: number = 10) => {
+  try {
+    // This is a placeholder - integrate with transaction API when available
+    const data = await fetchTransactions({ userId, limit });
+    return { data: data.data, error: null };
+  } catch (error) {
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+const updatePosition = async (positionId: string, updates: any) => {
+  try {
+    // Placeholder implementation
+    return { data: null, error: null };
+  } catch (error) {
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+// Import required function
+import { fetchTransactions } from './transactionApi';
+
+export const portfolioApi = {
+  getPortfolioSummary,
+  getPositions,
+  getRecentTransactions,
+  updatePosition
+};
+
 // Export wrapped functions for additional error handling
 export const safefetchUserPositions = withPortfolioErrorHandling(fetchUserPositions);
 export const safeSearchPortfolioSummary = withPortfolioErrorHandling(fetchPortfolioSummary);
 export const safeFetchPortfolioPerformance = withPortfolioErrorHandling(fetchPortfolioPerformance);
+
+export default portfolioApi;
