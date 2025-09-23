@@ -225,11 +225,11 @@ const AdminInvestors = () => {
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {formatDate(new Date().toISOString())}
+                        {formatDate(investor.onboardingDate)}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="default">
-                          Active
+                        <Badge variant={getStatusVariant(investor.status)}>
+                          {investor.status || 'pending'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
