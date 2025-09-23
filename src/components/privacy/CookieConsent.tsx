@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -221,12 +222,12 @@ export function CookieConsent() {
             </div>
 
             <div className="flex justify-between items-center mt-6 pt-6 border-t">
-              <a
-                href="/privacy-policy"
+              <Link
+                to="/privacy-policy"
                 className="text-sm text-primary hover:underline"
               >
                 Privacy Policy
-              </a>
+              </Link>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={rejectOptional}>
                   Reject Optional

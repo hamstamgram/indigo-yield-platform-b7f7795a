@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import './index.css';
 import { initSentry } from './utils/monitoring/sentry';
 import { initPostHog } from './utils/analytics/posthog';
+import './utils/cleanup/debugCleanup'; // Initialize cleanup on app start
 import { SkipLink } from './components/accessibility/SkipLink';
 import { ErrorBoundary } from './components/error/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
@@ -16,6 +17,7 @@ import { InstallPrompt as SimpleInstallPrompt } from './pwa/installPrompt';
 // Routing
 import { AppRoutes } from './routing/AppRoutes';
 import { useFocusManagement } from './hooks/useFocusManagement';
+import { RouteSuspense } from './routing/RouteSuspense';
 
 // This hook has been moved to src/hooks/useFocusManagement.ts
 
@@ -43,7 +45,9 @@ function AppContent() {
     <>
       <SkipLink />
       <main id="main-content" className="focus:outline-none">
-        <AppRoutes />
+        <RouteSuspense>
+          <AppRoutes />
+        </RouteSuspense>
       </main>
       <Toaster />
       <CookieConsent />

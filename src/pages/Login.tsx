@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -220,9 +220,9 @@ export default function Login() {
             
             {isLogin && (
               <div className="mt-4 text-center text-sm">
-                <a href="/forgot-password" className="text-indigo-600 hover:text-indigo-800 hover:underline">
+                <Link to="/forgot-password" className="text-indigo-600 hover:text-indigo-800 hover:underline">
                   Forgot password?
-                </a>
+                </Link>
               </div>
             )}
           </CardContent>
