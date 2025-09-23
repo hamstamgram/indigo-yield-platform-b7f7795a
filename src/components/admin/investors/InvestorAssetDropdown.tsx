@@ -11,6 +11,7 @@ import { Plus } from "lucide-react";
 import { Asset } from "@/types/investorTypes";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { addAssetToInvestor } from "@/services/positionService";
 
 interface InvestorAssetDropdownProps {
   userId: string;
@@ -38,12 +39,16 @@ const InvestorAssetDropdown = ({
       // Log the operation for debugging
       console.log(`Adding asset ${assetId} to investor ${userId}`);
       
-      // Temporarily disable portfolio operations
-      console.log('Portfolio operations disabled during schema migration');
+      // Add asset to investor portfolio
+      const success = await addAssetToInvestor(userId, assetId, 0);
+      
+      if (!success) {
+        throw new Error("Failed to add asset to investor portfolio");
+      }
       
       toast({
         title: "✅ Asset Added",
-        description: `Successfully prepared to add asset to investor's portfolio`,
+        description: `Successfully added asset to investor's portfolio`,
         duration: 5000
       });
       

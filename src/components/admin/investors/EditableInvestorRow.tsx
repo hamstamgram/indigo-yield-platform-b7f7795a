@@ -7,6 +7,7 @@ import { Asset, Investor } from '@/types/investorTypes';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { updateInvestorFeePercentage, removeAssetFromInvestor } from '@/services/positionService';
 import InvestorAssetDropdown from './InvestorAssetDropdown';
 
 interface EditableInvestorRowProps {
@@ -73,39 +74,45 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
         throw new Error("Invalid fee percentage");
       }
       
-      // Update fee percentage using secure RPC
-      const { data: feeData, error: feeError } = await supabase.rpc('update_user_profile_secure', {
-        p_user_id: investor.id,
-        p_first_name: investor.first_name,
-        p_last_name: investor.last_name,
-        p_phone: null, // Keep existing phone
-        p_status: null // Keep existing status
-      });
-      
-      if (feeError) {
-        console.error("Error updating profile:", feeError);
-        throw feeError;
+      // Update fee percentage
+      const feeUpdateSuccess = await updateInvestorFeePercentage(investor.id, feeValue);
+      if (!feeUpdateSuccess) {
+        throw new Error("Failed to update fee percentage");
       }
       
-      console.log("Profile update response:", feeData);
-      
-      // Convert input values to portfolio entries
+      // Update portfolio positions
       const portfolioUpdates = assets.map(asset => {
         const symbol = asset.symbol;
         const balance = parseFloat(balances[symbol] || '0');
         
         return {
-          user_id: investor.id,
-          asset_id: asset.id,
-          balance: balance,
-          updated_at: new Date().toISOString()
+          asset_symbol: symbol,
+          balance: balance
         };
-      }).filter(update => update.balance > 0); // Only update assets with positive balances
+      }).filter(update => update.balance >= 0); // Include zero balances to clear positions
       
-      if (portfolioUpdates.length > 0) {
-        // Use upsert to add or update portfolio entries
-        // Temporarily disable portfolio updates - needs schema fixes
-        console.log('Skipping portfolio update - needs schema alignment');
+      // Update each position
+      for (const update of portfolioUpdates) {
+        if (update.balance === 0) {
+          // Remove position if balance is zero
+          await removeAssetFromInvestor(investor.id, update.asset_symbol);
+        } else {
+          // Update position
+          const { error: positionError } = await supabase
+            .from('positions')
+            .upsert({
+              user_id: investor.id,
+              asset_code: update.asset_symbol as any, // Type cast to handle enum
+              current_balance: update.balance,
+              principal: update.balance, // Set principal to current balance for now
+              total_earned: 0
+            });
+          
+          if (positionError) {
+            console.error("Error updating position:", positionError);
+            throw positionError;
+          }
+        }
       }
       
       toast({
