@@ -5,7 +5,7 @@ const base = process.env.PREVIEW_URL || readFileSync('.preview-url','utf8').trim
 
 const lpRoutes = [
   '/dashboard',
-  '/portfolio/USDC', // This might not exist, will check
+  '/assets/usdc', // Fixed: changed from /portfolio/USDC to actual route
   '/transactions',
   '/statements', 
   '/support',

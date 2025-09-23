@@ -184,6 +184,16 @@ function AppContent() {
             <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />
             <Route path="/admin-investors" element={<Navigate to="/admin/investors" replace />} />
             
+            {/* Portfolio route redirects for backward compatibility */}
+            <Route path="/portfolio/USDC" element={<Navigate to="/assets/usdc" replace />} />
+            <Route path="/portfolio/BTC" element={<Navigate to="/assets/btc" replace />} />
+            <Route path="/portfolio/ETH" element={<Navigate to="/assets/eth" replace />} />
+            <Route path="/portfolio/SOL" element={<Navigate to="/assets/sol" replace />} />
+            <Route path="/portfolio/usdc" element={<Navigate to="/assets/usdc" replace />} />
+            <Route path="/portfolio/btc" element={<Navigate to="/assets/btc" replace />} />
+            <Route path="/portfolio/eth" element={<Navigate to="/assets/eth" replace />} />
+            <Route path="/portfolio/sol" element={<Navigate to="/assets/sol" replace />} />
+            
             
             {/* Keep existing admin tools routes for now */}
             <Route path="/admin-tools" element={<RequireAdmin><AdminTools /></RequireAdmin>} />

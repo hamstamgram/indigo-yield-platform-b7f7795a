@@ -1,0 +1,89 @@
+{
+  "timestamp": "2025-09-23T00:00:00Z",
+  "version": "2.0",
+  "routes": {
+    "public": [
+      { "path": "/", "title": "Indigo Yield - Digital Asset Investment Platform", "auth_required": false },
+      { "path": "/login", "title": "Login - Indigo Yield", "auth_required": false },
+      { "path": "/forgot-password", "title": "Reset Password - Indigo Yield", "auth_required": false },
+      { "path": "/reset-password", "title": "Set New Password - Indigo Yield", "auth_required": false },
+      { "path": "/terms", "title": "Terms of Service - Indigo Yield", "auth_required": false },
+      { "path": "/privacy", "title": "Privacy Policy - Indigo Yield", "auth_required": false },
+      { "path": "/contact", "title": "Contact Us - Indigo Yield", "auth_required": false },
+      { "path": "/about", "title": "About Indigo Yield", "auth_required": false },
+      { "path": "/strategies", "title": "Investment Strategies - Indigo Yield", "auth_required": false },
+      { "path": "/faq", "title": "Frequently Asked Questions - Indigo Yield", "auth_required": false },
+      { "path": "/health", "title": "System Health Check", "auth_required": false },
+      { "path": "/status", "title": "Platform Status", "auth_required": false }
+    ],
+    "lp_authenticated": [
+      { "path": "/onboarding", "title": "Welcome to Indigo Yield", "auth_guard": "RequireAuth" },
+      { "path": "/dashboard", "title": "Investment Dashboard", "auth_guard": "DashboardLayout" },
+      { "path": "/statements", "title": "Account Statements", "auth_guard": "DashboardLayout" },
+      { "path": "/transactions", "title": "Transaction History", "auth_guard": "DashboardLayout" },
+      { "path": "/withdrawals", "title": "Withdrawal Requests", "auth_guard": "DashboardLayout" },
+      { "path": "/documents", "title": "Document Vault", "auth_guard": "DashboardLayout" },
+      { "path": "/support", "title": "Support Center", "auth_guard": "DashboardLayout" },
+      { "path": "/support-tickets", "title": "Support Tickets", "auth_guard": "DashboardLayout" },
+      { "path": "/notifications", "title": "Notifications", "auth_guard": "DashboardLayout" },
+      { "path": "/portfolio/analytics", "title": "Portfolio Analytics", "auth_guard": "DashboardLayout" },
+      { "path": "/assets/btc", "title": "Bitcoin Portfolio", "auth_guard": "DashboardLayout" },
+      { "path": "/assets/eth", "title": "Ethereum Portfolio", "auth_guard": "DashboardLayout" },
+      { "path": "/assets/sol", "title": "Solana Portfolio", "auth_guard": "DashboardLayout" },
+      { "path": "/assets/usdc", "title": "USDC Portfolio", "auth_guard": "DashboardLayout" },
+      { "path": "/account", "title": "Account Settings", "auth_guard": "DashboardLayout" },
+      { "path": "/settings", "title": "General Settings", "auth_guard": "DashboardLayout" },
+      { "path": "/settings/profile", "title": "Profile Settings", "auth_guard": "DashboardLayout" },
+      { "path": "/settings/notifications", "title": "Notification Settings", "auth_guard": "DashboardLayout" },
+      { "path": "/settings/security", "title": "Security Settings", "auth_guard": "DashboardLayout" },
+      { "path": "/settings/sessions", "title": "Session Management", "auth_guard": "DashboardLayout" }
+    ],
+    "admin_authenticated": [
+      { "path": "/admin", "title": "Admin Dashboard", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/investors", "title": "Investor Management", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/investors/new", "title": "Add New Investor", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/investors/:id", "title": "Investor Details", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/investors/:id/positions", "title": "Investor Positions", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/investors/:id/transactions", "title": "Investor Transactions", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/withdrawals", "title": "Withdrawal Management", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/yield-settings", "title": "Yield Configuration", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/portfolio", "title": "Portfolio Management", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/portfolio-dashboard", "title": "Portfolio Dashboard", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/reports", "title": "Reports & Analytics", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/support", "title": "Support Queue", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/requests", "title": "Request Queue", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/documents", "title": "Document Management", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/statements", "title": "Statement Management", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/excel-first-run", "title": "Excel Data Import", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/audit", "title": "Audit Logs", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/investors/create", "title": "Create Investor Account", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/balances/adjust", "title": "Balance Adjustments", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/investors/status", "title": "Investor Status Tracking", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/fees", "title": "Fee Configuration", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/yield", "title": "Yield Management", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/audit-drilldown", "title": "Detailed Audit Analysis", "auth_guard": "RequireAdmin" },
+      { "path": "/admin/pdf-demo", "title": "PDF Generation Tools", "auth_guard": "RequireAdmin" }
+    ],
+    "legacy_admin": [
+      { "path": "/admin-tools", "title": "Legacy Admin Tools", "auth_guard": "RequireAdmin", "deprecated": true },
+      { "path": "/admin-operations", "title": "Legacy Operations", "auth_guard": "RequireAdmin", "deprecated": true }
+    ],
+    "redirects": [
+      { "from": "/admin-dashboard", "to": "/admin", "status": 301 },
+      { "from": "/admin-investors", "to": "/admin/investors", "status": 301 },
+      { "from": "/yield-sources", "to": "/admin/yield-settings", "status": 301 },
+      { "from": "/portfolio/USDC", "to": "/assets/usdc", "status": 301 },
+      { "from": "/portfolio/BTC", "to": "/assets/btc", "status": 301 },
+      { "from": "/portfolio/ETH", "to": "/assets/eth", "status": 301 },
+      { "from": "/portfolio/SOL", "to": "/assets/sol", "status": 301 }
+    ],
+    "summary": {
+      "total_routes": 59,
+      "public_routes": 12,
+      "lp_routes": 20,
+      "admin_routes": 25,
+      "legacy_routes": 2,
+      "redirects": 7
+    }
+  }
+}

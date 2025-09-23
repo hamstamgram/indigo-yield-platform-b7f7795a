@@ -16,6 +16,8 @@ const testPages = [
   { path: '/admin/statements', title: 'Statements' },
   { path: '/admin/support', title: 'Support' },
   { path: '/admin/audit', title: 'Audit' },
+  { path: '/admin/withdrawals', title: 'Withdrawals' }, // Added missing admin withdrawals
+  { path: '/admin/reports', title: 'Reports' }, // Added missing admin reports
 ];
 
 test.describe('Portal Pages Render', () => {

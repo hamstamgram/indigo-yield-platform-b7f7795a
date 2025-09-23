@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import NavSection from "@/components/sidebar/NavSection";
 import UserProfile from "@/components/sidebar/UserProfile";
 import LogoutButton from "@/components/sidebar/LogoutButton";
-import { adminNav, mainNav, accountNav } from "@/config/navigation";
+import { adminNav, mainNav, accountNav, assetNav, settingsNav } from "@/config/navigation";
 
 type SidebarProps = {
   sidebarOpen: boolean;
@@ -47,6 +47,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
   const filteredMainNav = isAdmin 
     ? [] // Admins don't need the regular main nav
     : mainNav;
+  
+  const filteredAssetNav = isAdmin ? [] : assetNav;
 
   // Helper to close sidebar when navigating on mobile
   const handleNavigationClick = () => {
@@ -106,37 +108,40 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
             {/* Main Navigation - Only for non-admin users */}
             {filteredMainNav.length > 0 && (
               <NavSection 
-                title="Dashboard" 
+                title="Main" 
                 items={filteredMainNav} 
                 onItemClick={handleNavigationClick}
               />
             )}
             
+            {/* Asset Navigation - Only for non-admin users */}
+            {filteredAssetNav.length > 0 && (
+              <NavSection 
+                title="Assets" 
+                items={filteredAssetNav} 
+                onItemClick={handleNavigationClick}
+              />
+            )}
+            
+            {/* Settings Navigation - Only for non-admin users */}
+            {!isAdmin && settingsNav.length > 0 && (
+              <NavSection 
+                title="Settings" 
+                items={settingsNav} 
+                onItemClick={handleNavigationClick}
+              />
+            )}
+            
             {/* Account Navigation */}
-            <div>
-              <h2 className="px-2 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Account
-              </h2>
-              <ul className="space-y-1">
-                {accountNav.map((item) => (
-                  <li key={item.href}>
-                    <button
-                      onClick={() => {
-                        handleNavigationClick();
-                        navigate(item.href);
-                      }}
-                      className={`flex w-full items-center px-2 py-2 text-sm rounded-md group text-gray-700 hover:text-indigo-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-indigo-300 dark:hover:bg-gray-700`}
-                    >
-                      <span className="mr-3">{item.icon}</span>
-                      {item.title}
-                    </button>
-                  </li>
-                ))}
-                
-                <li>
-                  <LogoutButton onLogout={handleNavigationClick} />
-                </li>
-              </ul>
+            <NavSection 
+              title="Account" 
+              items={accountNav} 
+              onItemClick={handleNavigationClick}
+            />
+            
+            {/* Logout Button */}
+            <div className="px-2 py-2">
+              <LogoutButton onLogout={handleNavigationClick} />
             </div>
           </nav>
 
