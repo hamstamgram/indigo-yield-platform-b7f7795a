@@ -1,5 +1,13 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { InvestorSummaryV2 } from "@/services/adminServiceV2";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { InvestorSummaryV2, adminServiceV2 } from "@/services/adminServiceV2";
+import { toast } from "sonner";
+import { Eye, UserCheck, UserX, Search } from "lucide-react";
 
 interface InvestorManagementPanelProps {
   investors: InvestorSummaryV2[];
@@ -7,19 +15,155 @@ interface InvestorManagementPanelProps {
 }
 
 export function InvestorManagementPanel({ investors, onDataChange }: InvestorManagementPanelProps) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [updating, setUpdating] = useState<string | null>(null);
+
+  const filteredInvestors = investors.filter(investor => {
+    const matchesSearch = 
+      investor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      investor.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      investor.last_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || investor.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const updateInvestorStatus = async (investorId: string, newStatus: string) => {
+    try {
+      setUpdating(investorId);
+      await adminServiceV2.updateInvestorStatus(investorId, newStatus);
+      toast.success('Investor status updated successfully');
+      onDataChange();
+    } catch (error) {
+      console.error('Error updating investor status:', error);
+      toast.error('Failed to update investor status');
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'active':
+        return <Badge className="bg-green-100 text-green-800">Active</Badge>;
+      case 'inactive':
+        return <Badge variant="secondary">Inactive</Badge>;
+      case 'suspended':
+        return <Badge variant="destructive">Suspended</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Investor Management</CardTitle>
         <CardDescription>
-          Manage investor accounts and positions
+          Manage investor accounts and positions ({investors.length} total)
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Found {investors.length} investors. Management features coming soon...
-          </p>
+          {/* Filters */}
+          <div className="flex gap-4 items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="suspended">Suspended</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Investor Table */}
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Total AUM</TableHead>
+                <TableHead>Position Count</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredInvestors.map((investor) => (
+                <TableRow key={investor.id}>
+                  <TableCell className="font-medium">
+                    {investor.first_name && investor.last_name 
+                      ? `${investor.first_name} ${investor.last_name}`
+                      : investor.email.split('@')[0]
+                    }
+                  </TableCell>
+                  <TableCell>{investor.email}</TableCell>
+                  <TableCell>${investor.total_aum?.toLocaleString() || '0'}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{investor.positions_count || 0}</Badge>
+                  </TableCell>
+                  <TableCell>{getStatusBadge(investor.status)}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          // View investor details - could navigate to detail page
+                          toast.info('Investor details view coming soon');
+                        }}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      
+                      {investor.status !== 'active' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => updateInvestorStatus(investor.id, 'active')}
+                          disabled={updating === investor.id}
+                        >
+                          <UserCheck className="h-4 w-4" />
+                        </Button>
+                      )}
+                      
+                      {investor.status === 'active' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => updateInvestorStatus(investor.id, 'suspended')}
+                          disabled={updating === investor.id}
+                        >
+                          <UserX className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          {filteredInvestors.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              No investors found matching your criteria.
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
