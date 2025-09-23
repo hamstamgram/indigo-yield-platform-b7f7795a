@@ -3172,6 +3172,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: boolean
       }
+      check_portfolio_access: {
+        Args: { p_portfolio_id: string; p_user_id: string }
+        Returns: boolean
+      }
       complete_withdrawal: {
         Args: {
           p_admin_notes?: string
@@ -3443,6 +3447,10 @@ export type Database = {
           p_old_values?: Json
         }
         Returns: string
+      }
+      log_security_event: {
+        Args: { details?: Json; event_type: string; user_id_param?: string }
+        Returns: undefined
       }
       log_withdrawal_action: {
         Args: {
