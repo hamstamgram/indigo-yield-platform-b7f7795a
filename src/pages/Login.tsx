@@ -48,7 +48,7 @@ export default function Login() {
           // Redirect based on admin status
           if (isAdmin) {
             console.log("Admin user detected, redirecting to admin dashboard");
-            navigate("/admin-dashboard", { replace: true });
+            navigate("/admin", { replace: true });
           } else {
             console.log("Regular user detected, redirecting to dashboard");
             navigate("/dashboard", { replace: true });

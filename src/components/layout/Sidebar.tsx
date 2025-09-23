@@ -23,18 +23,17 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
-        // Get profile data
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('first_name, last_name')
-          .eq('id', user.id)
-          .single();
-        
-        if (profile) {
-          setUserName(`${profile.first_name || ''} ${profile.last_name || ''}`);
-        } else {
+        // Get profile data via secure RPC to avoid RLS issues
+        const { data, error } = await supabase.rpc('get_profile_basic', { user_id: user.id });
+        if (error) {
+          console.warn('Failed to fetch profile via RPC:', error);
           setUserName(user.email?.split('@')[0] || 'User');
+          return;
         }
+        const first = (data as any)?.first_name || '';
+        const last = (data as any)?.last_name || '';
+        const name = `${first} ${last}`.trim();
+        setUserName(name.length > 0 ? name : (user.email?.split('@')[0] || 'User'));
       } else {
         navigate('/login');
       }

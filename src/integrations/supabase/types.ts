@@ -3193,6 +3193,13 @@ export type Database = {
           count: number
         }[]
       }
+      get_profile_basic: {
+        Args: { user_id: string }
+        Returns: {
+          first_name: string
+          last_name: string
+        }[]
+      }
       get_profile_by_id: {
         Args: { profile_id: string }
         Returns: {
