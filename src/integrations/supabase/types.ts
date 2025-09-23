@@ -1655,6 +1655,36 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limit_events: {
+        Row: {
+          blocked: boolean | null
+          endpoint: string
+          event_time: string | null
+          id: string
+          identifier: string
+          ip_address: unknown | null
+          user_id: string | null
+        }
+        Insert: {
+          blocked?: boolean | null
+          endpoint: string
+          event_time?: string | null
+          id?: string
+          identifier: string
+          ip_address?: unknown | null
+          user_id?: string | null
+        }
+        Update: {
+          blocked?: boolean | null
+          endpoint?: string
+          event_time?: string | null
+          id?: string
+          identifier?: string
+          ip_address?: unknown | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       reconciliation: {
         Row: {
           beginning_nav: number
@@ -3366,6 +3396,10 @@ export type Database = {
           is_admin: boolean
           last_name: string
         }[]
+      }
+      get_security_headers: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       get_total_aum: {
         Args: Record<PropertyKey, never>
