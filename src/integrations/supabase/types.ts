@@ -334,6 +334,61 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_aum_entries: {
+        Row: {
+          asset_breakdown: Json | null
+          created_at: string
+          created_by: string | null
+          entry_date: string
+          fund_id: string | null
+          id: string
+          investor_count: number
+          total_aum: number
+        }
+        Insert: {
+          asset_breakdown?: Json | null
+          created_at?: string
+          created_by?: string | null
+          entry_date: string
+          fund_id?: string | null
+          id?: string
+          investor_count?: number
+          total_aum?: number
+        }
+        Update: {
+          asset_breakdown?: Json | null
+          created_at?: string
+          created_by?: string | null
+          entry_date?: string
+          fund_id?: string | null
+          id?: string
+          investor_count?: number
+          total_aum?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_aum_entries_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_aum_entries_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_fund_kpis"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "daily_aum_entries_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["fund_id"]
+          },
+        ]
+      }
       daily_nav: {
         Row: {
           aum: number
@@ -420,6 +475,42 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
         ]
+      }
+      daily_yield_applications: {
+        Row: {
+          application_date: string
+          applied_at: string | null
+          applied_by: string | null
+          asset_code: string
+          daily_yield_percentage: number
+          id: string
+          investors_affected: number
+          total_aum: number
+          total_yield_generated: number
+        }
+        Insert: {
+          application_date: string
+          applied_at?: string | null
+          applied_by?: string | null
+          asset_code: string
+          daily_yield_percentage: number
+          id?: string
+          investors_affected?: number
+          total_aum: number
+          total_yield_generated: number
+        }
+        Update: {
+          application_date?: string
+          applied_at?: string | null
+          applied_by?: string | null
+          asset_code?: string
+          daily_yield_percentage?: number
+          id?: string
+          investors_affected?: number
+          total_aum?: number
+          total_yield_generated?: number
+        }
+        Relationships: []
       }
       data_edit_audit: {
         Row: {
@@ -2523,6 +2614,53 @@ export type Database = {
           },
         ]
       }
+      yield_distribution_log: {
+        Row: {
+          application_date: string
+          asset_code: string
+          balance_after: number
+          balance_before: number
+          created_at: string | null
+          daily_yield_application_id: string | null
+          id: string
+          percentage_owned: number
+          user_id: string
+          yield_amount: number
+        }
+        Insert: {
+          application_date: string
+          asset_code: string
+          balance_after: number
+          balance_before: number
+          created_at?: string | null
+          daily_yield_application_id?: string | null
+          id?: string
+          percentage_owned: number
+          user_id: string
+          yield_amount: number
+        }
+        Update: {
+          application_date?: string
+          asset_code?: string
+          balance_after?: number
+          balance_before?: number
+          created_at?: string | null
+          daily_yield_application_id?: string | null
+          id?: string
+          percentage_owned?: number
+          user_id?: string
+          yield_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yield_distribution_log_daily_yield_application_id_fkey"
+            columns: ["daily_yield_application_id"]
+            isOneToOne: false
+            referencedRelation: "daily_yield_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       yield_rates: {
         Row: {
           asset_id: number
@@ -2588,6 +2726,36 @@ export type Database = {
           frequency?: string
           id?: string
           rate_bps?: number
+        }
+        Relationships: []
+      }
+      yield_sources: {
+        Row: {
+          asset_code: string
+          created_at: string | null
+          current_balance: number
+          id: string
+          last_updated: string | null
+          percentage_of_aum: number
+          user_id: string
+        }
+        Insert: {
+          asset_code: string
+          created_at?: string | null
+          current_balance?: number
+          id?: string
+          last_updated?: string | null
+          percentage_of_aum?: number
+          user_id: string
+        }
+        Update: {
+          asset_code?: string
+          created_at?: string | null
+          current_balance?: number
+          id?: string
+          last_updated?: string | null
+          percentage_of_aum?: number
+          user_id?: string
         }
         Relationships: []
       }
@@ -2860,6 +3028,14 @@ export type Database = {
       }
     }
     Functions: {
+      apply_daily_yield: {
+        Args: {
+          p_application_date?: string
+          p_asset_code: string
+          p_daily_yield_percentage: number
+        }
+        Returns: Json
+      }
       approve_withdrawal: {
         Args: {
           p_admin_notes?: string
@@ -2905,6 +3081,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_daily_aum_entry: {
+        Args: { p_entry_date?: string; p_fund_id?: string }
+        Returns: Json
+      }
       create_withdrawal_request: {
         Args: {
           p_amount: number
@@ -2934,6 +3114,14 @@ export type Database = {
       generate_document_path: {
         Args: { document_type: string; filename: string; user_id: string }
         Returns: string
+      }
+      generate_statement_data: {
+        Args: {
+          p_investor_id: string
+          p_period_month: number
+          p_period_year: number
+        }
+        Returns: Json
       }
       generate_statement_path: {
         Args: {
@@ -3101,6 +3289,10 @@ export type Database = {
       process_excel_import_with_classes: {
         Args: { p_data: Json; p_import_type?: string }
         Returns: Json
+      }
+      recalculate_aum_percentages: {
+        Args: { p_asset_code: string }
+        Returns: boolean
       }
       reject_withdrawal: {
         Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
