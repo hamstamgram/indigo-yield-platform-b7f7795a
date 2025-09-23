@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth, useRole } from "@/context/AuthContext";
+import { useAuth } from "@/lib/auth/context";
 
 interface RequireAdminProps {
   children: React.ReactNode;
@@ -12,8 +12,7 @@ interface RequireAdminProps {
  * Uses AuthContext for role checking and redirects non-admin users
  */
 export default function RequireAdmin({ children, redirectTo = "/dashboard" }: RequireAdminProps) {
-  const { loading, session } = useAuth();
-  const { isAdmin } = useRole();
+  const { loading, session, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {

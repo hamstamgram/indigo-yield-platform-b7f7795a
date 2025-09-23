@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/lib/auth/context';
 import { transactionApi } from '@/services/api/transactionApi';
 
 interface Transaction {

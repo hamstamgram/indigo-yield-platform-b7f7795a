@@ -7,7 +7,7 @@ import { initPostHog } from './utils/analytics/posthog';
 import './utils/cleanup/debugCleanup'; // Initialize cleanup on app start
 import { SkipLink } from './components/accessibility/SkipLink';
 import { ErrorBoundary } from './components/error/ErrorBoundary';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from './lib/auth/context';
 
 // UI Components
 import { Toaster } from './components/ui/sonner';

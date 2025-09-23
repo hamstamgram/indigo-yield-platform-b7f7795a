@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/lib/auth/context';
 import { adminApi } from '@/services/api/adminApi';
 
 interface AdminMetrics {

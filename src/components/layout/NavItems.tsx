@@ -10,7 +10,7 @@ import {
   Database,
   TrendingUp
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/lib/auth/context';
 
 export interface NavItem {
   title: string;

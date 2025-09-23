@@ -4,7 +4,6 @@ import './index.css'
 import { initSentry } from './utils/monitoring/sentry'
 import { initPostHog } from './utils/analytics/posthog'
 import { registerSW } from './pwa/registerSW'
-import { AuthProvider } from './contexts/AuthContext'
 
 // Initialize monitoring and analytics
 initSentry();
@@ -14,7 +13,5 @@ initPostHog();
 registerSW();
 
 createRoot(document.getElementById("root")!).render(
-  <AuthProvider>
-    <App />
-  </AuthProvider>
+  <App />
 );
