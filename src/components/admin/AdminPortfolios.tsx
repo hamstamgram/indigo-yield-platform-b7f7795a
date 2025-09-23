@@ -15,7 +15,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Investor, Asset } from "@/types/investorTypes";
+import { InvestorSummaryV2 } from "@/services/adminServiceV2";
+import { Asset } from "@/types/investorTypes";
 
 type UserPortfolio = {
   id: string;
@@ -39,7 +40,7 @@ type UserProfile = {
 };
 
 interface AdminPortfoliosProps {
-  investors?: Investor[];
+  investors?: InvestorSummaryV2[];
   assets?: Asset[];
   loading?: boolean;
   onRefresh?: () => void;
@@ -88,8 +89,8 @@ const AdminPortfolios = ({
         userData = providedInvestors.map(investor => ({
           id: investor.id,
           email: investor.email,
-          first_name: investor.first_name,
-          last_name: investor.last_name
+          first_name: investor.firstName,
+          last_name: investor.lastName
         }));
         setUsers(userData);
       } else {

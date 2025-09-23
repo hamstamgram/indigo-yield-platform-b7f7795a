@@ -9,10 +9,11 @@ import {
 } from "@/components/ui/card";
 import SearchBar from "./SearchBar";
 import InvestorsTable from "./InvestorsTable";
-import { Asset, Investor } from "@/types/investorTypes";
+import { Asset } from "@/types/investorTypes";
+import { InvestorSummaryV2 } from "@/services/adminServiceV2";
 
 interface InvestorTableContainerProps {
-  investors: Investor[];
+  investors: InvestorSummaryV2[];
   assets: Asset[];
   loading: boolean;
   searchTerm: string;

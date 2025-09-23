@@ -1,4 +1,3 @@
-
 import React from "react";
 import { 
   Table, 
@@ -11,10 +10,11 @@ import EditableInvestorRow from "./EditableInvestorRow";
 import InvestorsTableHeader from "./InvestorsTableHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileInvestorCard from "./MobileInvestorCard";
-import { Investor, Asset } from "@/types/investorTypes";
+import { InvestorSummaryV2 } from "@/services/adminServiceV2";
+import { Asset } from "@/types/investorTypes";
 
 interface InvestorsTableProps {
-  investors: Investor[];
+  investors: InvestorSummaryV2[];
   assets: Asset[];
   loading: boolean;
   searchTerm: string;
@@ -71,13 +71,13 @@ const InvestorsTable: React.FC<InvestorsTableProps> = ({
         <TableBody>
           {investors.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={assets.length + 2} className="text-center py-6">
+              <TableCell colSpan={assets.length + 3} className="text-center py-6">
                 {searchTerm ? "No investors match your search" : "No investors found"}
               </TableCell>
             </TableRow>
           ) : (
             investors.map((investor) => (
-              <EditableInvestorRow 
+              <EditableInvestorRow
                 key={investor.id}
                 investor={investor}
                 assets={assets}

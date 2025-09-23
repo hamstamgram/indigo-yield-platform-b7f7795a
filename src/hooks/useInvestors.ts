@@ -1,17 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Investor, Asset } from "@/types/investorTypes";
-import { 
-  checkAdminStatus, 
-  fetchInvestors, 
-  fetchPendingInvites 
-} from "@/services/investorService";
-import { fetchAssets, enrichInvestorsWithPortfolioData } from "@/services/portfolioService";
-import { adminServiceV2 } from "@/services/adminServiceV2";
+import { Asset } from "@/types/investorTypes";
+import { adminServiceV2, InvestorSummaryV2 } from "@/services/adminServiceV2";
 import { useInvestorSearch } from "./useInvestorSearch";
 
 export const useInvestors = () => {
-  const [investors, setInvestors] = useState<Investor[]>([]);
+  const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);
   const [loading, setLoading] = useState(true);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(false);
@@ -26,17 +20,6 @@ export const useInvestors = () => {
       setLoading(true);
       console.log("Fetching investor data...");
       
-      // Check admin status
-      const { isAdmin: adminStatus } = await checkAdminStatus();
-      setIsAdmin(adminStatus);
-      
-      if (!adminStatus) {
-        console.log("User is not an admin, stopping fetch");
-        setLoading(false);
-        setInvestors([]);
-        return;
-      }
-      
       // Fetch assets - use mock data for now
       const mockAssets = [
         { id: 1, symbol: 'USDC', name: 'USD Coin', is_active: true },
@@ -47,29 +30,8 @@ export const useInvestors = () => {
       // Fetch investors with summary using adminServiceV2
       const investorsWithSummary = await adminServiceV2.getAllInvestorsWithSummary();
       
-       // Convert to expected format
-        const investorsList = investorsWithSummary.map(investor => ({
-          id: investor.id,
-          email: investor.email,
-          first_name: investor.firstName,
-          last_name: investor.lastName,
-          created_at: new Date().toISOString(),
-          fee_percentage: 2.0, // Default fee percentage
-          portfolio_summary: {} // Empty object to match Investor type
-        }));
-      
-      setInvestors(investorsList);
-      console.log("Loaded investors with consolidated service:", investorsList.length);
-      
-      // Also check for pending invites to include
-      try {
-        const invitesData = await fetchPendingInvites();
-        if (invitesData.length > 0) {
-          setInvestors(prevInvestors => [...prevInvestors, ...invitesData]);
-        }
-      } catch (invitesError) {
-        console.error("Error fetching pending invites:", invitesError);
-      }
+      setInvestors(investorsWithSummary);
+      console.log("Loaded investors with consolidated service:", investorsWithSummary.length);
       
     } catch (error) {
       console.error('Error in main investor data fetch:', error);
@@ -79,6 +41,7 @@ export const useInvestors = () => {
         variant: "destructive",
       });
       setInvestors([]);
+      setIsAdmin(false);
     } finally {
       setLoading(false);
     }

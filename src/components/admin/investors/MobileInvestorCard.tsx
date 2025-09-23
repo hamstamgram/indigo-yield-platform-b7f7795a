@@ -6,11 +6,12 @@ import { Send, Save } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Asset, Investor } from '@/types/investorTypes';
+import { Asset } from '@/types/investorTypes';
+import { InvestorSummaryV2 } from "@/services/adminServiceV2";
 import InvestorAssetDropdown from './InvestorAssetDropdown';
 
 interface MobileInvestorCardProps {
-  investor: Investor;
+  investor: InvestorSummaryV2;
   assets: Asset[];
   onSendEmail: (email: string) => void;
   onSaveSuccess: () => void;
@@ -24,12 +25,12 @@ const MobileInvestorCard = ({
 }: MobileInvestorCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [fee, setFee] = useState<string>(investor.fee_percentage?.toString() || "2.0");
+  const [fee, setFee] = useState<string>("2.0");
   const { toast } = useToast();
   
   // Update fee state when investor prop changes
   useEffect(() => {
-    setFee(investor.fee_percentage?.toString() || "2.0");
+    setFee("2.0"); // Default fee since InvestorSummaryV2 doesn't have fee_percentage
   }, [investor]);
   
   // Create state for each asset balance
@@ -37,23 +38,17 @@ const MobileInvestorCard = ({
     const initialBalances: Record<string, string> = {};
     assets.forEach(asset => {
       const symbol = asset.symbol;
-      // Normalize symbol to uppercase for lookup in portfolio_summary
-      const normalizedSymbol = symbol.toUpperCase();
-      const balance = investor.portfolio_summary && investor.portfolio_summary[normalizedSymbol] 
-        ? investor.portfolio_summary[normalizedSymbol].balance.toString()
-        : '0';
-      initialBalances[symbol] = balance;
+      const balance = investor.portfolioDetails.assetBreakdown[symbol] || 0;
+      initialBalances[symbol] = balance.toString();
     });
     return initialBalances;
   });
 
   // Get list of asset IDs that this investor already has
-  const existingAssetIds = investor.portfolio_summary 
-    ? Object.keys(investor.portfolio_summary).map(symbol => {
-        const asset = assets.find(a => a.symbol.toUpperCase() === symbol);
-        return asset ? asset.id : -1;
-      }).filter(id => id !== -1)
-    : [];
+  const existingAssetIds = Object.keys(investor.portfolioDetails.assetBreakdown).map(symbol => {
+    const asset = assets.find(a => a.symbol.toUpperCase() === symbol.toUpperCase());
+    return asset ? asset.id : -1;
+  }).filter(id => id !== -1);
 
   const handleBalanceChange = (symbol: string, value: string) => {
     setBalances(prev => ({
@@ -130,8 +125,8 @@ const MobileInvestorCard = ({
     }
   };
 
-  const name = investor.first_name && investor.last_name 
-    ? `${investor.first_name} ${investor.last_name}`
+  const name = investor.firstName && investor.lastName 
+    ? `${investor.firstName} ${investor.lastName}`
     : investor.email.split('@')[0];
 
   return (
@@ -152,13 +147,13 @@ const MobileInvestorCard = ({
                   onChange={(e) => handleBalanceChange(asset.symbol, e.target.value)}
                   className="max-w-[120px]"
                 />
-              ) : (
-                <div>
-                  {investor.portfolio_summary && investor.portfolio_summary[asset.symbol.toUpperCase()] 
-                    ? `${investor.portfolio_summary[asset.symbol.toUpperCase()].balance.toFixed(4)}`
-                    : '-'}
-                </div>
-              )}
+               ) : (
+                 <div>
+                   {investor.portfolioDetails.assetBreakdown[asset.symbol] 
+                     ? `${investor.portfolioDetails.assetBreakdown[asset.symbol].toFixed(4)}`
+                     : '-'}
+                 </div>
+               )}
             </div>
           ))}
 
@@ -174,13 +169,11 @@ const MobileInvestorCard = ({
                 onChange={(e) => setFee(e.target.value)}
                 className="max-w-[80px]"
               />
-            ) : (
-              <div>
-                {investor.fee_percentage !== null && investor.fee_percentage !== undefined
-                  ? `${investor.fee_percentage.toFixed(1)}%`
-                  : '2.0%'}
-              </div>
-            )}
+             ) : (
+               <div>
+                 2.0% {/* Default fee since InvestorSummaryV2 doesn't have fee_percentage */}
+               </div>
+             )}
           </div>
         </div>
       </CardContent>

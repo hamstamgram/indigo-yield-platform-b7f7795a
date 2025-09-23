@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Send, Save } from 'lucide-react';
-import { Asset, Investor } from '@/types/investorTypes';
+import { Asset } from '@/types/investorTypes';
+import { InvestorSummaryV2 } from "@/services/adminServiceV2";
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +12,7 @@ import { updateInvestorFeePercentage, removeAssetFromInvestor } from '@/services
 import InvestorAssetDropdown from './InvestorAssetDropdown';
 
 interface EditableInvestorRowProps {
-  investor: Investor;
+  investor: InvestorSummaryV2;
   assets: Asset[];
   onSendEmail: (email: string) => void;
   onSaveSuccess: () => void;
@@ -25,12 +26,12 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [fee, setFee] = useState<string>(investor.fee_percentage?.toString() || "2.0");
+  const [fee, setFee] = useState<string>("2.0");
   const { toast } = useToast();
   
   // Update fee state when investor prop changes
   useEffect(() => {
-    setFee(investor.fee_percentage?.toString() || "2.0");
+    setFee("2.0"); // Default fee since InvestorSummaryV2 doesn't have fee_percentage
   }, [investor]);
   
   // Create state for each asset balance
@@ -38,23 +39,17 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
     const initialBalances: Record<string, string> = {};
     assets.forEach(asset => {
       const symbol = asset.symbol;
-      // Normalize symbol to uppercase for lookup in portfolio_summary
-      const normalizedSymbol = symbol.toUpperCase();
-      const balance = investor.portfolio_summary && investor.portfolio_summary[normalizedSymbol] 
-        ? investor.portfolio_summary[normalizedSymbol].balance.toString()
-        : '0';
-      initialBalances[symbol] = balance;
+      const balance = investor.portfolioDetails.assetBreakdown[symbol] || 0;
+      initialBalances[symbol] = balance.toString();
     });
     return initialBalances;
   });
 
   // Get list of asset IDs that this investor already has
-  const existingAssetIds = investor.portfolio_summary 
-    ? Object.keys(investor.portfolio_summary).map(symbol => {
-        const asset = assets.find(a => a.symbol.toUpperCase() === symbol);
-        return asset ? asset.id : -1;
-      }).filter(id => id !== -1)
-    : [];
+  const existingAssetIds = Object.keys(investor.portfolioDetails.assetBreakdown).map(symbol => {
+    const asset = assets.find(a => a.symbol.toUpperCase() === symbol.toUpperCase());
+    return asset ? asset.id : -1;
+  }).filter(id => id !== -1);
 
   const handleBalanceChange = (symbol: string, value: string) => {
     setBalances(prev => ({
@@ -137,8 +132,8 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
     }
   };
 
-  const name = investor.first_name && investor.last_name 
-    ? `${investor.first_name} ${investor.last_name}`
+  const name = investor.firstName && investor.lastName 
+    ? `${investor.firstName} ${investor.lastName}`
     : investor.email.split('@')[0];
 
   return (
@@ -156,11 +151,11 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
               onChange={(e) => handleBalanceChange(asset.symbol, e.target.value)}
               className="min-w-[120px] h-10"
             />
-          ) : (
-            investor.portfolio_summary && investor.portfolio_summary[asset.symbol.toUpperCase()] 
-              ? `${investor.portfolio_summary[asset.symbol.toUpperCase()].balance.toFixed(4)}`
-              : '-'
-          )}
+           ) : (
+             investor.portfolioDetails.assetBreakdown[asset.symbol] 
+               ? `${investor.portfolioDetails.assetBreakdown[asset.symbol].toFixed(4)}`
+               : '-'
+           )}
         </TableCell>
       ))}
 
@@ -176,11 +171,9 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
             onChange={(e) => setFee(e.target.value)}
             className="min-w-[100px] h-10"
           />
-        ) : (
-          investor.fee_percentage !== null && investor.fee_percentage !== undefined
-            ? `${investor.fee_percentage.toFixed(1)}%`
-            : '2.0%'
-        )}
+         ) : (
+           "2.0%" {/* Default fee since InvestorSummaryV2 doesn't have fee_percentage */}
+         )}
       </TableCell>
       
       {/* Actions */}

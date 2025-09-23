@@ -6,6 +6,9 @@ export interface InvestorSummaryV2 {
   firstName: string;
   lastName: string;
   totalAum: number;
+  status: string;
+  kycStatus: string;
+  onboardingDate: string | null;
   lastStatementDate: string | null;
   portfolioDetails: {
     assetBreakdown: Record<string, number>;
