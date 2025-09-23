@@ -7,8 +7,8 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Save, Loader2, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { listYieldSources, updateYieldSource } from '@/services/adminService';
-import type { YieldSource } from '@/server/admin';
+import { getYieldSources, updateYieldSource } from '@/services/adminDataService';
+import type { YieldSource } from '@/services/adminDataService';
 
 const YieldSettings = () => {
   const [loading, setLoading] = useState(true);
@@ -20,14 +20,17 @@ const YieldSettings = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const sources = await listYieldSources();
+      console.log('Fetching yield sources from database...');
+      const sources = await getYieldSources();
       setYieldSources(sources);
       setHasChanges(false);
+      
+      console.log('Loaded yield sources:', sources.length);
     } catch (error) {
       console.error('Error fetching yield sources:', error);
       toast({
         title: 'Error',
-        description: 'Failed to load yield sources',
+        description: 'Failed to load yield sources from database',
         variant: 'destructive',
       });
     } finally {

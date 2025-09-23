@@ -61,7 +61,8 @@ const AdminInvestorTransactionsPage = lazy(() => import('@/pages/admin/investors
 const AdminYieldSettingsPage = lazy(() => import('@/pages/admin/AdminYieldSettingsPage'));
 const AdminRequestsQueuePage = lazy(() => import('@/pages/admin/AdminRequestsQueuePage'));
 const AdminStatementsPage = lazy(() => import('@/pages/admin/AdminStatementsPage'));
-const AdminSupportQueuePage = lazy(() => import('@/pages/admin/AdminSupportQueuePage'));
+const AdminSupportQueue = lazy(() => import('@/pages/admin/AdminSupportQueue'));
+const AdminReports = lazy(() => import('@/pages/admin/AdminReports'));
 const AdminDocumentsPage = lazy(() => import('@/pages/admin/AdminDocumentsPage'));
 const AdminBatchReportsPage = lazy(() => import('@/pages/admin/AdminBatchReportsPage'));
 const AdminWithdrawalsPage = lazy(() => import('@/pages/admin/AdminWithdrawalsPage'));
@@ -142,9 +143,9 @@ export function AppRoutes() {
           <Route path="/admin/investors/:id/transactions" element={<AdminRoute><AdminInvestorTransactionsPage /></AdminRoute>} />
           <Route path="/admin/requests" element={<AdminRoute><AdminRequestsQueuePage /></AdminRoute>} />
           <Route path="/admin/statements" element={<AdminRoute><AdminStatementsPage /></AdminRoute>} />
-          <Route path="/admin/support" element={<AdminRoute><AdminSupportQueuePage /></AdminRoute>} />
+          <Route path="/admin/support" element={<AdminRoute><AdminSupportQueue /></AdminRoute>} />
           <Route path="/admin/documents" element={<AdminRoute><AdminDocumentsPage /></AdminRoute>} />
-          <Route path="/admin/reports" element={<AdminRoute><AdminBatchReportsPage /></AdminRoute>} />
+          <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
           <Route path="/admin/withdrawals" element={<AdminRoute><AdminWithdrawalsPage /></AdminRoute>} />
           <Route path="/admin/excel-first-run" element={<AdminRoute><ExcelImportFirstRun /></AdminRoute>} />
           

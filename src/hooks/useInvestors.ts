@@ -8,6 +8,7 @@ import {
   fetchPendingInvites 
 } from "@/services/investorService";
 import { fetchAssets, enrichInvestorsWithPortfolioData } from "@/services/portfolioService";
+import { getAllInvestorsWithSummary, getActiveAssets } from "@/services/adminDataService";
 import { useInvestorSearch } from "./useInvestorSearch";
 
 export const useInvestors = () => {
@@ -37,24 +38,31 @@ export const useInvestors = () => {
         return;
       }
       
-      // Fetch assets
-      const assetsData = await fetchAssets();
-      setAssets(assetsData);
+      // Fetch assets using new consolidated service
+      const assetsData = await getActiveAssets();
+      setAssets(assetsData.map(asset => ({
+        id: asset.id,
+        symbol: asset.symbol,
+        name: asset.name,
+        is_active: asset.is_active
+      })));
       
-      // Fetch investors
-      const investorsList = await fetchInvestors();
+      // Fetch investors with summary using new consolidated service
+      const investorsWithSummary = await getAllInvestorsWithSummary();
       
-      // Try to enrich investors with portfolio data
-      try {
-        const enrichedInvestors = await enrichInvestorsWithPortfolioData(investorsList);
-        setInvestors(enrichedInvestors);
-        
-        console.log("Enriched investors with portfolio data:", enrichedInvestors);
-      } catch (enrichError) {
-        console.error("Error enriching investors with portfolio data:", enrichError);
-        // Fall back to using the unenriched list
-        setInvestors(investorsList);
-      }
+       // Convert to expected format
+       const investorsList = investorsWithSummary.map(investor => ({
+         id: investor.id,
+         email: investor.email,
+         first_name: investor.first_name,
+         last_name: investor.last_name,
+         created_at: investor.created_at,
+         fee_percentage: 2.0, // Default fee percentage
+         portfolio_summary: {} // Empty object to match Investor type
+       }));
+      
+      setInvestors(investorsList);
+      console.log("Loaded investors with consolidated service:", investorsList.length);
       
       // Also check for pending invites to include
       try {

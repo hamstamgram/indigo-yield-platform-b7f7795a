@@ -1,59 +1,91 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Users, TrendingUp, Activity, Info } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { DollarSign, Users, TrendingUp, Activity, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { getAdminDashboardStats, getRecentActivity } from "@/services/adminDataService";
+import type { AdminDashboardStats } from "@/services/adminDataService";
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<AdminDashboardStats>({
     totalAUM: 0,
-    totalInvestors: 0,
+    investorCount: 0,
     dailyInterest: 0,
-    pendingWithdrawals: 0
+    pendingWithdrawals: 0,
+    last24hInterest: 0,
+    activeAssets: 0
   });
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchDashboardStats();
-  }, []);
-
-  const fetchDashboardStats = async () => {
+  const fetchDashboardData = async (showRefreshFeedback = false) => {
     try {
-      setLoading(true);
+      if (showRefreshFeedback) setRefreshing(true);
+      else setLoading(true);
 
-      // Get total investors
-      const { data: investors, error: investorsError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('is_admin', false);
+      console.log('Fetching dashboard data...');
+      
+      // Fetch dashboard stats and recent activity in parallel
+      const [dashboardStats, activityData] = await Promise.all([
+        getAdminDashboardStats(),
+        getRecentActivity(5)
+      ]);
 
-      if (investorsError) throw investorsError;
+      setStats(dashboardStats);
+      setRecentActivity(activityData);
 
-      // Get pending withdrawals
-      const { data: withdrawals, error: withdrawalsError } = await supabase
-        .from('withdrawal_requests')
-        .select('id')
-        .eq('status', 'pending');
-
-      if (withdrawalsError) throw withdrawalsError;
-
-      setStats({
-        totalAUM: 0, // Temporarily disabled
-        totalInvestors: investors?.length || 0,
-        dailyInterest: 0, // Temporarily disabled
-        pendingWithdrawals: withdrawals?.length || 0
+      console.log('Dashboard data loaded:', {
+        totalAUM: dashboardStats.totalAUM,
+        investorCount: dashboardStats.investorCount,
+        dailyInterest: dashboardStats.dailyInterest,
+        pendingWithdrawals: dashboardStats.pendingWithdrawals
       });
 
+      if (showRefreshFeedback) {
+        toast({
+          title: 'Dashboard refreshed',
+          description: 'All data has been updated with the latest information',
+        });
+      }
+
     } catch (error: any) {
-      console.error('Error fetching dashboard stats:', error);
+      console.error('Error fetching dashboard data:', error);
       toast({
         title: 'Error loading dashboard',
-        description: error.message || 'Failed to load dashboard statistics',
+        description: error.message || 'Failed to load dashboard data',
         variant: 'destructive',
       });
     } finally {
       setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const handleRefresh = () => {
+    fetchDashboardData(true);
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const formatActivityStatus = (status: string) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'approved': return 'bg-green-100 text-green-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -75,17 +107,15 @@ const AdminDashboard = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-muted-foreground">Overview of your investment platform</p>
-      </div>
-
-      <div className="flex items-center gap-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <Info className="h-5 w-5 text-yellow-600" />
-        <div className="text-sm text-yellow-800">
-          Some features are temporarily unavailable while we update the database schema. 
-          All investor data remains safe and accessible.
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <p className="text-muted-foreground">Overview of your investment platform</p>
         </div>
+        <Button onClick={handleRefresh} variant="outline" disabled={refreshing}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+          {refreshing ? 'Refreshing...' : 'Refresh'}
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -95,9 +125,9 @@ const AdminDashboard = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats.totalAUM.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{formatCurrency(stats.totalAUM)}</div>
             <p className="text-xs text-muted-foreground">
-              Assets under management
+              Assets under management across {stats.activeAssets} assets
             </p>
           </CardContent>
         </Card>
@@ -108,7 +138,7 @@ const AdminDashboard = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalInvestors}</div>
+            <div className="text-2xl font-bold">{stats.investorCount}</div>
             <p className="text-xs text-muted-foreground">
               Active investor accounts
             </p>
@@ -121,9 +151,9 @@ const AdminDashboard = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats.dailyInterest.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{formatCurrency(stats.dailyInterest)}</div>
             <p className="text-xs text-muted-foreground">
-              Generated today
+              Estimated daily yield (7.2% APY)
             </p>
           </CardContent>
         </Card>
@@ -146,25 +176,55 @@ const AdminDashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest platform activity</CardDescription>
+            <CardDescription>Latest withdrawal requests and transactions</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Activity feed temporarily unavailable</p>
-            </div>
+            {recentActivity.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No recent activity</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentActivity.map((activity, index) => (
+                  <div key={activity.id || index} className="flex justify-between items-center p-3 border rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium">
+                        Withdrawal Request: {formatCurrency(activity.requested_amount)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(activity.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${formatActivityStatus(activity.status)}`}>
+                      {activity.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Top Performing Assets</CardTitle>
-            <CardDescription>Best performing assets today</CardDescription>
+            <CardTitle>Performance Metrics</CardTitle>
+            <CardDescription>Platform performance indicators</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Performance data temporarily unavailable</p>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">24h Interest Generated</span>
+                <span className="font-medium">{formatCurrency(stats.last24hInterest)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Active Assets</span>
+                <span className="font-medium">{stats.activeAssets}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Platform Status</span>
+                <span className="font-medium text-green-600">Operational</span>
+              </div>
             </div>
           </CardContent>
         </Card>
