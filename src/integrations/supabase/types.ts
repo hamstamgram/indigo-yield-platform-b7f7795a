@@ -3139,6 +3139,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      backfill_historical_positions: {
+        Args: { p_end_date?: string; p_start_date?: string }
+        Returns: Json
+      }
       calculate_positions: {
         Args: { p_portfolio_id: string }
         Returns: {
@@ -3290,6 +3294,25 @@ export type Database = {
           first_name: string
           id: string
           last_name: string
+        }[]
+      }
+      get_historical_position_data: {
+        Args: {
+          p_asset_code?: string
+          p_end_date?: string
+          p_start_date?: string
+          p_user_id?: string
+        }
+        Returns: {
+          asset_code: string
+          balance: number
+          balance_date: string
+          email: string
+          first_name: string
+          last_name: string
+          principal: number
+          user_id: string
+          yield_earned: number
         }[]
       }
       get_investor_count: {

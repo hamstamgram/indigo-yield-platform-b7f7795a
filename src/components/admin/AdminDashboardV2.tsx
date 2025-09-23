@@ -96,7 +96,7 @@ export function AdminDashboardV2() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(dashboardStats?.total_aum || 0)}
+              {formatCurrency(dashboardStats?.totalAum || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
               Across all portfolios
@@ -110,7 +110,7 @@ export function AdminDashboardV2() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats?.total_investors || 0}</div>
+            <div className="text-2xl font-bold">{dashboardStats?.investorCount || 0}</div>
             <p className="text-xs text-muted-foreground">
               Active investor accounts
             </p>
@@ -124,7 +124,7 @@ export function AdminDashboardV2() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(dashboardStats?.daily_yield_generated || 0)}
+              {formatCurrency(dashboardStats?.interest24h || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
               Average daily distribution
@@ -138,7 +138,7 @@ export function AdminDashboardV2() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats?.pending_withdrawals || 0}</div>
+            <div className="text-2xl font-bold">{dashboardStats?.pendingWithdrawals || 0}</div>
             <p className="text-xs text-muted-foreground">
               Requiring admin action
             </p>
@@ -211,14 +211,14 @@ export function AdminDashboardV2() {
               <div key={investor.id} className="flex items-center justify-between border-b pb-2">
                 <div>
                   <div className="font-medium">
-                    {investor.first_name} {investor.last_name}
+                    {investor.firstName} {investor.lastName}
                   </div>
                   <div className="text-sm text-muted-foreground">{investor.email}</div>
                 </div>
                 <div className="text-right">
-                  <div className="font-medium">{formatCurrency(investor.total_aum)}</div>
+                  <div className="font-medium">{formatCurrency(investor.totalAum)}</div>
                   <div className="text-sm text-muted-foreground">
-                    {investor.positions_count} position{investor.positions_count !== 1 ? 's' : ''}
+                    {Object.keys(investor.portfolioDetails.assetBreakdown).length} position{Object.keys(investor.portfolioDetails.assetBreakdown).length !== 1 ? 's' : ''}
                   </div>
                 </div>
               </div>

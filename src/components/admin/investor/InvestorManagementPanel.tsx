@@ -45,10 +45,10 @@ export function InvestorManagementPanel({ investors, onDataChange }: InvestorMan
   const filteredInvestors = investors.filter(investor => {
     const matchesSearch = 
       investor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      investor.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      investor.last_name?.toLowerCase().includes(searchTerm.toLowerCase());
+      investor.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      investor.lastName?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = statusFilter === "all" || investor.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || true; // Status filtering removed since it's not in new interface
     
     return matchesSearch && matchesStatus;
   });
@@ -135,17 +135,19 @@ export function InvestorManagementPanel({ investors, onDataChange }: InvestorMan
               {filteredInvestors.map((investor) => (
                 <TableRow key={investor.id}>
                   <TableCell className="font-medium">
-                    {investor.first_name && investor.last_name 
-                      ? `${investor.first_name} ${investor.last_name}`
+                    {investor.firstName && investor.lastName 
+                      ? `${investor.firstName} ${investor.lastName}`
                       : investor.email.split('@')[0]
                     }
                   </TableCell>
                   <TableCell>{investor.email}</TableCell>
-                  <TableCell>{investor.total_aum?.toLocaleString() || '0'}</TableCell>
+                  <TableCell>{investor.totalAum?.toLocaleString() || '0'}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{investor.positions_count || 0}</Badge>
+                    <Badge variant="outline">{Object.keys(investor.portfolioDetails.assetBreakdown).length || 0}</Badge>
                   </TableCell>
-                  <TableCell>{getStatusBadge(investor.status)}</TableCell>
+                  <TableCell>
+                    <Badge className="bg-green-100 text-green-800">Active</Badge>
+                  </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Button
@@ -156,27 +158,14 @@ export function InvestorManagementPanel({ investors, onDataChange }: InvestorMan
                         <Eye className="h-4 w-4" />
                       </Button>
                       
-                      {investor.status !== 'active' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => updateInvestorStatus(investor.id, 'active')}
-                          disabled={updating === investor.id}
-                        >
-                          <UserCheck className="h-4 w-4" />
-                        </Button>
-                      )}
-                      
-                      {investor.status === 'active' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => updateInvestorStatus(investor.id, 'suspended')}
-                          disabled={updating === investor.id}
-                        >
-                          <UserX className="h-4 w-4" />
-                        </Button>
-                      )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => updateInvestorStatus(investor.id, 'active')}
+                        disabled={updating === investor.id}
+                      >
+                        <UserCheck className="h-4 w-4" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>

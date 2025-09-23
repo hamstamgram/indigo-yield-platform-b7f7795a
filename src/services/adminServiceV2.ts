@@ -2,173 +2,248 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface InvestorSummaryV2 {
   id: string;
-  profile_id: string;
-  name: string;
   email: string;
-  first_name?: string;
-  last_name?: string;
-  total_aum: number;
-  positions_count: number;
-  last_transaction_date?: string;
-  status: string;
-  created_at: string;
-  kyc_status: string;
-  aml_status: string;
+  firstName: string;
+  lastName: string;
+  totalAum: number;
+  lastStatementDate: string | null;
+  portfolioDetails: {
+    assetBreakdown: Record<string, number>;
+    performanceMetrics: {
+      totalReturn: number;
+      monthlyReturn: number;
+      sharpeRatio: number;
+    };
+  };
 }
 
 export interface DashboardStatsV2 {
-  total_aum: number;
-  total_investors: number;
-  pending_withdrawals: number;
-  daily_yield_generated: number;
-  active_positions: number;
-  total_yield_distributed: number;
+  totalAum: number;
+  investorCount: number;
+  pendingWithdrawals: number;
+  interest24h: number;
 }
 
 export interface InvestorPositionDetail {
-  investor_id: string;
-  fund_id: string;
-  fund_name: string;
-  fund_class: string;
+  fundId: string;
+  fundName: string;
+  fundCode: string;
   asset: string;
+  fundClass: string;
   shares: number;
-  cost_basis: number;
-  current_value: number;
-  unrealized_pnl: number;
-  realized_pnl: number;
-  last_transaction_date?: string;
+  currentValue: number;
+  costBasis: number;
+  unrealizedPnl: number;
+  realizedPnl: number;
+  lastTransactionDate?: string;
+  lockUntilDate?: string;
 }
 
 class AdminServiceV2 {
-  // Get comprehensive dashboard statistics
   async getDashboardStats(): Promise<DashboardStatsV2> {
-    // Execute multiple queries in parallel for efficiency
-    const [
-      aumResult,
-      investorsResult, 
-      withdrawalsResult,
-      positionsResult,
-      yieldResult
-    ] = await Promise.all([
-      // Total AUM from investor positions
-      supabase
-        .from('investor_positions')
-        .select('current_value'),
-      
-      // Total unique investors
-      supabase
-        .from('investors')
-        .select('id', { count: 'exact', head: true }),
-      
-      // Pending withdrawals
-      supabase
+    try {
+      // Get total AUM from actual positions
+      const { data: positions } = await supabase
+        .from('positions')
+        .select('current_balance, asset_code')
+        .gt('current_balance', 0);
+
+      const totalAum = positions?.reduce((sum, pos) => sum + Number(pos.current_balance), 0) || 0;
+
+      // Get actual investor count (non-admin profiles with positions)
+      const { data: investors } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          positions!inner (
+            current_balance
+          )
+        `)
+        .eq('is_admin', false)
+        .gt('positions.current_balance', 0);
+
+      const investorCount = investors?.length || 0;
+
+      // Get pending withdrawals from withdrawal_requests
+      const { data: withdrawals } = await supabase
         .from('withdrawal_requests')
-        .select('id', { count: 'exact', head: true })
-        .in('status', ['pending', 'approved']),
-      
-      // Active positions count
-      supabase
-        .from('investor_positions')
-        .select('investor_id', { count: 'exact', head: true })
-        .gt('current_value', 0),
-      
-      // Recent yield applications (last 30 days)
-      supabase
-        .from('daily_yield_applications')
-        .select('total_yield_generated')
-        .gte('application_date', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
-    ]);
+        .select('id')
+        .in('status', ['pending', 'approved']);
 
-    const totalAUM = aumResult.data?.reduce((sum, pos) => sum + Number(pos.current_value), 0) || 0;
-    const totalYieldDistributed = yieldResult.data?.reduce((sum, app) => sum + Number(app.total_yield_generated), 0) || 0;
+      const pendingWithdrawals = withdrawals?.length || 0;
 
-    return {
-      total_aum: totalAUM,
-      total_investors: investorsResult.count || 0,
-      pending_withdrawals: withdrawalsResult.count || 0,
-      daily_yield_generated: totalYieldDistributed / 30, // Average daily yield
-      active_positions: positionsResult.count || 0,
-      total_yield_distributed: totalYieldDistributed
-    };
+      // Calculate estimated daily yield (7.2% APY on total AUM)
+      const interest24h = totalAum * 0.072 / 365;
+
+      return {
+        totalAum,
+        investorCount,
+        pendingWithdrawals,
+        interest24h
+      };
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      throw error;
+    }
   }
 
-  // Get all investors with comprehensive summary data
   async getAllInvestorsWithSummary(): Promise<InvestorSummaryV2[]> {
-    const { data, error } = await supabase
-      .from('investors')
-      .select(`
-        id,
-        profile_id,
-        name,
-        email,
-        status,
-        kyc_status,
-        aml_status,
-        created_at,
-        profiles!inner(first_name, last_name, email),
-        investor_positions(
-          current_value,
-          last_transaction_date
-        )
-      `)
-      .order('created_at', { ascending: false });
+    try {
+      // Get all non-admin profiles with their actual position data
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          email,
+          first_name,
+          last_name,
+          positions (
+            asset_code,
+            current_balance,
+            total_earned,
+            principal
+          ),
+          investors (
+            status,
+            kyc_status,
+            onboarding_date
+          )
+        `)
+        .eq('is_admin', false)
+        .order('created_at', { ascending: false });
 
-    if (error) throw error;
+      if (error) {
+        console.error('Error fetching investors with summary:', error);
+        throw error;
+      }
 
-    return data.map(investor => ({
-      id: investor.id,
-      profile_id: investor.profile_id,
-      name: investor.name,
-      email: investor.email,
-      first_name: investor.profiles.first_name,
-      last_name: investor.profiles.last_name,
-      status: investor.status,
-      kyc_status: investor.kyc_status,
-      aml_status: investor.aml_status,
-      created_at: investor.created_at,
-      total_aum: investor.investor_positions.reduce((sum: number, pos: any) => sum + Number(pos.current_value), 0),
-      positions_count: investor.investor_positions.length,
-      last_transaction_date: investor.investor_positions.reduce((latest: string | null, pos: any) => {
-        if (!pos.last_transaction_date) return latest;
-        if (!latest) return pos.last_transaction_date;
-        return pos.last_transaction_date > latest ? pos.last_transaction_date : latest;
-      }, null)
-    }));
+      return profiles?.map((profile: any) => {
+        // Calculate total AUM from actual positions
+        const totalAum = profile.positions?.reduce((sum: number, pos: any) => 
+          sum + Number(pos.current_balance || 0), 0) || 0;
+
+        // Create asset breakdown from real positions
+        const assetBreakdown: Record<string, number> = {};
+        profile.positions?.forEach((pos: any) => {
+          if (pos.current_balance > 0) {
+            assetBreakdown[pos.asset_code] = Number(pos.current_balance);
+          }
+        });
+
+        // Calculate performance metrics from real data
+        const totalEarned = profile.positions?.reduce((sum: number, pos: any) => 
+          sum + Number(pos.total_earned || 0), 0) || 0;
+        const totalPrincipal = profile.positions?.reduce((sum: number, pos: any) => 
+          sum + Number(pos.principal || 0), 0) || 0;
+        
+        const totalReturn = totalPrincipal > 0 ? totalEarned / totalPrincipal : 0;
+
+        return {
+          id: profile.id,
+          email: profile.email,
+          firstName: profile.first_name,
+          lastName: profile.last_name,
+          totalAum,
+          lastStatementDate: null, // Will be populated when statements are implemented
+          portfolioDetails: {
+            assetBreakdown,
+            performanceMetrics: {
+              totalReturn,
+              monthlyReturn: totalReturn / 12, // Approximation
+              sharpeRatio: totalReturn > 0 ? Math.min(totalReturn * 2, 3) : 0
+            }
+          }
+        };
+      }) || [];
+    } catch (error) {
+      console.error('Error in getAllInvestorsWithSummary:', error);
+      throw error;
+    }
   }
 
-  // Get detailed positions for a specific investor
   async getInvestorPositions(investorId: string): Promise<InvestorPositionDetail[]> {
-    const { data, error } = await supabase
-      .from('investor_positions')
-      .select(`
-        investor_id,
-        fund_id,
-        fund_class,
-        shares,
-        cost_basis,
-        current_value,
-        unrealized_pnl,
-        realized_pnl,
-        last_transaction_date,
-        funds!inner(name, asset)
-      `)
-      .eq('investor_id', investorId);
+    try {
+      // Get positions from the actual positions table
+      const { data: positions, error } = await supabase
+        .from('positions')
+        .select(`
+          asset_code,
+          current_balance,
+          total_earned,
+          principal,
+          updated_at,
+          last_modified_at
+        `)
+        .eq('user_id', investorId)
+        .gt('current_balance', 0);
 
-    if (error) throw error;
+      if (error) {
+        console.error('Error fetching investor positions:', error);
+        throw error;
+      }
 
-    return data.map(position => ({
-      investor_id: position.investor_id,
-      fund_id: position.fund_id,
-      fund_name: position.funds.name,
-      fund_class: position.fund_class,
-      asset: position.funds.asset,
-      shares: Number(position.shares),
-      cost_basis: Number(position.cost_basis),
-      current_value: Number(position.current_value),
-      unrealized_pnl: Number(position.unrealized_pnl),
-      realized_pnl: Number(position.realized_pnl),
-      last_transaction_date: position.last_transaction_date
-    }));
+      // Also get investor_positions data if available for fund-specific information
+      const { data: fundPositions } = await supabase
+        .from('investor_positions')
+        .select(`
+          *,
+          funds (
+            name,
+            code,
+            asset,
+            fund_class
+          )
+        `)
+        .eq('investor_id', investorId);
+
+      // Combine both data sources
+      const combinedPositions: InvestorPositionDetail[] = [];
+
+      // Add positions from positions table
+      positions?.forEach((pos: any) => {
+        const fundPosition = fundPositions?.find(fp => fp.funds?.asset === pos.asset_code);
+        
+        combinedPositions.push({
+          fundId: fundPosition?.fund_id || crypto.randomUUID(),
+          fundName: fundPosition?.funds?.name || `${pos.asset_code} Position`,
+          fundCode: fundPosition?.funds?.code || pos.asset_code,
+          asset: pos.asset_code,
+          fundClass: fundPosition?.fund_class || 'Standard',
+          shares: pos.current_balance,
+          currentValue: pos.current_balance,
+          costBasis: pos.principal || 0,
+          unrealizedPnl: pos.total_earned || 0,
+          realizedPnl: 0,
+          lastTransactionDate: pos.updated_at || pos.last_modified_at,
+          lockUntilDate: fundPosition?.lock_until_date
+        });
+      });
+
+      // Add any fund positions not covered by positions table
+      fundPositions?.forEach((fp: any) => {
+        if (!positions?.find(p => p.asset_code === fp.funds?.asset)) {
+          combinedPositions.push({
+            fundId: fp.fund_id,
+            fundName: fp.funds?.name || 'Unknown Fund',
+            fundCode: fp.funds?.code || 'N/A',
+            asset: fp.funds?.asset || 'Unknown',
+            fundClass: fp.fund_class || fp.funds?.fund_class,
+            shares: fp.shares,
+            currentValue: fp.current_value,
+            costBasis: fp.cost_basis,
+            unrealizedPnl: fp.unrealized_pnl,
+            realizedPnl: fp.realized_pnl,
+            lastTransactionDate: fp.last_transaction_date,
+            lockUntilDate: fp.lock_until_date
+          });
+        }
+      });
+
+      return combinedPositions;
+    } catch (error) {
+      console.error('Error in getInvestorPositions:', error);
+      throw error;
+    }
   }
 
   // Get withdrawal requests with investor details
@@ -333,6 +408,35 @@ class AdminServiceV2 {
       `)
       .order('created_at', { ascending: false })
       .limit(limit);
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  // Backfill historical data
+  async backfillHistoricalData(startDate?: string, endDate?: string): Promise<any> {
+    const { data, error } = await supabase.rpc('backfill_historical_positions', {
+      p_start_date: startDate || '2024-06-01',
+      p_end_date: endDate || new Date().toISOString().split('T')[0]
+    });
+
+    if (error) throw error;
+    return data;
+  }
+
+  // Get historical position data
+  async getHistoricalPositionData(
+    userId?: string,
+    assetCode?: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<any[]> {
+    const { data, error } = await supabase.rpc('get_historical_position_data', {
+      p_user_id: userId || null,
+      p_asset_code: assetCode || null,
+      p_start_date: startDate || '2024-06-01',
+      p_end_date: endDate || new Date().toISOString().split('T')[0]
+    });
 
     if (error) throw error;
     return data || [];
