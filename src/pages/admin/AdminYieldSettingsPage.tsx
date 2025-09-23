@@ -148,7 +148,7 @@ export default function AdminYieldSettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-4 border rounded-lg">
               <div className="text-2xl font-bold text-primary">
-                ${aumData?.[0]?.total_aum ? parseFloat(aumData[0].total_aum).toLocaleString() : '0'}
+                ${aumData?.[0]?.total_aum ? parseFloat(aumData[0].total_aum.toString()).toLocaleString() : '0'}
               </div>
               <div className="text-sm text-muted-foreground">Total AUM</div>
             </div>
@@ -285,13 +285,13 @@ export default function AdminYieldSettingsPage() {
                     <div>
                       <span className="text-muted-foreground">Total AUM: </span>
                       <span className="font-medium">
-                        ${parseFloat(application.total_aum).toLocaleString()}
+                        ${parseFloat(application.total_aum.toString()).toLocaleString()}
                       </span>
                     </div>
                     <div>
                       <span className="text-muted-foreground">Yield Generated: </span>
                       <span className="font-medium text-green-600">
-                        ${parseFloat(application.total_yield_generated).toLocaleString()}
+                        ${parseFloat(application.total_yield_generated.toString()).toLocaleString()}
                       </span>
                     </div>
                   </div>

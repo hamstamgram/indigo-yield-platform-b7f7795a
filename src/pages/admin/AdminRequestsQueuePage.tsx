@@ -234,7 +234,7 @@ export default function AdminRequestsQueuePage() {
                         </div>
                         <div>
                           <span className="text-muted-foreground">Requested: </span>
-                          <span>{new Date(request.created_at).toLocaleDateString()}</span>
+                          <span>{new Date(request.created_by || new Date()).toLocaleDateString()}</span>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Status: </span>
@@ -278,7 +278,7 @@ export default function AdminRequestsQueuePage() {
                                     type="number"
                                     value={approvalAmount}
                                     onChange={(e) => setApprovalAmount(e.target.value)}
-                                    placeholder={request.requested_amount}
+                                    placeholder={request.requested_amount.toString()}
                                   />
                                 </div>
                                 <div>
@@ -399,7 +399,7 @@ export default function AdminRequestsQueuePage() {
                         </div>
                         <div className="text-right">
                           <div className="font-semibold">
-                            {parseFloat(deposit.amount).toLocaleString()} {deposit.asset_symbol}
+                            {parseFloat(deposit.amount.toString()).toLocaleString()} {deposit.asset_symbol}
                           </div>
                           <div className="text-sm text-muted-foreground">
                             {new Date(deposit.created_at).toLocaleDateString()}

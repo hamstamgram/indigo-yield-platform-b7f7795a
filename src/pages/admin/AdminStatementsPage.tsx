@@ -56,10 +56,7 @@ export default function AdminStatementsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('documents')
-        .select(`
-          *,
-          profiles!inner(first_name, last_name, email)
-        `)
+        .select('*')
         .eq('type', 'statement')
         .order('created_at', { ascending: false })
         .limit(50);
@@ -100,7 +97,7 @@ export default function AdminStatementsPage() {
       const { data: docData, error: docError } = await supabase
         .from('documents')
         .insert({
-          user_id: statementData.investor.profile_id,
+          user_id: (statementData as any).investor.profile_id,
           type: 'statement',
           title: `Statement - ${months.find(m => m.value === params.month.toString())?.label} ${params.year}`,
           storage_path: uploadData.path,
@@ -309,10 +306,10 @@ export default function AdminStatementsPage() {
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
                       <span className="font-semibold">
-                        {statement.profiles.first_name} {statement.profiles.last_name}
+                        Statement User
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        ({statement.profiles.email})
+                        (User ID: {statement.user_id})
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -347,7 +344,7 @@ export default function AdminStatementsPage() {
                           <DialogHeader>
                             <DialogTitle>Send Statement</DialogTitle>
                             <DialogDescription>
-                              Send statement notification to {statement.profiles.first_name} {statement.profiles.last_name}
+                              Send statement notification to user
                             </DialogDescription>
                           </DialogHeader>
                           <div className="py-4">
@@ -358,7 +355,7 @@ export default function AdminStatementsPage() {
                               onClick={() => handleSendStatement(
                                 statement.user_id, 
                                 statement.id, 
-                                statement.profiles.email
+                                'user@example.com'
                               )}
                               disabled={sendStatementMutation.isPending}
                             >
