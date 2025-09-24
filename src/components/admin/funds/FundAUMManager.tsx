@@ -179,11 +179,11 @@ export default function FundAUMManager() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground flex items-center gap-1">
-                    <DollarSign className="h-3 w-3" />
+                    <TrendingUp className="h-3 w-3" />
                     Current AUM
                   </span>
                   <span className="font-medium">
-                    {formatAssetValue(fund.latest_aum, 'USD')}
+                    {formatAssetValue(fund.latest_aum, fund.asset)} {fund.asset}
                   </span>
                 </div>
                 
@@ -263,7 +263,9 @@ export default function FundAUMManager() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="aum-amount">AUM Amount (USD)</Label>
+              <Label htmlFor="aum-amount">
+                AUM Amount {selectedFundData ? `(${selectedFundData.asset})` : ''}
+              </Label>
               <Input
                 id="aum-amount"
                 type="number"
@@ -292,7 +294,7 @@ export default function FundAUMManager() {
                 <div>
                   <span className="text-muted-foreground">Current AUM:</span>
                   <span className="ml-2 font-medium">
-                    {formatAssetValue(selectedFundData.latest_aum, 'USD')}
+                    {formatAssetValue(selectedFundData.latest_aum, selectedFundData.asset)} {selectedFundData.asset}
                   </span>
                 </div>
                 <div>

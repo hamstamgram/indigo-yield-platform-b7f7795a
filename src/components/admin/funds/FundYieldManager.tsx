@@ -213,7 +213,7 @@ export default function FundYieldManager() {
                     Fund AUM
                   </span>
                   <div className="font-medium">
-                    {formatAssetValue(selectedFundData.latest_aum, 'USD')}
+                    {formatAssetValue(selectedFundData.latest_aum, selectedFundData.asset)} {selectedFundData.asset}
                   </div>
                 </div>
                 <div>
@@ -232,11 +232,11 @@ export default function FundYieldManager() {
                 </div>
                 <div>
                   <span className="text-muted-foreground flex items-center gap-1">
-                    <DollarSign className="h-3 w-3" />
+                    <Target className="h-3 w-3" />
                     Total Yield
                   </span>
                   <div className="font-medium">
-                    {formatAssetValue(estimatedYieldAmount, 'USD')}
+                    {formatAssetValue(estimatedYieldAmount, selectedFundData.asset)} {selectedFundData.asset}
                   </div>
                 </div>
               </div>
@@ -290,7 +290,7 @@ export default function FundYieldManager() {
                     <div className="flex items-center gap-6 text-sm">
                       <div className="text-right">
                         <div className="font-medium">
-                          {formatAssetValue(position.current_value, 'USD')}
+                          {formatAssetValue(position.current_value, selectedFundData?.asset)} {selectedFundData?.asset}
                         </div>
                         <div className="text-muted-foreground">
                           {position.aum_percentage.toFixed(2)}% of AUM
@@ -300,7 +300,7 @@ export default function FundYieldManager() {
                       {yieldAmount > 0 && (
                         <div className="text-right">
                           <div className="font-medium text-green-600">
-                            +{formatAssetValue(yieldAmount, 'USD')}
+                            +{formatAssetValue(yieldAmount, selectedFundData?.asset)} {selectedFundData?.asset}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             Est. yield
