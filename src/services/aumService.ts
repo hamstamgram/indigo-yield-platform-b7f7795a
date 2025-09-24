@@ -199,19 +199,39 @@ export async function getAllFundsWithAUM() {
     // Get latest AUM for each fund
     const fundsWithAUM = await Promise.all(
       (funds || []).map(async (fund) => {
+        // First try to get from fund_daily_aum table
         const { data: aumData } = await supabase
           .from('fund_daily_aum')
           .select('*')
           .eq('fund_id', fund.id)
           .order('aum_date', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
+
+        // If no AUM data exists, calculate from investor positions
+        if (!aumData) {
+          const { data: positions } = await supabase
+            .from('investor_positions')
+            .select('current_value, investor_id')
+            .eq('fund_id', fund.id)
+            .gt('current_value', 0);
+
+          const totalAUM = positions?.reduce((sum, pos) => sum + (pos.current_value || 0), 0) || 0;
+          const investorCount = positions?.length || 0;
+
+          return {
+            ...fund,
+            latest_aum: totalAUM,
+            latest_aum_date: null,
+            investor_count: investorCount
+          };
+        }
 
         return {
           ...fund,
-          latest_aum: aumData?.total_aum || 0,
-          latest_aum_date: aumData?.aum_date,
-          investor_count: aumData?.investor_count || 0
+          latest_aum: aumData.total_aum || 0,
+          latest_aum_date: aumData.aum_date,
+          investor_count: aumData.investor_count || 0
         };
       })
     );

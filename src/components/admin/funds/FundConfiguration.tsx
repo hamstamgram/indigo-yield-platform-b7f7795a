@@ -343,40 +343,18 @@ const FundConfiguration = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Percent className="h-5 w-5" />
-                Fee Structure
+                Investment Terms
               </CardTitle>
-              <CardDescription>Management and performance fee configuration</CardDescription>
+              <CardDescription>Fund-level investment parameters and constraints</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="mgmt_fee">Management Fee (bps)</Label>
-                  <Input
-                    id="mgmt_fee"
-                    type="number"
-                    value={fundData.mgmt_fee_bps || 200}
-                    onChange={(e) => updateField('mgmt_fee_bps', parseInt(e.target.value) || 0)}
-                    min="0"
-                    max="10000"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Current: {((fundData.mgmt_fee_bps || 200) / 100).toFixed(2)}% per annum
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="perf_fee">Performance Fee (bps)</Label>
-                  <Input
-                    id="perf_fee"
-                    type="number"
-                    value={fundData.perf_fee_bps || 2000}
-                    onChange={(e) => updateField('perf_fee_bps', parseInt(e.target.value) || 0)}
-                    min="0"
-                    max="10000"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Current: {((fundData.perf_fee_bps || 2000) / 100).toFixed(2)}% of excess returns
-                  </p>
-                </div>
+              <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg">
+                <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+                  ℹ️ Fee Management Update
+                </h4>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  Fee management has been moved to individual investor profiles. Each investor can now have personalized fee structures managed from their individual detail pages.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -414,7 +392,7 @@ const FundConfiguration = () => {
                   placeholder="0.00"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Performance fees only charged above this threshold
+                  Performance threshold for fund tracking
                 </p>
               </div>
             </CardContent>

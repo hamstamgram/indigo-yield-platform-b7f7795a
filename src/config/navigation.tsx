@@ -115,25 +115,19 @@ export const adminNavGroups: NavGroup[] = [
     ]
   },
   {
-    title: "Operations",
-    icon: Cog,
+    title: "Fund Management",
+    icon: Briefcase,
     items: [
+      {
+        title: "Fund Management",
+        href: "/admin/funds",
+        icon: <Briefcase className="h-5 w-5" />,
+        adminOnly: true
+      },
       {
         title: "Withdrawals",
         href: "/admin/withdrawals",
         icon: <ArrowLeftRight className="h-5 w-5" />,
-        adminOnly: true
-      },
-      {
-        title: "Yield Settings",
-        href: "/admin/yield-settings",
-        icon: <DollarSign className="h-5 w-5" />,
-        adminOnly: true
-      },
-      {
-        title: "Portfolio Management",
-        href: "/admin/portfolio",
-        icon: <PieChart className="h-5 w-5" />,
         adminOnly: true
       }
     ]
@@ -160,12 +154,6 @@ export const adminNavGroups: NavGroup[] = [
 
 // Flat admin navigation for backward compatibility
 export const adminNav: NavItem[] = adminNavGroups.flatMap(group => group.items);
-
-// Legacy admin routes (still accessible but not in main nav)
-export const legacyAdminNav: NavItem[] = [
-  { title: "Admin Tools", href: "/admin-tools", icon: <Database className="h-5 w-5" />, adminOnly: true },
-  { title: "Operations", href: "/admin-operations", icon: <Building2 className="h-5 w-5" />, adminOnly: true },
-];
 
 // Account navigation menu
 export const accountNav: NavItem[] = [

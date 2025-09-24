@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { formatAssetValue } from '@/utils/kpiCalculations';
-import MonthlyReportsTable from '@/components/admin/investors/MonthlyReportsTable';
+import InvestorMonthlyTracking from '@/components/admin/investors/InvestorMonthlyTracking';
 import { 
   User, 
   Mail, 
@@ -216,7 +216,7 @@ const AdminInvestorDetailPage = () => {
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="positions">Positions</TabsTrigger>
-          <TabsTrigger value="activity">Historical Reports</TabsTrigger>
+          <TabsTrigger value="activity">Monthly Tracking</TabsTrigger>
         </TabsList>
         
         <TabsContent value="profile" className="space-y-4">
@@ -325,10 +325,7 @@ const AdminInvestorDetailPage = () => {
         </TabsContent>
         
         <TabsContent value="activity" className="space-y-4">
-          <MonthlyReportsTable 
-            investorId={id!}
-            investorName={investor.name}
-          />
+          <InvestorMonthlyTracking investorId={id!} />
         </TabsContent>
       </Tabs>
     </div>
