@@ -570,13 +570,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "data_edit_audit_import_id_fkey"
-            columns: ["import_id"]
-            isOneToOne: false
-            referencedRelation: "excel_import_log"
-            referencedColumns: ["id"]
-          },
         ]
       }
       deposits: {
@@ -653,72 +646,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      excel_import_log: {
-        Row: {
-          class_summary: Json | null
-          completed_at: string | null
-          created_at: string | null
-          errors: Json | null
-          filename: string
-          fund_classes: Json | null
-          id: string
-          import_type: string | null
-          imported_by: string | null
-          rows_failed: number | null
-          rows_processed: number | null
-          rows_succeeded: number | null
-          started_at: string | null
-          status: string | null
-        }
-        Insert: {
-          class_summary?: Json | null
-          completed_at?: string | null
-          created_at?: string | null
-          errors?: Json | null
-          filename: string
-          fund_classes?: Json | null
-          id?: string
-          import_type?: string | null
-          imported_by?: string | null
-          rows_failed?: number | null
-          rows_processed?: number | null
-          rows_succeeded?: number | null
-          started_at?: string | null
-          status?: string | null
-        }
-        Update: {
-          class_summary?: Json | null
-          completed_at?: string | null
-          created_at?: string | null
-          errors?: Json | null
-          filename?: string
-          fund_classes?: Json | null
-          id?: string
-          import_type?: string | null
-          imported_by?: string | null
-          rows_failed?: number | null
-          rows_processed?: number | null
-          rows_succeeded?: number | null
-          started_at?: string | null
-          status?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "excel_import_log_imported_by_fkey"
-            columns: ["imported_by"]
-            isOneToOne: false
-            referencedRelation: "investor_directory"
-            referencedColumns: ["profile_id"]
-          },
-          {
-            foreignKeyName: "excel_import_log_imported_by_fkey"
-            columns: ["imported_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       fee_calculations: {
         Row: {
@@ -1070,78 +997,6 @@ export type Database = {
         }
         Relationships: []
       }
-      import_locks: {
-        Row: {
-          id: string
-          import_id: string | null
-          is_active: boolean | null
-          lock_reason: string | null
-          locked_at: string
-          locked_by: string | null
-          unlock_at: string | null
-          unlocked_at: string | null
-          unlocked_by: string | null
-        }
-        Insert: {
-          id?: string
-          import_id?: string | null
-          is_active?: boolean | null
-          lock_reason?: string | null
-          locked_at?: string
-          locked_by?: string | null
-          unlock_at?: string | null
-          unlocked_at?: string | null
-          unlocked_by?: string | null
-        }
-        Update: {
-          id?: string
-          import_id?: string | null
-          is_active?: boolean | null
-          lock_reason?: string | null
-          locked_at?: string
-          locked_by?: string | null
-          unlock_at?: string | null
-          unlocked_at?: string | null
-          unlocked_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "import_locks_import_id_fkey"
-            columns: ["import_id"]
-            isOneToOne: false
-            referencedRelation: "excel_import_log"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "import_locks_locked_by_fkey"
-            columns: ["locked_by"]
-            isOneToOne: false
-            referencedRelation: "investor_directory"
-            referencedColumns: ["profile_id"]
-          },
-          {
-            foreignKeyName: "import_locks_locked_by_fkey"
-            columns: ["locked_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "import_locks_unlocked_by_fkey"
-            columns: ["unlocked_by"]
-            isOneToOne: false
-            referencedRelation: "investor_directory"
-            referencedColumns: ["profile_id"]
-          },
-          {
-            foreignKeyName: "import_locks_unlocked_by_fkey"
-            columns: ["unlocked_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       investor_monthly_reports: {
         Row: {
           additions: number | null
@@ -1403,33 +1258,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      legacy_system_migration: {
-        Row: {
-          created_at: string | null
-          deprecated_at: string | null
-          id: string
-          migration_notes: string | null
-          migration_status: string
-          table_name: string
-        }
-        Insert: {
-          created_at?: string | null
-          deprecated_at?: string | null
-          id?: string
-          migration_notes?: string | null
-          migration_status?: string
-          table_name: string
-        }
-        Update: {
-          created_at?: string | null
-          deprecated_at?: string | null
-          id?: string
-          migration_notes?: string | null
-          migration_status?: string
-          table_name?: string
-        }
-        Relationships: []
       }
       notifications: {
         Row: {
@@ -3007,17 +2835,6 @@ export type Database = {
         }
         Relationships: []
       }
-      import_status: {
-        Row: {
-          active_locks: number | null
-          edit_window_days: number | null
-          imports_enabled: boolean | null
-          last_import_time: string | null
-          last_lock_time: string | null
-          successful_imports: number | null
-        }
-        Relationships: []
-      }
       investor_directory: {
         Row: {
           aml_status: string | null
@@ -3473,16 +3290,6 @@ export type Database = {
           total_value: number
         }[]
       }
-      get_legacy_migration_status: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          deprecated_at: string
-          migration_notes: string
-          migration_status: string
-          record_count: number
-          table_name: string
-        }[]
-      }
       get_pending_withdrawals: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -3554,10 +3361,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
-      is_import_enabled: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
       is_valid_share_token: {
         Args: { token_value: string }
         Returns: boolean
@@ -3565,10 +3368,6 @@ export type Database = {
       is_within_edit_window: {
         Args: { p_created_at: string }
         Returns: boolean
-      }
-      lock_imports: {
-        Args: { p_reason?: string }
-        Returns: string
       }
       log_access_event: {
         Args: {
@@ -3629,10 +3428,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
-      process_excel_import_with_classes: {
-        Args: { p_data: Json; p_import_type?: string }
-        Returns: Json
-      }
       recalculate_aum_percentages: {
         Args: { p_asset_code: string }
         Returns: boolean
@@ -3662,10 +3457,6 @@ export type Database = {
           result: boolean
           test_name: string
         }[]
-      }
-      unlock_imports: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
       }
       update_investor_aum_percentages: {
         Args: { p_fund_id: string; p_total_aum?: number }

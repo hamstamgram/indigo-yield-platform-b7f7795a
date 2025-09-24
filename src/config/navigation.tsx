@@ -18,7 +18,6 @@ import {
   Building2,
   PieChart,
   Database,
-  Upload,
   UserCheck,
   Briefcase,
   Activity,
@@ -33,7 +32,6 @@ import {
   Cog,
   Globe,
   FileSpreadsheet,
-  Archive,
   Target
 } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
