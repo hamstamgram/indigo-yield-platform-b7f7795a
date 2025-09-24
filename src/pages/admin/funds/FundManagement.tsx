@@ -4,6 +4,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { DollarSign, Percent, BarChart3, Settings } from 'lucide-react';
 import FundAUMManager from '@/components/admin/funds/FundAUMManager';
 import FundYieldManager from '@/components/admin/funds/FundYieldManager';
+import FundPerformanceAnalytics from '@/components/admin/funds/FundPerformanceAnalytics';
+import FundConfiguration from '@/components/admin/funds/FundConfiguration';
 
 const FundManagement = () => {
   return (
@@ -48,35 +50,11 @@ const FundManagement = () => {
         </TabsContent>
 
         <TabsContent value="performance" className="space-y-6">
-          <Card>
-            <CardContent className="p-8 text-center">
-              <div className="space-y-4">
-                <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground" />
-                <div>
-                  <h3 className="text-lg font-semibold">Performance Analytics</h3>
-                  <p className="text-muted-foreground">
-                    Fund performance tracking and analytics coming soon
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <FundPerformanceAnalytics />
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-6">
-          <Card>
-            <CardContent className="p-8 text-center">
-              <div className="space-y-4">
-                <Settings className="h-12 w-12 mx-auto text-muted-foreground" />
-                <div>
-                  <h3 className="text-lg font-semibold">Fund Configuration</h3>
-                  <p className="text-muted-foreground">
-                    Fund settings and configuration options coming soon
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <FundConfiguration />
         </TabsContent>
       </Tabs>
     </div>

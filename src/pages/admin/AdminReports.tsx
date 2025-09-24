@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { adminServiceV2, type DashboardStatsV2, type InvestorSummaryV2 } from '@/services/adminServiceV2';
 import { DateRange } from 'react-day-picker';
 import { addDays, format, subDays, subMonths } from 'date-fns';
+import AssetPerformanceTab from '@/components/admin/reports/AssetPerformanceTab';
 
 const AdminReports = () => {
   const [loading, setLoading] = useState(true);
@@ -301,17 +302,7 @@ const AdminReports = () => {
         </TabsContent>
 
         <TabsContent value="assets" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Asset Performance</CardTitle>
-              <CardDescription>Performance metrics by investor asset allocation</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center text-muted-foreground py-8">
-                Asset performance tracking coming soon...
-              </div>
-            </CardContent>
-          </Card>
+          <AssetPerformanceTab />
         </TabsContent>
       </Tabs>
     </div>
