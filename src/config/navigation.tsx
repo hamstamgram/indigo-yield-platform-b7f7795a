@@ -73,6 +73,7 @@ export const adminNav: NavItem[] = [
   { title: "Yield Management", href: "/admin/yield-management", icon: <Target className="h-5 w-5" />, adminOnly: true },
   { title: "Setup AUM", href: "/admin/setup-aum", icon: <Database className="h-5 w-5" />, adminOnly: true },
   { title: "Test Yield", href: "/admin/test-yield", icon: <Target className="h-5 w-5" />, adminOnly: true },
+  { title: "Legacy Migration", href: "/admin/legacy-migration", icon: <Database className="h-5 w-5" />, adminOnly: true },
   { title: "Excel Import", href: "/admin/excel-first-run", icon: <Upload className="h-5 w-5" />, adminOnly: true },
   { title: "Audit", href: "/admin/audit", icon: <Shield className="h-5 w-5" />, adminOnly: true },
 ];

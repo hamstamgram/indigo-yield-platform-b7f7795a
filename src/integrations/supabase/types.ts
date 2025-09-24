@@ -3079,30 +3079,6 @@ export type Database = {
           },
         ]
       }
-      legacy_migration_status: {
-        Row: {
-          deprecated_at: string | null
-          migration_notes: string | null
-          migration_status: string | null
-          record_count: number | null
-          table_name: string | null
-        }
-        Insert: {
-          deprecated_at?: string | null
-          migration_notes?: string | null
-          migration_status?: string | null
-          record_count?: never
-          table_name?: string | null
-        }
-        Update: {
-          deprecated_at?: string | null
-          migration_notes?: string | null
-          migration_status?: string | null
-          record_count?: never
-          table_name?: string | null
-        }
-        Relationships: []
-      }
       portfolio_overview_v: {
         Row: {
           asset_count: number | null
@@ -3495,6 +3471,16 @@ export type Database = {
           fund_class: string
           total_pnl: number
           total_value: number
+        }[]
+      }
+      get_legacy_migration_status: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          deprecated_at: string
+          migration_notes: string
+          migration_status: string
+          record_count: number
+          table_name: string
         }[]
       }
       get_pending_withdrawals: {
