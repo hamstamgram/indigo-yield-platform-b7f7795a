@@ -19,6 +19,10 @@ class AuthViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var showError = false
     @Published var requiresTwoFactor = false
+
+    var currentUser: User? {
+        return user
+    }
     
     private let serviceLocator = ServiceLocator.shared
     private var cancellables = Set<AnyCancellable>()
@@ -206,15 +210,51 @@ class AuthViewModel: ObservableObject {
     func enableBiometric(_ enabled: Bool) async throws {
         try serviceLocator.keychainManager.setBiometricEnabled(enabled)
     }
+
+    // MARK: - Demo Login (for testing)
+
+    #if DEBUG
+    func loginAsDemo(role: UserRole) async {
+        isLoading = true
+        errorMessage = nil
+
+        // Create demo user
+        let demoUser = User(
+            id: UUID(),
+            email: role == .admin ? "admin@demo.com" : "investor@demo.com",
+            fullName: role == .admin ? "Demo Admin" : "Demo Investor",
+            role: role,
+            isActive: true,
+            createdAt: Date(),
+            lastLogin: Date(),
+            profile: nil
+        )
+
+        // Set user data
+        self.user = demoUser
+        self.userRole = role
+        self.isAuthenticated = true
+        self.isLoading = false
+
+        // Save to keychain for session persistence
+        try? serviceLocator.keychainManager.saveUserID(demoUser.id.uuidString)
+        try? serviceLocator.keychainManager.saveUserRole(role.rawValue)
+    }
+    #endif
     
     // MARK: - Private Methods
     
     private func setUserData(from supabaseUser: Supabase.User?) async {
-        guard let supabaseUser = supabaseUser else { return }
-        
+        guard let supabaseUser = supabaseUser else {
+            print("❌ No Supabase user provided")
+            return
+        }
+
+        print("✅ Setting user data for: \(supabaseUser.email ?? "unknown email")")
+
         // Map Supabase user to our User model
         let role = determineUserRole(from: supabaseUser)
-        
+
         user = User(
             id: UUID(uuidString: supabaseUser.id.uuidString) ?? UUID(),
             email: supabaseUser.email ?? "",
@@ -225,12 +265,20 @@ class AuthViewModel: ObservableObject {
             lastLogin: Date(),
             profile: nil
         )
-        
+
         userRole = role
-        
+
         // Save to keychain
-        try? serviceLocator.keychainManager.saveUserID(supabaseUser.id.uuidString)
-        try? serviceLocator.keychainManager.saveUserRole(role.rawValue)
+        do {
+            try serviceLocator.keychainManager.saveUserID(supabaseUser.id.uuidString)
+            try serviceLocator.keychainManager.saveUserRole(role.rawValue)
+            print("✅ User data saved to keychain")
+        } catch {
+            print("❌ Failed to save user data to keychain: \(error)")
+        }
+
+        // Post authentication state change notification
+        NotificationCenter.default.post(name: .authStateChanged, object: self)
     }
     
     private func determineUserRole(from user: Supabase.User) -> UserRole {

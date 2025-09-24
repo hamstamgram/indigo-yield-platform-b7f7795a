@@ -158,6 +158,80 @@ struct AuthenticationView: View {
                                     .font(.footnote)
                                     .foregroundColor(.white.opacity(0.9))
                             }
+
+                            // Demo Login Button (for testing)
+                            #if DEBUG
+                            HStack {
+                                Button(action: {
+                                    Task {
+                                        await authViewModel.loginAsDemo(role: .investor)
+                                    }
+                                }) {
+                                    Text("Demo Investor")
+                                        .font(.caption)
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(Color.green.opacity(0.7))
+                                        .cornerRadius(8)
+                                }
+
+                                Button(action: {
+                                    Task {
+                                        await authViewModel.loginAsDemo(role: .admin)
+                                    }
+                                }) {
+                                    Text("Demo Admin")
+                                        .font(.caption)
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(Color.orange.opacity(0.7))
+                                        .cornerRadius(8)
+                                }
+                            }
+                            .padding(.top, 10)
+
+                            // Real Production Login Buttons (for testing)
+                            HStack {
+                                Button(action: {
+                                    Task {
+                                        do {
+                                            try await authViewModel.login(email: "h.monoja@protonmail.com", password: "Boboba1967@")
+                                        } catch {
+                                            // Error handled by AuthViewModel
+                                        }
+                                    }
+                                }) {
+                                    Text("Real Investor")
+                                        .font(.caption)
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(Color.blue.opacity(0.7))
+                                        .cornerRadius(8)
+                                }
+
+                                Button(action: {
+                                    Task {
+                                        do {
+                                            try await authViewModel.login(email: "hammadou@Indigo.fund", password: "Boboba1967@")
+                                        } catch {
+                                            // Error handled by AuthViewModel
+                                        }
+                                    }
+                                }) {
+                                    Text("Real Admin")
+                                        .font(.caption)
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(Color.red.opacity(0.7))
+                                        .cornerRadius(8)
+                                }
+                            }
+                            .padding(.top, 5)
+                            #endif
                         }
                         .padding(.horizontal, 30)
                         .padding(.vertical, 20)

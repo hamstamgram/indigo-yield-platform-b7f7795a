@@ -14,32 +14,42 @@ struct SupabaseConfig {
         // Read from Info.plist which is populated from xcconfig
         if let url = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_URL") as? String,
            !url.isEmpty {
+            print("✅ Using Supabase URL from Info.plist: \(url)")
             return url
         }
-        
-        #if DEBUG
-        // Fallback for development
-        return "http://127.0.0.1:54321"
-        #else
-        // Fallback for production
-        return "https://uxpzrxsnxlptkamkkaae.supabase.co"
-        #endif
+
+        // Use production URL for both debug and release
+        let productionURL = "https://nkfimvovosdehmyyjubn.supabase.co"
+        print("⚠️ Using hardcoded production URL: \(productionURL)")
+        return productionURL
     }
-    
+
     var anonKey: String {
         // Read from Info.plist which is populated from xcconfig
         if let key = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_ANON_KEY") as? String,
            !key.isEmpty {
+            print("✅ Using Supabase anon key from Info.plist")
             return key
         }
-        
-        #if DEBUG
-        // Fallback for development - using the standard Supabase local anon key
-        return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
-        #else
-        // Production key should be provided via xcconfig
-        return ""
-        #endif
+
+        // Use production anon key for both debug and release
+        print("⚠️ Using hardcoded production anon key")
+        return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZmltdm92b3NkZWhteXlqdWJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0NTQ1OTgsImV4cCI6MjA2MjAzMDU5OH0.pZrIyCCd7dlvvNMGdW8-71BxSVfoKhxs9a5Ezbkmjgg"
+    }
+
+    var isConfigurationValid: Bool {
+        let url = self.url
+        let key = self.anonKey
+
+        guard !url.isEmpty, !key.isEmpty,
+              URL(string: url) != nil,
+              key.contains(".") else { // Basic JWT format check
+            print("❌ Invalid Supabase configuration")
+            return false
+        }
+
+        print("✅ Supabase configuration is valid")
+        return true
     }
     
     var jwtAudience: String {
@@ -72,7 +82,7 @@ struct SupabaseConfig {
     // Allowed hosts for certificate pinning
     var pinnedHosts: [String] {
         return [
-            "uxpzrxsnxlptkamkkaae.supabase.co",
+            "nkfimvovosdehmyyjubn.supabase.co",
             "supabase.co"
         ]
     }

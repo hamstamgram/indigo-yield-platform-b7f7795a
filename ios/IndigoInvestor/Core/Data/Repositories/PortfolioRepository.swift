@@ -63,18 +63,36 @@ class PortfolioRepository: PortfolioRepositoryProtocol {
     // MARK: - Private Methods
     
     private func fetchFromNetwork(investorId: UUID) async throws -> Portfolio {
-        // Fetch main portfolio data
-        let portfolioResponse = try await supabaseClient.database
-            .from("portfolios")
-            .select("""
-                id, investor_id, total_value, total_cost, total_gain, total_gain_percent,
-                day_change, day_change_percent, week_change, week_change_percent,
-                month_change, month_change_percent, year_change, year_change_percent,
-                last_updated
-            """)
-            .eq("investor_id", value: investorId.uuidString)
-            .single()
-            .execute()
+        print("🌐 Fetching portfolio from network for investor: \(investorId)")
+
+        do {
+            // Fetch main portfolio data
+            let portfolioResponse = try await supabaseClient.database
+                .from("portfolios")
+                .select("""
+                    id, investor_id, total_value, total_cost, total_gain, total_gain_percent,
+                    day_change, day_change_percent, week_change, week_change_percent,
+                    month_change, month_change_percent, year_change, year_change_percent,
+                    last_updated
+                """)
+                .eq("investor_id", value: investorId.uuidString)
+                .single()
+                .execute()
+
+            print("✅ Portfolio data fetched successfully")
+
+        } catch {
+            print("❌ Failed to fetch portfolio data: \(error)")
+
+            // If no portfolio found, create a default empty portfolio
+            if error.localizedDescription.contains("No rows") ||
+               error.localizedDescription.contains("not found") {
+                print("⚠️ No portfolio found, creating default empty portfolio")
+                return createDefaultPortfolio(for: investorId)
+            }
+
+            throw error
+        }
         
         // Fetch positions
         let positionsResponse = try await supabaseClient.database
@@ -295,6 +313,32 @@ class PortfolioEntity: NSManagedObject {
     @NSManaged var dayChange: NSDecimalNumber
     @NSManaged var dayChangePercent: Double
     @NSManaged var lastUpdated: Date
+}
+
+    // MARK: - Default Portfolio Creation
+
+    private func createDefaultPortfolio(for investorId: UUID) -> Portfolio {
+        return Portfolio(
+            id: UUID(),
+            investorId: investorId,
+            totalValue: 0,
+            totalCost: 0,
+            totalGain: 0,
+            totalGainPercent: 0.0,
+            dayChange: 0,
+            dayChangePercent: 0.0,
+            weekChange: 0,
+            weekChangePercent: 0.0,
+            monthChange: 0,
+            monthChangePercent: 0.0,
+            yearChange: 0,
+            yearChangePercent: 0.0,
+            lastUpdated: Date(),
+            positions: [],
+            assetAllocation: [],
+            performanceHistory: []
+        )
+    }
 }
 
 // MARK: - Extensions

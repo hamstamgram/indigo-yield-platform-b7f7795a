@@ -50,31 +50,58 @@ class ServiceLocator: ObservableObject {
     }
     
     func configureSupabase(url: String, anonKey: String) {
-        guard let url = URL(string: url) else {
-            fatalError("Invalid Supabase URL: \(url)")
+        print("🔧 Configuring Supabase with URL: \(url)")
+
+        // Validate configuration first
+        let config = SupabaseConfig.current
+        guard config.isConfigurationValid else {
+            fatalError("❌ Invalid Supabase configuration. Check URL and anon key.")
         }
-        
+
+        guard let supabaseURL = URL(string: url) else {
+            fatalError("❌ Invalid Supabase URL: \(url)")
+        }
+
         // Use KeychainLocalStorage for secure token storage
         let storage = KeychainLocalStorage(service: "com.indigo.investor")
-        
-        supabaseClient = SupabaseClient(
-            supabaseURL: url,
-            supabaseKey: anonKey,
-            options: SupabaseClientOptions(
-                db: .init(schema: "public"),
-                auth: .init(
-                    storage: storage,
-                    autoRefreshToken: true  // Enable auto refresh for production
-                ),
-                global: .init(
-                    headers: ["apikey": anonKey],
-                    session: URLSession(configuration: .default)
+
+        // Create URLSession with proper timeout and retry configuration
+        let sessionConfig = URLSessionConfiguration.default
+        sessionConfig.timeoutIntervalForRequest = 30
+        sessionConfig.timeoutIntervalForResource = 60
+        sessionConfig.waitsForConnectivity = true
+        sessionConfig.requestCachePolicy = .reloadIgnoringLocalCacheData
+
+        do {
+            supabaseClient = SupabaseClient(
+                supabaseURL: supabaseURL,
+                supabaseKey: anonKey,
+                options: SupabaseClientOptions(
+                    db: .init(schema: "public"),
+                    auth: .init(
+                        storage: storage,
+                        autoRefreshToken: true  // Enable auto refresh for production
+                    ),
+                    global: .init(
+                        headers: [
+                            "apikey": anonKey,
+                            "Content-Type": "application/json",
+                            "Accept": "application/json"
+                        ],
+                        session: URLSession(configuration: sessionConfig)
+                    )
                 )
             )
-        )
-        
-        // Initialize services with Supabase client
-        initializeServices()
+
+            print("✅ Supabase client configured successfully")
+
+            // Initialize services with Supabase client
+            initializeServices()
+
+        } catch {
+            print("❌ Failed to configure Supabase client: \(error)")
+            fatalError("Failed to configure Supabase client: \(error.localizedDescription)")
+        }
     }
     
     private func setupServices() {
@@ -91,47 +118,58 @@ class ServiceLocator: ObservableObject {
     
     private func initializeServices() {
         guard let client = supabaseClient else { return }
-        
+
         // Initialize offline manager
         offlineManager = OfflineManager(coreDataStack: coreDataStack, networkMonitor: networkMonitor)
-        
+
         // Initialize core services first
         realtimeService = RealtimeService(supabase: client)
         storageService = StorageService(supabase: client)
-        
-        // Initialize repositories
-        portfolioRepository = PortfolioRepository(coreDataStack: coreDataStack)
+
+        // Initialize repositories with proper dependencies
+        portfolioRepository = PortfolioRepository(
+            supabase: client,
+            coreData: coreDataStack,
+            offlineManager: offlineManager
+        )
         transactionRepository = TransactionRepository(coreDataStack: coreDataStack)
         statementRepository = StatementRepository(coreDataStack: coreDataStack)
         withdrawalRepository = WithdrawalRepository(coreDataStack: coreDataStack)
-        
+
         // Initialize auth service first (as other services depend on it)
         authService = AuthService(supabase: client)
-        
-        // Initialize business services
+
+        // Initialize business services with proper dependencies
         portfolioService = PortfolioService(
-            supabase: client,
-            authService: authService
+            repository: portfolioRepository,
+            realtimeService: realtimeService
         )
-        
+
         transactionService = TransactionService(
             supabase: client,
             authService: authService
         )
-        
+
         documentService = DocumentService(
             supabase: client,
             authService: authService
         )
-        
+
         withdrawalService = WithdrawalService(
             supabase: client,
             authService: authService
         )
-        
+
         adminService = AdminService(supabase: client)
-        
+
         print("✅ All services initialized successfully")
+
+        // Run diagnostics in DEBUG mode
+        #if DEBUG
+        Task {
+            await SupabaseDebugger.runFullDiagnostics(client: client)
+        }
+        #endif
     }
     
     // MARK: - ViewModel Factory Methods

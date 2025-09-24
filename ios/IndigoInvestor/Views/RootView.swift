@@ -71,36 +71,36 @@ struct RootView: View {
 
 struct InvestorTabView: View {
     @Binding var selectedTab: Int
-    
+
     var body: some View {
         TabView(selection: $selectedTab) {
             DashboardView()
                 .tabItem {
-                    Label("Dashboard", systemImage: "chart.pie.fill")
+                    Label("Dashboard", systemImage: "house.fill")
                 }
                 .tag(0)
-            
-            PortfolioView()
+
+            StatementsView()
                 .tabItem {
-                    Label("Portfolio", systemImage: "briefcase.fill")
+                    Label("Statements", systemImage: "doc.text.fill")
                 }
                 .tag(1)
-            
+
             TransactionsView()
                 .tabItem {
-                    Label("Transactions", systemImage: "arrow.left.arrow.right")
+                    Label("Transactions", systemImage: "creditcard.fill")
                 }
                 .tag(2)
-            
-            DocumentsView()
+
+            WithdrawalsView()
                 .tabItem {
-                    Label("Documents", systemImage: "doc.text.fill")
+                    Label("Withdrawals", systemImage: "arrow.down.circle.fill")
                 }
                 .tag(3)
-            
-            AccountView()
+
+            MoreMenuView()
                 .tabItem {
-                    Label("Account", systemImage: "person.circle.fill")
+                    Label("More", systemImage: "ellipsis.circle.fill")
                 }
                 .tag(4)
         }
@@ -111,7 +111,7 @@ struct InvestorTabView: View {
 
 struct AdminTabView: View {
     @Binding var selectedTab: Int
-    
+
     var body: some View {
         TabView(selection: $selectedTab) {
             AdminDashboardView()
@@ -119,28 +119,28 @@ struct AdminTabView: View {
                     Label("Dashboard", systemImage: "chart.line.uptrend.xyaxis")
                 }
                 .tag(0)
-            
+
             AdminInvestorsView()
                 .tabItem {
                     Label("Investors", systemImage: "person.3.fill")
                 }
                 .tag(1)
-            
-            AdminApprovalsView()
+
+            AdminWithdrawalsView()
                 .tabItem {
-                    Label("Approvals", systemImage: "checkmark.shield.fill")
+                    Label("Withdrawals", systemImage: "arrow.down.circle.fill")
                 }
                 .tag(2)
-            
+
             AdminReportsView()
                 .tabItem {
                     Label("Reports", systemImage: "chart.bar.doc.horizontal")
                 }
                 .tag(3)
-            
-            AdminSettingsView()
+
+            AdminMoreMenuView()
                 .tabItem {
-                    Label("Settings", systemImage: "gearshape.fill")
+                    Label("More", systemImage: "ellipsis.circle.fill")
                 }
                 .tag(4)
         }

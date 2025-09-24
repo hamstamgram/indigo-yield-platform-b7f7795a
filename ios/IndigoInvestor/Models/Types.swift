@@ -51,18 +51,213 @@ enum WithdrawalStatus: String, Codable {
     case rejected = "rejected"
 }
 
+// MARK: - Native Tokens
+
+enum NativeToken: String, Codable, CaseIterable {
+    case btc = "BTC"
+    case eth = "ETH"
+    case sol = "SOL"
+    case usdc = "USDC"
+    case usdt = "USDT"
+    case eurc = "EURC"
+
+    var displayName: String {
+        switch self {
+        case .btc: return "Bitcoin"
+        case .eth: return "Ethereum"
+        case .sol: return "Solana"
+        case .usdc: return "USD Coin"
+        case .usdt: return "Tether"
+        case .eurc: return "Euro Coin"
+        }
+    }
+
+    var symbol: String {
+        return self.rawValue
+    }
+
+    var isStablecoin: Bool {
+        switch self {
+        case .usdc, .usdt, .eurc:
+            return true
+        default:
+            return false
+        }
+    }
+}
+
+// MARK: - Fund Types
+
+enum FundStatus: String, Codable {
+    case active = "active"
+    case inactive = "inactive"
+    case suspended = "suspended"
+}
+
+enum FundClass: String, Codable {
+    case equity = "equity"
+    case fixedIncome = "fixed_income"
+    case mixed = "mixed"
+    case alternative = "alternative"
+    case crypto = "crypto"
+}
+
 // MARK: - Performance Data
 
 struct PerformanceData: Identifiable, Codable {
     let id: UUID
     let date: Date
-    let value: Double
-    let percentageChange: Double
-    
-    init(id: UUID = UUID(), date: Date, value: Double, percentageChange: Double) {
+    let value: Decimal
+    let gain: Decimal
+    let gainPercent: Double
+
+    init(id: UUID = UUID(), date: Date, value: Decimal, gain: Decimal, gainPercent: Double) {
         self.id = id
         self.date = date
         self.value = value
-        self.percentageChange = percentageChange
+        self.gain = gain
+        self.gainPercent = gainPercent
+    }
+}
+
+// MARK: - Live Events
+
+struct LiveEvent: Identifiable, Codable {
+    let id: String
+    let title: String
+    let description: String
+    let category: EventCategory
+    let timestamp: Date
+    let marketImpact: Double?
+    let relatedAssets: [String]
+    let hasActionButton: Bool
+    let actionButtonTitle: String?
+    let priority: EventPriority
+    let isRead: Bool
+
+    init(id: String = UUID().uuidString, title: String, description: String, category: EventCategory, timestamp: Date = Date(), marketImpact: Double? = nil, relatedAssets: [String] = [], hasActionButton: Bool = false, actionButtonTitle: String? = nil, priority: EventPriority = .medium, isRead: Bool = false) {
+        self.id = id
+        self.title = title
+        self.description = description
+        self.category = category
+        self.timestamp = timestamp
+        self.marketImpact = marketImpact
+        self.relatedAssets = relatedAssets
+        self.hasActionButton = hasActionButton
+        self.actionButtonTitle = actionButtonTitle
+        self.priority = priority
+        self.isRead = isRead
+    }
+}
+
+enum EventCategory: String, CaseIterable, Codable {
+    case all = "all"
+    case market = "market_update"
+    case fund = "fund_news"
+    case system = "system"
+    case alert = "alert"
+    case maintenance = "maintenance"
+
+    var displayName: String {
+        switch self {
+        case .all: return "All"
+        case .market: return "Market Update"
+        case .fund: return "Fund News"
+        case .system: return "System"
+        case .alert: return "Alert"
+        case .maintenance: return "Maintenance"
+        }
+    }
+}
+
+enum EventPriority: String, Codable {
+    case high = "high"
+    case medium = "medium"
+    case low = "low"
+}
+
+enum StatusType: String, Codable {
+    case info = "info"
+    case warning = "warning"
+    case error = "error"
+}
+
+// MARK: - Newsletter
+
+struct NewsletterIssue: Identifiable, Codable {
+    let id: String
+    let title: String
+    let excerpt: String
+    let date: Date
+    let category: NewsletterCategory
+    let readTime: Int
+    let wordCount: Int
+    let isRead: Bool
+    let tags: [String]
+    let sections: [NewsletterContentSection]
+    let shareURL: String
+
+    init(id: String = UUID().uuidString, title: String, excerpt: String, date: Date = Date(), category: NewsletterCategory, readTime: Int, wordCount: Int, isRead: Bool = false, tags: [String] = [], sections: [NewsletterContentSection] = [], shareURL: String? = nil) {
+        self.id = id
+        self.title = title
+        self.excerpt = excerpt
+        self.date = date
+        self.category = category
+        self.readTime = readTime
+        self.wordCount = wordCount
+        self.isRead = isRead
+        self.tags = tags
+        self.sections = sections
+        self.shareURL = shareURL ?? "https://app.indigo-yield.com/newsletter/\(id)"
+    }
+}
+
+struct NewsletterContentSection: Identifiable, Codable {
+    let id: String
+    let title: String?
+    let content: String
+    let imageURL: String?
+    let highlights: [String]
+
+    init(id: String = UUID().uuidString, title: String? = nil, content: String, imageURL: String? = nil, highlights: [String] = []) {
+        self.id = id
+        self.title = title
+        self.content = content
+        self.imageURL = imageURL
+        self.highlights = highlights
+    }
+}
+
+enum NewsletterCategory: String, CaseIterable, Codable {
+    case all = "all"
+    case weekly = "weekly"
+    case market = "market"
+    case funds = "funds"
+    case insights = "insights"
+    case company = "company"
+
+    var displayName: String {
+        switch self {
+        case .all: return "All"
+        case .weekly: return "Market Weekly"
+        case .market: return "Market Updates"
+        case .funds: return "Fund Updates"
+        case .insights: return "Investment Insights"
+        case .company: return "Company News"
+        }
+    }
+}
+
+enum NewsletterFrequency: String, CaseIterable, Codable {
+    case daily = "daily"
+    case weekly = "weekly"
+    case monthly = "monthly"
+
+    var displayName: String {
+        switch self {
+        case .daily: return "Daily"
+        case .weekly: return "Weekly"
+        case .monthly: return "Monthly"
+        }
     }
 }

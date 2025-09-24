@@ -421,11 +421,11 @@ struct RecentTransactionsCard: View {
                 
                 Spacer()
                 
-                NavigationLink(destination: TransactionsView()) {
+                // NavigationLink(destination: TransactionsView()) {
                     Text("View All")
                         .font(.caption)
                         .foregroundColor(.accentColor)
-                }
+                // }
             }
             
             VStack(spacing: 8) {
