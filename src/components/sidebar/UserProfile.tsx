@@ -1,24 +1,47 @@
 
-import React from "react";
+import { User, Crown } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type UserProfileProps = {
   userName: string;
-  isAdmin: boolean;
+  isAdmin?: boolean;
+  avatarUrl?: string;
 };
 
-const UserProfile: React.FC<UserProfileProps> = ({ userName, isAdmin }) => {
+const UserProfile = ({ userName, isAdmin = false, avatarUrl }: UserProfileProps) => {
+  const initials = userName
+    .split(' ')
+    .map(name => name.charAt(0))
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
-    <div className="flex items-center px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-      <div className="flex-shrink-0">
-        <div className="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center text-white">
-          {userName.charAt(0).toUpperCase()}
+    <div className="flex items-center px-6 py-4 border-t border-sidebar-border bg-sidebar-accent/30">
+      <div className="flex items-center space-x-3 w-full">
+        <div className="flex-shrink-0">
+          <Avatar className="w-9 h-9">
+            <AvatarImage src={avatarUrl} alt={userName} />
+            <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-sm font-medium">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
         </div>
-      </div>
-      <div className="ml-3">
-        <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{userName}</p>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          {isAdmin ? "Administrator" : "Investor"}
-        </p>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-medium text-sidebar-foreground truncate">
+              {userName}
+            </p>
+            {isAdmin && (
+              <Crown className="w-3 h-3 text-sidebar-primary shrink-0" />
+            )}
+          </div>
+          {isAdmin && (
+            <p className="text-xs text-sidebar-foreground/60">
+              Administrator
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,40 +1,57 @@
 
-import React from "react";
 import { 
-  Home, 
-  Users, 
-  Database, 
-  Settings, 
-  Shield, 
-  User, 
-  LayoutDashboard,
-  Percent,
-  TrendingDown,
-  FileText,
-  CreditCard,
-  Bell,
-  HelpCircle,
-  FolderOpen,
-  ArrowUpDown,
-  PieChart,
+  BarChart3, 
+  FileText, 
+  CreditCard, 
+  ArrowLeftRight, 
+  HelpCircle, 
+  Bell, 
+  Bitcoin,
+  Users,
+  DollarSign,
   TrendingUp,
-  Upload,
-  BarChart3,
-  ClipboardList,
   MessageSquare,
+  FileCheck,
+  Settings,
+  User,
+  Shield,
   Building2,
+  PieChart,
+  Database,
+  Upload,
+  UserCheck,
+  Briefcase,
+  Activity,
+  Search,
+  ClipboardList,
+  BookOpen,
+  UserCog,
+  AlertTriangle,
+  Clock,
+  Lock,
+  Smartphone,
+  Cog,
+  Globe,
+  FileSpreadsheet,
+  Archive,
   Target
 } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { NavItem } from "@/types/navigation";
 
+export type NavGroup = {
+  title: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  items: NavItem[];
+};
+
 // LP Main navigation menu
 export const mainNav: NavItem[] = [
-  { title: "Dashboard", href: "/dashboard", icon: <Home className="h-5 w-5" /> },
+  { title: "Dashboard", href: "/dashboard", icon: <BarChart3 className="h-5 w-5" /> },
   { title: "Statements", href: "/statements", icon: <FileText className="h-5 w-5" /> },
   { title: "Transactions", href: "/transactions", icon: <CreditCard className="h-5 w-5" /> },
-  { title: "Withdrawals", href: "/withdrawals", icon: <TrendingDown className="h-5 w-5" /> },
-  { title: "Documents", href: "/documents", icon: <FolderOpen className="h-5 w-5" /> },
+  { title: "Withdrawals", href: "/withdrawals", icon: <ArrowLeftRight className="h-5 w-5" /> },
+  { title: "Documents", href: "/documents", icon: <FileText className="h-5 w-5" /> },
   { title: "Support", href: "/support", icon: <HelpCircle className="h-5 w-5" /> },
   { title: "Notifications", href: "/notifications", icon: <Bell className="h-5 w-5" /> },
 ];
@@ -45,8 +62,6 @@ export const assetNav: NavItem[] = [
   { title: "Ethereum", href: "/assets/eth", icon: <CryptoIcon symbol="eth" className="h-5 w-5" /> },
   { title: "Solana", href: "/assets/sol", icon: <CryptoIcon symbol="sol" className="h-5 w-5" /> },
   { title: "USDC", href: "/assets/usdc", icon: <CryptoIcon symbol="usdc" className="h-5 w-5" /> },
-  { title: "USDT", href: "/assets/usdt", icon: <CryptoIcon symbol="usdt" className="h-5 w-5" /> },
-  { title: "EURC", href: "/assets/eurc", icon: <CryptoIcon symbol="eurc" className="h-5 w-5" /> },
 ];
 
 // Settings navigation menu
@@ -54,29 +69,117 @@ export const settingsNav: NavItem[] = [
   { title: "Profile", href: "/settings/profile", icon: <User className="h-5 w-5" /> },
   { title: "Notifications", href: "/settings/notifications", icon: <Bell className="h-5 w-5" /> },
   { title: "Security", href: "/settings/security", icon: <Shield className="h-5 w-5" /> },
-  { title: "Sessions", href: "/settings/sessions", icon: <Settings className="h-5 w-5" /> },
+  { title: "Sessions", href: "/settings/sessions", icon: <Clock className="h-5 w-5" /> },
 ];
 
-// Admin navigation menu
-export const adminNav: NavItem[] = [
-  { title: "Admin Dashboard", href: "/admin", icon: <LayoutDashboard className="h-5 w-5" />, adminOnly: true },
-  { title: "Investors", href: "/admin/investors", icon: <Users className="h-5 w-5" />, adminOnly: true },
-  { title: "Withdrawals", href: "/admin/withdrawals", icon: <TrendingDown className="h-5 w-5" />, adminOnly: true },
-  
-  { title: "Reports", href: "/admin/reports", icon: <BarChart3 className="h-5 w-5" />, adminOnly: true },
-  { title: "Historical Reports", href: "/admin/reports/historical", icon: <BarChart3 className="h-5 w-5" />, adminOnly: true },
-  { title: "Support Queue", href: "/admin/support", icon: <MessageSquare className="h-5 w-5" />, adminOnly: true },
-  { title: "Requests", href: "/admin/requests", icon: <ClipboardList className="h-5 w-5" />, adminOnly: true },
-  { title: "Documents", href: "/admin/documents", icon: <FolderOpen className="h-5 w-5" />, adminOnly: true },
-  { title: "Portfolio", href: "/admin/portfolio", icon: <PieChart className="h-5 w-5" />, adminOnly: true },
-  { title: "Fund Management", href: "/admin/funds", icon: <TrendingUp className="h-5 w-5" />, adminOnly: true },
-  { title: "Yield Management", href: "/admin/yield-management", icon: <Target className="h-5 w-5" />, adminOnly: true },
-  { title: "Setup AUM", href: "/admin/setup-aum", icon: <Database className="h-5 w-5" />, adminOnly: true },
-  { title: "Test Yield", href: "/admin/test-yield", icon: <Target className="h-5 w-5" />, adminOnly: true },
-  { title: "Legacy Migration", href: "/admin/legacy-migration", icon: <Database className="h-5 w-5" />, adminOnly: true },
-  { title: "Excel Import", href: "/admin/excel-first-run", icon: <Upload className="h-5 w-5" />, adminOnly: true },
-  { title: "Audit", href: "/admin/audit", icon: <Shield className="h-5 w-5" />, adminOnly: true },
+// Admin navigation groups for better organization
+export const adminNavGroups: NavGroup[] = [
+  {
+    title: "Overview",
+    icon: BarChart3,
+    items: [
+      {
+        title: "Dashboard",
+        href: "/admin",
+        icon: <BarChart3 className="h-5 w-5" />,
+        adminOnly: true
+      },
+      {
+        title: "Reports & Analytics",
+        href: "/admin/reports",
+        icon: <TrendingUp className="h-5 w-5" />,
+        adminOnly: true
+      },
+      {
+        title: "Audit Logs",
+        href: "/admin/audit",
+        icon: <Database className="h-5 w-5" />,
+        adminOnly: true
+      }
+    ]
+  },
+  {
+    title: "User Management",
+    icon: Users,
+    items: [
+      {
+        title: "Investors",
+        href: "/admin/investors",
+        icon: <Users className="h-5 w-5" />,
+        adminOnly: true
+      },
+      {
+        title: "User Requests",
+        href: "/admin/requests",
+        icon: <FileCheck className="h-5 w-5" />,
+        adminOnly: true
+      }
+    ]
+  },
+  {
+    title: "Operations",
+    icon: Cog,
+    items: [
+      {
+        title: "Withdrawals",
+        href: "/admin/withdrawals",
+        icon: <ArrowLeftRight className="h-5 w-5" />,
+        adminOnly: true
+      },
+      {
+        title: "Yield Settings",
+        href: "/admin/yield-settings",
+        icon: <DollarSign className="h-5 w-5" />,
+        adminOnly: true
+      },
+      {
+        title: "Portfolio Management",
+        href: "/admin/portfolio",
+        icon: <PieChart className="h-5 w-5" />,
+        adminOnly: true
+      }
+    ]
+  },
+  {
+    title: "Content & Support",
+    icon: MessageSquare,
+    items: [
+      {
+        title: "Support Queue",
+        href: "/admin/support-queue", 
+        icon: <MessageSquare className="h-5 w-5" />,
+        adminOnly: true
+      },
+      {
+        title: "Documents",
+        href: "/admin/documents",
+        icon: <FileText className="h-5 w-5" />,
+        adminOnly: true
+      }
+    ]
+  },
+  {
+    title: "Data & Import",
+    icon: Database,
+    items: [
+      {
+        title: "Excel Import",
+        href: "/admin/excel-import",
+        icon: <Upload className="h-5 w-5" />,
+        adminOnly: true
+      },
+      {
+        title: "Legacy Migration",
+        href: "/admin/legacy-migration",
+        icon: <Archive className="h-5 w-5" />,
+        adminOnly: true
+      }
+    ]
+  }
 ];
+
+// Flat admin navigation for backward compatibility
+export const adminNav: NavItem[] = adminNavGroups.flatMap(group => group.items);
 
 // Legacy admin routes (still accessible but not in main nav)
 export const legacyAdminNav: NavItem[] = [

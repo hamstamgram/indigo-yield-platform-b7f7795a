@@ -1,12 +1,15 @@
 
-import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Search, ChevronDown, ChevronRight, Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import NavSection from "@/components/sidebar/NavSection";
 import UserProfile from "@/components/sidebar/UserProfile";
 import LogoutButton from "@/components/sidebar/LogoutButton";
-import { adminNav, mainNav, accountNav, assetNav, settingsNav } from "@/config/navigation";
+import { adminNavGroups, mainNav, accountNav, assetNav, settingsNav } from "@/config/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 type SidebarProps = {
   sidebarOpen: boolean;
@@ -16,7 +19,12 @@ type SidebarProps = {
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps) => {
   const [userName, setUserName] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [expandedGroups, setExpandedGroups] = useState<string[]>(["Main"]);
+  const [focusedItem, setFocusedItem] = useState(-1);
   const navigate = useNavigate();
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const getUser = async () => {
@@ -44,12 +52,39 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
     getUser();
   }, [navigate]);
 
-  // Filter navigation items based on admin status
+  // Filter navigation items based on admin status and search
   const filteredMainNav = isAdmin 
     ? [] // Admins don't need the regular main nav
     : mainNav;
   
   const filteredAssetNav = isAdmin ? [] : assetNav;
+
+  // Toggle group expansion
+  const toggleGroup = (groupName: string) => {
+    setExpandedGroups(prev => 
+      prev.includes(groupName)
+        ? prev.filter(name => name !== groupName)
+        : [...prev, groupName]
+    );
+  };
+
+  // Filter navigation items based on search
+  const filterNavItems = (items: any[], query: string) => {
+    if (!query) return items;
+    return items.filter(item => 
+      item.title.toLowerCase().includes(query.toLowerCase())
+    );
+  };
+
+  // Keyboard navigation handler
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setSidebarOpen(false);
+    } else if (e.key === '/' && e.metaKey) {
+      e.preventDefault();
+      searchInputRef.current?.focus();
+    }
+  };
 
   // Helper to close sidebar when navigating on mobile
   const handleNavigationClick = () => {
@@ -62,6 +97,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
   const closeSidebar = () => {
     setSidebarOpen(false);
   };
+
+  // Focus management for accessibility
+  useEffect(() => {
+    if (sidebarOpen && sidebarRef.current) {
+      sidebarRef.current.focus();
+    }
+  }, [sidebarOpen]);
 
   return (
     <>
@@ -76,35 +118,100 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto ${
+        ref={sidebarRef}
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar shadow-lg transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto focus:outline-none",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        )}
+        onKeyDown={handleKeyDown}
+        tabIndex={-1}
+        role="navigation"
+        aria-label={isAdmin ? "Admin navigation menu" : "Main navigation menu"}
       >
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex-1 text-lg font-semibold text-gray-800 dark:text-white">
-              {isAdmin ? "Admin" : "Dashboard"}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-sidebar-border">
+            <div className="flex items-center gap-2 flex-1">
+              <div className="text-lg font-semibold text-sidebar-foreground">
+                {isAdmin ? "Admin" : "Dashboard"}
+              </div>
+              {isAdmin && (
+                <div className="flex items-center text-xs bg-sidebar-primary text-sidebar-primary-foreground px-2 py-1 rounded-full">
+                  <Bell className="h-3 w-3 mr-1" />
+                  Admin
+                </div>
+              )}
             </div>
             <button
               onClick={closeSidebar}
-              className="lg:hidden text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+              className="lg:hidden text-sidebar-foreground hover:text-sidebar-primary transition-colors p-1 rounded-md hover:bg-sidebar-accent"
+              aria-label="Close navigation menu"
             >
-              <span className="sr-only">Close sidebar</span>
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
+          {/* Search Bar (Admin only) */}
+          {isAdmin && (
+            <div className="px-4 py-3 border-b border-sidebar-border">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-sidebar-foreground/60" />
+                <Input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Search admin tools..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-8 bg-sidebar-accent border-sidebar-border text-sidebar-foreground placeholder:text-sidebar-foreground/60"
+                />
+              </div>
+              <div className="text-xs text-sidebar-foreground/60 mt-1">
+                Press ⌘ / to focus
+              </div>
+            </div>
+          )}
+
           {/* Nav */}
-          <nav className="flex-1 px-4 py-6 overflow-y-auto">
-            {/* Admin Navigation - Only shown to admin users */}
-            {isAdmin && (
-              <NavSection 
-                title="Admin" 
-                items={adminNav} 
-                onItemClick={handleNavigationClick}
-              />
-            )}
+          <nav className="flex-1 px-4 py-6 overflow-y-auto" role="menu">
+            {/* Admin Navigation - Grouped and collapsible */}
+            {isAdmin && adminNavGroups.map((group) => {
+              const filteredItems = filterNavItems(group.items, searchQuery);
+              if (filteredItems.length === 0) return null;
+              
+              const isExpanded = expandedGroups.includes(group.title);
+              
+              return (
+                <div key={group.title} className="mb-4">
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleGroup(group.title)}
+                    className="w-full justify-between p-2 h-auto text-left bg-sidebar-accent/50 hover:bg-sidebar-accent text-sidebar-foreground mb-2"
+                    aria-expanded={isExpanded}
+                    aria-controls={`nav-group-${group.title}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {group.icon && <group.icon className="h-4 w-4" />}
+                      <span className="font-medium">{group.title}</span>
+                      <span className="text-xs bg-sidebar-primary text-sidebar-primary-foreground px-1.5 py-0.5 rounded">
+                        {filteredItems.length}
+                      </span>
+                    </div>
+                    {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  </Button>
+                  
+                  {isExpanded && (
+                    <div id={`nav-group-${group.title}`} className="ml-2">
+                      <NavSection 
+                        title=""
+                        items={filteredItems}
+                        onItemClick={handleNavigationClick}
+                        showTitle={false}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             
             {/* Main Navigation - Only for non-admin users */}
             {filteredMainNav.length > 0 && (
@@ -112,6 +219,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                 title="Main" 
                 items={filteredMainNav} 
                 onItemClick={handleNavigationClick}
+                isExpanded={expandedGroups.includes("Main")}
+                onToggle={() => toggleGroup("Main")}
               />
             )}
             
@@ -121,6 +230,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                 title="Assets" 
                 items={filteredAssetNav} 
                 onItemClick={handleNavigationClick}
+                isExpanded={expandedGroups.includes("Assets")}
+                onToggle={() => toggleGroup("Assets")}
               />
             )}
             
@@ -130,6 +241,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                 title="Settings" 
                 items={settingsNav} 
                 onItemClick={handleNavigationClick}
+                isExpanded={expandedGroups.includes("Settings")}
+                onToggle={() => toggleGroup("Settings")}
               />
             )}
             
@@ -138,10 +251,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
               title="Account" 
               items={accountNav} 
               onItemClick={handleNavigationClick}
+              isExpanded={expandedGroups.includes("Account")}
+              onToggle={() => toggleGroup("Account")}
             />
             
             {/* Logout Button */}
-            <div className="px-2 py-2">
+            <div className="px-2 py-2 border-t border-sidebar-border mt-4 pt-4">
               <LogoutButton onLogout={handleNavigationClick} />
             </div>
           </nav>
