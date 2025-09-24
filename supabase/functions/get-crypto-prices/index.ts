@@ -28,121 +28,14 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    // Get CMC API key from environment
-    const CMC_API_KEY = Deno.env.get('COINMARKETCAP_API_KEY') || Deno.env.get('CMC_API_KEY');
-    
-    if (!CMC_API_KEY) {
-      console.warn('CoinMarketCap API key not configured, returning mock data');
-      return new Response(
-        JSON.stringify(getMockPrices()),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        }
-      );
-    }
-
-    // Use v2 quotes endpoint with IDs for more reliable data
-    const ids = Object.values(ASSET_CMC_IDS).join(',');
-    
-    console.log(`Fetching prices for IDs: ${ids}`);
-    
-    // Use the v2 endpoint which is more reliable with IDs
-    const response = await fetch(
-      `${CMC_API_BASE}/v2/cryptocurrency/quotes/latest?id=${ids}&convert=USD`,
-      {
-        headers: {
-          'X-CMC_PRO_API_KEY': CMC_API_KEY,
-          'Accept': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`CoinMarketCap API error: ${response.status} - ${errorText}`);
-      // Return mock data on API error
-      return new Response(
-        JSON.stringify(getMockPrices()),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        }
-      );
-    }
-    
-    const data = await response.json();
-    console.log('CMC API response received');
-    
-    // Transform the response
-    const prices: Record<string, any> = {};
-    
-    if (data.data) {
-      // v2 endpoint returns data indexed by ID
-      for (const [id, crypto] of Object.entries(data.data as any)) {
-        const cryptoData = crypto as any;
-        const symbol = cryptoData.symbol;
-        const quote = cryptoData.quote?.USD;
-        
-        if (quote) {
-          prices[symbol] = {
-            symbol: symbol,
-            name: cryptoData.name,
-            price: quote.price,
-            change24h: quote.percent_change_24h || 0,
-            change7d: quote.percent_change_7d || 0,
-            change30d: quote.percent_change_30d || 0,
-            marketCap: quote.market_cap || 0,
-            volume24h: quote.volume_24h || 0,
-            circulatingSupply: cryptoData.circulating_supply || 0,
-            lastUpdated: quote.last_updated || new Date().toISOString()
-          };
-        }
-      }
-    }
-
-    // Add EUR with forex rate
-    prices['EUR'] = {
-      symbol: 'EUR',
-      name: 'Euro',
-      price: EUR_USD_RATE,
-      change24h: 0.1,
-      change7d: 0.3,
-      change30d: 0.5,
-      marketCap: 0,
-      volume24h: 0,
-      lastUpdated: new Date().toISOString()
-    };
-
-    // Store prices in database for historical tracking
-    await storePricesInDatabase(prices);
-    
-    console.log('Returning processed price data');
-    
-    return new Response(
-      JSON.stringify(prices),
-      {
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json',
-          'Cache-Control': 'public, max-age=60' // Cache for 1 minute
-        },
-        status: 200,
-      }
-    );
-  } catch (error: any) {
-    console.error('Error:', error.message);
-    
-    // Return mock data on error
-    return new Response(
-      JSON.stringify(getMockPrices()),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    );
-  }
+  // This function is disabled as the system now works with native token yields only
+  return new Response(JSON.stringify({
+    error: 'Price fetching disabled - system now uses native token yields only',
+    message: 'This endpoint has been disabled as the system no longer requires USD conversions'
+  }), {
+    status: 410, // Gone
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
 });
 
 function getMockPrices(): Record<string, any> {

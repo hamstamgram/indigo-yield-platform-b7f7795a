@@ -1,14 +1,12 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { AssetSummary } from "@/models/assetTypes";
-import { defaultPrices } from "@/services/cryptoService";
 
 /**
  * Creates default asset summaries when no assets exist in the database
- * @param prices Current cryptocurrency prices
- * @returns Array of default asset summaries
+ * @returns Array of default asset summaries with native token balances only
  */
-export const createDefaultAssetSummaries = (prices: Record<string, any>) => {
+export const createDefaultAssetSummaries = () => {
   const defaultAssets = [
     { id: 1, symbol: 'BTC', name: 'Bitcoin' },
     { id: 2, symbol: 'ETH', name: 'Ethereum' },
@@ -31,14 +29,13 @@ export const createDefaultAssetSummaries = (prices: Record<string, any>) => {
     const symbol = asset.symbol.toUpperCase();
     if (!uniqueAssets.has(symbol)) {
       const defaults = defaultValues[symbol] || { balance: 0, users: 0, yield: 0 };
-      const priceData = prices[asset.symbol.toLowerCase()] || defaultPrices[asset.symbol.toLowerCase()] || { price: 0 };
       
       uniqueAssets.set(symbol, {
         id: asset.id,
         symbol: asset.symbol,
         name: asset.name,
         totalBalance: defaults.balance,
-        usdValue: defaults.balance * priceData.price,
+        balance: defaults.balance, // Native token balance only
         totalUsers: defaults.users,
         avgYield: defaults.yield
       });
@@ -51,10 +48,9 @@ export const createDefaultAssetSummaries = (prices: Record<string, any>) => {
 /**
  * Creates asset summaries from database assets
  * @param assets Assets from the database
- * @param prices Current cryptocurrency prices 
- * @returns Array of asset summaries with data from the database
+ * @returns Array of asset summaries with native token data from the database
  */
-export const createAssetSummariesFromDb = (assets: any[], prices: Record<string, any>) => {
+export const createAssetSummariesFromDb = (assets: any[]) => {
   // Define default values for each supported asset type
   const defaultValues = {
     'BTC': { balance: 12.5, users: 18, yield: 4.8 },
@@ -73,14 +69,12 @@ export const createAssetSummariesFromDb = (assets: any[], prices: Record<string,
       // Get default values for this asset type or use zeros
       const defaults = defaultValues[symbol] || { balance: 0, users: 0, yield: 0 };
       
-      const priceData = prices[asset.symbol.toLowerCase()] || defaultPrices[asset.symbol.toLowerCase()] || { price: 0 };
-      
       uniqueAssets.set(symbol, {
         id: asset.id,
         symbol: asset.symbol,
         name: asset.name,
         totalBalance: defaults.balance,
-        usdValue: defaults.balance * priceData.price,
+        balance: defaults.balance, // Native token balance only
         totalUsers: defaults.users,
         avgYield: defaults.yield
       });

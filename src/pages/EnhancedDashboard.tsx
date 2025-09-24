@@ -13,8 +13,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { calculateAllKPIs, formatAssetValue, AssetKPI } from "@/utils/kpiCalculations";
-import { fetchCryptoPrices, defaultPrices } from "@/services/cryptoService";
 import { Skeleton } from "@/components/ui/skeleton";
+
+// Native token system - no price fetching needed
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('en-US', {
@@ -72,42 +73,28 @@ const EnhancedDashboard = () => {
           setUserName(profile.first_name || '');
         }
         
-        // Calculate KPIs for all assets
+        // Calculate KPIs for all assets (native tokens only)
         const kpis = await calculateAllKPIs(user.id);
         setAssetKPIs(kpis);
         
-        // Fetch live prices for USD calculations
-        const symbols = kpis.map(k => k.assetCode);
-        let prices = {};
-        try {
-          prices = await fetchCryptoPrices(symbols);
-        } catch (e) {
-          console.error('Error fetching crypto prices, using defaults:', e);
-          prices = defaultPrices;
-        }
-        
-        // Calculate total portfolio value and aggregated KPIs
-        let portfolioTotal = 0;
+        // Calculate portfolio totals (native token amounts only)
         let totalMTD = 0;
         let totalQTD = 0;
         let totalYTD = 0;
         let totalITD = 0;
+        let totalBalance = 0;
         let totalPrincipal = 0;
         
         kpis.forEach(kpi => {
-          const price = prices[kpi.assetCode.toLowerCase()]?.price || 1;
-          const usdValue = kpi.currentBalance * price;
-          const principalUSD = kpi.principal * price;
-          
-          portfolioTotal += usdValue;
-          totalPrincipal += principalUSD;
-          totalMTD += kpi.metrics.mtd * price;
-          totalQTD += kpi.metrics.qtd * price;
-          totalYTD += kpi.metrics.ytd * price;
-          totalITD += kpi.metrics.itd * price;
+          totalBalance += kpi.currentBalance;
+          totalPrincipal += kpi.principal;
+          totalMTD += kpi.metrics.mtd;
+          totalQTD += kpi.metrics.qtd;
+          totalYTD += kpi.metrics.ytd;
+          totalITD += kpi.metrics.itd;
         });
         
-        setTotalPortfolioValue(portfolioTotal);
+        setTotalPortfolioValue(totalBalance);
         setAggregatedKPIs({
           totalMTD,
           totalQTD,
@@ -177,35 +164,35 @@ const EnhancedDashboard = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KPICard
           title="Month to Date (MTD)"
-          value={formatCurrency(aggregatedKPIs.totalMTD)}
+          value={`${aggregatedKPIs.totalMTD.toFixed(4)} Tokens`}
           percentage={aggregatedKPIs.mtdPercentage}
           trend={aggregatedKPIs.mtdPercentage > 0 ? "up" : "down"}
           icon={<Calendar className="h-4 w-4" />}
-          subtitle="Total earnings this month"
+          subtitle="Total yield earned this month"
         />
         <KPICard
           title="Quarter to Date (QTD)"
-          value={formatCurrency(aggregatedKPIs.totalQTD)}
+          value={`${aggregatedKPIs.totalQTD.toFixed(4)} Tokens`}
           percentage={aggregatedKPIs.qtdPercentage}
           trend={aggregatedKPIs.qtdPercentage > 0 ? "up" : "down"}
           icon={<TrendingUp className="h-4 w-4" />}
-          subtitle="Total earnings this quarter"
+          subtitle="Total yield earned this quarter"
         />
         <KPICard
           title="Year to Date (YTD)"
-          value={formatCurrency(aggregatedKPIs.totalYTD)}
+          value={`${aggregatedKPIs.totalYTD.toFixed(4)} Tokens`}
           percentage={aggregatedKPIs.ytdPercentage}
           trend={aggregatedKPIs.ytdPercentage > 0 ? "up" : "down"}
           icon={<DollarSign className="h-4 w-4" />}
-          subtitle="Total earnings this year"
+          subtitle="Total yield earned this year"
         />
         <KPICard
           title="Inception to Date (ITD)"
-          value={formatCurrency(aggregatedKPIs.totalITD)}
+          value={`${aggregatedKPIs.totalITD.toFixed(4)} Tokens`}
           percentage={aggregatedKPIs.itdPercentage}
           trend={aggregatedKPIs.itdPercentage > 0 ? "up" : "down"}
           icon={<Percent className="h-4 w-4" />}
-          subtitle="Total earnings all time"
+          subtitle="Total yield earned all time"
         />
       </div>
 
@@ -216,7 +203,8 @@ const EnhancedDashboard = () => {
           <CardDescription>Combined value across all assets</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold">{formatCurrency(totalPortfolioValue)}</div>
+          <div className="text-3xl font-bold">{totalPortfolioValue.toFixed(4)} Total Tokens</div>
+          <p className="text-sm text-muted-foreground mt-1">Combined native token balances across all assets</p>
         </CardContent>
       </Card>
 

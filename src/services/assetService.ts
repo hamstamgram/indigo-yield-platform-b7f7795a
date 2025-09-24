@@ -4,10 +4,9 @@ import { createAssetSummariesFromDb, createDefaultAssetSummaries } from "@/utils
 
 /**
  * Fetches asset data from the database or creates defaults if none exist
- * @param cryptoPrices Current cryptocurrency prices
- * @returns Array of asset summaries with balances and prices
+ * @returns Array of asset summaries with native token balances
  */
-export const fetchAssetSummaries = async (cryptoPrices: Record<string, any>) => {
+export const fetchAssetSummaries = async () => {
   const { data: assets, error } = await supabase
     .from('assets')
     .select('*')
@@ -20,7 +19,7 @@ export const fetchAssetSummaries = async (cryptoPrices: Record<string, any>) => 
     
   if (!assets || assets.length === 0) {
     console.log("No assets found, using default assets");
-    return createDefaultAssetSummaries(cryptoPrices);
+    return createDefaultAssetSummaries();
   }
   
   // Ensure uniqueness by normalizing symbols to uppercase
@@ -35,5 +34,5 @@ export const fetchAssetSummaries = async (cryptoPrices: Record<string, any>) => 
     }
   });
   
-  return createAssetSummariesFromDb(Array.from(uniqueAssets.values()), cryptoPrices);
+  return createAssetSummariesFromDb(Array.from(uniqueAssets.values()));
 };

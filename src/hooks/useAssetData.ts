@@ -47,11 +47,8 @@ export const useAssetData = () => {
           setUserName(`${profileData[0]?.first_name || ''} ${profileData[0]?.last_name || ''}`);
         }
         
-        // Fetch crypto prices
-        const cryptoPrices = await fetchCryptoPrices();
-        
-        // Fetch asset summaries
-        const summaries = await fetchAssetSummaries(cryptoPrices);
+        // Fetch asset summaries (no crypto prices needed for native token system)
+        const summaries = await fetchAssetSummaries();
         
         // Make sure each asset appears only once
         const uniqueAssetMap = new Map();
@@ -64,9 +61,9 @@ export const useAssetData = () => {
         const uniqueAssets = Array.from(uniqueAssetMap.values());
         setAssetSummaries(uniqueAssets);
         
-        // Calculate total portfolio value
+        // Calculate total portfolio value (sum of native token balances)
         const total = uniqueAssets.reduce((sum, asset) => {
-          return sum + (asset.usdValue || 0);
+          return sum + (asset.balance || 0);
         }, 0);
         setTotalPortfolioValue(total);
         
@@ -95,29 +92,4 @@ export const useAssetData = () => {
   };
 };
 
-// Function to fetch crypto prices
-const fetchCryptoPrices = async () => {
-  try {
-    const { data, error } = await supabase.functions.invoke('get-crypto-prices');
-    
-    if (error) {
-      console.error("Error fetching crypto prices:", error);
-      return getDefaultPrices();
-    }
-    
-    return data || getDefaultPrices();
-  } catch (error) {
-    console.error("Error in fetchCryptoPrices:", error);
-    return getDefaultPrices();
-  }
-};
-
-// Fallback default prices
-const getDefaultPrices = () => {
-  return {
-    'BTC': { price: 67500, change_24h: 2.3 },
-    'ETH': { price: 3200, change_24h: 1.8 },
-    'SOL': { price: 148, change_24h: 4.2 },
-    'USDC': { price: 1, change_24h: 0 },
-  };
-};
+// Native token system - no price fetching needed
