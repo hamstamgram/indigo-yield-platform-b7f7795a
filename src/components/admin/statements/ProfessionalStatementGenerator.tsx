@@ -73,7 +73,7 @@ const ProfessionalStatementGenerator = () => {
       
       // Handle the JSON response properly
       if (data && typeof data === 'object' && !Array.isArray(data)) {
-        setStatementData(data as StatementData);
+        setStatementData(data as unknown as StatementData);
       } else {
         throw new Error('Invalid statement data format');
       }

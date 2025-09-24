@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { aumService } from '@/services/aumService';
+import { getAllFundsWithAUM, getFundAUMHistory } from '@/services/aumService';
 import { feeService } from '@/services/feeService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -40,8 +40,17 @@ const FundYieldManagerV2 = () => {
 
   const fetchFunds = async () => {
     try {
-      const data = await aumService.getAllFundsWithAUM();
-      setFunds(data);
+      const data = await getAllFundsWithAUM();
+      // Map to match FundWithAUM interface
+      const mappedData = data.map(fund => ({
+        id: fund.id,
+        code: fund.code,
+        name: fund.name,
+        asset: fund.asset,
+        aum_amount: fund.latest_aum,
+        investor_count: fund.investor_count
+      }));
+      setFunds(mappedData);
       if (data.length > 0 && !selectedFund) {
         setSelectedFund(data[0].id);
       }
@@ -75,10 +84,10 @@ const FundYieldManagerV2 = () => {
 
     try {
       // Get fund AUM to estimate fees
-      const fundData = await aumService.getFundAUMHistory(selectedFund);
+      const fundData = await getFundAUMHistory(selectedFund);
       if (fundData.length === 0) return;
 
-      const latestAUM = fundData[0].aum_amount;
+      const latestAUM = fundData[0].total_aum;
       const grossYield = latestAUM * (yieldValue / 100);
       
       // Estimate average fee rate (2% default)
