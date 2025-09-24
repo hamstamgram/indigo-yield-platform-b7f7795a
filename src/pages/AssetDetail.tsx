@@ -181,8 +181,8 @@ const AssetDetail = () => {
                 <div className="text-sm text-muted-foreground">{assetData.symbol}</div>
               </div>
               <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-sm text-muted-foreground">USD Value</div>
-                <div className="text-xl font-semibold">${assetData.usdValue?.toLocaleString() || '0'}</div>
+                <div className="text-sm text-muted-foreground">Fund Value</div>
+                <div className="text-xl font-semibold">{assetData.balance?.toFixed(6) || '0.000000'} {assetData.symbol}</div>
               </div>
               <div className="text-center p-4 bg-muted rounded-lg">
                 <div className="text-sm text-muted-foreground">Current Price</div>
@@ -199,11 +199,11 @@ const AssetDetail = () => {
             <CardDescription>Your holdings and transaction history for this asset</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <Info className="h-5 w-5 text-yellow-600" />
-              <div className="text-sm text-yellow-800">
-                Portfolio details are temporarily unavailable while we update the database schema. 
-                All your asset data remains safe and accessible.
+            <div className="flex items-center gap-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <Info className="h-5 w-5 text-blue-600" />
+              <div className="text-sm text-blue-800">
+                This fund operates using native {assetData.symbol} tokens for all positions and yield distributions. 
+                Performance and yields are calculated in {assetData.symbol} terms.
               </div>
             </div>
           </CardContent>

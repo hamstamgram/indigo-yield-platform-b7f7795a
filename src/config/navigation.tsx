@@ -45,6 +45,8 @@ export const assetNav: NavItem[] = [
   { title: "Ethereum", href: "/assets/eth", icon: <CryptoIcon symbol="eth" className="h-5 w-5" /> },
   { title: "Solana", href: "/assets/sol", icon: <CryptoIcon symbol="sol" className="h-5 w-5" /> },
   { title: "USDC", href: "/assets/usdc", icon: <CryptoIcon symbol="usdc" className="h-5 w-5" /> },
+  { title: "USDT", href: "/assets/usdt", icon: <CryptoIcon symbol="usdt" className="h-5 w-5" /> },
+  { title: "EURC", href: "/assets/eurc", icon: <CryptoIcon symbol="eurc" className="h-5 w-5" /> },
 ];
 
 // Settings navigation menu
@@ -60,7 +62,7 @@ export const adminNav: NavItem[] = [
   { title: "Admin Dashboard", href: "/admin", icon: <LayoutDashboard className="h-5 w-5" />, adminOnly: true },
   { title: "Investors", href: "/admin/investors", icon: <Users className="h-5 w-5" />, adminOnly: true },
   { title: "Withdrawals", href: "/admin/withdrawals", icon: <TrendingDown className="h-5 w-5" />, adminOnly: true },
-  { title: "Yield Settings", href: "/admin/yield", icon: <Percent className="h-5 w-5" />, adminOnly: true },
+  
   { title: "Reports", href: "/admin/reports", icon: <BarChart3 className="h-5 w-5" />, adminOnly: true },
   { title: "Historical Reports", href: "/admin/reports/historical", icon: <BarChart3 className="h-5 w-5" />, adminOnly: true },
   { title: "Support Queue", href: "/admin/support", icon: <MessageSquare className="h-5 w-5" />, adminOnly: true },

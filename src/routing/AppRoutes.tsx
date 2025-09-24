@@ -58,7 +58,7 @@ const AdminInvestorNewPage = lazy(() => import('@/pages/admin/investors/AdminInv
 const AdminInvestorDetailPage = lazy(() => import('@/pages/admin/investors/AdminInvestorDetailPage'));
 const AdminInvestorPositionsPage = lazy(() => import('@/pages/admin/investors/AdminInvestorPositionsPage'));
 const AdminInvestorTransactionsPage = lazy(() => import('@/pages/admin/investors/AdminInvestorTransactionsPage'));
-const AdminYieldSettingsPage = lazy(() => import('@/pages/admin/AdminYieldSettingsPage'));
+
 const AdminRequestsQueuePage = lazy(() => import('@/pages/admin/AdminRequestsQueuePage'));
 const AdminStatementsPage = lazy(() => import('@/pages/admin/AdminStatementsPage'));
 const AdminSupportQueue = lazy(() => import('@/pages/admin/AdminSupportQueue'));
@@ -140,7 +140,7 @@ export function AppRoutes() {
           <Route path="/admin" element={<AdminRoute><AdminDashboardV2 /></AdminRoute>} />
           <Route path="/admin/portfolio" element={<AdminRoute><PortfolioDashboard /></AdminRoute>} />
           <Route path="/admin/portfolio-dashboard" element={<AdminRoute><AdminPortfolioDashboard /></AdminRoute>} />
-          <Route path="/admin/yield-settings" element={<Navigate to="/admin/yield" replace />} />
+          <Route path="/admin/yield-settings" element={<Navigate to="/admin/funds" replace />} />
           <Route path="/admin/investors" element={<AdminRoute><InvestorManagementView /></AdminRoute>} />
           <Route path="/admin/investors/new" element={<AdminRoute><AdminInvestorNewPage /></AdminRoute>} />
           <Route path="/admin/investors/:id" element={<AdminRoute><AdminInvestorDetailPage /></AdminRoute>} />

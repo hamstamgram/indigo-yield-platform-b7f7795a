@@ -4,16 +4,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { adminServiceV2, DashboardStatsV2, InvestorSummaryV2 } from "@/services/adminServiceV2";
-import { yieldService, YieldRate } from "@/services/yieldService";
 import { ArrowUpIcon, ArrowDownIcon, DollarSign, Users, TrendingUp, Activity } from "lucide-react";
-import { YieldManagementPanel } from "./yield/YieldManagementPanel";
 import { InvestorManagementPanel } from "./investor/InvestorManagementPanel";
 import { WithdrawalRequestsPanel } from "./withdrawal/WithdrawalRequestsPanel";
 import { RealtimeNotifications } from "./RealtimeNotifications";
 
 function AdminDashboardV2() {
   const [dashboardStats, setDashboardStats] = useState<DashboardStatsV2 | null>(null);
-  const [yieldRates, setYieldRates] = useState<YieldRate[]>([]);
+  
   const [recentInvestors, setRecentInvestors] = useState<InvestorSummaryV2[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -23,14 +21,12 @@ function AdminDashboardV2() {
       setLoading(true);
       
       // Load data in parallel for efficiency
-      const [stats, rates, investors] = await Promise.all([
+      const [stats, investors] = await Promise.all([
         adminServiceV2.getDashboardStats(),
-        yieldService.getCurrentYieldRates(),
         adminServiceV2.getAllInvestorsWithSummary()
       ]);
 
       setDashboardStats(stats);
-      setYieldRates(rates);
       setRecentInvestors(investors.slice(0, 5)); // Top 5 recent investors
       
     } catch (error) {
@@ -146,47 +142,53 @@ function AdminDashboardV2() {
         </Card>
       </div>
 
-      {/* Current Yield Rates */}
+      {/* Fund Management Status */}
       <Card>
         <CardHeader>
-          <CardTitle>Current Yield Rates</CardTitle>
+          <CardTitle>Fund Management Status</CardTitle>
           <CardDescription>
-            Active yield rates for all assets
+            Active fund management system with native token support
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {yieldRates.map((rate) => (
-              <div key={rate.id} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div className="font-medium">{rate.asset_symbol}</div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-primary">
-                      {formatPercentage(rate.annual_yield_percentage / 100)}
-                    </div>
-                    <div className="text-xs text-muted-foreground">APY</div>
-                  </div>
-                </div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  Daily: {formatPercentage(rate.daily_yield_percentage / 100)}
+            <div className="border rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="font-medium">BTC Fund</div>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-primary">Active</div>
+                  <div className="text-xs text-muted-foreground">Native Token</div>
                 </div>
               </div>
-            ))}
+            </div>
+            <div className="border rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="font-medium">ETH Fund</div>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-primary">Active</div>
+                  <div className="text-xs text-muted-foreground">Native Token</div>
+                </div>
+              </div>
+            </div>
+            <div className="border rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="font-medium">USDT Fund</div>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-primary">Active</div>
+                  <div className="text-xs text-muted-foreground">Native Token</div>
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Management Tabs */}
-      <Tabs defaultValue="yield" className="space-y-4">
+      <Tabs defaultValue="investors" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="yield">Yield Management</TabsTrigger>
           <TabsTrigger value="investors">Investors</TabsTrigger>
           <TabsTrigger value="withdrawals">Withdrawal Requests</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="yield">
-          <YieldManagementPanel onDataChange={loadDashboardData} />
-        </TabsContent>
 
         <TabsContent value="investors">
           <InvestorManagementPanel investors={recentInvestors} onDataChange={loadDashboardData} />

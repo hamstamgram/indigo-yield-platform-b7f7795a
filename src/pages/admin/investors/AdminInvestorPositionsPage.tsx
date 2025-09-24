@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getInvestorPositions, updateInvestorPosition, type InvestorPosition } from '@/services/fundService';
 import FundAssetDropdown from '@/components/admin/investors/FundAssetDropdown';
 import { formatAssetValue } from '@/utils/kpiCalculations';
-import { TrendingUp, DollarSign, Percent, Users, Plus, Save } from 'lucide-react';
+import { TrendingUp, Percent, Users, Plus, Save } from 'lucide-react';
 
 const AdminInvestorPositionsPage = () => {
   const { id } = useParams();
@@ -122,15 +122,15 @@ const AdminInvestorPositionsPage = () => {
       </div>
 
       {/* Portfolio Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Portfolio</p>
-                <p className="text-lg font-semibold">{formatAssetValue(totalPortfolioValue, 'USD')}</p>
+                <p className="text-sm text-muted-foreground">Fund Count</p>
+                <p className="text-lg font-semibold">{positions.length}</p>
               </div>
-              <DollarSign className="h-8 w-8 text-blue-600" />
+              <Users className="h-8 w-8 text-indigo-600" />
             </div>
           </CardContent>
         </Card>
@@ -139,8 +139,8 @@ const AdminInvestorPositionsPage = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Cost Basis</p>
-                <p className="text-lg font-semibold">{formatAssetValue(totalCostBasis, 'USD')}</p>
+                <p className="text-sm text-muted-foreground">Total Shares</p>
+                <p className="text-lg font-semibold">{positions.reduce((sum, pos) => sum + pos.shares, 0).toFixed(8)}</p>
               </div>
               <TrendingUp className="h-8 w-8 text-purple-600" />
             </div>
@@ -151,24 +151,10 @@ const AdminInvestorPositionsPage = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Unrealized P&L</p>
-                <p className={`text-lg font-semibold ${totalUnrealizedPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {totalUnrealizedPnL >= 0 ? '+' : ''}{formatAssetValue(totalUnrealizedPnL, 'USD')}
-                </p>
+                <p className="text-sm text-muted-foreground">Active Positions</p>
+                <p className="text-lg font-semibold">{positions.filter(pos => pos.shares > 0).length}</p>
               </div>
               <Percent className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Fund Count</p>
-                <p className="text-lg font-semibold">{positions.length}</p>
-              </div>
-              <Users className="h-8 w-8 text-indigo-600" />
             </div>
           </CardContent>
         </Card>
@@ -217,7 +203,7 @@ const AdminInvestorPositionsPage = () => {
                     
                     <div className="text-right">
                       <div className="text-lg font-semibold">
-                        {formatAssetValue(position.current_value, 'USD')}
+                        {position.current_value?.toFixed(8) || '0.00000000'} {position.fund?.asset || 'N/A'}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {position.aum_percentage?.toFixed(2) || '0.00'}% of fund AUM
@@ -265,23 +251,23 @@ const AdminInvestorPositionsPage = () => {
                   ) : (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
-                        <span className="text-muted-foreground">Shares:</span>
-                        <span className="ml-2 font-medium">{position.shares?.toFixed(8) || '0'}</span>
+                        <span className="text-muted-foreground">Current Value:</span>
+                        <span className="ml-2 font-medium">{position.current_value?.toFixed(8) || '0'} {position.fund?.asset}</span>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Cost Basis:</span>
-                        <span className="ml-2 font-medium">{formatAssetValue(position.cost_basis, 'USD')}</span>
+                        <span className="ml-2 font-medium">{position.cost_basis?.toFixed(8) || '0'} {position.fund?.asset}</span>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Unrealized P&L:</span>
                         <span className={`ml-2 font-medium ${position.unrealized_pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {position.unrealized_pnl >= 0 ? '+' : ''}{formatAssetValue(position.unrealized_pnl, 'USD')}
+                          {position.unrealized_pnl >= 0 ? '+' : ''}{position.unrealized_pnl?.toFixed(8) || '0'} {position.fund?.asset}
                         </span>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Realized P&L:</span>
                         <span className={`ml-2 font-medium ${position.realized_pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {position.realized_pnl >= 0 ? '+' : ''}{formatAssetValue(position.realized_pnl, 'USD')}
+                          {position.realized_pnl >= 0 ? '+' : ''}{position.realized_pnl?.toFixed(8) || '0'} {position.fund?.asset}
                         </span>
                       </div>
                     </div>
