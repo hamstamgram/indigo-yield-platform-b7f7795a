@@ -147,6 +147,8 @@ export function AppRoutes() {
           <Route path="/admin/investors/:id" element={<AdminRoute><AdminInvestorDetailPage /></AdminRoute>} />
           <Route path="/admin/investors/:id/positions" element={<AdminRoute><AdminInvestorPositionsPage /></AdminRoute>} />
           <Route path="/admin/investors/:id/transactions" element={<AdminRoute><AdminInvestorTransactionsPage /></AdminRoute>} />
+          <Route path="/admin/expert-investors" element={<AdminRoute><ExpertInvestorMasterView /></AdminRoute>} />
+          <Route path="/admin/expert-investor/:id" element={<AdminRoute><ExpertInvestorDashboard /></AdminRoute>} />
           <Route path="/admin/requests" element={<AdminRoute><AdminRequestsQueuePage /></AdminRoute>} />
           <Route path="/admin/statements" element={<AdminRoute><AdminStatementsPage /></AdminRoute>} />
           <Route path="/admin/support" element={<AdminRoute><AdminSupportQueue /></AdminRoute>} />
