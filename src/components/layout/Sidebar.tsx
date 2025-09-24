@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { X, Search, ChevronDown, ChevronRight, Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,14 +9,16 @@ import { adminNavGroups, mainNav, accountNav, assetNav, settingsNav } from "@/co
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-
 type SidebarProps = {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
   isAdmin?: boolean;
 };
-
-const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps) => {
+const Sidebar = ({
+  sidebarOpen,
+  setSidebarOpen,
+  isAdmin = false
+}: SidebarProps) => {
   const [userName, setUserName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedGroups, setExpandedGroups] = useState<string[]>(["Main"]);
@@ -25,55 +26,56 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
   const navigate = useNavigate();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (user) {
         // Get profile data via secure RPC to avoid RLS issues
-        const { data, error } = await supabase.rpc('get_profile_basic', { user_id: user.id });
+        const {
+          data,
+          error
+        } = await supabase.rpc('get_profile_basic', {
+          user_id: user.id
+        });
         if (error) {
           console.warn('Failed to fetch profile via RPC:', error);
           setUserName(user.email?.split('@')[0] || 'User');
           return;
         }
         // RPC returns single object or null, not array
-        const profile = data as { first_name?: string; last_name?: string } | null;
+        const profile = data as {
+          first_name?: string;
+          last_name?: string;
+        } | null;
         const first = profile?.first_name || '';
         const last = profile?.last_name || '';
         const name = `${first} ${last}`.trim();
-        setUserName(name.length > 0 ? name : (user.email?.split('@')[0] || 'User'));
+        setUserName(name.length > 0 ? name : user.email?.split('@')[0] || 'User');
       } else {
         navigate('/login');
       }
     };
-    
     getUser();
   }, [navigate]);
 
   // Filter navigation items based on admin status and search
-  const filteredMainNav = isAdmin 
-    ? [] // Admins don't need the regular main nav
-    : mainNav;
-  
+  const filteredMainNav = isAdmin ? [] // Admins don't need the regular main nav
+  : mainNav;
   const filteredAssetNav = isAdmin ? [] : assetNav;
 
   // Toggle group expansion
   const toggleGroup = (groupName: string) => {
-    setExpandedGroups(prev => 
-      prev.includes(groupName)
-        ? prev.filter(name => name !== groupName)
-        : [...prev, groupName]
-    );
+    setExpandedGroups(prev => prev.includes(groupName) ? prev.filter(name => name !== groupName) : [...prev, groupName]);
   };
 
   // Filter navigation items based on search
   const filterNavItems = (items: any[], query: string) => {
     if (!query) return items;
-    return items.filter(item => 
-      item.title.toLowerCase().includes(query.toLowerCase())
-    );
+    return items.filter(item => item.title.toLowerCase().includes(query.toLowerCase()));
   };
 
   // Keyboard navigation handler
@@ -88,7 +90,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
 
   // Helper to close sidebar when navigating on mobile
   const handleNavigationClick = () => {
-    if (window.innerWidth < 1024) { // lg breakpoint
+    if (window.innerWidth < 1024) {
+      // lg breakpoint
       setSidebarOpen(false);
     }
   };
@@ -104,30 +107,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
       sidebarRef.current.focus();
     }
   }, [sidebarOpen]);
-
-  return (
-    <>
+  return <>
       {/* Mobile sidebar backdrop - clicking here should close the sidebar */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
-          onClick={closeSidebar}
-          aria-hidden="true"
-        />
-      )}
+      {sidebarOpen && <div className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden" onClick={closeSidebar} aria-hidden="true" />}
 
       {/* Sidebar */}
-      <div
-        ref={sidebarRef}
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar shadow-lg transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto focus:outline-none",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-        onKeyDown={handleKeyDown}
-        tabIndex={-1}
-        role="navigation"
-        aria-label={isAdmin ? "Admin navigation menu" : "Main navigation menu"}
-      >
+      <div ref={sidebarRef} className={cn("fixed inset-y-0 left-0 z-50 w-64 bg-sidebar shadow-lg transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto focus:outline-none", sidebarOpen ? "translate-x-0" : "-translate-x-full")} onKeyDown={handleKeyDown} tabIndex={-1} role="navigation" aria-label={isAdmin ? "Admin navigation menu" : "Main navigation menu"}>
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-sidebar-border">
@@ -135,60 +120,33 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
               <div className="text-lg font-semibold text-sidebar-foreground">
                 {isAdmin ? "Admin" : "Dashboard"}
               </div>
-              {isAdmin && (
-                <div className="flex items-center text-xs bg-sidebar-primary text-sidebar-primary-foreground px-2 py-1 rounded-full">
-                  <Bell className="h-3 w-3 mr-1" />
-                  Admin
-                </div>
-              )}
+              {isAdmin}
             </div>
-            <button
-              onClick={closeSidebar}
-              className="lg:hidden text-sidebar-foreground hover:text-sidebar-primary transition-colors p-1 rounded-md hover:bg-sidebar-accent"
-              aria-label="Close navigation menu"
-            >
+            <button onClick={closeSidebar} className="lg:hidden text-sidebar-foreground hover:text-sidebar-primary transition-colors p-1 rounded-md hover:bg-sidebar-accent" aria-label="Close navigation menu">
               <X className="h-5 w-5" />
             </button>
           </div>
 
           {/* Search Bar (Admin only) */}
-          {isAdmin && (
-            <div className="px-4 py-3 border-b border-sidebar-border">
+          {isAdmin && <div className="px-4 py-3 border-b border-sidebar-border">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-sidebar-foreground/60" />
-                <Input
-                  ref={searchInputRef}
-                  type="text"
-                  placeholder="Search admin tools..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-8 bg-sidebar-accent border-sidebar-border text-sidebar-foreground placeholder:text-sidebar-foreground/60"
-                />
+                <Input ref={searchInputRef} type="text" placeholder="Search admin tools..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 h-8 bg-sidebar-accent border-sidebar-border text-sidebar-foreground placeholder:text-sidebar-foreground/60" />
               </div>
               <div className="text-xs text-sidebar-foreground/60 mt-1">
                 Press ⌘ / to focus
               </div>
-            </div>
-          )}
+            </div>}
 
           {/* Nav */}
           <nav className="flex-1 px-4 py-6 overflow-y-auto" role="menu">
             {/* Admin Navigation - Grouped and collapsible */}
-            {isAdmin && adminNavGroups.map((group) => {
-              const filteredItems = filterNavItems(group.items, searchQuery);
-              if (filteredItems.length === 0) return null;
-              
-              const isExpanded = expandedGroups.includes(group.title);
-              
-              return (
-                <div key={group.title} className="mb-4">
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleGroup(group.title)}
-                    className="w-full justify-between p-2 h-auto text-left bg-sidebar-accent/50 hover:bg-sidebar-accent text-sidebar-foreground mb-2"
-                    aria-expanded={isExpanded}
-                    aria-controls={`nav-group-${group.title}`}
-                  >
+            {isAdmin && adminNavGroups.map(group => {
+            const filteredItems = filterNavItems(group.items, searchQuery);
+            if (filteredItems.length === 0) return null;
+            const isExpanded = expandedGroups.includes(group.title);
+            return <div key={group.title} className="mb-4">
+                  <Button variant="ghost" onClick={() => toggleGroup(group.title)} className="w-full justify-between p-2 h-auto text-left bg-sidebar-accent/50 hover:bg-sidebar-accent text-sidebar-foreground mb-2" aria-expanded={isExpanded} aria-controls={`nav-group-${group.title}`}>
                     <div className="flex items-center gap-2">
                       {group.icon && <group.icon className="h-4 w-4" />}
                       <span className="font-medium">{group.title}</span>
@@ -199,61 +157,23 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                     {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                   </Button>
                   
-                  {isExpanded && (
-                    <div id={`nav-group-${group.title}`} className="ml-2">
-                      <NavSection 
-                        title=""
-                        items={filteredItems}
-                        onItemClick={handleNavigationClick}
-                        showTitle={false}
-                      />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                  {isExpanded && <div id={`nav-group-${group.title}`} className="ml-2">
+                      <NavSection title="" items={filteredItems} onItemClick={handleNavigationClick} showTitle={false} />
+                    </div>}
+                </div>;
+          })}
             
             {/* Main Navigation - Only for non-admin users */}
-            {filteredMainNav.length > 0 && (
-              <NavSection 
-                title="Main" 
-                items={filteredMainNav} 
-                onItemClick={handleNavigationClick}
-                isExpanded={expandedGroups.includes("Main")}
-                onToggle={() => toggleGroup("Main")}
-              />
-            )}
+            {filteredMainNav.length > 0 && <NavSection title="Main" items={filteredMainNav} onItemClick={handleNavigationClick} isExpanded={expandedGroups.includes("Main")} onToggle={() => toggleGroup("Main")} />}
             
             {/* Asset Navigation - Only for non-admin users */}
-            {filteredAssetNav.length > 0 && (
-              <NavSection 
-                title="Assets" 
-                items={filteredAssetNav} 
-                onItemClick={handleNavigationClick}
-                isExpanded={expandedGroups.includes("Assets")}
-                onToggle={() => toggleGroup("Assets")}
-              />
-            )}
+            {filteredAssetNav.length > 0 && <NavSection title="Assets" items={filteredAssetNav} onItemClick={handleNavigationClick} isExpanded={expandedGroups.includes("Assets")} onToggle={() => toggleGroup("Assets")} />}
             
             {/* Settings Navigation - Only for non-admin users */}
-            {!isAdmin && settingsNav.length > 0 && (
-              <NavSection 
-                title="Settings" 
-                items={settingsNav} 
-                onItemClick={handleNavigationClick}
-                isExpanded={expandedGroups.includes("Settings")}
-                onToggle={() => toggleGroup("Settings")}
-              />
-            )}
+            {!isAdmin && settingsNav.length > 0 && <NavSection title="Settings" items={settingsNav} onItemClick={handleNavigationClick} isExpanded={expandedGroups.includes("Settings")} onToggle={() => toggleGroup("Settings")} />}
             
             {/* Account Navigation */}
-            <NavSection 
-              title="Account" 
-              items={accountNav} 
-              onItemClick={handleNavigationClick}
-              isExpanded={expandedGroups.includes("Account")}
-              onToggle={() => toggleGroup("Account")}
-            />
+            <NavSection title="Account" items={accountNav} onItemClick={handleNavigationClick} isExpanded={expandedGroups.includes("Account")} onToggle={() => toggleGroup("Account")} />
             
             {/* Logout Button */}
             <div className="px-2 py-2 border-t border-sidebar-border mt-4 pt-4">
@@ -265,8 +185,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
           <UserProfile userName={userName} isAdmin={isAdmin} />
         </div>
       </div>
-    </>
-  );
+    </>;
 };
-
 export default Sidebar;
