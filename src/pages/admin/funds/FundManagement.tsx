@@ -3,9 +3,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { DollarSign, Percent, BarChart3, Settings } from 'lucide-react';
 import FundAUMManager from '@/components/admin/funds/FundAUMManager';
-import FundYieldManager from '@/components/admin/funds/FundYieldManager';
+import FundYieldManagerV2 from '@/components/admin/funds/FundYieldManagerV2';
 import FundPerformanceAnalytics from '@/components/admin/funds/FundPerformanceAnalytics';
 import FundConfiguration from '@/components/admin/funds/FundConfiguration';
+import PlatformFeeManager from '@/components/admin/fees/PlatformFeeManager';
+import ProfessionalStatementGenerator from '@/components/admin/statements/ProfessionalStatementGenerator';
 
 const FundManagement = () => {
   return (
@@ -18,7 +20,7 @@ const FundManagement = () => {
       </div>
 
       <Tabs defaultValue="aum-management" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 h-11">
+        <TabsList className="grid w-full grid-cols-6 h-11">
           <TabsTrigger value="aum-management" className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
             <span className="hidden sm:inline">AUM Management</span>
@@ -39,6 +41,16 @@ const FundManagement = () => {
             <span className="hidden sm:inline">Settings</span>
             <span className="sm:hidden">Config</span>
           </TabsTrigger>
+          <TabsTrigger value="fees" className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            <span className="hidden sm:inline">Fee Management</span>
+            <span className="sm:hidden">Fees</span>
+          </TabsTrigger>
+          <TabsTrigger value="statements" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            <span className="hidden sm:inline">Statements</span>
+            <span className="sm:hidden">Reports</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="aum-management" className="space-y-6">
@@ -46,7 +58,7 @@ const FundManagement = () => {
         </TabsContent>
 
         <TabsContent value="yield-distribution" className="space-y-6">
-          <FundYieldManager />
+          <FundYieldManagerV2 />
         </TabsContent>
 
         <TabsContent value="performance" className="space-y-6">
@@ -55,6 +67,14 @@ const FundManagement = () => {
 
         <TabsContent value="settings" className="space-y-6">
           <FundConfiguration />
+        </TabsContent>
+
+        <TabsContent value="fees" className="space-y-6">
+          <PlatformFeeManager />
+        </TabsContent>
+
+        <TabsContent value="statements" className="space-y-6">
+          <ProfessionalStatementGenerator />
         </TabsContent>
       </Tabs>
     </div>

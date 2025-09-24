@@ -1259,6 +1259,39 @@ export type Database = {
           },
         ]
       }
+      monthly_fee_summary: {
+        Row: {
+          asset_code: string
+          created_at: string
+          id: string
+          investor_count: number
+          summary_month: string
+          total_fees_collected: number
+          total_gross_yield: number
+          total_net_yield: number
+        }
+        Insert: {
+          asset_code: string
+          created_at?: string
+          id?: string
+          investor_count?: number
+          summary_month: string
+          total_fees_collected?: number
+          total_gross_yield?: number
+          total_net_yield?: number
+        }
+        Update: {
+          asset_code?: string
+          created_at?: string
+          id?: string
+          investor_count?: number
+          summary_month?: string
+          total_fees_collected?: number
+          total_gross_yield?: number
+          total_net_yield?: number
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string
@@ -1294,6 +1327,74 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      platform_fees_collected: {
+        Row: {
+          asset_code: string
+          created_at: string
+          created_by: string | null
+          fee_amount: number
+          fee_month: string
+          fee_rate_percentage: number
+          gross_yield: number
+          id: string
+          investor_id: string
+          net_yield: number
+        }
+        Insert: {
+          asset_code: string
+          created_at?: string
+          created_by?: string | null
+          fee_amount?: number
+          fee_month: string
+          fee_rate_percentage: number
+          gross_yield?: number
+          id?: string
+          investor_id: string
+          net_yield?: number
+        }
+        Update: {
+          asset_code?: string
+          created_at?: string
+          created_by?: string | null
+          fee_amount?: number
+          fee_month?: string
+          fee_rate_percentage?: number
+          gross_yield?: number
+          id?: string
+          investor_id?: string
+          net_yield?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_fees_collected_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investor_directory"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "platform_fees_collected_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_fees_collected_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "platform_fees_collected_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["investor_id"]
+          },
+        ]
       }
       portfolio_history: {
         Row: {
@@ -3079,6 +3180,14 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_daily_yield_with_fees: {
+        Args: {
+          p_application_date?: string
+          p_daily_yield_percentage: number
+          p_fund_id: string
+        }
+        Returns: Json
+      }
       approve_withdrawal: {
         Args: {
           p_admin_notes?: string
@@ -3272,6 +3381,14 @@ export type Database = {
         Returns: {
           count: number
         }[]
+      }
+      get_investor_period_summary: {
+        Args: {
+          p_as_of_date?: string
+          p_asset_code: string
+          p_investor_id: string
+        }
+        Returns: Json
       }
       get_investor_portfolio_summary: {
         Args: { p_investor_id: string }
