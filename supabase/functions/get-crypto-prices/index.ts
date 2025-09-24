@@ -16,6 +16,8 @@ const ASSET_CMC_IDS: Record<string, number> = {
   ETH: 1027,   // Ethereum  
   USDT: 825,   // Tether
   SOL: 5426,   // Solana
+  USDC: 3408,  // USD Coin
+  EURC: 20641, // Euro Coin
 }
 
 const EUR_USD_RATE = 1.08 // Fallback EUR rate
@@ -191,6 +193,30 @@ function getMockPrices(): Record<string, any> {
       marketCap: 95432109876,
       volume24h: 45678901234,
       circulatingSupply: 95400000000,
+      lastUpdated: new Date().toISOString()
+    },
+    USDC: {
+      symbol: 'USDC',
+      name: 'USD Coin',
+      price: 1.0000,
+      change24h: -0.01,
+      change7d: 0.01,
+      change30d: 0.00,
+      marketCap: 34567890123,
+      volume24h: 12345678901,
+      circulatingSupply: 34500000000,
+      lastUpdated: new Date().toISOString()
+    },
+    EURC: {
+      symbol: 'EURC',
+      name: 'Euro Coin',
+      price: 1.08,
+      change24h: 0.05,
+      change7d: 0.12,
+      change30d: 0.23,
+      marketCap: 1234567890,
+      volume24h: 123456789,
+      circulatingSupply: 1140000000,
       lastUpdated: new Date().toISOString()
     },
     EUR: {

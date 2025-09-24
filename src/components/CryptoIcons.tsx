@@ -43,6 +43,18 @@ export const CryptoIcon: React.FC<CryptoIconProps> = ({ symbol, className = "h-1
         className={className} 
       />
     );
+  } else if (lowerSymbol === "usdt") {
+    return (
+      <div className={`bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center ${className}`}>
+        <span className="text-white font-bold text-xs">₮</span>
+      </div>
+    );
+  } else if (lowerSymbol === "eurc") {
+    return (
+      <div className={`bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center ${className}`}>
+        <span className="text-white font-bold text-xs">€</span>
+      </div>
+    );
   }
   
   // Fallback for other assets
