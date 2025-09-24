@@ -1404,6 +1404,33 @@ export type Database = {
           },
         ]
       }
+      legacy_system_migration: {
+        Row: {
+          created_at: string | null
+          deprecated_at: string | null
+          id: string
+          migration_notes: string | null
+          migration_status: string
+          table_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          deprecated_at?: string | null
+          id?: string
+          migration_notes?: string | null
+          migration_status?: string
+          table_name: string
+        }
+        Update: {
+          created_at?: string | null
+          deprecated_at?: string | null
+          id?: string
+          migration_notes?: string | null
+          migration_status?: string
+          table_name?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string
@@ -3051,6 +3078,30 @@ export type Database = {
             referencedColumns: ["investor_id"]
           },
         ]
+      }
+      legacy_migration_status: {
+        Row: {
+          deprecated_at: string | null
+          migration_notes: string | null
+          migration_status: string | null
+          record_count: number | null
+          table_name: string | null
+        }
+        Insert: {
+          deprecated_at?: string | null
+          migration_notes?: string | null
+          migration_status?: string | null
+          record_count?: never
+          table_name?: string | null
+        }
+        Update: {
+          deprecated_at?: string | null
+          migration_notes?: string | null
+          migration_status?: string | null
+          record_count?: never
+          table_name?: string | null
+        }
+        Relationships: []
       }
       portfolio_overview_v: {
         Row: {
