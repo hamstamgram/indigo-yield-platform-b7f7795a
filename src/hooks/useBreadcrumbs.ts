@@ -34,9 +34,7 @@ const routeTitleMap: Record<string, string> = {
   "/admin/requests": "User Requests",
   "/admin/documents": "Document Management",
   "/admin/portfolio": "Portfolio Management",
-  "/admin/excel-import": "Excel Import",
-  "/admin/audit": "Audit Logs",
-  "/admin/legacy-migration": "Legacy Migration"
+  "/admin/audit": "Audit Logs"
 };
 
 export function useBreadcrumbs(): BreadcrumbItem[] {

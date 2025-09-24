@@ -227,25 +227,6 @@ export const profileUpdateSchema = z.object({
 });
 
 // ===============================
-// Excel Import/Export Schemas
-// ===============================
-
-export const excelImportSchema = z.object({
-  file: z.instanceof(File)
-    .refine((file) => file.size <= 10 * 1024 * 1024, 'File size must be less than 10MB')
-    .refine((file) => {
-      const validTypes = [
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'application/vnd.ms-excel'
-      ];
-      return validTypes.includes(file.type);
-    }, 'File must be an Excel file (.xlsx or .xls)'),
-  importType: z.enum(['investors', 'transactions', 'daily_nav', 'full']),
-  validateOnly: z.boolean().default(false),
-  overwriteExisting: z.boolean().default(false),
-});
-
-// ===============================
 // Validation Helpers
 // ===============================
 

@@ -67,7 +67,7 @@ const AdminDocumentsPage = lazy(() => import('@/pages/admin/AdminDocumentsPage')
 const HistoricalReportsDashboard = lazy(() => import('@/components/admin/investors/HistoricalReportsDashboard'));
 const AdminBatchReportsPage = lazy(() => import('@/pages/admin/AdminBatchReportsPage'));
 const AdminWithdrawalsPage = lazy(() => import('@/pages/admin/AdminWithdrawalsPage'));
-const ExcelImportFirstRun = lazy(() => import('@/pages/admin/ExcelImportFirstRun'));
+
 
 // Lazy load complex admin components
 const InvestorAccountCreation = lazy(() => import('@/pages/admin/InvestorAccountCreation').then(m => ({ default: m.InvestorAccountCreation })));
@@ -83,7 +83,7 @@ const AuditDrilldown = lazy(() => import('@/pages/admin/AuditDrilldown'));
 const PDFGenerationDemo = lazy(() => import('@/components/pdf/PDFGenerationDemo').then(m => ({ default: m.PDFGenerationDemo })));
 const SetupAUMPage = lazy(() => import('@/pages/admin/SetupAUMPage'));
 const TestYieldPage = lazy(() => import('@/pages/admin/TestYieldPage'));
-const LegacyMigrationStatus = lazy(() => import('@/pages/admin/LegacyMigrationStatus'));
+
 
 // UI Components
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -154,7 +154,7 @@ export function AppRoutes() {
           <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
           <Route path="/admin/reports/historical" element={<AdminRoute><HistoricalReportsDashboard /></AdminRoute>} />
           <Route path="/admin/withdrawals" element={<AdminRoute><AdminWithdrawalsPage /></AdminRoute>} />
-          <Route path="/admin/excel-first-run" element={<AdminRoute><ExcelImportFirstRun /></AdminRoute>} />
+          
           
           {/* Phase 3.1 Admin Features */}
           <Route path="/admin/investors/create" element={<AdminRoute><InvestorAccountCreation /></AdminRoute>} />
@@ -166,7 +166,7 @@ export function AppRoutes() {
           <Route path="/admin/audit-drilldown" element={<AdminRoute><AuditDrilldown /></AdminRoute>} />
           <Route path="/admin/setup-aum" element={<AdminRoute><SetupAUMPage /></AdminRoute>} />
           <Route path="/admin/test-yield" element={<AdminRoute><TestYieldPage /></AdminRoute>} />
-          <Route path="/admin/legacy-migration" element={<AdminRoute><LegacyMigrationStatus /></AdminRoute>} />
+          
           
           {/* Phase 3.2 Admin Features */}
           <Route path="/admin/pdf-demo" element={<AdminRoute><PDFGenerationDemo /></AdminRoute>} />

@@ -158,24 +158,6 @@ export const adminNavGroups: NavGroup[] = [
       }
     ]
   },
-  {
-    title: "Data & Import",
-    icon: Database,
-    items: [
-      {
-        title: "Excel Import",
-        href: "/admin/excel-import",
-        icon: <Upload className="h-5 w-5" />,
-        adminOnly: true
-      },
-      {
-        title: "Legacy Migration",
-        href: "/admin/legacy-migration",
-        icon: <Archive className="h-5 w-5" />,
-        adminOnly: true
-      }
-    ]
-  }
 ];
 
 // Flat admin navigation for backward compatibility
