@@ -9,7 +9,7 @@ import FundConfiguration from '@/components/admin/funds/FundConfiguration';
 
 const FundManagement = () => {
   return (
-    <div className="font-['Space_Grotesk']">
+    <div>
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Fund Management</h1>
         <p className="text-muted-foreground">

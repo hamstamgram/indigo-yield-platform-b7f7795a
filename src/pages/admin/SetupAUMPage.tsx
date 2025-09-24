@@ -66,7 +66,7 @@ const SetupAUMPage = () => {
   };
 
   return (
-    <div className="font-['Space_Grotesk']">
+    <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white">AUM Setup</h1>
         <p className="text-gray-500 dark:text-gray-400">Initialize daily AUM values for existing funds</p>

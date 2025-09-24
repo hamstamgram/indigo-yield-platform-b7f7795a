@@ -129,7 +129,7 @@ const SupportPage = () => {
   }
 
   return (
-    <div className="font-['Space_Grotesk'] container mx-auto px-4 py-8 space-y-6">
+    <div className="container mx-auto px-4 py-8 space-y-6">
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">

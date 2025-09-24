@@ -93,7 +93,7 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="font-['Space_Grotesk'] space-y-8">
+    <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
           Admin Dashboard

@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 const NotificationSettingsPage = () => {
   return (
-    <div className="font-['Space_Grotesk']">
+    <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Notification Settings</h1>
         <p className="text-gray-500 dark:text-gray-400">Manage your email preferences</p>

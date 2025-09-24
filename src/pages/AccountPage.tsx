@@ -167,7 +167,7 @@ const AccountPage = () => {
   }
 
   return (
-    <div className="font-['Space_Grotesk']">
+    <div>
       <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Account</h1>
       
       <Tabs defaultValue="profile" className="w-full">
