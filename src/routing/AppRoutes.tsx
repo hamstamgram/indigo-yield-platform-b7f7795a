@@ -81,6 +81,8 @@ const AuditDrilldown = lazy(() => import('@/pages/admin/AuditDrilldown'));
 
 // PDF Generation Demo - lazy load
 const PDFGenerationDemo = lazy(() => import('@/components/pdf/PDFGenerationDemo').then(m => ({ default: m.PDFGenerationDemo })));
+const SetupAUMPage = lazy(() => import('@/pages/admin/SetupAUMPage'));
+const TestYieldPage = lazy(() => import('@/pages/admin/TestYieldPage'));
 
 // UI Components
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -161,6 +163,8 @@ export function AppRoutes() {
           <Route path="/admin/funds" element={<AdminRoute><FundManagement /></AdminRoute>} />
           <Route path="/admin/yield-management" element={<AdminRoute><YieldManagement /></AdminRoute>} />
           <Route path="/admin/audit-drilldown" element={<AdminRoute><AuditDrilldown /></AdminRoute>} />
+          <Route path="/admin/setup-aum" element={<AdminRoute><SetupAUMPage /></AdminRoute>} />
+          <Route path="/admin/test-yield" element={<AdminRoute><TestYieldPage /></AdminRoute>} />
           
           {/* Phase 3.2 Admin Features */}
           <Route path="/admin/pdf-demo" element={<AdminRoute><PDFGenerationDemo /></AdminRoute>} />

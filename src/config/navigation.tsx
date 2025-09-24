@@ -22,7 +22,8 @@ import {
   BarChart3,
   ClipboardList,
   MessageSquare,
-  Building2
+  Building2,
+  Target
 } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { NavItem } from "@/types/navigation";
@@ -66,6 +67,10 @@ export const adminNav: NavItem[] = [
   { title: "Requests", href: "/admin/requests", icon: <ClipboardList className="h-5 w-5" />, adminOnly: true },
   { title: "Documents", href: "/admin/documents", icon: <FolderOpen className="h-5 w-5" />, adminOnly: true },
   { title: "Portfolio", href: "/admin/portfolio", icon: <PieChart className="h-5 w-5" />, adminOnly: true },
+  { title: "Fund Management", href: "/admin/funds", icon: <TrendingUp className="h-5 w-5" />, adminOnly: true },
+  { title: "Yield Management", href: "/admin/yield-management", icon: <Target className="h-5 w-5" />, adminOnly: true },
+  { title: "Setup AUM", href: "/admin/setup-aum", icon: <Database className="h-5 w-5" />, adminOnly: true },
+  { title: "Test Yield", href: "/admin/test-yield", icon: <Target className="h-5 w-5" />, adminOnly: true },
   { title: "Excel Import", href: "/admin/excel-first-run", icon: <Upload className="h-5 w-5" />, adminOnly: true },
   { title: "Audit", href: "/admin/audit", icon: <Shield className="h-5 w-5" />, adminOnly: true },
 ];
