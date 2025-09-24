@@ -147,7 +147,7 @@ function AdminDashboardV2() {
         <CardHeader>
           <CardTitle>Fund Management Status</CardTitle>
           <CardDescription>
-            Active fund management system with native token support
+            Fund management system operational status overview
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -156,8 +156,8 @@ function AdminDashboardV2() {
               <div className="flex items-center justify-between">
                 <div className="font-medium">BTC Fund</div>
                 <div className="text-right">
-                  <div className="text-lg font-bold text-primary">Active</div>
-                  <div className="text-xs text-muted-foreground">Native Token</div>
+                  <div className="text-lg font-bold text-primary">Operational</div>
+                  <div className="text-xs text-muted-foreground">Fund Status</div>
                 </div>
               </div>
             </div>
@@ -165,8 +165,8 @@ function AdminDashboardV2() {
               <div className="flex items-center justify-between">
                 <div className="font-medium">ETH Fund</div>
                 <div className="text-right">
-                  <div className="text-lg font-bold text-primary">Active</div>
-                  <div className="text-xs text-muted-foreground">Native Token</div>
+                  <div className="text-lg font-bold text-primary">Operational</div>
+                  <div className="text-xs text-muted-foreground">Fund Status</div>
                 </div>
               </div>
             </div>
@@ -174,8 +174,8 @@ function AdminDashboardV2() {
               <div className="flex items-center justify-between">
                 <div className="font-medium">USDT Fund</div>
                 <div className="text-right">
-                  <div className="text-lg font-bold text-primary">Active</div>
-                  <div className="text-xs text-muted-foreground">Native Token</div>
+                  <div className="text-lg font-bold text-primary">Operational</div>
+                  <div className="text-xs text-muted-foreground">Fund Status</div>
                 </div>
               </div>
             </div>
