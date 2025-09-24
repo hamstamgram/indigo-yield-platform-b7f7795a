@@ -68,6 +68,9 @@ const HistoricalReportsDashboard = lazy(() => import('@/components/admin/investo
 const AdminBatchReportsPage = lazy(() => import('@/pages/admin/AdminBatchReportsPage'));
 const AdminWithdrawalsPage = lazy(() => import('@/pages/admin/AdminWithdrawalsPage'));
 
+// Expert Investor Management - lazy load
+const ExpertInvestorMasterView = lazy(() => import('@/pages/admin/ExpertInvestorMasterView'));
+const ExpertInvestorDashboard = lazy(() => import('@/components/admin/expert/ExpertInvestorDashboard'));
 
 // Lazy load complex admin components
 const InvestorAccountCreation = lazy(() => import('@/pages/admin/InvestorAccountCreation').then(m => ({ default: m.InvestorAccountCreation })));

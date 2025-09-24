@@ -75,27 +75,18 @@ class ExpertInvestorService {
       // Get investor profile data
       const { data: investorData, error: investorError } = await supabase
         .from('investors')
-        .select(`
-          id,
-          profile_id,
-          name,
-          email,
-          phone,
-          status,
-          kyc_status,
-          aml_status,
-          onboarding_date,
-          created_at,
-          profiles!inner(
-            first_name,
-            last_name,
-            fee_percentage
-          )
-        `)
+        .select('*')
         .eq('id', investorId)
         .single();
 
       if (investorError) throw investorError;
+
+      // Get profile data separately
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, fee_percentage')
+        .eq('id', investorData.profile_id)
+        .single();
 
       // Get unified position data from both positions and investor_positions
       const positions = await this.getUnifiedPositions(investorId);
@@ -111,19 +102,21 @@ class ExpertInvestorService {
         id: investorData.id,
         profileId: investorData.profile_id,
         email: investorData.email,
-        firstName: investorData.profiles?.first_name || '',
-        lastName: investorData.profiles?.last_name || '',
+        firstName: profileData?.first_name || '',
+        lastName: profileData?.last_name || '',
         phone: investorData.phone,
         status: investorData.status,
         kycStatus: investorData.kyc_status || 'pending',
         amlStatus: investorData.aml_status || 'pending',
-        feePercentage: investorData.profiles?.fee_percentage || 0.02,
+        feePercentage: profileData?.fee_percentage || 0.02,
         onboardingDate: investorData.onboarding_date || investorData.created_at,
         totalAum: positions.reduce((sum, p) => sum + p.currentValue, 0),
         totalEarnings: positions.reduce((sum, p) => sum + p.totalEarnings, 0),
         totalPrincipal: positions.reduce((sum, p) => sum + p.costBasis, 0),
         positionCount: positions.length,
-        lastActivityDate: Math.max(...positions.map(p => new Date(p.lastTransactionDate).getTime())).toString()
+        lastActivityDate: positions.length > 0 
+          ? new Date(Math.max(...positions.map(p => new Date(p.lastTransactionDate).getTime()))).toISOString()
+          : investorData.created_at
       };
 
       return {
@@ -146,43 +139,34 @@ class ExpertInvestorService {
     try {
       const { data, error } = await supabase
         .from('investors')
-        .select(`
-          id,
-          profile_id,
-          name,
-          email,
-          phone,
-          status,
-          kyc_status,
-          aml_status,
-          onboarding_date,
-          created_at,
-          profiles!inner(
-            first_name,
-            last_name,
-            fee_percentage
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       // For each investor, get position summary
       const investorsWithSummary = await Promise.all(
-        data.map(async (investor) => {
+        (data || []).map(async (investor: any) => {
+          // Get profile data
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('first_name, last_name, fee_percentage')
+            .eq('id', investor.profile_id)
+            .single();
+
           const positions = await this.getUnifiedPositions(investor.id);
           
           return {
             id: investor.id,
             profileId: investor.profile_id,
             email: investor.email,
-            firstName: investor.profiles?.first_name || '',
-            lastName: investor.profiles?.last_name || '',
+            firstName: profileData?.first_name || '',
+            lastName: profileData?.last_name || '',
             phone: investor.phone,
             status: investor.status,
             kycStatus: investor.kyc_status || 'pending',
             amlStatus: investor.aml_status || 'pending',
-            feePercentage: investor.profiles?.fee_percentage || 0.02,
+            feePercentage: profileData?.fee_percentage || 0.02,
             onboardingDate: investor.onboarding_date || investor.created_at,
             totalAum: positions.reduce((sum, p) => sum + p.currentValue, 0),
             totalEarnings: positions.reduce((sum, p) => sum + p.totalEarnings, 0),
@@ -208,98 +192,78 @@ class ExpertInvestorService {
   private async getUnifiedPositions(investorId: string): Promise<UnifiedPositionData[]> {
     try {
       // Get investor_positions (fund-based positions)
-      const { data: fundPositions, error: fundError } = await supabase
+      const { data: fundPositions } = await supabase
         .from('investor_positions')
-        .select(`
-          id,
-          fund_id,
-          fund_class,
-          shares,
-          current_value,
-          cost_basis,
-          unrealized_pnl,
-          realized_pnl,
-          last_transaction_date,
-          lock_until_date,
-          aum_percentage,
-          updated_at,
-          funds!inner(
-            name,
-            code,
-            asset,
-            inception_date
-          )
-        `)
+        .select('*')
         .eq('investor_id', investorId);
 
-      if (fundError) throw fundError;
-
       // Get legacy positions data
-      const { data: legacyPositions, error: legacyError } = await supabase
+      const { data: legacyPositions } = await supabase
         .from('positions')
-        .select(`
-          id,
-          asset_code,
-          current_balance,
-          principal,
-          total_earned,
-          updated_at,
-          last_modified_at
-        `)
+        .select('*')
         .eq('user_id', investorId)
         .gt('current_balance', 0);
-
-      if (legacyError) throw legacyError;
 
       const unifiedPositions: UnifiedPositionData[] = [];
 
       // Process fund positions
-      fundPositions?.forEach((pos: any) => {
-        unifiedPositions.push({
-          id: pos.id,
-          investorId,
-          fundId: pos.fund_id,
-          fundName: pos.funds.name,
-          fundCode: pos.funds.code,
-          asset: pos.funds.asset,
-          fundClass: pos.fund_class,
-          shares: pos.shares || 0,
-          currentValue: pos.current_value || 0,
-          costBasis: pos.cost_basis || 0,
-          unrealizedPnl: pos.unrealized_pnl || 0,
-          realizedPnl: pos.realized_pnl || 0,
-          totalEarnings: (pos.unrealized_pnl || 0) + (pos.realized_pnl || 0),
-          inceptionDate: pos.funds.inception_date,
-          lastTransactionDate: pos.last_transaction_date || pos.updated_at,
-          lockUntilDate: pos.lock_until_date,
-          feeRate: 0.02, // Default 2%
-          aumPercentage: pos.aum_percentage || 0
-        });
-      });
+      if (fundPositions) {
+        for (const pos of fundPositions) {
+          // Get fund data separately
+          const { data: fundData } = await supabase
+            .from('funds')
+            .select('name, code, asset, inception_date')
+            .eq('id', pos.fund_id)
+            .single();
 
-      // Process legacy positions (if not already covered by fund positions)
-      legacyPositions?.forEach((pos: any) => {
-        if (!unifiedPositions.find(up => up.asset === pos.asset_code)) {
           unifiedPositions.push({
-            id: pos.id,
+            id: `${pos.fund_id}-${pos.investor_id}`, // Composite key since no id field
             investorId,
-            fundName: `${pos.asset_code} Legacy Position`,
-            fundCode: pos.asset_code,
-            asset: pos.asset_code,
-            fundClass: 'Legacy',
-            shares: pos.current_balance,
-            currentValue: pos.current_balance,
-            costBasis: pos.principal || 0,
-            unrealizedPnl: pos.total_earned || 0,
-            realizedPnl: 0,
-            totalEarnings: pos.total_earned || 0,
-            inceptionDate: pos.updated_at,
-            lastTransactionDate: pos.last_modified_at || pos.updated_at,
+            fundId: pos.fund_id,
+            fundName: fundData?.name || 'Unknown Fund',
+            fundCode: fundData?.code || 'UNK',
+            asset: fundData?.asset || 'UNKNOWN',
+            fundClass: pos.fund_class || 'Standard',
+            shares: pos.shares || 0,
+            currentValue: pos.current_value || 0,
+            costBasis: pos.cost_basis || 0,
+            unrealizedPnl: pos.unrealized_pnl || 0,
+            realizedPnl: pos.realized_pnl || 0,
+            totalEarnings: (pos.unrealized_pnl || 0) + (pos.realized_pnl || 0),
+            inceptionDate: fundData?.inception_date || pos.updated_at,
+            lastTransactionDate: pos.last_transaction_date || pos.updated_at,
+            lockUntilDate: pos.lock_until_date,
             feeRate: 0.02,
-            aumPercentage: 0
+            aumPercentage: pos.aum_percentage || 0
           });
         }
-      });
+      }
+
+      // Process legacy positions
+      if (legacyPositions) {
+        for (const pos of legacyPositions) {
+          if (!unifiedPositions.find(up => up.asset === pos.asset_code)) {
+            unifiedPositions.push({
+              id: pos.id,
+              investorId,
+              fundName: `${pos.asset_code} Legacy Position`,
+              fundCode: pos.asset_code,
+              asset: pos.asset_code,
+              fundClass: 'Legacy',
+              shares: pos.current_balance,
+              currentValue: pos.current_balance,
+              costBasis: pos.principal || 0,
+              unrealizedPnl: pos.total_earned || 0,
+              realizedPnl: 0,
+              totalEarnings: pos.total_earned || 0,
+              inceptionDate: pos.updated_at,
+              lastTransactionDate: pos.last_modified_at || pos.updated_at,
+              feeRate: 0.02,
+              aumPercentage: 0
+            });
+          }
+        }
+      }
 
       return unifiedPositions;
     } catch (error) {
@@ -317,12 +281,11 @@ class ExpertInvestorService {
     const totalReturn = totalValue - totalInvested;
     const totalReturnPercent = totalInvested > 0 ? (totalReturn / totalInvested) * 100 : 0;
 
-    // For now, use simple calculations. In production, you'd want more sophisticated period returns
     return {
       totalReturn,
       totalReturnPercent,
-      monthlyReturn: totalReturnPercent / 12, // Simple approximation
-      yearToDateReturn: totalReturnPercent, // Simple approximation
+      monthlyReturn: totalReturnPercent / 12,
+      yearToDateReturn: totalReturnPercent,
       inceptionReturn: totalReturnPercent
     };
   }
@@ -332,16 +295,13 @@ class ExpertInvestorService {
    */
   private async calculateFeeMetrics(investorId: string) {
     try {
-      const { data: feeData, error } = await supabase
+      const { data: feeData } = await supabase
         .from('platform_fees_collected')
         .select('fee_amount, fee_month')
         .eq('investor_id', investorId);
 
-      if (error) throw error;
-
       const totalFeesCollected = feeData?.reduce((sum, fee) => sum + Number(fee.fee_amount), 0) || 0;
       
-      // Calculate monthly and YTD fees
       const currentYear = new Date().getFullYear();
       const currentMonth = new Date().getMonth();
       
@@ -374,7 +334,6 @@ class ExpertInvestorService {
    */
   async updateInvestorFeePercentage(investorId: string, feePercentage: number): Promise<boolean> {
     try {
-      // Get the profile_id for this investor
       const { data: investor, error: investorError } = await supabase
         .from('investors')
         .select('profile_id')
@@ -383,14 +342,12 @@ class ExpertInvestorService {
 
       if (investorError) throw investorError;
 
-      // Update the fee percentage in profiles table
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ fee_percentage: feePercentage })
         .eq('id', investor.profile_id);
 
       if (updateError) throw updateError;
-
       return true;
     } catch (error) {
       console.error('Error updating investor fee percentage:', error);
@@ -401,24 +358,24 @@ class ExpertInvestorService {
   /**
    * Update position value for an investor
    */
-  async updatePositionValue(positionId: string, newValue: number, isLegacy: boolean = false): Promise<boolean> {
+  async updatePositionValue(fundId: string, investorId: string, newValue: number, isLegacy: boolean = false): Promise<boolean> {
     try {
       if (isLegacy) {
+        // For legacy positions, use the position id directly
         const { error } = await supabase
           .from('positions')
           .update({ current_balance: newValue })
-          .eq('id', positionId);
-
+          .eq('id', fundId); // fundId is actually position id for legacy
         if (error) throw error;
       } else {
+        // For investor_positions, use composite key
         const { error } = await supabase
           .from('investor_positions')
           .update({ current_value: newValue })
-          .eq('id', positionId);
-
+          .eq('fund_id', fundId)
+          .eq('investor_id', investorId);
         if (error) throw error;
       }
-
       return true;
     } catch (error) {
       console.error('Error updating position value:', error);

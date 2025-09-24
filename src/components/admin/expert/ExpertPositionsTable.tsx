@@ -44,11 +44,30 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
 
   const handleSave = async (positionId: string, isLegacy: boolean) => {
     try {
-      await expertInvestorService.updatePositionValue(
-        positionId, 
-        editValues.currentValue, 
-        isLegacy
-      );
+      const position = positions.find(p => p.id === positionId);
+      if (!position) {
+        toast.error('Position not found');
+        return;
+      }
+
+      if (isLegacy) {
+        // For legacy positions, use position id as fundId
+        await expertInvestorService.updatePositionValue(
+          positionId, 
+          position.investorId,
+          editValues.currentValue, 
+          isLegacy
+        );
+      } else {
+        // For fund positions, use fundId and investorId
+        await expertInvestorService.updatePositionValue(
+          position.fundId || '', 
+          position.investorId,
+          editValues.currentValue, 
+          isLegacy
+        );
+      }
+      
       setEditingPosition(null);
       onPositionUpdate();
       toast.success('Position updated successfully');
