@@ -57,10 +57,10 @@ export function useNavItems(): NavItem[] {
       description: 'Platform overview and metrics'
     },
     {
-      title: 'Investors',
-      href: '/admin/investors',
+      title: 'Expert Investors',
+      href: '/admin/expert-investors',
       icon: Users,
-      description: 'Manage investor accounts'
+      description: 'Unified investor management with positions and fees'
     },
     {
       title: 'Portfolio Management',

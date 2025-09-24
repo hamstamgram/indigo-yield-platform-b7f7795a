@@ -18,10 +18,10 @@ const AdminDashboard = () => {
 
   const navigationCards = [
     {
-      title: 'Investor Management',
-      description: 'Manage investor accounts, positions, and portfolios',
+      title: 'Expert Investor Management',
+      description: 'Unified investor management with positions, fees, and performance tracking',
       icon: Users,
-      path: '/admin/investors',
+      path: '/admin/expert-investors',
       color: 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400'
     },
     {
