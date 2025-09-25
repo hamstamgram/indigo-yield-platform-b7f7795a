@@ -2,11 +2,11 @@ import { lazy } from 'react';
 import { RouteSuspense } from './RouteSuspense';
 
 // Lazy load main pages
-export const Dashboard = lazy(() => import('@/pages/Dashboard'));
-export const TransactionsPage = lazy(() => import('@/pages/TransactionsPage'));
+export const Dashboard = lazy(() => import('@/pages/investor/dashboard/Dashboard'));
+export const TransactionsPage = lazy(() => import('@/pages/investor/portfolio/TransactionsPage'));
 export const AdminDashboard = lazy(() => import('@/components/admin/AdminDashboardV2'));
 export const Login = lazy(() => import('@/pages/Login'));
-export const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
+export const SettingsPage = lazy(() => import('@/pages/investor/account/SettingsPage'));
 
 // Lazy load admin pages
 export const AdminInvestors = lazy(() => import('@/pages/admin/AdminInvestors'));

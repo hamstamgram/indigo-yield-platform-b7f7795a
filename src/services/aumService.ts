@@ -46,6 +46,100 @@ export interface YieldCalculationResult {
 }
 
 /**
+ * Get previous day's AUM for a fund
+ */
+async function getPreviousDayAUM(fundId: string, currentDate: string): Promise<number> {
+  try {
+    // Calculate previous business day (assuming daily processing excludes weekends)
+    const currentDateObj = new Date(currentDate);
+    const previousDateObj = new Date(currentDateObj);
+    previousDateObj.setDate(currentDateObj.getDate() - 1);
+    
+    const previousDate = previousDateObj.toISOString().split('T')[0];
+
+    const { data, error } = await supabase
+      .from('fund_daily_aum')
+      .select('total_aum')
+      .eq('fund_id', fundId)
+      .eq('aum_date', previousDate)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data?.total_aum || 0;
+  } catch (error) {
+    console.error('Error fetching previous day AUM:', error);
+    return 0;
+  }
+}
+
+/**
+ * Get day's deposits and withdrawals for a fund
+ */
+async function getDayTransactions(fundId: string, date: string): Promise<DailyTransactionsSummary> {
+  try {
+    const { data, error } = await supabase
+      .from('transactions_v2')
+      .select('amount, type')
+      .eq('fund_id', fundId)
+      .eq('tx_date', date);
+
+    if (error) throw error;
+
+    let deposits = 0;
+    let withdrawals = 0;
+
+    data?.forEach((transaction) => {
+      if (transaction.type === 'DEPOSIT') {
+        deposits += transaction.amount;
+      } else if (transaction.type === 'WITHDRAWAL') {
+        withdrawals += transaction.amount;
+      }
+    });
+
+    return {
+      deposits,
+      withdrawals,
+      net_flow: deposits - withdrawals
+    };
+  } catch (error) {
+    console.error('Error fetching day transactions:', error);
+    return { deposits: 0, withdrawals: 0, net_flow: 0 };
+  }
+}
+
+/**
+ * Calculate daily yield based on AUM changes after processing deposits/withdrawals
+ * Formula: Daily Yield = (Today's AUM - Yesterday's AUM + Withdrawals - Deposits)
+ */
+async function calculateDailyYield(fundId: string, currentAUM: number, date: string): Promise<YieldCalculationResult> {
+  try {
+    // Get previous day's AUM
+    const previousAUM = await getPreviousDayAUM(fundId, date);
+    
+    // Get day's transactions
+    const transactions = await getDayTransactions(fundId, date);
+    
+    // Calculate yield: currentAUM - previousAUM + withdrawals - deposits
+    const calculatedYield = currentAUM - previousAUM + transactions.withdrawals - transactions.deposits;
+    
+    // Calculate yield percentage
+    const yieldPercentage = previousAUM > 0 ? (calculatedYield / previousAUM) * 100 : 0;
+
+    return {
+      previous_aum: previousAUM,
+      current_aum: currentAUM,
+      deposits: transactions.deposits,
+      withdrawals: transactions.withdrawals,
+      calculated_yield: calculatedYield,
+      yield_percentage: yieldPercentage
+    };
+  } catch (error) {
+    console.error('Error calculating daily yield:', error);
+    throw error;
+  }
+}
+
+/**
  * Set daily AUM for a fund
  */
 export async function setFundDailyAUM(
