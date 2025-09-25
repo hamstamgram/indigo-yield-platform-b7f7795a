@@ -11,14 +11,14 @@ const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 
 // Lazy load heavy components
-const Dashboard = lazy(() => import('@/pages/Dashboard'));
-const EnhancedDashboard = lazy(() => import('@/pages/EnhancedDashboard'));
-const StatementsPage = lazy(() => import('@/pages/StatementsPage'));
-const TransactionsPage = lazy(() => import('@/pages/TransactionsPage'));
-const DocumentsPage = lazy(() => import('@/pages/DocumentsPage'));
+const Dashboard = lazy(() => import('@/pages/investor/dashboard/Dashboard'));
+const AdminDashboard = lazy(() => import('@/pages/admin/dashboard/AdminDashboard'));
+const StatementsPage = lazy(() => import('@/pages/investor/statements/StatementsPage'));
+const TransactionsPage = lazy(() => import('@/pages/investor/portfolio/TransactionsPage'));
+const DocumentsPage = lazy(() => import('@/pages/investor/statements/Documents'));
 const AssetDetail = lazy(() => import('@/pages/AssetDetail'));
-const AccountPage = lazy(() => import('@/pages/AccountPage'));
-const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
+const AccountPage = lazy(() => import('@/pages/investor/account/AccountPage'));
+const SettingsPage = lazy(() => import('@/pages/investor/account/SettingsPage'));
 const Terms = lazy(() => import('@/pages/Terms'));
 const Privacy = lazy(() => import('@/pages/Privacy'));
 const Contact = lazy(() => import('@/pages/Contact'));
@@ -30,23 +30,24 @@ const Status = lazy(() => import('@/pages/Status'));
 const OnboardingWizard = lazy(() => import('@/components/onboarding/OnboardingWizard'));
 
 // Admin pages - lazy load all
-const AdminTools = lazy(() => import('@/pages/AdminTools'));
-const AdminInvite = lazy(() => import('@/pages/AdminInvite'));
+const AdminTools = lazy(() => import('@/pages/admin/settings/AdminTools'));
+const AdminInvite = lazy(() => import('@/pages/admin/settings/AdminInvite'));
 const AdminDashboardV2 = lazy(() => import('@/components/admin/AdminDashboardV2'));
 const PortfolioDashboard = lazy(() => import('@/pages/admin/PortfolioDashboard'));
 const AdminPortfolioDashboard = lazy(() => import('@/pages/admin/AdminPortfolioDashboard'));
 const InvestorManagementView = lazy(() => import('@/components/admin/InvestorManagementView'));
 const InvestorDetail = lazy(() => import('@/pages/admin/InvestorDetail'));
-const AdminOperations = lazy(() => import('@/pages/AdminOperations'));
-const AdminAudit = lazy(() => import('@/pages/AdminAudit'));
+const AdminOperations = lazy(() => import('@/pages/admin/settings/AdminOperations'));
+const AdminAudit = lazy(() => import('@/pages/admin/settings/AdminAudit'));
 
 // LP Pages - lazy load all
-const WithdrawalsPage = lazy(() => import('@/pages/WithdrawalsPage'));
+const WithdrawalsPage = lazy(() => import('@/pages/admin/investors/WithdrawalsPage'));
+const DepositsPage = lazy(() => import('@/pages/admin/investors/DepositsPage'));
 const SupportPage = lazy(() => import('@/pages/SupportPage'));
 const SupportTicketsPage = lazy(() => import('@/pages/SupportTicketsPage'));
-const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
-const PortfolioAnalyticsPage = lazy(() => import('@/pages/PortfolioAnalyticsPage'));
-const SessionManagementPage = lazy(() => import('@/pages/SessionManagementPage'));
+const NotificationsPage = lazy(() => import('@/pages/investor/account/NotificationsPage'));
+const PortfolioAnalyticsPage = lazy(() => import('@/pages/investor/portfolio/PortfolioAnalyticsPage'));
+const SessionManagementPage = lazy(() => import('@/pages/investor/account/SessionManagementPage'));
 const ProfileSettingsPage = lazy(() => import('@/pages/settings/ProfileSettingsPage'));
 const NotificationSettingsPage = lazy(() => import('@/pages/settings/NotificationSettingsPage'));
 const SecuritySettings = lazy(() => import('@/pages/settings/SecuritySettings'));
@@ -119,7 +120,7 @@ export function AppRoutes() {
         {/* Dashboard routes with layout */}
         <Route path="/" element={<DashboardLayout />}>
           {/* LP Dashboard route - protected */}
-          <Route path="/dashboard" element={<ProtectedRoute><EnhancedDashboard /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
           
           {/* LP Routes - all protected */}
           <Route path="/withdrawals" element={<ProtectedRoute><WithdrawalsPage /></ProtectedRoute>} />
