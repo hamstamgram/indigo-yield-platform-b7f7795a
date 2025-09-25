@@ -32,18 +32,18 @@ if [ ! -f ".env" ]; then
     exit 1
 fi
 
-# Kill any existing process on port 8082
-echo "🔧 Checking port 8082..."
-lsof -ti:8082 | xargs kill -9 2>/dev/null
+# Kill any existing process on port 8080
+echo "🔧 Checking port 8080..."
+lsof -ti:8080 | xargs kill -9 2>/dev/null
 
 # Start the development server
-echo "✨ Starting development server on http://localhost:8082"
+echo "✨ Starting development server on http://localhost:8080"
 echo ""
 echo "📋 Available Admin Features:"
-echo "  • Dashboard: http://localhost:8082/admin"
-echo "  • Portfolio Dashboard: http://localhost:8082/admin/portfolio"
-echo "  • Investor Management: http://localhost:8082/admin/investors"
-echo "  • Yield Settings: http://localhost:8082/admin/yield-settings"
+echo "  • Dashboard: http://localhost:8080/admin"
+echo "  • Portfolio Dashboard: http://localhost:8080/admin/portfolio"
+echo "  • Investor Management: http://localhost:8080/admin/investors"
+echo "  • Yield Settings: http://localhost:8080/admin/yield-settings"
 echo ""
 echo "Press Ctrl+C to stop the server"
 echo "----------------------------------------"
