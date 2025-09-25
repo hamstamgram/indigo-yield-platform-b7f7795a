@@ -1,0 +1,35 @@
+~/workspace$ git pull
+remote: Enumerating objects: 4530, done.
+remote: Counting objects: 100% (4530/4530), done.
+remote: Compressing objects: 100% (1836/1836), done.
+remote: Total 4245 (delta 2338), reused 4085 (delta 2224), pack-reused 0 (from 0)
+Receiving objects: 100% (4245/4245), 53.68 MiB | 32.03 MiB/s, done.
+Resolving deltas: 100% (2338/2338), completed with 178 local objects.
+From https://github.com/hamstamgram/indigo-yield-platform-v01
+   bab8de5..7f98ca5  main                                  -> origin/main
+ * [new branch]      audit/pages-inventory                 -> origin/audit/pages-inventory
+ * [new branch]      develop                               -> origin/develop
+ * [new branch]      feature/complete-optimizations        -> origin/feature/complete-optimizations
+ * [new branch]      feature/core-product-pages            -> origin/feature/core-product-pages
+ * [new branch]      feature/full-update-rollup            -> origin/feature/full-update-rollup
+ * [new branch]      feature/investors-data-and-audit      -> origin/feature/investors-data-and-audit
+ * [new branch]      feature/portal-scaffold               -> origin/feature/portal-scaffold
+ * [new branch]      feature/pwa-sw-initial                -> origin/feature/pwa-sw-initial
+ * [new branch]      feature/scaffold-core-pages           -> origin/feature/scaffold-core-pages
+ * [new branch]      feature/totp-management               -> origin/feature/totp-management
+ * [new branch]      fix/critical-security-and-performance -> origin/fix/critical-security-and-performance
+ * [new branch]      staging                               -> origin/staging
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint:
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint:
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+~/workspace$ 
