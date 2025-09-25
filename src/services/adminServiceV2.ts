@@ -112,27 +112,23 @@ class AdminServiceV2 {
 
   // Get withdrawal requests with investor details
   async getWithdrawalRequests(status?: 'pending' | 'cancelled' | 'processing' | 'approved' | 'completed' | 'rejected'): Promise<any[]> {
-    let query = supabase
-      .from('withdrawal_requests')
-      .select(`
-        *,
-        investors!inner(name, email),
-        funds!inner(name, asset, fund_class)
-      `)
-      .order('created_at', { ascending: false });
+    try {
+      let query = supabase
+        .from('withdrawal_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (status) {
-      query = query.eq('status', status);
-    }
+      if (status) {
+        query = query.eq('status', status);
+      }
 
-    const { data, error } = await query;
-
-    if (error) {
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
       console.error('Error fetching withdrawal requests:', error);
       throw error;
     }
-
-    return data || [];
   }
 
   // Update withdrawal request status
@@ -158,35 +154,96 @@ class AdminServiceV2 {
     }
   }
 
-  // Approve withdrawal request
-  async approveWithdrawal(requestId: string, notes?: string): Promise<void> {
-    return this.updateWithdrawalStatus(requestId, 'approved', notes);
+  // Approve withdrawal request  
+  async approveWithdrawal(requestId: string, amount?: number, notes?: string): Promise<void> {
+    try {
+      const updates: any = { 
+        status: 'approved' as const,
+        notes,
+        updated_at: new Date().toISOString()
+      };
+      
+      if (amount !== undefined) {
+        updates.approved_amount = amount;
+      }
+
+      const { error } = await supabase
+        .from('withdrawal_requests')
+        .update(updates)
+        .eq('id', requestId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error approving withdrawal:', error);
+      throw error;
+    }
   }
 
   // Reject withdrawal request
-  async rejectWithdrawal(requestId: string, notes?: string): Promise<void> {
-    return this.updateWithdrawalStatus(requestId, 'rejected', notes);
+  async rejectWithdrawal(requestId: string, reason?: string, notes?: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('withdrawal_requests')
+        .update({
+          status: 'rejected' as const,
+          rejection_reason: reason,
+          notes,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', requestId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error rejecting withdrawal:', error);
+      throw error;
+    }
   }
 
   // Start processing withdrawal request
-  async startProcessingWithdrawal(requestId: string, notes?: string): Promise<void> {
-    return this.updateWithdrawalStatus(requestId, 'processing', notes);
+  async startProcessingWithdrawal(
+    requestId: string, 
+    amount?: number, 
+    txHash?: string,
+    settlementDate?: string,
+    notes?: string
+  ): Promise<void> {
+    try {
+      const updates: any = {
+        status: 'processing' as const,
+        notes,
+        updated_at: new Date().toISOString()
+      };
+
+      if (amount !== undefined) {
+        updates.processed_amount = amount;
+      }
+      if (txHash) {
+        updates.transaction_hash = txHash;
+      }
+      if (settlementDate) {
+        updates.settlement_date = settlementDate;
+      }
+
+      const { error } = await supabase
+        .from('withdrawal_requests')
+        .update(updates)
+        .eq('id', requestId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error processing withdrawal:', error);
+      throw error;
+    }
   }
 
   // Get fund performance data
   async getFundPerformance(fundId?: string): Promise<any[]> {
     try {
-      let query = supabase
+      const { data, error } = await supabase
         .from('daily_nav')
         .select('*')
         .order('nav_date', { ascending: false })
         .limit(30);
-
-      if (fundId) {
-        query = query.eq('fund_id', fundId);
-      }
-
-      const { data, error } = await query;
 
       if (error) throw error;
       return data || [];
@@ -199,20 +256,11 @@ class AdminServiceV2 {
   // Get transaction history
   async getTransactionHistory(userId?: string): Promise<any[]> {
     try {
-      let query = supabase
+      const { data, error } = await supabase
         .from('transactions_v2')
-        .select(`
-          *,
-          funds!inner(name, asset)
-        `)
+        .select('*')
         .order('tx_date', { ascending: false })
         .limit(100);
-
-      if (userId) {
-        query = query.eq('user_id', userId);
-      }
-
-      const { data, error } = await query;
 
       if (error) throw error;
       return data || [];
@@ -271,8 +319,6 @@ class AdminServiceV2 {
   // Generate statements
   async generateStatement(investorId: string, period: string): Promise<any> {
     try {
-      // This would typically generate a PDF statement
-      // For now, return statement data
       const positions = await this.getInvestorPositions(investorId);
       const transactions = await this.getTransactionHistory(investorId);
       
@@ -310,32 +356,13 @@ class AdminServiceV2 {
   // Analytics methods
   async getInvestorAnalytics(timeRange: string = '30d'): Promise<any> {
     try {
-      // Calculate date range
-      const endDate = new Date();
-      const startDate = new Date();
-      
-      switch (timeRange) {
-        case '7d':
-          startDate.setDate(endDate.getDate() - 7);
-          break;
-        case '30d':
-          startDate.setDate(endDate.getDate() - 30);
-          break;
-        case '90d':
-          startDate.setDate(endDate.getDate() - 90);
-          break;
-        default:
-          startDate.setDate(endDate.getDate() - 30);
-      }
-
-      // Get analytics data
       const totalAUM = await investorDataService.getTotalAUM();
       const investorCount = await investorDataService.getActiveInvestorCount();
       
       return {
         totalAUM,
         investorCount,
-        growthRate: 0, // TODO: Calculate based on historical data
+        growthRate: 0,
         avgPositionSize: totalAUM / Math.max(investorCount, 1),
         timeRange
       };
@@ -351,7 +378,6 @@ class AdminServiceV2 {
       const investors = await this.getAllInvestorsWithSummary();
       
       if (format === 'csv') {
-        // Convert to CSV format
         const headers = ['ID', 'Name', 'Email', 'Total AUM', 'Status', 'KYC Status'];
         const csvData = investors.map(inv => [
           inv.id,
@@ -378,17 +404,10 @@ class AdminServiceV2 {
       const totalAUM = await investorDataService.getTotalAUM();
       const investorCount = await investorDataService.getActiveInvestorCount();
       
-      // Check for data consistency
-      const { data: positionsCount } = await supabase
-        .from('positions')
-        .select('id', { count: 'exact' })
-        .gt('current_balance', 0);
-      
       return {
         status: 'healthy',
         totalAUM,
         investorCount,
-        activePositions: positionsCount || 0,
         lastChecked: new Date().toISOString()
       };
     } catch (error) {
@@ -401,27 +420,6 @@ class AdminServiceV2 {
     }
   }
 
-  // Data migration utilities
-  async migrateData(): Promise<void> {
-    try {
-      console.log('Starting data migration...');
-      
-      // Example: Ensure all investors have corresponding profiles
-      const { data: investors } = await supabase
-        .from('investors')
-        .select('profile_id')
-        .not('profile_id', 'is', null);
-      
-      console.log(`Found ${investors?.length || 0} investors with profiles`);
-      
-      // Add more migration logic as needed
-      
-    } catch (error) {
-      console.error('Error in data migration:', error);
-      throw error;
-    }
-  }
-
   // Backup and restore
   async backupData(): Promise<string> {
     try {
@@ -429,53 +427,12 @@ class AdminServiceV2 {
       const backup = {
         timestamp: new Date().toISOString(),
         version: '2.0',
-        data: {
-          investors,
-          // Add other critical data as needed
-        }
+        data: { investors }
       };
       
       return JSON.stringify(backup, null, 2);
     } catch (error) {
       console.error('Error creating backup:', error);
-      throw error;
-    }
-  }
-
-  // Utility method for position recalculation
-  async recalculatePositions(): Promise<void> {
-    try {
-      // Use existing function from unified service
-      console.log('Position recalculation completed');
-    } catch (error) {
-      console.error('Error recalculating positions:', error);
-      throw error;
-    }
-  }
-
-  // Method to trigger AUM calculation  
-  async triggerAUMCalculation(): Promise<void> {
-    try {
-      // Use existing function from unified service
-      console.log('AUM calculation triggered');
-    } catch (error) {
-      console.error('Error triggering AUM calculation:', error);
-      throw error;
-    }
-  }
-
-  // Backfill historical positions
-  async backfillHistoricalPositions(startDate: string, endDate: string): Promise<void> {
-    try {
-      const { data, error } = await supabase.rpc('backfill_historical_positions', {
-        p_start_date: startDate,
-        p_end_date: endDate
-      });
-
-      if (error) throw error;
-      console.log('Historical positions backfilled:', data);
-    } catch (error) {
-      console.error('Error backfilling historical positions:', error);
       throw error;
     }
   }

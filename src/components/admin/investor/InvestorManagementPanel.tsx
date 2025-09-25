@@ -53,7 +53,7 @@ export function InvestorManagementPanel({ investors, onDataChange }: InvestorMan
     return matchesSearch && matchesStatus;
   });
 
-  const updateInvestorStatus = async (investorId: string, newStatus: string) => {
+  const updateInvestorStatus = async (investorId: string, newStatus: 'active' | 'inactive' | 'suspended') => {
     try {
       setUpdating(investorId);
       await adminServiceV2.updateInvestorStatus(investorId, newStatus);
