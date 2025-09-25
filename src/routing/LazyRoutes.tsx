@@ -4,7 +4,7 @@ import { RouteSuspense } from './RouteSuspense';
 // Lazy load main pages
 export const Dashboard = lazy(() => import('@/pages/investor/dashboard/Dashboard'));
 export const TransactionsPage = lazy(() => import('@/pages/investor/portfolio/TransactionsPage'));
-export const AdminDashboard = lazy(() => import('@/components/admin/AdminDashboardV2'));
+export const AdminDashboardV2 = lazy(() => import('@/components/admin/AdminDashboardV2'));
 export const Login = lazy(() => import('@/pages/Login'));
 export const SettingsPage = lazy(() => import('@/pages/investor/account/SettingsPage'));
 
@@ -28,7 +28,7 @@ export const LazyDashboard = () => (
 
 export const LazyAdminDashboard = () => (
   <RouteSuspense type="admin">
-    <AdminDashboard />
+    <AdminDashboardV2 />
   </RouteSuspense>
 );
 
