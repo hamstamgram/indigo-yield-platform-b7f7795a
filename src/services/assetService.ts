@@ -1,38 +1,86 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { createAssetSummariesFromDb, createDefaultAssetSummaries } from "@/utils/assetUtils";
 
 /**
- * Fetches asset data from the database or creates defaults if none exist
- * @returns Array of asset summaries with native token balances
+ * Fetches real investor positions from the database
+ * @returns Array of consolidated investor positions by asset
  */
-export const fetchAssetSummaries = async () => {
-  const { data: assets, error } = await supabase
-    .from('assets')
-    .select('*')
-    .order('id');
+export const fetchInvestorPositions = async () => {
+  try {
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     
-  if (error) {
-    console.error("Error fetching assets:", error);
+    if (userError) throw userError;
+    if (!user) {
+      console.log("No authenticated user found");
+      return [];
+    }
+
+    // First get the investor record for this user
+    const { data: investor, error: investorError } = await supabase
+      .from('investors')
+      .select('id')
+      .eq('profile_id', user.id)
+      .single();
+
+    if (investorError || !investor) {
+      console.log("No investor record found for user");
+      return [];
+    }
+
+    // Get investor positions with fund information
+    const { data: positions, error: positionsError } = await supabase
+      .from('investor_positions')
+      .select(`
+        current_value,
+        fund_id,
+        funds!inner(code, name, asset)
+      `)
+      .eq('investor_id', investor.id)
+      .gt('current_value', 0);
+
+    if (positionsError) {
+      console.error("Error fetching investor positions:", positionsError);
+      return [];
+    }
+
+    if (!positions || positions.length === 0) {
+      console.log("No positions found for investor");
+      return [];
+    }
+
+    // Group positions by asset (fund code)
+    const assetMap = new Map();
+    
+    positions.forEach(position => {
+      const assetSymbol = position.funds.code.toUpperCase();
+      const assetName = position.funds.asset;
+      
+      if (assetMap.has(assetSymbol)) {
+        // Add to existing position
+        const existing = assetMap.get(assetSymbol);
+        existing.balance += position.current_value;
+      } else {
+        // Create new position
+        assetMap.set(assetSymbol, {
+          symbol: assetSymbol,
+          name: assetName,
+          balance: position.current_value,
+          // Keep original fund structure for compatibility
+          id: position.fund_id
+        });
+      }
+    });
+
+    return Array.from(assetMap.values());
+  } catch (error) {
+    console.error("Error in fetchInvestorPositions:", error);
     return [];
   }
-    
-  if (!assets || assets.length === 0) {
-    console.log("No assets found, using default assets");
-    return createDefaultAssetSummaries();
-  }
-  
-  // Ensure uniqueness by normalizing symbols to uppercase
-  const uniqueAssets = new Map();
-  assets.forEach(asset => {
-    const normalizedSymbol = asset.symbol.toUpperCase();
-    if (!uniqueAssets.has(normalizedSymbol)) {
-      uniqueAssets.set(normalizedSymbol, {
-        ...asset,
-        symbol: normalizedSymbol
-      });
-    }
-  });
-  
-  return createAssetSummariesFromDb(Array.from(uniqueAssets.values()));
 };
+
+/**
+ * Legacy function for backward compatibility
+ * @deprecated Use fetchInvestorPositions instead
+ */
+export const fetchAssetSummaries = fetchInvestorPositions;
