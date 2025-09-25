@@ -12,7 +12,6 @@ const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 
 // Lazy load heavy components
 const Dashboard = lazy(() => import('@/pages/investor/dashboard/Dashboard'));
-const AdminDashboard = lazy(() => import('@/pages/admin/dashboard/AdminDashboard'));
 const StatementsPage = lazy(() => import('@/pages/investor/statements/StatementsPage'));
 const TransactionsPage = lazy(() => import('@/pages/investor/portfolio/TransactionsPage'));
 const DocumentsPage = lazy(() => import('@/pages/investor/statements/Documents'));
@@ -119,8 +118,8 @@ export function AppRoutes() {
       
         {/* Dashboard routes with layout */}
         <Route path="/" element={<DashboardLayout />}>
-          {/* LP Dashboard route - protected */}
-          <Route path="/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+          {/* Investor Dashboard route - protected */}
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           
           {/* LP Routes - all protected */}
           <Route path="/withdrawals" element={<ProtectedRoute><WithdrawalsPage /></ProtectedRoute>} />
