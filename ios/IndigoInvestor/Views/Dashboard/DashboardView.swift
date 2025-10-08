@@ -35,6 +35,7 @@ struct DashboardView: View {
                         isLoading: viewModel.isLoading
                     )
                     .padding(.horizontal)
+                    .accessibilityElement(children: .combine)
                     
                     // Time Range Selector
                     TimeRangePicker(selection: $selectedTimeRange)
@@ -86,6 +87,7 @@ struct DashboardView: View {
             }
             .navigationTitle("Dashboard")
             .navigationBarTitleDisplayMode(.large)
+            .accessibilityAddTraits(.isHeader)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     NotificationButton()
@@ -115,25 +117,29 @@ struct PortfolioValueCard: View {
             Text("Total Portfolio Value")
                 .font(Typography.headline)
                 .foregroundColor(.secondary)
-            
+                .accessibilityAddTraits(.isHeader)
+
             if isLoading {
                 ProgressView()
                     .frame(height: 60)
+                    .accessibilityLabel("Loading portfolio value")
             } else if let portfolio = portfolio {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(portfolio.formattedTotalValue)
                         .font(Typography.largeTitle)
-                    
+                        .accessibilityLabel("Portfolio value: \(portfolio.formattedTotalValue)")
+
                     HStack(spacing: 12) {
                         ChangeIndicator(
                             value: portfolio.dayChange,
                             percentage: portfolio.dayChangePercent,
                             label: "Today"
                         )
-                        
+
                         Divider()
                             .frame(height: 20)
-                        
+                            .accessibilityHidden(true)
+
                         ChangeIndicator(
                             value: portfolio.totalGain,
                             percentage: portfolio.totalGainPercent,
@@ -174,19 +180,22 @@ struct ChangeIndicator: View {
             Text(label)
                 .font(Typography.caption1)
                 .foregroundColor(.secondary)
-            
+
             HStack(spacing: 4) {
                 Image(systemName: icon)
                     .font(Typography.caption1)
-                
+                    .accessibilityHidden(true)
+
                 Text(value.formatted(.currency(code: "USD")))
                     .font(Typography.bodyMedium)
-                
+
                 Text("(\(String(format: "%.2f", percentage))%)")
                     .font(Typography.caption1)
             }
             .foregroundColor(color)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(label) change: \(value >= 0 ? "up" : "down") \(value.formatted(.currency(code: "USD"))), \(String(format: "%.2f", abs(percentage))) percent")
     }
 }
 
@@ -232,6 +241,9 @@ struct TimeRangeButton: View {
                 )
         }
         .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel("Time range: \(title)")
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+        .accessibilityHint("Select \(title) time range for performance chart")
     }
 }
 
@@ -245,7 +257,8 @@ struct PerformanceChartCard: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Performance")
                 .font(.headline)
-            
+                .accessibilityAddTraits(.isHeader)
+
             if #available(iOS 16.0, *) {
                 Chart(data) { item in
                     LineMark(
@@ -283,6 +296,9 @@ struct PerformanceChartCard: View {
                         AxisValueLabel(format: .currency(code: "USD"))
                     }
                 }
+                .accessibilityLabel("Performance chart for \(timeRange.rawValue) time period")
+                .accessibilityValue(chartAccessibilityValue)
+                .accessibilityHint("Shows portfolio value trend over time")
             } else {
                 // Fallback for iOS 15
                 Text("Chart requires iOS 16+")
@@ -306,6 +322,16 @@ struct PerformanceChartCard: View {
             return .dateTime.month(.abbreviated)
         }
     }
+
+    private var chartAccessibilityValue: String {
+        guard let first = data.first?.value, let last = data.last?.value else {
+            return "No data available"
+        }
+        let change = last - first
+        let percentChange = (change / first) * 100
+        let direction = change >= 0 ? "increased" : "decreased"
+        return "Portfolio value \(direction) from \(first.formatted(.currency(code: "USD"))) to \(last.formatted(.currency(code: "USD"))), \(String(format: "%.2f", abs(percentChange))) percent"
+    }
 }
 
 // MARK: - Asset Allocation Card
@@ -317,27 +343,31 @@ struct AssetAllocationCard: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Asset Allocation")
                 .font(.headline)
-            
+                .accessibilityAddTraits(.isHeader)
+
             VStack(spacing: 12) {
                 ForEach(allocations) { allocation in
                     HStack {
                         Circle()
                             .fill(Color(allocation.color))
                             .frame(width: 12, height: 12)
-                        
+                            .accessibilityHidden(true)
+
                         Text(allocation.assetType)
                             .font(.subheadline)
-                        
+
                         Spacer()
-                        
+
                         Text(allocation.formattedPercentage)
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                        
+
                         Text(allocation.value.formatted(.currency(code: "USD")))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("\(allocation.assetType): \(allocation.formattedPercentage), \(allocation.value.formatted(.currency(code: "USD")))")
                 }
             }
         }
@@ -358,7 +388,8 @@ struct QuickActionsCard: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Quick Actions")
                 .font(.headline)
-            
+                .accessibilityAddTraits(.isHeader)
+
             HStack(spacing: 12) {
                 QuickActionButton(
                     icon: "arrow.up.circle.fill",
@@ -366,7 +397,7 @@ struct QuickActionsCard: View {
                     color: .blue,
                     action: onWithdrawTapped
                 )
-                
+
                 QuickActionButton(
                     icon: "doc.text.fill",
                     title: "Statements",
@@ -397,7 +428,8 @@ struct QuickActionButton: View {
                     .frame(width: 48, height: 48)
                     .background(color)
                     .cornerRadius(12)
-                
+                    .accessibilityHidden(true)
+
                 Text(title)
                     .font(.caption)
                     .foregroundColor(.primary)
@@ -405,6 +437,9 @@ struct QuickActionButton: View {
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel(title)
+        .accessibilityHint(title == "Withdraw" ? "Request a withdrawal from your portfolio" : "View your account statements")
+        .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -418,16 +453,21 @@ struct RecentTransactionsCard: View {
             HStack {
                 Text("Recent Transactions")
                     .font(.headline)
-                
+                    .accessibilityAddTraits(.isHeader)
+
                 Spacer()
-                
+
                 // NavigationLink(destination: TransactionsView()) {
-                    Text("View All")
-                        .font(.caption)
-                        .foregroundColor(.accentColor)
+                    Button(action: {}) {
+                        Text("View All")
+                            .font(.caption)
+                            .foregroundColor(.accentColor)
+                    }
+                    .accessibilityLabel("View all transactions")
+                    .accessibilityAddTraits(.isButton)
                 // }
             }
-            
+
             VStack(spacing: 8) {
                 ForEach(transactions.prefix(5)) { transaction in
                     TransactionRow(transaction: transaction)
@@ -454,25 +494,28 @@ struct TransactionRow: View {
                         .foregroundColor(iconColor)
                         .font(.system(size: 16))
                 )
-            
+                .accessibilityHidden(true)
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(transaction.description)
                     .font(.subheadline)
                     .lineLimit(1)
-                
+
                 Text(transaction.formattedDate)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            
+
             Spacer()
-            
+
             Text(transaction.formattedAmount)
                 .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundColor(amountColor)
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(transaction.type.rawValue): \(transaction.description), \(transaction.formattedAmount), \(transaction.formattedDate)")
     }
     
     private var iconName: String {
@@ -529,9 +572,13 @@ struct NotificationButton: View {
                         .fill(Color.red)
                         .frame(width: 8, height: 8)
                         .offset(x: 8, y: -8)
+                        .accessibilityHidden(true)
                     : nil
                 )
         }
+        .accessibilityLabel(hasUnread ? "Notifications, unread messages" : "Notifications")
+        .accessibilityHint("View your notifications")
+        .accessibilityAddTraits(.isButton)
     }
 }
 

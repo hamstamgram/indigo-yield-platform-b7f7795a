@@ -64,20 +64,30 @@ struct AdminDashboardView: View {
             }
             .navigationTitle("Admin Dashboard")
             .navigationBarTitleDisplayMode(.large)
+            .accessibilityAddTraits(.isHeader)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
                         Button(action: { viewModel.exportReport() }) {
                             Label("Export Report", systemImage: "doc.text")
                         }
+                        .accessibilityLabel("Export admin report")
+                        .accessibilityHint("Generates and exports administrative report")
+
                         Button(action: { viewModel.refreshData() }) {
                             Label("Refresh", systemImage: "arrow.clockwise")
                         }
+                        .accessibilityLabel("Refresh dashboard data")
+                        .accessibilityHint("Reloads all dashboard metrics and statistics")
+
                         Divider()
+
                         Button(action: { viewModel.toggleTestMode() }) {
-                            Label(viewModel.isTestMode ? "Disable Test Mode" : "Enable Test Mode", 
+                            Label(viewModel.isTestMode ? "Disable Test Mode" : "Enable Test Mode",
                                   systemImage: "hammer")
                         }
+                        .accessibilityLabel(viewModel.isTestMode ? "Disable test mode" : "Enable test mode")
+                        .accessibilityHint("Toggles test mode for development purposes")
                     } label: {
                         Image(systemName: "ellipsis.circle")
                     }

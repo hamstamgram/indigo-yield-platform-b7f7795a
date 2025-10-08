@@ -24,29 +24,32 @@ class CertificatePinningManager: NSObject {
     }
     
     private func loadPinnedCertificates() {
-        // Load Supabase certificate (example)
-        if let certPath = Bundle.main.path(forResource: "supabase-cert", ofType: "cer"),
-           let certData = NSData(contentsOfFile: certPath) as Data? {
-            pinnedCertificates["supabase.co"] = certData
-            
-            // Extract public key for pinning
-            if let publicKey = extractPublicKey(from: certData) {
-                pinnedPublicKeys["supabase.co"] = publicKey
-            }
+        // Load Supabase certificate
+        guard let certPath = Bundle.main.path(forResource: "supabase", ofType: "cer") else {
+            print("⚠️ WARNING: Certificate file not found. Certificate pinning DISABLED!")
+            print("⚠️ Run: cd ios/Scripts && ./extract_certificate.sh to generate certificate")
+            return
+        }
+
+        guard let certData = try? Data(contentsOf: URL(fileURLWithPath: certPath)) else {
+            print("❌ Failed to load certificate data")
+            return
+        }
+
+        // Store certificate data for both domain variations
+        pinnedCertificates["nkfimvovosdehmyyjubn.supabase.co"] = certData
+        pinnedCertificates["supabase.co"] = certData
+
+        // Extract and store public key
+        if let publicKey = extractPublicKey(from: certData) {
+            pinnedPublicKeys["nkfimvovosdehmyyjubn.supabase.co"] = publicKey
+            pinnedPublicKeys["supabase.co"] = publicKey
+            print("✅ Certificate pinning configured for Supabase")
+            print("✅ Pinned domains: nkfimvovosdehmyyjubn.supabase.co, supabase.co")
         } else {
-            // For development - use public key pinning with known keys
-            setupDevelopmentPinning()
+            print("❌ Failed to extract public key from certificate")
         }
     }
-    
-    private func setupDevelopmentPinning() {
-        // For development/testing when actual certificates are not available
-        print("⚠️ Using development certificate pinning - NOT for production!")
-        
-        // This would typically contain actual production certificate data
-        // For now, we'll create a placeholder structure
-    }
-    
     private func extractPublicKey(from certificateData: Data) -> SecKey? {
         guard let certificate = SecCertificateCreateWithData(nil, certificateData) else {
             print("❌ Failed to create certificate from data")

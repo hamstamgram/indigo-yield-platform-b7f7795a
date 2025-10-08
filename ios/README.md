@@ -1,8 +1,8 @@
 # 📱 IndigoInvestor iOS App
 
-## ✅ Project Successfully Created!
+> Native Swift iOS application for Indigo Yield Platform
 
-The iOS app for Indigo Yield Platform has been successfully set up and is now open in Xcode!
+[← Back to Main Repository](../README.md)
 
 ## 🎯 What's Been Completed
 
@@ -47,11 +47,22 @@ The iOS app for Indigo Yield Platform has been successfully set up and is now op
 - Configure App Groups for widget data sharing
 
 ### 2. Add Supabase Credentials
-Create `Config/Secrets.xcconfig` with your actual keys:
+⚠️ **IMPORTANT**: Follow these steps to configure credentials securely:
+
+1. Copy the template file:
+```bash
+cd ios/Config
+cp Secrets.xcconfig.template Secrets.xcconfig
 ```
-SUPABASE_URL = https://uxpzrxsnxlptkamkkaae.supabase.co
-SUPABASE_ANON_KEY = [Get from Supabase Dashboard > Settings > API]
-```
+
+2. Edit `Config/Secrets.xcconfig` with your actual credentials:
+   - Get SUPABASE_URL and SUPABASE_ANON_KEY from: [Supabase Dashboard > Settings > API](https://supabase.com/dashboard/project/_/settings/api)
+   - Get SENTRY_DSN from: [Sentry Settings](https://sentry.io/settings/projects/)
+   - Other keys are optional for initial development
+
+3. **NEVER commit `Secrets.xcconfig` to git** - it's already in `.gitignore`
+
+4. For production deployment, rotate your Supabase anon key if the old one was exposed
 
 ### 3. Build & Run
 - Select iPhone simulator or device

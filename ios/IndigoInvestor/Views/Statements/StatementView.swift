@@ -41,16 +41,21 @@ struct StatementView: View {
                 PDFViewer(url: pdfURL)
                     .navigationTitle(viewModel.statementTitle)
                     .navigationBarTitleDisplayMode(.inline)
+                    .accessibilityAddTraits(.isHeader)
                     .toolbar {
                         ToolbarItem(placement: .navigationBarTrailing) {
                             Button(action: { showingShareSheet = true }) {
                                 Image(systemName: "square.and.arrow.up")
                             }
+                            .accessibilityLabel("Share statement")
+                            .accessibilityHint("Opens sharing options for this statement")
                         }
                         ToolbarItem(placement: .navigationBarLeading) {
                             Button("Done") {
                                 dismiss()
                             }
+                            .accessibilityLabel("Close statement")
+                            .accessibilityHint("Returns to statements list")
                         }
                     }
             }

@@ -45,10 +45,12 @@ class AuthService: ObservableObject {
             
             currentUser = response.user
             isAuthenticated = true
-            
-            // Store credentials securely
-            try keychainManager.store(email, for: "user_email")
-            
+
+            // Store tokens securely
+            try keychainManager.saveAccessToken(response.session.accessToken)
+            try keychainManager.saveRefreshToken(response.session.refreshToken)
+            try keychainManager.saveUserID(response.user.id.uuidString)
+
             // Enable biometric auth if available
             if biometricManager.canUseBiometrics() {
                 await enableBiometricAuth()
@@ -90,10 +92,10 @@ class AuthService: ObservableObject {
             try await client.auth.signOut()
             currentUser = nil
             isAuthenticated = false
-            
+
             // Clear stored credentials
-            try keychainManager.delete("user_email")
-            try keychainManager.delete("refresh_token")
+            try keychainManager.clearTokens()
+            try keychainManager.clearAll()
         } catch {
             self.error = error.localizedDescription
             throw error
@@ -136,28 +138,31 @@ class AuthService: ObservableObject {
         guard biometricManager.canUseBiometrics() else {
             throw AuthError.biometricsNotAvailable
         }
-        
+
         let authenticated = await biometricManager.authenticate(
             reason: "Access your portfolio"
         )
-        
+
         if authenticated {
-            // Retrieve stored credentials and sign in
-            if let email = try? keychainManager.retrieve("user_email"),
-               let refreshToken = try? keychainManager.retrieve("refresh_token") {
-                try await refreshSession(refreshToken)
-            } else {
+            // Retrieve stored refresh token and restore session
+            guard let refreshToken = try keychainManager.getRefreshToken() else {
                 throw AuthError.noStoredCredentials
             }
+
+            try await refreshSession(refreshToken)
         } else {
             throw AuthError.biometricsFailed
         }
     }
     
     private func enableBiometricAuth() async {
-        // Store refresh token for biometric auth
-        if let session = client.auth.session {
-            try? keychainManager.store(session.refreshToken, for: "refresh_token")
+        // Tokens are already stored during sign-in
+        // Just mark biometric as enabled
+        do {
+            try keychainManager.setBiometricEnabled(true)
+            print("✅ Biometric authentication enabled")
+        } catch {
+            print("❌ Failed to enable biometric auth: \(error)")
         }
     }
     

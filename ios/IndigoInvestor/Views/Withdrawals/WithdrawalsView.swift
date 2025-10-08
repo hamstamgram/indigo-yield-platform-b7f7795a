@@ -106,12 +106,15 @@ struct WithdrawalsView: View {
                     .font(.title3)
                     .foregroundColor(IndigoTheme.Colors.primaryGradientStart)
             }
+            .accessibilityLabel("Back")
+            .accessibilityHint("Returns to previous screen")
 
             Spacer()
 
             Text("Withdrawals")
                 .font(IndigoTheme.Typography.title3)
                 .foregroundColor(IndigoTheme.Colors.primaryText)
+                .accessibilityAddTraits(.isHeader)
 
             Spacer()
 
@@ -120,6 +123,8 @@ struct WithdrawalsView: View {
                     .font(.title3)
                     .foregroundColor(IndigoTheme.Colors.primaryGradientStart)
             }
+            .accessibilityLabel("Withdrawal history")
+            .accessibilityHint("View past withdrawal transactions")
         }
         .padding(.horizontal, IndigoTheme.Spacing.md)
         .padding(.top, 60)
@@ -139,6 +144,8 @@ struct WithdrawalsView: View {
                     .font(IndigoTheme.Typography.headline)
                     .foregroundColor(IndigoTheme.Colors.primaryText)
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isHeader)
 
             VStack(spacing: IndigoTheme.Spacing.sm) {
                 DestinationRow(
@@ -185,6 +192,8 @@ struct WithdrawalsView: View {
                     TextField("0.00", text: $withdrawAmount)
                         .font(.system(size: 24, weight: .semibold, design: .rounded))
                         .keyboardType(.decimalPad)
+                        .accessibilityLabel("Withdrawal amount in USDT")
+                        .accessibilityHint("Enter the amount you want to withdraw")
 
                     Text("USDT")
                         .font(IndigoTheme.Typography.headline)
@@ -206,6 +215,8 @@ struct WithdrawalsView: View {
                 Toggle("", isOn: .constant(false))
                     .labelsHidden()
                     .scaleEffect(0.8)
+                    .accessibilityLabel("Network Max toggle")
+                    .accessibilityHint("Enable to withdraw maximum available amount")
 
                 Text("Network Max")
                     .font(IndigoTheme.Typography.footnote)
@@ -296,6 +307,9 @@ struct WithdrawalsView: View {
         }
         .buttonStyle(PrimaryButtonStyle())
         .disabled(withdrawAmount.isEmpty)
+        .accessibilityLabel("Review and confirm withdrawal")
+        .accessibilityHint("Proceeds to withdrawal confirmation screen")
+        .accessibilityAddTraits(withdrawAmount.isEmpty ? [.isButton] : [.isButton])
     }
 
     private func processWithdrawal() {
@@ -319,6 +333,7 @@ struct DestinationRow: View {
                     .font(.title3)
                     .foregroundColor(IndigoTheme.Colors.primaryGradientStart)
                     .frame(width: 32)
+                    .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
@@ -335,12 +350,16 @@ struct DestinationRow: View {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
                     .foregroundColor(isSelected ? IndigoTheme.Colors.primaryGradientStart : IndigoTheme.Colors.tertiaryText)
+                    .accessibilityHidden(true)
             }
             .padding()
             .background(isSelected ? IndigoTheme.Colors.secondaryBackground : Color.clear)
             .cornerRadius(IndigoTheme.CornerRadius.medium)
         }
         .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel("\(title), address \(subtitle)\(isSelected ? ", selected" : "")")
+        .accessibilityHint("Select this wallet as withdrawal destination")
+        .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -362,6 +381,8 @@ struct FeeRow: View {
                 .font(isBold ? IndigoTheme.Typography.headline : IndigoTheme.Typography.subheadline)
                 .foregroundColor(isHighlighted ? IndigoTheme.Colors.warning : IndigoTheme.Colors.primaryText)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(label): \(value)")
     }
 }
 
@@ -382,6 +403,7 @@ struct AssetSelectionCard: View {
                         .font(.title2)
                         .foregroundColor(asset.color)
                 }
+                .accessibilityHidden(true)
 
                 Text(asset.rawValue)
                     .font(IndigoTheme.Typography.caption1)
@@ -405,6 +427,10 @@ struct AssetSelectionCard: View {
             )
         }
         .buttonStyle(PlainButtonStyle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(asset.fullName), balance \(asset.balance), amount \(asset.amount)\(isSelected ? ", selected" : "")")
+        .accessibilityHint("Select \(asset.fullName) for withdrawal")
+        .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -424,6 +450,8 @@ struct DetailRow: View {
                 .font(IndigoTheme.Typography.caption1)
                 .foregroundColor(IndigoTheme.Colors.primaryText)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(label): \(value)")
     }
 }
 
@@ -440,10 +468,12 @@ struct ConfirmationSheet: View {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 60))
                     .foregroundColor(IndigoTheme.Colors.success)
+                    .accessibilityHidden(true)
 
                 Text("Confirm Withdrawal")
                     .font(IndigoTheme.Typography.title2)
                     .foregroundColor(IndigoTheme.Colors.primaryText)
+                    .accessibilityAddTraits(.isHeader)
             }
 
             // Details
@@ -466,11 +496,15 @@ struct ConfirmationSheet: View {
                     Text("Confirm")
                 }
                 .buttonStyle(PrimaryButtonStyle())
+                .accessibilityLabel("Confirm withdrawal")
+                .accessibilityHint("Processes the withdrawal request")
 
                 Button(action: { dismiss() }) {
                     Text("Cancel")
                 }
                 .buttonStyle(SecondaryButtonStyle())
+                .accessibilityLabel("Cancel withdrawal")
+                .accessibilityHint("Returns to withdrawal form without processing")
             }
         }
         .padding(IndigoTheme.Spacing.xl)

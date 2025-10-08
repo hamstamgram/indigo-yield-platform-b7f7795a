@@ -12,29 +12,22 @@ struct SupabaseConfig {
     
     var url: String {
         // Read from Info.plist which is populated from xcconfig
-        if let url = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_URL") as? String,
-           !url.isEmpty {
-            print("✅ Using Supabase URL from Info.plist: \(url)")
-            return url
+        guard let url = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_URL") as? String,
+              !url.isEmpty,
+              !url.contains("YOUR_") else {
+            fatalError("❌ SUPABASE_URL not configured. Check Config/Secrets.xcconfig and ensure it's properly set.")
         }
-
-        // Use production URL for both debug and release
-        let productionURL = "https://nkfimvovosdehmyyjubn.supabase.co"
-        print("⚠️ Using hardcoded production URL: \(productionURL)")
-        return productionURL
+        return url
     }
 
     var anonKey: String {
         // Read from Info.plist which is populated from xcconfig
-        if let key = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_ANON_KEY") as? String,
-           !key.isEmpty {
-            print("✅ Using Supabase anon key from Info.plist")
-            return key
+        guard let key = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_ANON_KEY") as? String,
+              !key.isEmpty,
+              !key.contains("YOUR_") else {
+            fatalError("❌ SUPABASE_ANON_KEY not configured. Check Config/Secrets.xcconfig and ensure it's properly set.")
         }
-
-        // Use production anon key for both debug and release
-        print("⚠️ Using hardcoded production anon key")
-        return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZmltdm92b3NkZWhteXlqdWJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0NTQ1OTgsImV4cCI6MjA2MjAzMDU5OH0.pZrIyCCd7dlvvNMGdW8-71BxSVfoKhxs9a5Ezbkmjgg"
+        return key
     }
 
     var isConfigurationValid: Bool {

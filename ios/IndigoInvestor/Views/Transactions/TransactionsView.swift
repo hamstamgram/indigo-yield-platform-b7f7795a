@@ -60,15 +60,20 @@ struct TransactionsView: View {
                     HStack {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.secondary)
-                        
+                            .accessibilityHidden(true)
+
                         TextField("Search transactions...", text: $searchText)
                             .textFieldStyle(PlainTextFieldStyle())
-                        
+                            .accessibilityLabel("Search transactions")
+                            .accessibilityHint("Enter text to search through transaction history")
+
                         if !searchText.isEmpty {
                             Button(action: { searchText = "" }) {
                                 Image(systemName: "xmark.circle.fill")
                                     .foregroundColor(.secondary)
                             }
+                            .accessibilityLabel("Clear search")
+                            .accessibilityHint("Removes the search text")
                         }
                     }
                     .padding(12)
@@ -133,16 +138,21 @@ struct TransactionsView: View {
             }
             .navigationTitle("Transactions")
             .navigationBarTitleDisplayMode(.large)
+            .accessibilityAddTraits(.isHeader)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
                         Button(action: { showingExportOptions = true }) {
                             Label("Export", systemImage: "square.and.arrow.up")
                         }
-                        
+                        .accessibilityLabel("Export transactions")
+                        .accessibilityHint("Export transaction history to PDF, CSV, or Excel")
+
                         Button(action: { Task { await viewModel.refreshTransactions() } }) {
                             Label("Refresh", systemImage: "arrow.clockwise")
                         }
+                        .accessibilityLabel("Refresh transactions")
+                        .accessibilityHint("Reload transaction history from server")
                     } label: {
                         Image(systemName: "ellipsis.circle")
                     }
@@ -200,14 +210,14 @@ struct FilterPill: View {
     let count: Int
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 4) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(isSelected ? .semibold : .regular)
-                
+
                 if count > 0 {
                     Text("\(count)")
                         .font(.caption)
@@ -227,6 +237,10 @@ struct FilterPill: View {
             )
         }
         .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel("\(title) filter\(isSelected ? ", selected" : "")")
+        .accessibilityValue(count > 0 ? "\(count) transactions" : "No transactions")
+        .accessibilityHint("Filter transactions by \(title.lowercased())")
+        .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -234,7 +248,7 @@ struct FilterPill: View {
 
 struct TransactionListRow: View {
     let transaction: Transaction
-    
+
     var body: some View {
         HStack {
             // Icon
@@ -246,39 +260,40 @@ struct TransactionListRow: View {
                         .foregroundColor(iconColor)
                         .font(.system(size: 18))
                 )
-            
+                .accessibilityHidden(true)
+
             // Details
             VStack(alignment: .leading, spacing: 4) {
                 Text(transaction.description)
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .lineLimit(1)
-                
+
                 HStack(spacing: 8) {
                     Text(transaction.date, style: .time)
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    
+
                     if let reference = transaction.reference {
                         Text("• \(reference)")
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .lineLimit(1)
                     }
-                    
+
                     StatusBadge(status: transaction.status)
                 }
             }
-            
+
             Spacer()
-            
+
             // Amount
             VStack(alignment: .trailing, spacing: 2) {
                 Text(amountText)
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundColor(amountColor)
-                
+
                 Text(transaction.currency)
                     .font(.caption2)
                     .foregroundColor(.secondary)
@@ -288,6 +303,16 @@ struct TransactionListRow: View {
         .padding(.horizontal, 12)
         .background(Color(.secondarySystemBackground))
         .cornerRadius(12)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(transactionAccessibilityLabel)
+        .accessibilityHint("Double tap to view transaction details")
+    }
+
+    private var transactionAccessibilityLabel: String {
+        let typeDescription = transaction.type.rawValue.capitalized
+        let statusDescription = transaction.status.rawValue.capitalized
+        let reference = transaction.reference.map { ", reference \($0)" } ?? ""
+        return "\(typeDescription) transaction: \(transaction.description), \(amountText), \(statusDescription)\(reference), \(transaction.date.formatted(date: .abbreviated, time: .shortened))"
     }
     
     private var iconName: String {
@@ -353,7 +378,7 @@ struct TransactionListRow: View {
 
 struct StatusBadge: View {
     let status: Transaction.TransactionStatus
-    
+
     var body: some View {
         Text(status.rawValue.capitalized)
             .font(.caption2)
@@ -363,6 +388,7 @@ struct StatusBadge: View {
             .padding(.vertical, 2)
             .background(backgroundColor)
             .cornerRadius(4)
+            .accessibilityLabel("Status: \(status.rawValue.capitalized)")
     }
     
     private var textColor: Color {
@@ -386,17 +412,18 @@ struct StatusBadge: View {
 struct EmptyTransactionsView: View {
     let filter: TransactionsView.TransactionFilter
     let searchText: String
-    
+
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "doc.text.magnifyingglass")
                 .font(.system(size: 60))
                 .foregroundColor(.secondary)
-            
+                .accessibilityHidden(true)
+
             Text(emptyMessage)
                 .font(.headline)
                 .foregroundColor(.primary)
-            
+
             Text(emptyDescription)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
@@ -405,6 +432,8 @@ struct EmptyTransactionsView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.systemBackground))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(emptyMessage). \(emptyDescription)")
     }
     
     private var emptyMessage: String {
@@ -466,11 +495,13 @@ struct TransactionDetailView: View {
                                     .foregroundColor(iconColor)
                                     .font(.system(size: 36))
                             )
-                        
+                            .accessibilityHidden(true)
+
                         Text(transaction.formattedAmount)
                             .font(.largeTitle)
                             .fontWeight(.bold)
-                        
+                            .accessibilityLabel("Amount: \(transaction.formattedAmount)")
+
                         StatusBadge(status: transaction.status)
                             .scaleEffect(1.2)
                     }
@@ -513,7 +544,9 @@ struct TransactionDetailView: View {
                                     .foregroundColor(.white)
                                     .cornerRadius(12)
                             }
-                            
+                            .accessibilityLabel("Contact support")
+                            .accessibilityHint("Get help with this transaction")
+
                             if transaction.type == .withdrawal && transaction.status == .pending {
                                 Button(action: { /* Cancel withdrawal */ }) {
                                     Label("Cancel Withdrawal", systemImage: "xmark.circle")
@@ -523,6 +556,8 @@ struct TransactionDetailView: View {
                                         .foregroundColor(.red)
                                         .cornerRadius(12)
                                 }
+                                .accessibilityLabel("Cancel withdrawal")
+                                .accessibilityHint("Cancels this pending withdrawal request")
                             }
                         }
                     }
@@ -531,11 +566,14 @@ struct TransactionDetailView: View {
             }
             .navigationTitle("Transaction Details")
             .navigationBarTitleDisplayMode(.inline)
+            .accessibilityAddTraits(.isHeader)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
                         dismiss()
                     }
+                    .accessibilityLabel("Close transaction details")
+                    .accessibilityHint("Returns to transaction list")
                 }
             }
         }
@@ -633,11 +671,14 @@ struct ExportOptionsView: View {
             }
             .navigationTitle("Export Transactions")
             .navigationBarTitleDisplayMode(.inline)
+            .accessibilityAddTraits(.isHeader)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .accessibilityLabel("Cancel export")
+                    .accessibilityHint("Closes export options")
                 }
             }
         }

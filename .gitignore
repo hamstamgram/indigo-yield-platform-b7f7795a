@@ -29,3 +29,10 @@ mcp-jotform/
 
 *storybook.log
 storybook-static
+
+# iOS Secrets
+ios/Config/Secrets.xcconfig
+ios/IndigoInvestor/Config/Production.xcconfig
+
+# Do NOT ignore templates
+!ios/Config/Secrets.xcconfig.template

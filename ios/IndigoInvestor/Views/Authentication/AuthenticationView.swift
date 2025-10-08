@@ -49,15 +49,19 @@ struct AuthenticationView: View {
                                 .scaledToFit()
                                 .frame(width: 120, height: 120)
                                 .shadow(radius: 10)
-                            
+                                .accessibilityLabel("Indigo Investor logo")
+                                .accessibilityHidden(true) // Decorative
+
                             Text("Indigo Investor")
                                 .font(.largeTitle)
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
-                            
+                                .accessibilityAddTraits(.isHeader)
+
                             Text("Your Portfolio, Secured")
                                 .font(.subheadline)
                                 .foregroundColor(.white.opacity(0.9))
+                                .accessibilityLabel("Your Portfolio, Secured")
                         }
                         .padding(.top, 50)
                         
@@ -79,6 +83,8 @@ struct AuthenticationView: View {
                                     .onSubmit {
                                         focusedField = .password
                                     }
+                                    .accessibilityLabel("Email address")
+                                    .accessibilityHint("Enter your email address to sign in")
                             }
                             
                             // Password Field
@@ -95,13 +101,15 @@ struct AuthenticationView: View {
                                         SecureField("Enter your password", text: $password)
                                             .textContentType(.password)
                                     }
-                                    
+
                                     Button(action: {
                                         showPassword.toggle()
                                     }) {
                                         Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
                                             .foregroundColor(.white.opacity(0.6))
                                     }
+                                    .accessibilityLabel(showPassword ? "Hide password" : "Show password")
+                                    .accessibilityHint("Toggles password visibility")
                                 }
                                 .textFieldStyle(CustomTextFieldStyle())
                                 .focused($focusedField, equals: .password)
@@ -109,6 +117,8 @@ struct AuthenticationView: View {
                                 .onSubmit {
                                     handleLogin()
                                 }
+                                .accessibilityLabel("Password")
+                                .accessibilityHint("Enter your password to sign in")
                             }
                             
                             // Login Button
@@ -131,6 +141,9 @@ struct AuthenticationView: View {
                                 .shadow(color: .black.opacity(0.1), radius: 5, y: 3)
                             }
                             .disabled(isLoading || email.isEmpty || password.isEmpty)
+                            .accessibilityLabel(isLoading ? "Signing in" : "Sign in")
+                            .accessibilityHint("Sign in to your Indigo Investor account")
+                            .accessibilityAddTraits(.isButton)
                             
                             // Biometric Login Option
                             if serviceLocator.biometricManager.isAvailable &&
@@ -148,6 +161,9 @@ struct AuthenticationView: View {
                                     .background(Color.white.opacity(0.2))
                                     .cornerRadius(12)
                                 }
+                                .accessibilityLabel("Sign in with \(serviceLocator.biometricManager.biometricName)")
+                                .accessibilityHint("Authenticate using your biometric credentials")
+                                .accessibilityAddTraits(.isButton)
                             }
                             
                             // Forgot Password
@@ -158,6 +174,9 @@ struct AuthenticationView: View {
                                     .font(.footnote)
                                     .foregroundColor(.white.opacity(0.9))
                             }
+                            .accessibilityLabel("Forgot password")
+                            .accessibilityHint("Reset your password via email")
+                            .accessibilityAddTraits(.isButton)
 
                             // Demo Login Button (for testing)
                             #if DEBUG
@@ -175,6 +194,8 @@ struct AuthenticationView: View {
                                         .background(Color.green.opacity(0.7))
                                         .cornerRadius(8)
                                 }
+                                .accessibilityLabel("Demo investor login")
+                                .accessibilityHint("Sign in with demo investor account for testing")
 
                                 Button(action: {
                                     Task {
@@ -189,8 +210,11 @@ struct AuthenticationView: View {
                                         .background(Color.orange.opacity(0.7))
                                         .cornerRadius(8)
                                 }
+                                .accessibilityLabel("Demo admin login")
+                                .accessibilityHint("Sign in with demo administrator account for testing")
                             }
                             .padding(.top, 10)
+                            .accessibilityElement(children: .contain)
 
                             // Real Production Login Buttons (for testing)
                             HStack {
@@ -211,6 +235,8 @@ struct AuthenticationView: View {
                                         .background(Color.blue.opacity(0.7))
                                         .cornerRadius(8)
                                 }
+                                .accessibilityLabel("Production investor login")
+                                .accessibilityHint("Sign in with production investor credentials for testing")
 
                                 Button(action: {
                                     Task {
@@ -229,8 +255,11 @@ struct AuthenticationView: View {
                                         .background(Color.red.opacity(0.7))
                                         .cornerRadius(8)
                                 }
+                                .accessibilityLabel("Production admin login")
+                                .accessibilityHint("Sign in with production administrator credentials for testing")
                             }
                             .padding(.top, 5)
+                            .accessibilityElement(children: .contain)
                             #endif
                         }
                         .padding(.horizontal, 30)

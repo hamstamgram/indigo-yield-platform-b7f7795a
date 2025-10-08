@@ -43,12 +43,15 @@ struct ProfileSettingsView: View {
                     .font(.title3)
                     .foregroundColor(IndigoTheme.Colors.primaryGradientStart)
             }
+            .accessibilityLabel("Back")
+            .accessibilityHint("Returns to previous screen")
 
             Spacer()
 
             Text("Profile & Settings")
                 .font(IndigoTheme.Typography.title3)
                 .foregroundColor(IndigoTheme.Colors.primaryText)
+                .accessibilityAddTraits(.isHeader)
 
             Spacer()
 
@@ -57,6 +60,8 @@ struct ProfileSettingsView: View {
                     .font(IndigoTheme.Typography.headline)
                     .foregroundColor(IndigoTheme.Colors.primaryGradientStart)
             }
+            .accessibilityLabel("Save settings")
+            .accessibilityHint("Saves all profile and settings changes")
         }
         .padding(.horizontal, IndigoTheme.Spacing.md)
         .padding(.top, 60)

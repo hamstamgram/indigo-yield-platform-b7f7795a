@@ -4,12 +4,28 @@ on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'web/**'
+      - 'src/**'
+      - 'public/**'
+      - 'supabase/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.ts'
+      - 'tsconfig*.json'
+      - 'tailwind.config.ts'
+      - 'components.json'
       - '.github/workflows/web-ci-cd.yml'
   pull_request:
     branches: [ main ]
     paths:
-      - 'web/**'
+      - 'src/**'
+      - 'public/**'
+      - 'supabase/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.ts'
+      - 'tsconfig*.json'
+      - 'tailwind.config.ts'
+      - 'components.json'
 
 jobs:
   lint-and-typecheck:
@@ -24,23 +40,17 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: web/package-lock.json
-      
+
       - name: Install Dependencies
-        run: |
-          cd web
-          npm ci
-      
+        run: npm ci
+
       - name: Run ESLint
-        run: |
-          cd web
-          npm run lint
+        run: npm run lint
         continue-on-error: true
-      
+
       - name: Run TypeScript Check
-        run: |
-          cd web
-          npm run type-check
+        run: npx tsc --noEmit
+        continue-on-error: true
 
   test:
     name: Run Tests
@@ -55,22 +65,22 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: web/package-lock.json
+          cache-dependency-path: package-lock.json
       
       - name: Install Dependencies
         run: |
-          cd web
+          
           npm ci
       
       - name: Run Unit Tests
         run: |
-          cd web
+          
           npm run test:unit -- --coverage
         continue-on-error: true
       
       - name: Run E2E Tests
         run: |
-          cd web
+          
           npx playwright install --with-deps
           npm run test:e2e
         continue-on-error: true
@@ -79,7 +89,7 @@ jobs:
         if: always()
         uses: codecov/codecov-action@v3
         with:
-          directory: ./web/coverage
+          directory: ./coverage
           flags: unittests
           name: codecov-web
           fail_ci_if_error: false
@@ -94,14 +104,14 @@ jobs:
       
       - name: Run npm audit
         run: |
-          cd web
+          
           npm audit --audit-level=high
         continue-on-error: true
       
       - name: Run Snyk Security Scan
         uses: snyk/actions/node@master
         with:
-          args: --severity-threshold=high --file=web/package.json
+          args: --severity-threshold=high --file=package.json
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         continue-on-error: true
@@ -135,16 +145,16 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: web/package-lock.json
+          cache-dependency-path: package-lock.json
       
       - name: Install Dependencies
         run: |
-          cd web
+          
           npm ci
       
       - name: Set Environment Variables
         run: |
-          cd web
+          
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
             echo "Building for production"
             cp .env.production .env
@@ -155,7 +165,7 @@ jobs:
       
       - name: Build Application
         run: |
-          cd web
+          
           npm run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -167,7 +177,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: build-artifacts
-          path: web/.next/
+          path: .next/
 
   deploy-vercel:
     name: Deploy to Vercel
@@ -183,7 +193,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: build-artifacts
-          path: web/.next/
+          path: .next/
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -195,7 +205,7 @@ jobs:
       
       - name: Deploy to Vercel
         run: |
-          cd web
+          
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
             vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
           else

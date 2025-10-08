@@ -61,13 +61,35 @@ struct IndigoInvestorApp: App {
     }
     
     private func configureSecurity() {
-        // Certificate pinning will be configured later
-        // CertificatePinningManager.shared.configure()
-        
-        // Jailbreak detection will be added later
-        // if SecurityManager.isJailbroken() {
-        //     print("⚠️ Warning: Device appears to be jailbroken")
-        // }
+        // Configure certificate pinning
+        CertificatePinningManager.shared.configure()
+
+        #if DEBUG
+        // Allow certificate pinning bypass in debug builds if needed
+        if ProcessInfo.processInfo.environment["DISABLE_CERT_PINNING"] == "1" {
+            print("⚠️ Certificate pinning DISABLED for debugging")
+        }
+        #endif
+
+        #if !DEBUG
+        // Production security checks
+        if SecurityManager.isJailbroken() {
+            print("⚠️ WARNING: Device appears to be jailbroken")
+            // Consider showing warning dialog or disabling sensitive features
+        }
+
+        // Perform comprehensive security audit
+        let auditResult = SecurityManager.performSecurityAudit()
+        print("🔒 Security Audit: \(auditResult.description)")
+
+        if auditResult.riskLevel == .high {
+            print("❌ HIGH SECURITY RISK DETECTED")
+            // Consider blocking app usage or showing warning
+        }
+
+        // Enable runtime protection
+        SecurityManager.enableRuntimeProtection()
+        #endif
     }
     
     private func configureAppearance() {

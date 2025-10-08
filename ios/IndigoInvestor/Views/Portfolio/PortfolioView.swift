@@ -38,6 +38,8 @@ struct PortfolioView: View {
                     }
                     .pickerStyle(SegmentedPickerStyle())
                     .padding(.horizontal)
+                    .accessibilityLabel("Chart view selector")
+                    .accessibilityHint("Choose between allocation pie chart and performance line chart")
                     
                     // Charts Section
                     if showingAllocationChart {
@@ -68,18 +70,23 @@ struct PortfolioView: View {
             }
             .navigationTitle("Portfolio")
             .navigationBarTitleDisplayMode(.large)
+            .accessibilityAddTraits(.isHeader)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
                         Button(action: { viewModel.exportPortfolio() }) {
                             Label("Export PDF", systemImage: "square.and.arrow.up")
                         }
+                        .accessibilityLabel("Export portfolio as PDF")
                         Button(action: { viewModel.refreshData() }) {
                             Label("Refresh", systemImage: "arrow.clockwise")
                         }
+                        .accessibilityLabel("Refresh portfolio data")
                     } label: {
                         Image(systemName: "ellipsis.circle")
                     }
+                    .accessibilityLabel("Portfolio options")
+                    .accessibilityHint("Export or refresh portfolio data")
                 }
             }
             .refreshable {
@@ -105,7 +112,8 @@ struct PortfolioSummaryCard: View {
             Text("Portfolio Summary")
                 .font(.headline)
                 .foregroundColor(.secondary)
-            
+                .accessibilityAddTraits(.isHeader)
+
             if let portfolio = portfolio {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 8) {
@@ -116,9 +124,11 @@ struct PortfolioSummaryCard: View {
                             .font(.title2)
                             .fontWeight(.bold)
                     }
-                    
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Total portfolio value: \(portfolio.formattedTotalValue)")
+
                     Spacer()
-                    
+
                     VStack(alignment: .trailing, spacing: 8) {
                         Text("Total Return")
                             .font(.caption)
@@ -126,6 +136,7 @@ struct PortfolioSummaryCard: View {
                         HStack(spacing: 4) {
                             Image(systemName: portfolio.totalGain >= 0 ? "arrow.up.right" : "arrow.down.right")
                                 .font(.caption)
+                                .accessibilityHidden(true)
                             Text(portfolio.totalGain.formatted(.currency(code: "USD")))
                                 .fontWeight(.semibold)
                         }
@@ -134,6 +145,8 @@ struct PortfolioSummaryCard: View {
                             .font(.caption)
                             .foregroundColor(portfolio.totalGain >= 0 ? .green : .red)
                     }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Total return: \(portfolio.totalGain >= 0 ? "gain" : "loss") of \(portfolio.totalGain.formatted(.currency(code: "USD"))), \(String(format: "%.2f", abs(portfolio.totalGainPercent))) percent")
                 }
                 
                 Divider()
@@ -189,16 +202,18 @@ struct MetricView: View {
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondary)
-            
+
             Text(value)
                 .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundColor(isPositive ? .green : .red)
-            
+
             Text("\(String(format: "%.2f", percentage))%")
                 .font(.caption2)
                 .foregroundColor(isPositive ? .green : .red)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title): \(isPositive ? "gain" : "loss") of \(value), \(String(format: "%.2f", abs(percentage))) percent")
     }
 }
 
@@ -206,12 +221,18 @@ struct MetricView: View {
 
 struct AllocationChartView: View {
     let portfolio: Portfolio?
-    
+
+    private func allocationAccessibilityValue(_ allocations: [AssetAllocation]) -> String {
+        let descriptions = allocations.map { "\($0.assetType) \($0.formattedPercentage)" }
+        return descriptions.joined(separator: ", ")
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Asset Allocation")
                 .font(.headline)
-            
+                .accessibilityAddTraits(.isHeader)
+
             if let allocations = portfolio?.assetAllocation {
                 if #available(iOS 16.0, *) {
                     Chart(allocations) { allocation in
@@ -224,6 +245,9 @@ struct AllocationChartView: View {
                         .cornerRadius(4)
                     }
                     .frame(height: 250)
+                    .accessibilityLabel("Asset allocation pie chart")
+                    .accessibilityValue(allocationAccessibilityValue(allocations))
+                    .accessibilityHint("Shows portfolio distribution across different asset types")
                     
                     // Legend
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {

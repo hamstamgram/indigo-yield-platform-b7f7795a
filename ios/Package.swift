@@ -1,11 +1,14 @@
 // swift-tools-version: 5.9
+// The swift-tools-version declares the minimum version of Swift required to build this package.
+
 import PackageDescription
 
 let package = Package(
     name: "IndigoInvestor",
+    defaultLocalization: "en",
     platforms: [
         .iOS(.v15),
-        .watchOS(.v9)
+        .macOS(.v10_15)
     ],
     products: [
         .library(
@@ -14,32 +17,32 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/supabase/supabase-swift.git", from: "2.5.0"),
-        .package(url: "https://github.com/danielgindi/Charts.git", from: "5.0.0"),
-        .package(url: "https://github.com/onevcat/Kingfisher.git", from: "7.10.0"),
-        .package(url: "https://github.com/kishikawakatsumi/KeychainAccess.git", from: "4.2.2"),
+        .package(url: "https://github.com/supabase/supabase-swift", from: "2.31.2"),
+        .package(url: "https://github.com/danielgindi/Charts", from: "5.1.0"),
+        .package(url: "https://github.com/onevcat/Kingfisher", from: "7.12.0"),
+        .package(url: "https://github.com/kishikawakatsumi/KeychainAccess", from: "4.2.2"),
     ],
     targets: [
         .target(
             name: "IndigoInvestor",
             dependencies: [
                 .product(name: "Supabase", package: "supabase-swift"),
-                .product(name: "KeychainAccess", package: "KeychainAccess"),
+                .product(name: "DGCharts", package: "Charts"),
                 .product(name: "Kingfisher", package: "Kingfisher"),
-                .product(name: "DGCharts", package: "Charts")
+                .product(name: "KeychainAccess", package: "KeychainAccess"),
             ],
             path: "IndigoInvestor",
             exclude: [
                 "Info.plist",
-                "Assets.xcassets",
-                "IndigoInvestor.xcdatamodeld",
-                "Resources",
-                "Tests"
+                "Assets.xcassets"
             ]
         ),
         .testTarget(
             name: "IndigoInvestorTests",
-            dependencies: ["IndigoInvestor"],
+            dependencies: [
+                "IndigoInvestor",
+                .product(name: "Supabase", package: "supabase-swift"),
+            ],
             path: "IndigoInvestorTests"
         ),
     ]

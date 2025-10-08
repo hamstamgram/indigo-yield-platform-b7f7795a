@@ -137,7 +137,11 @@ class ServiceLocator: ObservableObject {
         withdrawalRepository = WithdrawalRepository(coreDataStack: coreDataStack)
 
         // Initialize auth service first (as other services depend on it)
-        authService = AuthService(supabase: client)
+        authService = AuthService(
+            client: client,
+            keychainManager: keychainManager,
+            biometricManager: biometricManager
+        )
 
         // Initialize business services with proper dependencies
         portfolioService = PortfolioService(
