@@ -15,7 +15,9 @@
       "BashOutput",
       "WebFetch",
       "WebSearch",
-      "mcp__*"
+      "mcp__*",
+      "mcp__xcodebuild__clean",
+      "mcp__xcodebuild__build_sim"
     ],
     "deny": [],
     "ask": []
