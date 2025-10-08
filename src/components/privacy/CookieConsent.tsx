@@ -138,6 +138,7 @@ export function CookieConsent() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowDetails(false)}
+                aria-label="Close cookie preferences"
               >
                 <X className="h-4 w-4" />
               </Button>

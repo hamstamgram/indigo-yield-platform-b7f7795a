@@ -1,13 +1,21 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx react-native:*)",
-      "Bash(pnpm install:*)",
-      "Bash(pnpm dev:*)",
-      "Bash(claude mcp:*)",
-      "mcp__sequentialthinking__sequentialthinking",
-      "Bash(cat:*)",
-      "Bash(git add:*)"
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Task",
+      "TodoWrite",
+      "NotebookEdit",
+      "SlashCommand",
+      "KillShell",
+      "BashOutput",
+      "WebFetch",
+      "WebSearch",
+      "mcp__*"
     ],
     "deny": [],
     "ask": []

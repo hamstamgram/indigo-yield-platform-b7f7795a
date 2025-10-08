@@ -27,6 +27,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@fontsource/montserrat": "^5.2.8",
     "@hookform/resolvers": "^3.9.0",
     "@mailerlite/mailerlite-nodejs": "^1.4.1",
     "@modelcontextprotocol/sdk": "^1.17.4",
