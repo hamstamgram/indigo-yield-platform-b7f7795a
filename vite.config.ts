@@ -29,8 +29,8 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // Enable source maps for production debugging
-    sourcemap: true,
+    // Disable source maps in production for security (enable only in dev)
+    sourcemap: mode !== 'production',
     
     // Optimize chunk size
     chunkSizeWarningLimit: 1000,

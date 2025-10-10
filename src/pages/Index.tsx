@@ -13,10 +13,13 @@ const Index = () => {
       <nav className="container mx-auto px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <img 
-              src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png" 
-              alt="Infinite Yield Fund" 
+            <img
+              src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
+              alt="Infinite Yield Fund"
               className="h-8"
+              width="120"
+              height="32"
+              loading="eager"
             />
           </div>
           <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
@@ -34,8 +37,12 @@ const Index = () => {
           </div>
           <div className="md:hidden">
             {/* Mobile menu button */}
-            <button className="text-gray-700 p-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <button
+              className="text-gray-700 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-md transition-colors"
+              aria-label="Open navigation menu"
+              aria-expanded="false"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
@@ -125,10 +132,13 @@ const Index = () => {
       <footer className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 border-t border-gray-200">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-6 md:mb-0">
-            <img 
-              src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png" 
-              alt="Indigo Digital Assets Yield" 
+            <img
+              src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
+              alt="Indigo Digital Assets Yield"
               className="h-8"
+              width="120"
+              height="32"
+              loading="lazy"
             />
             <p className="mt-2 text-sm text-gray-500">
               © 2025 INDIGO DIGITAL ASSETS YIELD. All rights reserved.

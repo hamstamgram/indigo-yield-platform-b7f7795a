@@ -82,9 +82,35 @@ const Sidebar = ({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       setSidebarOpen(false);
-    } else if (e.key === '/' && e.metaKey) {
+      return;
+    }
+
+    if (e.key === '/' && e.metaKey) {
       e.preventDefault();
       searchInputRef.current?.focus();
+      return;
+    }
+
+    // Arrow key navigation for menu items
+    const menuItems = sidebarRef.current?.querySelectorAll('[role="menuitem"]');
+    if (!menuItems || menuItems.length === 0) return;
+
+    const currentIndex = Array.from(menuItems).indexOf(document.activeElement as HTMLElement);
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const nextIndex = currentIndex < menuItems.length - 1 ? currentIndex + 1 : 0;
+      (menuItems[nextIndex] as HTMLElement).focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prevIndex = currentIndex > 0 ? currentIndex - 1 : menuItems.length - 1;
+      (menuItems[prevIndex] as HTMLElement).focus();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      (menuItems[0] as HTMLElement).focus();
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      (menuItems[menuItems.length - 1] as HTMLElement).focus();
     }
   };
 
@@ -122,7 +148,7 @@ const Sidebar = ({
               </div>
               {isAdmin}
             </div>
-            <button onClick={closeSidebar} className="lg:hidden text-sidebar-foreground hover:text-sidebar-primary transition-colors p-1 rounded-md hover:bg-sidebar-accent" aria-label="Close navigation menu">
+            <button onClick={closeSidebar} className="lg:hidden text-sidebar-foreground hover:text-sidebar-primary transition-colors p-2 rounded-md hover:bg-sidebar-accent min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Close navigation menu">
               <X className="h-5 w-5" />
             </button>
           </div>

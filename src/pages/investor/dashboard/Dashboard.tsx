@@ -100,19 +100,28 @@ const Dashboard = () => {
             {assetSummaries.map((asset) => (
               <div
                 key={asset.symbol}
-                className="p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                className="p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 onClick={() => handleAssetClick(asset.symbol)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleAssetClick(asset.symbol);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`View details for ${asset.name} (${asset.symbol}). Balance: ${formatTokenBalance(asset.balance || 0, asset.symbol)}`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <Coins className="h-5 w-5 text-primary" />
+                    <Coins className="h-5 w-5 text-primary" aria-hidden="true" />
                     <div>
                       <div className="font-semibold">{asset.symbol}</div>
                       <div className="text-sm text-muted-foreground">{asset.name}</div>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="space-y-1">
                   <div className="flex justify-between text-sm">
                     <span>Balance:</span>

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -128,10 +129,13 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         <div className="mb-8 flex justify-center">
-          <img 
-            src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png" 
+          <img
+            src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
             alt="Infinite Yield Fund"
             className="h-14"
+            width="168"
+            height="56"
+            loading="eager"
           />
         </div>
         <Card className="border border-gray-200 bg-white shadow-md">
@@ -150,30 +154,40 @@ export default function Login() {
             
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
+                <Label htmlFor="email" className="text-gray-700">
+                  Email Address
+                </Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                  <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" aria-hidden="true" />
                   <Input
+                    id="email"
                     type="email"
-                    placeholder="Email Address"
+                    placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10 border-gray-200 text-gray-800 placeholder-gray-400"
                     required
+                    autoComplete="email"
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
+                <Label htmlFor="password" className="text-gray-700">
+                  Password
+                </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                  <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" aria-hidden="true" />
                   <Input
+                    id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Password"
+                    placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 pr-10 border-gray-200 text-gray-800 placeholder-gray-400"
                     required
                     minLength={6}
+                    autoComplete="current-password"
                   />
                   <Button
                     type="button"
@@ -181,13 +195,13 @@ export default function Login() {
                     size="icon"
                     className="absolute right-1 top-1 text-gray-400 hover:text-gray-600"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
+                      <EyeOff className="h-5 w-5" aria-hidden="true" />
                     ) : (
-                      <Eye className="h-5 w-5" />
+                      <Eye className="h-5 w-5" aria-hidden="true" />
                     )}
-                    <span className="sr-only">Toggle password visibility</span>
                   </Button>
                 </div>
               </div>
