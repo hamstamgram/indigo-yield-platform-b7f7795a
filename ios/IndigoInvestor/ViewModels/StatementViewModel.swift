@@ -18,6 +18,28 @@ class StatementViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var availableYears: [Int] = []
+    @Published var availableAssets: [AssetCode] = []
+    @Published var selectedAsset: AssetCode?
+
+    enum AssetCode: String, Codable, CaseIterable {
+        case BTC = "BTC"
+        case ETH = "ETH"
+        case SOL = "SOL"
+        case USDT = "USDT"
+        case USDC = "USDC"
+        case EURC = "EURC"
+
+        var displayName: String {
+            switch self {
+            case .BTC: return "Bitcoin"
+            case .ETH: return "Ethereum"
+            case .SOL: return "Solana"
+            case .USDT: return "Tether"
+            case .USDC: return "USD Coin"
+            case .EURC: return "Euro Coin"
+            }
+        }
+    }
     
     // MARK: - Private Properties
     
@@ -76,32 +98,67 @@ class StatementViewModel: ObservableObject {
     private func fetchStatements() async {
         isLoading = true
         errorMessage = nil
-        
+
         do {
-            let response = try await supabaseManager.client
-                .from("statements")
-                .select("*")
-                .eq("user_id", supabaseManager.currentUserId ?? "")
-                .order("date", ascending: false)
+            // Step 1: Get investor_id from profiles -> investors
+            guard let userId = supabaseManager.currentUserId else {
+                await MainActor.run {
+                    self.errorMessage = "No authenticated user"
+                    self.isLoading = false
+                }
+                return
+            }
+
+            let investorResponse = try await supabaseManager.client
+                .from("investors")
+                .select("id")
+                .eq("profile_id", userId)
+                .maybeSingle()
                 .execute()
-            
-            let fetchedStatements = try JSONDecoder().decode([Statement].self, from: response.data)
-            
+
+            guard !investorResponse.data.isEmpty else {
+                await MainActor.run {
+                    self.errorMessage = "Investor profile not found"
+                    self.isLoading = false
+                }
+                return
+            }
+
+            let investor = try JSONDecoder().decode(InvestorId.self, from: investorResponse.data)
+
+            // Step 2: Fetch from investor_monthly_reports
+            let response = try await supabaseManager.client
+                .from("investor_monthly_reports")
+                .select("*")
+                .eq("investor_id", investor.id.uuidString)
+                .order("report_month", ascending: false)
+                .execute()
+
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            let fetchedStatements = try decoder.decode([MonthlyStatement].self, from: response.data)
+
             await MainActor.run {
                 self.statements = fetchedStatements
                 self.filteredStatements = fetchedStatements
                 self.extractAvailableYears()
+                self.extractAvailableAssets()
             }
         } catch {
             await MainActor.run {
-                self.errorMessage = error.localizedDescription
-                print("Error fetching statements: \\(error)")
+                self.errorMessage = "Failed to load statements: \(error.localizedDescription)"
+                print("Error fetching statements: \(error)")
             }
         }
-        
+
         await MainActor.run {
             self.isLoading = false
         }
+    }
+
+    // Helper struct for decoding investor_id
+    private struct InvestorId: Codable {
+        let id: UUID
     }
     
     // MARK: - Filtering
@@ -161,10 +218,24 @@ class StatementViewModel: ObservableObject {
     }
     
     // MARK: - Helper Methods
-    
+
     private func extractAvailableYears() {
         let years = Set(statements.map { Calendar.current.component(.year, from: $0.date) })
         availableYears = Array(years).sorted(by: >)
+    }
+
+    private func extractAvailableAssets() {
+        let assets = Set(statements.compactMap { AssetCode(rawValue: $0.assetCode) })
+        availableAssets = Array(assets).sorted { $0.rawValue < $1.rawValue }
+    }
+
+    func filterByAsset(_ asset: AssetCode?) {
+        selectedAsset = asset
+        if let asset = asset {
+            filteredStatements = statements.filter { $0.assetCode == asset.rawValue }
+        } else {
+            filteredStatements = statements
+        }
     }
     
     private func handleStatementUpdate(_ update: StatementUpdate) {
@@ -176,32 +247,49 @@ class StatementViewModel: ObservableObject {
 
 // MARK: - Supporting Types
 
-struct Statement: Identifiable, Codable {
+struct MonthlyStatement: Identifiable, Codable {
     let id: UUID
-    let userId: UUID
-    let title: String
-    let type: StatementType
-    let date: Date
-    let filePath: String
-    let fileSize: Int64
-    let status: Status
-    let isDownloaded: Bool
+    let investorId: UUID
+    let reportMonth: Date
+    let assetCode: String
+    let openingBalance: Decimal
+    let closingBalance: Decimal
+    let additions: Decimal
+    let withdrawals: Decimal
+    let yieldEarned: Decimal
+    let entryDate: Date?
+    let exitDate: Date?
     let createdAt: Date
     let updatedAt: Date
-    
-    enum StatementType: String, Codable {
-        case monthly = "MONTHLY"
-        case quarterly = "QUARTERLY"
-        case annual = "ANNUAL"
-        case tax = "TAX"
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case investorId = "investor_id"
+        case reportMonth = "report_month"
+        case assetCode = "asset_code"
+        case openingBalance = "opening_balance"
+        case closingBalance = "closing_balance"
+        case additions
+        case withdrawals
+        case yieldEarned = "yield_earned"
+        case entryDate = "entry_date"
+        case exitDate = "exit_date"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
     }
-    
-    enum Status: String, Codable {
-        case available = "Available"
-        case processing = "Processing"
-        case pending = "Pending"
+
+    var rateOfReturn: Decimal {
+        guard openingBalance > 0 else { return 0 }
+        return (yieldEarned / openingBalance) * 100
     }
+
+    // For compatibility with existing UI
+    var date: Date { reportMonth }
+    var title: String { "\(assetCode) Fund - \(reportMonth.formatted(.dateTime.month(.wide).year()))" }
 }
+
+// Legacy Statement type for backward compatibility
+typealias Statement = MonthlyStatement
 
 struct StatementUpdate {
     let type: UpdateType
