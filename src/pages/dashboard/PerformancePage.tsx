@@ -12,12 +12,12 @@ export default function PerformanceDetailsPage() {
   const navigate = useNavigate();
 
   const { data: item, isLoading } = useQuery({
-    queryKey: ['/dashboard/performance', id],
+    queryKey: ['daily_nav', id],
     queryFn: async () => {
       if (!id) throw new Error('No ID provided');
 
       const { data, error } = await supabase
-        .from('/dashboard/performance')
+        .from('daily_nav')
         .select('*')
         .eq('id', id)
         .single();

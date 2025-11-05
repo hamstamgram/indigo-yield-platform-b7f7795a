@@ -11,12 +11,12 @@ export default function TransactionDetailsDetailsPage() {
   const navigate = useNavigate();
 
   const { data: item, isLoading } = useQuery({
-    queryKey: ['/transactions', id],
+    queryKey: ['transactions', id],
     queryFn: async () => {
       if (!id) throw new Error('No ID provided');
 
       const { data, error } = await supabase
-        .from('/transactions')
+        .from('transactions')
         .select('*')
         .eq('id', id)
         .single();

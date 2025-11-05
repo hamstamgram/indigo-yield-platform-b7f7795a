@@ -11,18 +11,19 @@ export default function RecurringDepositsPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ['/transactions/recurring', searchTerm],
+    queryKey: ['transactions', 'recurring', searchTerm],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user');
 
       let query = supabase
-        .from('/transactions/recurring')
+        .from('transactions')
         .select('*')
-        .eq('investor_id', user.id);
+        .eq('investor_id', user.id)
+        .eq('type', 'recurring_deposit');
 
       if (searchTerm) {
-        query = query.ilike('name', `%${searchTerm}%`);
+        query = query.or(`asset_code.ilike.%${searchTerm}%,note.ilike.%${searchTerm}%`);
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });

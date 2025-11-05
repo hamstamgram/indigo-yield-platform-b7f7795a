@@ -34,10 +34,12 @@ export default function NewDepositPage() {
       if (!user) throw new Error('No user');
 
       const { error } = await supabase
-        .from('/transactions/deposit')
+        .from('transactions')
         .insert({
           ...data,
           investor_id: user.id,
+          type: 'deposit',
+          status: 'pending',
         });
 
       if (error) throw error;

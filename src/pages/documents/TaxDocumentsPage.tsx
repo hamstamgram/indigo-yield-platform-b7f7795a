@@ -11,18 +11,19 @@ export default function TaxDocumentsPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ['/documents/tax', searchTerm],
+    queryKey: ['documents', 'tax', searchTerm],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user');
 
       let query = supabase
-        .from('/documents/tax')
+        .from('documents')
         .select('*')
-        .eq('investor_id', user.id);
+        .eq('investor_id', user.id)
+        .eq('category', 'tax');
 
       if (searchTerm) {
-        query = query.ilike('name', `%${searchTerm}%`);
+        query = query.ilike('title', `%${searchTerm}%`);
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });

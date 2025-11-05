@@ -11,21 +11,42 @@ export default function WithdrawalHistoryPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ['/withdrawals/history', searchTerm],
+    queryKey: ['withdrawal_requests', searchTerm],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user');
 
+      // Get investor_id from profiles -> investors relationship
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile) throw new Error('Profile not found');
+
+      // Get investor record
+      const { data: investor } = await supabase
+        .from('investors')
+        .select('id')
+        .eq('profile_id', profile.id)
+        .maybeSingle();
+
+      if (!investor) throw new Error('No investor record found');
+
       let query = supabase
-        .from('/withdrawals/history')
-        .select('*')
-        .eq('investor_id', user.id);
+        .from('withdrawal_requests')
+        .select(`
+          *,
+          funds:fund_id(name, code)
+        `)
+        .eq('investor_id', investor.id);
 
       if (searchTerm) {
-        query = query.ilike('name', `%${searchTerm}%`);
+        query = query.ilike('notes', `%${searchTerm}%`);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await query.order('request_date', { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -74,10 +95,24 @@ export default function WithdrawalHistoryPage() {
                 <Card key={item.id}>
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-semibold">{item.name || item.title}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(item.created_at).toLocaleDateString()}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <h3 className="font-semibold">
+                            {item.funds?.name || 'Fund'} - {item.fund_class}
+                          </h3>
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            item.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            item.status === 'approved' ? 'bg-blue-100 text-blue-800' :
+                            item.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
+                            item.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                            item.status === 'cancelled' ? 'bg-gray-100 text-gray-800' :
+                            'bg-orange-100 text-orange-800'
+                          }`}>
+                            {item.status.toUpperCase()}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {item.requested_amount} {item.fund_class} • {new Date(item.request_date).toLocaleDateString()}
                         </p>
                       </div>
                       <Button variant="outline" size="sm" asChild>

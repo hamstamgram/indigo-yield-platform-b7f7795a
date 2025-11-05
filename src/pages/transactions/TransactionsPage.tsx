@@ -11,18 +11,18 @@ export default function TransactionsPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ['/transactions', searchTerm],
+    queryKey: ['transactions', searchTerm],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user');
 
       let query = supabase
-        .from('/transactions')
+        .from('transactions')
         .select('*')
         .eq('investor_id', user.id);
 
       if (searchTerm) {
-        query = query.ilike('name', `%${searchTerm}%`);
+        query = query.ilike('note', `%${searchTerm}%`);
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });

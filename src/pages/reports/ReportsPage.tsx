@@ -11,18 +11,18 @@ export default function ReportsPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ['/reports', searchTerm],
+    queryKey: ['generated_reports', searchTerm],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user');
 
       let query = supabase
-        .from('/reports')
+        .from('generated_reports')
         .select('*')
-        .eq('investor_id', user.id);
+        .eq('generated_by', user.id);
 
       if (searchTerm) {
-        query = query.ilike('name', `%${searchTerm}%`);
+        query = query.ilike('file_path', `%${searchTerm}%`);
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });

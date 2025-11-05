@@ -11,18 +11,19 @@ export default function PendingTransactionsPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ['/transactions/pending', searchTerm],
+    queryKey: ['transactions', 'pending', searchTerm],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user');
 
       let query = supabase
-        .from('/transactions/pending')
+        .from('transactions')
         .select('*')
-        .eq('investor_id', user.id);
+        .eq('investor_id', user.id)
+        .eq('status', 'pending');
 
       if (searchTerm) {
-        query = query.ilike('name', `%${searchTerm}%`);
+        query = query.or(`asset_code.ilike.%${searchTerm}%,note.ilike.%${searchTerm}%`);
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });

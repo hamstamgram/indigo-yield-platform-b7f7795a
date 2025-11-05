@@ -11,12 +11,12 @@ export default function PerformanceReportDetailsPage() {
   const navigate = useNavigate();
 
   const { data: item, isLoading } = useQuery({
-    queryKey: ['/reports/performance', id],
+    queryKey: ['generated_reports', id],
     queryFn: async () => {
       if (!id) throw new Error('No ID provided');
 
       const { data, error } = await supabase
-        .from('/reports/performance')
+        .from('generated_reports')
         .select('*')
         .eq('id', id)
         .single();

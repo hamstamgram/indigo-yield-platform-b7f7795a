@@ -11,18 +11,18 @@ export default function DocumentsHubPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ['/documents', searchTerm],
+    queryKey: ['documents', searchTerm],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user');
 
       let query = supabase
-        .from('/documents')
+        .from('documents')
         .select('*')
         .eq('investor_id', user.id);
 
       if (searchTerm) {
-        query = query.ilike('name', `%${searchTerm}%`);
+        query = query.ilike('title', `%${searchTerm}%`);
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });

@@ -29,7 +29,7 @@ const AssetDetail = () => {
         const { data, error: assetError } = await supabase
           .from('assets')
           .select('*')
-          .ilike('symbol', symbol?.toUpperCase())
+          .eq('symbol', symbol?.toUpperCase())
           .maybeSingle();
           
         if (assetError && assetError.code !== 'PGRST116') {
