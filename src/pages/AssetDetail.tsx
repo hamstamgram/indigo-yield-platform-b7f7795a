@@ -16,47 +16,57 @@ const AssetDetail = () => {
   useEffect(() => {
     const fetchAssetData = async () => {
       if (!symbol) return;
-      
+
       try {
         setLoading(true);
-        
+
         // Get current user
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError) throw userError;
         if (!user) throw new Error('No authenticated user');
-        
-        // Try to fetch asset info from database
-        const { data, error: assetError } = await supabase
+
+        // Fetch asset info from database
+        const { data: assetInfo, error: assetError } = await supabase
           .from('assets')
           .select('*')
           .eq('symbol', symbol?.toUpperCase())
           .maybeSingle();
-          
+
         if (assetError && assetError.code !== 'PGRST116') {
           throw assetError;
         }
-        
-        if (data) {
-          setAssetData({
-            ...data,
-            symbol: data.symbol.toUpperCase(),
-            balance: 0, // Temporary while we fix schema
-            usdValue: 0,
-            price: getDefaultPrice(symbol.toUpperCase()),
-            change24h: 0
-          });
-        } else {
-          // Create mock data if not found in DB
-          setAssetData({
-            id: symbol,
-            symbol: symbol.toUpperCase(),
-            name: getAssetName(symbol.toUpperCase()),
-            balance: 0,
-            usdValue: 0,
-            price: getDefaultPrice(symbol.toUpperCase()),
-            change24h: 0
-          });
+
+        if (!assetInfo) {
+          setError(`Asset ${symbol} not found in database`);
+          return;
         }
+
+        // Get user's total balance for this asset across all positions
+        const { data: positions, error: positionsError } = await supabase
+          .from('positions')
+          .select('current_balance')
+          .eq('investor_id', user.id)
+          .eq('asset_code', symbol?.toUpperCase());
+
+        if (positionsError) {
+          console.error('Error fetching positions:', positionsError);
+        }
+
+        const totalBalance = positions?.reduce((sum, pos) => sum + (parseFloat(pos.current_balance) || 0), 0) || 0;
+
+        // For stablecoins, price is always 1
+        const isStablecoin = ['USDT', 'USDC', 'EURC'].includes(symbol.toUpperCase());
+        const price = isStablecoin ? 1 : 0; // TODO: Integrate with price oracle/API
+        const usdValue = totalBalance * price;
+
+        setAssetData({
+          ...assetInfo,
+          symbol: assetInfo.symbol.toUpperCase(),
+          balance: totalBalance,
+          usdValue: usdValue,
+          price: price,
+          change24h: 0 // TODO: Get from price feed
+        });
       } catch (err: any) {
         console.error('Error fetching asset data:', err);
         setError(err.message);
@@ -67,28 +77,6 @@ const AssetDetail = () => {
 
     fetchAssetData();
   }, [symbol]);
-
-  const getDefaultPrice = (symbol: string) => {
-    const prices: Record<string, number> = {
-      'BTC': 67500,
-      'ETH': 3200,
-      'SOL': 148,
-      'USDT': 1,
-      'USDC': 1
-    };
-    return prices[symbol] || 0;
-  };
-
-  const getAssetName = (symbol: string) => {
-    const names: Record<string, string> = {
-      'BTC': 'Bitcoin',
-      'ETH': 'Ethereum',
-      'SOL': 'Solana',
-      'USDT': 'Tether USD',
-      'USDC': 'USD Coin'
-    };
-    return names[symbol] || symbol;
-  };
 
   if (loading) {
     return (

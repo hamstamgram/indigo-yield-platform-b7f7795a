@@ -5,102 +5,145 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, Send, Calendar, Filter, Download, RefreshCw, Search, Mail } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { FileText, Send, Calendar, RefreshCw, Search, Mail, TrendingUp, Users, DollarSign, CheckCircle2, Edit, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { adminServiceV2, type InvestorSummaryV2 } from '@/services/adminServiceV2';
-import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
+import { format, startOfMonth, subMonths, parseISO } from 'date-fns';
 
-interface MonthlyReport {
+interface InvestorReport {
   investor_id: string;
   investor_name: string;
   investor_email: string;
+  assets: Array<{
+    asset_code: string;
+    opening_balance: number;
+    closing_balance: number;
+    additions: number;
+    withdrawals: number;
+    yield_earned: number;
+    report_id: string;
+  }>;
+  total_value: number;
+  total_yield: number;
+  has_reports: boolean;
+  report_count: number;
+}
+
+interface MonthlyReportDetail {
+  id: string;
+  investor_id: string;
   report_month: string;
-  assets: {
-    [key: string]: {
-      opening_balance: number;
-      closing_balance: number;
-      additions: number;
-      withdrawals: number;
-      yield_earned: number;
-      daily_tracking: {
-        [date: string]: {
-          balance: number;
-          yield_applied: number;
-        };
-      };
-    };
-  };
-  total_portfolio_value: number;
-  monthly_yield: number;
-  report_status: 'draft' | 'ready' | 'sent';
-  last_updated: string;
+  asset_code: string;
+  opening_balance: number;
+  closing_balance: number;
+  additions: number;
+  withdrawals: number;
+  yield_earned: number;
+  aum_manual_override: number | null;
+  entry_date: string | null;
+  exit_date: string | null;
+  edited_by: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 const InvestorReports = () => {
   const [loading, setLoading] = useState(true);
-  const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);
-  const [monthlyReports, setMonthlyReports] = useState<MonthlyReport[]>([]);
+  const [reports, setReports] = useState<InvestorReport[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string>(format(subMonths(new Date(), 1), 'yyyy-MM'));
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [generatingReports, setGeneratingReports] = useState(false);
   const [sendingReports, setSendingReports] = useState(false);
+  const [selectedInvestor, setSelectedInvestor] = useState<InvestorReport | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [editingReport, setEditingReport] = useState<MonthlyReportDetail | null>(null);
   const { toast } = useToast();
 
-  const fetchInvestorData = async () => {
+  // Fetch real reports from database
+  const fetchReports = async () => {
     try {
       setLoading(true);
-      console.log('Fetching investor data...');
+      console.log('Fetching reports for month:', selectedMonth);
 
-      const investorsData = await adminServiceV2.getAllInvestorsWithSummary();
-      setInvestors(investorsData);
+      const reportDate = `${selectedMonth}-01`;
 
-      // Generate mock monthly reports data based on real investors
-      const mockReports: MonthlyReport[] = investorsData.map((investor, index) => ({
-        investor_id: investor.id,
-        investor_name: `${investor.firstName} ${investor.lastName}`,
-        investor_email: investor.email,
-        report_month: selectedMonth,
-        assets: {
-          'BTC': {
-            opening_balance: investor.totalAum * 0.4,
-            closing_balance: investor.totalAum * 0.4 * 1.025,
-            additions: 0,
-            withdrawals: 0,
-            yield_earned: investor.totalAum * 0.4 * 0.025,
-            daily_tracking: {}
-          },
-          'ETH': {
-            opening_balance: investor.totalAum * 0.35,
-            closing_balance: investor.totalAum * 0.35 * 1.03,
-            additions: 0,
-            withdrawals: 0,
-            yield_earned: investor.totalAum * 0.35 * 0.03,
-            daily_tracking: {}
-          },
-          'USDT': {
-            opening_balance: investor.totalAum * 0.25,
-            closing_balance: investor.totalAum * 0.25 * 1.015,
-            additions: 0,
-            withdrawals: 0,
-            yield_earned: investor.totalAum * 0.25 * 0.015,
-            daily_tracking: {}
-          }
-        },
-        total_portfolio_value: investor.totalAum * 1.025,
-        monthly_yield: investor.totalAum * 0.025,
-        report_status: index % 3 === 0 ? 'sent' : index % 3 === 1 ? 'ready' : 'draft',
-        last_updated: new Date().toISOString()
-      }));
+      // Fetch all investors
+      const { data: investors, error: investorsError } = await supabase
+        .from('investors')
+        .select('id, name, email')
+        .order('name');
 
-      setMonthlyReports(mockReports);
+      if (investorsError) throw investorsError;
+
+      if (!investors || investors.length === 0) {
+        setReports([]);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch monthly reports for the selected month
+      const { data: monthlyReports, error: reportsError } = await supabase
+        .from('investor_monthly_reports')
+        .select('*')
+        .eq('report_month', reportDate)
+        .order('investor_id, asset_code');
+
+      if (reportsError) throw reportsError;
+
+      // Group reports by investor
+      const reportsByInvestor = (monthlyReports || []).reduce((acc, report) => {
+        if (!acc[report.investor_id]) {
+          acc[report.investor_id] = [];
+        }
+        acc[report.investor_id].push(report);
+        return acc;
+      }, {} as Record<string, typeof monthlyReports>);
+
+      // Build investor report summaries
+      const investorReports: InvestorReport[] = investors.map(investor => {
+        const investorReports = reportsByInvestor[investor.id] || [];
+        const hasReports = investorReports.length > 0;
+
+        const assets = investorReports.map(report => ({
+          asset_code: report.asset_code,
+          opening_balance: Number(report.opening_balance) || 0,
+          closing_balance: Number(report.closing_balance) || 0,
+          additions: Number(report.additions) || 0,
+          withdrawals: Number(report.withdrawals) || 0,
+          yield_earned: Number(report.yield_earned) || 0,
+          report_id: report.id
+        }));
+
+        const total_value = assets.reduce((sum, asset) => sum + asset.closing_balance, 0);
+        const total_yield = assets.reduce((sum, asset) => sum + asset.yield_earned, 0);
+
+        return {
+          investor_id: investor.id,
+          investor_name: investor.name || 'Unknown',
+          investor_email: investor.email,
+          assets,
+          total_value,
+          total_yield,
+          has_reports: hasReports,
+          report_count: assets.length
+        };
+      });
+
+      setReports(investorReports);
+
+      toast({
+        title: 'Reports Loaded',
+        description: `Loaded ${investorReports.length} investor records for ${format(parseISO(reportDate), 'MMMM yyyy')}`,
+      });
 
     } catch (error: any) {
-      console.error('Error fetching investor data:', error);
+      console.error('Error fetching reports:', error);
       toast({
-        title: 'Error loading data',
-        description: error.message || 'Failed to load investor data',
+        title: 'Error Loading Reports',
+        description: error.message || 'Failed to load investor reports',
         variant: 'destructive',
       });
     } finally {
@@ -109,30 +152,116 @@ const InvestorReports = () => {
   };
 
   useEffect(() => {
-    fetchInvestorData();
+    fetchReports();
   }, [selectedMonth]);
 
+  // Generate reports from statements table
   const handleGenerateReports = async () => {
     setGeneratingReports(true);
     try {
-      // Simulate report generation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Update report status to 'ready'
-      setMonthlyReports(prev => prev.map(report => ({
-        ...report,
-        report_status: 'ready',
-        last_updated: new Date().toISOString()
-      })));
+      const reportDate = `${selectedMonth}-01`;
+      const [year, month] = selectedMonth.split('-').map(Number);
+
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      console.log('Generating reports for:', { year, month, reportDate });
+
+      // Fetch statements for the selected month
+      const { data: statements, error: statementsError } = await supabase
+        .from('statements')
+        .select('*')
+        .eq('period_year', year)
+        .eq('period_month', month);
+
+      if (statementsError) throw statementsError;
+
+      if (!statements || statements.length === 0) {
+        toast({
+          title: 'No Statements Found',
+          description: `No statements exist for ${format(parseISO(reportDate), 'MMMM yyyy')}. Please ensure statements are generated first.`,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      console.log(`Found ${statements.length} statements to process`);
+
+      // Get investor mapping (user_id to investor_id)
+      const userIds = [...new Set(statements.map(s => s.user_id))];
+      const { data: investors, error: investorsError } = await supabase
+        .from('investors')
+        .select('id, profile_id')
+        .in('profile_id', userIds);
+
+      if (investorsError) throw investorsError;
+
+      const userToInvestorMap = (investors || []).reduce((acc, inv) => {
+        if (inv.profile_id) {
+          acc[inv.profile_id] = inv.id;
+        }
+        return acc;
+      }, {} as Record<string, string>);
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      // Process each statement and upsert to investor_monthly_reports
+      for (const statement of statements) {
+        const investorId = userToInvestorMap[statement.user_id];
+
+        if (!investorId) {
+          console.warn(`No investor found for user_id: ${statement.user_id}`);
+          errorCount++;
+          continue;
+        }
+
+        try {
+          const { error: upsertError } = await supabase
+            .from('investor_monthly_reports')
+            .upsert({
+              investor_id: investorId,
+              report_month: reportDate,
+              asset_code: statement.asset_code,
+              opening_balance: statement.begin_balance,
+              closing_balance: statement.end_balance,
+              additions: statement.additions,
+              withdrawals: statement.redemptions || 0,
+              yield_earned: statement.net_income,
+              edited_by: user.id,
+              updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'investor_id,report_month,asset_code'
+            });
+
+          if (upsertError) {
+            console.error('Error upserting report:', upsertError);
+            errorCount++;
+          } else {
+            successCount++;
+          }
+        } catch (err) {
+          console.error('Error processing statement:', err);
+          errorCount++;
+        }
+      }
+
+      // Refresh the reports list
+      await fetchReports();
 
       toast({
         title: 'Reports Generated',
-        description: `Monthly reports for ${format(new Date(selectedMonth), 'MMMM yyyy')} have been generated successfully`,
+        description: `Successfully generated ${successCount} reports${errorCount > 0 ? ` (${errorCount} errors)` : ''} for ${format(parseISO(reportDate), 'MMMM yyyy')}`,
       });
-    } catch (error) {
+
+    } catch (error: any) {
+      console.error('Error generating reports:', error);
       toast({
         title: 'Generation Failed',
-        description: 'Failed to generate monthly reports',
+        description: error.message || 'Failed to generate monthly reports',
         variant: 'destructive',
       });
     } finally {
@@ -140,33 +269,93 @@ const InvestorReports = () => {
     }
   };
 
+  // Send reports via email (placeholder for email integration)
   const handleSendReports = async () => {
     setSendingReports(true);
     try {
-      const readyReports = monthlyReports.filter(r => r.report_status === 'ready');
-      
-      // Simulate sending reports
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Update sent reports status
-      setMonthlyReports(prev => prev.map(report => 
-        report.report_status === 'ready' 
-          ? { ...report, report_status: 'sent', last_updated: new Date().toISOString() }
-          : report
-      ));
+      const reportsToSend = reports.filter(r => r.has_reports);
+
+      if (reportsToSend.length === 0) {
+        toast({
+          title: 'No Reports to Send',
+          description: 'Generate reports first before sending',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // For MVP: Just mark as sent by creating a tracking record
+      // In production: Integrate with email service (SendGrid, AWS SES, etc.)
+
+      // Placeholder for email sending logic
+      // TODO: Integrate with Supabase Edge Function for email sending
 
       toast({
-        title: 'Reports Sent',
-        description: `${readyReports.length} monthly reports have been sent to investors`,
+        title: 'Email Integration Required',
+        description: `${reportsToSend.length} reports ready to send. Email service integration pending.`,
       });
-    } catch (error) {
+
+      // For now, just show success
+      // In production, this would actually send emails
+
+    } catch (error: any) {
+      console.error('Error sending reports:', error);
       toast({
         title: 'Send Failed',
-        description: 'Failed to send monthly reports',
+        description: error.message || 'Failed to send monthly reports',
         variant: 'destructive',
       });
     } finally {
       setSendingReports(false);
+    }
+  };
+
+  // View report details
+  const handleViewDetails = (investor: InvestorReport) => {
+    setSelectedInvestor(investor);
+    setDetailsOpen(true);
+  };
+
+  // Edit report value
+  const handleEditReport = async (report: MonthlyReportDetail, field: string, value: number) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('investor_monthly_reports')
+        .update({
+          [field]: value,
+          edited_by: user.id,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', report.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Report Updated',
+        description: 'Successfully updated report value',
+      });
+
+      // Refresh data
+      await fetchReports();
+
+      // Refresh details if dialog is open
+      if (selectedInvestor) {
+        const updatedInvestor = reports.find(r => r.investor_id === selectedInvestor.investor_id);
+        if (updatedInvestor) {
+          setSelectedInvestor(updatedInvestor);
+        }
+      }
+
+    } catch (error: any) {
+      console.error('Error updating report:', error);
+      toast({
+        title: 'Update Failed',
+        description: error.message || 'Failed to update report',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -179,18 +368,26 @@ const InvestorReports = () => {
     }).format(amount);
   };
 
-  const filteredReports = monthlyReports.filter(report => {
+  const filteredReports = reports.filter(report => {
     const matchesSearch = report.investor_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          report.investor_email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || report.report_status === statusFilter;
+
+    let matchesStatus = true;
+    if (statusFilter === 'generated') {
+      matchesStatus = report.has_reports;
+    } else if (statusFilter === 'missing') {
+      matchesStatus = !report.has_reports;
+    }
+
     return matchesSearch && matchesStatus;
   });
 
-  const reportStatusCounts = {
-    draft: monthlyReports.filter(r => r.report_status === 'draft').length,
-    ready: monthlyReports.filter(r => r.report_status === 'ready').length,
-    sent: monthlyReports.filter(r => r.report_status === 'sent').length,
-    total: monthlyReports.length
+  const stats = {
+    totalInvestors: reports.length,
+    reportsGenerated: reports.filter(r => r.has_reports).length,
+    reportsMissing: reports.filter(r => !r.has_reports).length,
+    totalAUM: reports.reduce((sum, r) => sum + r.total_value, 0),
+    totalYield: reports.reduce((sum, r) => sum + r.total_yield, 0)
   };
 
   if (loading) {
@@ -204,6 +401,7 @@ const InvestorReports = () => {
             <div className="h-32 bg-gray-200 rounded"></div>
             <div className="h-32 bg-gray-200 rounded"></div>
           </div>
+          <div className="h-96 bg-gray-200 rounded"></div>
         </div>
       </div>
     );
@@ -211,91 +409,105 @@ const InvestorReports = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Monthly Investor Reports</h1>
-          <p className="text-muted-foreground">Generate and send monthly yield reports to investors</p>
+          <p className="text-muted-foreground">Generate and manage monthly yield reports from real data</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={fetchInvestorData} variant="outline">
+          <Button onClick={fetchReports} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh Data
+            Refresh
           </Button>
-          <Button 
-            onClick={handleGenerateReports} 
+          <Button
+            onClick={handleGenerateReports}
             disabled={generatingReports}
             variant="default"
           >
             <FileText className="h-4 w-4 mr-2" />
             {generatingReports ? 'Generating...' : 'Generate Reports'}
           </Button>
-          <Button 
-            onClick={handleSendReports} 
-            disabled={sendingReports || reportStatusCounts.ready === 0}
+          <Button
+            onClick={handleSendReports}
+            disabled={sendingReports || stats.reportsGenerated === 0}
             variant="default"
           >
             <Send className="h-4 w-4 mr-2" />
-            {sendingReports ? 'Sending...' : `Send Reports (${reportStatusCounts.ready})`}
+            {sendingReports ? 'Sending...' : `Send Reports (${stats.reportsGenerated})`}
           </Button>
         </div>
       </div>
 
-      {/* Report Status Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Investors</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{reportStatusCounts.total}</div>
+            <div className="text-2xl font-bold">{stats.totalInvestors}</div>
             <p className="text-xs text-muted-foreground">
-              For {format(new Date(selectedMonth), 'MMMM yyyy')}
+              Active investors
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Draft Reports</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Reports Generated</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{reportStatusCounts.draft}</div>
+            <div className="text-2xl font-bold text-green-600">{stats.reportsGenerated}</div>
             <p className="text-xs text-muted-foreground">
-              Pending generation
+              Have report data
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ready to Send</CardTitle>
-            <Mail className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Missing Reports</CardTitle>
+            <Calendar className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{reportStatusCounts.ready}</div>
+            <div className="text-2xl font-bold text-yellow-600">{stats.reportsMissing}</div>
             <p className="text-xs text-muted-foreground">
-              Generated and ready
+              Need generation
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sent Reports</CardTitle>
-            <Send className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total AUM</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{reportStatusCounts.sent}</div>
+            <div className="text-2xl font-bold">{formatCurrency(stats.totalAUM)}</div>
             <p className="text-xs text-muted-foreground">
-              Successfully delivered
+              Closing balances
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Yield</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{formatCurrency(stats.totalYield)}</div>
+            <p className="text-xs text-muted-foreground">
+              Monthly earnings
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters and Controls */}
+      {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4 items-center">
         <Select value={selectedMonth} onValueChange={setSelectedMonth}>
           <SelectTrigger className="w-[200px]">
@@ -315,14 +527,13 @@ const InvestorReports = () => {
         </Select>
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[150px]">
+          <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="ready">Ready</SelectItem>
-            <SelectItem value="sent">Sent</SelectItem>
+            <SelectItem value="generated">Generated</SelectItem>
+            <SelectItem value="missing">Missing</SelectItem>
           </SelectContent>
         </Select>
 
@@ -340,73 +551,147 @@ const InvestorReports = () => {
       {/* Reports Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Monthly Reports - {format(new Date(selectedMonth), 'MMMM yyyy')}</CardTitle>
+          <CardTitle>Monthly Reports - {format(parseISO(`${selectedMonth}-01`), 'MMMM yyyy')}</CardTitle>
           <CardDescription>
-            Track and manage monthly yield reports for all investors
+            Real database data from investor_monthly_reports and statements tables
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Investor</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Portfolio Value</TableHead>
-                <TableHead>Monthly Yield</TableHead>
-                <TableHead>Assets</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last Updated</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredReports.map((report) => (
-                <TableRow key={report.investor_id}>
-                  <TableCell className="font-medium">{report.investor_name}</TableCell>
-                  <TableCell>{report.investor_email}</TableCell>
-                  <TableCell>{formatCurrency(report.total_portfolio_value)}</TableCell>
-                  <TableCell className="text-green-600 font-medium">
-                    {formatCurrency(report.monthly_yield)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {Object.keys(report.assets).map(asset => (
-                        <Badge key={asset} variant="secondary" className="text-xs">
-                          {asset}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant={
-                        report.report_status === 'sent' ? 'default' :
-                        report.report_status === 'ready' ? 'secondary' :
-                        'outline'
-                      }
-                    >
-                      {report.report_status.charAt(0).toUpperCase() + report.report_status.slice(1)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {format(new Date(report.last_updated), 'MMM d, HH:mm')}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button size="sm" variant="outline">
-                        <FileText className="h-3 w-3" />
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Download className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          {filteredReports.length === 0 ? (
+            <div className="text-center py-12">
+              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No Reports Found</h3>
+              <p className="text-muted-foreground mb-4">
+                {searchTerm || statusFilter !== 'all'
+                  ? 'Try adjusting your filters'
+                  : 'Click "Generate Reports" to create reports from statements'}
+              </p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Investor Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Assets</TableHead>
+                  <TableHead className="text-right">Total Value</TableHead>
+                  <TableHead className="text-right">Yield Earned</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredReports.map((report) => (
+                  <TableRow key={report.investor_id}>
+                    <TableCell className="font-medium">{report.investor_name}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{report.investor_email}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {report.assets.length > 0 ? (
+                          report.assets.map(asset => (
+                            <Badge key={asset.asset_code} variant="secondary" className="text-xs">
+                              {asset.asset_code}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-xs text-muted-foreground">No assets</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {formatCurrency(report.total_value)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className={report.total_yield >= 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
+                        {formatCurrency(report.total_yield)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={report.has_reports ? 'default' : 'outline'}
+                        className={report.has_reports ? 'bg-green-600' : ''}
+                      >
+                        {report.has_reports ? 'Generated' : 'Missing'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleViewDetails(report)}
+                          disabled={!report.has_reports}
+                        >
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
+
+      {/* Report Details Dialog */}
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Report Details - {selectedInvestor?.investor_name}</DialogTitle>
+            <DialogDescription>
+              {selectedInvestor?.investor_email} | {format(parseISO(`${selectedMonth}-01`), 'MMMM yyyy')}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedInvestor && (
+            <div className="space-y-6">
+              {/* Summary */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Portfolio Value</p>
+                  <p className="text-2xl font-bold">{formatCurrency(selectedInvestor.total_value)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Yield Earned</p>
+                  <p className="text-2xl font-bold text-green-600">{formatCurrency(selectedInvestor.total_yield)}</p>
+                </div>
+              </div>
+
+              {/* Per-Asset Breakdown */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Asset Breakdown</h3>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Asset</TableHead>
+                      <TableHead className="text-right">Opening</TableHead>
+                      <TableHead className="text-right">Additions</TableHead>
+                      <TableHead className="text-right">Withdrawals</TableHead>
+                      <TableHead className="text-right">Yield</TableHead>
+                      <TableHead className="text-right">Closing</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {selectedInvestor.assets.map((asset) => (
+                      <TableRow key={asset.asset_code}>
+                        <TableCell className="font-medium">
+                          <Badge>{asset.asset_code}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right">{formatCurrency(asset.opening_balance)}</TableCell>
+                        <TableCell className="text-right text-green-600">{formatCurrency(asset.additions)}</TableCell>
+                        <TableCell className="text-right text-red-600">{formatCurrency(asset.withdrawals)}</TableCell>
+                        <TableCell className="text-right text-green-600 font-medium">{formatCurrency(asset.yield_earned)}</TableCell>
+                        <TableCell className="text-right font-medium">{formatCurrency(asset.closing_balance)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

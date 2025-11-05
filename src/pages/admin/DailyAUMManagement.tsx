@@ -6,30 +6,47 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Save, TrendingUp, Clock, AlertCircle } from 'lucide-react';
+import { Loader2, Save, TrendingUp, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
-interface Asset {
-  id: number;
-  symbol: string;
+interface Fund {
+  id: string;
   name: string;
+  code: string;
+  fund_class: string;
+  is_active: boolean;
 }
 
-interface AUMEntry {
-  asset_symbol: string;
-  asset_name: string;
-  current_aum: number;
+interface FundAUMEntry {
+  fund_id: string;
+  fund_name: string;
+  fund_code: string;
+  fund_class: string;
   previous_aum: number;
-  aum_difference: number;
+  current_positions_total: number;
+  new_aum: number;
   yield_percentage: number;
+  investor_count: number;
+  has_input: boolean;
 }
 
 export default function DailyAUMManagement() {
-  const [assets, setAssets] = useState<Asset[]>([]);
-  const [aumEntries, setAumEntries] = useState<AUMEntry[]>([]);
+  const [funds, setFunds] = useState<Fund[]>([]);
+  const [aumEntries, setAumEntries] = useState<FundAUMEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [calculating, setCalculating] = useState(false);
+  const [applying, setApplying] = useState(false);
+  const [showApplyDialog, setShowApplyDialog] = useState(false);
   const { toast } = useToast();
 
   const today = new Date().toISOString().split('T')[0];
@@ -53,53 +70,81 @@ export default function DailyAUMManagement() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
-      // Fetch assets from the assets table
-      const { data: assetsData, error: assetsError } = await supabase
-        .from('assets')
-        .select('id, symbol, name')
+
+      // 1. Fetch all active funds
+      const { data: fundsData, error: fundsError } = await supabase
+        .from('funds')
+        .select('id, name, code, fund_class, is_active')
         .eq('is_active', true)
         .order('name');
-      
-      if (assetsError) throw assetsError;
-      
-      // Get current AUM from positions (sum per asset)
-      const { data: currentPositions, error: currentError } = await supabase
-        .from('positions')
-        .select('asset_code, current_balance');
-      
-      if (currentError) throw currentError;
-      
-      setAssets(assetsData || []);
-      
-      // Create AUM entries structure
-      const entries = assetsData?.map(asset => {
-        // Sum current balances for this asset
-        const currentBalances = currentPositions?.filter(pos => pos.asset_code === asset.symbol) || [];
-        const currentTotal = currentBalances.reduce((sum, pos) => sum + (pos.current_balance || 0), 0);
-        
-        // For now, set previous AUM to 0 since we don't have historical data yet
-        const previousTotal = 0;
-        
-        const difference = currentTotal - previousTotal;
-        const yieldPercentage = previousTotal > 0 ? (difference / previousTotal) * 100 : 0;
-        
+
+      if (fundsError) throw fundsError;
+
+      if (!fundsData || fundsData.length === 0) {
+        toast({
+          title: 'No Active Funds',
+          description: 'No active funds found in the system',
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
+      }
+
+      setFunds(fundsData);
+
+      // 2. Fetch yesterday's AUM for each fund
+      const { data: previousAumData, error: previousError } = await supabase
+        .from('fund_daily_aum')
+        .select('fund_id, total_aum, investor_count')
+        .eq('aum_date', yesterday);
+
+      if (previousError && previousError.code !== 'PGRST116') { // Ignore "no rows" error
+        console.error('Error fetching previous AUM:', previousError);
+      }
+
+      // 3. Calculate current positions total for each fund
+      const { data: positionsData, error: positionsError } = await supabase
+        .from('investor_positions')
+        .select('fund_id, current_value');
+
+      if (positionsError) {
+        console.error('Error fetching positions:', positionsError);
+      }
+
+      // 4. Build AUM entries
+      const entries: FundAUMEntry[] = fundsData.map(fund => {
+        // Find previous day's AUM
+        const previousRecord = previousAumData?.find(p => p.fund_id === fund.id);
+        const previousAum = previousRecord?.total_aum || 0;
+        const previousInvestorCount = previousRecord?.investor_count || 0;
+
+        // Calculate current positions total
+        const fundPositions = positionsData?.filter(p => p.fund_id === fund.id) || [];
+        const currentTotal = fundPositions.reduce((sum, pos) => sum + (pos.current_value || 0), 0);
+
+        // Count unique investors
+        const investorCount = fundPositions.length;
+
         return {
-          asset_symbol: asset.symbol,
-          asset_name: asset.name,
-          current_aum: currentTotal,
-          previous_aum: previousTotal,
-          aum_difference: difference,
-          yield_percentage: yieldPercentage
+          fund_id: fund.id,
+          fund_name: fund.name,
+          fund_code: fund.code,
+          fund_class: fund.fund_class,
+          previous_aum: previousAum,
+          current_positions_total: currentTotal,
+          new_aum: currentTotal, // Default to current total
+          yield_percentage: 0,
+          investor_count: investorCount || previousInvestorCount,
+          has_input: false,
         };
-      }) || [];
-      
+      });
+
       setAumEntries(entries);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
         title: 'Error',
-        description: 'Failed to fetch AUM data',
+        description: `Failed to fetch fund data: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive',
       });
     } finally {
@@ -107,21 +152,42 @@ export default function DailyAUMManagement() {
     }
   };
 
-  const handleAUMChange = (assetSymbol: string, value: string) => {
-    const numValue = parseFloat(value) || 0;
-    
+  const handleAUMChange = (fundId: string, value: string) => {
+    const numValue = parseFloat(value);
+
+    // Allow empty input
+    if (value === '') {
+      setAumEntries(prev => prev.map(entry => {
+        if (entry.fund_id === fundId) {
+          return {
+            ...entry,
+            new_aum: 0,
+            yield_percentage: 0,
+            has_input: false,
+          };
+        }
+        return entry;
+      }));
+      return;
+    }
+
+    // Validate number
+    if (isNaN(numValue) || numValue < 0) {
+      return;
+    }
+
     setAumEntries(prev => prev.map(entry => {
-      if (entry.asset_symbol === assetSymbol) {
-        const difference = numValue - (entry.previous_aum || 0);
-        const yieldPercentage = entry.previous_aum && entry.previous_aum > 0 
-          ? (difference / entry.previous_aum) * 100 
+      if (entry.fund_id === fundId) {
+        const difference = numValue - entry.previous_aum;
+        const yieldPercentage = entry.previous_aum > 0
+          ? (difference / entry.previous_aum) * 100
           : 0;
-        
+
         return {
           ...entry,
-          current_aum: numValue,
-          aum_difference: difference,
-          yield_percentage: yieldPercentage
+          new_aum: numValue,
+          yield_percentage: yieldPercentage,
+          has_input: true,
         };
       }
       return entry;
@@ -131,21 +197,75 @@ export default function DailyAUMManagement() {
   const saveAUMEntries = async () => {
     try {
       setSaving(true);
-      
-      // For now, we'll just show a success message
-      // In the future, this would save to the daily_aum_entries table
-      toast({
-        title: 'Success',
-        description: 'AUM entries saved successfully',
-      });
-      
-      // Refresh data
-      await fetchData();
+
+      // Filter entries that have input
+      const entriesToSave = aumEntries.filter(entry => entry.has_input);
+
+      if (entriesToSave.length === 0) {
+        toast({
+          title: 'No Data to Save',
+          description: 'Please enter AUM values for at least one fund',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: string[] = [];
+
+      // Save each fund's AUM
+      for (const entry of entriesToSave) {
+        try {
+          const { error } = await supabase.rpc('set_fund_daily_aum', {
+            p_fund_id: entry.fund_id,
+            p_aum_amount: entry.new_aum,
+            p_aum_date: today,
+          });
+
+          if (error) {
+            errorCount++;
+            errors.push(`${entry.fund_name}: ${error.message}`);
+            console.error(`Error saving AUM for ${entry.fund_name}:`, error);
+          } else {
+            successCount++;
+          }
+        } catch (err) {
+          errorCount++;
+          const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+          errors.push(`${entry.fund_name}: ${errorMsg}`);
+          console.error(`Exception saving AUM for ${entry.fund_name}:`, err);
+        }
+      }
+
+      // Show results
+      if (successCount > 0 && errorCount === 0) {
+        toast({
+          title: 'Success',
+          description: `AUM saved successfully for ${successCount} fund${successCount > 1 ? 's' : ''}`,
+        });
+        // Refresh data
+        await fetchData();
+      } else if (successCount > 0 && errorCount > 0) {
+        toast({
+          title: 'Partial Success',
+          description: `Saved ${successCount} fund${successCount > 1 ? 's' : ''}, but ${errorCount} failed. Check console for details.`,
+          variant: 'destructive',
+        });
+        console.error('Save errors:', errors);
+      } else {
+        toast({
+          title: 'Error',
+          description: `Failed to save AUM for all funds. ${errors[0] || 'Unknown error'}`,
+          variant: 'destructive',
+        });
+        console.error('All save errors:', errors);
+      }
     } catch (error) {
-      console.error('Error saving AUM entries:', error);
+      console.error('Error in saveAUMEntries:', error);
       toast({
         title: 'Error',
-        description: 'Failed to save AUM entries',
+        description: `Failed to save AUM entries: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive',
       });
     } finally {
@@ -155,64 +275,107 @@ export default function DailyAUMManagement() {
 
   const calculateAndApplyYields = async () => {
     try {
-      setCalculating(true);
-      
-      // Note: apply_daily_yield function exists in database but not in TypeScript types yet
-      // This will be enabled once the database migration is applied
-      
-      toast({
-        title: 'Info',
-        description: 'Yield calculation will be available after database migration is applied',
-      });
-      
-      /*
-      for (const entry of aumEntries) {
-        if (entry.aum_difference && entry.aum_difference > 0 && entry.yield_percentage && entry.yield_percentage > 0) {
-          // Apply yield using the existing function
-          const { error } = await supabase.rpc('apply_daily_yield', {
-            p_asset_code: entry.asset_symbol,
+      setApplying(true);
+      setShowApplyDialog(false);
+
+      // Filter funds with positive yields that have been saved
+      const fundsWithYield = aumEntries.filter(
+        entry => entry.has_input && entry.yield_percentage > 0
+      );
+
+      if (fundsWithYield.length === 0) {
+        toast({
+          title: 'No Yields to Apply',
+          description: 'No funds have positive yields to apply',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: string[] = [];
+
+      // Apply yields for each fund
+      for (const entry of fundsWithYield) {
+        try {
+          const { error } = await supabase.rpc('apply_daily_yield_to_fund', {
+            p_fund_id: entry.fund_id,
             p_daily_yield_percentage: entry.yield_percentage,
-            p_application_date: today
+            p_application_date: today,
           });
-          
-          if (error) throw error;
+
+          if (error) {
+            errorCount++;
+            errors.push(`${entry.fund_name}: ${error.message}`);
+            console.error(`Error applying yield for ${entry.fund_name}:`, error);
+          } else {
+            successCount++;
+          }
+        } catch (err) {
+          errorCount++;
+          const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+          errors.push(`${entry.fund_name}: ${errorMsg}`);
+          console.error(`Exception applying yield for ${entry.fund_name}:`, err);
         }
       }
-      
-      toast({
-        title: 'Success',
-        description: 'Daily yields calculated and applied successfully',
-      });
-      */
+
+      // Show results
+      if (successCount > 0 && errorCount === 0) {
+        toast({
+          title: 'Success',
+          description: `Daily yields applied successfully to ${successCount} fund${successCount > 1 ? 's' : ''}. All investor positions updated.`,
+        });
+        // Refresh data to show updated positions
+        await fetchData();
+      } else if (successCount > 0 && errorCount > 0) {
+        toast({
+          title: 'Partial Success',
+          description: `Applied yields to ${successCount} fund${successCount > 1 ? 's' : ''}, but ${errorCount} failed. Check console for details.`,
+          variant: 'destructive',
+        });
+        console.error('Apply yield errors:', errors);
+      } else {
+        toast({
+          title: 'Error',
+          description: `Failed to apply yields for all funds. ${errors[0] || 'Unknown error'}`,
+          variant: 'destructive',
+        });
+        console.error('All apply yield errors:', errors);
+      }
     } catch (error) {
-      console.error('Error calculating yields:', error);
+      console.error('Error in calculateAndApplyYields:', error);
       toast({
         title: 'Error',
-        description: 'Failed to calculate and apply yields',
+        description: `Failed to apply yields: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive',
       });
     } finally {
-      setCalculating(false);
+      setApplying(false);
     }
   };
 
-  const formatCurrency = (value: number, symbol: string) => {
-    if (symbol === 'USDC' || symbol === 'USDT' || symbol === 'EURC') {
-      return value.toFixed(2);
-    }
-    return value.toFixed(6);
+  const formatCurrency = (value: number) => {
+    return value.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   };
 
-  const totalCurrentAUM = aumEntries.reduce((sum, entry) => sum + entry.current_aum, 0);
-  const totalPreviousAUM = aumEntries.reduce((sum, entry) => sum + (entry.previous_aum || 0), 0);
-  const totalDifference = totalCurrentAUM - totalPreviousAUM;
+  const totalPreviousAUM = aumEntries.reduce((sum, entry) => sum + entry.previous_aum, 0);
+  const totalCurrentPositions = aumEntries.reduce((sum, entry) => sum + entry.current_positions_total, 0);
+  const totalNewAUM = aumEntries.reduce((sum, entry) => sum + (entry.has_input ? entry.new_aum : entry.current_positions_total), 0);
+  const totalDifference = totalNewAUM - totalPreviousAUM;
+  const totalYieldPercentage = totalPreviousAUM > 0 ? (totalDifference / totalPreviousAUM) * 100 : 0;
+  const totalInvestors = aumEntries.reduce((sum, entry) => sum + entry.investor_count, 0);
+  const fundsWithPositiveYield = aumEntries.filter(e => e.has_input && e.yield_percentage > 0).length;
 
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Daily AUM Management</h1>
-          <p className="text-muted-foreground">Input daily AUM values and calculate yields (Optimal time: 9 PM London)</p>
+          <p className="text-muted-foreground">Input daily AUM values per fund and apply yields (Optimal time: 9 PM London)</p>
         </div>
         <div className="flex items-center gap-2">
           {!isOptimalTime() && (
@@ -222,35 +385,38 @@ export default function DailyAUMManagement() {
             </Badge>
           )}
           {isOptimalTime() && (
-            <Badge variant="default" className="flex items-center gap-1">
+            <Badge variant="default" className="flex items-center gap-1 bg-green-600">
               <Clock className="h-3 w-3" />
               Optimal Time
             </Badge>
           )}
+          <Badge variant="secondary">
+            {today}
+          </Badge>
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Current Total AUM</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${totalCurrentAUM.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Across all assets</p>
-          </CardContent>
-        </Card>
-
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Previous AUM</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalPreviousAUM.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Yesterday's total</p>
+            <div className="text-2xl font-bold">${formatCurrency(totalPreviousAUM)}</div>
+            <p className="text-xs text-muted-foreground">{yesterday}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Current Positions</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${formatCurrency(totalCurrentPositions)}</div>
+            <p className="text-xs text-muted-foreground">Sum of investor positions</p>
           </CardContent>
         </Card>
 
@@ -261,11 +427,22 @@ export default function DailyAUMManagement() {
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${totalDifference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {totalDifference >= 0 ? '+' : ''}${totalDifference.toLocaleString()}
+              {totalDifference >= 0 ? '+' : ''}${formatCurrency(totalDifference)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              {totalPreviousAUM > 0 ? `${((totalDifference / totalPreviousAUM) * 100).toFixed(2)}%` : '0%'}
+            <p className={`text-xs ${totalYieldPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {totalYieldPercentage >= 0 ? '+' : ''}{totalYieldPercentage.toFixed(4)}%
             </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Investors</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalInvestors}</div>
+            <p className="text-xs text-muted-foreground">Across {funds.length} active funds</p>
           </CardContent>
         </Card>
       </div>
@@ -273,56 +450,78 @@ export default function DailyAUMManagement() {
       {/* AUM Entry Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Asset AUM Management</CardTitle>
-          <CardDescription>Enter current AUM values for each asset to calculate daily yields</CardDescription>
+          <CardTitle>Fund AUM Management</CardTitle>
+          <CardDescription>
+            Enter today's AUM for each fund. Yield will be calculated automatically based on previous day's AUM.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex justify-center p-4">
+            <div className="flex justify-center p-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
+          ) : aumEntries.length === 0 ? (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                No active funds found. Please add funds to the system first.
+              </AlertDescription>
+            </Alert>
           ) : (
             <>
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Asset</TableHead>
-                      <TableHead>Symbol</TableHead>
-                      <TableHead>Previous AUM</TableHead>
-                      <TableHead>Current AUM</TableHead>
-                      <TableHead>Difference</TableHead>
-                      <TableHead>Yield %</TableHead>
+                      <TableHead>Fund Name</TableHead>
+                      <TableHead>Code</TableHead>
+                      <TableHead>Class</TableHead>
+                      <TableHead className="text-right">Previous AUM</TableHead>
+                      <TableHead className="text-right">Current Positions</TableHead>
+                      <TableHead className="text-right">New AUM (Input)</TableHead>
+                      <TableHead className="text-right">Yield %</TableHead>
+                      <TableHead className="text-center">Investors</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {aumEntries.map((entry) => (
-                      <TableRow key={entry.asset_symbol}>
-                        <TableCell className="font-medium">{entry.asset_name}</TableCell>
+                      <TableRow key={entry.fund_id}>
+                        <TableCell className="font-medium">{entry.fund_name}</TableCell>
                         <TableCell>
-                          <Badge variant="outline">{entry.asset_symbol}</Badge>
+                          <Badge variant="outline">{entry.fund_code}</Badge>
                         </TableCell>
                         <TableCell>
-                          {formatCurrency(entry.previous_aum || 0, entry.asset_symbol || '')} {entry.asset_symbol}
+                          <Badge variant="secondary">{entry.fund_class}</Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-right">
+                          ${formatCurrency(entry.previous_aum)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          ${formatCurrency(entry.current_positions_total)}
+                        </TableCell>
+                        <TableCell className="text-right">
                           <Input
                             type="number"
-                            step="0.000001"
+                            step="0.01"
                             min="0"
-                            value={entry.current_aum}
-                            onChange={(e) => handleAUMChange(entry.asset_symbol, e.target.value)}
-                            className="w-32"
-                            placeholder="0.000000"
+                            value={entry.has_input ? entry.new_aum : ''}
+                            onChange={(e) => handleAUMChange(entry.fund_id, e.target.value)}
+                            className="w-40 text-right"
+                            placeholder={formatCurrency(entry.current_positions_total)}
                           />
                         </TableCell>
-                        <TableCell className={entry.aum_difference && entry.aum_difference >= 0 ? 'text-green-600' : 'text-red-600'}>
-                          {entry.aum_difference && entry.aum_difference >= 0 ? '+' : ''}
-                          {formatCurrency(entry.aum_difference || 0, entry.asset_symbol || '')} {entry.asset_symbol}
+                        <TableCell className={`text-right font-medium ${
+                          entry.yield_percentage >= 0 ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {entry.has_input && (
+                            <>
+                              {entry.yield_percentage >= 0 ? '+' : ''}
+                              {entry.yield_percentage.toFixed(4)}%
+                            </>
+                          )}
                         </TableCell>
-                        <TableCell className={entry.yield_percentage && entry.yield_percentage >= 0 ? 'text-green-600' : 'text-red-600'}>
-                          {entry.yield_percentage && entry.yield_percentage >= 0 ? '+' : ''}
-                          {(entry.yield_percentage || 0).toFixed(4)}%
+                        <TableCell className="text-center">
+                          <Badge variant="outline">{entry.investor_count}</Badge>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -330,16 +529,21 @@ export default function DailyAUMManagement() {
                 </Table>
               </div>
 
-              <div className="mt-6 flex justify-between">
-                <Alert className="flex-1 mr-4">
+              <div className="mt-6 space-y-4">
+                <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    AUM should be entered daily at 9 PM London time. Yields are calculated based on the difference from the previous day.
+                    <strong>Instructions:</strong> Enter today's AUM for each fund. The system will calculate yield percentages automatically.
+                    Save the AUM values first, then click "Apply Yields" to update all investor positions. This operation is irreversible.
                   </AlertDescription>
                 </Alert>
-                
-                <div className="flex gap-2">
-                  <Button onClick={saveAUMEntries} disabled={saving}>
+
+                <div className="flex justify-end gap-2">
+                  <Button
+                    onClick={saveAUMEntries}
+                    disabled={saving || aumEntries.every(e => !e.has_input)}
+                    size="lg"
+                  >
                     {saving ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -348,25 +552,27 @@ export default function DailyAUMManagement() {
                     ) : (
                       <>
                         <Save className="mr-2 h-4 w-4" />
-                        Save AUM
+                        Save AUM Entries
                       </>
                     )}
                   </Button>
-                  
-                  <Button 
-                    onClick={calculateAndApplyYields} 
-                    disabled={calculating || totalDifference <= 0}
+
+                  <Button
+                    onClick={() => setShowApplyDialog(true)}
+                    disabled={applying || fundsWithPositiveYield === 0}
                     variant="default"
+                    size="lg"
+                    className="bg-green-600 hover:bg-green-700"
                   >
-                    {calculating ? (
+                    {applying ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Calculating...
+                        Applying...
                       </>
                     ) : (
                       <>
                         <TrendingUp className="mr-2 h-4 w-4" />
-                        Apply Yields
+                        Apply Yields ({fundsWithPositiveYield})
                       </>
                     )}
                   </Button>
@@ -376,6 +582,41 @@ export default function DailyAUMManagement() {
           )}
         </CardContent>
       </Card>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showApplyDialog} onOpenChange={setShowApplyDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Apply Daily Yields?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will apply the calculated yield percentages to all investor positions in {fundsWithPositiveYield} fund
+              {fundsWithPositiveYield > 1 ? 's' : ''}. This operation cannot be undone.
+
+              <div className="mt-4 p-4 bg-muted rounded-md space-y-2">
+                <div className="font-semibold">Summary:</div>
+                {aumEntries
+                  .filter(e => e.has_input && e.yield_percentage > 0)
+                  .map(entry => (
+                    <div key={entry.fund_id} className="flex justify-between text-sm">
+                      <span>{entry.fund_name}:</span>
+                      <span className="text-green-600 font-medium">+{entry.yield_percentage.toFixed(4)}%</span>
+                    </div>
+                  ))}
+              </div>
+
+              <div className="mt-4 text-sm text-destructive font-medium">
+                Warning: Make sure you have saved the AUM entries before applying yields.
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={calculateAndApplyYields} className="bg-green-600 hover:bg-green-700">
+              Confirm Apply Yields
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
