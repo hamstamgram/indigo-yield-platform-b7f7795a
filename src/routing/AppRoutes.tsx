@@ -95,7 +95,6 @@ const AdminWithdrawalsNew = lazy(() => import('@/pages/admin/AdminWithdrawals'))
 const AdminDocumentsNew = lazy(() => import('@/pages/admin/AdminDocuments'));
 const AdminCompliance = lazy(() => import('@/pages/admin/AdminCompliance'));
 const AdminReportsNew = lazy(() => import('@/pages/admin/AdminReports'));
-const AdminFees = lazy(() => import('@/pages/admin/AdminFees'));
 const AdminSettingsNew = lazy(() => import('@/pages/admin/AdminSettings'));
 const AdminAuditLogs = lazy(() => import('@/pages/admin/AdminAuditLogs'));
 const AdminUserManagement = lazy(() => import('@/pages/admin/AdminUserManagement'));
@@ -128,15 +127,11 @@ const ExpertInvestorDashboard = lazy(() => import('@/components/admin/expert/Exp
 const InvestorAccountCreation = lazy(() => import('@/pages/admin/InvestorAccountCreation').then(m => ({ default: m.InvestorAccountCreation })));
 const BalanceAdjustments = lazy(() => import('@/pages/admin/BalanceAdjustments').then(m => ({ default: m.BalanceAdjustments })));
 const InvestorStatusTracking = lazy(() => import('@/pages/admin/InvestorStatusTracking').then(m => ({ default: m.InvestorStatusTracking })));
-const FeeConfigurationManagement = lazy(() => import('@/pages/admin/FeeConfigurationManagement').then(m => ({ default: m.FeeConfigurationManagement })));
-const YieldSettings = lazy(() => import('@/pages/admin/YieldSettings'));
 const FundManagement = lazy(() => import('@/pages/admin/funds/FundManagement'));
-const YieldManagement = lazy(() => import('@/pages/admin/YieldManagement'));
 const AuditDrilldown = lazy(() => import('@/pages/admin/AuditDrilldown'));
 
 // PDF Generation Demo - lazy load
 const PDFGenerationDemo = lazy(() => import('@/components/pdf/PDFGenerationDemo').then(m => ({ default: m.PDFGenerationDemo })));
-const SetupAUMPage = lazy(() => import('@/pages/admin/SetupAUMPage'));
 const TestYieldPage = lazy(() => import('@/pages/admin/TestYieldPage'));
 
 
@@ -246,7 +241,6 @@ export function AppRoutes() {
           <Route path="/admin/documents-queue" element={<AdminRoute><AdminDocumentsNew /></AdminRoute>} />
           <Route path="/admin/compliance" element={<AdminRoute><AdminCompliance /></AdminRoute>} />
           <Route path="/admin/reports-admin" element={<AdminRoute><AdminReportsNew /></AdminRoute>} />
-          <Route path="/admin/fees-management" element={<AdminRoute><AdminFees /></AdminRoute>} />
           <Route path="/admin/settings-platform" element={<AdminRoute><AdminSettingsNew /></AdminRoute>} />
           <Route path="/admin/audit-logs" element={<AdminRoute><AdminAuditLogs /></AdminRoute>} />
           <Route path="/admin/users" element={<AdminRoute><AdminUserManagement /></AdminRoute>} />
@@ -277,11 +271,8 @@ export function AppRoutes() {
           <Route path="/admin/investors/create" element={<AdminRoute><InvestorAccountCreation /></AdminRoute>} />
           <Route path="/admin/balances/adjust" element={<AdminRoute><BalanceAdjustments /></AdminRoute>} />
           <Route path="/admin/investors/status" element={<AdminRoute><InvestorStatusTracking /></AdminRoute>} />
-          <Route path="/admin/fees" element={<AdminRoute><FeeConfigurationManagement /></AdminRoute>} />
           <Route path="/admin/funds" element={<AdminRoute><FundManagement /></AdminRoute>} />
-          <Route path="/admin/yield-management" element={<AdminRoute><YieldManagement /></AdminRoute>} />
           <Route path="/admin/audit-drilldown" element={<AdminRoute><AuditDrilldown /></AdminRoute>} />
-          <Route path="/admin/setup-aum" element={<AdminRoute><SetupAUMPage /></AdminRoute>} />
           <Route path="/admin/test-yield" element={<AdminRoute><TestYieldPage /></AdminRoute>} />
           
           
