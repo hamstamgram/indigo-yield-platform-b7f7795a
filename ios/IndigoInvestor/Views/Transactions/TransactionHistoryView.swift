@@ -127,7 +127,7 @@ struct TransactionHistoryView: View {
                 }
                 
                 // Grouped Transactions
-                ForEach(viewModel.groupedTransactions, id: \\.key) { month, transactions in
+                ForEach(viewModel.groupedTransactions, id: \.key) { month, transactions in
                     Section {
                         ForEach(transactions) { transaction in
                             TransactionListItem(transaction: transaction)
@@ -157,7 +157,7 @@ struct TransactionHistoryView: View {
     private var filterPills: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: IndigoTheme.Spacing.sm) {
-                ForEach(TransactionFilter.allCases, id: \\.self) { filter in
+                ForEach(TransactionFilter.allCases, id: \.self) { filter in
                     FilterPill(
                         title: filter.rawValue,
                         icon: filter.icon,
@@ -400,7 +400,7 @@ struct FilterSheet: View {
     @Binding var dateRange: DateRange?
     @Binding var minAmount: Double?
     @Binding var maxAmount: Double?
-    @Environment(\\.dismiss) private var dismiss
+    @Environment(\.dismiss) private var dismiss
     
     @State private var showingDatePicker = false
     @State private var startDate = Date().addingTimeInterval(-30 * 24 * 60 * 60)
@@ -412,7 +412,7 @@ struct FilterSheet: View {
         NavigationView {
             Form {
                 Section("Transaction Type") {
-                    ForEach(TransactionHistoryView.TransactionFilter.allCases, id: \\.self) { filter in
+                    ForEach(TransactionHistoryView.TransactionFilter.allCases, id: \.self) { filter in
                         HStack {
                             Image(systemName: filter.icon)
                                 .foregroundColor(IndigoTheme.Colors.primary)

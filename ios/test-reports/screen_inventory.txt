@@ -1,0 +1,233 @@
+=== INDIGO YIELD PLATFORM iOS - ALL SCREENS INVENTORY ===
+Generated: Tue Nov  4 15:36:22 WET 2025
+
+## Authentication
+
+AuthenticationView.swift
+BiometricSetupView.swift
+EmailVerificationView.swift
+ForgotPasswordView.swift
+LoginView.swift
+RegisterView.swift
+SplashScreenView.swift
+TOTPVerificationView.swift
+
+Count: 8 screens
+---
+
+## Onboarding
+
+KYCDocumentUploadView.swift
+OnboardingCompletionView.swift
+OnboardingWelcomeView.swift
+
+Count: 3 screens
+---
+
+## Home
+
+HomeView.swift
+MarketOverviewView.swift
+PortfolioSummaryCardView.swift
+QuickActionsPanelView.swift
+RecentActivityFeedView.swift
+
+Count: 5 screens
+---
+
+## Dashboard
+
+AssetAllocationView.swift
+DashboardView.swift
+NewDashboardView.swift
+PerformanceChartDetailView.swift
+
+Count: 4 screens
+---
+
+## Portfolio
+
+AllocationBreakdownView.swift
+AssetPerformanceView.swift
+FundSelectorView.swift
+HistoricalPerformanceView.swift
+HoldingsListView.swift
+MultiFundView.swift
+PortfolioAnalyticsView.swift
+PortfolioComparisonView.swift
+PortfolioOverviewView.swift
+PortfolioView.swift
+PositionDetailsView.swift
+RebalancingView.swift
+YieldCalculatorView.swift
+YieldHistoryView.swift
+
+Count: 14 screens
+---
+
+## Transactions
+
+ApplePayIntegrationView.swift
+DepositConfirmationView.swift
+DepositMethodSelectionView.swift
+TransactionExportView.swift
+TransactionFiltersView.swift
+TransactionHistoryView.swift
+TransactionSearchView.swift
+TransactionsView.swift
+WithdrawalAmountView.swift
+WithdrawalConfirmationView.swift
+WithdrawalStatusView.swift
+
+Count: 11 screens
+---
+
+## Withdrawals
+
+WithdrawalRequestView.swift
+WithdrawalsView.swift
+
+Count: 2 screens
+---
+
+## Documents
+
+AccountStatementsView.swift
+DocumentCategoriesView.swift
+DocumentUploadView.swift
+DocumentVaultView.swift
+DocumentsVaultView.swift
+StatementDetailView.swift
+StatementListView.swift
+TaxDocumentsView.swift
+TradeConfirmationsView.swift
+
+Count: 9 screens
+---
+
+## Statements
+
+StatementView.swift
+StatementViewer.swift
+
+Count: 2 screens
+---
+
+## Profile
+
+PersonalInformationView.swift
+ProfileOverviewView.swift
+ProfileSettingsView.swift
+
+Count: 3 screens
+---
+
+## Settings
+
+AboutAppView.swift
+AppearanceSettingsView.swift
+BiometricSettingsView.swift
+DeviceManagementView.swift
+LanguageRegionView.swift
+NotificationPreferencesView.swift
+PasswordChangeView.swift
+PrivacySettingsView.swift
+SecuritySettingsView.swift
+SessionManagementView.swift
+TOTPManagementView.swift
+TermsConditionsView.swift
+
+Count: 12 screens
+---
+
+## Reports
+
+AccountActivityReportView.swift
+CustomReportBuilderView.swift
+PerformanceReportView.swift
+ReportExportView.swift
+ReportHistoryView.swift
+ReportSharingView.swift
+ReportsDashboardView.swift
+TaxReportView.swift
+
+Count: 8 screens
+---
+
+## Notifications
+
+AlertConfigurationView.swift
+NotificationDetailView.swift
+NotificationHistoryView.swift
+NotificationSettingsView.swift
+NotificationsCenterView.swift
+NotificationsInboxView.swift
+NotificationsView.swift
+
+Count: 7 screens
+---
+
+## Support
+
+ContactSupportView.swift
+FAQView.swift
+SupportHubView.swift
+SupportView.swift
+TicketCreationView.swift
+TicketDetailView.swift
+TicketListView.swift
+
+Count: 7 screens
+---
+
+## Admin
+
+AdminApprovalsView.swift
+AdminDashboardView.swift
+AdminInvestorsView.swift
+AdminMoreMenuView.swift
+AdminReportsView.swift
+AdminSettingsView.swift
+AuditLogsView.swift
+DocumentReviewView.swift
+InvestorDetailView.swift
+InvestorManagementView.swift
+SystemSettingsView.swift
+TransactionQueueView.swift
+WithdrawalApprovalsView.swift
+
+Count: 13 screens
+---
+
+## Account
+
+AccountView.swift
+
+Count: 1 screens
+---
+
+## Yield
+
+YieldGeneratedView.swift
+
+Count: 1 screens
+---
+
+## Newsletter
+
+NewsletterView.swift
+
+Count: 1 screens
+---
+
+## Components
+
+ChartWrapper.swift
+ComponentLibrary.swift
+FinancialComponents.swift
+LoadingView.swift
+
+Count: 4 screens
+---
+
+=== TOTAL SCREENS: 115 ===

@@ -44,14 +44,61 @@ const WithdrawalsPage = lazy(() => import('@/pages/admin/investors/WithdrawalsPa
 const DepositsPage = lazy(() => import('@/pages/admin/investors/DepositsPage'));
 const SupportPage = lazy(() => import('@/pages/SupportPage'));
 const SupportTicketsPage = lazy(() => import('@/pages/SupportTicketsPage'));
-const NotificationsPage = lazy(() => import('@/pages/investor/account/NotificationsPage'));
 const PortfolioAnalyticsPage = lazy(() => import('@/pages/investor/portfolio/PortfolioAnalyticsPage'));
 const SessionManagementPage = lazy(() => import('@/pages/investor/account/SessionManagementPage'));
 const ProfileSettingsPage = lazy(() => import('@/pages/settings/ProfileSettingsPage'));
-const NotificationSettingsPage = lazy(() => import('@/pages/settings/NotificationSettingsPage'));
 const SecuritySettings = lazy(() => import('@/pages/settings/SecuritySettings'));
-const DocumentsVault = lazy(() => import('@/pages/documents/DocumentsVault'));
-const Support = lazy(() => import('@/pages/support/Support'));
+
+// Notifications Module - lazy load all
+const NotificationsPage = lazy(() => import('@/pages/notifications/NotificationsPage'));
+const NotificationSettingsPage = lazy(() => import('@/pages/notifications/NotificationSettingsPage'));
+const PriceAlertsPage = lazy(() => import('@/pages/notifications/PriceAlertsPage'));
+const NotificationHistoryPage = lazy(() => import('@/pages/notifications/NotificationHistoryPage'));
+const NotificationDetailPage = lazy(() => import('@/pages/notifications/NotificationDetailPage'));
+
+// Documents Module - lazy load all
+const DocumentsVaultPage = lazy(() => import('@/pages/documents/DocumentsVaultPage'));
+const DocumentViewerPage = lazy(() => import('@/pages/documents/DocumentViewerPage'));
+const DocumentUploadPage = lazy(() => import('@/pages/documents/DocumentUploadPage'));
+
+// Support Module - lazy load all
+const SupportHubPage = lazy(() => import('@/pages/support/SupportHubPage'));
+const SupportTickets = lazy(() => import('@/pages/support/SupportTicketsPage'));
+const NewTicketPage = lazy(() => import('@/pages/support/NewTicketPage'));
+const TicketDetailPage = lazy(() => import('@/pages/support/TicketDetailPage'));
+const LiveChatPage = lazy(() => import('@/pages/support/LiveChatPage'));
+
+// Profile Module - lazy load all
+const ProfileOverview = lazy(() => import('@/pages/profile/ProfileOverview'));
+const PersonalInfo = lazy(() => import('@/pages/profile/PersonalInfo'));
+const ProfileSecurity = lazy(() => import('@/pages/profile/Security'));
+const Preferences = lazy(() => import('@/pages/profile/Preferences'));
+const ProfilePrivacy = lazy(() => import('@/pages/profile/Privacy'));
+const LinkedAccounts = lazy(() => import('@/pages/profile/LinkedAccounts'));
+const KYCVerification = lazy(() => import('@/pages/profile/KYCVerification'));
+const Referrals = lazy(() => import('@/pages/profile/Referrals'));
+
+// Reports Module - lazy load all
+const ReportsDashboard = lazy(() => import('@/pages/reports/ReportsDashboard'));
+const PortfolioPerformance = lazy(() => import('@/pages/reports/PortfolioPerformance'));
+const TaxReport = lazy(() => import('@/pages/reports/TaxReport'));
+const MonthlyStatement = lazy(() => import('@/pages/reports/MonthlyStatement'));
+const CustomReport = lazy(() => import('@/pages/reports/CustomReport'));
+const ReportHistory = lazy(() => import('@/pages/reports/ReportHistory'));
+
+// New Admin Module Pages - lazy load all
+const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'));
+const AdminInvestorManagement = lazy(() => import('@/pages/admin/AdminInvestorManagement'));
+const AdminInvestorDetailNew = lazy(() => import('@/pages/admin/AdminInvestorDetail'));
+const AdminTransactions = lazy(() => import('@/pages/admin/AdminTransactions'));
+const AdminWithdrawalsNew = lazy(() => import('@/pages/admin/AdminWithdrawals'));
+const AdminDocumentsNew = lazy(() => import('@/pages/admin/AdminDocuments'));
+const AdminCompliance = lazy(() => import('@/pages/admin/AdminCompliance'));
+const AdminReportsNew = lazy(() => import('@/pages/admin/AdminReports'));
+const AdminFees = lazy(() => import('@/pages/admin/AdminFees'));
+const AdminSettingsNew = lazy(() => import('@/pages/admin/AdminSettings'));
+const AdminAuditLogs = lazy(() => import('@/pages/admin/AdminAuditLogs'));
+const AdminUserManagement = lazy(() => import('@/pages/admin/AdminUserManagement'));
 
 // Admin Pages - lazy load all
 const AdminInvestorNewPage = lazy(() => import('@/pages/admin/investors/AdminInvestorNewPage'));
@@ -123,15 +170,37 @@ export function AppRoutes() {
           
           {/* LP Routes - all protected */}
           <Route path="/withdrawals" element={<ProtectedRoute><WithdrawalsPage /></ProtectedRoute>} />
-          <Route path="/support" element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
-          <Route path="/support-tickets" element={<ProtectedRoute><SupportTicketsPage /></ProtectedRoute>} />
-          <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
           <Route path="/portfolio/analytics" element={<ProtectedRoute><PortfolioAnalyticsPage /></ProtectedRoute>} />
           <Route path="/settings/sessions" element={<ProtectedRoute><SessionManagementPage /></ProtectedRoute>} />
           <Route path="/settings/profile" element={<ProtectedRoute><ProfileSettingsPage /></ProtectedRoute>} />
-          <Route path="/settings/notifications" element={<ProtectedRoute><NotificationSettingsPage /></ProtectedRoute>} />
           <Route path="/settings/security" element={<ProtectedRoute><SecuritySettings /></ProtectedRoute>} />
-          <Route path="/documents" element={<ProtectedRoute><DocumentsVault /></ProtectedRoute>} />
+
+          {/* Notifications Module Routes - all protected */}
+          <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+          <Route path="/notifications/settings" element={<ProtectedRoute><NotificationSettingsPage /></ProtectedRoute>} />
+          <Route path="/notifications/alerts" element={<ProtectedRoute><PriceAlertsPage /></ProtectedRoute>} />
+          <Route path="/notifications/history" element={<ProtectedRoute><NotificationHistoryPage /></ProtectedRoute>} />
+          <Route path="/notifications/:id" element={<ProtectedRoute><NotificationDetailPage /></ProtectedRoute>} />
+
+          {/* Documents Module Routes - all protected */}
+          <Route path="/documents" element={<ProtectedRoute><DocumentsVaultPage /></ProtectedRoute>} />
+          <Route path="/documents/upload" element={<ProtectedRoute><DocumentUploadPage /></ProtectedRoute>} />
+          <Route path="/documents/statements" element={<ProtectedRoute><DocumentsVaultPage /></ProtectedRoute>} />
+          <Route path="/documents/statements/:id" element={<ProtectedRoute><DocumentViewerPage /></ProtectedRoute>} />
+          <Route path="/documents/tax" element={<ProtectedRoute><DocumentsVaultPage /></ProtectedRoute>} />
+          <Route path="/documents/trade-confirmations" element={<ProtectedRoute><DocumentsVaultPage /></ProtectedRoute>} />
+          <Route path="/documents/agreements" element={<ProtectedRoute><DocumentsVaultPage /></ProtectedRoute>} />
+          <Route path="/documents/categories" element={<ProtectedRoute><DocumentsVaultPage /></ProtectedRoute>} />
+          <Route path="/documents/:id" element={<ProtectedRoute><DocumentViewerPage /></ProtectedRoute>} />
+
+          {/* Support Module Routes - all protected */}
+          <Route path="/support" element={<ProtectedRoute><SupportHubPage /></ProtectedRoute>} />
+          <Route path="/support/tickets" element={<ProtectedRoute><SupportTickets /></ProtectedRoute>} />
+          <Route path="/support/tickets/new" element={<ProtectedRoute><NewTicketPage /></ProtectedRoute>} />
+          <Route path="/support/tickets/:id" element={<ProtectedRoute><TicketDetailPage /></ProtectedRoute>} />
+          <Route path="/support/live-chat" element={<ProtectedRoute><LiveChatPage /></ProtectedRoute>} />
+          <Route path="/support/faq" element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
+          <Route path="/support/knowledge-base" element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
           
           {/* Other existing routes - protected */}
           <Route path="/statements" element={<ProtectedRoute><StatementsPage /></ProtectedRoute>} />
@@ -139,12 +208,45 @@ export function AppRoutes() {
           <Route path="/assets/:symbol" element={<ProtectedRoute><AssetDetail /></ProtectedRoute>} />
           <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+
+          {/* Profile Module Routes - all protected */}
+          <Route path="/profile" element={<ProtectedRoute><ProfileOverview /></ProtectedRoute>} />
+          <Route path="/profile/personal-info" element={<ProtectedRoute><PersonalInfo /></ProtectedRoute>} />
+          <Route path="/profile/security" element={<ProtectedRoute><ProfileSecurity /></ProtectedRoute>} />
+          <Route path="/profile/preferences" element={<ProtectedRoute><Preferences /></ProtectedRoute>} />
+          <Route path="/profile/privacy" element={<ProtectedRoute><ProfilePrivacy /></ProtectedRoute>} />
+          <Route path="/profile/linked-accounts" element={<ProtectedRoute><LinkedAccounts /></ProtectedRoute>} />
+          <Route path="/profile/kyc-verification" element={<ProtectedRoute><KYCVerification /></ProtectedRoute>} />
+          <Route path="/profile/referrals" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />
+
+          {/* Reports Module Routes - all protected */}
+          <Route path="/reports" element={<ProtectedRoute><ReportsDashboard /></ProtectedRoute>} />
+          <Route path="/reports/portfolio-performance" element={<ProtectedRoute><PortfolioPerformance /></ProtectedRoute>} />
+          <Route path="/reports/tax-report" element={<ProtectedRoute><TaxReport /></ProtectedRoute>} />
+          <Route path="/reports/monthly-statement" element={<ProtectedRoute><MonthlyStatement /></ProtectedRoute>} />
+          <Route path="/reports/custom" element={<ProtectedRoute><CustomReport /></ProtectedRoute>} />
+          <Route path="/reports/history" element={<ProtectedRoute><ReportHistory /></ProtectedRoute>} />
           
           {/* Admin routes - all protected with AdminRoute */}
-          <Route path="/admin" element={<AdminRoute><AdminDashboardV2 /></AdminRoute>} />
+          <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="/admin/portfolio" element={<AdminRoute><PortfolioDashboard /></AdminRoute>} />
           <Route path="/admin/portfolio-dashboard" element={<AdminRoute><AdminPortfolioDashboard /></AdminRoute>} />
           <Route path="/admin/yield-settings" element={<Navigate to="/admin/funds" replace />} />
+
+          {/* New Admin Module Routes */}
+          <Route path="/admin/investors-management" element={<AdminRoute><AdminInvestorManagement /></AdminRoute>} />
+          <Route path="/admin/investor/:id" element={<AdminRoute><AdminInvestorDetailNew /></AdminRoute>} />
+          <Route path="/admin/transactions-all" element={<AdminRoute><AdminTransactions /></AdminRoute>} />
+          <Route path="/admin/withdrawals-queue" element={<AdminRoute><AdminWithdrawalsNew /></AdminRoute>} />
+          <Route path="/admin/documents-queue" element={<AdminRoute><AdminDocumentsNew /></AdminRoute>} />
+          <Route path="/admin/compliance" element={<AdminRoute><AdminCompliance /></AdminRoute>} />
+          <Route path="/admin/reports-admin" element={<AdminRoute><AdminReportsNew /></AdminRoute>} />
+          <Route path="/admin/fees-management" element={<AdminRoute><AdminFees /></AdminRoute>} />
+          <Route path="/admin/settings-platform" element={<AdminRoute><AdminSettingsNew /></AdminRoute>} />
+          <Route path="/admin/audit-logs" element={<AdminRoute><AdminAuditLogs /></AdminRoute>} />
+          <Route path="/admin/users" element={<AdminRoute><AdminUserManagement /></AdminRoute>} />
+
+          {/* Existing Admin Routes */}
           <Route path="/admin/investors" element={<AdminRoute><InvestorManagementView /></AdminRoute>} />
           <Route path="/admin/investors/new" element={<AdminRoute><AdminInvestorNewPage /></AdminRoute>} />
           <Route path="/admin/investors/:id" element={<AdminRoute><AdminInvestorDetailPage /></AdminRoute>} />

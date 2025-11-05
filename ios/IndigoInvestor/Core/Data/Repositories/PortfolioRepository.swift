@@ -187,6 +187,31 @@ class PortfolioRepository: PortfolioRepositoryProtocol {
             }
         }
     }
+
+    // MARK: - Default Portfolio Creation
+
+    private func createDefaultPortfolio(for investorId: UUID) -> Portfolio {
+        return Portfolio(
+            id: UUID(),
+            investorId: investorId,
+            totalValue: 0,
+            totalCost: 0,
+            totalGain: 0,
+            totalGainPercent: 0.0,
+            dayChange: 0,
+            dayChangePercent: 0.0,
+            weekChange: 0,
+            weekChangePercent: 0.0,
+            monthChange: 0,
+            monthChangePercent: 0.0,
+            yearChange: 0,
+            yearChangePercent: 0.0,
+            lastUpdated: Date(),
+            positions: [],
+            assetAllocation: [],
+            performanceHistory: []
+        )
+    }
 }
 
 // MARK: - Network Models
@@ -313,32 +338,6 @@ class PortfolioEntity: NSManagedObject {
     @NSManaged var dayChange: NSDecimalNumber
     @NSManaged var dayChangePercent: Double
     @NSManaged var lastUpdated: Date
-}
-
-    // MARK: - Default Portfolio Creation
-
-    private func createDefaultPortfolio(for investorId: UUID) -> Portfolio {
-        return Portfolio(
-            id: UUID(),
-            investorId: investorId,
-            totalValue: 0,
-            totalCost: 0,
-            totalGain: 0,
-            totalGainPercent: 0.0,
-            dayChange: 0,
-            dayChangePercent: 0.0,
-            weekChange: 0,
-            weekChangePercent: 0.0,
-            monthChange: 0,
-            monthChangePercent: 0.0,
-            yearChange: 0,
-            yearChangePercent: 0.0,
-            lastUpdated: Date(),
-            positions: [],
-            assetAllocation: [],
-            performanceHistory: []
-        )
-    }
 }
 
 // MARK: - Extensions

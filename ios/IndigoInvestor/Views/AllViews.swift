@@ -81,6 +81,10 @@ struct PortfolioView: View {
     }
 }
 
+// MARK: - Commented out duplicate views
+// Real implementations exist in Transactions/TransactionsView.swift and Account/AccountView.swift
+
+/*
 // MARK: - Transactions View
 struct TransactionsView: View {
     @StateObject private var viewModel = TransactionsViewModel()
@@ -182,7 +186,10 @@ struct AccountView: View {
         }
     }
 }
+*/
 
+// Placeholder AdminDashboardView and AdminInvestorsView also commented out
+/*
 // MARK: - Admin Dashboard View
 struct AdminDashboardView: View {
     @StateObject private var viewModel = AdminDashboardViewModel()
@@ -273,7 +280,10 @@ struct AdminInvestorsView: View {
         }
     }
 }
+*/
 
+// MARK: - Commented out Admin Approvals View duplicate
+/*
 // MARK: - Admin Approvals View
 struct AdminApprovalsView: View {
     @StateObject private var viewModel = AdminApprovalsViewModel()
@@ -340,8 +350,10 @@ struct AdminApprovalsView: View {
         }
     }
 }
+*/
 
-// MARK: - Admin Reports View
+// MARK: - Admin Reports View (also duplicate, commented out)
+/*
 struct AdminReportsView: View {
     @StateObject private var viewModel = AdminReportsViewModel()
 
@@ -386,8 +398,10 @@ struct AdminReportsView: View {
         }
     }
 }
+*/
 
-// MARK: - Admin Settings View
+// MARK: - Admin Settings View (also duplicate)
+/*
 struct AdminSettingsView: View {
     @StateObject private var viewModel = AdminSettingsViewModel()
 
@@ -444,6 +458,7 @@ struct AdminSettingsView: View {
         }
     }
 }
+*/
 
 // MARK: - Supporting Views
 struct MetricCard: View {
@@ -761,9 +776,9 @@ struct AdminMoreMenuView: View {
     }
 }
 
-// MARK: - Menu Row Component
+// MARK: - Menu Row Component (renamed to avoid conflicts)
 
-struct MenuRow: View {
+struct AllViewsMenuRow: View {
     let icon: String
     let title: String
     let color: Color

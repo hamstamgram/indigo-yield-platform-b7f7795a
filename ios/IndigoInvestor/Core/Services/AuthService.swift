@@ -36,13 +36,17 @@ class AuthService: ObservableObject {
     func signIn(email: String, password: String) async throws {
         isLoading = true
         error = nil
-        
+
+        defer {
+            isLoading = false
+        }
+
         do {
             let response = try await client.auth.signIn(
                 email: email,
                 password: password
             )
-            
+
             currentUser = response.user
             isAuthenticated = true
 
@@ -58,36 +62,40 @@ class AuthService: ObservableObject {
         } catch {
             self.error = error.localizedDescription
             throw error
-        } finally {
-            isLoading = false
         }
     }
     
     func signUp(email: String, password: String, fullName: String) async throws {
         isLoading = true
         error = nil
-        
+
+        defer {
+            isLoading = false
+        }
+
         do {
             let response = try await client.auth.signUp(
                 email: email,
                 password: password,
                 data: ["full_name": .string(fullName)]
             )
-            
+
             currentUser = response.user
             // Note: User needs to verify email before full authentication
         } catch {
             self.error = error.localizedDescription
             throw error
-        } finally {
-            isLoading = false
         }
     }
     
     func signOut() async throws {
         isLoading = true
         error = nil
-        
+
+        defer {
+            isLoading = false
+        }
+
         do {
             try await client.auth.signOut()
             currentUser = nil
@@ -99,36 +107,38 @@ class AuthService: ObservableObject {
         } catch {
             self.error = error.localizedDescription
             throw error
-        } finally {
-            isLoading = false
         }
     }
     
     func resetPassword(email: String) async throws {
         isLoading = true
         error = nil
-        
+
+        defer {
+            isLoading = false
+        }
+
         do {
             try await client.auth.resetPasswordForEmail(email)
         } catch {
             self.error = error.localizedDescription
             throw error
-        } finally {
-            isLoading = false
         }
     }
     
     func updatePassword(newPassword: String) async throws {
         isLoading = true
         error = nil
-        
+
+        defer {
+            isLoading = false
+        }
+
         do {
             try await client.auth.update(user: UserAttributes(password: newPassword))
         } catch {
             self.error = error.localizedDescription
             throw error
-        } finally {
-            isLoading = false
         }
     }
     

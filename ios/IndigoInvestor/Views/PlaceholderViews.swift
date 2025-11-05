@@ -37,6 +37,10 @@ struct DocumentsView: View {
     }
 }
 
+// MARK: - Commented out duplicate views - real implementations exist in proper directories
+// These placeholder views caused redeclaration errors
+
+/*
 struct WithdrawalRequestView: View {
     var body: some View {
         NavigationView {
@@ -45,9 +49,6 @@ struct WithdrawalRequestView: View {
         }
     }
 }
-
-// MARK: - Temporary View Placeholders
-// These are temporary until the project file is fixed
 
 struct PortfolioView: View {
     var body: some View {
@@ -120,6 +121,7 @@ struct AdminSettingsView: View {
         }
     }
 }
+*/
 
 // MARK: - Additional Investor Views
 
@@ -308,7 +310,7 @@ struct AdminMoreMenuView: View {
 }
 
 // Menu Row Component
-struct MenuRow: View {
+struct PlaceholderMenuRow: View {
     let icon: String
     let title: String
     let color: Color

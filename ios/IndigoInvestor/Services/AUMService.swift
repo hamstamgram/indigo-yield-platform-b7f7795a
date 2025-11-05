@@ -51,6 +51,23 @@ struct YieldDistributionResult: Codable {
     }
 }
 
+// Define InvestorSummary for decoding nested investor data
+struct InvestorSummary: Codable {
+    let name: String?
+    let email: String?
+    let profile: InvestorProfile?
+
+    struct InvestorProfile: Codable {
+        let firstName: String?
+        let lastName: String?
+
+        enum CodingKeys: String, CodingKey {
+            case firstName = "first_name"
+            case lastName = "last_name"
+        }
+    }
+}
+
 struct FundInvestorPosition: Codable {
     let investorId: String
     let fundId: String

@@ -221,14 +221,14 @@ struct FilterOptionsSheet: View {
     @Binding var selectedYear: Int
     @Binding var selectedType: StatementViewer.StatementType
     let onApply: () -> Void
-    @Environment(\\.dismiss) private var dismiss
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationView {
             Form {
                 Section("Year") {
                     Picker("Year", selection: $selectedYear) {
-                        ForEach(2020...Calendar.current.component(.year, from: Date()), id: \\.self) { year in
+                        ForEach(2020...Calendar.current.component(.year, from: Date()), id: \.self) { year in
                             Text(String(year)).tag(year)
                         }
                     }
@@ -236,7 +236,7 @@ struct FilterOptionsSheet: View {
                 }
                 
                 Section("Document Type") {
-                    ForEach(StatementViewer.StatementType.allCases, id: \\.self) { type in
+                    ForEach(StatementViewer.StatementType.allCases, id: \.self) { type in
                         HStack {
                             Image(systemName: type.icon)
                                 .foregroundColor(IndigoTheme.Colors.primary)

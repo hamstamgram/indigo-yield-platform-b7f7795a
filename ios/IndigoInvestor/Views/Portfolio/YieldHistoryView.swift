@@ -63,7 +63,10 @@ struct YieldHistoryView: View {
             await viewModel.loadYieldHistory(timeframe: selectedTimeframe)
         }
         .sheet(isPresented: $showingExportSheet) {
-            ExportOptionsView(data: viewModel.yieldData)
+            YieldHistoryExportView(
+                data: viewModel.yieldData,
+                dismiss: { showingExportSheet = false }
+            )
         }
         .task {
             await viewModel.loadYieldHistory(timeframe: selectedTimeframe)
@@ -126,47 +129,62 @@ struct YieldHistoryView: View {
         }
     }
     
+    @ViewBuilder
     private var yieldChart: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Cumulative Yield")
-                .font(.headline)
-            
-            Chart(viewModel.yieldData) { dataPoint in
-                LineMark(
-                    x: .value("Date", dataPoint.date),
-                    y: .value("Yield", dataPoint.cumulativeYield)
-                )
-                .foregroundStyle(Color.green.gradient)
-                
-                AreaMark(
-                    x: .value("Date", dataPoint.date),
-                    y: .value("Yield", dataPoint.cumulativeYield)
-                )
-                .foregroundStyle(Color.green.opacity(0.1).gradient)
-            }
-            .frame(height: 200)
-            .chartXAxis {
-                AxisMarks(values: .automatic) { _ in
-                    AxisGridLine()
-                    AxisTick()
-                    AxisValueLabel(format: .dateTime.month().year())
+        if #available(iOS 16.0, *) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Cumulative Yield")
+                    .font(.headline)
+
+                Chart(viewModel.yieldData) { dataPoint in
+                    LineMark(
+                        x: .value("Date", dataPoint.date),
+                        y: .value("Yield", dataPoint.cumulativeYield)
+                    )
+                    .foregroundStyle(Color.green.gradient)
+
+                    AreaMark(
+                        x: .value("Date", dataPoint.date),
+                        y: .value("Yield", dataPoint.cumulativeYield)
+                    )
+                    .foregroundStyle(Color.green.opacity(0.1).gradient)
                 }
-            }
-            .chartYAxis {
-                AxisMarks(values: .automatic) { value in
-                    AxisGridLine()
-                    AxisTick()
-                    AxisValueLabel {
-                        if let intValue = value.as(Double.self) {
-                            Text(intValue, format: .currency(code: "USD").precision(.fractionLength(0)))
+                .frame(height: 200)
+                .chartXAxis {
+                    AxisMarks(values: .automatic) { _ in
+                        AxisGridLine()
+                        AxisTick()
+                        AxisValueLabel(format: .dateTime.month().year())
+                    }
+                }
+                .chartYAxis {
+                    AxisMarks(values: .automatic) { value in
+                        AxisGridLine()
+                        AxisTick()
+                        AxisValueLabel {
+                            if let intValue = value.as(Double.self) {
+                                Text(intValue, format: .currency(code: "USD").precision(.fractionLength(0)))
+                            }
                         }
                     }
                 }
             }
+            .padding()
+            .background(Color(.secondarySystemBackground))
+            .cornerRadius(12)
+        } else {
+            // iOS 15 fallback - Simple list view
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Cumulative Yield")
+                    .font(.headline)
+                Text("Chart requires iOS 16+")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding()
+            .background(Color(.secondarySystemBackground))
+            .cornerRadius(12)
         }
-        .padding()
-        .background(Color(.secondarySystemBackground))
-        .cornerRadius(12)
     }
     
     private var monthlyBreakdown: some View {
@@ -205,7 +223,7 @@ struct YieldHistoryView: View {
 
 // View Model
 class YieldHistoryViewModel: ObservableObject {
-    @Published var yieldData: [YieldDataPoint] = []
+    @Published var yieldData: [HistoricalYieldPoint] = []
     @Published var monthlyBreakdown: [MonthlyYield] = []
     @Published var totalYield: Double = 0
     @Published var averageAPY: Double = 0
@@ -220,18 +238,18 @@ class YieldHistoryViewModel: ObservableObject {
             self.calculateSummary()
         }
     }
-    
-    private func generateMockData(months: Int) -> [YieldDataPoint] {
-        var data: [YieldDataPoint] = []
+
+    private func generateMockData(months: Int) -> [HistoricalYieldPoint] {
+        var data: [HistoricalYieldPoint] = []
         let calendar = Calendar.current
         var cumulativeYield: Double = 0
-        
+
         for i in 0..<months {
             let date = calendar.date(byAdding: .month, value: -months + i + 1, to: Date())!
             let monthlyYield = Double.random(in: 800...1200)
             cumulativeYield += monthlyYield
-            
-            data.append(YieldDataPoint(
+
+            data.append(HistoricalYieldPoint(
                 id: UUID().uuidString,
                 date: date,
                 monthlyYield: monthlyYield,
@@ -239,7 +257,7 @@ class YieldHistoryViewModel: ObservableObject {
                 apy: Double.random(in: 11.5...12.5)
             ))
         }
-        
+
         return data
     }
     
@@ -263,7 +281,8 @@ class YieldHistoryViewModel: ObservableObject {
     }
 }
 
-struct YieldDataPoint: Identifiable {
+// MARK: - Models
+struct HistoricalYieldPoint: Identifiable {
     let id: String
     let date: Date
     let monthlyYield: Double
@@ -278,9 +297,10 @@ struct MonthlyYield: Identifiable {
     let apy: Double
 }
 
-struct ExportOptionsView: View {
-    let data: [YieldDataPoint]
-    @Environment(\.dismiss) private var dismiss
+// MARK: - Export Options View
+struct YieldHistoryExportView: View {
+    let data: [HistoricalYieldPoint]
+    let dismiss: () -> Void
     
     var body: some View {
         NavigationView {
@@ -313,12 +333,12 @@ struct ExportOptionsView: View {
         // Implementation
         dismiss()
     }
-    
+
     private func exportPDF() {
         // Implementation
         dismiss()
     }
-    
+
     private func shareData() {
         // Implementation
         dismiss()

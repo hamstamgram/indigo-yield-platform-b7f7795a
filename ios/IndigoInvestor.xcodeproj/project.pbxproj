@@ -12,7 +12,6 @@
 		059F8C97535BFAF8ADEE0F96 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 32825BDE31C81D31B1FB9960 /* Supabase */; };
 		065B24929928FBA02A453360 /* ProfileSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26D4974EF794CE4886D0AF88 /* ProfileSettingsView.swift */; };
 		092F33DAE68B58E823071751 /* IndigoInvestor.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F6F6F25D8AF6B10960F071A4 /* IndigoInvestor.xcdatamodeld */; };
-		0A1BA1420F4738C49B8EAEA1 /* IndigoInvestorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012AFFCDA8B6C7EC5600AA47 /* IndigoInvestorTests.swift */; };
 		0C41989E5524138F8D162A74 /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE0D0E087CC6C308B2823831 /* AuthenticationView.swift */; };
 		0C486B18E1F96BDE0D1AA30B /* NotificationsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F0A76BE6377778E5E30D58A /* NotificationsViewModel.swift */; };
 		0E8AFAA623B90EE30AE20761 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = B4FE8087ECD88C6C2685D9E4 /* KeychainAccess */; };
@@ -62,10 +61,8 @@
 		4940EE3C98DA049554092920 /* AdditionalServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A15C9D79EFBCED9D58B23A9 /* AdditionalServices.swift */; };
 		4A5E39182F0BA0B802334D77 /* BusinessServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0A2769FFE786696B4CC83E7 /* BusinessServices.swift */; };
 		4BF8FFCC2BE57D4E85914C66 /* FinancialTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7D4F007618495BCC224E179 /* FinancialTypography.swift */; };
-		4CCE5D39BD209DF60AD41001 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC2C35FA183170FF345BCFA /* Typography.swift */; };
 		500C1E556E2E4E780F23C8E3 /* AUMService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 318C2AA7EED23FE0EF177E5F /* AUMService.swift */; };
 		523937811DDAE020958FC9C1 /* Montserrat-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8F8738878D2234618B9DBA49 /* Montserrat-Regular.ttf */; };
-		557AE5F40775C96872344CE1 /* IndigoInvestorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5514B52D0EEA6400A2A1DA24 /* IndigoInvestorTests.swift */; };
 		560F245E6F7849FDA6E0A6E9 /* NewDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5109A39251EC97DA6792423 /* NewDashboardView.swift */; };
 		5948B709C5E95FADB0F6DBB5 /* StatementViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BDDCD0FA15FBFC17DA67F4B /* StatementViewer.swift */; };
 		5B826197712D7F2B577EFF7E /* Repositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC122868DCAF2DB079315D2E /* Repositories.swift */; };
@@ -141,7 +138,6 @@
 		D246040C6C873A0473DB1206 /* TransactionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E45DEA9C3BC12E51598F6DE /* TransactionDetailView.swift */; };
 		D263C35E4F600E796DF5A524 /* KeychainLocalStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09F0B9F2EFAAC168F9D83C67 /* KeychainLocalStorage.swift */; };
 		DA1058A679F7967533770C39 /* AdminMoreMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0577625D17F3994FDF31FC2 /* AdminMoreMenuView.swift */; };
-		DB00DB90A6C4966F75779D5F /* GenerateAppIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047D473FBC067DBD455C470B /* GenerateAppIcons.swift */; };
 		DD91BA18B159E44252538C5F /* ServiceProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97D1C604AEB46DF796B4A2E /* ServiceProtocols.swift */; };
 		E0FBEDBB95C28E1BD2994B81 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD9AA7B99BDC71AF54DC759 /* Typography.swift */; };
 		E1065587337637A60FBF0F32 /* NotificationsInboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4100A6E9DF2329E492F12532 /* NotificationsInboxView.swift */; };
@@ -239,7 +235,6 @@
 		75EE9206EDB85713B84058AB /* DocumentsVaultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentsVaultView.swift; sourceTree = "<group>"; };
 		79844D4B79DFBD9A9E690084 /* Montserrat-ExtraBoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-ExtraBoldItalic.ttf"; sourceTree = "<group>"; };
 		7AE44B1A67C4B1858115AD21 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
-		7CC2C35FA183170FF345BCFA /* Typography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Typography.swift; sourceTree = "<group>"; };
 		80AAF3674071781CDAA55205 /* Montserrat-ExtraLight.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-ExtraLight.ttf"; sourceTree = "<group>"; };
 		822B6CAA6F4969FF5988357A /* supabase_pin.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = supabase_pin.txt; sourceTree = "<group>"; };
 		83E634418DE7EEB1F2EA163A /* Montserrat-BoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-BoldItalic.ttf"; sourceTree = "<group>"; };
@@ -475,7 +470,6 @@
 			isa = PBXGroup;
 			children = (
 				E5885E5D63E5E4399937B61E /* SupabaseDebugger.swift */,
-				7CC2C35FA183170FF345BCFA /* Typography.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -1067,12 +1061,10 @@
 				24AE5B9DE521A8FA748E7E5A /* FinancialComponents.swift in Sources */,
 				4BF8FFCC2BE57D4E85914C66 /* FinancialTypography.swift in Sources */,
 				AF1B440D96704D288353C1ED /* FundService.swift in Sources */,
-				DB00DB90A6C4966F75779D5F /* GenerateAppIcons.swift in Sources */,
 				1CEBBEB609DD8493A266BF8E /* InMemoryAuthStorage.swift in Sources */,
 				11B2F0E96576796734818811 /* InMemoryLocalStorage.swift in Sources */,
 				092F33DAE68B58E823071751 /* IndigoInvestor.xcdatamodeld in Sources */,
 				46A9D0D948A6867C6337AD58 /* IndigoInvestorApp.swift in Sources */,
-				0A1BA1420F4738C49B8EAEA1 /* IndigoInvestorTests.swift in Sources */,
 				7C4A403F8B778E6FDCCFD158 /* IndigoTheme.swift in Sources */,
 				EFB89AFB772E9B355AC488EE /* InvestorServiceV2.swift in Sources */,
 				D263C35E4F600E796DF5A524 /* KeychainLocalStorage.swift in Sources */,
@@ -1127,7 +1119,6 @@
 				20535FD5D4B642685CAABC10 /* TransactionViewModel.swift in Sources */,
 				02CE5412D49810FC951B8E7E /* TransactionsView.swift in Sources */,
 				72487F17947A65142EE5D87F /* Types.swift in Sources */,
-				4CCE5D39BD209DF60AD41001 /* Typography.swift in Sources */,
 				E0FBEDBB95C28E1BD2994B81 /* Typography.swift in Sources */,
 				9734598AB4D72B51B6BE1A1B /* UpdatedRootView.swift in Sources */,
 				AE4B60B3D5EA80FA15389A05 /* User.swift in Sources */,
@@ -1148,7 +1139,6 @@
 			files = (
 				B01B94E717E53D2CCB85F6E0 /* AuthServiceTests.swift in Sources */,
 				121A8372579BB3C29B83317A /* AuthViewModelTests.swift in Sources */,
-				557AE5F40775C96872344CE1 /* IndigoInvestorTests.swift in Sources */,
 				0F23092E20AB4033A0533E39 /* MockBiometricAuthManager.swift in Sources */,
 				B8F90B6128656A82446CB812 /* MockKeychainManager.swift in Sources */,
 				F071E8AC240888218F5AFDD9 /* MockSupabaseClient.swift in Sources */,
@@ -1233,7 +1223,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -1253,7 +1243,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = IndigoInvestor/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1271,7 +1261,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				INFOPLIST_FILE = IndigoInvestor/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1336,7 +1326,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -1356,7 +1346,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				INFOPLIST_FILE = IndigoInvestor/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1378,7 +1368,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = IndigoInvestor/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
