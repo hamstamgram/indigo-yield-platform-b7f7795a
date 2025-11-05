@@ -413,20 +413,12 @@ const InvestorReports = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Monthly Investor Reports</h1>
-          <p className="text-muted-foreground">Generate and manage monthly yield reports from real data</p>
+          <p className="text-muted-foreground">View and manage monthly investor reports (entered via Monthly Data Entry)</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={fetchReports} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
-          </Button>
-          <Button
-            onClick={handleGenerateReports}
-            disabled={generatingReports}
-            variant="default"
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            {generatingReports ? 'Generating...' : 'Generate Reports'}
           </Button>
           <Button
             onClick={handleSendReports}
