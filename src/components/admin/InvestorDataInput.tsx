@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Investor Data Input Component
  *

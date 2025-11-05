@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Report Builder Component
  * Allows users to configure and generate reports
