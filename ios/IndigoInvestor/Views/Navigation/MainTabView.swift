@@ -35,7 +35,16 @@ struct MainTabView: View {
                 Label("Dashboard", systemImage: "chart.pie.fill")
             }
             .tag(0)
-            
+
+            // Daily Rates
+            NavigationView {
+                DailyRatesView()
+            }
+            .tabItem {
+                Label("Daily Rates", systemImage: "dollarsign.circle.fill")
+            }
+            .tag(1)
+
             // Portfolio
             NavigationStack(path: $navigationState.portfolioPath) {
                 PortfolioView()
@@ -51,8 +60,8 @@ struct MainTabView: View {
             .tabItem {
                 Label("Portfolio", systemImage: "briefcase.fill")
             }
-            .tag(1)
-            
+            .tag(2)
+
             // Transactions
             NavigationStack(path: $navigationState.transactionsPath) {
                 TransactionsView()
@@ -70,8 +79,8 @@ struct MainTabView: View {
             .tabItem {
                 Label("Transactions", systemImage: "arrow.left.arrow.right")
             }
-            .tag(2)
-            
+            .tag(3)
+
             // Documents
             NavigationStack(path: $navigationState.documentsPath) {
                 DocumentsVaultView()
@@ -87,8 +96,8 @@ struct MainTabView: View {
             .tabItem {
                 Label("Documents", systemImage: "doc.text.fill")
             }
-            .tag(3)
-            
+            .tag(4)
+
             // Account
             NavigationStack(path: $navigationState.accountPath) {
                 AccountView()
@@ -110,7 +119,7 @@ struct MainTabView: View {
             .tabItem {
                 Label("Account", systemImage: "person.circle.fill")
             }
-            .tag(4)
+            .tag(5)
         }
         .onChange(of: selectedTab) { newValue in
             handleTabChange(from: previousTab, to: newValue)
@@ -165,23 +174,25 @@ struct MainTabView: View {
         switch components.path {
         case "/statement":
             if let statementId = components.queryItems?.first(where: { $0.name == "id" })?.value {
-                selectedTab = 3 // Documents tab
+                selectedTab = 4 // Documents tab
                 navigationState.documentsPath.append(.statement(statementId))
             }
         case "/transaction":
             if let transactionId = components.queryItems?.first(where: { $0.name == "id" })?.value {
-                selectedTab = 2 // Transactions tab
+                selectedTab = 3 // Transactions tab
                 navigationState.transactionsPath.append(.detail(transactionId))
             }
         case "/withdraw":
             showingWithdrawalSheet = true
+        case "/rates":
+            selectedTab = 1 // Daily Rates tab
         default:
             break
         }
     }
     
     private func trackTabSwitch(to tab: Int) {
-        let tabName = ["dashboard", "portfolio", "transactions", "documents", "account"][tab]
+        let tabName = ["dashboard", "daily_rates", "portfolio", "transactions", "documents", "account"][tab]
         // Analytics.track("tab_switched", properties: ["tab": tabName])
     }
 }
