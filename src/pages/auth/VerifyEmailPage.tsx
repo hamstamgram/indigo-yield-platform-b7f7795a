@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, CheckCircle2, Loader2, XCircle } from 'lucide-react';
-import { AppLogo } from '@/components/AppLogo';
+import AppLogo from '@/components/AppLogo';
 
 export default function VerifyEmailPage() {
   const navigate = useNavigate();

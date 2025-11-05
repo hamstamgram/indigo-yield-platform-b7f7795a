@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, LogIn, Loader2 } from 'lucide-react';
-import { AppLogo } from '@/components/AppLogo';
+import AppLogo from '@/components/AppLogo';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),

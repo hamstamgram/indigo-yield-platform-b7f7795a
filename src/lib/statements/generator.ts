@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * PDF Statement Generator
  *

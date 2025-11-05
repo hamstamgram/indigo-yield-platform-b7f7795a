@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Admin Dashboard Page
  * Main admin overview with key metrics

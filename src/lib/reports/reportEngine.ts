@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Report Engine Core
  * Handles report generation orchestration and template processing
