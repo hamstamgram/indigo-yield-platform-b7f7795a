@@ -6,7 +6,8 @@ export type NotificationType =
   | 'document'
   | 'support'
   | 'yield'
-  | 'portfolio';
+  | 'portfolio'
+  | 'daily_rate';
 
 export type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent';
 

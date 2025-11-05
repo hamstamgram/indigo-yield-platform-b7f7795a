@@ -106,6 +106,11 @@ const AdminInvestorDetailPage = lazy(() => import('@/pages/admin/investors/Admin
 const AdminInvestorPositionsPage = lazy(() => import('@/pages/admin/investors/AdminInvestorPositionsPage'));
 const AdminInvestorTransactionsPage = lazy(() => import('@/pages/admin/investors/AdminInvestorTransactionsPage'));
 
+// Phase 5: Monthly Data Entry & Daily Rates
+const MonthlyDataEntry = lazy(() => import('@/pages/admin/MonthlyDataEntry'));
+const DailyRatesManagement = lazy(() => import('@/pages/admin/DailyRatesManagement'));
+const InvestorReports = lazy(() => import('@/pages/admin/InvestorReports'));
+
 const AdminRequestsQueuePage = lazy(() => import('@/pages/admin/AdminRequestsQueuePage'));
 const AdminStatementsPage = lazy(() => import('@/pages/admin/AdminStatementsPage'));
 const AdminSupportQueue = lazy(() => import('@/pages/admin/AdminSupportQueue'));
@@ -245,6 +250,11 @@ export function AppRoutes() {
           <Route path="/admin/settings-platform" element={<AdminRoute><AdminSettingsNew /></AdminRoute>} />
           <Route path="/admin/audit-logs" element={<AdminRoute><AdminAuditLogs /></AdminRoute>} />
           <Route path="/admin/users" element={<AdminRoute><AdminUserManagement /></AdminRoute>} />
+
+          {/* Phase 5: Monthly Data Entry & Daily Rates */}
+          <Route path="/admin/monthly-data-entry" element={<AdminRoute><MonthlyDataEntry /></AdminRoute>} />
+          <Route path="/admin/daily-rates" element={<AdminRoute><DailyRatesManagement /></AdminRoute>} />
+          <Route path="/admin/investor-reports" element={<AdminRoute><InvestorReports /></AdminRoute>} />
 
           {/* Existing Admin Routes */}
           <Route path="/admin/investors" element={<AdminRoute><InvestorManagementView /></AdminRoute>} />
