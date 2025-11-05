@@ -11,19 +11,29 @@ const StatementsPage = () => {
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [selectedAsset, setSelectedAsset] = useState<string>('all');
 
-  // Fetch user's statements
+  // Fetch user's statements from investor_monthly_reports
   const { data: statements, isLoading, error } = useQuery({
-    queryKey: ['statements', selectedYear, selectedAsset],
+    queryKey: ['monthly-statements', selectedYear, selectedAsset],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No authenticated user');
 
+      // Get investor record
+      const { data: investor } = await supabase
+        .from('investors')
+        .select('id')
+        .eq('profile_id', user.id)
+        .maybeSingle();
+
+      if (!investor) throw new Error('No investor record found');
+
       let query = supabase
-        .from('statements')
+        .from('investor_monthly_reports')
         .select('*')
-        .eq('investor_id', user.id)
-        .eq('period_year', parseInt(selectedYear))
-        .order('period_month', { ascending: false });
+        .eq('investor_id', investor.id)
+        .gte('report_month', `${selectedYear}-01-01`)
+        .lte('report_month', `${selectedYear}-12-31`)
+        .order('report_month', { ascending: false });
 
       if (selectedAsset !== 'all') {
         query = query.eq('asset_code', selectedAsset);
@@ -31,42 +41,75 @@ const StatementsPage = () => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data || [];
+
+      // Transform data to match old format
+      return (data || []).map(record => ({
+        id: record.id,
+        period_year: parseInt(record.report_month.substring(0, 4)),
+        period_month: parseInt(record.report_month.substring(5, 7)),
+        asset_code: record.asset_code,
+        begin_balance: record.opening_balance?.toString() || '0',
+        additions: record.additions?.toString() || '0',
+        redemptions: record.withdrawals?.toString() || '0',
+        net_income: record.yield_earned?.toString() || '0',
+        end_balance: record.closing_balance?.toString() || '0',
+        rate_of_return_mtd: record.yield_earned && record.opening_balance
+          ? ((parseFloat(record.yield_earned) / parseFloat(record.opening_balance)) * 100).toFixed(4)
+          : '0',
+      }));
     },
   });
 
-  // Fetch available years
+  // Fetch available years from investor_monthly_reports
   const { data: availableYears } = useQuery({
     queryKey: ['statement-years'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No authenticated user');
 
+      // Get investor record
+      const { data: investor } = await supabase
+        .from('investors')
+        .select('id')
+        .eq('profile_id', user.id)
+        .maybeSingle();
+
+      if (!investor) return [new Date().getFullYear()];
+
       const { data, error } = await supabase
-        .from('statements')
-        .select('period_year')
-        .eq('investor_id', user.id)
-        .order('period_year', { ascending: false });
+        .from('investor_monthly_reports')
+        .select('report_month')
+        .eq('investor_id', investor.id)
+        .order('report_month', { ascending: false });
 
       if (error) throw error;
 
-      // Get unique years
-      const uniqueYears = [...new Set(data?.map(s => s.period_year) || [])];
+      // Extract unique years from report_month (YYYY-MM-DD)
+      const uniqueYears = [...new Set(data?.map(s => parseInt(s.report_month.substring(0, 4))) || [])];
       return uniqueYears.length > 0 ? uniqueYears : [new Date().getFullYear()];
     },
   });
 
-  // Fetch available assets
+  // Fetch available assets from investor_monthly_reports
   const { data: availableAssets } = useQuery({
     queryKey: ['statement-assets'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No authenticated user');
 
+      // Get investor record
+      const { data: investor } = await supabase
+        .from('investors')
+        .select('id')
+        .eq('profile_id', user.id)
+        .maybeSingle();
+
+      if (!investor) return [];
+
       const { data, error } = await supabase
-        .from('statements')
+        .from('investor_monthly_reports')
         .select('asset_code')
-        .eq('investor_id', user.id);
+        .eq('investor_id', investor.id);
 
       if (error) throw error;
 
