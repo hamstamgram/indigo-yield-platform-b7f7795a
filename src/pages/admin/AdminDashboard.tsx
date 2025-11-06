@@ -1,11 +1,10 @@
-// @ts-nocheck
 /**
  * Admin Dashboard Page
  * Main admin overview with key metrics
  */
 
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Users,
   DollarSign,
@@ -16,12 +15,12 @@ import {
   Settings,
   Activity,
   Loader2,
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { AdminGuard } from '@/components/admin/AdminGuard';
-import { supabase } from '@/integrations/supabase/client';
+  type LucideIcon,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { AdminGuard } from "@/components/admin/AdminGuard";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdminStats {
   totalInvestors: number;
@@ -31,6 +30,20 @@ interface AdminStats {
   pendingWithdrawals: number;
   pendingDocuments: number;
   recentActivity: number;
+}
+
+interface Investment {
+  amount: number;
+  current_value: number | null;
+}
+
+interface AdminAction {
+  title: string;
+  description: string;
+  href: string;
+  icon: LucideIcon;
+  color: string;
+  badge?: number;
 }
 
 function AdminDashboardContent() {
@@ -52,15 +65,17 @@ function AdminDashboardContent() {
   const loadAdminStats = async () => {
     try {
       const [investors, investments, withdrawals, documents, profiles] = await Promise.all([
-        supabase.from('profiles').select('id').eq('role', 'investor'),
-        supabase.from('investments').select('amount, current_value').eq('status', 'active'),
-        supabase.from('withdrawal_requests').select('id').eq('status', 'pending'),
-        supabase.from('documents').select('id').eq('status', 'pending'),
-        supabase.from('profiles').select('id').eq('kyc_status', 'pending'),
+        supabase.from("profiles").select("id").eq("role", "investor"),
+        supabase.from("investments").select("amount, current_value").eq("status", "active"),
+        supabase.from("withdrawal_requests").select("id").eq("status", "pending"),
+        supabase.from("documents").select("id").eq("status", "pending"),
+        supabase.from("profiles").select("id").eq("kyc_status", "pending"),
       ]);
 
-      const totalAUM = investments.data?.reduce((sum, inv) => sum + (inv.current_value || 0), 0) || 0;
-      const activeInvestors = investments.data?.length || 0;
+      const investmentData = (investments.data || []) as Investment[];
+      const totalAUM =
+        investmentData.reduce((sum: number, inv) => sum + (inv.current_value || 0), 0) || 0;
+      const activeInvestors = investmentData.length || 0;
 
       setStats({
         totalInvestors: investors.data?.length || 0,
@@ -72,71 +87,71 @@ function AdminDashboardContent() {
         recentActivity: 0,
       });
     } catch (error) {
-      console.error('Failed to load admin stats:', error);
+      console.error("Failed to load admin stats:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const adminActions = [
+  const adminActions: AdminAction[] = [
     {
-      title: 'Investors',
-      description: 'Manage investor accounts',
-      href: '/admin/investors',
+      title: "Investors",
+      description: "Manage investor accounts",
+      href: "/admin/investors",
       icon: Users,
-      color: 'bg-blue-500',
+      color: "bg-blue-500",
     },
     {
-      title: 'Transactions',
-      description: 'View all transactions',
-      href: '/admin/transactions',
+      title: "Transactions",
+      description: "View all transactions",
+      href: "/admin/transactions",
       icon: Activity,
-      color: 'bg-green-500',
+      color: "bg-green-500",
     },
     {
-      title: 'Withdrawals',
-      description: 'Approve withdrawal requests',
-      href: '/admin/withdrawals',
+      title: "Withdrawals",
+      description: "Approve withdrawal requests",
+      href: "/admin/withdrawals",
       icon: DollarSign,
-      color: 'bg-amber-500',
+      color: "bg-amber-500",
       badge: stats.pendingWithdrawals > 0 ? stats.pendingWithdrawals : undefined,
     },
     {
-      title: 'Documents',
-      description: 'Review pending documents',
-      href: '/admin/documents',
+      title: "Documents",
+      description: "Review pending documents",
+      href: "/admin/documents",
       icon: FileText,
-      color: 'bg-purple-500',
+      color: "bg-purple-500",
       badge: stats.pendingDocuments > 0 ? stats.pendingDocuments : undefined,
     },
     {
-      title: 'Compliance',
-      description: 'KYC/AML oversight',
-      href: '/admin/compliance',
+      title: "Compliance",
+      description: "KYC/AML oversight",
+      href: "/admin/compliance",
       icon: Shield,
-      color: 'bg-red-500',
+      color: "bg-red-500",
       badge: stats.pendingVerifications > 0 ? stats.pendingVerifications : undefined,
     },
     {
-      title: 'Reports',
-      description: 'Generate admin reports',
-      href: '/admin/reports',
+      title: "Reports",
+      description: "Generate admin reports",
+      href: "/admin/reports",
       icon: TrendingUp,
-      color: 'bg-indigo-500',
+      color: "bg-indigo-500",
     },
     {
-      title: 'Settings',
-      description: 'Platform configuration',
-      href: '/admin/settings',
+      title: "Settings",
+      description: "Platform configuration",
+      href: "/admin/settings",
       icon: Settings,
-      color: 'bg-gray-500',
+      color: "bg-gray-500",
     },
     {
-      title: 'Audit Logs',
-      description: 'View system audit logs',
-      href: '/admin/audit-logs',
+      title: "Audit Logs",
+      description: "View system audit logs",
+      href: "/admin/audit-logs",
       icon: AlertCircle,
-      color: 'bg-cyan-500',
+      color: "bg-cyan-500",
     },
   ];
 
@@ -152,9 +167,7 @@ function AdminDashboardContent() {
     <div className="container max-w-7xl mx-auto px-4 py-8 space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
-          Platform overview and management tools
-        </p>
+        <p className="text-muted-foreground mt-2">Platform overview and management tools</p>
       </div>
 
       {/* Stats Grid */}
@@ -166,9 +179,7 @@ function AdminDashboardContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalInvestors}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.activeInvestors} active
-            </p>
+            <p className="text-xs text-muted-foreground">{stats.activeInvestors} active</p>
           </CardContent>
         </Card>
 
@@ -179,9 +190,7 @@ function AdminDashboardContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${(stats.totalAUM / 1000000).toFixed(2)}M</div>
-            <p className="text-xs text-muted-foreground">
-              Assets under management
-            </p>
+            <p className="text-xs text-muted-foreground">Assets under management</p>
           </CardContent>
         </Card>
 
@@ -194,9 +203,7 @@ function AdminDashboardContent() {
             <div className="text-2xl font-bold">
               {stats.pendingWithdrawals + stats.pendingDocuments + stats.pendingVerifications}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Require attention
-            </p>
+            <p className="text-xs text-muted-foreground">Require attention</p>
           </CardContent>
         </Card>
 
@@ -207,9 +214,7 @@ function AdminDashboardContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.recentActivity}</div>
-            <p className="text-xs text-muted-foreground">
-              Last 24 hours
-            </p>
+            <p className="text-xs text-muted-foreground">Last 24 hours</p>
           </CardContent>
         </Card>
       </div>
@@ -226,9 +231,7 @@ function AdminDashboardContent() {
                     <div className={`rounded-lg ${action.color} p-3`}>
                       <action.icon className="h-6 w-6 text-white" />
                     </div>
-                    {action.badge && (
-                      <Badge variant="destructive">{action.badge}</Badge>
-                    )}
+                    {action.badge && <Badge variant="destructive">{action.badge}</Badge>}
                   </div>
                   <h3 className="font-semibold mb-1">{action.title}</h3>
                   <p className="text-sm text-muted-foreground">{action.description}</p>
