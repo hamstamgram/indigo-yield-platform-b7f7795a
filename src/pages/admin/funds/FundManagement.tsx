@@ -1,13 +1,12 @@
-import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
-import { DollarSign, Percent, BarChart3, Settings } from 'lucide-react';
-import FundAUMManager from '@/components/admin/funds/FundAUMManager';
-import FundYieldManagerV2 from '@/components/admin/funds/FundYieldManagerV2';
-import FundPerformanceAnalytics from '@/components/admin/funds/FundPerformanceAnalytics';
-import FundConfiguration from '@/components/admin/funds/FundConfiguration';
-import PlatformFeeManager from '@/components/admin/fees/PlatformFeeManager';
-import ProfessionalStatementGenerator from '@/components/admin/statements/ProfessionalStatementGenerator';
+import React from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { DollarSign, Percent, BarChart3, Settings } from "lucide-react";
+import FundAUMManager from "@/components/admin/funds/FundAUMManager";
+import FundYieldManagerV2 from "@/components/admin/funds/FundYieldManagerV2";
+import FundConfiguration from "@/components/admin/funds/FundConfiguration";
+import PlatformFeeManager from "@/components/admin/fees/PlatformFeeManager";
+import ProfessionalStatementGenerator from "@/components/admin/statements/ProfessionalStatementGenerator";
 
 const FundManagement = () => {
   return (
@@ -62,7 +61,18 @@ const FundManagement = () => {
         </TabsContent>
 
         <TabsContent value="performance" className="space-y-6">
-          <FundPerformanceAnalytics />
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center">
+                <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Performance Analytics Removed</h3>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                  Charts and graphs have been removed. Performance data is now displayed in native
+                  currency per asset. Use the AUM and Yield tabs to manage fund data.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-6">

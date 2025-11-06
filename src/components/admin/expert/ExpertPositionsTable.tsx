@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { Edit3, Save, X, TrendingUp, TrendingDown } from 'lucide-react';
-import { toast } from 'sonner';
-import { UnifiedPositionData } from '@/services/expertInvestorService';
-import { expertInvestorService } from '@/services/expertInvestorService';
-import { formatAssetValue } from '@/utils/kpiCalculations';
+import React, { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Edit3, Save, X, TrendingUp, TrendingDown } from "lucide-react";
+import { toast } from "sonner";
+import { UnifiedPositionData } from "@/services/expertInvestorService";
+import { expertInvestorService } from "@/services/expertInvestorService";
+import { formatAssetValue } from "@/utils/kpiCalculations";
 
 interface ExpertPositionsTableProps {
   positions: UnifiedPositionData[];
@@ -24,13 +24,13 @@ interface ExpertPositionsTableProps {
 
 const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
   positions,
-  onPositionUpdate
+  onPositionUpdate,
 }) => {
   const [editingPosition, setEditingPosition] = useState<string | null>(null);
   const [editValues, setEditValues] = useState({
     currentValue: 0,
     costBasis: 0,
-    shares: 0
+    shares: 0,
   });
 
   const handleEdit = (position: UnifiedPositionData) => {
@@ -38,42 +38,42 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
     setEditValues({
       currentValue: position.currentValue,
       costBasis: position.costBasis,
-      shares: position.shares
+      shares: position.shares,
     });
   };
 
   const handleSave = async (positionId: string, isLegacy: boolean) => {
     try {
-      const position = positions.find(p => p.id === positionId);
+      const position = positions.find((p) => p.id === positionId);
       if (!position) {
-        toast.error('Position not found');
+        toast.error("Position not found");
         return;
       }
 
       if (isLegacy) {
         // For legacy positions, use position id as fundId
         await expertInvestorService.updatePositionValue(
-          positionId, 
+          positionId,
           position.investorId,
-          editValues.currentValue, 
+          editValues.currentValue,
           isLegacy
         );
       } else {
         // For fund positions, use fundId and investorId
         await expertInvestorService.updatePositionValue(
-          position.fundId || '', 
+          position.fundId || "",
           position.investorId,
-          editValues.currentValue, 
+          editValues.currentValue,
           isLegacy
         );
       }
-      
+
       setEditingPosition(null);
       onPositionUpdate();
-      toast.success('Position updated successfully');
+      toast.success("Position updated successfully");
     } catch (error) {
-      console.error('Error updating position:', error);
-      toast.error('Failed to update position');
+      console.error("Error updating position:", error);
+      toast.error("Failed to update position");
     }
   };
 
@@ -127,10 +127,10 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
           <TableBody>
             {positions.map((position) => {
               const isEditing = editingPosition === position.id;
-              const isLegacy = position.fundClass === 'Legacy';
+              const isLegacy = position.fundClass === "Legacy";
               const pnl = calculatePnL(position.currentValue, position.costBasis);
               const pnlPercent = calculatePnLPercent(position.currentValue, position.costBasis);
-              
+
               return (
                 <TableRow key={position.id}>
                   <TableCell>
@@ -141,128 +141,124 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
                       </div>
                     </div>
                   </TableCell>
-                  
+
                   <TableCell>
-                    <Badge variant={isLegacy ? 'secondary' : 'default'}>
-                      {position.fundClass}
-                    </Badge>
+                    <Badge variant={isLegacy ? "secondary" : "default"}>{position.fundClass}</Badge>
                   </TableCell>
-                  
+
                   <TableCell>
                     {isEditing ? (
                       <Input
                         type="number"
                         step="0.0001"
                         value={editValues.shares}
-                        onChange={(e) => setEditValues({
-                          ...editValues,
-                          shares: Number(e.target.value)
-                        })}
+                        onChange={(e) =>
+                          setEditValues({
+                            ...editValues,
+                            shares: Number(e.target.value),
+                          })
+                        }
                         className="w-24"
                       />
                     ) : (
-                      <span className="font-mono text-sm">
-                        {position.shares.toFixed(4)}
-                      </span>
+                      <span className="font-mono text-sm">{position.shares.toFixed(4)}</span>
                     )}
                   </TableCell>
-                  
+
                   <TableCell>
                     {isEditing ? (
                       <Input
                         type="number"
                         step="0.01"
                         value={editValues.costBasis}
-                        onChange={(e) => setEditValues({
-                          ...editValues,
-                          costBasis: Number(e.target.value)
-                        })}
+                        onChange={(e) =>
+                          setEditValues({
+                            ...editValues,
+                            costBasis: Number(e.target.value),
+                          })
+                        }
                         className="w-28"
                       />
                     ) : (
                       <span className="font-mono text-sm">
-                        {formatAssetValue(position.costBasis)}
+                        {formatAssetValue(position.costBasis, position.asset)}
                       </span>
                     )}
                   </TableCell>
-                  
+
                   <TableCell>
                     {isEditing ? (
                       <Input
                         type="number"
                         step="0.01"
                         value={editValues.currentValue}
-                        onChange={(e) => setEditValues({
-                          ...editValues,
-                          currentValue: Number(e.target.value)
-                        })}
+                        onChange={(e) =>
+                          setEditValues({
+                            ...editValues,
+                            currentValue: Number(e.target.value),
+                          })
+                        }
                         className="w-28"
                       />
                     ) : (
                       <span className="font-mono text-sm font-semibold">
-                        {formatAssetValue(position.currentValue)}
+                        {formatAssetValue(position.currentValue, position.asset)}
                       </span>
                     )}
                   </TableCell>
-                  
+
                   <TableCell>
-                    <div className={`flex items-center space-x-1 ${
-                      pnl >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
+                    <div
+                      className={`flex items-center space-x-1 ${
+                        pnl >= 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
                       {pnl >= 0 ? (
                         <TrendingUp className="h-3 w-3" />
                       ) : (
                         <TrendingDown className="h-3 w-3" />
                       )}
                       <span className="font-mono text-sm">
-                        {formatAssetValue(Math.abs(pnl))}
+                        {formatAssetValue(Math.abs(pnl), position.asset)}
                       </span>
                     </div>
                   </TableCell>
-                  
+
                   <TableCell>
-                    <span className={`font-mono text-sm ${
-                      pnlPercent >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {pnlPercent >= 0 ? '+' : ''}{pnlPercent.toFixed(2)}%
+                    <span
+                      className={`font-mono text-sm ${
+                        pnlPercent >= 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {pnlPercent >= 0 ? "+" : ""}
+                      {pnlPercent.toFixed(2)}%
                     </span>
                   </TableCell>
-                  
+
                   <TableCell>
                     <span className="font-mono text-sm text-green-600">
-                      {formatAssetValue(position.totalEarnings)}
+                      {formatAssetValue(position.totalEarnings, position.asset)}
                     </span>
                   </TableCell>
-                  
+
                   <TableCell>
                     <span className="text-sm text-muted-foreground">
                       {new Date(position.lastTransactionDate).toLocaleDateString()}
                     </span>
                   </TableCell>
-                  
+
                   <TableCell>
                     {isEditing ? (
                       <div className="flex items-center space-x-1">
-                        <Button
-                          size="sm"
-                          onClick={() => handleSave(position.id, isLegacy)}
-                        >
+                        <Button size="sm" onClick={() => handleSave(position.id, isLegacy)}>
                           <Save className="h-3 w-3" />
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={handleCancel}
-                        >
+                        <Button size="sm" variant="ghost" onClick={handleCancel}>
                           <X className="h-3 w-3" />
                         </Button>
                       </div>
                     ) : (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleEdit(position)}
-                      >
+                      <Button size="sm" variant="ghost" onClick={() => handleEdit(position)}>
                         <Edit3 className="h-3 w-3" />
                       </Button>
                     )}
@@ -273,31 +269,66 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
           </TableBody>
         </Table>
 
-        {/* Summary Footer */}
+        {/* Summary Footer - Per Asset Totals */}
         <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <div className="font-medium">Total Positions</div>
-              <div className="text-2xl font-bold">{positions.length}</div>
-            </div>
-            <div>
-              <div className="font-medium">Total Value</div>
-              <div className="text-2xl font-bold">
-                {formatAssetValue(positions.reduce((sum, p) => sum + p.currentValue, 0))}
-              </div>
-            </div>
-            <div>
-              <div className="font-medium">Total Cost Basis</div>
-              <div className="text-2xl font-bold">
-                {formatAssetValue(positions.reduce((sum, p) => sum + p.costBasis, 0))}
-              </div>
-            </div>
-            <div>
-              <div className="font-medium">Total Earnings</div>
-              <div className="text-2xl font-bold text-green-600">
-                {formatAssetValue(positions.reduce((sum, p) => sum + p.totalEarnings, 0))}
-              </div>
-            </div>
+          <div className="font-medium mb-4">Summary by Asset</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(() => {
+              // Group positions by asset
+              const assetGroups = positions.reduce(
+                (acc, pos) => {
+                  if (!acc[pos.asset]) {
+                    acc[pos.asset] = [];
+                  }
+                  acc[pos.asset].push(pos);
+                  return acc;
+                },
+                {} as Record<string, typeof positions>
+              );
+
+              return Object.entries(assetGroups).map(([asset, assetPositions]) => {
+                const totalValue = assetPositions.reduce((sum, p) => sum + p.currentValue, 0);
+                const totalCost = assetPositions.reduce((sum, p) => sum + p.costBasis, 0);
+                const totalEarnings = assetPositions.reduce((sum, p) => sum + p.totalEarnings, 0);
+                const totalPnL = totalValue - totalCost;
+                const pnlPercent = totalCost > 0 ? ((totalValue - totalCost) / totalCost) * 100 : 0;
+
+                return (
+                  <div key={asset} className="border rounded-lg p-3 bg-white">
+                    <div className="font-semibold text-sm mb-2">{asset}</div>
+                    <div className="space-y-1 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Positions:</span>
+                        <span className="font-medium">{assetPositions.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Value:</span>
+                        <span className="font-medium">{formatAssetValue(totalValue, asset)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Cost:</span>
+                        <span className="font-medium">{formatAssetValue(totalCost, asset)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Earnings:</span>
+                        <span className="font-medium text-green-600">
+                          {formatAssetValue(totalEarnings, asset)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-t pt-1">
+                        <span className="text-muted-foreground">P&L:</span>
+                        <span
+                          className={`font-semibold ${totalPnL >= 0 ? "text-green-600" : "text-red-600"}`}
+                        >
+                          {totalPnL >= 0 ? "+" : ""}
+                          {formatAssetValue(Math.abs(totalPnL), asset)} ({pnlPercent.toFixed(2)}%)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </div>
         </div>
       </CardContent>
