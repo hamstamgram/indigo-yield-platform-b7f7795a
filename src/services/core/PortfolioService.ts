@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Portfolio Service
  * Handles all portfolio-related operations

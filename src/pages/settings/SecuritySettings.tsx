@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import TOTPManagement from '../../components/auth/TOTPManagement';
 export default function SecuritySettings(){

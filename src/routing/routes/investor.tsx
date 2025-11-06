@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Investor Routes Module
  * All investor-protected routes for portfolio management

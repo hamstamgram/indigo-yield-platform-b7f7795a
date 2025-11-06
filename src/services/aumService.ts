@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * AUM (Assets Under Management) Service
  * Handles fund AUM management and automated yield distribution

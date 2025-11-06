@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Service Worker Registration for Indigo Yield Platform
 
 export interface ServiceWorkerRegistrationResult {

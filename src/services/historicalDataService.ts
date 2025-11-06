@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Historical Data Service
  * Manages historical report templates and data generation

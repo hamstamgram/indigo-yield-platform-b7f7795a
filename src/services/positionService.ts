@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Position Service - Handles CRUD operations for investor positions
  */

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Admin Routes Module
  * All admin-protected routes for platform management

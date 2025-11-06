@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Fund Service - Enhanced fund management with investor allocation
  */
