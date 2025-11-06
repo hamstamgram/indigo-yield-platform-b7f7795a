@@ -2,6 +2,9 @@
 /**
  * Personal Information Editor Page
  * Update user's personal details
+ * 
+ * TODO: Schema mismatch - profiles table missing fields:
+ * - date_of_birth, address, city, state, postal_code, country
  */
 
 import { useEffect, useState } from 'react';
@@ -56,6 +59,7 @@ export default function PersonalInfo() {
 
   useEffect(() => {
     loadProfileData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadProfileData = async () => {

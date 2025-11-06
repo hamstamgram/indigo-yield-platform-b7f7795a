@@ -2,11 +2,13 @@
 /**
  * User Preferences Page
  * Notifications, language, timezone settings
+ * 
+ * TODO: Schema mismatch - user_preferences table doesn't exist in current schema
  */
 
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bell, Globe, Clock, Mail, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Bell, Globe, Mail, Save, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -68,6 +70,7 @@ export default function Preferences() {
 
   useEffect(() => {
     loadPreferences();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadPreferences = async () => {

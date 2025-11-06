@@ -1,9 +1,9 @@
-// @ts-nocheck
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/useNotifications';
+import type { User } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -34,7 +34,7 @@ import {
 
 const NotificationsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = React.useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const {
     notifications,
     unreadCount,
@@ -47,7 +47,7 @@ const NotificationsPage: React.FC = () => {
 
   const [filter, setFilter] = useState<'all' | NotificationType>('all');
 
-  React.useEffect(() => {
+  useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setCurrentUser(user);
@@ -154,7 +154,7 @@ const NotificationsPage: React.FC = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="all" className="w-full" onValueChange={(v) => setFilter(v as any)}>
+      <Tabs defaultValue="all" className="w-full" onValueChange={(v) => setFilter(v as 'all' | NotificationType)}>
         <TabsList className="w-full justify-start">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="transaction">Transactions</TabsTrigger>
@@ -203,7 +203,7 @@ const NotificationsPage: React.FC = () => {
                                 {notification.status === 'unread' && (
                                   <Badge variant="default" className="text-xs">New</Badge>
                                 )}
-                                <Badge variant={getPriorityColor(notification.priority) as any}>
+                                <Badge variant={getPriorityColor(notification.priority)}>
                                   {notification.priority}
                                 </Badge>
                               </h3>
