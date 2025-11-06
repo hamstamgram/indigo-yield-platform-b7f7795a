@@ -50,7 +50,7 @@ export const checkAdminStatus = async (): Promise<{isAdmin: boolean | null}> => 
           .from('profiles')
           .select('is_admin')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
           
         if (directError) {
           throw directError;

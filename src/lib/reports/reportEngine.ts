@@ -188,7 +188,7 @@ export class ReportEngine {
       .from("report_definitions")
       .select("is_admin_only")
       .eq("report_type", reportType)
-      .single();
+      .maybeSingle();
 
     if (reportDef?.is_admin_only) {
       // Check if user is admin
@@ -196,7 +196,7 @@ export class ReportEngine {
         .from("profiles")
         .select("is_admin")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
       return profile?.is_admin || false;
     }
@@ -270,7 +270,7 @@ export class ReportEngine {
       : new Date(endDate.getFullYear(), endDate.getMonth(), 1);
 
     // Fetch investor profile
-    const { data: profile } = await supabase.from("profiles").select("*").eq("id", userId).single();
+    const { data: profile } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
 
     // Fetch current positions
     const { data: positions } = await supabase

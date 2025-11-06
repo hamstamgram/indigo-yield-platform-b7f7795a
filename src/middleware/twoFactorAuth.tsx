@@ -57,7 +57,7 @@ export async function enforceAdminMFA(): Promise<boolean> {
     .from('profiles')
     .select('is_admin')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
 
   if (!profile?.is_admin) {
     return true; // Not an admin, no MFA required

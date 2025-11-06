@@ -25,7 +25,9 @@ export default function PerformanceDetailsPage() {
     queryFn: async () => {
       if (!id) throw new Error("No ID provided");
 
-      const { data, error } = await supabase.from("daily_nav").select("*").eq("id", id).single();
+      const { data, error } = await supabase.from("daily_nav").select("*").eq("id", id).maybeSingle();
+
+      if (!data) throw new Error("Performance data not found");
 
       if (error) throw error;
       return data as DailyNavItem;

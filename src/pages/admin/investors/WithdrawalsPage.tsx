@@ -74,7 +74,9 @@ const WithdrawalsPage = () => {
         .from('investors')
         .select('id')
         .eq('profile_id', user.id)
-        .single();
+        .maybeSingle();
+
+      if (!investorData) throw new Error('Investor profile not found');
 
       if (investorError || !investorData) throw new Error('Investor profile not found');
 
@@ -121,7 +123,9 @@ const WithdrawalsPage = () => {
         .from('investors')
         .select('id')
         .eq('profile_id', user.id)
-        .single();
+        .maybeSingle();
+
+      if (!investorData) throw new Error('Investor profile not found');
 
       if (investorError || !investorData) throw new Error('Investor profile not found');
 
@@ -186,7 +190,9 @@ const WithdrawalsPage = () => {
         .from('investors')
         .select('id')
         .eq('profile_id', user.id)
-        .single();
+        .maybeSingle();
+
+      if (!investorData) throw new Error('Investor profile not found');
 
       if (investorError || !investorData) throw new Error('Investor profile not found');
 

@@ -56,7 +56,9 @@ export async function createRequest(request: Omit<Request, 'id' | 'created_at'>)
         fund_id: request.user_id // Use user_id as fund_id for now
       })
       .select('id')
-      .single();
+      .maybeSingle();
+
+    if (!data) throw new Error('Withdrawal request not found');
 
     if (error) throw error;
     return data?.id || null;

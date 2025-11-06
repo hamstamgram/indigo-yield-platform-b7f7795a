@@ -44,7 +44,13 @@ const TicketDetailPage: React.FC = () => {
         .from('support_tickets')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
+
+      if (!data) {
+        console.error('Ticket not found');
+        setLoading(false);
+        return;
+      }
 
       if (error) throw error;
       setTicket(data);

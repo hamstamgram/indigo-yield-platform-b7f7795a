@@ -68,7 +68,13 @@ const AdminInvestorDetailPage = () => {
         .from('investors')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
+
+      if (!data) {
+        console.error('Investor not found');
+        setIsLoading(false);
+        return;
+      }
 
       if (error) throw error;
       setInvestor(data);

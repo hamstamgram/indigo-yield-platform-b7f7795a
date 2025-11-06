@@ -77,7 +77,9 @@ class ExpertInvestorService {
         .from('investors')
         .select('*')
         .eq('id', investorId)
-        .single();
+        .maybeSingle();
+
+      if (!investorData) throw new Error('Investor not found');
 
       if (investorError) throw investorError;
 
@@ -86,7 +88,7 @@ class ExpertInvestorService {
         .from('profiles')
         .select('first_name, last_name, fee_percentage')
         .eq('id', investorData.profile_id || '')
-        .single();
+        .maybeSingle();
 
       // Get unified position data from both positions and investor_positions
       const positions = await this.getUnifiedPositions(investorId);
@@ -338,7 +340,9 @@ class ExpertInvestorService {
         .from('investors')
         .select('profile_id')
         .eq('id', investorId)
-        .single();
+        .maybeSingle();
+
+      if (!investor) throw new Error('Investor not found');
 
       if (investorError) throw investorError;
 

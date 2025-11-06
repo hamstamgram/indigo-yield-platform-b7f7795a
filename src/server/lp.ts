@@ -50,7 +50,7 @@ export async function getLPById(id: string): Promise<LPSummary | null> {
       .from('profiles')
       .select('id, email, first_name, last_name')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error || !data) return null;
 

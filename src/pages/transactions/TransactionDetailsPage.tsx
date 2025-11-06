@@ -20,7 +20,9 @@ export default function TransactionDetailsDetailsPage() {
         .from('transactions')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
+
+      if (!data) throw new Error('Transaction not found');
 
       if (error) throw error;
       return data;

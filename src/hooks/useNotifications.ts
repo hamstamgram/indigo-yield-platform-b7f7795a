@@ -46,7 +46,7 @@ export function useNotifications(userId?: string) {
         .from("notification_settings")
         .select("*")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== "PGRST116") throw error;
       setSettings(data);

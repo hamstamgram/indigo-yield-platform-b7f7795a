@@ -103,7 +103,9 @@ export default function NewWithdrawalPage() {
         .from('investors')
         .select('id')
         .eq('profile_id', user.id)
-        .single();
+        .maybeSingle();
+
+      if (!investor) throw new Error('No investor record found');
 
       if (!investor) throw new Error('No investor record found');
 
@@ -112,7 +114,9 @@ export default function NewWithdrawalPage() {
         .from('funds')
         .select('fund_class')
         .eq('id', data.fund_id)
-        .single();
+        .maybeSingle();
+
+      if (!fund) throw new Error('Fund not found');
 
       if (!fund) throw new Error('Fund not found');
 

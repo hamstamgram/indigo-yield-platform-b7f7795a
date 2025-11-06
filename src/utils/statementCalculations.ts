@@ -57,7 +57,12 @@ export async function computeStatement(
       .from('profiles')
       .select('id, first_name, last_name, email')
       .eq('id', investor_id)
-      .single();
+      .maybeSingle();
+
+    if (!investor) {
+      console.error('Investor not found:', investorError);
+      return null;
+    }
 
     if (investorError || !investor) {
       console.error('Investor not found:', investorError);

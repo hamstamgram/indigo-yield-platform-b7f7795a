@@ -20,7 +20,9 @@ export default function PerformanceReportDetailsPage() {
         .from('generated_reports')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
+
+      if (!data) throw new Error('Report not found');
 
       if (error) throw error;
       return data;

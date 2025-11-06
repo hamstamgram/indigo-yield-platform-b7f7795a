@@ -443,7 +443,9 @@ export async function previewDailyYieldCalculation(
       .from('funds')
       .select('code, name, asset, fund_class')
       .eq('id', fundId)
-      .single();
+      .maybeSingle();
+
+    if (!fund) throw new Error('Fund not found');
 
     if (fundError) throw fundError;
 

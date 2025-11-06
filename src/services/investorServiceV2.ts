@@ -75,7 +75,7 @@ class InvestorServiceV2 {
       .from('investors')
       .select('id')
       .eq('profile_id', user.user.id)
-      .single();
+      .maybeSingle();
 
     if (!investor) return null;
 
@@ -84,7 +84,7 @@ class InvestorServiceV2 {
       .from('portfolios_v2')
       .select('id, name')
       .eq('owner_user_id', user.user.id)
-      .single();
+      .maybeSingle();
 
     if (!portfolio) return null;
 
@@ -192,7 +192,7 @@ class InvestorServiceV2 {
       .from('investors')
       .select('id')
       .eq('profile_id', user.user.id)
-      .single();
+      .maybeSingle();
 
     if (!investor) return [];
 
@@ -242,7 +242,9 @@ class InvestorServiceV2 {
       .from('investors')
       .select('id')
       .eq('profile_id', user.user.id)
-      .single();
+      .maybeSingle();
+
+    if (!investor) throw new Error('Investor profile not found');
 
     if (!investor) throw new Error('Investor profile not found');
 
@@ -335,7 +337,7 @@ class InvestorServiceV2 {
       .from('portfolios_v2')
       .select('id')
       .eq('owner_user_id', user.user.id)
-      .single();
+      .maybeSingle();
 
     if (!portfolio) return [];
 

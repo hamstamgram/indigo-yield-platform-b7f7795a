@@ -70,7 +70,7 @@ export class ReportsApi {
         .select('*')
         .eq('report_type', reportType)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -226,7 +226,7 @@ export class ReportsApi {
         .from('generated_reports')
         .select('*')
         .eq('id', reportId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

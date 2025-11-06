@@ -127,7 +127,7 @@ export async function generateMissingTemplates(options: BulkGenerateOptions): Pr
               .eq('investor_id', investorId)
               .eq('report_month', month)
               .eq('asset_code', assetCode)
-              .single();
+              .maybeSingle();
 
             if (!existing) {
               // Create template

@@ -42,7 +42,7 @@ const AdminInvite = () => {
           .from("admin_invites")
           .select("*")
           .eq("invite_code", inviteCode)
-          .single();
+          .maybeSingle();
 
         if (error || !data) {
           console.error("Error verifying invite:", error);

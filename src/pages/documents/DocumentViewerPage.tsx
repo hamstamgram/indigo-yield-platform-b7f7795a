@@ -42,7 +42,13 @@ const DocumentViewerPage: React.FC = () => {
         .from('documents')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
+
+      if (!data) {
+        console.error('Document not found');
+        setLoading(false);
+        return;
+      }
 
       if (error) throw error;
       setDocument(data);

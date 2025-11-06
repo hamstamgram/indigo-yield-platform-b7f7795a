@@ -233,7 +233,9 @@ export async function generateInvestorStatement(
       .from('statement_periods')
       .select('*')
       .eq('id', periodId)
-      .single();
+      .maybeSingle();
+
+    if (!period) throw new Error('Statement period not found');
 
     if (periodError) throw periodError;
 
@@ -242,7 +244,9 @@ export async function generateInvestorStatement(
       .from('profiles')
       .select('full_name, email')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
+
+    if (!profile) throw new Error('Profile not found');
 
     if (profileError) throw profileError;
 
@@ -397,7 +401,7 @@ export async function sendInvestorStatement(
       .select('*')
       .eq('period_id', periodId)
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     if (stmtError) throw stmtError;
     if (!statement) throw new Error('Statement not found. Please generate first.');
@@ -407,7 +411,9 @@ export async function sendInvestorStatement(
       .from('profiles')
       .select('email, full_name')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
+
+    if (!profile) throw new Error('Profile not found');
 
     if (profileError) throw profileError;
 
@@ -416,7 +422,9 @@ export async function sendInvestorStatement(
       .from('statement_periods')
       .select('period_name')
       .eq('id', periodId)
-      .single();
+      .maybeSingle();
+
+    if (!period) throw new Error('Period not found');
 
     if (periodError) throw periodError;
 

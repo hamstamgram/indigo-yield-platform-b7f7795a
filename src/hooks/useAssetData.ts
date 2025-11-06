@@ -35,7 +35,7 @@ export const useAssetData = () => {
             .from('profiles')
             .select('is_admin, first_name, last_name')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
             
           if (directError) throw directError;
           

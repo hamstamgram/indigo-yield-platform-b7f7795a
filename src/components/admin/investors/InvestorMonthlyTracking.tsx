@@ -74,7 +74,12 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
           )
         `)
         .eq('id', investorId)
-        .single();
+        .maybeSingle();
+
+      if (!data) {
+        console.error('Investor not found');
+        return;
+      }
 
       if (error) throw error;
       setInvestor(data);

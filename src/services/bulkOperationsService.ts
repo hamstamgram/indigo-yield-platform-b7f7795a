@@ -111,7 +111,7 @@ export async function importPositionsFromCSV(
           .from('profiles')
           .select('id')
           .eq('email', row.investor_email)
-          .single();
+          .maybeSingle();
 
         if (profileError || !profile) {
           result.errors.push(`Investor not found: ${row.investor_email}`);
@@ -124,7 +124,7 @@ export async function importPositionsFromCSV(
           .from('assets')
           .select('symbol')
           .eq('symbol', row.asset_symbol)
-          .single();
+          .maybeSingle();
 
         if (assetError || !asset) {
           result.errors.push(`Asset not found: ${row.asset_symbol}`);
@@ -202,7 +202,7 @@ export async function bulkBalanceAdjustment(
         .select('current_balance')
         .eq('user_id', adjustment.investor_id)
         .eq('asset_code', adjustment.asset_code as AssetCode)
-        .single();
+        .maybeSingle();
 
       if (fetchError || !position) {
         result.errors.push(`Position not found for adjustment: ${adjustment.investor_id} ${adjustment.asset_code}`);

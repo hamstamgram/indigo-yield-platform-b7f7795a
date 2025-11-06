@@ -166,7 +166,9 @@ export async function addAssetToInvestor(
       .from('assets')
       .select('symbol')
       .eq('id', assetId)
-      .single();
+      .maybeSingle();
+
+    if (!asset) throw new Error('Asset not found');
 
     if (assetError) throw assetError;
 
