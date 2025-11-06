@@ -4,9 +4,11 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { ReportEngine } from '@/lib/reports/reportEngine';
-import { generatePDFReport } from '@/lib/reports/pdfGenerator';
-import { generateExcelReport } from '@/lib/reports/excelGenerator';
+import {
+  ReportEngineLazy,
+  generatePDFReportLazy,
+  generateExcelReportLazy
+} from './reportsApi.lazy';
 import {
   ReportType,
   ReportFormat,
@@ -83,8 +85,8 @@ export class ReportsApi {
     request: GenerateReportRequest
   ): Promise<GenerateReportResponse> {
     try {
-      // Use ReportEngine to handle generation
-      return await ReportEngine.generateReport(request);
+      // Use lazy-loaded ReportEngine to handle generation
+      return await ReportEngineLazy.generateReport(request);
     } catch (error) {
       console.error('Report generation failed:', error);
       return {
@@ -110,17 +112,17 @@ export class ReportsApi {
         return { success: false, error: 'User not authenticated' };
       }
 
-      // Fetch report data
-      const reportData = await ReportEngine.fetchReportData(
+      // Fetch report data (lazy loaded)
+      const reportData = await ReportEngineLazy.fetchReportData(
         request.reportType,
         request.filters || {},
         request.parameters || {},
         user.id
       );
 
-      // Generate based on format
+      // Generate based on format (all lazy loaded)
       if (request.format === 'pdf') {
-        const result = await generatePDFReport(reportData, {
+        const result = await generatePDFReportLazy(reportData, {
           includeCharts: request.parameters?.includeCharts,
           confidential: request.parameters?.confidential,
         });
@@ -135,7 +137,7 @@ export class ReportsApi {
           filename: result.filename,
         };
       } else if (request.format === 'excel') {
-        const result = await generateExcelReport(reportData, {
+        const result = await generateExcelReportLazy(reportData, {
           includeCharts: request.parameters?.includeCharts,
         });
 
@@ -513,14 +515,14 @@ export class ReportsApi {
   /**
    * Helper: Generate CSV from report data
    */
-  private static generateCSV(data: any): string {
+  private static generateCSV(data: Record<string, unknown>): string {
     const lines: string[] = [];
 
     // Add header
-    if (data.transactions && data.transactions.length > 0) {
+    if (data.transactions && Array.isArray(data.transactions) && data.transactions.length > 0) {
       lines.push('Date,Type,Asset,Amount,Value,Status');
 
-      data.transactions.forEach((tx: any) => {
+      data.transactions.forEach((tx: Record<string, unknown>) => {
         lines.push(
           `${tx.date},${tx.type},${tx.assetCode},${tx.amount},${tx.value},${tx.status}`
         );
@@ -534,7 +536,7 @@ export class ReportsApi {
    * Mapping helpers
    */
 
-  private static mapReportDefinition(data: any): ReportDefinition {
+  private static mapReportDefinition(data: Record<string, unknown>): ReportDefinition {
     return {
       id: data.id,
       reportType: data.report_type,
@@ -551,7 +553,7 @@ export class ReportsApi {
     };
   }
 
-  private static mapGeneratedReport(data: any): GeneratedReport {
+  private static mapGeneratedReport(data: Record<string, unknown>): GeneratedReport {
     return {
       id: data.id,
       reportDefinitionId: data.report_definition_id,
@@ -581,7 +583,7 @@ export class ReportsApi {
     };
   }
 
-  private static mapReportSchedule(data: any): ReportSchedule {
+  private static mapReportSchedule(data: Record<string, unknown>): ReportSchedule {
     return {
       id: data.id,
       reportDefinitionId: data.report_definition_id,
