@@ -2,6 +2,9 @@
 /**
  * Profile Overview Page
  * Main profile page with account summary
+ * 
+ * TODO: Schema mismatches - profiles table missing: address, city, state, postal_code, country, date_of_birth
+ * TODO: Non-existent tables: investments, investor_strategies, referrals
  */
 
 import { useEffect, useState } from 'react';
@@ -68,6 +71,7 @@ export default function ProfileOverview() {
   useEffect(() => {
     loadProfileData();
     loadAccountStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadProfileData = async () => {
@@ -78,7 +82,7 @@ export default function ProfileOverview() {
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Security Settings Page
  * Password changes, 2FA, and session management
@@ -64,6 +63,7 @@ export default function Security() {
   useEffect(() => {
     setTwoFactorEnabled(profile?.totp_verified || false);
     loadActiveSessions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
 
   const loadActiveSessions = async () => {
@@ -124,10 +124,10 @@ export default function Security() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error?.message || 'Failed to change password',
+        description: error instanceof Error ? error.message : 'Failed to change password',
         variant: 'destructive',
       });
     } finally {
@@ -160,7 +160,7 @@ export default function Security() {
     }
   };
 
-  const handleRevokeSession = async (sessionId: string) => {
+  const handleRevokeSession = async (_sessionId: string) => {
     try {
       // Revoke specific session
       toast({

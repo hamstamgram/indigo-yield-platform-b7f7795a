@@ -81,7 +81,7 @@ export default function Preferences() {
         .from('user_preferences')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (data) {
         setPreferences({

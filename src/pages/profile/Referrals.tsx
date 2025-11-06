@@ -2,6 +2,8 @@
 /**
  * Referrals Page
  * Referral program dashboard with invite tracking
+ * 
+ * TODO: Schema mismatches - profiles table missing referral_code field, referrals table doesn't exist
  */
 
 import { useEffect, useState } from 'react';
@@ -66,6 +68,7 @@ export default function Referrals() {
 
   useEffect(() => {
     loadReferralData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadReferralData = async () => {
@@ -77,7 +80,7 @@ export default function Referrals() {
         .from('profiles')
         .select('referral_code')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       let code = profileData?.referral_code;
       if (!code) {

@@ -2,6 +2,8 @@
 /**
  * Privacy Settings Page
  * Data privacy controls and data export
+ * 
+ * TODO: Schema mismatches - investments, transactions, documents tables may not exist
  */
 
 import { useState } from 'react';
@@ -55,7 +57,7 @@ export default function Privacy() {
     try {
       // Gather all user data
       const [profile, investments, transactions, documents] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', user.id).single(),
+        supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
         supabase.from('investments').select('*').eq('investor_id', user.id),
         supabase.from('transactions').select('*').eq('user_id', user.id),
         supabase.from('documents').select('*').eq('investor_id', user.id),
