@@ -20,7 +20,7 @@ export type Database = {
           device_label: string | null
           event: Database["public"]["Enums"]["access_event"]
           id: string
-          ip: unknown | null
+          ip: unknown
           success: boolean
           user_agent: string | null
           user_id: string
@@ -30,7 +30,7 @@ export type Database = {
           device_label?: string | null
           event: Database["public"]["Enums"]["access_event"]
           id?: string
-          ip?: unknown | null
+          ip?: unknown
           success?: boolean
           user_agent?: string | null
           user_id: string
@@ -40,7 +40,7 @@ export type Database = {
           device_label?: string | null
           event?: Database["public"]["Enums"]["access_event"]
           id?: string
-          ip?: unknown | null
+          ip?: unknown
           success?: boolean
           user_agent?: string | null
           user_id?: string
@@ -295,6 +295,51 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_accounts: {
+        Row: {
+          account_name: string
+          account_number: string
+          account_type: string
+          bank_name: string
+          created_at: string | null
+          id: string
+          is_primary: boolean | null
+          is_verified: boolean | null
+          routing_number: string | null
+          updated_at: string | null
+          user_id: string
+          verification_date: string | null
+        }
+        Insert: {
+          account_name: string
+          account_number: string
+          account_type: string
+          bank_name: string
+          created_at?: string | null
+          id?: string
+          is_primary?: boolean | null
+          is_verified?: boolean | null
+          routing_number?: string | null
+          updated_at?: string | null
+          user_id: string
+          verification_date?: string | null
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          account_type?: string
+          bank_name?: string
+          created_at?: string | null
+          id?: string
+          is_primary?: boolean | null
+          is_verified?: boolean | null
+          routing_number?: string | null
+          updated_at?: string | null
+          user_id?: string
+          verification_date?: string | null
+        }
+        Relationships: []
+      }
       benchmarks: {
         Row: {
           created_at: string
@@ -331,6 +376,45 @@ export type Database = {
           ret_qtd?: number | null
           ret_ytd?: number | null
           symbol?: string
+        }
+        Relationships: []
+      }
+      crypto_wallets: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_verified: boolean | null
+          label: string
+          network: string
+          updated_at: string | null
+          user_id: string
+          verification_date: string | null
+          verification_signature: string | null
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          label: string
+          network: string
+          updated_at?: string | null
+          user_id: string
+          verification_date?: string | null
+          verification_signature?: string | null
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          label?: string
+          network?: string
+          updated_at?: string | null
+          user_id?: string
+          verification_date?: string | null
+          verification_signature?: string | null
+          wallet_address?: string
         }
         Relationships: []
       }
@@ -997,6 +1081,98 @@ export type Database = {
         }
         Relationships: []
       }
+      generated_reports: {
+        Row: {
+          created_at: string
+          date_range_end: string | null
+          date_range_start: string | null
+          download_count: number | null
+          download_url: string | null
+          download_url_expires_at: string | null
+          error_details: Json | null
+          error_message: string | null
+          file_size_bytes: number | null
+          filters: Json | null
+          format: Database["public"]["Enums"]["report_format"]
+          generated_by_user_id: string | null
+          generated_for_user_id: string | null
+          id: string
+          page_count: number | null
+          parameters: Json | null
+          processing_completed_at: string | null
+          processing_duration_ms: number | null
+          processing_started_at: string | null
+          report_definition_id: string | null
+          report_type: Database["public"]["Enums"]["report_type"]
+          schedule_id: string | null
+          status: Database["public"]["Enums"]["report_status"]
+          storage_path: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
+          download_count?: number | null
+          download_url?: string | null
+          download_url_expires_at?: string | null
+          error_details?: Json | null
+          error_message?: string | null
+          file_size_bytes?: number | null
+          filters?: Json | null
+          format: Database["public"]["Enums"]["report_format"]
+          generated_by_user_id?: string | null
+          generated_for_user_id?: string | null
+          id?: string
+          page_count?: number | null
+          parameters?: Json | null
+          processing_completed_at?: string | null
+          processing_duration_ms?: number | null
+          processing_started_at?: string | null
+          report_definition_id?: string | null
+          report_type: Database["public"]["Enums"]["report_type"]
+          schedule_id?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          storage_path?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
+          download_count?: number | null
+          download_url?: string | null
+          download_url_expires_at?: string | null
+          error_details?: Json | null
+          error_message?: string | null
+          file_size_bytes?: number | null
+          filters?: Json | null
+          format?: Database["public"]["Enums"]["report_format"]
+          generated_by_user_id?: string | null
+          generated_for_user_id?: string | null
+          id?: string
+          page_count?: number | null
+          parameters?: Json | null
+          processing_completed_at?: string | null
+          processing_duration_ms?: number | null
+          processing_started_at?: string | null
+          report_definition_id?: string | null
+          report_type?: Database["public"]["Enums"]["report_type"]
+          schedule_id?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          storage_path?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_reports_report_definition_id_fkey"
+            columns: ["report_definition_id"]
+            isOneToOne: false
+            referencedRelation: "report_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       investor_monthly_reports: {
         Row: {
           additions: number | null
@@ -1079,6 +1255,60 @@ export type Database = {
             referencedColumns: ["investor_id"]
           },
         ]
+      }
+      investor_monthly_reports_backup_20250106: {
+        Row: {
+          additions: number | null
+          asset_code: string | null
+          aum_manual_override: number | null
+          closing_balance: number | null
+          created_at: string | null
+          edited_by: string | null
+          entry_date: string | null
+          exit_date: string | null
+          id: string | null
+          investor_id: string | null
+          opening_balance: number | null
+          report_month: string | null
+          updated_at: string | null
+          withdrawals: number | null
+          yield_earned: number | null
+        }
+        Insert: {
+          additions?: number | null
+          asset_code?: string | null
+          aum_manual_override?: number | null
+          closing_balance?: number | null
+          created_at?: string | null
+          edited_by?: string | null
+          entry_date?: string | null
+          exit_date?: string | null
+          id?: string | null
+          investor_id?: string | null
+          opening_balance?: number | null
+          report_month?: string | null
+          updated_at?: string | null
+          withdrawals?: number | null
+          yield_earned?: number | null
+        }
+        Update: {
+          additions?: number | null
+          asset_code?: string | null
+          aum_manual_override?: number | null
+          closing_balance?: number | null
+          created_at?: string | null
+          edited_by?: string | null
+          entry_date?: string | null
+          exit_date?: string | null
+          id?: string | null
+          investor_id?: string | null
+          opening_balance?: number | null
+          report_month?: string | null
+          updated_at?: string | null
+          withdrawals?: number | null
+          yield_earned?: number | null
+        }
+        Relationships: []
       }
       investor_positions: {
         Row: {
@@ -1615,18 +1845,64 @@ export type Database = {
         }
         Relationships: []
       }
+      positions_backup_20250106: {
+        Row: {
+          asset_code: Database["public"]["Enums"]["asset_code"] | null
+          current_balance: number | null
+          id: string | null
+          last_modified_at: string | null
+          last_modified_by: string | null
+          principal: number | null
+          total_earned: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          asset_code?: Database["public"]["Enums"]["asset_code"] | null
+          current_balance?: number | null
+          id?: string | null
+          last_modified_at?: string | null
+          last_modified_by?: string | null
+          principal?: number | null
+          total_earned?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          asset_code?: Database["public"]["Enums"]["asset_code"] | null
+          current_balance?: number | null
+          id?: string | null
+          last_modified_at?: string | null
+          last_modified_by?: string | null
+          principal?: number | null
+          total_earned?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          address: string | null
           avatar_url: string | null
+          city: string | null
+          country: string | null
           created_at: string
+          date_of_birth: string | null
           email: string
           fee_percentage: number | null
           first_name: string | null
           full_name: string | null
           id: string
           is_admin: boolean
+          kyc_rejection_reason: string | null
+          kyc_status: string | null
+          kyc_verified_at: string | null
           last_name: string | null
           phone: string | null
+          postal_code: string | null
+          referral_code: string | null
+          state: string | null
           status: string | null
           totp_enabled: boolean | null
           totp_verified: boolean | null
@@ -1634,16 +1910,26 @@ export type Database = {
           user_type: string | null
         }
         Insert: {
+          address?: string | null
           avatar_url?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
+          date_of_birth?: string | null
           email: string
           fee_percentage?: number | null
           first_name?: string | null
           full_name?: string | null
           id: string
           is_admin?: boolean
+          kyc_rejection_reason?: string | null
+          kyc_status?: string | null
+          kyc_verified_at?: string | null
           last_name?: string | null
           phone?: string | null
+          postal_code?: string | null
+          referral_code?: string | null
+          state?: string | null
           status?: string | null
           totp_enabled?: boolean | null
           totp_verified?: boolean | null
@@ -1651,16 +1937,26 @@ export type Database = {
           user_type?: string | null
         }
         Update: {
+          address?: string | null
           avatar_url?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
+          date_of_birth?: string | null
           email?: string
           fee_percentage?: number | null
           first_name?: string | null
           full_name?: string | null
           id?: string
           is_admin?: boolean
+          kyc_rejection_reason?: string | null
+          kyc_status?: string | null
+          kyc_verified_at?: string | null
           last_name?: string | null
           phone?: string | null
+          postal_code?: string | null
+          referral_code?: string | null
+          state?: string | null
           status?: string | null
           totp_enabled?: boolean | null
           totp_verified?: boolean | null
@@ -1676,7 +1972,7 @@ export type Database = {
           event_time: string | null
           id: string
           identifier: string
-          ip_address: unknown | null
+          ip_address: unknown
           user_id: string | null
         }
         Insert: {
@@ -1685,7 +1981,7 @@ export type Database = {
           event_time?: string | null
           id?: string
           identifier: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_id?: string | null
         }
         Update: {
@@ -1694,7 +1990,7 @@ export type Database = {
           event_time?: string | null
           id?: string
           identifier?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_id?: string | null
         }
         Relationships: []
@@ -1788,6 +2084,237 @@ export type Database = {
             columns: ["reconciled_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_access_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: unknown
+          metadata: Json | null
+          report_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          report_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          report_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_access_logs_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "generated_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_definitions: {
+        Row: {
+          available_formats:
+            | Database["public"]["Enums"]["report_format"][]
+            | null
+          created_at: string
+          created_by: string | null
+          default_filters: Json | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_admin_only: boolean | null
+          name: string
+          report_type: Database["public"]["Enums"]["report_type"]
+          template_config: Json
+          updated_at: string
+        }
+        Insert: {
+          available_formats?:
+            | Database["public"]["Enums"]["report_format"][]
+            | null
+          created_at?: string
+          created_by?: string | null
+          default_filters?: Json | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_admin_only?: boolean | null
+          name: string
+          report_type: Database["public"]["Enums"]["report_type"]
+          template_config?: Json
+          updated_at?: string
+        }
+        Update: {
+          available_formats?:
+            | Database["public"]["Enums"]["report_format"][]
+            | null
+          created_at?: string
+          created_by?: string | null
+          default_filters?: Json | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_admin_only?: boolean | null
+          name?: string
+          report_type?: Database["public"]["Enums"]["report_type"]
+          template_config?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      report_schedules: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          day_of_month: number | null
+          day_of_week: number | null
+          delivery_method: string[] | null
+          description: string | null
+          failure_count: number | null
+          filters: Json | null
+          formats: Database["public"]["Enums"]["report_format"][] | null
+          frequency: Database["public"]["Enums"]["report_schedule_frequency"]
+          id: string
+          is_active: boolean | null
+          last_run_at: string | null
+          last_run_status: string | null
+          name: string
+          next_run_at: string | null
+          parameters: Json | null
+          recipient_emails: string[] | null
+          recipient_user_ids: string[] | null
+          report_definition_id: string | null
+          run_count: number | null
+          time_of_day: string
+          timezone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          day_of_month?: number | null
+          day_of_week?: number | null
+          delivery_method?: string[] | null
+          description?: string | null
+          failure_count?: number | null
+          filters?: Json | null
+          formats?: Database["public"]["Enums"]["report_format"][] | null
+          frequency: Database["public"]["Enums"]["report_schedule_frequency"]
+          id?: string
+          is_active?: boolean | null
+          last_run_at?: string | null
+          last_run_status?: string | null
+          name: string
+          next_run_at?: string | null
+          parameters?: Json | null
+          recipient_emails?: string[] | null
+          recipient_user_ids?: string[] | null
+          report_definition_id?: string | null
+          run_count?: number | null
+          time_of_day?: string
+          timezone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          day_of_month?: number | null
+          day_of_week?: number | null
+          delivery_method?: string[] | null
+          description?: string | null
+          failure_count?: number | null
+          filters?: Json | null
+          formats?: Database["public"]["Enums"]["report_format"][] | null
+          frequency?: Database["public"]["Enums"]["report_schedule_frequency"]
+          id?: string
+          is_active?: boolean | null
+          last_run_at?: string | null
+          last_run_status?: string | null
+          name?: string
+          next_run_at?: string | null
+          parameters?: Json | null
+          recipient_emails?: string[] | null
+          recipient_user_ids?: string[] | null
+          report_definition_id?: string | null
+          run_count?: number | null
+          time_of_day?: string
+          timezone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_schedules_report_definition_id_fkey"
+            columns: ["report_definition_id"]
+            isOneToOne: false
+            referencedRelation: "report_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_shares: {
+        Row: {
+          created_at: string
+          download_count: number | null
+          expires_at: string
+          id: string
+          is_active: boolean | null
+          last_accessed_at: string | null
+          max_downloads: number | null
+          password_hash: string | null
+          report_id: string | null
+          share_token: string
+          shared_by_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          download_count?: number | null
+          expires_at: string
+          id?: string
+          is_active?: boolean | null
+          last_accessed_at?: string | null
+          max_downloads?: number | null
+          password_hash?: string | null
+          report_id?: string | null
+          share_token: string
+          shared_by_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          download_count?: number | null
+          expires_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_accessed_at?: string | null
+          max_downloads?: number | null
+          password_hash?: string | null
+          report_id?: string | null
+          share_token?: string
+          shared_by_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_shares_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "generated_reports"
             referencedColumns: ["id"]
           },
         ]
@@ -2280,7 +2807,7 @@ export type Database = {
           event: string
           failure_reason: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           location_city: string | null
           location_country: string | null
           metadata: Json | null
@@ -2298,7 +2825,7 @@ export type Database = {
           event: string
           failure_reason?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           location_city?: string | null
           location_country?: string | null
           metadata?: Json | null
@@ -2316,7 +2843,7 @@ export type Database = {
           event?: string
           failure_reason?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           location_city?: string | null
           location_country?: string | null
           metadata?: Json | null
@@ -2328,12 +2855,66 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preferences: {
+        Row: {
+          created_at: string | null
+          currency_display: string | null
+          date_format: string | null
+          email_marketing: boolean | null
+          email_notifications: boolean | null
+          email_statements: boolean | null
+          email_transactions: boolean | null
+          language: string | null
+          push_notifications: boolean | null
+          push_price_alerts: boolean | null
+          push_transactions: boolean | null
+          theme: string | null
+          timezone: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          currency_display?: string | null
+          date_format?: string | null
+          email_marketing?: boolean | null
+          email_notifications?: boolean | null
+          email_statements?: boolean | null
+          email_transactions?: boolean | null
+          language?: string | null
+          push_notifications?: boolean | null
+          push_price_alerts?: boolean | null
+          push_transactions?: boolean | null
+          theme?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          currency_display?: string | null
+          date_format?: string | null
+          email_marketing?: boolean | null
+          email_notifications?: boolean | null
+          email_statements?: boolean | null
+          email_transactions?: boolean | null
+          language?: string | null
+          push_notifications?: boolean | null
+          push_price_alerts?: boolean | null
+          push_transactions?: boolean | null
+          theme?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_sessions: {
         Row: {
           created_at: string
           device_label: string | null
           id: string
-          ip: unknown | null
+          ip: unknown
           last_seen_at: string
           refresh_token_id: string | null
           revoked_at: string | null
@@ -2345,7 +2926,7 @@ export type Database = {
           created_at?: string
           device_label?: string | null
           id?: string
-          ip?: unknown | null
+          ip?: unknown
           last_seen_at?: string
           refresh_token_id?: string | null
           revoked_at?: string | null
@@ -2357,7 +2938,7 @@ export type Database = {
           created_at?: string
           device_label?: string | null
           id?: string
-          ip?: unknown | null
+          ip?: unknown
           last_seen_at?: string
           refresh_token_id?: string | null
           revoked_at?: string | null
@@ -3200,6 +3781,17 @@ export type Database = {
         Args: { p_end_date?: string; p_start_date?: string }
         Returns: Json
       }
+      calculate_next_run_time: {
+        Args: {
+          p_current_time?: string
+          p_day_of_month: number
+          p_day_of_week: number
+          p_frequency: Database["public"]["Enums"]["report_schedule_frequency"]
+          p_time_of_day: string
+          p_timezone: string
+        }
+        Returns: string
+      }
       calculate_positions: {
         Args: { p_portfolio_id: string }
         Returns: {
@@ -3213,10 +3805,7 @@ export type Database = {
         Args: { notification_id: string }
         Returns: boolean
       }
-      can_access_user: {
-        Args: { user_uuid: string }
-        Returns: boolean
-      }
+      can_access_user: { Args: { user_uuid: string }; Returns: boolean }
       can_withdraw: {
         Args: { p_amount: number; p_fund_id: string; p_investor_id: string }
         Returns: Json
@@ -3225,13 +3814,17 @@ export type Database = {
         Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
         Returns: boolean
       }
-      check_is_admin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
+      check_is_admin: { Args: { user_id: string }; Returns: boolean }
       check_portfolio_access: {
         Args: { p_portfolio_id: string; p_user_id: string }
         Returns: boolean
+      }
+      cleanup_expired_reports: {
+        Args: { p_retention_days?: number }
+        Returns: {
+          deleted_count: number
+          storage_paths: string[]
+        }[]
       }
       complete_withdrawal: {
         Args: {
@@ -3269,14 +3862,8 @@ export type Database = {
         Args: { encrypted_secret: string }
         Returns: string
       }
-      encrypt_totp_secret: {
-        Args: { secret_text: string }
-        Returns: string
-      }
-      ensure_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      encrypt_totp_secret: { Args: { secret_text: string }; Returns: string }
+      ensure_admin: { Args: never; Returns: undefined }
       fund_period_return: {
         Args: { d1: string; d2: string; f: string; net?: boolean }
         Returns: number
@@ -3285,10 +3872,7 @@ export type Database = {
         Args: { document_type: string; filename: string; user_id: string }
         Returns: string
       }
-      generate_historical_statements: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      generate_historical_statements: { Args: never; Returns: Json }
       generate_monthly_report_template: {
         Args: { p_investor_id?: string; p_month?: string }
         Returns: Json
@@ -3311,17 +3895,14 @@ export type Database = {
         Returns: string
       }
       get_24h_interest: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           interest: number
         }[]
       }
-      get_admin_name: {
-        Args: { admin_id: string }
-        Returns: string
-      }
+      get_admin_name: { Args: { admin_id: string }; Returns: string }
       get_all_investors_with_details: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           aml_status: string
           created_at: string
@@ -3336,7 +3917,7 @@ export type Database = {
         }[]
       }
       get_all_investors_with_summary: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           email: string
           first_name: string
@@ -3347,7 +3928,7 @@ export type Database = {
         }[]
       }
       get_all_non_admin_profiles: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string
           email: string
@@ -3377,7 +3958,7 @@ export type Database = {
         }[]
       }
       get_investor_count: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           count: number
         }[]
@@ -3408,7 +3989,7 @@ export type Database = {
         }[]
       }
       get_pending_withdrawals: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           count: number
         }[]
@@ -3432,20 +4013,27 @@ export type Database = {
           last_name: string
         }[]
       }
-      get_security_headers: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
+      get_report_statistics: {
+        Args: { p_days_back?: number; p_user_id?: string }
+        Returns: {
+          avg_processing_time_ms: number
+          failed: number
+          format: Database["public"]["Enums"]["report_format"]
+          report_type: Database["public"]["Enums"]["report_type"]
+          successful: number
+          total_downloads: number
+          total_file_size_bytes: number
+          total_generated: number
+        }[]
       }
+      get_security_headers: { Args: never; Returns: Json }
       get_total_aum: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           total_aum: number
         }[]
       }
-      get_user_admin_status: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
+      get_user_admin_status: { Args: { user_id: string }; Returns: boolean }
       get_user_portfolio_summary: {
         Args: { p_user_id: string }
         Returns: {
@@ -3454,34 +4042,40 @@ export type Database = {
           total_aum: number
         }[]
       }
+      get_user_reports: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_report_type?: Database["public"]["Enums"]["report_type"]
+          p_status?: Database["public"]["Enums"]["report_status"]
+          p_user_id: string
+        }
+        Returns: {
+          created_at: string
+          date_range_end: string
+          date_range_start: string
+          download_count: number
+          download_url: string
+          download_url_expires_at: string
+          file_size_bytes: number
+          format: Database["public"]["Enums"]["report_format"]
+          id: string
+          processing_completed_at: string
+          report_type: Database["public"]["Enums"]["report_type"]
+          status: Database["public"]["Enums"]["report_status"]
+          storage_path: string
+        }[]
+      }
       has_portfolio_access: {
         Args: { p_portfolio_id: string }
         Returns: boolean
       }
-      is_2fa_required: {
-        Args: { p_user_id: string }
-        Returns: boolean
-      }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_admin_safe: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_admin_secure: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_admin_v2: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_valid_share_token: {
-        Args: { token_value: string }
-        Returns: boolean
-      }
+      is_2fa_required: { Args: { p_user_id: string }; Returns: boolean }
+      is_admin: { Args: never; Returns: boolean }
+      is_admin_safe: { Args: never; Returns: boolean }
+      is_admin_secure: { Args: never; Returns: boolean }
+      is_admin_v2: { Args: never; Returns: boolean }
+      is_valid_share_token: { Args: { token_value: string }; Returns: boolean }
       is_within_edit_window: {
         Args: { p_created_at: string }
         Returns: boolean
@@ -3521,30 +4115,12 @@ export type Database = {
         }
         Returns: undefined
       }
-      migrate_legacy_positions: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      migrate_legacy_positions_temp: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      migrate_legacy_to_new_system: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      populate_yield_sources: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      populate_yield_sources_simple: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      populate_yield_sources_temp: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      migrate_legacy_positions: { Args: never; Returns: Json }
+      migrate_legacy_positions_temp: { Args: never; Returns: Json }
+      migrate_legacy_to_new_system: { Args: never; Returns: Json }
+      populate_yield_sources: { Args: never; Returns: Json }
+      populate_yield_sources_simple: { Args: never; Returns: Json }
+      populate_yield_sources_temp: { Args: never; Returns: Json }
       recalculate_aum_percentages: {
         Args: { p_asset_code: string }
         Returns: boolean
@@ -3568,7 +4144,7 @@ export type Database = {
         Returns: boolean
       }
       test_profiles_access: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           details: string
           result: boolean
@@ -3610,6 +4186,33 @@ export type Database = {
         | "performance"
         | "system"
         | "support"
+      report_format: "pdf" | "excel" | "csv" | "json"
+      report_schedule_frequency:
+        | "daily"
+        | "weekly"
+        | "monthly"
+        | "quarterly"
+        | "yearly"
+      report_status:
+        | "queued"
+        | "processing"
+        | "completed"
+        | "failed"
+        | "cancelled"
+      report_type:
+        | "portfolio_performance"
+        | "transaction_history"
+        | "tax_report"
+        | "monthly_statement"
+        | "annual_summary"
+        | "custom_date_range"
+        | "aum_report"
+        | "investor_activity"
+        | "transaction_volume"
+        | "compliance_report"
+        | "fund_performance"
+        | "fee_analysis"
+        | "audit_trail"
       share_scope: "portfolio" | "documents" | "statement"
       ticket_category:
         | "account"
@@ -3784,6 +4387,36 @@ export const Constants = {
         "performance",
         "system",
         "support",
+      ],
+      report_format: ["pdf", "excel", "csv", "json"],
+      report_schedule_frequency: [
+        "daily",
+        "weekly",
+        "monthly",
+        "quarterly",
+        "yearly",
+      ],
+      report_status: [
+        "queued",
+        "processing",
+        "completed",
+        "failed",
+        "cancelled",
+      ],
+      report_type: [
+        "portfolio_performance",
+        "transaction_history",
+        "tax_report",
+        "monthly_statement",
+        "annual_summary",
+        "custom_date_range",
+        "aum_report",
+        "investor_activity",
+        "transaction_volume",
+        "compliance_report",
+        "fund_performance",
+        "fee_analysis",
+        "audit_trail",
       ],
       share_scope: ["portfolio", "documents", "statement"],
       ticket_category: [
