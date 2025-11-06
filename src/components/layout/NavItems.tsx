@@ -1,16 +1,16 @@
-import { 
-  BarChart3, 
-  FileText, 
-  CreditCard, 
-  Settings, 
-  Users, 
+import {
+  BarChart3,
+  FileText,
+  CreditCard,
+  Settings,
+  Users,
   Shield,
   Building2,
   PieChart,
   Database,
-  TrendingUp
-} from 'lucide-react';
-import { useAuth } from '@/lib/auth/context';
+  TrendingUp,
+} from "lucide-react";
+import { useAuth } from "@/lib/auth/context";
 
 export interface NavItem {
   title: string;
@@ -24,68 +24,68 @@ export function useNavItems(): NavItem[] {
 
   const investorItems: NavItem[] = [
     {
-      title: 'Dashboard',
-      href: '/dashboard',
+      title: "Dashboard",
+      href: "/dashboard",
       icon: BarChart3,
-      description: 'Portfolio overview and performance'
+      description: "Portfolio overview and performance",
     },
     {
-      title: 'Statements',
-      href: '/statements',
+      title: "Statements",
+      href: "/statements",
       icon: FileText,
-      description: 'Monthly and quarterly statements'
+      description: "Monthly and quarterly statements",
     },
     {
-      title: 'Transactions',
-      href: '/transactions',
+      title: "Transactions",
+      href: "/transactions",
       icon: CreditCard,
-      description: 'Transaction history and details'
+      description: "Transaction history and details",
     },
     {
-      title: 'Account',
-      href: '/account',
+      title: "Account",
+      href: "/account",
       icon: Settings,
-      description: 'Profile and account settings'
-    }
+      description: "Profile and account settings",
+    },
   ];
 
   const adminItems: NavItem[] = [
     {
-      title: 'Admin Dashboard',
-      href: '/admin',
+      title: "Admin Dashboard",
+      href: "/admin",
       icon: Shield,
-      description: 'Platform overview and metrics'
+      description: "Platform overview and metrics",
     },
     {
-      title: 'Expert Investors',
-      href: '/admin/expert-investors',
+      title: "Expert Investors",
+      href: "/admin/expert-investors",
       icon: Users,
-      description: 'Unified investor management with positions and fees'
+      description: "Unified investor management with positions and fees",
     },
     {
-      title: 'Portfolio Management',
-      href: '/admin/portfolio',
+      title: "Portfolio Management",
+      href: "/admin/portfolio",
       icon: PieChart,
-      description: 'Portfolio and asset management'
+      description: "Portfolio and asset management",
     },
     {
-      title: 'Operations',
-      href: '/admin-operations',
+      title: "Operations",
+      href: "/admin/operations",
       icon: Building2,
-      description: 'Platform operations and tools'
+      description: "Platform operations and tools",
     },
     {
-      title: 'Analytics',
-      href: '/admin/reports',
+      title: "Analytics",
+      href: "/admin/reports",
       icon: TrendingUp,
-      description: 'Reports and analytics'
+      description: "Reports and analytics",
     },
     {
-      title: 'System',
-      href: '/admin/audit',
+      title: "System",
+      href: "/admin/audit",
       icon: Database,
-      description: 'Audit logs and system health'
-    }
+      description: "Audit logs and system health",
+    },
   ];
 
   return isAdmin ? [...investorItems, ...adminItems] : investorItems;

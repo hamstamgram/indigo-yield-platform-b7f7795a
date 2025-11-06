@@ -409,13 +409,15 @@ export function AdminRoutes() {
         }
       />
       <Route
-        path="/admin-operations"
+        path="/admin/operations"
         element={
           <AdminRoute>
             <AdminOperations />
           </AdminRoute>
         }
       />
+      {/* Legacy redirect */}
+      <Route path="/admin-operations" element={<Navigate to="/admin/operations" replace />} />
       <Route
         path="/admin/audit"
         element={
