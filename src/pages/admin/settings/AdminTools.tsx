@@ -1,11 +1,8 @@
-
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import AdminPortfolios from '@/components/admin/AdminPortfolios';
 import { useInvestors } from '@/hooks/useInvestors';
 
 const AdminTools = () => {
-  const navigate = useNavigate();
   const { investors, assets, loading, refetch } = useInvestors();
 
   // Ensure we have fresh data when this component loads

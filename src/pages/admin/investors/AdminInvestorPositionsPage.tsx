@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,8 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { getInvestorPositions, updateInvestorPosition, type InvestorPosition } from '@/services/fundService';
 import FundAssetDropdown from '@/components/admin/investors/FundAssetDropdown';
-import { formatAssetValue } from '@/utils/kpiCalculations';
-import { TrendingUp, Percent, Users, Plus, Save } from 'lucide-react';
+import { TrendingUp, Percent, Users, Save } from 'lucide-react';
 
 const AdminInvestorPositionsPage = () => {
   const { id } = useParams();
@@ -98,10 +97,6 @@ const AdminInvestorPositionsPage = () => {
       }
     }));
   };
-
-  const totalPortfolioValue = positions.reduce((sum, pos) => sum + pos.current_value, 0);
-  const totalCostBasis = positions.reduce((sum, pos) => sum + pos.cost_basis, 0);
-  const totalUnrealizedPnL = positions.reduce((sum, pos) => sum + pos.unrealized_pnl, 0);
 
   if (isLoading) {
     return (

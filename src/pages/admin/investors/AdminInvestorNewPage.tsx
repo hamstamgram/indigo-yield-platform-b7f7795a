@@ -1,11 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { UserPlus, Mail, User, DollarSign } from 'lucide-react';
+import { UserPlus, Mail, DollarSign } from 'lucide-react';
 import InvestorForm, { InvestorFormValues } from '@/components/admin/investors/InvestorForm';
 import { Asset } from '@/types/investorTypes';
 import { createOrFindInvestorUser } from '@/services/userService';

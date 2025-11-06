@@ -1,4 +1,4 @@
-import React from "react";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { DollarSign, Percent, BarChart3, Settings } from "lucide-react";
