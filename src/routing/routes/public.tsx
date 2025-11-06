@@ -15,10 +15,7 @@ import NotFound from "@/pages/NotFound";
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 
-// Onboarding
-const OnboardingWizard = lazy(() => import("@/components/onboarding/OnboardingWizard"));
-
-// Admin invite (public access for new admin onboarding)
+// Admin invite (public access for new admin setup)
 const AdminInvite = lazy(() => import("@/pages/admin/settings/AdminInvite"));
 
 // Public info pages
@@ -43,7 +40,6 @@ export function PublicRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/onboarding" element={<OnboardingWizard />} />
       <Route path="/admin-invite" element={<AdminInvite />} />
 
       {/* Public Info Pages */}

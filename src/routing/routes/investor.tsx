@@ -59,7 +59,6 @@ const Referrals = lazy(() => import("@/pages/profile/Referrals"));
 // Reports Module
 const ReportsDashboard = lazy(() => import("@/pages/reports/ReportsDashboard"));
 const PortfolioPerformance = lazy(() => import("@/pages/reports/PortfolioPerformance"));
-const TaxReport = lazy(() => import("@/pages/reports/TaxReport"));
 const MonthlyStatement = lazy(() => import("@/pages/reports/MonthlyStatement"));
 const CustomReport = lazy(() => import("@/pages/reports/CustomReport"));
 const ReportHistory = lazy(() => import("@/pages/reports/ReportHistory"));
@@ -195,14 +194,6 @@ export function InvestorRoutes() {
         element={
           <ProtectedRoute>
             <DocumentViewerPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/documents/tax"
-        element={
-          <ProtectedRoute>
-            <DocumentsVaultPage />
           </ProtectedRoute>
         }
       />
@@ -419,14 +410,6 @@ export function InvestorRoutes() {
         element={
           <ProtectedRoute>
             <PortfolioPerformance />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/reports/tax-report"
-        element={
-          <ProtectedRoute>
-            <TaxReport />
           </ProtectedRoute>
         }
       />

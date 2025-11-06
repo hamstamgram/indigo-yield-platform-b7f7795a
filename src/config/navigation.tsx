@@ -117,11 +117,6 @@ export const reportsNav: NavItem[] = [
     icon: <TrendingUp className="h-5 w-5" />,
   },
   {
-    title: "Tax Report",
-    href: "/reports/tax-report",
-    icon: <FileSpreadsheet className="h-5 w-5" />,
-  },
-  {
     title: "Monthly Statement",
     href: "/reports/monthly-statement",
     icon: <Calendar className="h-5 w-5" />,
@@ -134,7 +129,6 @@ export const reportsNav: NavItem[] = [
 export const documentsNav: NavItem[] = [
   { title: "All Documents", href: "/documents", icon: <Folder className="h-5 w-5" /> },
   { title: "Upload", href: "/documents/upload", icon: <Upload className="h-5 w-5" /> },
-  { title: "Tax Documents", href: "/documents/tax", icon: <FileSpreadsheet className="h-5 w-5" /> },
 ];
 
 // Notifications sub-navigation - NEW
