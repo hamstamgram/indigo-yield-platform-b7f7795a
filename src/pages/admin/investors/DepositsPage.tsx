@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,11 +9,11 @@ interface Deposit {
   id: string;
   amount: number;
   asset_symbol: string;
-  status: string;
-  created_at: string;
-  transaction_hash?: string;
-  asset_id: number; // For type compatibility
-  asset: { symbol: string; name: string }; // For type compatibility
+  status: string | null;
+  created_at: string | null;
+  transaction_hash?: string | null;
+  asset_id: number;
+  asset: { symbol: string; name: string };
 }
 
 const DepositsPage = () => {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -154,8 +153,8 @@ const InvestorReports = () => {
   }, [selectedMonth]);
 
   // Generate reports from statements table
-  const handleGenerateReports = async () => {
-    setGeneratingReports(true);
+  const _handleGenerateReports = async () => {
+    setSendingReports(true);
     try {
       const reportDate = `${selectedMonth}-01`;
       const [year, month] = selectedMonth.split('-').map(Number);
@@ -263,7 +262,7 @@ const InvestorReports = () => {
         variant: 'destructive',
       });
     } finally {
-      setGeneratingReports(false);
+      setSendingReports(false);
     }
   };
 

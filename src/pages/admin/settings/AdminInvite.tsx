@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -129,7 +127,7 @@ const AdminInvite = () => {
       const { error: updateError } = await supabase
         .from("admin_invites")
         .update({ used: true })
-        .eq("invite_code", inviteCode);
+        .eq("invite_code", inviteCode || '');
 
       if (updateError) throw updateError;
 
@@ -137,7 +135,7 @@ const AdminInvite = () => {
       const { error: profileError } = await supabase
         .from("profiles")
         .update({ is_admin: true })
-        .eq("id", signUpData.user?.id);
+        .eq("id", signUpData.user?.id || '');
 
       if (profileError) throw profileError;
 

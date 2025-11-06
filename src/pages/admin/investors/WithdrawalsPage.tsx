@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,7 +37,7 @@ interface InvestorPosition {
   fund_id: string;
   current_value: number;
   shares: number;
-  fund_class: string;
+  fund_class: string | null;
   funds: {
     name: string;
     code: string;
@@ -210,12 +209,12 @@ const WithdrawalsPage = () => {
       }
 
       // Create withdrawal request using the database function
-      const { data, error } = await supabase.rpc('create_withdrawal_request', {
+      const { data: _data, error } = await supabase.rpc('create_withdrawal_request', {
         p_investor_id: investorData.id,
         p_fund_id: selectedFund,
         p_amount: amount,
         p_type: withdrawalType,
-        p_notes: withdrawalNotes || null
+        p_notes: withdrawalNotes || undefined
       });
 
       if (error) throw error;

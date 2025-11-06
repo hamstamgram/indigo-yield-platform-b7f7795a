@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -396,14 +395,14 @@ export default function AdminRequestsQueuePage() {
                         <div className="flex items-center gap-2">
                           <DollarSign className="h-4 w-4" />
                           <span className="font-semibold">{deposit.asset_symbol}</span>
-                          {getStatusBadge(deposit.status)}
+                          {getStatusBadge(deposit.status || 'pending')}
                         </div>
                         <div className="text-right">
                           <div className="font-semibold">
                             {parseFloat(deposit.amount.toString()).toLocaleString()} {deposit.asset_symbol}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {new Date(deposit.created_at).toLocaleDateString()}
+                            {new Date(deposit.created_at || new Date()).toLocaleDateString()}
                           </div>
                         </div>
                       </div>

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-// @ts-nocheck
 import { Calendar, Save, Download, Upload, AlertCircle, Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -100,8 +98,8 @@ export default function MonthlyDataEntry() {
           withdrawals: record.withdrawals?.toString() || '0',
           yield_earned: record.yield_earned?.toString() || '0',
           closing_balance: record.closing_balance?.toString() || '0',
-          entry_date: record.entry_date,
-          exit_date: record.exit_date,
+          entry_date: record.entry_date || undefined,
+          exit_date: record.exit_date || undefined,
         };
       });
       setEditingData(dataMap);

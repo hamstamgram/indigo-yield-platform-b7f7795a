@@ -1,5 +1,4 @@
-// @ts-nocheck
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -81,7 +80,7 @@ export function BalanceAdjustments() {
   });
 
   // Load data on component mount
-  React.useEffect(() => {
+  useEffect(() => {
     loadInvestors();
     loadFunds();
   }, []);
@@ -175,7 +174,7 @@ export function BalanceAdjustments() {
           notes: formData.notes || null,
           audit_ref: adjustmentPreview.audit_ref,
           created_by: (await supabase.auth.getUser()).data.user?.id,
-        })
+        } as any)
         .select()
         .single();
 

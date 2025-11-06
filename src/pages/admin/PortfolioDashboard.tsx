@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -84,9 +83,9 @@ const PortfolioDashboard: React.FC = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
-  const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
+  const [_portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
   const [consolidatedData, setConsolidatedData] = useState<ConsolidatedData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchPortfolioData();

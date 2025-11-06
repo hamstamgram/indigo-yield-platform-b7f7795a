@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -229,7 +228,7 @@ export function InvestorStatusTracking() {
         return supabase
           .from('audit_log')
           .insert({
-            actor_user: currentUser.data.user.id,
+            actor_user: currentUser.data.user?.id || '',
             action: 'UPDATE_INVESTOR_STATUS',
             entity: 'profiles',
             entity_id: userId,

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,11 +26,11 @@ interface InvestorDetail {
   name: string;
   email: string;
   status: string;
-  created_at: string;
+  created_at: string | null;
   profile_id: string;
-  kyc_status?: string;
-  aml_status?: string;
-  phone?: string;
+  kyc_status?: string | null;
+  aml_status?: string | null;
+  phone?: string | null;
 }
 
 interface Position {
@@ -67,7 +66,7 @@ const AdminInvestorDetailPage = () => {
       const { data, error } = await supabase
         .from('investors')
         .select('*')
-        .eq('id', id)
+        .eq('id', id || '')
         .maybeSingle();
 
       if (!data) {
@@ -77,7 +76,7 @@ const AdminInvestorDetailPage = () => {
       }
 
       if (error) throw error;
-      setInvestor(data);
+      setInvestor(data as InvestorDetail);
     } catch (error) {
       console.error('Error fetching investor details:', error);
       toast({
