@@ -13,10 +13,7 @@ import {
 } from './reportsApi.lazy';
 import {
   ReportType,
-  ReportFormat,
   ReportStatus,
-  ReportFilters,
-  ReportParameters,
   GenerateReportRequest,
   GenerateReportResponse,
   DownloadReportRequest,
@@ -25,7 +22,6 @@ import {
   ReportSchedule,
   ReportDefinition,
   ReportStatistics,
-  ReportScheduleFrequency,
 } from '@/types/reports';
 
 export class ReportsApi {
@@ -201,8 +197,8 @@ export class ReportsApi {
 
       const { data, error } = await supabase.rpc('get_user_reports', {
         p_user_id: user.id,
-        p_report_type: filters?.reportType || null,
-        p_status: filters?.status || null,
+        p_report_type: filters?.reportType ?? undefined,
+        p_status: filters?.status ?? undefined,
         p_limit: filters?.limit || 50,
         p_offset: filters?.offset || 0,
       });
@@ -484,7 +480,7 @@ export class ReportsApi {
 
       if (error) throw error;
 
-      return data || [];
+      return (data || []) as unknown as ReportStatistics[];
     } catch (error) {
       console.error('Failed to fetch report statistics:', error);
       return [];
@@ -540,77 +536,77 @@ export class ReportsApi {
 
   private static mapReportDefinition(data: Record<string, unknown>): ReportDefinition {
     return {
-      id: data.id,
-      reportType: data.report_type,
-      name: data.name,
-      description: data.description,
-      templateConfig: data.template_config,
-      defaultFilters: data.default_filters,
-      availableFormats: data.available_formats,
-      isAdminOnly: data.is_admin_only,
-      isActive: data.is_active,
-      createdBy: data.created_by,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
+      id: data.id as string,
+      reportType: data.report_type as ReportType,
+      name: data.name as string,
+      description: data.description as string | null,
+      templateConfig: data.template_config as any,
+      defaultFilters: data.default_filters as any,
+      availableFormats: data.available_formats as any[],
+      isAdminOnly: data.is_admin_only as boolean,
+      isActive: data.is_active as boolean,
+      createdBy: data.created_by as string | null,
+      createdAt: data.created_at as string,
+      updatedAt: data.updated_at as string,
     };
   }
 
   private static mapGeneratedReport(data: Record<string, unknown>): GeneratedReport {
     return {
-      id: data.id,
-      reportDefinitionId: data.report_definition_id,
-      reportType: data.report_type,
-      format: data.format,
-      status: data.status,
-      generatedForUserId: data.generated_for_user_id,
-      generatedByUserId: data.generated_by_user_id,
-      parameters: data.parameters,
-      filters: data.filters,
-      dateRangeStart: data.date_range_start,
-      dateRangeEnd: data.date_range_end,
-      storagePath: data.storage_path,
-      fileSizeBytes: data.file_size_bytes,
-      pageCount: data.page_count,
-      downloadUrl: data.download_url,
-      downloadUrlExpiresAt: data.download_url_expires_at,
-      downloadCount: data.download_count,
-      processingStartedAt: data.processing_started_at,
-      processingCompletedAt: data.processing_completed_at,
-      processingDurationMs: data.processing_duration_ms,
-      errorMessage: data.error_message,
-      errorDetails: data.error_details,
-      scheduleId: data.schedule_id,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
+      id: data.id as string,
+      reportDefinitionId: data.report_definition_id as string | null,
+      reportType: data.report_type as ReportType,
+      format: data.format as any,
+      status: data.status as ReportStatus,
+      generatedForUserId: data.generated_for_user_id as string | null,
+      generatedByUserId: data.generated_by_user_id as string | null,
+      parameters: data.parameters as any,
+      filters: data.filters as any,
+      dateRangeStart: data.date_range_start as string | null,
+      dateRangeEnd: data.date_range_end as string | null,
+      storagePath: data.storage_path as string | null,
+      fileSizeBytes: data.file_size_bytes as number | null,
+      pageCount: data.page_count as number | null,
+      downloadUrl: data.download_url as string | null,
+      downloadUrlExpiresAt: data.download_url_expires_at as string | null,
+      downloadCount: data.download_count as number,
+      processingStartedAt: data.processing_started_at as string | null,
+      processingCompletedAt: data.processing_completed_at as string | null,
+      processingDurationMs: data.processing_duration_ms as number | null,
+      errorMessage: data.error_message as string | null,
+      errorDetails: data.error_details as any,
+      scheduleId: data.schedule_id as string | null,
+      createdAt: data.created_at as string,
+      updatedAt: data.updated_at as string,
     };
   }
 
   private static mapReportSchedule(data: Record<string, unknown>): ReportSchedule {
     return {
-      id: data.id,
-      reportDefinitionId: data.report_definition_id,
-      name: data.name,
-      description: data.description,
-      frequency: data.frequency,
-      dayOfWeek: data.day_of_week,
-      dayOfMonth: data.day_of_month,
-      timeOfDay: data.time_of_day,
-      timezone: data.timezone,
-      recipientUserIds: data.recipient_user_ids,
-      recipientEmails: data.recipient_emails,
-      deliveryMethod: data.delivery_method,
-      parameters: data.parameters,
-      filters: data.filters,
-      formats: data.formats,
-      isActive: data.is_active,
-      lastRunAt: data.last_run_at,
-      nextRunAt: data.next_run_at,
-      lastRunStatus: data.last_run_status,
-      runCount: data.run_count,
-      failureCount: data.failure_count,
-      createdBy: data.created_by,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
+      id: data.id as string,
+      reportDefinitionId: data.report_definition_id as string,
+      name: data.name as string,
+      description: data.description as string | null,
+      frequency: data.frequency as any,
+      dayOfWeek: data.day_of_week as number | null,
+      dayOfMonth: data.day_of_month as number | null,
+      timeOfDay: data.time_of_day as string,
+      timezone: data.timezone as string,
+      recipientUserIds: data.recipient_user_ids as string[],
+      recipientEmails: data.recipient_emails as string[],
+      deliveryMethod: data.delivery_method as any[],
+      parameters: data.parameters as any,
+      filters: data.filters as any,
+      formats: data.formats as any[],
+      isActive: data.is_active as boolean,
+      lastRunAt: data.last_run_at as string | null,
+      nextRunAt: data.next_run_at as string | null,
+      lastRunStatus: data.last_run_status as string | null,
+      runCount: data.run_count as number,
+      failureCount: data.failure_count as number,
+      createdBy: data.created_by as string | null,
+      createdAt: data.created_at as string,
+      updatedAt: data.updated_at as string,
     };
   }
 }

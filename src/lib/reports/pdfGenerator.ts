@@ -43,7 +43,6 @@ export class PDFReportGenerator {
   private margin: number = 40;
   private pageWidth: number;
   private pageHeight: number;
-  private lineHeight: number = 7;
   private pageNumber: number = 1;
 
   // Default branding colors
@@ -264,7 +263,7 @@ export class PDFReportGenerator {
     }
 
     // Create summary table
-    this.doc.autoTable({
+    (this.doc as any).autoTable({
       startY: this.currentY,
       head: [],
       body: summaryData,
@@ -306,7 +305,7 @@ export class PDFReportGenerator {
         performanceData.push(["Inception-to-Date", this.formatPercentage(summary.itdReturn)]);
       }
 
-      this.doc.autoTable({
+      (this.doc as any).autoTable({
         startY: this.currentY,
         head: [],
         body: performanceData,
@@ -353,7 +352,7 @@ export class PDFReportGenerator {
       this.formatPercentage(h.unrealizedGainPercentage),
     ]);
 
-    this.doc.autoTable({
+    (this.doc as any).autoTable({
       startY: this.currentY,
       head: [["Asset", "Quantity", "Price", "Value", "Allocation", "Unrealized Gain", "Gain %"]],
       body: tableData,
@@ -408,7 +407,7 @@ export class PDFReportGenerator {
       t.status,
     ]);
 
-    this.doc.autoTable({
+    (this.doc as any).autoTable({
       startY: this.currentY,
       head: [["Date", "Type", "Asset", "Amount", "Value", "Status"]],
       body: tableData,
@@ -432,7 +431,7 @@ export class PDFReportGenerator {
         5: { cellWidth: 70 },
       },
       margin: { left: this.margin, right: this.margin },
-      didDrawPage: (data) => {
+      didDrawPage: (data: any) => {
         // Reset currentY for continuation on next page
         this.currentY = data.cursor?.y || this.margin;
       },
@@ -474,7 +473,7 @@ export class PDFReportGenerator {
       this.formatPercentage(p.returnPercentage),
     ]);
 
-    this.doc.autoTable({
+    (this.doc as any).autoTable({
       startY: this.currentY,
       head: [["Period", "Begin Value", "End Value", "Cash Flow", "Return", "Return %"]],
       body: tableData,

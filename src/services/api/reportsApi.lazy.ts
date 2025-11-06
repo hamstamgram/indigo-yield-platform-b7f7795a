@@ -35,24 +35,4 @@ export const ReportEngineLazy = {
     const { ReportEngine } = await import('@/lib/reports/reportEngine');
     return ReportEngine.fetchReportData(...args);
   },
-
-  generatePortfolioReport: async (...args: Parameters<typeof import('@/lib/reports/reportEngine').ReportEngine.generatePortfolioReport>) => {
-    const { ReportEngine } = await import('@/lib/reports/reportEngine');
-    return ReportEngine.generatePortfolioReport(...args);
-  },
-
-  generatePerformanceReport: async (...args: Parameters<typeof import('@/lib/reports/reportEngine').ReportEngine.generatePerformanceReport>) => {
-    const { ReportEngine } = await import('@/lib/reports/reportEngine');
-    return ReportEngine.generatePerformanceReport(...args);
-  },
-
-  generateTransactionReport: async (...args: Parameters<typeof import('@/lib/reports/reportEngine').ReportEngine.generateTransactionReport>) => {
-    const { ReportEngine } = await import('@/lib/reports/reportEngine');
-    return ReportEngine.generateTransactionReport(...args);
-  },
-
-  generateTaxReport: async (...args: Parameters<typeof import('@/lib/reports/reportEngine').ReportEngine.generateTaxReport>) => {
-    const { ReportEngine } = await import('@/lib/reports/reportEngine');
-    return ReportEngine.generateTaxReport(...args);
-  },
 };

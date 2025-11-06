@@ -102,29 +102,6 @@ export async function computeStatement(
   }
 }
 
-async function fetchAssets() {
-  const { data: assets } = await supabase
-    .from('assets')
-    .select('*')
-    .eq('is_active', true);
-  return assets || [];
-}
-
-function getTransactionDescription(kind: string, amount: number): string {
-  switch (kind) {
-    case 'deposit':
-      return `Deposit received`;
-    case 'withdrawal':
-      return `Withdrawal processed`;
-    case 'interest':
-      return `Interest earned`;
-    case 'fee':
-      return `Management fee`;
-    default:
-      return kind;
-  }
-}
-
 export function formatCurrency(amount: number, decimals: number = 2): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',

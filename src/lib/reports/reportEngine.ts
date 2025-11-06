@@ -262,7 +262,7 @@ export class ReportEngine {
   private static async fetchPortfolioPerformanceData(
     userId: string,
     filters: ReportFilters,
-    parameters: ReportParameters
+    _parameters: ReportParameters
   ): Promise<ReportData> {
     const endDate = filters.dateRangeEnd ? new Date(filters.dateRangeEnd) : new Date();
     const startDate = filters.dateRangeStart
@@ -397,7 +397,7 @@ export class ReportEngine {
   private static async fetchTransactionHistoryData(
     userId: string,
     filters: ReportFilters,
-    parameters: ReportParameters
+    _parameters: ReportParameters
   ): Promise<ReportData> {
     const endDate = filters.dateRangeEnd ? new Date(filters.dateRangeEnd) : new Date();
     const startDate = filters.dateRangeStart
@@ -447,7 +447,7 @@ export class ReportEngine {
   private static async fetchMonthlyStatementData(
     userId: string,
     filters: ReportFilters,
-    parameters: ReportParameters
+    _parameters: ReportParameters
   ): Promise<ReportData> {
     // Use current month if not specified
     const targetDate = filters.dateRangeEnd ? new Date(filters.dateRangeEnd) : new Date();
@@ -513,7 +513,7 @@ export class ReportEngine {
   private static async fetchTaxReportData(
     userId: string,
     filters: ReportFilters,
-    parameters: ReportParameters
+    _parameters: ReportParameters
   ): Promise<ReportData> {
     const year = filters.dateRangeEnd
       ? new Date(filters.dateRangeEnd).getFullYear()
@@ -576,7 +576,7 @@ export class ReportEngine {
   private static async fetchAnnualSummaryData(
     userId: string,
     filters: ReportFilters,
-    parameters: ReportParameters
+    _parameters: ReportParameters
   ): Promise<ReportData> {
     const year = filters.dateRangeEnd
       ? new Date(filters.dateRangeEnd).getFullYear()
@@ -607,7 +607,7 @@ export class ReportEngine {
         statements?.reduce((sum, s) => sum + new Decimal(s.redemptions).toNumber(), 0) || 0,
       netIncome: statements?.reduce((sum, s) => sum + new Decimal(s.net_income).toNumber(), 0) || 0,
       ytdReturn: statements?.[statements.length - 1]?.rate_of_return_ytd
-        ? new Decimal(statements[statements.length - 1].rate_of_return_ytd).toNumber()
+        ? new Decimal(statements[statements.length - 1].rate_of_return_ytd ?? 0).toNumber()
         : 0,
     };
 
@@ -635,15 +635,15 @@ export class ReportEngine {
    */
   private static formatTransactions(transactions: Record<string, unknown>[]): TransactionData[] {
     return transactions.map((t) => ({
-      id: t.id,
-      date: new Date(t.created_at).toLocaleDateString(),
-      type: t.type,
-      assetCode: t.asset_code,
-      amount: new Decimal(t.amount).toNumber(),
-      value: new Decimal(t.amount).toNumber(),
-      status: t.status,
-      txHash: t.tx_hash || undefined,
-      note: t.note || undefined,
+      id: String(t.id ?? ''),
+      date: new Date(String(t.created_at ?? '')).toLocaleDateString(),
+      type: String(t.type ?? ''),
+      assetCode: String(t.asset_code ?? ''),
+      amount: new Decimal(Number(t.amount) || 0).toNumber(),
+      value: new Decimal(Number(t.amount) || 0).toNumber(),
+      status: String(t.status ?? ''),
+      txHash: t.tx_hash ? String(t.tx_hash) : undefined,
+      note: t.note ? String(t.note) : undefined,
     }));
   }
 
@@ -654,20 +654,23 @@ export class ReportEngine {
     statements: Record<string, unknown>[]
   ): PerformancePeriod[] {
     return statements.map((s) => {
-      const beginValue = new Decimal(s.begin_balance).toNumber();
-      const endValue = new Decimal(s.end_balance).toNumber();
+      const beginValue = new Decimal(Number(s.begin_balance) || 0).toNumber();
+      const endValue = new Decimal(Number(s.end_balance) || 0).toNumber();
       const netCashFlow =
-        new Decimal(s.additions).toNumber() - new Decimal(s.redemptions).toNumber();
+        new Decimal(Number(s.additions) || 0).toNumber() - new Decimal(Number(s.redemptions) || 0).toNumber();
+      
+      const periodYear = Number(s.period_year ?? new Date().getFullYear());
+      const periodMonth = Number(s.period_month ?? 1);
 
       return {
-        period: `${s.period_year}-${String(s.period_month).padStart(2, "0")}`,
-        beginDate: new Date(s.period_year, s.period_month - 1, 1).toISOString(),
-        endDate: new Date(s.period_year, s.period_month, 0).toISOString(),
+        period: `${periodYear}-${String(periodMonth).padStart(2, "0")}`,
+        beginDate: new Date(periodYear, periodMonth - 1, 1).toISOString(),
+        endDate: new Date(periodYear, periodMonth, 0).toISOString(),
         beginValue,
         endValue,
         netCashFlow,
         return: endValue - beginValue - netCashFlow,
-        returnPercentage: s.rate_of_return_mtd ? new Decimal(s.rate_of_return_mtd).toNumber() : 0,
+        returnPercentage: s.rate_of_return_mtd ? new Decimal(Number(s.rate_of_return_mtd) || 0).toNumber() : 0,
       };
     });
   }

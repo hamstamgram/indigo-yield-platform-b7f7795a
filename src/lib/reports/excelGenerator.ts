@@ -60,7 +60,7 @@ export class ExcelReportGenerator {
    */
   async generate(
     data: ReportData,
-    options: ExcelGenerationOptions = {}
+    _options: ExcelGenerationOptions = {}
   ): Promise<ExcelGenerationResult> {
     try {
       // Set workbook properties
