@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -37,9 +37,9 @@ const AuditDrilldown = () => {
           entity_id: data.entity_id || '',
           operation: data.action || '',
           source_table: data.entity || '',
-          old_values: typeof data.old_values === 'object' ? data.old_values : {},
-          new_values: typeof data.new_values === 'object' ? data.new_values : {},
-          meta: typeof data.meta === 'object' ? data.meta : {},
+          old_values: (typeof data.old_values === 'object' && data.old_values !== null) ? data.old_values as Record<string, any> : {},
+          new_values: (typeof data.new_values === 'object' && data.new_values !== null) ? data.new_values as Record<string, any> : {},
+          meta: (typeof data.meta === 'object' && data.meta !== null) ? data.meta as Record<string, any> : {},
           created_at: data.created_at
         };
         setAuditEvent(transformedEvent);

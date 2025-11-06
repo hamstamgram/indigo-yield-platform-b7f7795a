@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, FileText, Download, Send, Calendar, User } from "lucide-react";
+import { format } from "date-fns";
 
 export default function AdminStatementsPage() {
   const [selectedInvestor, setSelectedInvestor] = useState<string>("");
@@ -110,12 +110,12 @@ export default function AdminStatementsPage() {
       
       return { statementData, document: docData };
     },
-    onSuccess: (result, variables) => {
+    onSuccess: () => {
       toast.success("Statement generated successfully");
       queryClient.invalidateQueries({ queryKey: ['statements-admin'] });
       setGeneratingStatement(null);
     },
-    onError: (error, variables) => {
+    onError: (error: Error) => {
       toast.error(`Failed to generate statement: ${error.message}`);
       setGeneratingStatement(null);
     }
@@ -315,7 +315,7 @@ export default function AdminStatementsPage() {
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary">
                         <Calendar className="h-3 w-3 mr-1" />
-                        {new Date(statement.period_start).toLocaleDateString()}
+                        {format(new Date(statement.period_start || new Date()), 'MMM d, yyyy')}
                       </Badge>
                     </div>
                   </div>

@@ -3,7 +3,7 @@
  * Upload and manage fund documents with bulk upload capabilities
  */
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -43,7 +43,6 @@ import {
   Document, 
   DocumentType, 
   DocumentUploadRequest,
-  BulkUploadResult,
   DOCUMENT_TYPE_CONFIG,
   formatFileSize,
   validateDocumentUpload,
@@ -282,7 +281,7 @@ export default function AdminDocumentsPage() {
     setIsUploading(false);
   };
 
-  const simulateUpload = async (request: DocumentUploadRequest) => {
+  const simulateUpload = async (_request: DocumentUploadRequest) => {
     // Simulate upload progress
     for (let i = 0; i <= 100; i += 10) {
       setUploadProgress(i);

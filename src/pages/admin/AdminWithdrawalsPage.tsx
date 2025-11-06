@@ -3,10 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -162,7 +161,7 @@ const AdminWithdrawalsPage = () => {
         p_request_id: requestId,
         p_processed_amount: processedAmount,
         p_tx_hash: txHash,
-        p_settlement_date: settlementDate ? new Date(settlementDate).toISOString().split('T')[0] : null,
+        p_settlement_date: settlementDate ? new Date(settlementDate).toISOString().split('T')[0] : undefined,
         p_admin_notes: adminNotes
       });
 
