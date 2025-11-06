@@ -1,9 +1,8 @@
-// @ts-nocheck
 /**
  * Reports API Service
  * Handles all report-related API calls
  * NOTE: This file uses database tables (report_definitions, generated_reports, etc.)
- * that may not exist yet. Keeping @ts-nocheck until schema is confirmed.
+ * that may not exist yet. Keeping type-safe by importing from generated types.
  */
 
 import { supabase } from '@/integrations/supabase/client';

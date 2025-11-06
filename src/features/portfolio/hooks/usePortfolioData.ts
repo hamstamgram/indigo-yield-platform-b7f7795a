@@ -1,29 +1,7 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
-import { portfolioApi } from '@/services/api/portfolioApi';
+import { portfolioApi, type PortfolioSummary } from '@/services/api/portfolioApi';
 
-interface Position {
-  id: string;
-  symbol: string;
-  quantity: number;
-  average_cost: number;
-  current_price: number;
-  market_value: number;
-  gain_loss: number;
-  gain_percent: number;
-  asset_type: string;
-  last_updated: string;
-}
-
-interface PortfolioSummary {
-  total_value: number;
-  total_gain: number;
-  total_gain_percent: number;
-  day_change: number;
-  day_change_percent: number;
-  positions: Position[];
-}
 
 interface PortfolioState {
   data: PortfolioSummary | null;
@@ -67,6 +45,7 @@ export function usePortfolioData() {
 
   useEffect(() => {
     fetchPortfolio();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const refreshPortfolio = () => {

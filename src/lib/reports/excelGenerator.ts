@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Professional Excel Report Generator
  * Creates multi-sheet Excel reports with formatting and charts

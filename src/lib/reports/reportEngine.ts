@@ -1,9 +1,9 @@
-// @ts-nocheck
 /**
  * Report Engine Core
  * Handles report generation orchestration and template processing
  */
 import { supabase } from "@/integrations/supabase/client";
+import Decimal from 'decimal.js';
 import {
   ReportType,
   ReportFormat,

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Professional PDF Report Generator
  * Creates branded PDF reports with charts, tables, and professional formatting

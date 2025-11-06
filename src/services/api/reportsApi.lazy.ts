@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Lazy-loaded report generation functions
  * Splits heavy PDF/Excel generators into separate bundles

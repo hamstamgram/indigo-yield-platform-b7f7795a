@@ -65,7 +65,7 @@ const NewTicketPage: React.FC = () => {
     setSubmitting(true);
 
     try {
-      const ticket = await createTicket({
+      await createTicket({
         user_id: currentUser.id,
         subject: formData.subject,
         category: formData.category,
@@ -79,7 +79,8 @@ const NewTicketPage: React.FC = () => {
         description: 'Your support ticket has been submitted successfully.',
       });
 
-      navigate(`/support/tickets/${ticket.id}`);
+      // Navigate to support page (feature not fully implemented)
+      navigate('/support');
     } catch (error) {
       console.error('Error creating ticket:', error);
     } finally {

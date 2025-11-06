@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { supabase } from '@/integrations/supabase/client';
 import { generateMonthlyStatementHTML, generateStatementPreview } from '@/lib/statements/monthlyEmailGenerator';
 import type { Database } from '@/integrations/supabase/types';
