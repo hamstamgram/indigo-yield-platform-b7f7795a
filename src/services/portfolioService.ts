@@ -1,8 +1,10 @@
-// @ts-nocheck
 /**
  * Portfolio Service - Updated for secure database schema
  */
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+type AssetCode = Database['public']['Enums']['asset_code'];
 
 export interface PortfolioEntry {
   user_id: string;
@@ -14,7 +16,7 @@ export interface PortfolioEntry {
 export interface InvestorPosition {
   investor_id: string;
   fund_id: string;
-  fund_class: string;
+  fund_class: string | null;
   shares: number;
   cost_basis: number;
   current_value: number;
@@ -137,7 +139,7 @@ export async function updatePortfolioBalance(
       .from('positions')
       .update({ current_balance: newBalance, updated_at: new Date().toISOString() })
       .eq('user_id', userId)
-      .eq('asset_code', assetCode as any); // Cast to handle enum type
+      .eq('asset_code', assetCode as AssetCode);
 
     if (error) throw error;
     return true;

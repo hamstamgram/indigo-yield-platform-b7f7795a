@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Historical Data Service
  * Manages historical report templates and data generation
@@ -11,11 +10,11 @@ export interface HistoricalReportTemplate {
   investor_id: string;
   report_month: string;
   asset_code: string;
-  opening_balance: number;
-  closing_balance: number;
-  additions: number;
-  withdrawals: number;
-  yield_earned: number;
+  opening_balance: number | null;
+  closing_balance: number | null;
+  additions: number | null;
+  withdrawals: number | null;
+  yield_earned: number | null;
   created_at: string;
   updated_at: string;
 }

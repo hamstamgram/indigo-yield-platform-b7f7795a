@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { supabase } from "@/integrations/supabase/client";
 
 export interface UnifiedInvestorData {
@@ -86,7 +85,7 @@ class ExpertInvestorService {
       const { data: profileData } = await supabase
         .from('profiles')
         .select('first_name, last_name, fee_percentage')
-        .eq('id', investorData.profile_id)
+        .eq('id', investorData.profile_id || '')
         .single();
 
       // Get unified position data from both positions and investor_positions
@@ -101,23 +100,23 @@ class ExpertInvestorService {
       // Build unified investor data
       const investor: UnifiedInvestorData = {
         id: investorData.id,
-        profileId: investorData.profile_id,
+        profileId: investorData.profile_id || '',
         email: investorData.email,
         firstName: profileData?.first_name || '',
         lastName: profileData?.last_name || '',
-        phone: investorData.phone,
-        status: investorData.status,
+        phone: investorData.phone || undefined,
+        status: investorData.status || 'pending',
         kycStatus: investorData.kyc_status || 'pending',
         amlStatus: investorData.aml_status || 'pending',
         feePercentage: profileData?.fee_percentage || 0.02,
-        onboardingDate: investorData.onboarding_date || investorData.created_at,
+        onboardingDate: investorData.onboarding_date || investorData.created_at || '',
         totalAum: positions.reduce((sum, p) => sum + p.currentValue, 0),
         totalEarnings: positions.reduce((sum, p) => sum + p.totalEarnings, 0),
         totalPrincipal: positions.reduce((sum, p) => sum + p.costBasis, 0),
         positionCount: positions.length,
         lastActivityDate: positions.length > 0 
           ? new Date(Math.max(...positions.map(p => new Date(p.lastTransactionDate).getTime()))).toISOString()
-          : investorData.created_at
+          : investorData.created_at || new Date().toISOString()
       };
 
       return {
@@ -147,35 +146,35 @@ class ExpertInvestorService {
 
       // For each investor, get position summary
       const investorsWithSummary = await Promise.all(
-        (data || []).map(async (investor: any) => {
+        (data || []).map(async (investor) => {
           // Get profile data
           const { data: profileData } = await supabase
             .from('profiles')
             .select('first_name, last_name, fee_percentage')
-            .eq('id', investor.profile_id)
+            .eq('id', investor.profile_id || '')
             .single();
 
           const positions = await this.getUnifiedPositions(investor.id);
           
           return {
             id: investor.id,
-            profileId: investor.profile_id,
+            profileId: investor.profile_id || '',
             email: investor.email,
             firstName: profileData?.first_name || '',
             lastName: profileData?.last_name || '',
-            phone: investor.phone,
-            status: investor.status,
+            phone: investor.phone || undefined,
+            status: investor.status || 'pending',
             kycStatus: investor.kyc_status || 'pending',
             amlStatus: investor.aml_status || 'pending',
             feePercentage: profileData?.fee_percentage || 0.02,
-            onboardingDate: investor.onboarding_date || investor.created_at,
+            onboardingDate: investor.onboarding_date || investor.created_at || '',
             totalAum: positions.reduce((sum, p) => sum + p.currentValue, 0),
             totalEarnings: positions.reduce((sum, p) => sum + p.totalEarnings, 0),
             totalPrincipal: positions.reduce((sum, p) => sum + p.costBasis, 0),
             positionCount: positions.length,
             lastActivityDate: positions.length > 0 
               ? new Date(Math.max(...positions.map(p => new Date(p.lastTransactionDate).getTime()))).toISOString()
-              : investor.created_at
+              : investor.created_at || new Date().toISOString()
           } as UnifiedInvestorData;
         })
       );
@@ -231,9 +230,9 @@ class ExpertInvestorService {
             unrealizedPnl: pos.unrealized_pnl || 0,
             realizedPnl: pos.realized_pnl || 0,
             totalEarnings: (pos.unrealized_pnl || 0) + (pos.realized_pnl || 0),
-            inceptionDate: fundData?.inception_date || pos.updated_at,
-            lastTransactionDate: pos.last_transaction_date || pos.updated_at,
-            lockUntilDate: pos.lock_until_date,
+            inceptionDate: fundData?.inception_date || pos.updated_at || new Date().toISOString(),
+            lastTransactionDate: pos.last_transaction_date || pos.updated_at || new Date().toISOString(),
+            lockUntilDate: pos.lock_until_date || undefined,
             feeRate: 0.02,
             aumPercentage: pos.aum_percentage || 0
           });
@@ -276,7 +275,7 @@ class ExpertInvestorService {
   /**
    * Calculate performance metrics for investor
    */
-  private async calculatePerformanceMetrics(investorId: string, positions: UnifiedPositionData[]) {
+  private async calculatePerformanceMetrics(_investorId: string, positions: UnifiedPositionData[]) {
     const totalInvested = positions.reduce((sum, p) => sum + p.costBasis, 0);
     const totalValue = positions.reduce((sum, p) => sum + p.currentValue, 0);
     const totalReturn = totalValue - totalInvested;
@@ -346,7 +345,7 @@ class ExpertInvestorService {
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ fee_percentage: feePercentage })
-        .eq('id', investor.profile_id);
+        .eq('id', investor?.profile_id || '');
 
       if (updateError) throw updateError;
       return true;
@@ -387,7 +386,7 @@ class ExpertInvestorService {
   /**
    * Get position history for charting
    */
-  async getPositionHistory(investorId: string, asset: string, days: number = 30): Promise<PositionHistoryData[]> {
+  async getPositionHistory(investorId: string, _asset: string, days: number = 30): Promise<PositionHistoryData[]> {
     try {
       const { data, error } = await supabase
         .from('portfolio_history')
@@ -402,7 +401,7 @@ class ExpertInvestorService {
         date: d.date,
         balance: d.balance,
         value: d.usd_value || d.balance,
-        yieldApplied: d.yield_applied
+        yieldApplied: d.yield_applied || undefined
       })) || [];
     } catch (error) {
       console.error('Error getting position history:', error);

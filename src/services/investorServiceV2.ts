@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { supabase } from "@/integrations/supabase/client";
 
 export interface InvestorPortfolioV2 {
@@ -21,8 +20,8 @@ export interface InvestorPositionV2 {
   unrealized_pnl: number;
   realized_pnl: number;
   allocation_percentage: number;
-  last_transaction_date?: string;
-  lock_until_date?: string;
+  last_transaction_date?: string | null;
+  lock_until_date?: string | null;
 }
 
 export interface PortfolioPerformance {
@@ -57,12 +56,12 @@ export interface WithdrawalRequestV2 {
   processed_amount?: number;
   withdrawal_type: string;
   status: string;
-  notes?: string;
-  rejection_reason?: string;
+  notes?: string | null;
+  rejection_reason?: string | null;
   created_at: string;
-  approved_at?: string;
-  settlement_date?: string;
-  tx_hash?: string;
+  approved_at?: string | null;
+  settlement_date?: string | null;
+  tx_hash?: string | null;
 }
 
 class InvestorServiceV2 {
@@ -108,14 +107,14 @@ class InvestorServiceV2 {
 
     if (error) throw error;
 
-    const totalValue = positions.reduce((sum, pos) => sum + Number(pos.current_value), 0);
-    const totalPnL = positions.reduce((sum, pos) => sum + Number(pos.unrealized_pnl) + Number(pos.realized_pnl), 0);
+    const totalValue = (positions || []).reduce((sum, pos) => sum + Number(pos.current_value), 0);
+    const totalPnL = (positions || []).reduce((sum, pos) => sum + Number(pos.unrealized_pnl) + Number(pos.realized_pnl), 0);
 
-    const portfolioPositions: InvestorPositionV2[] = positions.map(pos => ({
+    const portfolioPositions: InvestorPositionV2[] = (positions || []).map(pos => ({
       fund_id: pos.fund_id,
-      fund_name: pos.funds.name,
-      fund_class: pos.fund_class,
-      asset: pos.funds.asset,
+      fund_name: (pos.funds as any)?.name || 'Unknown',
+      fund_class: pos.fund_class || 'Standard',
+      asset: (pos.funds as any)?.asset || 'Unknown',
       shares: Number(pos.shares),
       cost_basis: Number(pos.cost_basis),
       current_value: Number(pos.current_value),
@@ -172,14 +171,14 @@ class InvestorServiceV2 {
 
     if (error) throw error;
 
-    return data.map(entry => ({
+    return (data || []).map(entry => ({
       date: entry.application_date,
       asset: entry.asset_code,
       balance_before: Number(entry.balance_before),
       yield_amount: Number(entry.yield_amount),
       balance_after: Number(entry.balance_after),
-      daily_rate: Number(entry.daily_yield_applications.daily_yield_percentage),
-      annual_rate: Number(entry.daily_yield_applications.daily_yield_percentage) * 365
+      daily_rate: Number((entry.daily_yield_applications as any)?.daily_yield_percentage || 0),
+      annual_rate: Number((entry.daily_yield_applications as any)?.daily_yield_percentage || 0) * 365
     }));
   }
 
@@ -208,12 +207,12 @@ class InvestorServiceV2 {
 
     if (error) throw error;
 
-    return data.map(request => ({
+    return (data || []).map(request => ({
       id: request.id,
       fund_id: request.fund_id,
-      fund_name: request.funds.name,
-      fund_class: request.funds.fund_class,
-      asset: request.funds.asset,
+      fund_name: (request.funds as any)?.name || 'Unknown',
+      fund_class: (request.funds as any)?.fund_class || 'Standard',
+      asset: (request.funds as any)?.asset || 'Unknown',
       requested_amount: Number(request.requested_amount),
       approved_amount: request.approved_amount ? Number(request.approved_amount) : undefined,
       processed_amount: request.processed_amount ? Number(request.processed_amount) : undefined,
@@ -252,7 +251,7 @@ class InvestorServiceV2 {
       p_fund_id: fundId,
       p_amount: amount,
       p_type: withdrawalType,
-      p_notes: notes || null
+      p_notes: notes || undefined
     });
 
     if (error) throw error;
@@ -300,9 +299,9 @@ class InvestorServiceV2 {
 
     if (error) throw error;
 
-    return data.map(rate => ({
-      asset_symbol: rate.assets.symbol,
-      asset_name: rate.assets.name,
+    return (data || []).map(rate => ({
+      asset_symbol: (rate.assets as any)?.symbol || 'Unknown',
+      asset_name: (rate.assets as any)?.name || 'Unknown',
       daily_rate: Number(rate.daily_yield_percentage),
       annual_rate: Number(rate.daily_yield_percentage) * 365
     }));

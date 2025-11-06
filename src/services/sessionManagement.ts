@@ -2,8 +2,10 @@
  * Simplified Session Management Service
  */
 
-// @ts-nocheck
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+type AccessEvent = Database['public']['Enums']['access_event'];
 
 export interface SessionInfo {
   id: string;
@@ -30,7 +32,7 @@ export interface SecurityEvent {
 /**
  * Get user sessions (simplified)
  */
-export async function getUserSessions(userId: string): Promise<SessionInfo[]> {
+export async function getUserSessions(_userId: string): Promise<SessionInfo[]> {
   try {
     // Use a simplified approach since the complex table doesn't exist
     return [{
@@ -102,14 +104,14 @@ export async function logSecurityEvent(
   ipAddress?: string,
   userAgent?: string,
   success = true,
-  details: Record<string, any> = {}
+  _details: Record<string, any> = {}
 ): Promise<boolean> {
   try {
     const { error } = await supabase
       .from('access_logs')
       .insert({
         user_id: userId,
-        event: eventType as any,
+        event: eventType as AccessEvent,
         ip: ipAddress,
         user_agent: userAgent,
         success: success
