@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
-import { Notification, NotificationType } from '@/types/notifications';
+import type { Notification } from '@/lib/typeAdapters/notificationAdapter';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,7 +45,7 @@ const NotificationsPage: React.FC = () => {
     deleteNotification,
   } = useNotifications(currentUser?.id);
 
-  const [filter, setFilter] = useState<'all' | NotificationType>('all');
+  const [filter, setFilter] = useState<'all' | string>('all');
 
   useEffect(() => {
     const getUser = async () => {
@@ -55,7 +55,7 @@ const NotificationsPage: React.FC = () => {
     getUser();
   }, []);
 
-  const getNotificationIcon = (type: NotificationType) => {
+  const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'transaction':
         return <DollarSign className="h-5 w-5" />;
@@ -76,16 +76,16 @@ const NotificationsPage: React.FC = () => {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityColor = (priority: string | null) => {
     switch (priority) {
-      case 'urgent':
-        return 'destructive';
       case 'high':
-        return 'default';
+        return 'destructive';
       case 'medium':
         return 'secondary';
-      default:
+      case 'low':
         return 'outline';
+      default:
+        return 'secondary';
     }
   };
 
@@ -94,14 +94,11 @@ const NotificationsPage: React.FC = () => {
     : notifications.filter(n => n.type === filter);
 
   const handleNotificationClick = (notification: Notification) => {
-    if (notification.status === 'unread') {
+    if (!notification.read_at) {
       markAsRead(notification.id);
     }
-    if (notification.action_url) {
-      navigate(notification.action_url);
-    } else {
-      navigate(`/notifications/${notification.id}`);
-    }
+    // No action_url in database schema - just navigate to detail page
+    navigate(`/notifications/${notification.id}`);
   };
 
   if (loading) {
@@ -154,15 +151,14 @@ const NotificationsPage: React.FC = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="all" className="w-full" onValueChange={(v) => setFilter(v as 'all' | NotificationType)}>
+      <Tabs defaultValue="all" className="w-full" onValueChange={(v) => setFilter(v as 'all' | string)}>
         <TabsList className="w-full justify-start">
           <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="transaction">Transactions</TabsTrigger>
-          <TabsTrigger value="alert">Alerts</TabsTrigger>
-          <TabsTrigger value="yield">Yield</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="document">Documents</TabsTrigger>
+          <TabsTrigger value="deposit">Deposits</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="statement">Statements</TabsTrigger>
           <TabsTrigger value="support">Support</TabsTrigger>
+          <TabsTrigger value="system">System</TabsTrigger>
         </TabsList>
 
         <TabsContent value={filter} className="space-y-4 mt-6">
@@ -183,14 +179,14 @@ const NotificationsPage: React.FC = () => {
                   <Card
                     key={notification.id}
                     className={`cursor-pointer transition-all hover:shadow-md ${
-                      notification.status === 'unread' ? 'border-l-4 border-l-blue-500' : ''
+                      !notification.read_at ? 'border-l-4 border-l-blue-500' : ''
                     }`}
                     onClick={() => handleNotificationClick(notification)}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start gap-4">
                         <div className={`p-2 rounded-full ${
-                          notification.status === 'unread' ? 'bg-blue-100' : 'bg-gray-100'
+                          !notification.read_at ? 'bg-blue-100' : 'bg-gray-100'
                         }`}>
                           {getNotificationIcon(notification.type)}
                         </div>
@@ -200,15 +196,17 @@ const NotificationsPage: React.FC = () => {
                             <div className="flex-1">
                               <h3 className="font-semibold flex items-center gap-2">
                                 {notification.title}
-                                {notification.status === 'unread' && (
+                                {!notification.read_at && (
                                   <Badge variant="default" className="text-xs">New</Badge>
                                 )}
-                                <Badge variant={getPriorityColor(notification.priority)}>
-                                  {notification.priority}
-                                </Badge>
+                                {notification.priority && (
+                                  <Badge variant={getPriorityColor(notification.priority)}>
+                                    {notification.priority}
+                                  </Badge>
+                                )}
                               </h3>
                               <p className="text-sm text-muted-foreground mt-1">
-                                {notification.message}
+                                {notification.body}
                               </p>
                             </div>
 
@@ -219,7 +217,7 @@ const NotificationsPage: React.FC = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                {notification.status === 'unread' && (
+                                {!notification.read_at && (
                                   <DropdownMenuItem onClick={(e) => {
                                     e.stopPropagation();
                                     markAsRead(notification.id);

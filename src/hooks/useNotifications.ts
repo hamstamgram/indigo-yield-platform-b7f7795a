@@ -39,23 +39,11 @@ export function useNotifications(userId?: string) {
     }
   }, [userId]);
 
-  // Fetch settings
+  // Settings feature not implemented yet (no notification_settings table)
   const fetchSettings = useCallback(async () => {
-    if (!userId) return;
-
-    try {
-      const { data, error } = await supabase
-        .from("notification_settings")
-        .select("*")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      if (error && error.code !== "PGRST116") throw error;
-      setSettings(data);
-    } catch (error) {
-      console.error("Error fetching notification settings:", error);
-    }
-  }, [userId]);
+    // TODO: Implement when notification_settings table is created
+    setSettings(null);
+  }, []);
 
   // Mark notification as read
   const markAsRead = useCallback(async (notificationId: string) => {
@@ -123,39 +111,16 @@ export function useNotifications(userId?: string) {
     }
   }, [notifications]);
 
-  // Update settings
+  // Update settings - not implemented (no notification_settings table)
   const updateSettings = useCallback(
-    async (updates: Partial<NotificationSettings>) => {
-      if (!userId) return;
-
-      try {
-        const { data, error } = await supabase
-          .from("notification_settings")
-          .upsert({
-            user_id: userId,
-            ...updates,
-            updated_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-        setSettings(data);
-
-        toast({
-          title: "Settings updated",
-          description: "Your notification preferences have been saved.",
-        });
-      } catch (error) {
-        console.error("Error updating notification settings:", error);
-        toast({
-          title: "Error",
-          description: "Failed to update notification settings.",
-          variant: "destructive",
-        });
-      }
+    async (_updates: Partial<NotificationSettings>) => {
+      toast({
+        title: "Not available",
+        description: "Notification settings feature is not yet implemented.",
+        variant: "destructive",
+      });
     },
-    [userId, toast]
+    [toast]
   );
 
   // Setup real-time subscription
@@ -219,84 +184,36 @@ export function useNotifications(userId?: string) {
     loading,
     markAsRead,
     markAllAsRead,
+    archiveNotification: deleteNotification, // Alias for compatibility
     deleteNotification,
     updateSettings,
     refreshNotifications: fetchNotifications,
   };
 }
 
-export function usePriceAlerts(userId?: string) {
-  const [alerts, setAlerts] = useState<PriceAlert[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchAlerts = useCallback(async () => {
-    if (!userId) return;
-
-    try {
-      const { data, error } = await supabase
-        .from("price_alerts")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setAlerts(data || []);
-    } catch (error) {
-      console.error("Error fetching price alerts:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
+// Price alerts feature not implemented (no price_alerts table in database)
+export function usePriceAlerts(_userId?: string) {
+  const [alerts] = useState<PriceAlert[]>([]);
+  const [loading] = useState(false);
 
   const createAlert = useCallback(
-    async (alert: Omit<PriceAlert, "id" | "created_at" | "updated_at">) => {
-      try {
-        const { data, error } = await supabase.from("price_alerts").insert(alert).select().single();
-
-        if (error) throw error;
-        setAlerts((prev) => [data, ...prev]);
-        return data;
-      } catch (error) {
-        console.error("Error creating price alert:", error);
-        throw error;
-      }
+    async (_alert: Omit<PriceAlert, "id" | "created_at" | "updated_at">) => {
+      throw new Error("Price alerts feature not yet implemented");
     },
     []
   );
 
-  const updateAlert = useCallback(async (alertId: string, updates: Partial<PriceAlert>) => {
-    try {
-      const { data, error } = await supabase
-        .from("price_alerts")
-        .update(updates)
-        .eq("id", alertId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      setAlerts((prev) => prev.map((a) => (a.id === alertId ? data : a)));
-      return data;
-    } catch (error) {
-      console.error("Error updating price alert:", error);
-      throw error;
-    }
+  const updateAlert = useCallback(async (_alertId: string, _updates: Partial<PriceAlert>) => {
+    throw new Error("Price alerts feature not yet implemented");
   }, []);
 
-  const deleteAlert = useCallback(async (alertId: string) => {
-    try {
-      const { error } = await supabase.from("price_alerts").delete().eq("id", alertId);
-
-      if (error) throw error;
-      setAlerts((prev) => prev.filter((a) => a.id !== alertId));
-    } catch (error) {
-      console.error("Error deleting price alert:", error);
-      throw error;
-    }
+  const deleteAlert = useCallback(async (_alertId: string) => {
+    throw new Error("Price alerts feature not yet implemented");
   }, []);
 
-  useEffect(() => {
-    fetchAlerts();
-  }, [fetchAlerts]);
+  const fetchAlerts = useCallback(async () => {
+    // No-op - feature not implemented
+  }, []);
 
   return {
     alerts,
