@@ -267,7 +267,7 @@ const ExpertInvestorDashboard = () => {
         </TabsContent>
 
         <TabsContent value="fees" className="mt-6">
-          <InvestorFeeManager investor={investor} fees={fees} onUpdate={fetchInvestorData} />
+          <InvestorFeeManager investor={investor} fees={fees} />
         </TabsContent>
 
         <TabsContent value="profile" className="mt-6">
