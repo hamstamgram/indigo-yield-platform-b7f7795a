@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth/context";
-import { Loader2, UserCheck, UserMinus, Mail } from "lucide-react";
+import { Loader2, UserCheck, UserMinus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -74,7 +74,7 @@ const AdminUsersList = () => {
 
   const toggleAdminStatus = async (userId: string, currentStatus: boolean) => {
     try {
-      const { data, error } = await supabase.rpc('update_user_profile_secure', {
+      const { error } = await supabase.rpc('update_user_profile_secure', {
         p_user_id: userId,
         p_status: !currentStatus ? 'Admin' : 'Active'
       });

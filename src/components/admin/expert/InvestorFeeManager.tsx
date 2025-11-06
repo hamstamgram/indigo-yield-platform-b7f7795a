@@ -1,9 +1,6 @@
-import React from 'react';
+import type React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { DollarSign, TrendingUp, Calendar } from 'lucide-react';
 import { UnifiedInvestorData } from '@/services/expertInvestorService';
 import { formatAssetValue } from '@/utils/kpiCalculations';
@@ -14,14 +11,11 @@ interface InvestorFeeManagerProps {
     totalFeesCollected: number;
     monthlyFees: number;
     yearToDateFees: number;
-  };
-  onUpdate: () => void;
 }
 
 const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({
   investor,
   fees,
-  onUpdate
 }) => {
   return (
     <div className="space-y-6">

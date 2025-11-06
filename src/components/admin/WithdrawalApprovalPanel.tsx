@@ -14,7 +14,7 @@
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { formatMoney, formatCrypto, toDecimal } from '@/utils/financial';
+import { formatCrypto, toDecimal } from '@/utils/financial';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,7 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Check, X, AlertTriangle, ExternalLink, Copy } from 'lucide-react';
+import { Loader2, Check, X, AlertTriangle, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface WithdrawalRequest {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { adminServiceV2, type InvestorSummaryV2 } from '@/services/adminServiceV2';
 import InvestorManagementTabs from './investor/InvestorManagementTabs';
 import { toast } from 'sonner';
