@@ -2,6 +2,8 @@
 /**
  * Reports API Service
  * Handles all report-related API calls
+ * NOTE: This file uses database tables (report_definitions, generated_reports, etc.)
+ * that may not exist yet. Keeping @ts-nocheck until schema is confirmed.
  */
 
 import { supabase } from '@/integrations/supabase/client';

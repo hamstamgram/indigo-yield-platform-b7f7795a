@@ -1,9 +1,7 @@
-// @ts-nocheck
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
-type Position = Database['public']['Tables']['positions']['Row'];
-type InvestorPosition = Database['public']['Tables']['investor_positions']['Row'];
+type DbPosition = Database['public']['Tables']['positions']['Row'];
 
 export interface InvestorPositionDetail {
   fundId: string;
@@ -16,8 +14,8 @@ export interface InvestorPositionDetail {
   costBasis: number;
   unrealizedPnl: number;
   realizedPnl: number;
-  lastTransactionDate?: string;
-  lockUntilDate?: string;
+  lastTransactionDate?: string | null;
+  lockUntilDate?: string | null;
 }
 
 export interface InvestorSummary {
@@ -29,9 +27,9 @@ export interface InvestorSummary {
   totalEarned: number;
   totalPrincipal: number;
   positionCount: number;
-  kycStatus?: string;
-  amlStatus?: string;
-  onboardingDate?: string;
+  kycStatus?: string | null;
+  amlStatus?: string | null;
+  onboardingDate?: string | null;
 }
 
 /**
@@ -87,8 +85,8 @@ export class InvestorDataService {
       const processedAssets = new Set<string>();
 
       // Process main positions first (primary source)
-      positions?.forEach((pos: any) => {
-        const fundPosition = fundPositions?.find(fp => fp.funds?.asset === pos.asset_code);
+      positions?.forEach((pos) => {
+        const fundPosition = fundPositions?.find((fp: any) => fp.funds?.asset === pos.asset_code);
         
         combinedPositions.push({
           fundId: fundPosition?.fund_id || crypto.randomUUID(),
@@ -109,14 +107,14 @@ export class InvestorDataService {
       });
 
       // Add fund positions not covered by main positions table
-      fundPositions?.forEach((fp: any) => {
-        if (!processedAssets.has(fp.funds?.asset)) {
+      fundPositions?.forEach((fp) => {
+        if (!processedAssets.has((fp as any).funds?.asset)) {
           combinedPositions.push({
             fundId: fp.fund_id,
-            fundName: fp.funds?.name || 'Unknown Fund',
-            fundCode: fp.funds?.code || 'N/A',
-            asset: fp.funds?.asset || 'Unknown',
-            fundClass: fp.fund_class || fp.funds?.fund_class || 'Standard',
+            fundName: (fp as any).funds?.name || 'Unknown Fund',
+            fundCode: (fp as any).funds?.code || 'N/A',
+            asset: (fp as any).funds?.asset || 'Unknown',
+            fundClass: fp.fund_class || (fp as any).funds?.fund_class || 'Standard',
             shares: Number(fp.shares) || 0,
             currentValue: Number(fp.current_value) || 0,
             costBasis: Number(fp.cost_basis) || 0,
@@ -233,7 +231,7 @@ export class InvestorDataService {
   /**
    * Get user's own positions (for investor dashboard)
    */
-  async getUserPositions(userId: string): Promise<Position[]> {
+  async getUserPositions(userId: string): Promise<DbPosition[]> {
     try {
       const { data, error } = await supabase
         .from('positions')

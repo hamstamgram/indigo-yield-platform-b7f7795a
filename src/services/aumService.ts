@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * AUM (Assets Under Management) Service
  * Handles fund AUM management and automated yield distribution
@@ -6,13 +5,16 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
+// Note: transaction_type_v2 enum may not exist yet, using string literal union as fallback
+type TransactionType = 'DEPOSIT' | 'WITHDRAWAL' | 'FEE' | 'INTEREST';
+
 export interface FundAUM {
   id: string;
   fund_id: string;
   aum_date: string;
   total_aum: number;
   investor_count: number;
-  updated_by?: string;
+  updated_by?: string | null;
   created_at: string;
   updated_at: string;
   fund?: {
@@ -90,10 +92,11 @@ async function getDayTransactions(fundId: string, date: string): Promise<DailyTr
     let withdrawals = 0;
 
     data?.forEach((transaction) => {
-      if (transaction.type === 'DEPOSIT') {
-        deposits += transaction.amount;
-      } else if (transaction.type === 'WITHDRAWAL') {
-        withdrawals += transaction.amount;
+      const txType = transaction.type as TransactionType;
+      if (txType === 'DEPOSIT') {
+        deposits += Number(transaction.amount);
+      } else if (txType === 'WITHDRAWAL') {
+        withdrawals += Number(transaction.amount);
       }
     });
 
@@ -246,7 +249,7 @@ export async function updateInvestorAUMPercentages(
   totalAUM?: number
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { data, error } = await supabase.rpc('update_investor_aum_percentages', {
+    const { error } = await supabase.rpc('update_investor_aum_percentages', {
       p_fund_id: fundId,
       p_total_aum: totalAUM
     });

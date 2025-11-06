@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -7,7 +6,7 @@ type Profile = Database['public']['Tables']['profiles']['Row'];
 export interface AuthUser {
   id: string;
   email: string;
-  profile?: Profile;
+  profile?: Profile | null;
 }
 
 export interface LoginCredentials {

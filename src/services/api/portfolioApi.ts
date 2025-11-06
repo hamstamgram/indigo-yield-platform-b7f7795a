@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -193,7 +192,7 @@ const getRecentTransactions = async (userId: string, limit: number = 10) => {
   }
 };
 
-const updatePosition = async (positionId: string, updates: any) => {
+const updatePosition = async (_positionId: string, _updates: any) => {
   try {
     // Placeholder implementation
     return { data: null, error: null };

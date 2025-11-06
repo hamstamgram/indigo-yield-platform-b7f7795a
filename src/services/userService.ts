@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { supabase } from "@/integrations/supabase/client";
 import { InvestorFormValues } from "@/components/admin/investors/InvestorForm";
 import { User } from "@supabase/supabase-js";
@@ -91,7 +90,7 @@ export const createOrFindInvestorUser = async (values: InvestorFormValues): Prom
       }
       
       if (authData?.user) {
-        console.log("Signup response: Success", signupError ? `Error: ${signupError.message}` : "No errors");
+        console.log("Signup response: Success - No errors");
         console.log("New user created with ID:", authData.user.id);
         return authData.user.id;
       } else {

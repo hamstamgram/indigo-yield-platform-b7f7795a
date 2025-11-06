@@ -1,9 +1,11 @@
-// @ts-nocheck
 /**
  * Bulk Operations Service - Handles CSV import/export and bulk data operations
  */
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import * as XLSX from 'xlsx';
+
+type AssetCode = Database['public']['Enums']['asset_code'];
 
 export interface PositionImportRow {
   investor_email: string;
@@ -133,7 +135,7 @@ export async function importPositionsFromCSV(
         // Upsert position
         const positionData = {
           user_id: profile.id,
-          asset_code: row.asset_symbol as any, // Type cast to handle enum
+          asset_code: row.asset_symbol as AssetCode,
           current_balance: parseFloat(row.balance),
           principal: row.principal ? parseFloat(row.principal) : parseFloat(row.balance),
           total_earned: 0
@@ -199,7 +201,7 @@ export async function bulkBalanceAdjustment(
         .from('positions')
         .select('current_balance')
         .eq('user_id', adjustment.investor_id)
-        .eq('asset_code', adjustment.asset_code as any)
+        .eq('asset_code', adjustment.asset_code as AssetCode)
         .single();
 
       if (fetchError || !position) {
@@ -221,7 +223,7 @@ export async function bulkBalanceAdjustment(
         .from('positions')
         .update({ current_balance: newBalance })
         .eq('user_id', adjustment.investor_id)
-        .eq('asset_code', adjustment.asset_code as any);
+        .eq('asset_code', adjustment.asset_code as AssetCode);
 
       if (updateError) {
         result.errors.push(`Failed to update balance: ${updateError.message}`);
@@ -237,7 +239,7 @@ export async function bulkBalanceAdjustment(
           amount: adjustment.adjustment_amount,
           reason: adjustment.reason,
           currency: adjustment.asset_code,
-          created_by: (await supabase.auth.getUser()).data.user?.id
+          created_by: (await supabase.auth.getUser()).data.user?.id || ''
         });
 
       if (auditError) {
