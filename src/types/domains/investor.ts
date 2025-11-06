@@ -65,10 +65,10 @@ export function mapDbInvestorToInvestor(dbInvestor: DbInvestor): Investor {
   return {
     id: dbInvestor.id,
     email: dbInvestor.email,
-    first_name: dbInvestor.first_name,
-    last_name: dbInvestor.last_name,
-    status: dbInvestor.status as 'Active' | 'Pending' | 'Closed',
-    created_at: dbInvestor.created_at,
-    updated_at: dbInvestor.updated_at,
+    first_name: null,
+    last_name: null,
+    status: (dbInvestor.status || 'Pending') as 'Active' | 'Pending' | 'Closed',
+    created_at: dbInvestor.created_at || new Date().toISOString(),
+    updated_at: dbInvestor.updated_at || new Date().toISOString(),
   };
 }
