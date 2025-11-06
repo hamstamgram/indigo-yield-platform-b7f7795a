@@ -30,15 +30,15 @@ export function AppRoutes() {
     <Suspense fallback={<PageLoadingSpinner />}>
       <Routes>
         {/* Public Routes (no authentication required) */}
-        <PublicRoutes />
+        {PublicRoutes()}
 
         {/* Protected Routes (with DashboardLayout) */}
         <Route path="/" element={<DashboardLayout />}>
           {/* Investor Routes (ProtectedRoute wrapper) */}
-          <InvestorRoutes />
+          {InvestorRoutes()}
 
           {/* Admin Routes (AdminRoute wrapper) */}
-          <AdminRoutes />
+          {AdminRoutes()}
         </Route>
       </Routes>
     </Suspense>

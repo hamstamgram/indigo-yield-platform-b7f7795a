@@ -16,7 +16,8 @@ type AdminInvite = {
   invite_code: string;
   created_at: string;
   expires_at: string;
-  used: boolean;
+  used: boolean | null;
+  created_by: string | null;
 };
 
 const AdminInvites = () => {
@@ -40,7 +41,7 @@ const AdminInvites = () => {
       
       if (error) throw error;
       
-      setInvites(data || []);
+      setInvites((data || []) as AdminInvite[]);
     } catch (error) {
       console.error('Error fetching invites:', error);
       toast({
@@ -105,7 +106,7 @@ const AdminInvites = () => {
       });
       
       // Add the new invite to the state
-      setInvites([data, ...invites]);
+      setInvites([data as AdminInvite, ...invites]);
       setNewEmail("");
     } catch (error) {
       console.error('Error creating invite:', error);
@@ -295,7 +296,7 @@ const AdminInvites = () => {
                               variant="outline"
                               size="icon"
                               onClick={() => sendInvite(invite)}
-                              disabled={!!sending || invite.used}
+                              disabled={!!sending || !!invite.used}
                               title="Send invitation email"
                             >
                               {sending === invite.id ? (
