@@ -1901,7 +1901,6 @@ export type Database = {
           last_name: string | null
           phone: string | null
           postal_code: string | null
-          referral_code: string | null
           state: string | null
           status: string | null
           totp_enabled: boolean | null
@@ -1928,7 +1927,6 @@ export type Database = {
           last_name?: string | null
           phone?: string | null
           postal_code?: string | null
-          referral_code?: string | null
           state?: string | null
           status?: string | null
           totp_enabled?: boolean | null
@@ -1955,7 +1953,6 @@ export type Database = {
           last_name?: string | null
           phone?: string | null
           postal_code?: string | null
-          referral_code?: string | null
           state?: string | null
           status?: string | null
           totp_enabled?: boolean | null
@@ -2851,60 +2848,6 @@ export type Database = {
           success?: boolean
           totp_used?: boolean | null
           user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_preferences: {
-        Row: {
-          created_at: string | null
-          currency_display: string | null
-          date_format: string | null
-          email_marketing: boolean | null
-          email_notifications: boolean | null
-          email_statements: boolean | null
-          email_transactions: boolean | null
-          language: string | null
-          push_notifications: boolean | null
-          push_price_alerts: boolean | null
-          push_transactions: boolean | null
-          theme: string | null
-          timezone: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          currency_display?: string | null
-          date_format?: string | null
-          email_marketing?: boolean | null
-          email_notifications?: boolean | null
-          email_statements?: boolean | null
-          email_transactions?: boolean | null
-          language?: string | null
-          push_notifications?: boolean | null
-          push_price_alerts?: boolean | null
-          push_transactions?: boolean | null
-          theme?: string | null
-          timezone?: string | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          currency_display?: string | null
-          date_format?: string | null
-          email_marketing?: boolean | null
-          email_notifications?: boolean | null
-          email_statements?: boolean | null
-          email_transactions?: boolean | null
-          language?: string | null
-          push_notifications?: boolean | null
-          push_price_alerts?: boolean | null
-          push_transactions?: boolean | null
-          theme?: string | null
-          timezone?: string | null
-          updated_at?: string | null
           user_id?: string
         }
         Relationships: []

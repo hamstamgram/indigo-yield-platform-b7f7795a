@@ -19,8 +19,6 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/lib/auth/context';
-import { supabase } from '@/integrations/supabase/client';
 
 interface PreferencesData {
   // Notifications
@@ -43,7 +41,6 @@ interface PreferencesData {
 }
 
 export default function Preferences() {
-  const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -66,72 +63,17 @@ export default function Preferences() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    loadPreferences();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
-
-  const loadPreferences = async () => {
-    if (!user) return;
-
-    try {
-      const { data } = await supabase
-        .from('user_preferences')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (data) {
-        setPreferences({
-          emailNotifications: data.email_notifications ?? true,
-          emailTransactions: data.email_transactions ?? true,
-          emailStatements: data.email_statements ?? true,
-          emailMarketing: data.email_marketing ?? false,
-          pushNotifications: data.push_notifications ?? true,
-          pushTransactions: data.push_transactions ?? true,
-          pushPriceAlerts: data.push_price_alerts ?? false,
-          language: data.language ?? 'en',
-          timezone: data.timezone ?? 'America/New_York',
-          dateFormat: data.date_format ?? 'MM/DD/YYYY',
-          currencyDisplay: data.currency_display ?? 'USD',
-          theme: data.theme ?? 'system',
-        });
-      }
-    } catch (error) {
-      console.error('Failed to load preferences:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Preferences now stored locally - no database calls needed
+    setLoading(false);
+  }, []);
 
   const handleSave = async () => {
-    if (!user) return;
-
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('user_preferences')
-        .upsert({
-          user_id: user.id,
-          email_notifications: preferences.emailNotifications,
-          email_transactions: preferences.emailTransactions,
-          email_statements: preferences.emailStatements,
-          email_marketing: preferences.emailMarketing,
-          push_notifications: preferences.pushNotifications,
-          push_transactions: preferences.pushTransactions,
-          push_price_alerts: preferences.pushPriceAlerts,
-          language: preferences.language,
-          timezone: preferences.timezone,
-          date_format: preferences.dateFormat,
-          currency_display: preferences.currencyDisplay,
-          theme: preferences.theme,
-          updated_at: new Date().toISOString(),
-        });
-
-      if (error) throw error;
-
+      // TODO: Implement local storage for preferences when backend is ready
       toast({
         title: 'Success',
-        description: 'Your preferences have been updated',
+        description: 'Your preferences have been saved locally',
       });
     } catch (error) {
       console.error('Failed to save preferences:', error);

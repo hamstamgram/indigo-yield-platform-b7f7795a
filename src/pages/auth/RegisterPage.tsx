@@ -28,7 +28,6 @@ const registerSchema = z
       .regex(/[^A-Za-z0-9]/, 'Password must contain a special character'),
     confirmPassword: z.string(),
     phone: z.string().optional(),
-    referralCode: z.string().optional(),
     acceptTerms: z.boolean().refine((val) => val === true, {
       message: 'You must accept the terms and conditions',
     }),
@@ -88,7 +87,6 @@ export default function RegisterPage() {
             first_name: data.firstName,
             last_name: data.lastName,
             phone: data.phone,
-            referral_code: data.referralCode,
           },
         },
       });
@@ -260,16 +258,6 @@ export default function RegisterPage() {
                 {errors.confirmPassword && (
                   <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
                 )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="referralCode">Referral Code (Optional)</Label>
-                <Input
-                  id="referralCode"
-                  placeholder="Enter referral code"
-                  {...register('referralCode')}
-                  disabled={isLoading}
-                />
               </div>
 
               <div className="flex items-start space-x-2">

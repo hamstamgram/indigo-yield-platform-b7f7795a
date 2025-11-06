@@ -15,7 +15,6 @@ const Preferences = lazy(() => import("@/pages/profile/Preferences"));
 const ProfilePrivacy = lazy(() => import("@/pages/profile/Privacy"));
 const LinkedAccounts = lazy(() => import("@/pages/profile/LinkedAccounts"));
 const KYCVerification = lazy(() => import("@/pages/profile/KYCVerification"));
-const Referrals = lazy(() => import("@/pages/profile/Referrals"));
 
 export function ProfileRoutes() {
   return (
@@ -73,14 +72,6 @@ export function ProfileRoutes() {
         element={
           <ProtectedRoute>
             <KYCVerification />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile/referrals"
-        element={
-          <ProtectedRoute>
-            <Referrals />
           </ProtectedRoute>
         }
       />

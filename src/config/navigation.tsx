@@ -18,7 +18,6 @@ import {
   History,
   Link,
   CheckSquare,
-  Gift,
   AlertCircle,
   Upload,
   Folder,
@@ -93,7 +92,6 @@ export const profileNav: NavItem[] = [
     href: "/profile/kyc-verification",
     icon: <CheckSquare className="h-5 w-5" />,
   },
-  { title: "Referrals", href: "/profile/referrals", icon: <Gift className="h-5 w-5" /> },
 ];
 
 // Reports navigation menu - NEW

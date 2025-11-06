@@ -1,10 +1,9 @@
-// @ts-nocheck
 /**
  * Profile Overview Page
  * Main profile page with account summary
  * 
  * TODO: Schema mismatches - profiles table missing: address, city, state, postal_code, country, date_of_birth
- * TODO: Non-existent tables: investments, investor_strategies, referrals
+ * TODO: Non-existent tables: investments, investor_strategies
  */
 
 import { useEffect, useState } from 'react';
@@ -16,11 +15,6 @@ import {
   Lock,
   Link as LinkIcon,
   FileText,
-  Award,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
   CheckCircle,
   AlertCircle,
   Loader2,
@@ -86,24 +80,26 @@ export default function ProfileOverview() {
 
       if (error) throw error;
 
-      setProfileData({
-        firstName: data.first_name,
-        lastName: data.last_name,
-        email: user.email || '',
-        phone: data.phone,
-        address: data.address,
-        city: data.city,
-        state: data.state,
-        postalCode: data.postal_code,
-        country: data.country,
-        dateOfBirth: data.date_of_birth,
-        accountCreated: data.created_at,
-        kycStatus: data.kyc_status,
-        kycVerifiedAt: data.kyc_verified_at,
-        twoFactorEnabled: profile?.totp_verified || false,
-        emailVerified: user.email_confirmed_at != null,
-        phoneVerified: data.phone_verified,
-      });
+      if (data) {
+        setProfileData({
+          firstName: data.first_name ?? undefined,
+          lastName: data.last_name ?? undefined,
+          email: user.email || '',
+          phone: data.phone ?? undefined,
+          address: data.address ?? undefined,
+          city: data.city ?? undefined,
+          state: data.state ?? undefined,
+          postalCode: data.postal_code ?? undefined,
+          country: data.country ?? undefined,
+          dateOfBirth: data.date_of_birth ?? undefined,
+          accountCreated: data.created_at,
+          kycStatus: data.kyc_status ?? undefined,
+          kycVerifiedAt: data.kyc_verified_at ?? undefined,
+          twoFactorEnabled: profile?.totp_verified || false,
+          emailVerified: user.email_confirmed_at != null,
+          phoneVerified: false, // Placeholder until phone verification is implemented
+        });
+      }
     } catch (error) {
       console.error('Failed to load profile data:', error);
     } finally {
@@ -115,39 +111,19 @@ export default function ProfileOverview() {
     if (!user) return;
 
     try {
-      // Load aggregated stats
-      const [investmentsRes, strategiesRes, documentsRes, referralsRes] = await Promise.all([
-        supabase
-          .from('investments')
-          .select('amount, current_value')
-          .eq('investor_id', user.id)
-          .eq('status', 'active'),
-        supabase
-          .from('investor_strategies')
-          .select('id')
-          .eq('investor_id', user.id)
-          .eq('status', 'active'),
-        supabase
-          .from('documents')
-          .select('id')
-          .eq('investor_id', user.id),
-        supabase
-          .from('referrals')
-          .select('id')
-          .eq('referrer_id', user.id)
-          .eq('status', 'completed'),
-      ]);
-
-      const totalInvested = investmentsRes.data?.reduce((sum, inv) => sum + (inv.amount || 0), 0) || 0;
-      const totalValue = investmentsRes.data?.reduce((sum, inv) => sum + (inv.current_value || 0), 0) || 0;
+      // Load aggregated stats from documents only (other tables don't exist yet)
+      const documentsRes = await supabase
+        .from('documents')
+        .select('id')
+        .eq('user_id', user.id);
 
       setStats({
-        totalInvested,
-        totalValue,
-        totalReturn: totalValue - totalInvested,
-        activeStrategies: strategiesRes.data?.length || 0,
+        totalInvested: 0,
+        totalValue: 0,
+        totalReturn: 0,
+        activeStrategies: 0,
         documentsUploaded: documentsRes.data?.length || 0,
-        referralsCount: referralsRes.data?.length || 0,
+        referralsCount: 0,
       });
     } catch (error) {
       console.error('Failed to load account stats:', error);
@@ -280,10 +256,6 @@ export default function ProfileOverview() {
                   <span className="text-sm text-muted-foreground">Documents</span>
                   <span className="font-semibold">{stats.documentsUploaded}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Referrals</span>
-                  <span className="font-semibold">{stats.referralsCount}</span>
-                </div>
               </CardContent>
             </Card>
           )}
@@ -396,22 +368,6 @@ export default function ProfileOverview() {
                         ) : (
                           <AlertCircle className="h-5 w-5 text-amber-600" />
                         )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-
-                <Link to="/profile/referrals">
-                  <Card className="hover:bg-accent transition-colors cursor-pointer">
-                    <CardContent className="flex items-start gap-4 p-6">
-                      <div className="rounded-lg bg-primary/10 p-3">
-                        <Award className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold mb-1">Referral Program</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Invite friends and earn rewards
-                        </p>
                       </div>
                     </CardContent>
                   </Card>
