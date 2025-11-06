@@ -30,24 +30,6 @@ interface InvestorReport {
   report_count: number;
 }
 
-interface MonthlyReportDetail {
-  id: string;
-  investor_id: string;
-  report_month: string;
-  asset_code: string;
-  opening_balance: number;
-  closing_balance: number;
-  additions: number;
-  withdrawals: number;
-  yield_earned: number;
-  aum_manual_override: number | null;
-  entry_date: string | null;
-  exit_date: string | null;
-  edited_by: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
 const InvestorReports = () => {
   const [loading, setLoading] = useState(true);
   const [reports, setReports] = useState<InvestorReport[]>([]);
@@ -152,120 +134,6 @@ const InvestorReports = () => {
     fetchReports();
   }, [selectedMonth]);
 
-  // Generate reports from statements table
-  const _handleGenerateReports = async () => {
-    setSendingReports(true);
-    try {
-      const reportDate = `${selectedMonth}-01`;
-      const [year, month] = selectedMonth.split('-').map(Number);
-
-      // Get current user ID
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-
-      console.log('Generating reports for:', { year, month, reportDate });
-
-      // Fetch statements for the selected month
-      const { data: statements, error: statementsError } = await supabase
-        .from('statements')
-        .select('*')
-        .eq('period_year', year)
-        .eq('period_month', month);
-
-      if (statementsError) throw statementsError;
-
-      if (!statements || statements.length === 0) {
-        toast({
-          title: 'No Statements Found',
-          description: `No statements exist for ${format(parseISO(reportDate), 'MMMM yyyy')}. Please ensure statements are generated first.`,
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      console.log(`Found ${statements.length} statements to process`);
-
-      // Get investor mapping (user_id to investor_id)
-      const userIds = [...new Set(statements.map(s => s.user_id))];
-      const { data: investors, error: investorsError } = await supabase
-        .from('investors')
-        .select('id, profile_id')
-        .in('profile_id', userIds);
-
-      if (investorsError) throw investorsError;
-
-      const userToInvestorMap = (investors || []).reduce((acc, inv) => {
-        if (inv.profile_id) {
-          acc[inv.profile_id] = inv.id;
-        }
-        return acc;
-      }, {} as Record<string, string>);
-
-      let successCount = 0;
-      let errorCount = 0;
-
-      // Process each statement and upsert to investor_monthly_reports
-      for (const statement of statements) {
-        const investorId = userToInvestorMap[statement.user_id];
-
-        if (!investorId) {
-          console.warn(`No investor found for user_id: ${statement.user_id}`);
-          errorCount++;
-          continue;
-        }
-
-        try {
-          const { error: upsertError } = await supabase
-            .from('investor_monthly_reports')
-            .upsert({
-              investor_id: investorId,
-              report_month: reportDate,
-              asset_code: statement.asset_code,
-              opening_balance: statement.begin_balance,
-              closing_balance: statement.end_balance,
-              additions: statement.additions,
-              withdrawals: statement.redemptions || 0,
-              yield_earned: statement.net_income,
-              edited_by: user.id,
-              updated_at: new Date().toISOString()
-            }, {
-              onConflict: 'investor_id,report_month,asset_code'
-            });
-
-          if (upsertError) {
-            console.error('Error upserting report:', upsertError);
-            errorCount++;
-          } else {
-            successCount++;
-          }
-        } catch (err) {
-          console.error('Error processing statement:', err);
-          errorCount++;
-        }
-      }
-
-      // Refresh the reports list
-      await fetchReports();
-
-      toast({
-        title: 'Reports Generated',
-        description: `Successfully generated ${successCount} reports${errorCount > 0 ? ` (${errorCount} errors)` : ''} for ${format(parseISO(reportDate), 'MMMM yyyy')}`,
-      });
-
-    } catch (error: any) {
-      console.error('Error generating reports:', error);
-      toast({
-        title: 'Generation Failed',
-        description: error.message || 'Failed to generate monthly reports',
-        variant: 'destructive',
-      });
-    } finally {
-      setSendingReports(false);
-    }
-  };
-
   // Send reports via email (placeholder for email integration)
   const handleSendReports = async () => {
     setSendingReports(true);
@@ -311,49 +179,6 @@ const InvestorReports = () => {
   const handleViewDetails = (investor: InvestorReport) => {
     setSelectedInvestor(investor);
     setDetailsOpen(true);
-  };
-
-  // Edit report value
-  const handleEditReport = async (report: MonthlyReportDetail, field: string, value: number) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const { error } = await supabase
-        .from('investor_monthly_reports')
-        .update({
-          [field]: value,
-          edited_by: user.id,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', report.id);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Report Updated',
-        description: 'Successfully updated report value',
-      });
-
-      // Refresh data
-      await fetchReports();
-
-      // Refresh details if dialog is open
-      if (selectedInvestor) {
-        const updatedInvestor = reports.find(r => r.investor_id === selectedInvestor.investor_id);
-        if (updatedInvestor) {
-          setSelectedInvestor(updatedInvestor);
-        }
-      }
-
-    } catch (error: any) {
-      console.error('Error updating report:', error);
-      toast({
-        title: 'Update Failed',
-        description: error.message || 'Failed to update report',
-        variant: 'destructive',
-      });
-    }
   };
 
   const formatCurrency = (amount: number) => {

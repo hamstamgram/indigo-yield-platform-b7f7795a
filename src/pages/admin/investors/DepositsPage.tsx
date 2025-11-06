@@ -134,13 +134,13 @@ const DepositsPage = () => {
               {deposits.map((deposit) => (
                 <div key={deposit.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-4">
-                    {getStatusIcon(deposit.status)}
+                    {getStatusIcon(deposit.status || 'pending')}
                     <div>
                       <div className="font-semibold">
                         {deposit.amount} {deposit.asset_symbol}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {new Date(deposit.created_at).toLocaleDateString()}
+                        {deposit.created_at ? new Date(deposit.created_at).toLocaleDateString() : 'N/A'}
                       </div>
                       {deposit.transaction_hash && (
                         <div className="text-xs text-muted-foreground font-mono">
@@ -149,8 +149,8 @@ const DepositsPage = () => {
                       )}
                     </div>
                   </div>
-                  <Badge variant={getStatusColor(deposit.status)}>
-                    {deposit.status}
+                  <Badge variant={getStatusColor(deposit.status || 'pending')}>
+                    {deposit.status || 'pending'}
                   </Badge>
                 </div>
               ))}

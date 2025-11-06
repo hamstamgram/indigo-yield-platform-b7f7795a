@@ -254,7 +254,7 @@ const AdminInvestorDetailPage = () => {
                   <div>
                     <p className="text-sm font-medium">Joined</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(investor.created_at).toLocaleDateString()}
+                      {investor.created_at ? new Date(investor.created_at).toLocaleDateString() : 'N/A'}
                     </p>
                   </div>
                 </div>
