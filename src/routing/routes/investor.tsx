@@ -45,7 +45,6 @@ const SupportTickets = lazy(() => import("@/pages/support/SupportTicketsPage"));
 const NewTicketPage = lazy(() => import("@/pages/support/NewTicketPage"));
 const TicketDetailPage = lazy(() => import("@/pages/support/TicketDetailPage"));
 const LiveChatPage = lazy(() => import("@/pages/support/LiveChatPage"));
-const SupportPage = lazy(() => import("@/pages/SupportPage"));
 
 // Profile Module
 const ProfileOverview = lazy(() => import("@/pages/profile/ProfileOverview"));
@@ -285,7 +284,7 @@ export function InvestorRoutes() {
         path="/support/faq"
         element={
           <ProtectedRoute>
-            <SupportPage />
+            <SupportHubPage />
           </ProtectedRoute>
         }
       />
@@ -293,7 +292,7 @@ export function InvestorRoutes() {
         path="/support/knowledge-base"
         element={
           <ProtectedRoute>
-            <SupportPage />
+            <SupportHubPage />
           </ProtectedRoute>
         }
       />

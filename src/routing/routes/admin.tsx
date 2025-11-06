@@ -12,7 +12,6 @@ const AdminTools = lazy(() => import("@/pages/admin/settings/AdminTools"));
 const AdminInvite = lazy(() => import("@/pages/admin/settings/AdminInvite"));
 const PortfolioDashboard = lazy(() => import("@/pages/admin/PortfolioDashboard"));
 const InvestorManagementView = lazy(() => import("@/components/admin/InvestorManagementView"));
-const InvestorDetail = lazy(() => import("@/pages/admin/InvestorDetail"));
 const AdminOperations = lazy(() => import("@/pages/admin/settings/AdminOperations"));
 const AdminAudit = lazy(() => import("@/pages/admin/settings/AdminAudit"));
 
@@ -21,8 +20,6 @@ const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const AdminInvestorManagement = lazy(() => import("@/pages/admin/AdminInvestorManagement"));
 const AdminInvestorDetailNew = lazy(() => import("@/pages/admin/AdminInvestorDetail"));
 const AdminTransactions = lazy(() => import("@/pages/admin/AdminTransactions"));
-const AdminWithdrawalsNew = lazy(() => import("@/pages/admin/AdminWithdrawals"));
-const AdminDocumentsNew = lazy(() => import("@/pages/admin/AdminDocuments"));
 const AdminCompliance = lazy(() => import("@/pages/admin/AdminCompliance"));
 const AdminReportsNew = lazy(() => import("@/pages/admin/AdminReports"));
 const AdminSettingsNew = lazy(() => import("@/pages/admin/AdminSettings"));
@@ -135,22 +132,6 @@ export function AdminRoutes() {
         element={
           <AdminRoute>
             <AdminTransactions />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/admin/withdrawals-queue"
-        element={
-          <AdminRoute>
-            <AdminWithdrawalsNew />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/admin/documents-queue"
-        element={
-          <AdminRoute>
-            <AdminDocumentsNew />
           </AdminRoute>
         }
       />

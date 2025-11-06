@@ -47,6 +47,10 @@ import {
   Settings2,
   UserPlus,
   Scale,
+  ArrowDownCircle,
+  Mail,
+  Phone,
+  Send,
 } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { NavItem } from "@/types/navigation";
@@ -155,6 +159,30 @@ export const supportNav: NavItem[] = [
     icon: <MessageSquare className="h-5 w-5" />,
   },
   { title: "Live Chat", href: "/support/live-chat", icon: <MessageSquare className="h-5 w-5" /> },
+];
+
+// Withdrawals sub-navigation - NEW
+export const withdrawalsNav: NavItem[] = [
+  {
+    title: "New Withdrawal",
+    href: "/withdrawals/new",
+    icon: <ArrowDownCircle className="h-5 w-5" />,
+  },
+  {
+    title: "Withdrawal History",
+    href: "/withdrawals/history",
+    icon: <History className="h-5 w-5" />,
+  },
+];
+
+// Footer navigation for marketing/legal pages - NEW
+export const footerNav: NavItem[] = [
+  { title: "About Us", href: "/about", icon: <Building2 className="h-5 w-5" /> },
+  { title: "Investment Strategies", href: "/strategies", icon: <TrendingUp className="h-5 w-5" /> },
+  { title: "FAQ", href: "/faq", icon: <HelpCircle className="h-5 w-5" /> },
+  { title: "Contact", href: "/contact", icon: <Mail className="h-5 w-5" /> },
+  { title: "Terms of Service", href: "/terms", icon: <FileText className="h-5 w-5" /> },
+  { title: "Privacy Policy", href: "/privacy", icon: <Shield className="h-5 w-5" /> },
 ];
 
 // Admin navigation groups for better organization
@@ -271,6 +299,30 @@ export const adminNavGroups: NavGroup[] = [
         icon: <Activity className="h-5 w-5" />,
         adminOnly: true,
       },
+      {
+        title: "New Investor",
+        href: "/admin/investors/new",
+        icon: <UserPlus className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
+        title: "Deposits Queue",
+        href: "/admin/investors/deposits",
+        icon: <ArrowDownCircle className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
+        title: "Batch Reports",
+        href: "/admin/reports/batch",
+        icon: <FileSpreadsheet className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
+        title: "Historical Reports",
+        href: "/admin/reports/historical",
+        icon: <History className="h-5 w-5" />,
+        adminOnly: true,
+      },
     ],
   },
   {
@@ -305,6 +357,18 @@ export const adminNavGroups: NavGroup[] = [
         title: "User Management",
         href: "/admin/users",
         icon: <UserPlus className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
+        title: "Admin Invite",
+        href: "/admin-invite",
+        icon: <Mail className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
+        title: "Admin Tools",
+        href: "/admin-tools",
+        icon: <Settings className="h-5 w-5" />,
         adminOnly: true,
       },
     ],
