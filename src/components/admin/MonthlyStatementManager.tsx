@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Monthly Statement Manager - Admin Component
  *

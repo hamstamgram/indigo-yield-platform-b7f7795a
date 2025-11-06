@@ -7,7 +7,7 @@ type AppLogoProps = {
   linkTo?: string;
 };
 
-const AppLogo = ({ className = "h-8 w-auto", showText = false, linkTo }: AppLogoProps) => {
+const AppLogo = ({ className = "h-8 w-auto", linkTo }: AppLogoProps) => {
   const LogoContent = () => (
     <>
       <img 

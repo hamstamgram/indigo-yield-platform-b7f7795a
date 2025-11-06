@@ -13,7 +13,7 @@ interface AdminGuardProps {
 }
 
 export function AdminGuard({ children }: AdminGuardProps) {
-  const { user, profile, loading, isAdmin } = useAuth();
+  const { user, loading, isAdmin } = useAuth();
 
   // Show loading state
   if (loading) {

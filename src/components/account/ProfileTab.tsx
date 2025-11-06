@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, User2, Mail, Phone, Upload, X } from 'lucide-react';
+import { User, User2, Mail, Phone, Upload } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -114,14 +114,6 @@ const ProfileTab = ({ profile, loading, onSave }: ProfileTabProps) => {
     }
   };
 
-  const handleCancelEdit = () => {
-    setEditMode(false);
-    setFirstName(profile?.first_name || '');
-    setLastName(profile?.last_name || '');
-    setPhone(profile?.phone || '');
-    setAvatarUrl(profile?.avatar_url || null);
-    setAvatarFile(null);
-  };
 
   const getInitials = () => {
     if (profile?.first_name && profile?.last_name) {

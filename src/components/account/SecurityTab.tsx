@@ -9,11 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-interface SecurityTabProps {
-  profile: any;
-}
-
-const SecurityTab = ({ profile }: SecurityTabProps) => {
+const SecurityTab = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
