@@ -1,32 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Eye, Search, Filter, Users, DollarSign, TrendingUp, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { expertInvestorService, UnifiedInvestorData } from '@/services/expertInvestorService';
-import { formatAssetValue } from '@/utils/kpiCalculations';
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Eye, Search, Filter, Users, DollarSign, TrendingUp, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { expertInvestorService, UnifiedInvestorData } from "@/services/expertInvestorService";
+import { formatAssetValue } from "@/utils/kpiCalculations";
 
 const ExpertInvestorMasterView = () => {
   const navigate = useNavigate();
   const [investors, setInvestors] = useState<UnifiedInvestorData[]>([]);
   const [filteredInvestors, setFilteredInvestors] = useState<UnifiedInvestorData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('totalAum');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("totalAum");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
     fetchInvestors();
@@ -42,42 +48,49 @@ const ExpertInvestorMasterView = () => {
       const data = await expertInvestorService.getAllInvestorsExpertSummary();
       setInvestors(data);
     } catch (error) {
-      console.error('Error fetching investors:', error);
-      toast.error('Failed to load investor data');
+      console.error("Error fetching investors:", error);
+      toast.error("Failed to load investor data");
     } finally {
       setLoading(false);
     }
   };
 
-  const filterAndSortInvestors = () => {
+  const filterAndSortInvestors = useCallback(() => {
     let filtered = investors;
 
     // Apply search filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(investor => 
-        investor.firstName.toLowerCase().includes(term) ||
-        investor.lastName.toLowerCase().includes(term) ||
-        investor.email.toLowerCase().includes(term)
+      filtered = filtered.filter(
+        (investor) =>
+          investor.firstName.toLowerCase().includes(term) ||
+          investor.lastName.toLowerCase().includes(term) ||
+          investor.email.toLowerCase().includes(term)
       );
     }
 
     // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(investor => investor.status === statusFilter);
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((investor) => investor.status === statusFilter);
     }
 
     // Apply sorting
     filtered.sort((a, b) => {
-      let aValue: any = a[sortBy as keyof UnifiedInvestorData];
-      let bValue: any = b[sortBy as keyof UnifiedInvestorData];
+      let aValue: string | number | Date = a[sortBy as keyof UnifiedInvestorData] as
+        | string
+        | number
+        | Date;
+      let bValue: string | number | Date = b[sortBy as keyof UnifiedInvestorData] as
+        | string
+        | number
+        | Date;
 
-      if (typeof aValue === 'string') {
+      if (typeof aValue === "string" && typeof bValue === "string") {
         aValue = aValue.toLowerCase();
         bValue = bValue.toLowerCase();
       }
 
-      if (sortDirection === 'asc') {
+      if (sortDirection === "asc") {
         return aValue > bValue ? 1 : -1;
       } else {
         return aValue < bValue ? 1 : -1;
@@ -85,27 +98,32 @@ const ExpertInvestorMasterView = () => {
     });
 
     setFilteredInvestors(filtered);
-  };
+  }, [investors, searchTerm, statusFilter, sortBy, sortDirection]);
 
   const handleSort = (column: string) => {
     if (sortBy === column) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       setSortBy(column);
-      setSortDirection('desc');
+      setSortDirection("desc");
     }
   };
 
+  /**
+   * TODO: Update expertInvestorService to return per-asset data
+   * Currently aggregates different assets (BTC + ETH + SOL) which violates native currency requirement
+   * Service should return: aumByAsset: Array<{symbol, amount}>, earningsByAsset: Array<{symbol, amount}>
+   */
   const getTotalStats = () => {
     const totalAum = filteredInvestors.reduce((sum, inv) => sum + inv.totalAum, 0);
     const totalEarnings = filteredInvestors.reduce((sum, inv) => sum + inv.totalEarnings, 0);
     const totalPositions = filteredInvestors.reduce((sum, inv) => sum + inv.positionCount, 0);
-    
+
     return {
       totalAum,
       totalEarnings,
       totalPositions,
-      investorCount: filteredInvestors.length
+      investorCount: filteredInvestors.length,
     };
   };
 
@@ -138,9 +156,7 @@ const ExpertInvestorMasterView = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.investorCount}</div>
-            <p className="text-xs text-muted-foreground">
-              Active investor accounts
-            </p>
+            <p className="text-xs text-muted-foreground">Active investor accounts</p>
           </CardContent>
         </Card>
 
@@ -151,9 +167,7 @@ const ExpertInvestorMasterView = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatAssetValue(stats.totalAum)}</div>
-            <p className="text-xs text-muted-foreground">
-              Across all positions
-            </p>
+            <p className="text-xs text-muted-foreground">⚠️ Per-asset breakdown needed</p>
           </CardContent>
         </Card>
 
@@ -166,9 +180,7 @@ const ExpertInvestorMasterView = () => {
             <div className="text-2xl font-bold text-green-600">
               {formatAssetValue(stats.totalEarnings)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Generated for investors
-            </p>
+            <p className="text-xs text-muted-foreground">⚠️ Per-asset breakdown needed</p>
           </CardContent>
         </Card>
 
@@ -179,9 +191,7 @@ const ExpertInvestorMasterView = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalPositions}</div>
-            <p className="text-xs text-muted-foreground">
-              Active positions
-            </p>
+            <p className="text-xs text-muted-foreground">Active positions</p>
           </CardContent>
         </Card>
       </div>
@@ -205,7 +215,7 @@ const ExpertInvestorMasterView = () => {
                 />
               </div>
             </div>
-            
+
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Filter by status" />
@@ -235,35 +245,35 @@ const ExpertInvestorMasterView = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead 
+                <TableHead
                   className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleSort('lastName')}
+                  onClick={() => handleSort("lastName")}
                 >
                   Investor
                 </TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead 
+                <TableHead
                   className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleSort('totalAum')}
+                  onClick={() => handleSort("totalAum")}
                 >
                   Total AUM
                 </TableHead>
-                <TableHead 
+                <TableHead
                   className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleSort('totalEarnings')}
+                  onClick={() => handleSort("totalEarnings")}
                 >
                   Total Earnings
                 </TableHead>
-                <TableHead 
+                <TableHead
                   className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleSort('positionCount')}
+                  onClick={() => handleSort("positionCount")}
                 >
                   Positions
                 </TableHead>
                 <TableHead>Fee Rate</TableHead>
-                <TableHead 
+                <TableHead
                   className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleSort('onboardingDate')}
+                  onClick={() => handleSort("onboardingDate")}
                 >
                   Joined
                 </TableHead>
@@ -278,46 +288,50 @@ const ExpertInvestorMasterView = () => {
                       <div className="font-medium">
                         {investor.firstName} {investor.lastName}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {investor.email}
-                      </div>
+                      <div className="text-sm text-muted-foreground">{investor.email}</div>
                     </div>
                   </TableCell>
-                  
+
                   <TableCell>
-                    <Badge variant={investor.status === 'active' ? 'default' : 'secondary'}>
+                    <Badge variant={investor.status === "active" ? "default" : "secondary"}>
                       {investor.status}
                     </Badge>
                   </TableCell>
-                  
+
                   <TableCell>
-                    <span className="font-mono font-semibold">
-                      {formatAssetValue(investor.totalAum)}
-                    </span>
+                    <div>
+                      <span className="font-mono font-semibold">
+                        {formatAssetValue(investor.totalAum)}
+                      </span>
+                      <div className="text-xs text-muted-foreground">Per-asset view needed</div>
+                    </div>
                   </TableCell>
-                  
+
                   <TableCell>
-                    <span className="font-mono text-green-600">
-                      {formatAssetValue(investor.totalEarnings)}
-                    </span>
+                    <div>
+                      <span className="font-mono text-green-600">
+                        {formatAssetValue(investor.totalEarnings)}
+                      </span>
+                      <div className="text-xs text-muted-foreground">Per-asset view needed</div>
+                    </div>
                   </TableCell>
-                  
+
                   <TableCell>
                     <span className="font-semibold">{investor.positionCount}</span>
                   </TableCell>
-                  
+
                   <TableCell>
                     <span className="font-mono text-sm">
                       {(investor.feePercentage * 100).toFixed(2)}%
                     </span>
                   </TableCell>
-                  
+
                   <TableCell>
                     <span className="text-sm text-muted-foreground">
                       {new Date(investor.onboardingDate).toLocaleDateString()}
                     </span>
                   </TableCell>
-                  
+
                   <TableCell>
                     <Button
                       size="sm"
