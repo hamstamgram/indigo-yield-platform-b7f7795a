@@ -1,9 +1,11 @@
-// @ts-nocheck
 /**
  * Fund Service - Enhanced fund management with investor allocation
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+type FundStatus = Database['public']['Enums']['fund_status'];
 
 export interface Fund {
   id: string;
@@ -11,27 +13,27 @@ export interface Fund {
   name: string;
   asset: string;
   fund_class: string;
-  status: string;
+  status: FundStatus | null;
   inception_date: string;
-  mgmt_fee_bps?: number;
-  perf_fee_bps?: number;
-  min_investment?: number;
-  strategy?: string;
-  created_at: string;
-  updated_at: string;
+  mgmt_fee_bps: number | null;
+  perf_fee_bps: number | null;
+  min_investment: number | null;
+  strategy: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface InvestorPosition {
   investor_id: string;
   fund_id: string;
-  fund_class: string;
+  fund_class: string | null;
   shares: number;
   cost_basis: number;
   current_value: number;
-  unrealized_pnl: number;
-  realized_pnl: number;
-  aum_percentage: number;
-  last_transaction_date?: string;
+  unrealized_pnl: number | null;
+  realized_pnl: number | null;
+  aum_percentage: number | null;
+  last_transaction_date: string | null;
 }
 
 /**
@@ -62,7 +64,7 @@ export async function getFundById(fundId: string): Promise<Fund | null> {
       .from('funds')
       .select('*')
       .eq('id', fundId)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return data;
@@ -81,7 +83,7 @@ export async function addFundToInvestor(
   initialInvestment: number = 0
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { data, error } = await supabase.rpc('add_fund_to_investor', {
+    const { error } = await supabase.rpc('add_fund_to_investor', {
       p_investor_id: investorId,
       p_fund_id: fundId,
       p_initial_investment: initialInvestment

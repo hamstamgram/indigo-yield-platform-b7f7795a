@@ -1,8 +1,10 @@
-// @ts-nocheck
 /**
  * Position Service - Handles CRUD operations for investor positions
  */
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+type AssetCode = Database['public']['Enums']['asset_code'];
 
 export interface Position {
   user_id: string;
@@ -15,12 +17,12 @@ export interface Position {
 export interface InvestorPositionDetail {
   investor_id: string;
   fund_id: string;
-  fund_class: string;
+  fund_class: string | null;
   shares: number;
   cost_basis: number;
   current_value: number;
-  unrealized_pnl: number;
-  realized_pnl: number;
+  unrealized_pnl: number | null;
+  realized_pnl: number | null;
 }
 
 /**
@@ -200,7 +202,7 @@ export async function removeAssetFromInvestor(
       .from('positions')
       .delete()
       .eq('user_id', investorId)
-      .eq('asset_code', assetSymbol as any); // Type cast to handle enum
+      .eq('asset_code', assetSymbol as AssetCode);
 
     if (error) throw error;
     return true;
@@ -230,12 +232,15 @@ export async function getInvestorPortfolioSummary(investorId: string): Promise<R
     if (error) throw error;
 
     const summary: Record<string, { balance: number; usd_value: number }> = {};
-    data?.forEach(position => {
-      summary[position.asset_code] = {
-        balance: position.current_balance,
-        usd_value: position.current_balance * 1 // TODO: Get actual USD price
-      };
-    });
+    
+    if (data) {
+      data.forEach((position: any) => {
+        summary[position.asset_code] = {
+          balance: Number(position.current_balance) || 0,
+          usd_value: Number(position.current_balance) || 0 // TODO: Get actual USD price
+        };
+      });
+    }
 
     return summary;
   } catch (error) {

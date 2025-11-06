@@ -1,6 +1,15 @@
-// @ts-nocheck
 import { supabase } from "@/integrations/supabase/client";
-import { Investor, Asset } from "@/types/investorTypes";
+
+// Legacy investor type from investorTypes
+interface LegacyInvestor {
+  id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  created_at: string;
+  fee_percentage?: number;
+  portfolio_summary?: Record<string, { balance: number; usd_value: number }>;
+}
 
 /**
  * Checks if the current user has admin privileges
@@ -64,9 +73,9 @@ export const checkAdminStatus = async (): Promise<{isAdmin: boolean | null}> => 
 
 /**
  * Fetches all investors (non-admin users) from the system
- * @returns Array of investors
+ * @returns Array of legacy investors
  */
-export const fetchInvestors = async (): Promise<Investor[]> => {
+export const fetchInvestors = async (): Promise<LegacyInvestor[]> => {
   try {
     // Try to use our new security definer function to avoid RLS issues
     const { data: profilesData, error: functionError } = await supabase
@@ -105,26 +114,24 @@ export const fetchInvestors = async (): Promise<Investor[]> => {
 /**
  * Helper function to map profiles data to investors format
  */
-const mapProfilesToInvestors = (profiles: any[]): Investor[] => {
+const mapProfilesToInvestors = (profiles: any[]): LegacyInvestor[] => {
   if (!profiles || profiles.length === 0) return [];
   
-  return profiles.map(profile => {
-    return {
-      id: profile.id || '',
-      email: profile.email || '',
-      first_name: profile.first_name || '',
-      last_name: profile.last_name || '',
-      created_at: profile.created_at || '',
-      fee_percentage: profile.fee_percentage || 2.0,
-      portfolio_summary: {}
-    } as Investor;
-  });
+  return profiles.map(profile => ({
+    id: profile.id || '',
+    email: profile.email || '',
+    first_name: profile.first_name || null,
+    last_name: profile.last_name || null,
+    created_at: profile.created_at || new Date().toISOString(),
+    fee_percentage: profile.fee_percentage || 2.0,
+    portfolio_summary: {}
+  }));
 };
 
 /**
  * Returns sample investors as a fallback when database queries fail
  */
-const getSampleInvestors = (): Investor[] => {
+const getSampleInvestors = (): LegacyInvestor[] => {
   console.log("Using sample investors data as fallback");
   return [
     {
@@ -156,9 +163,9 @@ const getSampleInvestors = (): Investor[] => {
 
 /**
  * Fetches pending invites that haven't been used yet
- * @returns Array of investors formed from pending invites
+ * @returns Array of legacy investors formed from pending invites
  */
-export const fetchPendingInvites = async (): Promise<Investor[]> => {
+export const fetchPendingInvites = async (): Promise<LegacyInvestor[]> => {
   try {
     const { data: invitesData, error: invitesError } = await supabase
       .from('admin_invites')
@@ -176,11 +183,11 @@ export const fetchPendingInvites = async (): Promise<Investor[]> => {
       return invitesData.map(invite => ({
         id: '',
         email: invite.email,
-        first_name: '',
-        last_name: '',
-        created_at: invite.created_at,
+        first_name: null,
+        last_name: null,
+        created_at: invite.created_at || new Date().toISOString(),
         portfolio_summary: {}
-      })) as Investor[];
+      }));
     }
     
     return [];

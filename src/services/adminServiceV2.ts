@@ -1,6 +1,8 @@
-// @ts-nocheck
 import { supabase } from "@/integrations/supabase/client";
 import { investorDataService } from '@/services/investor/investorDataService';
+import type { InvestorPositionDetail } from '@/services/investor/investorDataService';
+
+type WithdrawalStatus = 'pending' | 'cancelled' | 'processing' | 'approved' | 'completed' | 'rejected';
 
 export interface InvestorSummaryV2 {
   id: string;
@@ -29,20 +31,6 @@ export interface DashboardStatsV2 {
   interest24h: number;
 }
 
-export interface InvestorPositionDetail {
-  fundId: string;
-  fundName: string;
-  fundCode: string;
-  asset: string;
-  fundClass: string;
-  shares: number;
-  currentValue: number;
-  costBasis: number;
-  unrealizedPnl: number;
-  realizedPnl: number;
-  lastTransactionDate?: string;
-  lockUntilDate?: string;
-}
 
 class AdminServiceV2 {
   async getDashboardStats(): Promise<DashboardStatsV2> {
@@ -112,7 +100,7 @@ class AdminServiceV2 {
   }
 
   // Get withdrawal requests with investor details
-  async getWithdrawalRequests(status?: 'pending' | 'cancelled' | 'processing' | 'approved' | 'completed' | 'rejected'): Promise<any[]> {
+  async getWithdrawalRequests(status?: WithdrawalStatus): Promise<any[]> {
     try {
       let query = supabase
         .from('withdrawal_requests')
@@ -135,7 +123,7 @@ class AdminServiceV2 {
   // Update withdrawal request status
   async updateWithdrawalStatus(
     requestId: string, 
-    status: 'pending' | 'cancelled' | 'processing' | 'approved' | 'completed' | 'rejected', 
+    status: WithdrawalStatus, 
     notes?: string
   ): Promise<void> {
     try {
@@ -158,8 +146,8 @@ class AdminServiceV2 {
   // Approve withdrawal request  
   async approveWithdrawal(requestId: string, amount?: number, notes?: string): Promise<void> {
     try {
-      const updates: any = { 
-        status: 'approved' as const,
+      const updates: Record<string, any> = { 
+        status: 'approved' as WithdrawalStatus,
         notes,
         updated_at: new Date().toISOString()
       };
@@ -186,7 +174,7 @@ class AdminServiceV2 {
       const { error } = await supabase
         .from('withdrawal_requests')
         .update({
-          status: 'rejected' as const,
+          status: 'rejected' as WithdrawalStatus,
           rejection_reason: reason,
           notes,
           updated_at: new Date().toISOString()
@@ -209,8 +197,8 @@ class AdminServiceV2 {
     notes?: string
   ): Promise<void> {
     try {
-      const updates: any = {
-        status: 'processing' as const,
+      const updates: Record<string, any> = {
+        status: 'processing' as WithdrawalStatus,
         notes,
         updated_at: new Date().toISOString()
       };
@@ -238,7 +226,7 @@ class AdminServiceV2 {
   }
 
   // Get fund performance data
-  async getFundPerformance(fundId?: string): Promise<any[]> {
+  async getFundPerformance(_fundId?: string): Promise<any[]> {
     try {
       const { data, error } = await supabase
         .from('daily_nav')
@@ -255,7 +243,7 @@ class AdminServiceV2 {
   }
 
   // Get transaction history
-  async getTransactionHistory(userId?: string): Promise<any[]> {
+  async getTransactionHistory(_userId?: string): Promise<any[]> {
     try {
       const { data, error } = await supabase
         .from('transactions_v2')
@@ -296,11 +284,11 @@ class AdminServiceV2 {
   // Update investor status
   async updateInvestorStatus(
     investorId: string, 
-    status: 'active' | 'inactive' | 'suspended', 
-    kycStatus?: 'pending' | 'approved' | 'rejected'
+    status: string, 
+    kycStatus?: string
   ): Promise<void> {
     try {
-      const updates: any = { status };
+      const updates: Record<string, any> = { status };
       if (kycStatus) {
         updates.kyc_status = kycStatus;
       }
@@ -415,7 +403,7 @@ class AdminServiceV2 {
       console.error('Health check failed:', error);
       return {
         status: 'error',
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         lastChecked: new Date().toISOString()
       };
     }
