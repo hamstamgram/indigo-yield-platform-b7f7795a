@@ -16,7 +16,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { withdrawalRequestSchema, type WithdrawalRequestInput } from '@/lib/validation/schemas';
-import { toDecimal, formatMoney, formatCrypto, validatePositiveAmount } from '@/utils/financial';
+import { toDecimal, formatMoney, formatCrypto } from '@/utils/financial';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,7 +24,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, AlertTriangle, Check, Info } from 'lucide-react';
+import { Loader2, AlertTriangle, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Position {
@@ -41,7 +41,6 @@ interface WithdrawalRequestFormProps {
 
 export function WithdrawalRequestForm({ positions, onSuccess, onCancel }: WithdrawalRequestFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showTOTPInput, setShowTOTPInput] = useState(false);
   const { toast } = useToast();
 
   const {

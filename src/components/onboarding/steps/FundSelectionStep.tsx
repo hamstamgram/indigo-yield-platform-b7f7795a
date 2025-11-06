@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Target, TrendingUp, Shield, CheckCircle, Info, Bitcoin, Coins } from 'lucide-react';
+import { Target, Shield, CheckCircle, Info, Bitcoin, Coins } from 'lucide-react';
 import { CryptoIcon } from '@/components/CryptoIcons';
 import type { OnboardingData, FundConfiguration } from '@/types/phase3Types';
 

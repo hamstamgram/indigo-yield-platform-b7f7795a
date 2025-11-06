@@ -7,7 +7,7 @@ import BulkDataGenerator from './BulkDataGenerator';
 import { getHistoricalDataSummary } from '@/services/historicalDataService';
 
 const HistoricalReportsDashboard: React.FC = () => {
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [summary, setSummary] = useState({
     totalReports: 0,
     latestMonth: null as string | null,

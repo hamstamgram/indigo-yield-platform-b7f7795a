@@ -20,7 +20,7 @@ export class TOTPService {
    * Simplified TOTP service that works with existing database schema
    */
   
-  static async getTOTPSettings(userId: string): Promise<TOTPSettings | null> {
+  static async getTOTPSettings(_userId: string): Promise<TOTPSettings | null> {
     try {
       // For now, return null until TOTP tables are properly set up
       return null;
@@ -30,7 +30,7 @@ export class TOTPService {
     }
   }
 
-  static async initializeTOTP(userId: string): Promise<{ 
+  static async initializeTOTP(_userId: string): Promise<{ 
     secret: string; 
     qrCode: string; 
     backupCodes: string[]; 
@@ -48,7 +48,7 @@ export class TOTPService {
     }
   }
 
-  static async completeTOTPSetup(userId: string, verificationCode: string): Promise<{ 
+  static async completeTOTPSetup(_userId: string, _verificationCode: string): Promise<{ 
     success: boolean; 
     backupCodes?: string[]; 
     error?: string; 
@@ -68,7 +68,7 @@ export class TOTPService {
     }
   }
 
-  static async verifyTOTP(userId: string, code: string, isBackupCode: boolean = false): Promise<{
+  static async verifyTOTP(_userId: string, _code: string, isBackupCode: boolean = false): Promise<{
     success: boolean;
     remaining_attempts?: number;
     locked_until?: string;
@@ -113,7 +113,7 @@ export class TOTPService {
     }
   }
 
-  static async regenerateBackupCodes(userId: string): Promise<BackupCodeGenerationResult> {
+  static async regenerateBackupCodes(_userId: string): Promise<BackupCodeGenerationResult> {
     try {
       // Simplified implementation
       return {
@@ -129,7 +129,7 @@ export class TOTPService {
     }
   }
 
-  static async getUserBackupCodes(userId: string): Promise<string[]> {
+  static async getUserBackupCodes(_userId: string): Promise<string[]> {
     try {
       // Simplified implementation
       return ['123456', '789012', '345678'];

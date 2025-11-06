@@ -309,7 +309,6 @@ export class TOTPUtils {
  * React hook for TOTP management
  */
 export function useTOTP() {
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const generateSecret = () => {
@@ -345,7 +344,6 @@ export function useTOTP() {
     generateQRCode,
     verifyTOTP,
     generateBackupCodes,
-    isLoading,
     error,
     clearError,
   };

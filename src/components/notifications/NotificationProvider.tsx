@@ -1,6 +1,6 @@
-import React, { createContext, useContext } from 'react';
+import { createContext, useContext } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
-import { Notification, NotificationSettings, PriceAlert } from '@/types/notifications';
+import { Notification, NotificationSettings } from '@/types/notifications';
 
 interface NotificationContextType {
   notifications: Notification[];

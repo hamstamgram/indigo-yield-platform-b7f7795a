@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { InvestorSummaryV2, adminServiceV2 } from "@/services/adminServiceV2";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { toast } from "sonner";
-import { Eye, UserCheck, UserX, Search } from "lucide-react";
+import { Eye, UserCheck, Search } from "lucide-react";
 
 interface InvestorManagementPanelProps {
   investors: InvestorSummaryV2[];
@@ -67,18 +67,6 @@ export function InvestorManagementPanel({ investors, onDataChange }: InvestorMan
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge className="bg-green-100 text-green-800">Active</Badge>;
-      case 'inactive':
-        return <Badge variant="secondary">Inactive</Badge>;
-      case 'suspended':
-        return <Badge variant="destructive">Suspended</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
 
   return (
     <Card>

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Plus } from "lucide-react";
 import { Asset } from "@/types/investorTypes";
-import { supabase } from "@/integrations/supabase/client";
+
 import { useToast } from "@/hooks/use-toast";
 import { addAssetToInvestor } from "@/services/positionService";
 
