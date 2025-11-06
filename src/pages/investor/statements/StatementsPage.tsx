@@ -1,143 +1,176 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Download, Calendar, TrendingUp, Info, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { FileText, Download, Calendar, TrendingUp, Info, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const StatementsPage = () => {
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
-  const [selectedAsset, setSelectedAsset] = useState<string>('all');
+  const [selectedAsset, setSelectedAsset] = useState<string>("all");
 
   // Fetch user's statements from investor_monthly_reports
-  const { data: statements, isLoading, error } = useQuery({
-    queryKey: ['monthly-statements', selectedYear, selectedAsset],
+  const {
+    data: statements,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["monthly-statements", selectedYear, selectedAsset],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No authenticated user');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user");
 
       // Get investor record
       const { data: investor } = await supabase
-        .from('investors')
-        .select('id')
-        .eq('profile_id', user.id)
+        .from("investors")
+        .select("id")
+        .eq("profile_id", user.id)
         .maybeSingle();
 
-      if (!investor) throw new Error('No investor record found');
+      if (!investor) throw new Error("No investor record found");
 
       let query = supabase
-        .from('investor_monthly_reports')
-        .select('*')
-        .eq('investor_id', investor.id)
-        .gte('report_month', `${selectedYear}-01-01`)
-        .lte('report_month', `${selectedYear}-12-31`)
-        .order('report_month', { ascending: false });
+        .from("investor_monthly_reports")
+        .select("*")
+        .eq("investor_id", investor.id)
+        .gte("report_month", `${selectedYear}-01-01`)
+        .lte("report_month", `${selectedYear}-12-31`)
+        .order("report_month", { ascending: false });
 
-      if (selectedAsset !== 'all') {
-        query = query.eq('asset_code', selectedAsset);
+      if (selectedAsset !== "all") {
+        query = query.eq("asset_code", selectedAsset);
       }
 
       const { data, error } = await query;
       if (error) throw error;
 
       // Transform data to match old format
-      return (data || []).map(record => ({
+      return (data || []).map((record) => ({
         id: record.id,
         period_year: parseInt(record.report_month.substring(0, 4)),
         period_month: parseInt(record.report_month.substring(5, 7)),
         asset_code: record.asset_code,
-        begin_balance: record.opening_balance?.toString() || '0',
-        additions: record.additions?.toString() || '0',
-        redemptions: record.withdrawals?.toString() || '0',
-        net_income: record.yield_earned?.toString() || '0',
-        end_balance: record.closing_balance?.toString() || '0',
-        rate_of_return_mtd: record.yield_earned && record.opening_balance
-          ? ((parseFloat(record.yield_earned) / parseFloat(record.opening_balance)) * 100).toFixed(4)
-          : '0',
+        begin_balance: record.opening_balance?.toString() || "0",
+        additions: record.additions?.toString() || "0",
+        redemptions: record.withdrawals?.toString() || "0",
+        net_income: record.yield_earned?.toString() || "0",
+        end_balance: record.closing_balance?.toString() || "0",
+        rate_of_return_mtd:
+          record.yield_earned && record.opening_balance
+            ? (
+                (parseFloat(record.yield_earned) / parseFloat(record.opening_balance)) *
+                100
+              ).toFixed(4)
+            : "0",
       }));
     },
   });
 
   // Fetch available years from investor_monthly_reports
   const { data: availableYears } = useQuery({
-    queryKey: ['statement-years'],
+    queryKey: ["statement-years"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No authenticated user');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user");
 
       // Get investor record
       const { data: investor } = await supabase
-        .from('investors')
-        .select('id')
-        .eq('profile_id', user.id)
+        .from("investors")
+        .select("id")
+        .eq("profile_id", user.id)
         .maybeSingle();
 
       if (!investor) return [new Date().getFullYear()];
 
       const { data, error } = await supabase
-        .from('investor_monthly_reports')
-        .select('report_month')
-        .eq('investor_id', investor.id)
-        .order('report_month', { ascending: false });
+        .from("investor_monthly_reports")
+        .select("report_month")
+        .eq("investor_id", investor.id)
+        .order("report_month", { ascending: false });
 
       if (error) throw error;
 
       // Extract unique years from report_month (YYYY-MM-DD)
-      const uniqueYears = [...new Set(data?.map(s => parseInt(s.report_month.substring(0, 4))) || [])];
+      const uniqueYears = [
+        ...new Set(data?.map((s) => parseInt(s.report_month.substring(0, 4))) || []),
+      ];
       return uniqueYears.length > 0 ? uniqueYears : [new Date().getFullYear()];
     },
   });
 
   // Fetch available assets from investor_monthly_reports
   const { data: availableAssets } = useQuery({
-    queryKey: ['statement-assets'],
+    queryKey: ["statement-assets"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No authenticated user');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user");
 
       // Get investor record
       const { data: investor } = await supabase
-        .from('investors')
-        .select('id')
-        .eq('profile_id', user.id)
+        .from("investors")
+        .select("id")
+        .eq("profile_id", user.id)
         .maybeSingle();
 
       if (!investor) return [];
 
       const { data, error } = await supabase
-        .from('investor_monthly_reports')
-        .select('asset_code')
-        .eq('investor_id', investor.id);
+        .from("investor_monthly_reports")
+        .select("asset_code")
+        .eq("investor_id", investor.id);
 
       if (error) throw error;
 
       // Get unique asset codes
-      const uniqueAssets = [...new Set(data?.map(s => s.asset_code) || [])];
+      const uniqueAssets = [...new Set(data?.map((s) => s.asset_code) || [])];
       return uniqueAssets;
     },
   });
 
   const getMonthName = (month: number) => {
     const date = new Date(2000, month - 1, 1);
-    return date.toLocaleString('default', { month: 'long' });
+    return date.toLocaleString("default", { month: "long" });
   };
 
-  const formatCurrency = (value: number, assetCode: string) => {
-    if (['USDT', 'USDC', 'EURC'].includes(assetCode)) {
-      return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    }
-    return `${value.toLocaleString(undefined, { minimumFractionDigits: 8, maximumFractionDigits: 8 })} ${assetCode}`;
+  const formatAssetAmount = (value: number, assetCode: string): string => {
+    const assetConfig: Record<string, { decimals: number; symbol: string }> = {
+      BTC: { decimals: 8, symbol: "BTC" },
+      ETH: { decimals: 8, symbol: "ETH" },
+      SOL: { decimals: 6, symbol: "SOL" },
+      USDT: { decimals: 2, symbol: "USDT" },
+      USDC: { decimals: 2, symbol: "USDC" },
+      EURC: { decimals: 2, symbol: "EURC" }, // NOT $ symbol - native currency
+    };
+
+    const config = assetConfig[assetCode] || { decimals: 4, symbol: assetCode };
+
+    return `${value.toLocaleString("en-US", {
+      minimumFractionDigits: config.decimals,
+      maximumFractionDigits: config.decimals,
+    })} ${config.symbol}`;
   };
 
   const downloadStatement = async (statementId: string) => {
     try {
       // TODO: Implement PDF download
       // For now, show a message
-      alert('PDF download functionality will be implemented soon');
+      alert("PDF download functionality will be implemented soon");
     } catch (error) {
-      console.error('Error downloading statement:', error);
+      console.error("Error downloading statement:", error);
     }
   };
 
@@ -213,9 +246,7 @@ const StatementsPage = () => {
       {error ? (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Error loading statements: {error.message}
-          </AlertDescription>
+          <AlertDescription>Error loading statements: {error.message}</AlertDescription>
         </Alert>
       ) : statements && statements.length > 0 ? (
         <div className="space-y-4">
@@ -238,25 +269,36 @@ const StatementsPage = () => {
                       <div>
                         <p className="text-sm text-muted-foreground">Beginning Balance</p>
                         <p className="text-sm font-medium">
-                          {formatCurrency(parseFloat(statement.begin_balance), statement.asset_code)}
+                          {formatAssetAmount(
+                            parseFloat(statement.begin_balance),
+                            statement.asset_code
+                          )}
                         </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Additions</p>
                         <p className="text-sm font-medium text-green-600">
-                          +{formatCurrency(parseFloat(statement.additions), statement.asset_code)}
+                          +
+                          {formatAssetAmount(parseFloat(statement.additions), statement.asset_code)}
                         </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Net Income</p>
                         <p className="text-sm font-medium text-blue-600">
-                          +{formatCurrency(parseFloat(statement.net_income), statement.asset_code)}
+                          +
+                          {formatAssetAmount(
+                            parseFloat(statement.net_income),
+                            statement.asset_code
+                          )}
                         </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Ending Balance</p>
                         <p className="text-sm font-semibold">
-                          {formatCurrency(parseFloat(statement.end_balance), statement.asset_code)}
+                          {formatAssetAmount(
+                            parseFloat(statement.end_balance),
+                            statement.asset_code
+                          )}
                         </p>
                       </div>
                     </div>
@@ -297,7 +339,8 @@ const StatementsPage = () => {
               <div>
                 <p className="text-lg font-medium">No statements available</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Statements are generated monthly. Your first statement will be available at the end of your first full month of investment.
+                  Statements are generated monthly. Your first statement will be available at the
+                  end of your first full month of investment.
                 </p>
               </div>
             </div>
@@ -312,17 +355,15 @@ const StatementsPage = () => {
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
           <p>
-            • Statements are generated on the first business day of each month for the previous month's activity
+            • Statements are generated on the first business day of each month for the previous
+            month's activity
           </p>
           <p>
-            • Each statement shows your beginning balance, additions, withdrawals, net income, and ending balance
+            • Each statement shows your beginning balance, additions, withdrawals, net income, and
+            ending balance
           </p>
-          <p>
-            • You can download PDF versions of your statements for your records
-          </p>
-          <p>
-            • If you have questions about a statement, please contact your administrator
-          </p>
+          <p>• You can download PDF versions of your statements for your records</p>
+          <p>• If you have questions about a statement, please contact your administrator</p>
         </CardContent>
       </Card>
     </div>

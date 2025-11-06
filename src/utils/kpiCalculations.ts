@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 export interface AssetKPI {
   assetCode: string;
@@ -18,49 +18,69 @@ export interface AssetKPI {
 
 export const calculateTotalAUM = async () => {
   try {
-    const { data } = await supabase.rpc('get_total_aum');
+    const { data } = await supabase.rpc("get_total_aum");
     return data?.[0]?.total_aum || 0;
   } catch (error) {
-    console.error('Error calculating total AUM:', error);
+    console.error("Error calculating total AUM:", error);
     return 0;
   }
 };
 
 export const calculateDailyInterest = async () => {
   try {
-    const { data } = await supabase.rpc('get_24h_interest');
+    const { data } = await supabase.rpc("get_24h_interest");
     return data?.[0]?.interest || 0;
   } catch (error) {
-    console.error('Error calculating daily interest:', error);
+    console.error("Error calculating daily interest:", error);
     return 0;
   }
 };
 
 export const calculateInvestorCount = async () => {
   try {
-    const { data } = await supabase.rpc('get_investor_count');
+    const { data } = await supabase.rpc("get_investor_count");
     return data?.[0]?.count || 0;
   } catch (error) {
-    console.error('Error calculating investor count:', error);
+    console.error("Error calculating investor count:", error);
     return 0;
   }
 };
 
-export const formatAssetValue = (value: number, assetCode?: string) => {
-  if (assetCode === 'USDC' || assetCode === 'USDT' || assetCode === 'EURC') {
-    return value.toFixed(2);
+/**
+ * Format asset value with proper decimals and symbol
+ * CRITICAL: Always display assets in their native currency with symbol
+ */
+export const formatAssetValue = (value: number, assetCode?: string): string => {
+  if (!assetCode) {
+    // If no asset code provided, return generic formatting
+    return value.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 6,
+    });
   }
-  return value.toFixed(6);
+
+  const assetConfig: Record<string, { decimals: number; symbol: string }> = {
+    BTC: { decimals: 8, symbol: "BTC" },
+    ETH: { decimals: 8, symbol: "ETH" },
+    SOL: { decimals: 6, symbol: "SOL" },
+    USDC: { decimals: 2, symbol: "USDC" },
+    USDT: { decimals: 2, symbol: "USDT" },
+    EURC: { decimals: 2, symbol: "EURC" },
+  };
+
+  const config = assetConfig[assetCode] || { decimals: 4, symbol: assetCode };
+
+  return `${value.toLocaleString("en-US", {
+    minimumFractionDigits: config.decimals,
+    maximumFractionDigits: config.decimals,
+  })} ${config.symbol}`;
 };
 
 export const calculateAllKPIs = async (userId: string): Promise<AssetKPI[]> => {
   try {
     // For now, return mock data that matches the expected structure
     // In a real implementation, this would calculate actual KPIs from positions data
-    const { data: positions } = await supabase
-      .from('positions')
-      .select('*')
-      .eq('user_id', userId);
+    const { data: positions } = await supabase.from("positions").select("*").eq("user_id", userId);
 
     if (!positions || positions.length === 0) {
       return [];
@@ -68,12 +88,12 @@ export const calculateAllKPIs = async (userId: string): Promise<AssetKPI[]> => {
 
     // Group positions by asset and calculate KPIs
     const assetMap = new Map<string, AssetKPI>();
-    
-    positions.forEach(position => {
+
+    positions.forEach((position) => {
       const assetCode = position.asset_code;
       const balance = position.current_balance || 0;
       const principal = position.principal || balance;
-      
+
       if (!assetMap.has(assetCode)) {
         assetMap.set(assetCode, {
           assetCode,
@@ -88,7 +108,7 @@ export const calculateAllKPIs = async (userId: string): Promise<AssetKPI[]> => {
             qtdPercentage: 0,
             ytdPercentage: 0,
             itdPercentage: 0,
-          }
+          },
         });
       } else {
         const existing = assetMap.get(assetCode)!;
@@ -99,7 +119,7 @@ export const calculateAllKPIs = async (userId: string): Promise<AssetKPI[]> => {
 
     return Array.from(assetMap.values());
   } catch (error) {
-    console.error('Error calculating KPIs:', error);
+    console.error("Error calculating KPIs:", error);
     return [];
   }
 };

@@ -12,16 +12,16 @@
  * Install: npm install decimal.js
  */
 
-import Decimal from 'decimal.js';
+import Decimal from "decimal.js";
 
 // Configure Decimal.js for financial calculations
 Decimal.set({
-  precision: 20,                    // 20 significant digits
-  rounding: Decimal.ROUND_HALF_UP,  // Standard rounding (0.5 rounds up)
-  toExpNeg: -7,                     // Don't use exponential notation for small numbers
-  toExpPos: 21,                     // Don't use exponential notation for large numbers
-  minE: -9e15,                      // Min exponent
-  maxE: 9e15,                       // Max exponent
+  precision: 20, // 20 significant digits
+  rounding: Decimal.ROUND_HALF_UP, // Standard rounding (0.5 rounds up)
+  toExpNeg: -7, // Don't use exponential notation for small numbers
+  toExpPos: 21, // Don't use exponential notation for large numbers
+  minE: -9e15, // Min exponent
+  maxE: 9e15, // Max exponent
 });
 
 /**
@@ -72,10 +72,7 @@ export function formatCrypto(
  * @param value - The percentage value (e.g., 0.05 for 5%)
  * @param decimals - Number of decimal places (default: 2)
  */
-export function formatPercentage(
-  value: string | number | Decimal,
-  decimals: number = 2
-): string {
+export function formatPercentage(value: string | number | Decimal, decimals: number = 2): string {
   const decimal = toDecimal(value).times(100);
   return `${decimal.toFixed(decimals)}%`;
 }
@@ -98,10 +95,7 @@ export function calculateYield(
   const daysPerYear = toDecimal(365);
 
   // Yield = Principal × Rate × (Days / 365)
-  return principalDecimal
-    .times(rateDecimal)
-    .times(days)
-    .dividedBy(daysPerYear);
+  return principalDecimal.times(rateDecimal).times(days).dividedBy(daysPerYear);
 }
 
 /**
@@ -166,23 +160,17 @@ export function calculateNetAmount(
 }
 
 /**
- * Calculate portfolio value
- * @param positions - Array of {amount, priceUsd}
+ * REMOVED: calculatePortfolioValue
+ *
+ * This function has been removed because it violated the platform's fundamental requirement:
+ * ALL ASSETS MUST BE DISPLAYED IN THEIR NATIVE CURRENCY.
+ *
+ * This function was aggregating different asset types (BTC, ETH, SOL, USDC, etc.) into a single
+ * USD value, which is strictly prohibited. Each asset must be tracked and displayed separately
+ * in its native denomination.
+ *
+ * For per-asset calculations, use the native asset utilities in utils/assetFormatting.ts
  */
-export function calculatePortfolioValue(
-  positions: Array<{ amount: string | number; priceUsd: string | number }>
-): Decimal {
-  let total = toDecimal(0);
-
-  for (const position of positions) {
-    const amount = toDecimal(position.amount);
-    const price = toDecimal(position.priceUsd);
-    const value = amount.times(price);
-    total = total.plus(value);
-  }
-
-  return total;
-}
 
 /**
  * Calculate percentage change
@@ -234,9 +222,7 @@ export function calculateProfitLoss(
  * Calculate average (mean)
  * @param values - Array of values
  */
-export function calculateAverage(
-  values: Array<string | number | Decimal>
-): Decimal {
+export function calculateAverage(values: Array<string | number | Decimal>): Decimal {
   if (values.length === 0) {
     return toDecimal(0);
   }
@@ -293,8 +279,9 @@ export function isInRange(
   const minDecimal = toDecimal(min);
   const maxDecimal = toDecimal(max);
 
-  return valueDecimal.greaterThanOrEqualTo(minDecimal) &&
-         valueDecimal.lessThanOrEqualTo(maxDecimal);
+  return (
+    valueDecimal.greaterThanOrEqualTo(minDecimal) && valueDecimal.lessThanOrEqualTo(maxDecimal)
+  );
 }
 
 /**
@@ -347,7 +334,7 @@ export function fromDbFormat(value: string | null | undefined): Decimal {
  */
 export function validatePositiveAmount(
   value: string | number | Decimal,
-  fieldName: string = 'Amount'
+  fieldName: string = "Amount"
 ): Decimal {
   const decimal = toDecimal(value);
 
@@ -365,7 +352,7 @@ export function validatePositiveAmount(
  */
 export function validateNonNegativeAmount(
   value: string | number | Decimal,
-  fieldName: string = 'Amount'
+  fieldName: string = "Amount"
 ): Decimal {
   const decimal = toDecimal(value);
 
@@ -383,7 +370,7 @@ export function validateNonNegativeAmount(
  */
 export function validatePercentage(
   value: string | number | Decimal,
-  fieldName: string = 'Percentage'
+  fieldName: string = "Percentage"
 ): Decimal {
   const decimal = toDecimal(value);
 
