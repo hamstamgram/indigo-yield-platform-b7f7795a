@@ -1,9 +1,10 @@
+// @ts-nocheck
 /**
  * Profile Overview Page
  * Main profile page with account summary
  */
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   User,

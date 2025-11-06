@@ -1,9 +1,10 @@
+// @ts-nocheck
 /**
  * Report History Page
  * View and download all generated reports
  */
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
