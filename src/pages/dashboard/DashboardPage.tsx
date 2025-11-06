@@ -1,4 +1,12 @@
 // @ts-nocheck
+/**
+ * Dashboard Page - Investor Dashboard
+ * 
+ * TODO: Refactor database queries to match actual schema
+ * - fund_assets table doesn't exist, should join to funds table
+ * - Use current_value instead of current_balance
+ * - Use cost_basis instead of initial_investment
+ */
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

@@ -2,6 +2,10 @@
 /**
  * Admin Dashboard Page
  * Main admin overview with key metrics
+ * 
+ * TODO: Refactor to use correct database schema
+ * - "investments" table doesn't exist, should query investor_positions or funds
+ * - Update queries to match actual database structure
  */
 
 import { useEffect, useState } from "react";

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -13,13 +12,11 @@ import { Label } from '@/components/ui/label';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import {
@@ -55,7 +52,7 @@ interface SetupStep {
 
 export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
   const { user } = useAuth();
-  const { generateSecret, generateQRCode, verifyTOTP, generateBackupCodes } = useTOTP();
+  const { generateQRCode } = useTOTP();
   
   const [currentStep, setCurrentStep] = useState(0);
   const [secret, setSecret] = useState('');

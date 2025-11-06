@@ -1,4 +1,13 @@
 // @ts-nocheck
+/**
+ * Portfolio Page
+ * 
+ * TODO: Refactor database queries to match actual schema
+ * - fund_assets doesn't exist, should join funds table  
+ * - Use current_value instead of current_balance
+ * - Use cost_basis instead of initial_investment
+ * - Remove references to asset_symbol, asset_name (should be from funds table)
+ */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
