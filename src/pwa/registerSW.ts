@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Service Worker Registration for Indigo Yield Platform
 
 export interface ServiceWorkerRegistrationResult {
@@ -142,8 +141,7 @@ export function isAppInstalled(): boolean {
   // Check for display mode
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
   
-  // Check for iOS
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  // Check for iOS standalone mode
   const isIOSStandalone = (window.navigator as any).standalone === true;
   
   return isStandalone || isIOSStandalone;

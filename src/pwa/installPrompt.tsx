@@ -1,5 +1,4 @@
-// @ts-nocheck
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
