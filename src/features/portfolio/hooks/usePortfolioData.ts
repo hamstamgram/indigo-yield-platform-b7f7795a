@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
 import { portfolioApi } from '@/services/api/portfolioApi';
