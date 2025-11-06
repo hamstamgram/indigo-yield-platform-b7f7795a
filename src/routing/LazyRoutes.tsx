@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { lazy } from "react";
 import { RouteSuspense } from "./RouteSuspense";
 
@@ -9,7 +8,7 @@ export const Login = lazy(() => import("@/pages/Login"));
 export const SettingsPage = lazy(() => import("@/pages/investor/account/SettingsPage"));
 
 // Lazy load admin pages
-export const AdminInvestors = lazy(() => import("@/pages/admin/AdminInvestors"));
+export const AdminInvestors = lazy(() => import("@/pages/admin/ExpertInvestorMasterView"));
 export const AdminWithdrawalsPage = lazy(() => import("@/pages/admin/AdminWithdrawalsPage"));
 
 // Lazy load other pages

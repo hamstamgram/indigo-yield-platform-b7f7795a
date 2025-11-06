@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
@@ -47,7 +46,7 @@ interface PortfolioActions {
 }
 
 export const usePortfolioStore = create<PortfolioState & PortfolioActions>()(
-  immer((set, get) => ({
+  immer((set) => ({
     // State
     summary: null,
     positions: [],

@@ -1,7 +1,8 @@
-// @ts-nocheck
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Notification, NotificationSettings, PriceAlert } from "@/types/notifications";
+import { toNotification, toNotifications } from "@/lib/typeAdapters";
+import type { Notification } from "@/lib/typeAdapters/notificationAdapter";
+import type { NotificationSettings, PriceAlert } from "@/types/notifications";
 import { useToast } from "@/hooks/use-toast";
 import { RealtimeChannel } from "@supabase/supabase-js";
 
@@ -25,10 +26,11 @@ export function useNotifications(userId?: string) {
         .limit(50);
 
       if (error) throw error;
-      setNotifications(data || []);
+      const notifications = toNotifications(data || []);
+      setNotifications(notifications);
 
       // Count unread
-      const unread = (data || []).filter((n) => n.status === "unread").length;
+      const unread = notifications.filter((n) => !n.read_at).length;
       setUnreadCount(unread);
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -61,7 +63,6 @@ export function useNotifications(userId?: string) {
       const { error } = await supabase
         .from("notifications")
         .update({
-          status: "read",
           read_at: new Date().toISOString(),
         })
         .eq("id", notificationId);
@@ -71,7 +72,7 @@ export function useNotifications(userId?: string) {
       setNotifications((prev) =>
         prev.map((n) =>
           n.id === notificationId
-            ? { ...n, status: "read" as const, read_at: new Date().toISOString() }
+            ? { ...n, read_at: new Date().toISOString() }
             : n
         )
       );
@@ -89,16 +90,15 @@ export function useNotifications(userId?: string) {
       const { error } = await supabase
         .from("notifications")
         .update({
-          status: "read",
           read_at: new Date().toISOString(),
         })
         .eq("user_id", userId)
-        .eq("status", "unread");
+        .is("read_at", null);
 
       if (error) throw error;
 
       setNotifications((prev) =>
-        prev.map((n) => ({ ...n, status: "read" as const, read_at: new Date().toISOString() }))
+        prev.map((n) => ({ ...n, read_at: new Date().toISOString() }))
       );
       setUnreadCount(0);
     } catch (error) {
@@ -106,26 +106,7 @@ export function useNotifications(userId?: string) {
     }
   }, [userId]);
 
-  // Archive notification
-  const archiveNotification = useCallback(async (notificationId: string) => {
-    try {
-      const { error } = await supabase
-        .from("notifications")
-        .update({
-          status: "archived",
-          archived_at: new Date().toISOString(),
-        })
-        .eq("id", notificationId);
-
-      if (error) throw error;
-
-      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
-    } catch (error) {
-      console.error("Error archiving notification:", error);
-    }
-  }, []);
-
-  // Delete notification
+  // Delete archive/notification functionality (notifications table doesn't have archived_at)
   const deleteNotification = useCallback(async (notificationId: string) => {
     try {
       const { error } = await supabase.from("notifications").delete().eq("id", notificationId);
@@ -133,10 +114,14 @@ export function useNotifications(userId?: string) {
       if (error) throw error;
 
       setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+      setUnreadCount((prev) => {
+        const notification = notifications.find(n => n.id === notificationId);
+        return notification && !notification.read_at ? Math.max(0, prev - 1) : prev;
+      });
     } catch (error) {
       console.error("Error deleting notification:", error);
     }
-  }, []);
+  }, [notifications]);
 
   // Update settings
   const updateSettings = useCallback(
@@ -192,16 +177,15 @@ export function useNotifications(userId?: string) {
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          const newNotification = payload.new as Notification;
+          const newNotification = toNotification(payload.new as any);
           setNotifications((prev) => [newNotification, ...prev]);
           setUnreadCount((prev) => prev + 1);
 
           // Show toast for high priority notifications
-          if (newNotification.priority === "high" || newNotification.priority === "urgent") {
+          if (newNotification.priority === "high") {
             toast({
               title: newNotification.title,
-              description: newNotification.message,
-              variant: newNotification.priority === "urgent" ? "destructive" : "default",
+              description: newNotification.body,
             });
           }
         }
@@ -215,7 +199,7 @@ export function useNotifications(userId?: string) {
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          const updatedNotification = payload.new as Notification;
+          const updatedNotification = toNotification(payload.new as any);
           setNotifications((prev) =>
             prev.map((n) => (n.id === updatedNotification.id ? updatedNotification : n))
           );
@@ -235,7 +219,6 @@ export function useNotifications(userId?: string) {
     loading,
     markAsRead,
     markAllAsRead,
-    archiveNotification,
     deleteNotification,
     updateSettings,
     refreshNotifications: fetchNotifications,

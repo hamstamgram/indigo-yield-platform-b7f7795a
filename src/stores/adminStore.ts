@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
@@ -57,7 +56,7 @@ interface AdminActions {
 }
 
 export const useAdminStore = create<AdminState & AdminActions>()(
-  immer((set, get) => ({
+  immer((set) => ({
     // State
     metrics: null,
     users: [],
