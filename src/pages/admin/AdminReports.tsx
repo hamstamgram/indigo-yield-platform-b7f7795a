@@ -1,4 +1,3 @@
-import React from 'react';
 import InvestorReports from './InvestorReports';
 
 const AdminReports = () => {

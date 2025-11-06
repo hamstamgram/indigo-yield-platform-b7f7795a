@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -99,7 +98,7 @@ export async function checkMFAStatus() {
   return { enrolled: false, verified: false, factors: [] };
 }
 
-export async function verifyMFA(factorId: string, code: string) {
+export async function verifyMFA(_factorId: string, code: string) {
   return { success: code === '123456' };
 }
 

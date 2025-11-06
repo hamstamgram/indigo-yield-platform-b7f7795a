@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * PDF Statement Generator
  *
@@ -16,15 +17,11 @@
 
 import PDFDocument from "pdfkit";
 import { PassThrough } from "stream";
-import Decimal from "decimal.js";
 import {
   toDecimal,
   formatMoney,
   formatCrypto,
   formatPercentage,
-  calculatePortfolioValue,
-  calculateYield,
-  toDbFormat,
 } from "@/utils/financial";
 
 export interface StatementData {

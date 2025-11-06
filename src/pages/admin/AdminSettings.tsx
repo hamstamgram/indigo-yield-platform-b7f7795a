@@ -2,7 +2,6 @@
  * Admin Settings Page - Platform configuration
  */
 
-import React from 'react';
 import { Settings } from 'lucide-react';
 import { AdminGuard } from '@/components/admin/AdminGuard';
 

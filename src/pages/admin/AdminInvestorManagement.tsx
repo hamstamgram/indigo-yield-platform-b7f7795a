@@ -2,7 +2,6 @@
  * Admin Investor Management Page - See all investors
  */
 
-import React from 'react';
 import { Users } from 'lucide-react';
 import { AdminGuard } from '@/components/admin/AdminGuard';
 

@@ -12,7 +12,7 @@
  * - Professional branding
  */
 
-import { toDecimal, formatMoney } from '@/utils/financial';
+import { toDecimal } from '@/utils/financial';
 import Decimal from 'decimal.js';
 
 // Fund icon CDN URLs

@@ -2,7 +2,6 @@
  * Admin User Management Page - Manage admin users
  */
 
-import React from 'react';
 import { UserCog } from 'lucide-react';
 import { AdminGuard } from '@/components/admin/AdminGuard';
 

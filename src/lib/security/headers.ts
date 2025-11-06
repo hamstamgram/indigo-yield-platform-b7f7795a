@@ -31,7 +31,7 @@ export function generateCSP(): string {
     .join('; ');
 }
 
-export function applySecurityHeaders(element: HTMLElement) {
+export function applySecurityHeaders() {
   // Apply security headers as meta tags
   const head = document.head;
   

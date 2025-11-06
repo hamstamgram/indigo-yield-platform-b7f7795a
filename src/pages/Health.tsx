@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Health = () => {
   const timestamp = new Date().toISOString();
   

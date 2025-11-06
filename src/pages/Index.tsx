@@ -1,11 +1,7 @@
-
-import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
-  const isMobile = useIsMobile();
   
   return (
     <div className="min-h-screen w-full bg-white font-sans">

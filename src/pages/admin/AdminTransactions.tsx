@@ -2,7 +2,6 @@
  * Admin Transactions Page - View all platform transactions
  */
 
-import React from 'react';
 import { Activity } from 'lucide-react';
 import { AdminGuard } from '@/components/admin/AdminGuard';
 

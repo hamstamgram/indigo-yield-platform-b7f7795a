@@ -2,7 +2,6 @@
  * Admin Investor Detail Page - Individual investor view
  */
 
-import React from 'react';
 import { useParams } from 'react-router-dom';
 import { User } from 'lucide-react';
 import { AdminGuard } from '@/components/admin/AdminGuard';

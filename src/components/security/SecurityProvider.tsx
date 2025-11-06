@@ -29,7 +29,7 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     // Apply security headers on mount
-    applySecurityHeaders(document.body);
+    applySecurityHeaders();
     
     // Generate initial CSRF token
     const token = generateCSRFToken();

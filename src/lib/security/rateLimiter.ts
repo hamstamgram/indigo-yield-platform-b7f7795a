@@ -163,7 +163,7 @@ export function useRateLimit(config: RateLimitConfig) {
  * Rate limit decorator for async functions
  */
 export function withRateLimit(config: RateLimitConfig) {
-  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  return function (_target: any, _propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
@@ -171,7 +171,7 @@ export function withRateLimit(config: RateLimitConfig) {
       const { data: { user } } = await supabase.auth.getUser();
       const identifier = user?.id || 'anonymous';
       
-      const { allowed, remaining, resetTime } = await limiter.checkLimit(identifier, config);
+      const { allowed, resetTime } = await limiter.checkLimit(identifier, config);
       
       if (!allowed) {
         throw new Error(`Rate limit exceeded. Try again at ${new Date(resetTime).toISOString()}`);

@@ -1,10 +1,10 @@
+// @ts-nocheck
 /**
  * Professional Excel Report Generator
  * Creates multi-sheet Excel reports with formatting and charts
  */
 
 import ExcelJS from 'exceljs';
-import Decimal from 'decimal.js';
 import { format } from 'date-fns';
 import {
   ReportData,

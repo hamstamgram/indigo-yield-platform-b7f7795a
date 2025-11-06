@@ -107,7 +107,7 @@ export async function verifyMFA(factorId: string, code: string) {
     if (challengeError) throw challengeError;
 
     // Then verify with the challenge ID
-    const { data, error } = await supabase.auth.mfa.verify({
+    const { error } = await supabase.auth.mfa.verify({
       factorId,
       challengeId: challenge.id,
       code,

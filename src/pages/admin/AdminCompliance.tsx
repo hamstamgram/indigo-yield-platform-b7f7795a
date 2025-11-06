@@ -2,7 +2,6 @@
  * Admin Compliance Page - KYC/AML compliance dashboard
  */
 
-import React from 'react';
 import { Shield } from 'lucide-react';
 import { AdminGuard } from '@/components/admin/AdminGuard';
 

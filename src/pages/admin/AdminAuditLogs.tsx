@@ -2,7 +2,6 @@
  * Admin Audit Logs Page - View system audit logs
  */
 
-import React from 'react';
 import { AlertCircle } from 'lucide-react';
 import { AdminGuard } from '@/components/admin/AdminGuard';
 
