@@ -29,14 +29,14 @@ interface FundAsset {
 }
 
 interface InvestorPosition {
-  current_balance: number | null;
-  initial_investment: number | null;
+  current_value: number;
+  cost_basis: number;
   fund_assets: FundAsset | null;
 }
 
 interface Transaction {
   id: string;
-  transaction_type: string;
+  type: string;
   created_at: string;
   amount: number;
   status: string;
@@ -76,11 +76,13 @@ export default function DashboardPage() {
       if (error) throw error;
 
       const positions = (data || []) as InvestorPosition[];
-      const totalValue =
-        positions.reduce((sum: number, pos) => sum + (pos.current_balance || 0), 0) || 0;
+      const totalValue = positions.reduce(
+        (sum: number, pos) => sum + (pos.current_value || 0),
+        0
+      ) || 0;
       const totalGain =
         positions.reduce(
-          (sum: number, pos) => sum + ((pos.current_balance || 0) - (pos.initial_investment || 0)),
+          (sum: number, pos) => sum + ((pos.current_value || 0) - (pos.cost_basis || 0)),
           0
         ) || 0;
 
@@ -280,7 +282,7 @@ export default function DashboardPage() {
                         {pos.fund_assets?.asset_name || "Unknown"}
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        ${(pos.current_balance || 0).toLocaleString()}
+                        ${(pos.current_value || 0).toLocaleString()}
                       </span>
                     </Link>
                   );
@@ -309,17 +311,17 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-4">
                   <div
                     className={`p-2 rounded-full ${
-                      txn.transaction_type === "deposit" ? "bg-green-100" : "bg-red-100"
+                      txn.type === "DEPOSIT" ? "bg-green-100" : "bg-red-100"
                     }`}
                   >
-                    {txn.transaction_type === "deposit" ? (
+                    {txn.type === "DEPOSIT" ? (
                       <ArrowDownRight className="h-4 w-4 text-green-600" />
                     ) : (
                       <ArrowUpRight className="h-4 w-4 text-red-600" />
                     )}
                   </div>
                   <div>
-                    <p className="font-medium capitalize">{txn.transaction_type}</p>
+                    <p className="font-medium capitalize">{txn.type}</p>
                     <p className="text-sm text-muted-foreground">
                       {new Date(txn.created_at).toLocaleDateString()}
                     </p>
