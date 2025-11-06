@@ -88,7 +88,6 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
       return src;
     }
 
-    const ext = src.split('.').pop();
     const base = src.substring(0, src.lastIndexOf('.'));
 
     // Try modern formats first

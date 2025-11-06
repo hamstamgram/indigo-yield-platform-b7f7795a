@@ -1,5 +1,4 @@
-import { Menu, BarChart3 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
 import AppLogo from "@/components/AppLogo";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { useBreadcrumbs } from "@/hooks/useBreadcrumbs";

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,11 +20,10 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 
 interface PDFViewerProps {
   url: string;
-  fileName?: string;
   onDownload?: () => void;
 }
 
-const PDFViewer: React.FC<PDFViewerProps> = ({ url, fileName, onDownload }) => {
+const PDFViewer: React.FC<PDFViewerProps> = ({ url, onDownload }) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.0);

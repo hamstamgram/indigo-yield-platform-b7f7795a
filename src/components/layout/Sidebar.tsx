@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Search, ChevronDown, ChevronRight, Bell } from "lucide-react";
+import { X, Search, ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import NavSection from "@/components/sidebar/NavSection";
@@ -22,7 +22,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
   const [userName, setUserName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedGroups, setExpandedGroups] = useState<string[]>(["Main"]);
-  const [focusedItem, setFocusedItem] = useState(-1);
   const navigate = useNavigate();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);

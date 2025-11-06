@@ -1,5 +1,5 @@
 
-import { User, Crown } from "lucide-react";
+import { Crown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type UserProfileProps = {

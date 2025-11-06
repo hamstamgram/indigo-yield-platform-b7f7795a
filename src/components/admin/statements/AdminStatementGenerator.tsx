@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const AdminStatementGenerator: React.FC = () => {
-  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
   const handleGenerateStatements = () => {

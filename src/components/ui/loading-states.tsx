@@ -225,12 +225,10 @@ export function PageLoading({ message = "Loading..." }: { message?: string }) {
 // Suspense Wrapper with Error Boundary
 export function SuspenseWrapper({ 
   children, 
-  fallback,
-  errorFallback 
+  fallback
 }: { 
   children: React.ReactNode;
   fallback?: React.ReactNode;
-  errorFallback?: React.ReactNode;
 }) {
   return (
     <Suspense fallback={fallback || <RouteLoading />}>

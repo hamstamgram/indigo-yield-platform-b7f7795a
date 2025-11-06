@@ -3,7 +3,7 @@
  * Demonstrates PDF generation capabilities with sample data
  */
 
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';

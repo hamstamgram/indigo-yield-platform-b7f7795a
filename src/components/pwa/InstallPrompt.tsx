@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, Download } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -143,21 +143,3 @@ export function InstallPrompt() {
     </div>
   );
 }
-
-// Add animation styles to your global CSS or Tailwind config
-const styles = `
-@keyframes slide-up {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out;
-}
-`;
