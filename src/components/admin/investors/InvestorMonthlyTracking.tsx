@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,8 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, Percent, DollarSign, TrendingUp, Edit2, Save, X } from 'lucide-react';
+import { Calendar, Percent, TrendingUp, Edit2, Save, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { formatAssetValue } from '@/utils/kpiCalculations';
@@ -18,13 +16,13 @@ interface MonthlyReport {
   investor_id: string;
   report_month: string;
   asset_code: string;
-  opening_balance: number;
-  closing_balance: number;
-  additions: number;
-  withdrawals: number;
-  yield_earned: number;
-  entry_date?: string;
-  exit_date?: string;
+  opening_balance: number | null;
+  closing_balance: number | null;
+  additions: number | null;
+  withdrawals: number | null;
+  yield_earned: number | null;
+  entry_date?: string | null;
+  exit_date?: string | null;
 }
 
 interface InvestorData {
@@ -32,10 +30,10 @@ interface InvestorData {
   name: string;
   email: string;
   profile?: {
-    first_name?: string;
-    last_name?: string;
-    fee_percentage?: number;
-  };
+    first_name?: string | null;
+    last_name?: string | null;
+    fee_percentage?: number | null;
+  } | null;
 }
 
 interface InvestorMonthlyTrackingProps {
@@ -213,13 +211,13 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
   };
 
   const updateFeePercentage = async (newFeePercentage: number) => {
-    if (!investor?.profile) return;
+    if (!investor?.id) return;
 
     try {
       const { error } = await supabase
         .from('profiles')
         .update({ fee_percentage: newFeePercentage / 100 })
-        .eq('id', investor.profile.first_name); // This should be the profile ID
+        .eq('id', investor.id);
 
       if (error) throw error;
 
@@ -380,7 +378,7 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
                           })}
                         />
                       ) : (
-                        <span>{formatAssetValue(report.opening_balance, selectedAsset)}</span>
+                        <span>{formatAssetValue(report.opening_balance || 0, selectedAsset)}</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -396,7 +394,7 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
                         />
                       ) : (
                         <span className="text-green-600">
-                          +{formatAssetValue(report.additions, selectedAsset)}
+                          +{formatAssetValue(report.additions || 0, selectedAsset)}
                         </span>
                       )}
                     </TableCell>
@@ -413,7 +411,7 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
                         />
                       ) : (
                         <span className="text-red-600">
-                          -{formatAssetValue(report.withdrawals, selectedAsset)}
+                          -{formatAssetValue(report.withdrawals || 0, selectedAsset)}
                         </span>
                       )}
                     </TableCell>
@@ -430,7 +428,7 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
                         />
                       ) : (
                         <span className="text-blue-600 font-medium">
-                          +{formatAssetValue(report.yield_earned, selectedAsset)}
+                          +{formatAssetValue(report.yield_earned || 0, selectedAsset)}
                         </span>
                       )}
                     </TableCell>
@@ -447,7 +445,7 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
                         />
                       ) : (
                         <span className="font-medium">
-                          {formatAssetValue(report.closing_balance, selectedAsset)}
+                          {formatAssetValue(report.closing_balance || 0, selectedAsset)}
                         </span>
                       )}
                     </TableCell>

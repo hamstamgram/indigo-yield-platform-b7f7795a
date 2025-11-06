@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,8 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  setFundDailyAUM, 
-  getFundAUMHistory, 
   getAllFundsWithAUM,
   updateInvestorAUMPercentages,
   processDailyAUMWithYield,
@@ -17,7 +14,7 @@ import {
 } from '@/services/aumService';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, TrendingUp, Users, DollarSign, RefreshCw } from 'lucide-react';
+import { Loader2, TrendingUp, Users, RefreshCw } from 'lucide-react';
 import { formatAssetValue } from '@/utils/kpiCalculations';
 
 interface FundWithAUM {
@@ -50,7 +47,7 @@ export default function FundAUMManager() {
     try {
       setIsLoading(true);
       const data = await getAllFundsWithAUM();
-      setFunds(data);
+      setFunds(data as FundWithAUM[]);
       if (data.length > 0 && !selectedFund) {
         setSelectedFund(data[0].id);
       }
@@ -101,6 +98,7 @@ export default function FundAUMManager() {
     } else {
       setYieldPreview(null);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFund, aumAmount, aumDate]);
 
   const handleSetAUM = async () => {
@@ -131,13 +129,13 @@ export default function FundAUMManager() {
       let successMessage = `Successfully processed daily AUM for ${aumDate}`;
       
       if (result.yieldDistribution && result.yieldCalculation) {
-        const yieldAmount = result.yieldCalculation.calculated_yield;
-        const yieldPercent = result.yieldCalculation.yield_percentage;
+        const yieldAmount = result.yieldCalculation.calculated_yield || 0;
+        const yieldPercent = result.yieldCalculation.yield_percentage || 0;
         const investorsAffected = result.yieldDistribution.investors_affected;
         
         successMessage += `\n🚀 Yield Generated: ${yieldAmount.toFixed(6)} (${yieldPercent.toFixed(4)}%)`;
         successMessage += `\n👥 Successfully distributed to ${investorsAffected} investors`;
-      } else if (result.yieldCalculation?.calculated_yield <= 0) {
+      } else if (result.yieldCalculation && (result.yieldCalculation.calculated_yield || 0) <= 0) {
         successMessage += `\n📊 No yield generated today (zero or negative yield)`;
       } else {
         successMessage += `\n📊 AUM updated successfully`;
@@ -154,12 +152,12 @@ export default function FundAUMManager() {
       setAumAmount('');
       setYieldPreview(null);
       
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error processing daily AUM:', error);
       
       toast({
         title: '❌ Operation Failed',
-        description: error.message || 'Failed to process daily AUM with yield',
+        description: error instanceof Error ? error.message : 'Failed to process daily AUM with yield',
         variant: 'destructive',
         duration: 7000
       });
@@ -193,12 +191,12 @@ export default function FundAUMManager() {
         duration: 5000
       });
       
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error updating percentages:', error);
       
       toast({
         title: '❌ Operation Failed',
-        description: error.message || 'Failed to update AUM percentages',
+        description: error instanceof Error ? error.message : 'Failed to update AUM percentages',
         variant: 'destructive',
         duration: 7000
       });

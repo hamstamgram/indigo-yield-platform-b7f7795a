@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Monthly Statement Manager - Admin Component
  *
@@ -31,53 +30,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Check, AlertTriangle, Eye, Send, FileText, Calendar, Users } from 'lucide-react';
+import { Loader2, Check, Eye, Send, FileText, Calendar, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { statementsApi } from '@/services/api/statementsApi';
 
-// Validation schema for creating period
 const createPeriodSchema = z.object({
   year: z.number().min(2024).max(2100),
   month: z.number().min(1).max(12),
   period_name: z.string().min(1, 'Period name required'),
   period_end_date: z.string().min(1, 'End date required'),
-});
-
-// Validation schema for fund performance input
-const fundPerformanceSchema = z.object({
-  fund_name: z.string().min(1),
-
-  // MTD
-  mtd_beginning_balance: z.string(),
-  mtd_additions: z.string(),
-  mtd_redemptions: z.string(),
-  mtd_net_income: z.string(),
-  mtd_ending_balance: z.string(),
-  mtd_rate_of_return: z.string(),
-
-  // QTD
-  qtd_beginning_balance: z.string(),
-  qtd_additions: z.string(),
-  qtd_redemptions: z.string(),
-  qtd_net_income: z.string(),
-  qtd_ending_balance: z.string(),
-  qtd_rate_of_return: z.string(),
-
-  // YTD
-  ytd_beginning_balance: z.string(),
-  ytd_additions: z.string(),
-  ytd_redemptions: z.string(),
-  ytd_net_income: z.string(),
-  ytd_ending_balance: z.string(),
-  ytd_rate_of_return: z.string(),
-
-  // ITD
-  itd_beginning_balance: z.string(),
-  itd_additions: z.string(),
-  itd_redemptions: z.string(),
-  itd_net_income: z.string(),
-  itd_ending_balance: z.string(),
-  itd_rate_of_return: z.string(),
 });
 
 interface StatementPeriod {
@@ -114,7 +75,7 @@ export function MonthlyStatementManager() {
     handleSubmit: handleSubmitPeriod,
     formState: { errors: periodErrors },
     reset: resetPeriod,
-  } = useForm({
+  } = useForm<z.infer<typeof createPeriodSchema>>({
     resolver: zodResolver(createPeriodSchema),
   });
 
@@ -135,7 +96,7 @@ export function MonthlyStatementManager() {
       const { data, error } = await statementsApi.getPeriods();
       if (error) throw new Error(error);
 
-      setPeriods(data || []);
+      setPeriods(data as StatementPeriod[] || []);
     } catch (error) {
       console.error('Load periods error:', error);
       toast({
@@ -165,9 +126,9 @@ export function MonthlyStatementManager() {
     }
   };
 
-  const handleCreatePeriod = async (data: any) => {
+  const handleCreatePeriod = async (data: z.infer<typeof createPeriodSchema>) => {
     try {
-      const { data: result, error } = await statementsApi.createPeriod(data);
+      const { error } = await statementsApi.createPeriod(data);
       if (error) throw new Error(error);
 
       toast({

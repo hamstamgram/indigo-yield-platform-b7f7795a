@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,19 +7,19 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { formatTokenBalance, getSupportedTokens } from '@/utils/tokenFormatting';
-import { Save, Download, Upload, Calendar } from 'lucide-react';
+import { formatTokenBalance } from '@/utils/tokenFormatting';
+import { Save, Calendar } from 'lucide-react';
 
 interface MonthlyReport {
   id: string;
   investor_id: string;
   report_month: string;
   asset_code: string;
-  opening_balance: number;
-  closing_balance: number;
-  additions: number;
-  withdrawals: number;
-  yield_earned: number;
+  opening_balance: number | null;
+  closing_balance: number | null;
+  additions: number | null;
+  withdrawals: number | null;
+  yield_earned: number | null;
   aum_manual_override: number | null;
   entry_date: string | null;
   exit_date: string | null;
@@ -74,7 +73,7 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({
     }
 
     try {
-      const { data, error } = await supabase.rpc('generate_monthly_report_template', {
+      const { error } = await supabase.rpc('generate_monthly_report_template', {
         p_month: selectedMonth,
         p_investor_id: investorId
       });
@@ -146,7 +145,7 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({
     return months.reverse();
   };
 
-  const renderEditableCell = (report: MonthlyReport, field: keyof MonthlyReport, value: number) => {
+  const renderEditableCell = (report: MonthlyReport, field: keyof MonthlyReport, value: number | null) => {
     const cellKey = `${report.id}-${field}`;
     const isEditing = editingCell === cellKey;
 
@@ -173,9 +172,9 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({
     return (
       <div 
         className="cursor-pointer hover:bg-muted p-1 rounded"
-        onClick={() => handleCellEdit(report.id, field as string, value)}
+        onClick={() => handleCellEdit(report.id, field as string, value || 0)}
       >
-        {formatTokenBalance(value, report.asset_code)}
+        {formatTokenBalance(value || 0, report.asset_code)}
       </div>
     );
   };
