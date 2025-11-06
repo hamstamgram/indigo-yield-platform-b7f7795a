@@ -237,30 +237,56 @@ export default function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Asset Allocation</CardTitle>
-            <CardDescription>Distribution across different funds</CardDescription>
+            <CardDescription>
+              Distribution across different funds (click to view details)
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={allocationData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={(props: { name: string; percent: number }) =>
-                    `${props.name} ${(props.percent * 100).toFixed(0)}%`
-                  }
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {allocationData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="space-y-4">
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={allocationData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={(props: { name: string; percent: number }) =>
+                      `${props.name} ${(props.percent * 100).toFixed(0)}%`
+                    }
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {allocationData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+
+              {/* Asset links */}
+              <div className="grid grid-cols-2 gap-2">
+                {portfolioData?.positions.map((pos, idx) => {
+                  const assetSymbol =
+                    pos.fund_assets?.asset_name?.toLowerCase().split(" ")[0] || "unknown";
+                  return (
+                    <Link
+                      key={idx}
+                      to={`/assets/${assetSymbol}`}
+                      className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent transition-colors"
+                    >
+                      <span className="font-medium">
+                        {pos.fund_assets?.asset_name || "Unknown"}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        ${(pos.current_balance || 0).toLocaleString()}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
