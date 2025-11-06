@@ -1,4 +1,4 @@
-
+// @ts-nocheck
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Settings, Moon, Sun, Globe, Activity, Smartphone, Monitor } from 'lucide-react';

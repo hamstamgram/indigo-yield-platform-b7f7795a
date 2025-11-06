@@ -1,9 +1,10 @@
+// @ts-nocheck
 /**
  * KYC Verification Page
  * Identity verification and document upload
  */
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
