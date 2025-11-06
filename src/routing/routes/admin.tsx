@@ -10,7 +10,6 @@ import { AdminRoute } from "../AdminRoute";
 // Admin pages - lazy load all
 const AdminTools = lazy(() => import("@/pages/admin/settings/AdminTools"));
 const AdminInvite = lazy(() => import("@/pages/admin/settings/AdminInvite"));
-const AdminDashboardV2 = lazy(() => import("@/components/admin/AdminDashboardV2"));
 const PortfolioDashboard = lazy(() => import("@/pages/admin/PortfolioDashboard"));
 const InvestorManagementView = lazy(() => import("@/components/admin/InvestorManagementView"));
 const InvestorDetail = lazy(() => import("@/pages/admin/InvestorDetail"));
