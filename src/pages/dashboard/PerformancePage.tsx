@@ -1,29 +1,33 @@
-// @ts-nocheck
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { useParams, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Edit, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+
+interface DailyNavItem {
+  id: string;
+  name?: string;
+  title?: string;
+  status?: string;
+  description?: string;
+  created_at: string;
+  updated_at?: string;
+}
 
 export default function PerformanceDetailsPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
 
-  const { data: item, isLoading } = useQuery({
-    queryKey: ['daily_nav', id],
+  const { data: item, isLoading } = useQuery<DailyNavItem>({
+    queryKey: ["daily_nav", id],
     queryFn: async () => {
-      if (!id) throw new Error('No ID provided');
+      if (!id) throw new Error("No ID provided");
 
-      const { data, error } = await supabase
-        .from('daily_nav')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const { data, error } = await supabase.from("daily_nav").select("*").eq("id", id).single();
 
       if (error) throw error;
-      return data;
+      return data as DailyNavItem;
     },
   });
 
@@ -81,7 +85,7 @@ export default function PerformanceDetailsPage() {
                 Created {new Date(item.created_at).toLocaleDateString()}
               </CardDescription>
             </div>
-            <Badge>{item.status || 'Active'}</Badge>
+            <Badge>{item.status || "Active"}</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -92,7 +96,7 @@ export default function PerformanceDetailsPage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Status</p>
-              <p className="capitalize">{item.status || 'Active'}</p>
+              <p className="capitalize">{item.status || "Active"}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Created</p>
