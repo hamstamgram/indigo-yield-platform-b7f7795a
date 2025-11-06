@@ -132,16 +132,13 @@ export async function fetchUserProfile(userId: string): Promise<Profile | null> 
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        return null; // Profile not found
-      }
       throw error;
     }
 
-    return data;
+    return data as Profile | null;
   } catch (error) {
     console.error('Error fetching user profile:', error);
     return null;
@@ -164,10 +161,11 @@ export async function updateUserProfile(
       })
       .eq('id', userId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
-    return data;
+    if (!data) throw new Error('Profile not found');
+    return data as Profile;
   } catch (error) {
     console.error('Error updating user profile:', error);
     throw new Error('Failed to update profile');
@@ -184,15 +182,9 @@ export async function checkIsAdmin(userId: string): Promise<boolean> {
       .select('user_id')
       .eq('user_id', userId)
       .is('revoked_at', null)
-      .single();
+      .maybeSingle();
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return false; // Not found = not admin
-      }
-      throw error;
-    }
-
+    if (error) throw error;
     return !!data;
   } catch (error) {
     console.error('Error checking admin status:', error);

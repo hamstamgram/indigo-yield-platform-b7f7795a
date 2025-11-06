@@ -1,9 +1,6 @@
-// @ts-nocheck
 /**
  * Linked Accounts Page
  * Manage bank accounts and crypto wallets
- * 
- * TODO: Schema mismatches - bank_accounts and crypto_wallets tables don't exist in current schema
  */
 
 import { useEffect, useState } from 'react';
@@ -92,9 +89,9 @@ export default function LinkedAccounts() {
             accountNumber: account.account_number,
             bankName: account.bank_name,
             accountType: account.account_type,
-            isVerified: account.is_verified,
-            isPrimary: account.is_primary,
-            addedAt: account.created_at,
+            isVerified: account.is_verified || false,
+            isPrimary: account.is_primary || false,
+            addedAt: account.created_at || new Date().toISOString(),
           }))
         );
       }
@@ -106,8 +103,8 @@ export default function LinkedAccounts() {
             walletAddress: wallet.wallet_address,
             network: wallet.network,
             label: wallet.label,
-            isVerified: wallet.is_verified,
-            addedAt: wallet.created_at,
+            isVerified: wallet.is_verified || false,
+            addedAt: wallet.created_at || new Date().toISOString(),
           }))
         );
       }

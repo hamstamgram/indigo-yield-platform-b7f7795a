@@ -1,9 +1,6 @@
-// @ts-nocheck
 /**
  * User Preferences Page
  * Notifications, language, timezone settings
- * 
- * TODO: Schema mismatch - user_preferences table doesn't exist in current schema
  */
 
 import { useEffect, useState } from 'react';
@@ -77,7 +74,7 @@ export default function Preferences() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('user_preferences')
         .select('*')
         .eq('user_id', user.id)

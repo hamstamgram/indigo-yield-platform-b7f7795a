@@ -3,7 +3,7 @@
  * Privacy Settings Page
  * Data privacy controls and data export
  * 
- * TODO: Schema mismatches - investments, transactions, documents tables may not exist
+ * TODO: investments table doesn't exist, transactions schema may differ, documents schema mismatch
  */
 
 import { useState } from 'react';
@@ -13,8 +13,6 @@ import {
   Lock,
   Download,
   Trash2,
-  Eye,
-  EyeOff,
   AlertTriangle,
   Loader2,
   FileText,

@@ -3,7 +3,7 @@
  * Referrals Page
  * Referral program dashboard with invite tracking
  * 
- * TODO: Schema mismatches - profiles table missing referral_code field, referrals table doesn't exist
+ * TODO: referrals table doesn't exist in current schema
  */
 
 import { useEffect, useState } from 'react';
@@ -12,7 +12,6 @@ import {
   ArrowLeft,
   Award,
   Copy,
-  Share2,
   Users,
   DollarSign,
   CheckCircle,
