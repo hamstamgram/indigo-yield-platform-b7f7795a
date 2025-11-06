@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Investor Data Input Component
  *
@@ -6,66 +5,74 @@
  * Supports all 6 fund types with MTD/QTD/YTD/ITD metrics
  */
 
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, Save, Plus, Trash2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { statementsApi } from '@/services/api/statementsApi';
+import { useState, useEffect, useCallback } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Save, Plus, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { statementsApi } from "@/services/api/statementsApi";
 
 const FUND_NAMES = [
-  'BTC YIELD FUND',
-  'ETH YIELD FUND',
-  'SOL YIELD FUND',
-  'USDT YIELD FUND',
-  'USDC YIELD FUND',
-  'EURC YIELD FUND',
+  "BTC YIELD FUND",
+  "ETH YIELD FUND",
+  "SOL YIELD FUND",
+  "USDT YIELD FUND",
+  "USDC YIELD FUND",
+  "EURC YIELD FUND",
 ] as const;
 
 // Validation schema for performance data
 const performanceSchema = z.object({
-  fund_name: z.string().min(1, 'Fund name required'),
+  fund_name: z.string().min(1, "Fund name required"),
 
   // MTD
-  mtd_beginning_balance: z.string().default('0'),
-  mtd_additions: z.string().default('0'),
-  mtd_redemptions: z.string().default('0'),
-  mtd_net_income: z.string().default('0'),
-  mtd_ending_balance: z.string().default('0'),
-  mtd_rate_of_return: z.string().default('0'),
+  mtd_beginning_balance: z.string().default("0"),
+  mtd_additions: z.string().default("0"),
+  mtd_redemptions: z.string().default("0"),
+  mtd_net_income: z.string().default("0"),
+  mtd_ending_balance: z.string().default("0"),
+  mtd_rate_of_return: z.string().default("0"),
 
   // QTD
-  qtd_beginning_balance: z.string().default('0'),
-  qtd_additions: z.string().default('0'),
-  qtd_redemptions: z.string().default('0'),
-  qtd_net_income: z.string().default('0'),
-  qtd_ending_balance: z.string().default('0'),
-  qtd_rate_of_return: z.string().default('0'),
+  qtd_beginning_balance: z.string().default("0"),
+  qtd_additions: z.string().default("0"),
+  qtd_redemptions: z.string().default("0"),
+  qtd_net_income: z.string().default("0"),
+  qtd_ending_balance: z.string().default("0"),
+  qtd_rate_of_return: z.string().default("0"),
 
   // YTD
-  ytd_beginning_balance: z.string().default('0'),
-  ytd_additions: z.string().default('0'),
-  ytd_redemptions: z.string().default('0'),
-  ytd_net_income: z.string().default('0'),
-  ytd_ending_balance: z.string().default('0'),
-  ytd_rate_of_return: z.string().default('0'),
+  ytd_beginning_balance: z.string().default("0"),
+  ytd_additions: z.string().default("0"),
+  ytd_redemptions: z.string().default("0"),
+  ytd_net_income: z.string().default("0"),
+  ytd_ending_balance: z.string().default("0"),
+  ytd_rate_of_return: z.string().default("0"),
 
   // ITD
-  itd_beginning_balance: z.string().default('0'),
-  itd_additions: z.string().default('0'),
-  itd_redemptions: z.string().default('0'),
-  itd_net_income: z.string().default('0'),
-  itd_ending_balance: z.string().default('0'),
-  itd_rate_of_return: z.string().default('0'),
+  itd_beginning_balance: z.string().default("0"),
+  itd_additions: z.string().default("0"),
+  itd_redemptions: z.string().default("0"),
+  itd_net_income: z.string().default("0"),
+  itd_ending_balance: z.string().default("0"),
+  itd_rate_of_return: z.string().default("0"),
 });
+
+type PerformanceFormData = z.infer<typeof performanceSchema>;
 
 interface InvestorDataInputProps {
   periodId: string;
@@ -74,7 +81,12 @@ interface InvestorDataInputProps {
   onSave?: () => void;
 }
 
-export function InvestorDataInput({ periodId, investorId, investorName, onSave }: InvestorDataInputProps) {
+export function InvestorDataInput({
+  periodId,
+  investorId,
+  investorName,
+  onSave,
+}: InvestorDataInputProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFund, setSelectedFund] = useState<string>(FUND_NAMES[0]);
   const [availableFunds, setAvailableFunds] = useState<Set<string>>(new Set());
@@ -96,20 +108,20 @@ export function InvestorDataInput({ periodId, investorId, investorName, onSave }
   // Load existing data for this investor
   useEffect(() => {
     loadPerformanceData();
-  }, [periodId, investorId]);
+  }, [periodId, investorId, loadPerformanceData]);
 
   // Update form when fund selection changes
   useEffect(() => {
-    setValue('fund_name', selectedFund);
+    setValue("fund_name", selectedFund);
     loadFundData(selectedFund);
-  }, [selectedFund]);
+  }, [selectedFund, setValue, loadFundData]);
 
-  const loadPerformanceData = async () => {
+  const loadPerformanceData = useCallback(async () => {
     try {
       const { data, error } = await statementsApi.getPerformanceData(periodId, investorId);
       if (error) throw new Error(error);
 
-      const funds = new Set(data?.map(d => d.fund_name) || []);
+      const funds = new Set(data?.map((d) => d.fund_name) || []);
       setAvailableFunds(funds);
 
       // If we have data, load the first fund
@@ -117,59 +129,68 @@ export function InvestorDataInput({ periodId, investorId, investorName, onSave }
         setSelectedFund(data[0].fund_name);
       }
     } catch (error) {
-      console.error('Load performance data error:', error);
+      console.error("Load performance data error:", error);
     }
-  };
+  }, [periodId, investorId]);
 
-  const loadFundData = async (fundName: string) => {
-    try {
-      const { data, error } = await statementsApi.getPerformanceData(periodId, investorId);
-      if (error) throw new Error(error);
+  const loadFundData = useCallback(
+    async (fundName: string) => {
+      try {
+        const { data, error } = await statementsApi.getPerformanceData(periodId, investorId);
+        if (error) throw new Error(error);
 
-      const fundData = data?.find(d => d.fund_name === fundName);
-      if (fundData) {
-        // Populate form with existing data
-        Object.entries(fundData).forEach(([key, value]) => {
-          if (key !== 'id' && key !== 'period_id' && key !== 'user_id' && key !== 'created_at' && key !== 'updated_at') {
-            setValue(key as any, value?.toString() || '0');
-          }
-        });
-      } else {
-        // Reset form for new fund
-        reset({
-          fund_name: fundName,
-          mtd_beginning_balance: '0',
-          mtd_additions: '0',
-          mtd_redemptions: '0',
-          mtd_net_income: '0',
-          mtd_ending_balance: '0',
-          mtd_rate_of_return: '0',
-          qtd_beginning_balance: '0',
-          qtd_additions: '0',
-          qtd_redemptions: '0',
-          qtd_net_income: '0',
-          qtd_ending_balance: '0',
-          qtd_rate_of_return: '0',
-          ytd_beginning_balance: '0',
-          ytd_additions: '0',
-          ytd_redemptions: '0',
-          ytd_net_income: '0',
-          ytd_ending_balance: '0',
-          ytd_rate_of_return: '0',
-          itd_beginning_balance: '0',
-          itd_additions: '0',
-          itd_redemptions: '0',
-          itd_net_income: '0',
-          itd_ending_balance: '0',
-          itd_rate_of_return: '0',
-        });
+        const fundData = data?.find((d) => d.fund_name === fundName);
+        if (fundData) {
+          // Populate form with existing data
+          Object.entries(fundData).forEach(([key, value]) => {
+            if (
+              key !== "id" &&
+              key !== "period_id" &&
+              key !== "user_id" &&
+              key !== "created_at" &&
+              key !== "updated_at"
+            ) {
+              setValue(key as keyof PerformanceFormData, value?.toString() || "0");
+            }
+          });
+        } else {
+          // Reset form for new fund
+          reset({
+            fund_name: fundName,
+            mtd_beginning_balance: "0",
+            mtd_additions: "0",
+            mtd_redemptions: "0",
+            mtd_net_income: "0",
+            mtd_ending_balance: "0",
+            mtd_rate_of_return: "0",
+            qtd_beginning_balance: "0",
+            qtd_additions: "0",
+            qtd_redemptions: "0",
+            qtd_net_income: "0",
+            qtd_ending_balance: "0",
+            qtd_rate_of_return: "0",
+            ytd_beginning_balance: "0",
+            ytd_additions: "0",
+            ytd_redemptions: "0",
+            ytd_net_income: "0",
+            ytd_ending_balance: "0",
+            ytd_rate_of_return: "0",
+            itd_beginning_balance: "0",
+            itd_additions: "0",
+            itd_redemptions: "0",
+            itd_net_income: "0",
+            itd_ending_balance: "0",
+            itd_rate_of_return: "0",
+          });
+        }
+      } catch (error) {
+        console.error("Load fund data error:", error);
       }
-    } catch (error) {
-      console.error('Load fund data error:', error);
-    }
-  };
+    },
+    [periodId, investorId, reset, setValue]
+  );
 
-  const handleSaveData = async (data: any) => {
+  const handleSaveData = async (data: PerformanceFormData) => {
     setIsLoading(true);
     try {
       const { error } = await statementsApi.savePerformanceData(
@@ -182,35 +203,35 @@ export function InvestorDataInput({ periodId, investorId, investorName, onSave }
       if (error) throw new Error(error);
 
       toast({
-        title: 'Data Saved',
+        title: "Data Saved",
         description: `Performance data saved for ${selectedFund}`,
       });
 
-      setAvailableFunds(prev => new Set([...prev, selectedFund]));
+      setAvailableFunds((prev) => new Set([...prev, selectedFund]));
 
       if (onSave) {
         onSave();
       }
     } catch (error) {
-      console.error('Save data error:', error);
+      console.error("Save data error:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to save performance data',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to save performance data",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const renderMetricInputs = (prefix: 'mtd' | 'qtd' | 'ytd' | 'itd') => {
+  const renderMetricInputs = (prefix: "mtd" | "qtd" | "ytd" | "itd") => {
     const metrics = [
-      { key: 'beginning_balance', label: 'Beginning Balance' },
-      { key: 'additions', label: 'Additions' },
-      { key: 'redemptions', label: 'Redemptions' },
-      { key: 'net_income', label: 'Net Income' },
-      { key: 'ending_balance', label: 'Ending Balance' },
-      { key: 'rate_of_return', label: 'Rate of Return (%)' },
+      { key: "beginning_balance", label: "Beginning Balance" },
+      { key: "additions", label: "Additions" },
+      { key: "redemptions", label: "Redemptions" },
+      { key: "net_income", label: "Net Income" },
+      { key: "ending_balance", label: "Ending Balance" },
+      { key: "rate_of_return", label: "Rate of Return (%)" },
     ];
 
     return (
@@ -220,12 +241,7 @@ export function InvestorDataInput({ periodId, investorId, investorName, onSave }
           return (
             <div key={fieldName} className="space-y-2">
               <Label htmlFor={fieldName}>{label}</Label>
-              <Input
-                id={fieldName}
-                type="text"
-                placeholder="0.00"
-                {...register(fieldName)}
-              />
+              <Input id={fieldName} type="text" placeholder="0.00" {...register(fieldName)} />
               {errors[fieldName] && (
                 <p className="text-sm text-destructive">{errors[fieldName]?.message as string}</p>
               )}
@@ -240,9 +256,7 @@ export function InvestorDataInput({ periodId, investorId, investorName, onSave }
     <Card>
       <CardHeader>
         <CardTitle>Performance Data Input</CardTitle>
-        <CardDescription>
-          Enter monthly performance data for {investorName}
-        </CardDescription>
+        <CardDescription>Enter monthly performance data for {investorName}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(handleSaveData)} className="space-y-6">
@@ -258,7 +272,9 @@ export function InvestorDataInput({ periodId, investorId, investorName, onSave }
                   <SelectItem key={fund} value={fund}>
                     {fund}
                     {availableFunds.has(fund) && (
-                      <Badge variant="secondary" className="ml-2">Saved</Badge>
+                      <Badge variant="secondary" className="ml-2">
+                        Saved
+                      </Badge>
                     )}
                   </SelectItem>
                 ))}
@@ -277,22 +293,22 @@ export function InvestorDataInput({ periodId, investorId, investorName, onSave }
 
             <TabsContent value="mtd" className="space-y-4">
               <h3 className="font-semibold text-lg">Month-to-Date</h3>
-              {renderMetricInputs('mtd')}
+              {renderMetricInputs("mtd")}
             </TabsContent>
 
             <TabsContent value="qtd" className="space-y-4">
               <h3 className="font-semibold text-lg">Quarter-to-Date</h3>
-              {renderMetricInputs('qtd')}
+              {renderMetricInputs("qtd")}
             </TabsContent>
 
             <TabsContent value="ytd" className="space-y-4">
               <h3 className="font-semibold text-lg">Year-to-Date</h3>
-              {renderMetricInputs('ytd')}
+              {renderMetricInputs("ytd")}
             </TabsContent>
 
             <TabsContent value="itd" className="space-y-4">
               <h3 className="font-semibold text-lg">Inception-to-Date</h3>
-              {renderMetricInputs('itd')}
+              {renderMetricInputs("itd")}
             </TabsContent>
           </Tabs>
 

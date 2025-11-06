@@ -1,11 +1,10 @@
-// @ts-nocheck
 /**
  * Report Builder Component
  * Allows users to configure and generate reports
  */
 
-import React, { useState, useEffect } from 'react';
-import { format } from 'date-fns';
+import React, { useState, useEffect } from "react";
+import { format } from "date-fns";
 import {
   FileText,
   Download,
@@ -15,20 +14,20 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/hooks/use-toast';
-import { ReportsApi } from '@/services/api/reportsApi';
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
+import { ReportsApi } from "@/services/api/reportsApi";
 import {
   ReportType,
   ReportFormat,
@@ -36,7 +35,7 @@ import {
   GenerateReportRequest,
   ReportFilters,
   ReportParameters,
-} from '@/types/reports';
+} from "@/types/reports";
 
 interface ReportBuilderProps {
   defaultReportType?: ReportType;
@@ -51,16 +50,16 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
 
   // State
   const [reportDefinitions, setReportDefinitions] = useState<ReportDefinition[]>([]);
-  const [selectedReportType, setSelectedReportType] = useState<ReportType | ''>(
-    defaultReportType || ''
+  const [selectedReportType, setSelectedReportType] = useState<ReportType | "">(
+    defaultReportType || ""
   );
-  const [selectedFormat, setSelectedFormat] = useState<ReportFormat>('pdf');
+  const [selectedFormat, setSelectedFormat] = useState<ReportFormat>("pdf");
   const [selectedDefinition, setSelectedDefinition] = useState<ReportDefinition | null>(null);
 
   // Filters
-  const [dateRangeStart, setDateRangeStart] = useState<string>('');
-  const [dateRangeEnd, setDateRangeEnd] = useState<string>('');
-  const [period, setPeriod] = useState<'mtd' | 'qtd' | 'ytd' | 'custom'>('mtd');
+  const [dateRangeStart, setDateRangeStart] = useState<string>("");
+  const [dateRangeEnd, setDateRangeEnd] = useState<string>("");
+  const [period, setPeriod] = useState<"mtd" | "qtd" | "ytd" | "custom">("mtd");
 
   // Parameters
   const [includeCharts, setIncludeCharts] = useState(true);
@@ -70,7 +69,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
 
   // Generation state
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generationProgress, setGenerationProgress] = useState<string>('');
+  const [generationProgress, setGenerationProgress] = useState<string>("");
 
   // Load report definitions
   useEffect(() => {
@@ -96,22 +95,23 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
     let start: Date;
 
     switch (period) {
-      case 'mtd':
+      case "mtd":
         start = new Date(now.getFullYear(), now.getMonth(), 1);
         break;
-      case 'qtd':
+      case "qtd": {
         const quarter = Math.floor(now.getMonth() / 3);
         start = new Date(now.getFullYear(), quarter * 3, 1);
         break;
-      case 'ytd':
+      }
+      case "ytd":
         start = new Date(now.getFullYear(), 0, 1);
         break;
       default:
         return; // Custom, don't auto-set
     }
 
-    setDateRangeStart(format(start, 'yyyy-MM-dd'));
-    setDateRangeEnd(format(now, 'yyyy-MM-dd'));
+    setDateRangeStart(format(start, "yyyy-MM-dd"));
+    setDateRangeEnd(format(now, "yyyy-MM-dd"));
   }, [period]);
 
   const loadReportDefinitions = async () => {
@@ -122,15 +122,15 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   const handleGenerateReport = async (downloadNow: boolean = false) => {
     if (!selectedReportType) {
       toast({
-        title: 'Error',
-        description: 'Please select a report type',
-        variant: 'destructive',
+        title: "Error",
+        description: "Please select a report type",
+        variant: "destructive",
       });
       return;
     }
 
     setIsGenerating(true);
-    setGenerationProgress('Preparing report...');
+    setGenerationProgress("Preparing report...");
 
     try {
       const filters: ReportFilters = {};
@@ -144,7 +144,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       // Add date range if specified
       if (dateRangeStart) filters.dateRangeStart = dateRangeStart;
       if (dateRangeEnd) filters.dateRangeEnd = dateRangeEnd;
-      if (period !== 'custom') filters.period = period;
+      if (period !== "custom") filters.period = period;
 
       const request: GenerateReportRequest = {
         reportType: selectedReportType,
@@ -156,26 +156,26 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
 
       if (downloadNow) {
         // Generate and download immediately
-        setGenerationProgress('Generating report...');
+        setGenerationProgress("Generating report...");
         const result = await ReportsApi.generateReportNow(request);
 
         if (result.success && result.data && result.filename) {
-          setGenerationProgress('Downloading...');
+          setGenerationProgress("Downloading...");
 
           // Create download link
           const blob = new Blob([result.data], {
             type:
-              selectedFormat === 'pdf'
-                ? 'application/pdf'
-                : selectedFormat === 'excel'
-                  ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                  : selectedFormat === 'json'
-                    ? 'application/json'
-                    : 'text/csv',
+              selectedFormat === "pdf"
+                ? "application/pdf"
+                : selectedFormat === "excel"
+                  ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                  : selectedFormat === "json"
+                    ? "application/json"
+                    : "text/csv",
           });
 
           const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
+          const link = document.createElement("a");
           link.href = url;
           link.download = result.filename;
           document.body.appendChild(link);
@@ -184,52 +184,50 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
           window.URL.revokeObjectURL(url);
 
           toast({
-            title: 'Success',
-            description: 'Report downloaded successfully',
+            title: "Success",
+            description: "Report downloaded successfully",
           });
         } else {
-          throw new Error(result.error || 'Report generation failed');
+          throw new Error(result.error || "Report generation failed");
         }
       } else {
         // Queue report generation
-        setGenerationProgress('Queueing report...');
+        setGenerationProgress("Queueing report...");
         const response = await ReportsApi.generateReport(request);
 
         if (response.success && response.reportId) {
           toast({
-            title: 'Success',
-            description: 'Report queued for generation. You will be notified when ready.',
+            title: "Success",
+            description: "Report queued for generation. You will be notified when ready.",
           });
 
           if (onReportGenerated) {
             onReportGenerated(response.reportId);
           }
         } else {
-          throw new Error(response.error || 'Report generation failed');
+          throw new Error(response.error || "Report generation failed");
         }
       }
     } catch (error) {
-      console.error('Report generation failed:', error);
+      console.error("Report generation failed:", error);
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to generate report',
-        variant: 'destructive',
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to generate report",
+        variant: "destructive",
       });
     } finally {
       setIsGenerating(false);
-      setGenerationProgress('');
+      setGenerationProgress("");
     }
   };
 
   const getReportDescription = (): string => {
-    if (!selectedDefinition) return '';
-    return selectedDefinition.description || '';
+    if (!selectedDefinition) return "";
+    return selectedDefinition.description || "";
   };
 
   const isDateRangeRequired = (): boolean => {
-    return ['transaction_history', 'custom_date_range', 'tax_report'].includes(
-      selectedReportType
-    );
+    return ["transaction_history", "custom_date_range", "tax_report"].includes(selectedReportType);
   };
 
   return (
@@ -262,7 +260,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                 {reportDefinitions.map((def) => (
                   <SelectItem key={def.id} value={def.reportType}>
                     {def.name}
-                    {def.isAdminOnly && ' (Admin Only)'}
+                    {def.isAdminOnly && " (Admin Only)"}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -307,7 +305,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                   <Label htmlFor="period">Period</Label>
                   <Select
                     value={period}
-                    onValueChange={(value: any) => setPeriod(value)}
+                    onValueChange={(value) => setPeriod(value as "mtd" | "qtd" | "ytd" | "custom")}
                   >
                     <SelectTrigger id="period">
                       <SelectValue />
@@ -321,7 +319,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                   </Select>
                 </div>
 
-                {period === 'custom' && (
+                {period === "custom" && (
                   <>
                     <div className="space-y-2">
                       <Label htmlFor="start-date">Start Date</Label>
@@ -350,12 +348,12 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                 )}
               </div>
 
-              {period !== 'custom' && (
+              {period !== "custom" && (
                 <div className="text-sm text-muted-foreground">
                   {dateRangeStart && dateRangeEnd && (
                     <span>
-                      {format(new Date(dateRangeStart), 'MMM dd, yyyy')} -{' '}
-                      {format(new Date(dateRangeEnd), 'MMM dd, yyyy')}
+                      {format(new Date(dateRangeStart), "MMM dd, yyyy")} -{" "}
+                      {format(new Date(dateRangeEnd), "MMM dd, yyyy")}
                     </span>
                   )}
                 </div>
@@ -364,7 +362,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
           )}
 
           {/* Report Options */}
-          {selectedReportType && selectedFormat === 'pdf' && (
+          {selectedReportType && selectedFormat === "pdf" && (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Settings className="h-4 w-4 text-muted-foreground" />
