@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { authService } from '@/services/core';
 
 interface Profile {
   id: string;
@@ -171,23 +172,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signIn = async (email: string, password: string) => {
-    return await supabase.auth.signInWithPassword({ email, password });
+    return await authService.signIn({ email, password });
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await authService.signOut();
   };
 
   const signUp = async (email: string, password: string) => {
-    return await supabase.auth.signUp({ email, password });
+    return await authService.signUp({ email, password });
   };
 
   const resetPassword = async (email: string) => {
-    return await supabase.auth.resetPasswordForEmail(email);
+    return await authService.resetPasswordForEmail(email);
   };
 
   const updatePassword = async (password: string) => {
-    return await supabase.auth.updateUser({ password });
+    return await authService.updatePassword(password);
   };
 
   const value = {
