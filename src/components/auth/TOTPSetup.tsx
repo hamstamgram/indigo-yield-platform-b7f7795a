@@ -55,7 +55,6 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
   const { generateQRCode } = useTOTP();
   
   const [currentStep, setCurrentStep] = useState(0);
-  const [secret, setSecret] = useState('');
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [backupCodes, setBackupCodes] = useState<BackupCodeGenerationResult | null>(null);
@@ -109,11 +108,13 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
 
     try {
       // Generate secret and initialize TOTP
-      const { secret: totpSecret } = await TOTPService.initializeTOTP(user.id);
-      setSecret(totpSecret);
+      const result = await TOTPService.initializeTOTP(user.id);
+      if (!result || !result.secret) {
+        throw new Error('Failed to generate TOTP secret');
+      }
 
       // Generate QR code
-      const qrCode = await generateQRCode(user.email!, totpSecret);
+      const qrCode = await generateQRCode(user.email!, result.secret);
       setQrCodeUrl(qrCode);
 
       // Mark first step as completed
@@ -239,7 +240,6 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
 
   const resetSetup = () => {
     setCurrentStep(0);
-    setSecret('');
     setQrCodeUrl('');
     setVerificationCode('');
     setBackupCodes(null);
