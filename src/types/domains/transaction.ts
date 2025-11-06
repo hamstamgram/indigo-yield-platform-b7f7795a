@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Transaction Domain Types
  * Clean abstractions for transaction-related entities

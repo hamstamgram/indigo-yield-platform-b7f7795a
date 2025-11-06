@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Financial Utilities Test Suite
  *

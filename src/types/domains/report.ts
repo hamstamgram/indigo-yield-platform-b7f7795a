@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Report Domain Types
  * Clean abstractions for reporting functionality

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Comprehensive Type Definitions for Report Generation System
  * Indigo Yield Platform

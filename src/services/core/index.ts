@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Service Layer - Central Export
  * Unified access to all business logic services

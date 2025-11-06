@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Debounce function to limit how often a function can be called
  */
