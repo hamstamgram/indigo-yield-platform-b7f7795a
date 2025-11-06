@@ -271,9 +271,10 @@ class AdminServiceV2 {
         .from('investors')
         .insert([investorData])
         .select('id')
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error('Failed to create investor');
       return data.id;
     } catch (error) {
       console.error('Error creating investor:', error);

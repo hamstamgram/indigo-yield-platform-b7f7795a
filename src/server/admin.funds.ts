@@ -74,9 +74,10 @@ export async function getFund(fundId: string) {
     .from('funds')
     .select('*')
     .eq('id', fundId)
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
+  if (!data) throw new Error(`Fund not found: ${fundId}`);
   return data as Fund;
 }
 
@@ -94,9 +95,10 @@ export async function createFund(fund: Omit<Fund, 'id' | 'created_at' | 'updated
     .from('funds')
     .insert(fundWithDefaults)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
+  if (!data) throw new Error('Failed to create fund');
   return data as Fund;
 }
 
@@ -109,9 +111,10 @@ export async function updateFund(fundId: string, updates: Partial<Fund>) {
     .update(updates)
     .eq('id', fundId)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
+  if (!data) throw new Error(`Fund not found: ${fundId}`);
   return data as Fund;
 }
 
@@ -194,9 +197,9 @@ export async function getLatestNav(fundId: string) {
     .eq('fund_id', fundId)
     .order('nav_date', { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
-  if (error && error.code !== 'PGRST116') throw error; // Ignore "no rows" error
+  if (error) throw error;
   return data as DailyNav | null;
 }
 
@@ -208,9 +211,10 @@ export async function getFundPerformance(fundId: string) {
     .from('v_fund_kpis')
     .select('*')
     .eq('fund_id', fundId)
-    .single();
+    .maybeSingle();
 
   if (kpiError) throw kpiError;
+  if (!kpi) throw new Error(`Fund KPIs not found: ${fundId}`);
 
   const { data: navHistory, error: navError } = await supabase
     .from('daily_nav')

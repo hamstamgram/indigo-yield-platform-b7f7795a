@@ -21,9 +21,14 @@ export const fetchInvestorPositions = async () => {
       .from('investors')
       .select('id')
       .eq('profile_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (investorError || !investor) {
+    if (investorError) {
+      console.error("Error fetching investor record:", investorError);
+      return [];
+    }
+    
+    if (!investor) {
       console.log("No investor record found for user");
       return [];
     }
