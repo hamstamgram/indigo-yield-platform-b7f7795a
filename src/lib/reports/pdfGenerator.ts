@@ -1,23 +1,22 @@
-// @ts-nocheck
 /**
  * Professional PDF Report Generator
  * Creates branded PDF reports with charts, tables, and professional formatting
  */
 
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { format } from 'date-fns';
-import Decimal from 'decimal.js';
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { format } from "date-fns";
+import Decimal from "decimal.js";
 import {
   ReportData,
   ReportFormat,
   ReportStyles,
   HoldingData,
   TransactionData,
-} from '@/types/reports';
+} from "@/types/reports";
 
 // Extend jsPDF type to include autoTable
-declare module 'jspdf' {
+declare module "jspdf" {
   interface jsPDF {
     autoTable: typeof autoTable;
     lastAutoTable?: { finalY: number };
@@ -53,22 +52,22 @@ export class PDFReportGenerator {
 
   // Default branding colors
   private readonly DEFAULT_STYLES: ReportStyles = {
-    primaryColor: '#1e40af', // blue-700
-    secondaryColor: '#64748b', // slate-500
-    accentColor: '#f59e0b', // amber-500
-    headerColor: '#1f2937', // gray-800
-    textColor: '#374151', // gray-700
-    backgroundColor: '#ffffff',
-    borderColor: '#e5e7eb', // gray-200
-    fontFamily: 'helvetica',
+    primaryColor: "#1e40af", // blue-700
+    secondaryColor: "#64748b", // slate-500
+    accentColor: "#f59e0b", // amber-500
+    headerColor: "#1f2937", // gray-800
+    textColor: "#374151", // gray-700
+    backgroundColor: "#ffffff",
+    borderColor: "#e5e7eb", // gray-200
+    fontFamily: "helvetica",
     fontSize: 10,
   };
 
   constructor(options: PDFGenerationOptions = {}) {
     this.doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'pt',
-      format: 'a4',
+      orientation: "portrait",
+      unit: "pt",
+      format: "a4",
     });
 
     this.styles = { ...this.DEFAULT_STYLES, ...options.styles };
@@ -88,10 +87,10 @@ export class PDFReportGenerator {
       // Set PDF metadata
       this.doc.setProperties({
         title: data.title,
-        subject: data.subtitle || '',
-        author: 'Indigo Yield Platform',
-        creator: 'Indigo Yield Platform',
-        keywords: 'investment, report, statement',
+        subject: data.subtitle || "",
+        author: "Indigo Yield Platform",
+        creator: "Indigo Yield Platform",
+        keywords: "investment, report, statement",
       });
 
       // Generate cover page
@@ -129,7 +128,7 @@ export class PDFReportGenerator {
       }
 
       // Get PDF as bytes
-      const pdfData = this.doc.output('arraybuffer');
+      const pdfData = this.doc.output("arraybuffer");
       const filename = this.generateFilename(data);
 
       return {
@@ -140,10 +139,10 @@ export class PDFReportGenerator {
         fileSizeBytes: pdfData.byteLength,
       };
     } catch (error) {
-      console.error('PDF generation failed:', error);
+      console.error("PDF generation failed:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -156,20 +155,20 @@ export class PDFReportGenerator {
     this.currentY = 100;
     this.doc.setFontSize(32);
     this.doc.setTextColor(this.styles.primaryColor!);
-    this.doc.setFont('helvetica', 'bold');
-    this.centerText('INDIGO', this.currentY);
+    this.doc.setFont("helvetica", "bold");
+    this.centerText("INDIGO", this.currentY);
 
     this.currentY += 40;
     this.doc.setFontSize(16);
     this.doc.setTextColor(this.styles.secondaryColor!);
-    this.doc.setFont('helvetica', 'normal');
-    this.centerText('YIELD PLATFORM', this.currentY);
+    this.doc.setFont("helvetica", "normal");
+    this.centerText("YIELD PLATFORM", this.currentY);
 
     // Report title
     this.currentY += 100;
     this.doc.setFontSize(24);
     this.doc.setTextColor(this.styles.headerColor!);
-    this.doc.setFont('helvetica', 'bold');
+    this.doc.setFont("helvetica", "bold");
     this.centerText(data.title, this.currentY);
 
     // Report subtitle
@@ -177,7 +176,7 @@ export class PDFReportGenerator {
       this.currentY += 30;
       this.doc.setFontSize(14);
       this.doc.setTextColor(this.styles.textColor!);
-      this.doc.setFont('helvetica', 'normal');
+      this.doc.setFont("helvetica", "normal");
       this.centerText(data.subtitle, this.currentY);
     }
 
@@ -192,11 +191,11 @@ export class PDFReportGenerator {
       this.currentY += 80;
       this.doc.setFontSize(11);
       this.doc.setTextColor(this.styles.textColor!);
-      this.doc.setFont('helvetica', 'bold');
-      this.centerText('Prepared For:', this.currentY);
+      this.doc.setFont("helvetica", "bold");
+      this.centerText("Prepared For:", this.currentY);
 
       this.currentY += 20;
-      this.doc.setFont('helvetica', 'normal');
+      this.doc.setFont("helvetica", "normal");
       this.centerText(data.investor.name, this.currentY);
 
       if (data.investor.accountNumber) {
@@ -211,18 +210,15 @@ export class PDFReportGenerator {
     this.currentY = this.pageHeight - 100;
     this.doc.setFontSize(9);
     this.doc.setTextColor(this.styles.secondaryColor!);
-    this.doc.setFont('helvetica', 'normal');
-    this.centerText(
-      `Generated: ${format(data.generatedDate, 'MMMM dd, yyyy')}`,
-      this.currentY
-    );
+    this.doc.setFont("helvetica", "normal");
+    this.centerText(`Generated: ${format(data.generatedDate, "MMMM dd, yyyy")}`, this.currentY);
 
     // Confidentiality notice
     if (data.confidential) {
       this.currentY += 20;
-      this.doc.setTextColor('#ef4444'); // red-500
-      this.doc.setFont('helvetica', 'bold');
-      this.centerText('CONFIDENTIAL', this.currentY);
+      this.doc.setTextColor("#ef4444"); // red-500
+      this.doc.setFont("helvetica", "bold");
+      this.centerText("CONFIDENTIAL", this.currentY);
     }
   }
 
@@ -230,69 +226,45 @@ export class PDFReportGenerator {
    * Generate summary page
    */
   private generateSummaryPage(data: ReportData): void {
-    this.addSectionHeader('Account Summary');
+    this.addSectionHeader("Account Summary");
 
     const summary = data.summary;
     const summaryData: [string, string][] = [];
 
     if (summary.beginningBalance !== undefined) {
-      summaryData.push([
-        'Beginning Balance',
-        this.formatCurrency(summary.beginningBalance),
-      ]);
+      summaryData.push(["Beginning Balance", this.formatCurrency(summary.beginningBalance)]);
     }
 
     if (summary.totalDeposits !== undefined && summary.totalDeposits > 0) {
-      summaryData.push([
-        'Total Deposits',
-        this.formatCurrency(summary.totalDeposits),
-      ]);
+      summaryData.push(["Total Deposits", this.formatCurrency(summary.totalDeposits)]);
     }
 
     if (summary.totalWithdrawals !== undefined && summary.totalWithdrawals > 0) {
-      summaryData.push([
-        'Total Withdrawals',
-        this.formatCurrency(summary.totalWithdrawals),
-      ]);
+      summaryData.push(["Total Withdrawals", this.formatCurrency(summary.totalWithdrawals)]);
     }
 
     if (summary.netIncome !== undefined && summary.netIncome !== 0) {
-      summaryData.push([
-        'Net Income',
-        this.formatCurrency(summary.netIncome),
-      ]);
+      summaryData.push(["Net Income", this.formatCurrency(summary.netIncome)]);
     }
 
     if (summary.totalFees !== undefined && summary.totalFees > 0) {
-      summaryData.push(['Total Fees', this.formatCurrency(summary.totalFees)]);
+      summaryData.push(["Total Fees", this.formatCurrency(summary.totalFees)]);
     }
 
     if (summary.endingBalance !== undefined) {
-      summaryData.push([
-        'Ending Balance',
-        this.formatCurrency(summary.endingBalance),
-      ]);
+      summaryData.push(["Ending Balance", this.formatCurrency(summary.endingBalance)]);
     }
 
     if (summary.totalValue !== undefined) {
-      summaryData.push([
-        'Current Value',
-        this.formatCurrency(summary.totalValue),
-      ]);
+      summaryData.push(["Current Value", this.formatCurrency(summary.totalValue)]);
     }
 
     if (summary.totalReturn !== undefined) {
-      summaryData.push([
-        'Total Return',
-        this.formatCurrency(summary.totalReturn),
-      ]);
+      summaryData.push(["Total Return", this.formatCurrency(summary.totalReturn)]);
     }
 
     if (summary.returnPercentage !== undefined) {
-      summaryData.push([
-        'Return %',
-        this.formatPercentage(summary.returnPercentage),
-      ]);
+      summaryData.push(["Return %", this.formatPercentage(summary.returnPercentage)]);
     }
 
     // Create summary table
@@ -300,19 +272,19 @@ export class PDFReportGenerator {
       startY: this.currentY,
       head: [],
       body: summaryData,
-      theme: 'plain',
+      theme: "plain",
       styles: {
         fontSize: 10,
         cellPadding: 8,
       },
       columnStyles: {
-        0: { fontStyle: 'bold', cellWidth: 200 },
-        1: { halign: 'right', fontStyle: 'bold' },
+        0: { fontStyle: "bold", cellWidth: 200 },
+        1: { halign: "right", fontStyle: "bold" },
       },
       margin: { left: this.margin, right: this.margin },
     });
 
-    this.currentY = (this.doc as any).lastAutoTable.finalY + 30;
+    this.currentY = (this.doc.lastAutoTable?.finalY || this.currentY) + 30;
 
     // Performance metrics section
     if (
@@ -321,47 +293,44 @@ export class PDFReportGenerator {
       summary.ytdReturn !== undefined ||
       summary.itdReturn !== undefined
     ) {
-      this.addSectionHeader('Performance Metrics');
+      this.addSectionHeader("Performance Metrics");
 
       const performanceData: [string, string][] = [];
 
       if (summary.mtdReturn !== undefined) {
-        performanceData.push(['Month-to-Date', this.formatPercentage(summary.mtdReturn)]);
+        performanceData.push(["Month-to-Date", this.formatPercentage(summary.mtdReturn)]);
       }
       if (summary.qtdReturn !== undefined) {
-        performanceData.push(['Quarter-to-Date', this.formatPercentage(summary.qtdReturn)]);
+        performanceData.push(["Quarter-to-Date", this.formatPercentage(summary.qtdReturn)]);
       }
       if (summary.ytdReturn !== undefined) {
-        performanceData.push(['Year-to-Date', this.formatPercentage(summary.ytdReturn)]);
+        performanceData.push(["Year-to-Date", this.formatPercentage(summary.ytdReturn)]);
       }
       if (summary.itdReturn !== undefined) {
-        performanceData.push([
-          'Inception-to-Date',
-          this.formatPercentage(summary.itdReturn),
-        ]);
+        performanceData.push(["Inception-to-Date", this.formatPercentage(summary.itdReturn)]);
       }
 
       this.doc.autoTable({
         startY: this.currentY,
         head: [],
         body: performanceData,
-        theme: 'plain',
+        theme: "plain",
         styles: {
           fontSize: 10,
           cellPadding: 8,
         },
         columnStyles: {
-          0: { fontStyle: 'bold', cellWidth: 200 },
+          0: { fontStyle: "bold", cellWidth: 200 },
           1: {
-            halign: 'right',
-            fontStyle: 'bold',
+            halign: "right",
+            fontStyle: "bold",
             textColor: this.styles.primaryColor,
           },
         },
         margin: { left: this.margin, right: this.margin },
       });
 
-      this.currentY = (this.doc as any).lastAutoTable.finalY;
+      this.currentY = this.doc.lastAutoTable?.finalY || this.currentY;
     }
   }
 
@@ -369,12 +338,12 @@ export class PDFReportGenerator {
    * Generate holdings page
    */
   private generateHoldingsPage(data: ReportData): void {
-    this.addSectionHeader('Portfolio Holdings');
+    this.addSectionHeader("Portfolio Holdings");
 
     if (!data.holdings || data.holdings.length === 0) {
       this.doc.setFontSize(10);
       this.doc.setTextColor(this.styles.secondaryColor!);
-      this.doc.text('No holdings to display', this.margin, this.currentY);
+      this.doc.text("No holdings to display", this.margin, this.currentY);
       return;
     }
 
@@ -390,23 +359,13 @@ export class PDFReportGenerator {
 
     this.doc.autoTable({
       startY: this.currentY,
-      head: [
-        [
-          'Asset',
-          'Quantity',
-          'Price',
-          'Value',
-          'Allocation',
-          'Unrealized Gain',
-          'Gain %',
-        ],
-      ],
+      head: [["Asset", "Quantity", "Price", "Value", "Allocation", "Unrealized Gain", "Gain %"]],
       body: tableData,
-      theme: 'striped',
+      theme: "striped",
       headStyles: {
         fillColor: this.styles.primaryColor,
-        textColor: '#ffffff',
-        fontStyle: 'bold',
+        textColor: "#ffffff",
+        fontStyle: "bold",
         fontSize: 9,
       },
       styles: {
@@ -414,30 +373,30 @@ export class PDFReportGenerator {
         cellPadding: 6,
       },
       columnStyles: {
-        0: { fontStyle: 'bold', cellWidth: 80 },
-        1: { halign: 'right', cellWidth: 70 },
-        2: { halign: 'right', cellWidth: 60 },
-        3: { halign: 'right', cellWidth: 70 },
-        4: { halign: 'right', cellWidth: 60 },
-        5: { halign: 'right', cellWidth: 70 },
-        6: { halign: 'right', cellWidth: 60 },
+        0: { fontStyle: "bold", cellWidth: 80 },
+        1: { halign: "right", cellWidth: 70 },
+        2: { halign: "right", cellWidth: 60 },
+        3: { halign: "right", cellWidth: 70 },
+        4: { halign: "right", cellWidth: 60 },
+        5: { halign: "right", cellWidth: 70 },
+        6: { halign: "right", cellWidth: 60 },
       },
       margin: { left: this.margin, right: this.margin },
     });
 
-    this.currentY = (this.doc as any).lastAutoTable.finalY;
+    this.currentY = this.doc.lastAutoTable?.finalY || this.currentY;
   }
 
   /**
    * Generate transactions page
    */
   private generateTransactionsPage(data: ReportData): void {
-    this.addSectionHeader('Transaction History');
+    this.addSectionHeader("Transaction History");
 
     if (!data.transactions || data.transactions.length === 0) {
       this.doc.setFontSize(10);
       this.doc.setTextColor(this.styles.secondaryColor!);
-      this.doc.text('No transactions to display', this.margin, this.currentY);
+      this.doc.text("No transactions to display", this.margin, this.currentY);
       return;
     }
 
@@ -455,13 +414,13 @@ export class PDFReportGenerator {
 
     this.doc.autoTable({
       startY: this.currentY,
-      head: [['Date', 'Type', 'Asset', 'Amount', 'Value', 'Status']],
+      head: [["Date", "Type", "Asset", "Amount", "Value", "Status"]],
       body: tableData,
-      theme: 'striped',
+      theme: "striped",
       headStyles: {
         fillColor: this.styles.primaryColor,
-        textColor: '#ffffff',
-        fontStyle: 'bold',
+        textColor: "#ffffff",
+        fontStyle: "bold",
         fontSize: 9,
       },
       styles: {
@@ -471,9 +430,9 @@ export class PDFReportGenerator {
       columnStyles: {
         0: { cellWidth: 70 },
         1: { cellWidth: 75 },
-        2: { cellWidth: 50, fontStyle: 'bold' },
-        3: { halign: 'right', cellWidth: 80 },
-        4: { halign: 'right', cellWidth: 70 },
+        2: { cellWidth: 50, fontStyle: "bold" },
+        3: { halign: "right", cellWidth: 80 },
+        4: { halign: "right", cellWidth: 70 },
         5: { cellWidth: 70 },
       },
       margin: { left: this.margin, right: this.margin },
@@ -483,7 +442,7 @@ export class PDFReportGenerator {
       },
     });
 
-    this.currentY = (this.doc as any).lastAutoTable.finalY;
+    this.currentY = this.doc.lastAutoTable?.finalY || this.currentY;
 
     if (data.transactions.length > 100) {
       this.currentY += 20;
@@ -501,12 +460,12 @@ export class PDFReportGenerator {
    * Generate performance page
    */
   private generatePerformancePage(data: ReportData): void {
-    this.addSectionHeader('Performance Analysis');
+    this.addSectionHeader("Performance Analysis");
 
     if (!data.performance?.periods || data.performance.periods.length === 0) {
       this.doc.setFontSize(10);
       this.doc.setTextColor(this.styles.secondaryColor!);
-      this.doc.text('No performance data available', this.margin, this.currentY);
+      this.doc.text("No performance data available", this.margin, this.currentY);
       return;
     }
 
@@ -521,13 +480,13 @@ export class PDFReportGenerator {
 
     this.doc.autoTable({
       startY: this.currentY,
-      head: [['Period', 'Begin Value', 'End Value', 'Cash Flow', 'Return', 'Return %']],
+      head: [["Period", "Begin Value", "End Value", "Cash Flow", "Return", "Return %"]],
       body: tableData,
-      theme: 'striped',
+      theme: "striped",
       headStyles: {
         fillColor: this.styles.primaryColor,
-        textColor: '#ffffff',
-        fontStyle: 'bold',
+        textColor: "#ffffff",
+        fontStyle: "bold",
         fontSize: 9,
       },
       styles: {
@@ -535,50 +494,47 @@ export class PDFReportGenerator {
         cellPadding: 6,
       },
       columnStyles: {
-        0: { fontStyle: 'bold', cellWidth: 70 },
-        1: { halign: 'right', cellWidth: 75 },
-        2: { halign: 'right', cellWidth: 75 },
-        3: { halign: 'right', cellWidth: 75 },
-        4: { halign: 'right', cellWidth: 75 },
-        5: { halign: 'right', cellWidth: 60 },
+        0: { fontStyle: "bold", cellWidth: 70 },
+        1: { halign: "right", cellWidth: 75 },
+        2: { halign: "right", cellWidth: 75 },
+        3: { halign: "right", cellWidth: 75 },
+        4: { halign: "right", cellWidth: 75 },
+        5: { halign: "right", cellWidth: 60 },
       },
       margin: { left: this.margin, right: this.margin },
     });
 
-    this.currentY = (this.doc as any).lastAutoTable.finalY;
+    this.currentY = this.doc.lastAutoTable?.finalY || this.currentY;
   }
 
   /**
    * Generate disclosures page
    */
   private generateDisclosuresPage(): void {
-    this.addSectionHeader('Important Disclosures');
+    this.addSectionHeader("Important Disclosures");
 
     this.doc.setFontSize(8);
     this.doc.setTextColor(this.styles.textColor!);
-    this.doc.setFont('helvetica', 'normal');
+    this.doc.setFont("helvetica", "normal");
 
     const disclosures = [
-      'This report is provided for informational purposes only and does not constitute investment advice, an offer to sell, or a solicitation to buy any securities.',
-      '',
-      'Past performance is not indicative of future results. All investments carry risk, including the potential loss of principal.',
-      '',
-      'The values and returns shown are based on data available at the time of generation and may be subject to change.',
-      '',
-      'Please consult with your tax advisor regarding the tax implications of your investments.',
-      '',
-      'For questions about this report or your account, please contact support@indigo.yield.',
+      "This report is provided for informational purposes only and does not constitute investment advice, an offer to sell, or a solicitation to buy any securities.",
+      "",
+      "Past performance is not indicative of future results. All investments carry risk, including the potential loss of principal.",
+      "",
+      "The values and returns shown are based on data available at the time of generation and may be subject to change.",
+      "",
+      "Please consult with your tax advisor regarding the tax implications of your investments.",
+      "",
+      "For questions about this report or your account, please contact support@indigo.yield.",
     ];
 
     let textY = this.currentY;
     disclosures.forEach((line) => {
-      if (line === '') {
+      if (line === "") {
         textY += 10;
       } else {
-        const splitText = this.doc.splitTextToSize(
-          line,
-          this.pageWidth - 2 * this.margin
-        );
+        const splitText = this.doc.splitTextToSize(line, this.pageWidth - 2 * this.margin);
         this.doc.text(splitText, this.margin, textY);
         textY += splitText.length * 12;
       }
@@ -594,17 +550,12 @@ export class PDFReportGenerator {
     // Draw line above header
     this.doc.setDrawColor(this.styles.borderColor!);
     this.doc.setLineWidth(1);
-    this.doc.line(
-      this.margin,
-      this.currentY,
-      this.pageWidth - this.margin,
-      this.currentY
-    );
+    this.doc.line(this.margin, this.currentY, this.pageWidth - this.margin, this.currentY);
 
     this.currentY += 20;
     this.doc.setFontSize(14);
     this.doc.setTextColor(this.styles.primaryColor!);
-    this.doc.setFont('helvetica', 'bold');
+    this.doc.setFont("helvetica", "bold");
     this.doc.text(title, this.margin, this.currentY);
 
     this.currentY += 20;
@@ -629,15 +580,11 @@ export class PDFReportGenerator {
       this.doc.setPage(i);
       this.doc.setFontSize(8);
       this.doc.setTextColor(this.styles.secondaryColor!);
-      this.doc.setFont('helvetica', 'normal');
+      this.doc.setFont("helvetica", "normal");
 
       const pageText = `Page ${i} of ${totalPages}`;
       const textWidth = this.doc.getTextWidth(pageText);
-      this.doc.text(
-        pageText,
-        this.pageWidth / 2 - textWidth / 2,
-        this.pageHeight - 20
-      );
+      this.doc.text(pageText, this.pageWidth / 2 - textWidth / 2, this.pageHeight - 20);
     }
   }
 
@@ -654,9 +601,9 @@ export class PDFReportGenerator {
    * Format currency
    */
   private formatCurrency(value: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(value);
@@ -666,14 +613,14 @@ export class PDFReportGenerator {
    * Format percentage
    */
   private formatPercentage(value: number): string {
-    return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+    return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
   }
 
   /**
    * Format number
    */
   private formatNumber(value: number, decimals: number = 2): string {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat("en-US", {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
     }).format(value);
@@ -683,8 +630,8 @@ export class PDFReportGenerator {
    * Generate filename
    */
   private generateFilename(data: ReportData): string {
-    const dateStr = format(new Date(), 'yyyyMMdd');
-    const reportTitle = data.title.replace(/\s+/g, '_').toLowerCase();
+    const dateStr = format(new Date(), "yyyyMMdd");
+    const reportTitle = data.title.replace(/\s+/g, "_").toLowerCase();
     return `${reportTitle}_${dateStr}.pdf`;
   }
 }
