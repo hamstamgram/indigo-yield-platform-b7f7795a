@@ -2,6 +2,9 @@
 /**
  * KYC Verification Page
  * Identity verification and document upload
+ * 
+ * TODO: Schema mismatches - profiles table missing: kyc_status, kyc_verified_at, kyc_rejection_reason
+ * TODO: documents table missing fields: document_type, file_name, file_path, status, reviewed_at, rejection_reason
  */
 
 import { useEffect, useState } from 'react';
@@ -63,6 +66,7 @@ export default function KYCVerification() {
 
   useEffect(() => {
     loadKYCData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadKYCData = async () => {
@@ -73,7 +77,7 @@ export default function KYCVerification() {
         .from('profiles')
         .select('kyc_status, kyc_verified_at, kyc_rejection_reason, updated_at')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (profileData) {
         setKycStatus({

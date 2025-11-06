@@ -2,6 +2,8 @@
 /**
  * Linked Accounts Page
  * Manage bank accounts and crypto wallets
+ * 
+ * TODO: Schema mismatches - bank_accounts and crypto_wallets tables don't exist in current schema
  */
 
 import { useEffect, useState } from 'react';
@@ -62,6 +64,7 @@ export default function LinkedAccounts() {
 
   useEffect(() => {
     loadLinkedAccounts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadLinkedAccounts = async () => {

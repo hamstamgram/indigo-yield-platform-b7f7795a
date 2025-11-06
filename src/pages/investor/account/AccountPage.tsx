@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -58,7 +57,7 @@ const AccountPage = () => {
           .from('profiles')
           .select('*')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
           
         if (error) {
           console.error('Error fetching profile:', error);
@@ -72,20 +71,30 @@ const AccountPage = () => {
             });
           }
         } else if (profileData) {
-          // Update with full profile if available
-          setProfile(profileData);
+          // Update with full profile if available, mapping database fields to Profile interface
+          setProfile({
+            id: profileData.id,
+            email: profileData.email,
+            first_name: profileData.first_name,
+            last_name: profileData.last_name,
+            phone: profileData.phone,
+            totp_enabled: profileData.totp_enabled || false,
+            totp_verified: profileData.totp_verified || false,
+            avatar_url: profileData.avatar_url,
+          });
         }
-      } catch (profileError: any) {
+      } catch (profileError) {
         console.error('Profile fetch error:', profileError);
         // We already have minimal profile set as fallback
       }
       
-    } catch (authError: any) {
+    } catch (authError) {
+      const errorMessage = authError instanceof Error ? authError.message : 'Failed to load your profile information';
       console.error('Authentication error:', authError);
-      setError(authError.message || 'Failed to load your profile information');
+      setError(errorMessage);
       toast({
         title: 'Error loading profile',
-        description: authError.message || 'Failed to load your profile information',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -95,6 +104,7 @@ const AccountPage = () => {
 
   useEffect(() => {
     fetchProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSaveProfile = async (updatedData: any) => {
@@ -128,11 +138,12 @@ const AccountPage = () => {
         description: 'Your profile information has been updated successfully.',
       });
       
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile information';
       console.error('Error updating profile:', error);
       toast({
         title: 'Update failed',
-        description: error.message || 'Failed to update profile information',
+        description: errorMessage,
         variant: 'destructive',
       });
     }
@@ -186,7 +197,7 @@ const AccountPage = () => {
         </TabsContent>
         
         <TabsContent value="security">
-          <SecurityTab profile={profile} />
+          <SecurityTab />
         </TabsContent>
         
         <TabsContent value="notifications">
