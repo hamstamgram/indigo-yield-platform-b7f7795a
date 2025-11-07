@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -69,7 +68,7 @@ const StatementsPage = () => {
         rate_of_return_mtd:
           record.yield_earned && record.opening_balance
             ? (
-                (parseFloat(record.yield_earned) / parseFloat(record.opening_balance)) *
+                (parseFloat(record.yield_earned.toString()) / parseFloat(record.opening_balance.toString())) *
                 100
               ).toFixed(4)
             : "0",
@@ -165,7 +164,7 @@ const StatementsPage = () => {
     })} ${config.symbol}`;
   };
 
-  const downloadStatement = async (statementId: string) => {
+  const downloadStatement = async (_statementId: string) => {
     try {
       // TODO: Implement PDF download
       // For now, show a message

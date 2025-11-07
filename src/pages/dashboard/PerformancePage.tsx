@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,20 +6,10 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Edit, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-interface DailyNavItem {
-  id: string;
-  name?: string;
-  title?: string;
-  status?: string;
-  description?: string;
-  created_at: string;
-  updated_at?: string;
-}
-
 export default function PerformanceDetailsPage() {
   const { id } = useParams<{ id: string }>();
 
-  const { data: item, isLoading } = useQuery<DailyNavItem>({
+  const { data: item, isLoading } = useQuery({
     queryKey: ["daily_nav", id],
     queryFn: async () => {
       if (!id) throw new Error("No ID provided");
@@ -30,7 +19,7 @@ export default function PerformanceDetailsPage() {
       if (!data) throw new Error("Performance data not found");
 
       if (error) throw error;
-      return data as DailyNavItem;
+      return data;
     },
   });
 
@@ -83,38 +72,38 @@ export default function PerformanceDetailsPage() {
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
-              <CardTitle className="text-2xl">{item.name || item.title}</CardTitle>
+              <CardTitle className="text-2xl">{(item as any).name || (item as any).title}</CardTitle>
               <CardDescription>
-                Created {new Date(item.created_at).toLocaleDateString()}
+                Created {new Date((item as any).created_at).toLocaleDateString()}
               </CardDescription>
             </div>
-            <Badge>{item.status || "Active"}</Badge>
+            <Badge>{(item as any).status || "Active"}</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <p className="text-sm text-muted-foreground mb-1">ID</p>
-              <p className="font-mono text-sm">{item.id}</p>
+              <p className="font-mono text-sm">{(item as any).id}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Status</p>
-              <p className="capitalize">{item.status || "Active"}</p>
+              <p className="capitalize">{(item as any).status || "Active"}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Created</p>
-              <p>{new Date(item.created_at).toLocaleString()}</p>
+              <p>{new Date((item as any).created_at).toLocaleString()}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Updated</p>
-              <p>{new Date(item.updated_at || item.created_at).toLocaleString()}</p>
+              <p>{new Date((item as any).updated_at || (item as any).created_at).toLocaleString()}</p>
             </div>
           </div>
 
-          {item.description && (
+          {(item as any).description && (
             <div>
               <p className="text-sm text-muted-foreground mb-2">Description</p>
-              <p>{item.description}</p>
+              <p>{(item as any).description}</p>
             </div>
           )}
         </CardContent>

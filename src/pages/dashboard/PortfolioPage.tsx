@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Portfolio Page
  * 
@@ -39,8 +38,8 @@ export default function PortfolioPage() {
     },
   });
 
-  const totalValue = positions?.reduce((sum, pos) => sum + (pos.current_balance || 0), 0) || 0;
-  const totalCost = positions?.reduce((sum, pos) => sum + (pos.initial_investment || 0), 0) || 0;
+  const totalValue = positions?.reduce((sum, pos) => sum + (pos.current_value || 0), 0) || 0;
+  const totalCost = positions?.reduce((sum, pos) => sum + (pos.cost_basis || 0), 0) || 0;
   const totalGain = totalValue - totalCost;
   const totalReturn = totalCost > 0 ? ((totalGain / totalCost) * 100).toFixed(2) : '0.00';
 
@@ -83,7 +82,7 @@ export default function PortfolioPage() {
               {totalGain >= 0 ? '+' : ''}${totalGain.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              {totalReturn >= 0 ? '+' : ''}{totalReturn}% return
+              {parseFloat(totalReturn) >= 0 ? '+' : ''}{totalReturn}% return
             </p>
           </CardContent>
         </Card>
@@ -116,36 +115,36 @@ export default function PortfolioPage() {
             </Card>
           ) : positions && positions.length > 0 ? (
             <div className="space-y-4">
-              {positions.map((position) => {
-                const positionGain = (position.current_balance || 0) - (position.initial_investment || 0);
-                const positionReturn = position.initial_investment
-                  ? ((positionGain / position.initial_investment) * 100).toFixed(2)
+              {positions.map((position: any) => {
+                const positionGain = (position.current_value || 0) - (position.cost_basis || 0);
+                const positionReturn = position.cost_basis
+                  ? ((positionGain / position.cost_basis) * 100).toFixed(2)
                   : '0.00';
                 const allocation = totalValue > 0
-                  ? ((position.current_balance / totalValue) * 100).toFixed(1)
+                  ? ((position.current_value / totalValue) * 100).toFixed(1)
                   : '0';
 
                 return (
-                  <Card key={position.id}>
+                  <Card key={position.fund_id}>
                     <CardContent className="pt-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold">
-                              {position.fund_assets?.asset_symbol?.substring(0, 2).toUpperCase()}
+                              FD
                             </div>
                             <div>
                               <h3 className="font-semibold text-lg">
-                                {position.fund_assets?.asset_name || 'Unknown Fund'}
+                                Fund
                               </h3>
                               <p className="text-sm text-muted-foreground">
-                                {position.fund_assets?.asset_symbol}
+                                {position.fund_id}
                               </p>
                             </div>
                           </div>
                         </div>
-                        <Badge variant={position.status === 'active' ? 'default' : 'secondary'}>
-                          {position.status}
+                        <Badge variant="default">
+                          active
                         </Badge>
                       </div>
 
@@ -153,13 +152,13 @@ export default function PortfolioPage() {
                         <div>
                           <p className="text-xs text-muted-foreground mb-1">Current Value</p>
                           <p className="text-lg font-semibold">
-                            ${position.current_balance?.toLocaleString()}
+                            ${position.current_value?.toLocaleString()}
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground mb-1">Cost Basis</p>
                           <p className="text-lg font-semibold">
-                            ${position.initial_investment?.toLocaleString()}
+                            ${position.cost_basis?.toLocaleString()}
                           </p>
                         </div>
                         <div>
@@ -193,13 +192,13 @@ export default function PortfolioPage() {
 
                       <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm" asChild>
-                          <Link to={`/dashboard/assets/${position.fund_asset_id}`}>
+                          <Link to={`/dashboard/assets/${position.fund_id}`}>
                             View Details
                             <ArrowRight className="ml-2 h-4 w-4" />
                           </Link>
                         </Button>
                         <Button variant="outline" size="sm" asChild>
-                          <Link to={`/transactions?fund=${position.fund_asset_id}`}>
+                          <Link to={`/transactions?fund=${position.fund_id}`}>
                             Transactions
                           </Link>
                         </Button>

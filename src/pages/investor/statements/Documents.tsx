@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Documents Page - LP View
  * Secure document vault for investors
@@ -9,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Select, 
@@ -43,7 +41,6 @@ import {
   Eye,
   Bell,
   ScrollText,
-  Receipt,
   FileSignature,
   BarChart3,
   Award,
@@ -108,11 +105,10 @@ const typeIcons: Record<DocumentType, React.ComponentType<any>> = {
 };
 
 export default function DocumentsPage() {
-  const [documents, setDocuments] = useState<Document[]>(sampleDocuments);
+  const [documents] = useState<Document[]>(sampleDocuments);
   const [filteredDocuments, setFilteredDocuments] = useState<Document[]>(sampleDocuments);
   const [filter, setFilter] = useState<DocumentFilter>({});
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [downloadingDoc, setDownloadingDoc] = useState<string | null>(null);
 
   // Filter documents based on current filters and search

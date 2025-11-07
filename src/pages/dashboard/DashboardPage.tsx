@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Dashboard Page - Investor Dashboard
  * 
@@ -33,28 +32,12 @@ import {
   Cell,
 } from "recharts";
 
-interface FundAsset {
-  asset_name: string | null;
-}
-
-interface InvestorPosition {
-  current_value: number;
-  cost_basis: number;
-  fund_assets: FundAsset | null;
-}
-
 interface Transaction {
   id: string;
   type: string;
   created_at: string;
   amount: number;
   status: string;
-}
-
-interface PortfolioData {
-  totalValue: number;
-  totalGain: number;
-  positions: InvestorPosition[];
 }
 
 interface PerformanceDataPoint {
@@ -69,7 +52,7 @@ interface AllocationDataPoint {
 }
 
 export default function DashboardPage() {
-  const { data: portfolioData } = useQuery<PortfolioData>({
+  const { data: portfolioData } = useQuery({
     queryKey: ["dashboard-summary"],
     queryFn: async () => {
       const {
@@ -84,14 +67,14 @@ export default function DashboardPage() {
 
       if (error) throw error;
 
-      const positions = (data || []) as InvestorPosition[];
+      const positions = (data || []);
       const totalValue = positions.reduce(
-        (sum: number, pos) => sum + (pos.current_value || 0),
+        (sum: number, pos: any) => sum + (pos.current_value || 0),
         0
       ) || 0;
       const totalGain =
         positions.reduce(
-          (sum: number, pos) => sum + ((pos.current_value || 0) - (pos.cost_basis || 0)),
+          (sum: number, pos: any) => sum + ((pos.current_value || 0) - (pos.cost_basis || 0)),
           0
         ) || 0;
 
@@ -142,9 +125,9 @@ export default function DashboardPage() {
 
   const colors = ["#3b82f6", "#8b5cf6", "#ec4899", "#10b981"];
   const allocationData: AllocationDataPoint[] =
-    portfolioData?.positions.map((pos, idx) => ({
+    portfolioData?.positions.map((pos: any, idx: number) => ({
       name: pos.fund_assets?.asset_name || "Unknown",
-      value: pos.current_balance || 0,
+      value: pos.current_value || 0,
       color: colors[idx % colors.length] || "#3b82f6",
     })) || [];
 
@@ -278,7 +261,7 @@ export default function DashboardPage() {
 
               {/* Asset links */}
               <div className="grid grid-cols-2 gap-2">
-                {portfolioData?.positions.map((pos, idx) => {
+                {portfolioData?.positions.map((pos: any, idx: number) => {
                   const assetSymbol =
                     pos.fund_assets?.asset_name?.toLowerCase().split(" ")[0] || "unknown";
                   return (

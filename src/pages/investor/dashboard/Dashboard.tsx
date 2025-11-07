@@ -1,9 +1,6 @@
-// @ts-nocheck
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Coins, TrendingUp, TrendingDown, Info } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Coins, TrendingUp } from "lucide-react";
 import { useAssetData } from "@/hooks/useAssetData";
 import { useNavigate } from "react-router-dom";
 import { formatTokenBalance } from "@/utils/tokenFormatting";
@@ -11,11 +8,9 @@ import { formatTokenBalance } from "@/utils/tokenFormatting";
 const Dashboard = () => {
   const navigate = useNavigate();
   const { assetSummaries, loading, error, userName } = useAssetData();
-  const [portfolioData, setPortfolioData] = useState<any[]>([]);
 
   useEffect(() => {
     // Portfolio data loading is temporarily disabled during schema migration
-    setPortfolioData([]);
   }, []);
 
   if (loading) {
