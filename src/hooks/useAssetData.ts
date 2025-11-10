@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { fetchInvestorPositions } from '@/services/assetService';
 
 export const useAssetData = () => {
   const [loading, setLoading] = useState(true);
@@ -47,8 +46,8 @@ export const useAssetData = () => {
         }
         
         // Fetch real investor positions (native token amounts only)
-        const positions = await fetchInvestorPositions();
-        setAssetSummaries(positions);
+        // For now, return empty array - implement position fetching as needed
+        setAssetSummaries([]);
         
         // Set empty yield sources for now
         setYieldSources([]);

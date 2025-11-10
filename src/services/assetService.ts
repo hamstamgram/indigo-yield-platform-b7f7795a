@@ -1,91 +1,147 @@
-
 import { supabase } from "@/integrations/supabase/client";
+import type { Asset, AssetFormData, AssetPrice, AssetPriceFormData } from "@/types/asset";
 
-/**
- * Fetches real investor positions from the database
- * @returns Array of consolidated investor positions by asset
- */
-export const fetchInvestorPositions = async () => {
-  try {
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (userError) throw userError;
-    if (!user) {
-      console.log("No authenticated user found");
-      return [];
+export class AssetService {
+  async getAssets(filters?: {
+    kind?: string;
+    is_active?: boolean;
+    search?: string;
+  }): Promise<Asset[]> {
+    let query = supabase
+      .from("assets_v2")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (filters?.kind) {
+      query = query.eq("kind", filters.kind);
     }
 
-    // First get the investor record for this user
-    const { data: investor, error: investorError } = await supabase
-      .from('investors')
-      .select('id')
-      .eq('profile_id', user.id)
+    if (filters?.is_active !== undefined) {
+      query = query.eq("is_active", filters.is_active);
+    }
+
+    if (filters?.search) {
+      query = query.or(
+        `symbol.ilike.%${filters.search}%,name.ilike.%${filters.search}%,asset_id.ilike.%${filters.search}%`
+      );
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    return (data || []) as Asset[];
+  }
+
+  async getAssetById(assetId: string): Promise<Asset> {
+    const { data, error } = await supabase
+      .from("assets_v2")
+      .select("*")
+      .eq("asset_id", assetId)
+      .single();
+
+    if (error) throw error;
+    return data as Asset;
+  }
+
+  async createAsset(formData: AssetFormData): Promise<Asset> {
+    const { data, error } = await supabase
+      .from("assets_v2")
+      .insert({
+        ...formData,
+        metadata: formData.metadata || {},
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Asset;
+  }
+
+  async updateAsset(assetId: string, updates: Partial<AssetFormData>): Promise<Asset> {
+    const { data, error } = await supabase
+      .from("assets_v2")
+      .update(updates)
+      .eq("asset_id", assetId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Asset;
+  }
+
+  async deleteAsset(assetId: string): Promise<void> {
+    const { error } = await supabase
+      .from("assets_v2")
+      .delete()
+      .eq("asset_id", assetId);
+
+    if (error) throw error;
+  }
+
+  async getAssetPrices(assetId: string, limit: number = 100): Promise<AssetPrice[]> {
+    const { data, error } = await supabase
+      .from("asset_prices")
+      .select("*")
+      .eq("asset_id", assetId)
+      .order("as_of", { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return (data || []) as AssetPrice[];
+  }
+
+  async getLatestPrice(assetId: string): Promise<AssetPrice | null> {
+    const { data, error } = await supabase
+      .from("asset_prices")
+      .select("*")
+      .eq("asset_id", assetId)
+      .order("as_of", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
-    if (investorError) {
-      console.error("Error fetching investor record:", investorError);
-      return [];
-    }
-    
-    if (!investor) {
-      console.log("No investor record found for user");
-      return [];
-    }
+    if (error) throw error;
+    return data as AssetPrice | null;
+  }
 
-    // Get investor positions with fund information
-    const { data: positions, error: positionsError } = await supabase
-      .from('investor_positions')
-      .select(`
-        current_value,
-        fund_id,
-        funds!inner(code, name, asset)
-      `)
-      .eq('investor_id', investor.id)
-      .gt('current_value', 0);
+  async addAssetPrice(priceData: AssetPriceFormData): Promise<AssetPrice> {
+    const { data, error } = await supabase
+      .from("asset_prices")
+      .insert({
+        ...priceData,
+        as_of: new Date().toISOString(),
+      })
+      .select()
+      .single();
 
-    if (positionsError) {
-      console.error("Error fetching investor positions:", positionsError);
-      return [];
-    }
+    if (error) throw error;
+    return data as AssetPrice;
+  }
 
-    if (!positions || positions.length === 0) {
-      console.log("No positions found for investor");
-      return [];
-    }
+  async getAssetStats(): Promise<{
+    total: number;
+    active: number;
+    inactive: number;
+    by_kind: Record<string, number>;
+  }> {
+    const { data, error } = await supabase
+      .from("assets_v2")
+      .select("kind, is_active");
 
-    // Group positions by asset (fund code)
-    const assetMap = new Map();
-    
-    positions.forEach(position => {
-      const assetSymbol = position.funds.code.toUpperCase();
-      const assetName = position.funds.asset;
-      
-      if (assetMap.has(assetSymbol)) {
-        // Add to existing position
-        const existing = assetMap.get(assetSymbol);
-        existing.balance += position.current_value;
-      } else {
-        // Create new position
-        assetMap.set(assetSymbol, {
-          symbol: assetSymbol,
-          name: assetName,
-          balance: position.current_value,
-          // Keep original fund structure for compatibility
-          id: position.fund_id
-        });
-      }
+    if (error) throw error;
+
+    const stats = {
+      total: data?.length || 0,
+      active: data?.filter((a) => a.is_active).length || 0,
+      inactive: data?.filter((a) => !a.is_active).length || 0,
+      by_kind: {} as Record<string, number>,
+    };
+
+    data?.forEach((asset) => {
+      stats.by_kind[asset.kind] = (stats.by_kind[asset.kind] || 0) + 1;
     });
 
-    return Array.from(assetMap.values());
-  } catch (error) {
-    console.error("Error in fetchInvestorPositions:", error);
-    return [];
+    return stats;
   }
-};
+}
 
-/**
- * Legacy function for backward compatibility
- * @deprecated Use fetchInvestorPositions instead
- */
-export const fetchAssetSummaries = fetchInvestorPositions;
+export const assetService = new AssetService();

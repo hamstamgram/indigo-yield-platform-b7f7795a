@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Wallet,
   Receipt,
+  Coins,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
 
@@ -75,6 +76,12 @@ export function useNavItems(): NavItem[] {
       href: "/admin/fees",
       icon: Receipt,
       description: "Fee calculations and structures",
+    },
+    {
+      title: "Assets",
+      href: "/admin/assets",
+      icon: Coins,
+      description: "Asset management and price tracking",
     },
     {
       title: "Portfolio Management",
