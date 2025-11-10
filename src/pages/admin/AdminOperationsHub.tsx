@@ -26,13 +26,127 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { operationsService } from "@/services/operationsService";
 
 function AdminOperationsHubContent() {
   const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
+  const [metrics, setMetrics] = useState({
+    pendingApprovals: 0,
+    todaysTransactions: 0,
+    activeInvestors: 0,
+    totalAUM: 0,
+    transactionTrend: "0%",
+  });
+  const [isLoadingMetrics, setIsLoadingMetrics] = useState(true);
 
   useEffect(() => {
     loadRecentActivities();
+    loadMetrics();
+
+    // Set up real-time subscriptions for automatic updates
+    const channel = supabase
+      .channel('operations-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'withdrawal_requests',
+        },
+        () => {
+          loadMetrics();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'deposits',
+        },
+        () => {
+          loadMetrics();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'investments',
+        },
+        () => {
+          loadMetrics();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'transactions_v2',
+        },
+        () => {
+          loadMetrics();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'investors',
+        },
+        () => {
+          loadMetrics();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'investor_positions',
+        },
+        () => {
+          loadMetrics();
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
+
+  const loadMetrics = async () => {
+    setIsLoadingMetrics(true);
+    try {
+      const [metricsData, yesterdayCount] = await Promise.all([
+        operationsService.getMetrics(),
+        operationsService.getYesterdayTransactions(),
+      ]);
+
+      const trend = operationsService.calculateTrend(
+        metricsData.todaysTransactions,
+        yesterdayCount
+      );
+
+      setMetrics({
+        pendingApprovals: metricsData.pendingApprovals,
+        todaysTransactions: metricsData.todaysTransactions,
+        activeInvestors: metricsData.activeInvestors,
+        totalAUM: metricsData.totalAUM,
+        transactionTrend: trend,
+      });
+    } catch (error) {
+      console.error("Error loading metrics:", error);
+      toast.error("Failed to load operations metrics");
+    } finally {
+      setIsLoadingMetrics(false);
+    }
+  };
 
   const loadRecentActivities = async () => {
     try {
@@ -75,33 +189,34 @@ function AdminOperationsHubContent() {
   const stats = [
     {
       title: "Pending Approvals",
-      value: "12",
-      description: "Investments, withdrawals, etc.",
+      value: isLoadingMetrics ? "..." : metrics.pendingApprovals.toString(),
+      description: "Investments, withdrawals, deposits",
       icon: Clock,
-      status: "warning" as const,
+      status: metrics.pendingApprovals > 0 ? ("warning" as const) : ("info" as const),
     },
     {
       title: "Today's Transactions",
-      value: "47",
-      description: "+15% from yesterday",
+      value: isLoadingMetrics ? "..." : metrics.todaysTransactions.toString(),
+      description: `${metrics.transactionTrend} from yesterday`,
       icon: TrendingUp,
       status: "success" as const,
-      trend: "+15%",
+      trend: isLoadingMetrics ? undefined : metrics.transactionTrend,
     },
     {
       title: "Active Investors",
-      value: "234",
+      value: isLoadingMetrics ? "..." : metrics.activeInvestors.toString(),
       description: "Currently active accounts",
       icon: Users,
       status: "info" as const,
     },
     {
       title: "Total AUM",
-      value: "$12.4M",
-      description: "Across all funds",
+      value: isLoadingMetrics
+        ? "..."
+        : `$${(metrics.totalAUM / 1_000_000).toFixed(1)}M`,
+      description: "Across all positions",
       icon: DollarSign,
       status: "success" as const,
-      trend: "+8.2%",
     },
   ];
 
@@ -151,7 +266,13 @@ function AdminOperationsHubContent() {
       href: "/admin/withdrawals",
       icon: ArrowDownToLine,
       category: "Request Management",
-      badge: { text: "5 pending", variant: "secondary" },
+      badge: 
+        isLoadingMetrics || metrics.pendingApprovals === 0
+          ? undefined
+          : { 
+              text: `${metrics.pendingApprovals} pending`, 
+              variant: "secondary" as const 
+            },
     },
     {
       title: "Support Queue",
