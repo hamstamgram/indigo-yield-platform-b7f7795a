@@ -3,7 +3,7 @@
  * Upload and manage fund documents with bulk upload capabilities
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -40,7 +40,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { 
-  Document, 
+  Document,
   DocumentType, 
   DocumentUploadRequest,
   DOCUMENT_TYPE_CONFIG,
@@ -48,6 +48,7 @@ import {
   validateDocumentUpload,
   getDocumentTypeConfig
 } from '@/lib/documents/types';
+import { documentService } from '@/services/documentService';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { 
@@ -66,42 +67,6 @@ import {
   Users
 } from 'lucide-react';
 
-// Sample data for demonstration
-const sampleDocuments: Document[] = [
-  {
-    id: 'doc_001',
-    user_id: 'user_123',
-    fund_id: 'fund_001',
-    type: 'statement',
-    title: 'January 2024 Account Statement',
-    description: 'Monthly account statement showing portfolio performance and transactions',
-    storage_path: 'documents/user_123/2024/01/statement/doc_001',
-    filename: 'statement_jan_2024_doc_001.pdf',
-    file_size: 256000,
-    mime_type: 'application/pdf',
-    period_start: new Date('2024-01-01'),
-    period_end: new Date('2024-01-31'),
-    status: 'ready',
-    created_at: new Date('2024-02-01'),
-    created_by: 'admin',
-    checksum: 'abc123def456',
-  },
-  {
-    id: 'doc_002',
-    fund_id: 'fund_001',
-    type: 'notice',
-    title: 'Fund Performance Update - Q4 2023',
-    description: 'Quarterly performance review and market outlook',
-    storage_path: 'documents/fund/2024/01/notice/doc_002',
-    filename: 'fund_notice_q4_2023_doc_002.pdf',
-    file_size: 512000,
-    mime_type: 'application/pdf',
-    status: 'ready',
-    created_at: new Date('2024-01-10'),
-    created_by: 'admin',
-    checksum: 'ghi789jkl012',
-  },
-];
 
 interface PendingUpload extends DocumentUploadRequest {
   id: string;
@@ -111,7 +76,8 @@ interface PendingUpload extends DocumentUploadRequest {
 }
 
 export default function AdminDocumentsPage() {
-  const [documents, setDocuments] = useState<Document[]>(sampleDocuments);
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
   const [pendingUploads, setPendingUploads] = useState<PendingUpload[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -129,6 +95,23 @@ export default function AdminDocumentsPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bulkFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load documents from database
+  useEffect(() => {
+    const loadDocuments = async () => {
+      setIsLoadingDocuments(true);
+      try {
+        // TODO: Fix type mismatch between domain and lib Document types
+        const docs = await documentService.listDocuments();
+        setDocuments(docs as any);
+      } catch (error) {
+        console.error('Failed to load documents:', error);
+      } finally {
+        setIsLoadingDocuments(false);
+      }
+    };
+    loadDocuments();
+  }, []);
 
   // Handle single file upload
   const handleSingleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -402,21 +385,44 @@ export default function AdminDocumentsPage() {
               <CardTitle>Document Library</CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Document</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Target</TableHead>
-                    <TableHead>Period</TableHead>
-                    <TableHead>Size</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {documents.map((document) => (
+              {isLoadingDocuments ? (
+                <div className="py-12 text-center">
+                  <p className="text-muted-foreground">Loading documents...</p>
+                </div>
+              ) : documents.length === 0 ? (
+                <div className="py-12 text-center space-y-4">
+                  <div className="flex justify-center">
+                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                      <FileText className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">No documents yet</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Upload your first document to get started
+                    </p>
+                    <Button onClick={() => setShowUploadDialog(true)}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Document
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Document</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Target</TableHead>
+                      <TableHead>Period</TableHead>
+                      <TableHead>Size</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {documents.map((document) => (
                     <TableRow key={document.id}>
                       <TableCell>
                         <div className="flex items-start gap-3">
@@ -486,6 +492,7 @@ export default function AdminDocumentsPage() {
                   ))}
                 </TableBody>
               </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
