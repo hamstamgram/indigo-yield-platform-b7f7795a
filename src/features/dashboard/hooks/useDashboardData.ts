@@ -6,8 +6,6 @@ interface DashboardData {
   totalValue: number;
   totalGain: number;
   totalGainPercent: number;
-  dayChange: number;
-  dayChangePercent: number;
   positions: any[];
   recentTransactions: any[];
   topPerformers: any[];
@@ -47,8 +45,6 @@ export function useDashboardData() {
               totalValue: 0,
               totalGain: 0,
               totalGainPercent: 0,
-              dayChange: 0,
-              dayChangePercent: 0,
               positions: [],
               recentTransactions: [],
               topPerformers: []
@@ -83,8 +79,6 @@ export function useDashboardData() {
             totalValue,
             totalGain,
             totalGainPercent,
-            dayChange: 0, // Would need daily tracking
-            dayChangePercent: 0,
             positions: positions || [],
             recentTransactions: transactions || [],
             topPerformers: []

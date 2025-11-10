@@ -3,7 +3,7 @@ import { AdminGuard } from "@/components/admin/AdminGuard";
 import { OperationsStats } from "@/components/admin/operations/OperationsStats";
 import { QuickLinksGrid, QuickLink } from "@/components/admin/operations/QuickLinksGrid";
 import { RecentActivityFeed, ActivityItem } from "@/components/admin/operations/RecentActivityFeed";
-import { SystemStatus, SystemStatusItem } from "@/components/admin/operations/SystemStatus";
+import { SystemStatus } from "@/components/admin/operations/SystemStatus";
 import { PendingItemsBreakdown } from "@/components/admin/operations/PendingItemsBreakdown";
 import {
   Building2,
@@ -28,6 +28,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { operationsService, type PendingBreakdown } from "@/services/operationsService";
+import { getSystemHealth, type SystemHealth } from "@/services/systemHealthService";
 
 function AdminOperationsHubContent() {
   const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
@@ -44,10 +45,12 @@ function AdminOperationsHubContent() {
     investments: 0,
   });
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(true);
+  const [systemStatus, setSystemStatus] = useState<SystemHealth[]>([]);
 
   useEffect(() => {
     loadRecentActivities();
     loadMetrics();
+    loadSystemHealth();
 
     // Set up real-time subscriptions for automatic updates
     const channel = supabase
@@ -152,7 +155,16 @@ function AdminOperationsHubContent() {
       console.error("Error loading metrics:", error);
       toast.error("Failed to load operations metrics");
     } finally {
-      setIsLoadingMetrics(false);
+    setIsLoadingMetrics(false);
+    }
+  };
+
+  const loadSystemHealth = async () => {
+    try {
+      const health = await getSystemHealth();
+      setSystemStatus(health);
+    } catch (error) {
+      console.error('Failed to load system health:', error);
     }
   };
 
@@ -344,33 +356,6 @@ function AdminOperationsHubContent() {
     },
   ];
 
-  const systemStatus: SystemStatusItem[] = [
-    {
-      name: "Database",
-      status: "operational",
-      uptime: 99.9,
-      lastChecked: new Date(),
-    },
-    {
-      name: "Authentication",
-      status: "operational",
-      uptime: 100,
-      lastChecked: new Date(),
-    },
-    {
-      name: "File Storage",
-      status: "operational",
-      uptime: 99.8,
-      lastChecked: new Date(),
-    },
-    {
-      name: "Email Service",
-      status: "operational",
-      uptime: 98.5,
-      lastChecked: new Date(),
-      message: "Minor delays possible",
-    },
-  ];
 
   return (
     <div className="container max-w-7xl mx-auto px-4 py-8 space-y-8">

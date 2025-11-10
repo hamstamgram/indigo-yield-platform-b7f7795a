@@ -6,9 +6,10 @@ import { CheckCircle, AlertCircle, XCircle, Clock } from "lucide-react";
 export interface SystemStatusItem {
   name: string;
   status: "operational" | "degraded" | "down" | "maintenance";
-  uptime?: number;
+  uptime?: number | null;
   lastChecked?: Date;
   message?: string;
+  responseTime?: number;
 }
 
 interface SystemStatusProps {
@@ -88,7 +89,7 @@ export function SystemStatus({ systems }: SystemStatusProps) {
                 </div>
               </div>
               <div className="text-right">
-                {system.uptime !== undefined && (
+                {system.uptime != null && (
                   <p className="text-sm font-medium">{system.uptime.toFixed(1)}%</p>
                 )}
                 {system.lastChecked && (
