@@ -7,6 +7,7 @@ import { ArrowUpRight, ArrowDownLeft, CreditCard, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { toast } from 'sonner';
+import { AddTransactionDialog } from '@/components/admin/AddTransactionDialog';
 
 interface Transaction {
   id: string;
@@ -25,6 +26,7 @@ interface InvestorInfo {
   id: string;
   name: string;
   email: string;
+  fund_id: string;
 }
 
 const AdminInvestorTransactionsPage = () => {
@@ -32,6 +34,7 @@ const AdminInvestorTransactionsPage = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [investor, setInvestor] = useState<InvestorInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [summary, setSummary] = useState({
     totalCount: 0,
     totalDeposits: 0,
@@ -45,7 +48,7 @@ const AdminInvestorTransactionsPage = () => {
     try {
       setLoading(true);
 
-      // Fetch investor info
+      // Fetch investor info with fund_id
       const { data: investorData, error: investorError } = await supabase
         .from('investors')
         .select('id, name, email')
@@ -53,7 +56,26 @@ const AdminInvestorTransactionsPage = () => {
         .single();
 
       if (investorError) throw investorError;
-      setInvestor(investorData);
+
+      // Get investor's primary fund (we'll use first investment's fund_id or a default)
+      const { data: investmentData } = await supabase
+        .from('investments')
+        .select('fund_id')
+        .eq('investor_id', id)
+        .limit(1)
+        .single();
+
+      // Get default fund if no investments yet
+      const { data: defaultFund } = await supabase
+        .from('funds')
+        .select('id')
+        .limit(1)
+        .single();
+
+      setInvestor({
+        ...investorData,
+        fund_id: investmentData?.fund_id || defaultFund?.id || ''
+      });
 
       // Fetch transactions
       const { data: txData, error: txError } = await supabase
@@ -139,7 +161,7 @@ const AdminInvestorTransactionsPage = () => {
             {investor.name} ({investor.email})
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setAddDialogOpen(true)} disabled={!investor?.fund_id}>
           <Plus className="h-4 w-4 mr-2" />
           Add Transaction
         </Button>
@@ -251,6 +273,17 @@ const AdminInvestorTransactionsPage = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Add Transaction Dialog */}
+      {investor && investor.fund_id && (
+        <AddTransactionDialog
+          open={addDialogOpen}
+          onOpenChange={setAddDialogOpen}
+          investorId={investor.id}
+          fundId={investor.fund_id}
+          onSuccess={loadData}
+        />
+      )}
     </div>
   );
 };
