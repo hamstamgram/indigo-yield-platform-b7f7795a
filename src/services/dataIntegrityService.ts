@@ -24,12 +24,51 @@ export interface IntegrityReport {
 
 export const dataIntegrityService = {
   /**
-   * Run comprehensive data integrity checks
+   * Run comprehensive data integrity checks - returns detailed breakdown
+   */
+  async runFullIntegrityCheck() {
+    // Check for orphaned records
+    const orphanedPositionsIssues = await this.checkOrphanedPositions();
+    const orphanedTransactions = await this.checkOrphanedTransactions();
+    
+    // Check for negative balances
+    const negativeBalanceIssues = await this.checkNegativeBalances();
+
+    // Check for missing required fields
+    const missingFieldIssues = await this.checkMissingRequiredFields();
+
+    // Check for data validation issues
+    const validationIssues = await this.checkDataValidation();
+
+    // Check for inconsistent totals
+    const inconsistentTotalIssues = await this.checkInconsistentTotals();
+
+    return {
+      orphanedRecords: {
+        positions: orphanedPositionsIssues.filter(i => i.table === 'positions'),
+        transactions: orphanedTransactions,
+        investorPositions: orphanedPositionsIssues.filter(i => i.table === 'investor_positions')
+      },
+      negativeBalances: {
+        positions: negativeBalanceIssues.filter(i => i.table === 'positions'),
+        investorPositions: negativeBalanceIssues.filter(i => i.table === 'investor_positions')
+      },
+      missingRequiredFields: {
+        investors: missingFieldIssues.filter(i => i.table === 'investors'),
+        positions: missingFieldIssues.filter(i => i.table === 'investor_positions')
+      },
+      dataValidation: validationIssues,
+      inconsistentTotals: inconsistentTotalIssues
+    };
+  },
+
+  /**
+   * Run comprehensive data integrity checks - returns flat list
    */
   async runIntegrityCheck(): Promise<IntegrityReport> {
     const issues: IntegrityIssue[] = [];
 
-    // Check for orphaned investor positions (investor_id doesn't exist)
+    // Check for orphaned investor positions
     const orphanedPositions = await this.checkOrphanedPositions();
     issues.push(...orphanedPositions);
 
@@ -54,6 +93,86 @@ export const dataIntegrityService = {
       errors,
       warnings,
       issues,
+    };
+  },
+
+  /**
+   * Check for orphaned transactions
+   */
+  async checkOrphanedTransactions(): Promise<any[]> {
+    const orphaned: any[] = [];
+
+    try {
+      const { data: transactions } = await supabase
+        .from('transactions_v2')
+        .select('id, investor_id, asset, amount')
+        .limit(1000);
+
+      if (transactions && transactions.length > 0) {
+        for (const tx of transactions) {
+          const { data: investor } = await supabase
+            .from('investors')
+            .select('id')
+            .eq('id', tx.investor_id)
+            .maybeSingle();
+
+          if (!investor) {
+            orphaned.push(tx);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking orphaned transactions:', error);
+    }
+
+    return orphaned;
+  },
+
+  /**
+   * Check for data validation issues
+   */
+  async checkDataValidation() {
+    const invalidEmails: any[] = [];
+    const futureTransactions: any[] = [];
+    const zeroAmountTransactions: any[] = [];
+
+    // Check for invalid email formats
+    const { data: investors } = await supabase
+      .from('investors')
+      .select('id, name, email');
+
+    if (investors) {
+      investors.forEach(inv => {
+        if (inv.email && !inv.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+          invalidEmails.push(inv);
+        }
+      });
+    }
+
+    // Check for future transactions
+    const { data: transactions } = await supabase
+      .from('transactions_v2')
+      .select('id, investor_id, occurred_at, amount')
+      .gt('occurred_at', new Date().toISOString());
+
+    if (transactions) {
+      futureTransactions.push(...transactions);
+    }
+
+    // Check for zero amount transactions
+    const { data: zeroTx } = await supabase
+      .from('transactions_v2')
+      .select('id, investor_id, asset, amount')
+      .eq('amount', 0);
+
+    if (zeroTx) {
+      zeroAmountTransactions.push(...zeroTx);
+    }
+
+    return {
+      invalidEmails,
+      futureTransactions,
+      zeroAmountTransactions
     };
   },
 
