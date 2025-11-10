@@ -95,16 +95,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       ]);
 
       // Try to get TOTP status (may fail if table doesn't exist yet)
-      let totpData: { enabled?: boolean; verified?: boolean } | null = null;
+      let totpData: { enabled?: boolean; verified_at?: string | null } | null = null;
       try {
         const totpResponse = await supabase
           .from('user_totp_settings' as any)
-          .select('enabled, verified')
+          .select('enabled, verified_at')
           .eq('user_id', userId)
           .maybeSingle();
         
         if (!totpResponse.error && totpResponse.data) {
-          totpData = totpResponse.data as { enabled?: boolean; verified?: boolean };
+          totpData = totpResponse.data as { enabled?: boolean; verified_at?: string | null };
         }
       } catch (e) {
         console.warn('TOTP settings not available:', e);
@@ -119,7 +119,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           last_name: p.last_name,
           is_admin: adminStatus.data === true,
           totp_enabled: totpData?.enabled || false,
-          totp_verified: totpData?.verified || false
+          totp_verified: (totpData?.verified_at !== null && totpData?.verified_at !== undefined) || false
         });
       } else {
         setProfile({
@@ -127,7 +127,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           email: user?.email || '',
           is_admin: adminStatus.data === true,
           totp_enabled: totpData?.enabled || false,
-          totp_verified: totpData?.verified || false
+          totp_verified: (totpData?.verified_at !== null && totpData?.verified_at !== undefined) || false
         });
       }
 
@@ -137,7 +137,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           event_type: 'PROFILE_ACCESS',
           details: { 
             user_id: userId, 
-            has_2fa: totpData?.verified || false,
+            has_2fa: (totpData?.verified_at !== null && totpData?.verified_at !== undefined) || false,
             timestamp: new Date().toISOString()
           }
         });
