@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Admin Dashboard Page
  * Main admin overview with key metrics
@@ -71,13 +70,13 @@ function AdminDashboardContent() {
     try {
       const [investors, investments, withdrawals, documents, profiles] = await Promise.all([
         supabase.from("profiles").select("id").eq("role", "investor"),
-        supabase.from("investments").select("amount, current_value").eq("status", "active"),
+        supabase.from("investments" as any).select("amount, current_value").eq("status", "active"),
         supabase.from("withdrawal_requests").select("id").eq("status", "pending"),
         supabase.from("documents").select("id").eq("status", "pending"),
         supabase.from("profiles").select("id").eq("kyc_status", "pending"),
       ]);
 
-      const investmentData = (investments.data || []) as Investment[];
+      const investmentData = ((investments.data || []) as any[]) as Investment[];
       const totalAUM =
         investmentData.reduce((sum: number, inv) => sum + (inv.current_value || 0), 0) || 0;
       const activeInvestors = investmentData.length || 0;

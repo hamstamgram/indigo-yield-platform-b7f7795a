@@ -1,4 +1,3 @@
-// @ts-nocheck - daily_rates table doesn't exist yet
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -57,13 +56,13 @@ export default function DailyRatesManagement() {
     queryKey: ['daily-rate', selectedDate],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('daily_rates')
+        .from('daily_rates' as any)
         .select('*')
         .eq('rate_date', selectedDate)
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      return data as any;
     },
   });
 
@@ -72,13 +71,13 @@ export default function DailyRatesManagement() {
     queryKey: ['recent-daily-rates'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('daily_rates')
+        .from('daily_rates' as any)
         .select('*')
         .order('rate_date', { ascending: false })
         .limit(7);
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as any[];
     },
   });
 
@@ -143,7 +142,7 @@ export default function DailyRatesManagement() {
       };
 
       const { error } = await supabase
-        .from('daily_rates')
+        .from('daily_rates' as any)
         .upsert(rateData, {
           onConflict: 'rate_date',
         });
@@ -169,7 +168,7 @@ export default function DailyRatesManagement() {
       if (!user) throw new Error('No authenticated user');
 
       // Call the database function to send notifications
-      const { data, error } = await supabase.rpc('send_daily_rate_notifications', {
+      const { data, error } = await supabase.rpc('send_daily_rate_notifications' as any, {
         p_rate_date: editingRates.rate_date,
         p_btc_rate: parseFloat(editingRates.btc_rate),
         p_eth_rate: parseFloat(editingRates.eth_rate),
@@ -205,7 +204,7 @@ export default function DailyRatesManagement() {
   };
 
   // Get previous day's rate for comparison
-  const previousDayRate = recentRates?.[1]; // Index 0 is today, 1 is yesterday
+  const previousDayRate: any = recentRates?.[1]; // Index 0 is today, 1 is yesterday
 
   return (
     <div className="space-y-6">
@@ -390,7 +389,7 @@ export default function DailyRatesManagement() {
                 </TableHeader>
                 <TableBody>
                   {recentRates && recentRates.length > 0 ? (
-                    recentRates.map((rate) => (
+                    recentRates.map((rate: any) => (
                       <TableRow key={rate.id}>
                         <TableCell className="font-medium">
                           {format(new Date(rate.rate_date), 'MMM dd, yyyy')}
