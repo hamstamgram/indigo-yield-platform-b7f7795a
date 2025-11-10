@@ -1,9 +1,6 @@
-// @ts-nocheck
 /**
  * Privacy Settings Page
  * Data privacy controls and data export
- * 
- * TODO: investments table doesn't exist, transactions schema may differ, documents schema mismatch
  */
 
 import { useState } from 'react';
@@ -56,9 +53,9 @@ export default function Privacy() {
       // Gather all user data
       const [profile, investments, transactions, documents] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
-        supabase.from('investments').select('*').eq('investor_id', user.id),
-        supabase.from('transactions').select('*').eq('user_id', user.id),
-        supabase.from('documents').select('*').eq('investor_id', user.id),
+        supabase.from('investments' as any).select('*').eq('investor_id', user.id),
+        supabase.from('transactions' as any).select('*').eq('user_id', user.id),
+        supabase.from('documents').select('*').eq('user_id', user.id),
       ]);
 
       const exportData = {
@@ -66,9 +63,9 @@ export default function Privacy() {
         profile: profile.data,
         investments: investments.data,
         transactions: transactions.data,
-        documents: documents.data?.map((d) => ({
+        documents: documents.data?.map((d: any) => ({
           id: d.id,
-          type: d.document_type,
+          type: d.document_type || d.type,
           status: d.status,
           uploadedAt: d.created_at,
         })),
