@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Report History Component
  * Displays user's generated reports with download and management options
@@ -46,12 +45,13 @@ export const ReportHistory: React.FC = () => {
   const [reports, setReports] = useState<GeneratedReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<ReportStatus | 'all'>('all');
-  const [filterType, setFilterType] = useState<ReportType | 'all'>('all');
+  const [filterType] = useState<ReportType | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadReports();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterStatus, filterType]);
 
   const loadReports = async () => {
@@ -217,7 +217,7 @@ export const ReportHistory: React.FC = () => {
             </div>
           </div>
 
-          <Select value={filterStatus} onValueChange={(value: any) => setFilterStatus(value)}>
+          <Select value={filterStatus} onValueChange={(value: ReportStatus | 'all') => setFilterStatus(value)}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Report Builder Component
  * Allows users to configure and generate reports
@@ -10,10 +9,8 @@ import {
   FileText,
   Download,
   Calendar,
-  Filter,
   Settings,
   Loader2,
-  CheckCircle,
   AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -75,6 +72,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   // Load report definitions
   useEffect(() => {
     loadReportDefinitions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Update selected definition when report type changes
@@ -164,7 +162,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
           setGenerationProgress("Downloading...");
 
           // Create download link
-          const blob = new Blob([result.data], {
+          const blob = new Blob([result.data as BlobPart], {
             type:
               selectedFormat === "pdf"
                 ? "application/pdf"
@@ -228,7 +226,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   };
 
   const isDateRangeRequired = (): boolean => {
-    return ["transaction_history", "custom_date_range", "tax_report"].includes(selectedReportType);
+    return ["transaction_history", "custom_date_range", "tax_report"].includes(selectedReportType as string);
   };
 
   return (
