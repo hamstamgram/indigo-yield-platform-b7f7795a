@@ -1,5 +1,4 @@
-// @ts-nocheck
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +6,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, Send, X } from 'lucide-react';
 import { format } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client';
 
 interface ChatMessage {
   id: string;
@@ -17,7 +15,6 @@ interface ChatMessage {
 }
 
 const LiveChatPage: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<any>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
@@ -27,15 +24,7 @@ const LiveChatPage: React.FC = () => {
     },
   ]);
   const [newMessage, setNewMessage] = useState('');
-  const [isConnected, setIsConnected] = useState(true);
-
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUser(user);
-    };
-    getUser();
-  }, []);
+  const [isConnected] = useState(true);
 
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Bell, Mail, Smartphone, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { NotificationPreference } from '@/types/notifications';
-import { useToast } from '@/hooks/use-toast';
 
 const notificationTypes: NotificationPreference[] = [
   {
@@ -80,7 +78,6 @@ const notificationTypes: NotificationPreference[] = [
 ];
 
 const NotificationSettingsPage: React.FC = () => {
-  const { toast } = useToast();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const { settings, updateSettings } = useNotifications(currentUser?.id);
   const [preferences, setPreferences] = useState<NotificationPreference[]>(notificationTypes);

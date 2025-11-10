@@ -1,7 +1,6 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -25,7 +24,7 @@ import {
   AlertCircle,
   TrendingUp
 } from 'lucide-react';
-import { format, formatDistanceToNow, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { format, formatDistanceToNow, startOfMonth, subMonths } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { NotificationType } from '@/types/notifications';
 
@@ -68,7 +67,7 @@ const NotificationHistoryPage: React.FC = () => {
     if (searchQuery) {
       filtered = filtered.filter(n =>
         n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        n.message.toLowerCase().includes(searchQuery.toLowerCase())
+        ((n as any).content || '').toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
@@ -125,14 +124,14 @@ const NotificationHistoryPage: React.FC = () => {
 
   const handleExport = () => {
     const csvContent = [
-      ['Date', 'Type', 'Priority', 'Title', 'Message', 'Status'],
+      ['Date', 'Type', 'Priority', 'Title', 'Content', 'Read'],
       ...filteredNotifications.map(n => [
         format(new Date(n.created_at), 'yyyy-MM-dd HH:mm:ss'),
         n.type,
-        n.priority,
+        n.priority || 'medium',
         n.title,
-        n.message,
-        n.status
+        (n as any).content || '',
+        (n as any).read ? 'read' : 'unread'
       ])
     ].map(row => row.join(',')).join('\n');
 
@@ -237,7 +236,7 @@ const NotificationHistoryPage: React.FC = () => {
                         <CardContent className="p-4">
                           <div className="flex items-start gap-4">
                             <div className="p-2 rounded-full bg-gray-100">
-                              {getNotificationIcon(notification.type)}
+                              {getNotificationIcon(notification.type as NotificationType)}
                             </div>
 
                             <div className="flex-1 space-y-1">
@@ -250,19 +249,17 @@ const NotificationHistoryPage: React.FC = () => {
                                     </Badge>
                                   </h4>
                                   <p className="text-sm text-muted-foreground mt-1">
-                                    {notification.message}
+                                    {(notification as any).content}
                                   </p>
                                 </div>
                                 <Badge
                                   variant={
-                                    notification.priority === 'urgent'
-                                      ? 'destructive'
-                                      : notification.priority === 'high'
+                                    notification.priority === 'high'
                                       ? 'default'
                                       : 'secondary'
                                   }
                                 >
-                                  {notification.priority}
+                                  {notification.priority || 'medium'}
                                 </Badge>
                               </div>
 
@@ -271,8 +268,8 @@ const NotificationHistoryPage: React.FC = () => {
                                 <span>•</span>
                                 <span>{formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}</span>
                                 <span>•</span>
-                                <Badge variant={notification.status === 'read' ? 'outline' : 'default'} className="text-xs">
-                                  {notification.status}
+                                <Badge variant={(notification as any).read ? 'outline' : 'default'} className="text-xs">
+                                  {(notification as any).read ? 'read' : 'unread'}
                                 </Badge>
                               </div>
                             </div>

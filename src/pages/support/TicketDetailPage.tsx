@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTicketMessages } from '@/hooks/useSupport';
@@ -39,6 +38,8 @@ const TicketDetailPage: React.FC = () => {
   }, [id, currentUser]);
 
   const loadTicket = async () => {
+    if (!id) return;
+    
     try {
       const { data, error } = await supabase
         .from('support_tickets')
@@ -53,7 +54,7 @@ const TicketDetailPage: React.FC = () => {
       }
 
       if (error) throw error;
-      setTicket(data);
+      setTicket(data as any);
     } catch (error) {
       console.error('Error loading ticket:', error);
     } finally {
