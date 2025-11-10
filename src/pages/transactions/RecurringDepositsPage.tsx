@@ -1,7 +1,6 @@
-// @ts-nocheck
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Search, Filter } from 'lucide-react';
@@ -20,8 +19,8 @@ export default function RecurringDepositsPage() {
       let query = supabase
         .from('transactions')
         .select('*')
-        .eq('investor_id', user.id)
-        .eq('type', 'recurring_deposit');
+        .eq('user_id', user.id)
+        .eq('type', 'DEPOSIT');
 
       if (searchTerm) {
         query = query.or(`asset_code.ilike.%${searchTerm}%,note.ilike.%${searchTerm}%`);
@@ -77,7 +76,9 @@ export default function RecurringDepositsPage() {
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-semibold">{item.name || item.title}</h3>
+                        <h3 className="font-semibold">
+                          {item.type?.replace(/_/g, ' ').toUpperCase() || 'Transaction'}
+                        </h3>
                         <p className="text-sm text-muted-foreground">
                           {new Date(item.created_at).toLocaleDateString()}
                         </p>

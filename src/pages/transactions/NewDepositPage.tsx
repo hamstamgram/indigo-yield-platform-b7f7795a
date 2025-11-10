@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -37,10 +36,12 @@ export default function NewDepositPage() {
       const { error } = await supabase
         .from('transactions')
         .insert({
-          ...data,
-          investor_id: user.id,
-          type: 'deposit',
-          status: 'pending',
+          user_id: user.id,
+          type: 'DEPOSIT' as const,
+          status: 'pending' as const,
+          amount: 0,
+          asset_code: 'USDC' as const,
+          note: `${data.name}${data.description ? ` - ${data.description}` : ''}`,
         });
 
       if (error) throw error;
