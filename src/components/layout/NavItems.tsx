@@ -9,6 +9,8 @@ import {
   PieChart,
   Database,
   TrendingUp,
+  Wallet,
+  Receipt,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
 
@@ -61,6 +63,18 @@ export function useNavItems(): NavItem[] {
       href: "/admin/expert-investors",
       icon: Users,
       description: "Unified investor management with positions and fees",
+    },
+    {
+      title: "Investments",
+      href: "/admin/investments",
+      icon: Wallet,
+      description: "Investment tracking and approval",
+    },
+    {
+      title: "Fees",
+      href: "/admin/fees",
+      icon: Receipt,
+      description: "Fee calculations and structures",
     },
     {
       title: "Portfolio Management",
