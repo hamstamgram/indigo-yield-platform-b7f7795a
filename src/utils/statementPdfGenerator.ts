@@ -1,4 +1,3 @@
-// @ts-nocheck
 import jsPDF from 'jspdf';
 import { StatementData, formatCurrency, formatPercent } from './statementCalculations';
 
@@ -12,7 +11,6 @@ export async function generateStatementPDF(statementData: StatementData): Promis
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 20;
-  const contentWidth = pageWidth - (margin * 2);
   
   let yPosition = margin;
 
@@ -75,7 +73,7 @@ export async function generateStatementPDF(statementData: StatementData): Promis
     ['Ending Balance', formatCurrency(statementData.summary.end_balance)]
   ];
   
-  summaryData.forEach((row, index) => {
+  summaryData.forEach((row) => {
     if (row[0] === 'Ending Balance') {
       pdf.setFont('helvetica', 'bold');
       pdf.setDrawColor(0, 0, 0);

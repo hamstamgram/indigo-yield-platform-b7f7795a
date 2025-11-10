@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Debounce function to limit how often a function can be called
  */
@@ -45,7 +44,6 @@ export function debounceAsync<T extends (...args: any[]) => Promise<any>>(
   wait: number
 ): (...args: Parameters<T>) => Promise<ReturnType<T>> {
   let timeout: NodeJS.Timeout;
-  let lastPromise: Promise<ReturnType<T>>;
   
   return function executedFunction(...args: Parameters<T>): Promise<ReturnType<T>> {
     return new Promise((resolve, reject) => {

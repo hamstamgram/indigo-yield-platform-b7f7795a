@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { supabase } from "@/integrations/supabase/client";
 
 export interface AssetKPI {
@@ -81,7 +80,7 @@ export const calculateAllKPIs = async (userId: string): Promise<AssetKPI[]> => {
   try {
     // For now, return mock data that matches the expected structure
     // In a real implementation, this would calculate actual KPIs from positions data
-    const { data: positions } = await supabase.from("positions").select("*").eq("user_id", userId);
+    const { data: positions } = await supabase.from("positions" as any).select("*").eq("user_id", userId);
 
     if (!positions || positions.length === 0) {
       return [];
@@ -90,7 +89,7 @@ export const calculateAllKPIs = async (userId: string): Promise<AssetKPI[]> => {
     // Group positions by asset and calculate KPIs
     const assetMap = new Map<string, AssetKPI>();
 
-    positions.forEach((position) => {
+    (positions as any[]).forEach((position: any) => {
       const assetCode = position.asset_code;
       const balance = position.current_balance || 0;
       const principal = position.principal || balance;

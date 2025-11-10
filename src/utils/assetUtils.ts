@@ -1,6 +1,4 @@
-// @ts-nocheck
-import { supabase } from "@/integrations/supabase/client";
-import { AssetSummary } from "@/models/assetTypes";
+// Asset utility functions for creating default and database-driven asset summaries
 
 /**
  * Creates default asset summaries when no assets exist in the database
@@ -15,7 +13,7 @@ export const createDefaultAssetSummaries = () => {
   ];
   
   // Define default values for each supported asset type
-  const defaultValues = {
+  const defaultValues: Record<string, { balance: number; users: number; yield: number }> = {
     'BTC': { balance: 12.5, users: 18, yield: 4.8 },
     'ETH': { balance: 180, users: 15, yield: 5.2 },
     'SOL': { balance: 2200, users: 11, yield: 6.5 },
@@ -52,7 +50,7 @@ export const createDefaultAssetSummaries = () => {
  */
 export const createAssetSummariesFromDb = (assets: any[]) => {
   // Define default values for each supported asset type
-  const defaultValues = {
+  const defaultValues: Record<string, { balance: number; users: number; yield: number }> = {
     'BTC': { balance: 12.5, users: 18, yield: 4.8 },
     'ETH': { balance: 180, users: 15, yield: 5.2 },
     'SOL': { balance: 2200, users: 11, yield: 6.5 },

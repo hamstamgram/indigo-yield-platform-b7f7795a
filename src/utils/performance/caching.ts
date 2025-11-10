@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { QueryClient } from '@tanstack/react-query';
 
 // Query client configuration with optimized caching
@@ -65,7 +64,7 @@ export const cacheUtils = {
   },
 
   // Invalidate portfolio caches
-  invalidatePortfolioCache: (userId: string) => {
+  invalidatePortfolioCache: () => {
     queryClient.invalidateQueries({ 
       predicate: (query) => {
         return query.queryKey.includes(CACHE_KEYS.PORTFOLIO_SUMMARY) ||
@@ -94,14 +93,16 @@ export const cacheUtils = {
   // Prefetch commonly used data
   prefetchUserData: async (userId: string) => {
     // Prefetch user profile
-    queryClient.prefetchQuery({
+    await queryClient.prefetchQuery({
       queryKey: [CACHE_KEYS.USER_PROFILE, userId],
+      queryFn: async () => null,
       staleTime: 10 * 60 * 1000, // 10 minutes
     });
 
     // Prefetch portfolio summary
-    queryClient.prefetchQuery({
+    await queryClient.prefetchQuery({
       queryKey: [CACHE_KEYS.PORTFOLIO_SUMMARY, userId],
+      queryFn: async () => null,
       staleTime: 5 * 60 * 1000, // 5 minutes
     });
   },

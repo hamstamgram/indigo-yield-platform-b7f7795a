@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { supabase } from '@/integrations/supabase/client';
 import { generateStatementFilename } from './statementPdfGenerator';
 
@@ -18,7 +17,7 @@ export async function uploadStatementToStorage(
 
     // SECURITY: This should be called from a backend/Edge Function only
     // For now, using client with proper RLS policies
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('statements')
       .upload(storagePath, pdfBlob, {
         contentType: 'application/pdf',
@@ -42,7 +41,7 @@ export async function uploadStatementToStorage(
         }
 
         // Retry upload
-        const { data: retryData, error: retryError } = await supabase.storage
+        const { error: retryError } = await supabase.storage
           .from('statements')
           .upload(storagePath, pdfBlob, {
             contentType: 'application/pdf',
