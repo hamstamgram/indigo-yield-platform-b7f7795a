@@ -22,23 +22,8 @@ import {
   Search
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supportService, SupportTicket } from '@/services/supportService';
 import { adminServiceV2 } from '@/services/adminServiceV2';
-
-interface SupportTicket {
-  id: string;
-  title: string;
-  description: string;
-  status: 'open' | 'in-progress' | 'resolved' | 'closed';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  category: 'technical' | 'account' | 'transaction' | 'general';
-  investor_id: string;
-  investor_name: string;
-  investor_email: string;
-  created_at: string;
-  updated_at: string;
-  assigned_to?: string;
-  resolution_notes?: string;
-}
 
 const AdminSupportQueue = () => {
   const [loading, setLoading] = useState(true);
@@ -53,71 +38,15 @@ const AdminSupportQueue = () => {
   const [updating, setUpdating] = useState(false);
   const { toast } = useToast();
 
-  // Mock support tickets for demonstration
-  const mockTickets: SupportTicket[] = [
-    {
-      id: '1',
-      title: 'Unable to access portfolio dashboard',
-      description: 'I keep getting an error when trying to view my portfolio. The page loads but shows no data.',
-      status: 'open',
-      priority: 'high',
-      category: 'technical',
-      investor_id: '1',
-      investor_name: 'John Doe',
-      investor_email: 'john@example.com',
-      created_at: '2024-01-15T10:30:00Z',
-      updated_at: '2024-01-15T10:30:00Z',
-    },
-    {
-      id: '2',
-      title: 'Withdrawal request status inquiry',
-      description: 'My withdrawal request from last week is still showing as pending. Can you provide an update?',
-      status: 'in-progress',
-      priority: 'medium',
-      category: 'transaction',
-      investor_id: '2',
-      investor_name: 'Jane Smith',
-      investor_email: 'jane@example.com',
-      created_at: '2024-01-14T14:20:00Z',
-      updated_at: '2024-01-15T09:15:00Z',
-      assigned_to: 'Admin User',
-    },
-    {
-      id: '3',
-      title: 'Account verification documents',
-      description: 'I uploaded my KYC documents but the status still shows as pending. How long does verification take?',
-      status: 'resolved',
-      priority: 'low',
-      category: 'account',
-      investor_id: '3',
-      investor_name: 'Bob Johnson',
-      investor_email: 'bob@example.com',
-      created_at: '2024-01-12T16:45:00Z',
-      updated_at: '2024-01-13T11:30:00Z',
-      assigned_to: 'Admin User',
-      resolution_notes: 'KYC documents reviewed and approved. Account status updated.',
-    },
-  ];
 
   const fetchSupportData = async () => {
     try {
       setLoading(true);
-      console.log('Fetching support queue data...');
-
-      // In a real implementation, this would fetch from a support tickets table
-      setTickets(mockTickets);
-
-      // Fetch investors for ticket assignment
+      const { tickets: ticketsData } = await supportService.listTickets();
+      setTickets(ticketsData as any);
       const investorsData = await adminServiceV2.getAllInvestorsWithSummary();
       setInvestors(investorsData);
-
-      console.log('Support data loaded:', {
-        ticketsCount: mockTickets.length,
-        investorsCount: investorsData.length
-      });
-
     } catch (error: any) {
-      console.error('Error fetching support data:', error);
       toast({
         title: 'Error loading support queue',
         description: error.message || 'Failed to load support tickets',
@@ -144,24 +73,17 @@ const AdminSupportQueue = () => {
     try {
       setUpdating(true);
 
-      // In a real implementation, this would update the database
-      const updatedTickets = tickets.map(ticket =>
-        ticket.id === selectedTicket.id
-          ? { 
-              ...ticket, 
-              status: newStatus, 
-              updated_at: new Date().toISOString(),
-              resolution_notes: newStatus === 'resolved' ? resolutionNotes : ticket.resolution_notes
-            }
-          : ticket
-      );
+      const action = newStatus === 'resolved' ? 'resolve' : 
+                     newStatus === 'closed' ? 'close' : 
+                     newStatus === 'open' ? 'reopen' : 'assign';
 
-      setTickets(updatedTickets);
-      setSelectedTicket(prev => prev ? { 
-        ...prev, 
-        status: newStatus, 
-        resolution_notes: newStatus === 'resolved' ? resolutionNotes : prev.resolution_notes
-      } : null);
+      await supportService.actOnTicket(selectedTicket.id, {
+        action,
+        note: newStatus === 'resolved' ? resolutionNotes : undefined
+      });
+
+      // Refresh tickets list
+      await fetchSupportData();
 
       toast({
         title: 'Ticket Updated',
@@ -185,9 +107,9 @@ const AdminSupportQueue = () => {
   };
 
   const filteredTickets = tickets.filter(ticket => {
-    const matchesSearch = ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         ticket.investor_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         ticket.investor_email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (ticket.user_name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (ticket.user_email?.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || ticket.priority === priorityFilter;
     
@@ -227,7 +149,7 @@ const AdminSupportQueue = () => {
   const ticketStats = {
     total: tickets.length,
     open: tickets.filter(t => t.status === 'open').length,
-    inProgress: tickets.filter(t => t.status === 'in-progress').length,
+    inProgress: tickets.filter(t => t.status === 'in_progress').length,
     resolved: tickets.filter(t => t.status === 'resolved').length,
     urgent: tickets.filter(t => t.priority === 'urgent').length,
   };
@@ -335,7 +257,7 @@ const AdminSupportQueue = () => {
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
                 <SelectItem value="resolved">Resolved</SelectItem>
                 <SelectItem value="closed">Closed</SelectItem>
               </SelectContent>
@@ -348,7 +270,7 @@ const AdminSupportQueue = () => {
                 <SelectItem value="all">All Priority</SelectItem>
                 <SelectItem value="urgent">Urgent</SelectItem>
                 <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="normal">Normal</SelectItem>
                 <SelectItem value="low">Low</SelectItem>
               </SelectContent>
             </Select>
@@ -381,7 +303,7 @@ const AdminSupportQueue = () => {
                       <div className="flex items-center space-x-2">
                         {getStatusIcon(ticket.status)}
                         <div>
-                          <div className="font-medium">{ticket.title}</div>
+                          <div className="font-medium">{ticket.subject}</div>
                           <div className="text-sm text-muted-foreground truncate max-w-xs">
                             {ticket.description}
                           </div>
@@ -390,8 +312,8 @@ const AdminSupportQueue = () => {
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{ticket.investor_name}</div>
-                        <div className="text-sm text-muted-foreground">{ticket.investor_email}</div>
+                        <div className="font-medium">{ticket.user_name}</div>
+                        <div className="text-sm text-muted-foreground">{ticket.user_email}</div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -452,10 +374,10 @@ const AdminSupportQueue = () => {
               </div>
 
               <div>
-                <label className="text-sm font-medium">Investor</label>
+                <label className="text-sm font-medium">User</label>
                 <div className="mt-1 p-3 bg-muted rounded-lg">
-                  <div className="font-medium">{selectedTicket.investor_name}</div>
-                  <div className="text-sm text-muted-foreground">{selectedTicket.investor_email}</div>
+                  <div className="font-medium">{selectedTicket.user_name}</div>
+                  <div className="text-sm text-muted-foreground">{selectedTicket.user_email}</div>
                 </div>
               </div>
 

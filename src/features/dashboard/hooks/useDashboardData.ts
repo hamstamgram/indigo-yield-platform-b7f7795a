@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DashboardData {
   totalValue: number;
@@ -33,20 +34,61 @@ export function useDashboardData() {
       try {
         setState(prev => ({ ...prev, loading: true, error: null }));
 
-        // For regular users, show mock portfolio data
-        const mockData = {
-          totalValue: 10000,
-          totalGain: 500,
-          totalGainPercent: 5.0,
-          dayChange: 50,
-          dayChangePercent: 0.5,
-          positions: [],
-          recentTransactions: [],
-          topPerformers: []
-        };
+        // Get investor ID from user
+        const { data: investors } = await supabase
+          .from('investors')
+          .select('id')
+          .eq('profile_id', user.id)
+          .single();
+
+        if (!investors) {
+          setState({
+            data: {
+              totalValue: 0,
+              totalGain: 0,
+              totalGainPercent: 0,
+              dayChange: 0,
+              dayChangePercent: 0,
+              positions: [],
+              recentTransactions: [],
+              topPerformers: []
+            },
+            loading: false,
+            error: null
+          });
+          return;
+        }
+
+        // Fetch investor positions
+        const { data: positions } = await supabase
+          .from('investor_positions')
+          .select('*, funds(*)')
+          .eq('investor_id', investors.id);
+
+        const totalValue = positions?.reduce((sum, pos) => sum + Number(pos.current_value || 0), 0) || 0;
+        const totalCost = positions?.reduce((sum, pos) => sum + Number(pos.cost_basis || 0), 0) || 0;
+        const totalGain = totalValue - totalCost;
+        const totalGainPercent = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
+
+        // Fetch recent transactions
+        const { data: transactions } = await supabase
+          .from('investments')
+          .select('*')
+          .eq('investor_id', investors.id)
+          .order('created_at', { ascending: false })
+          .limit(5);
 
         setState({
-          data: mockData,
+          data: {
+            totalValue,
+            totalGain,
+            totalGainPercent,
+            dayChange: 0, // Would need daily tracking
+            dayChangePercent: 0,
+            positions: positions || [],
+            recentTransactions: transactions || [],
+            topPerformers: []
+          },
           loading: false,
           error: null
         });

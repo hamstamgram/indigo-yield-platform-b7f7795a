@@ -36,10 +36,6 @@ interface AdminStats {
   recentActivity: number;
 }
 
-interface Investment {
-  amount: number;
-  current_value: number | null;
-}
 
 interface AdminAction {
   title: string;
@@ -68,27 +64,36 @@ function AdminDashboardContent() {
 
   const loadAdminStats = async () => {
     try {
-      const [investors, investments, withdrawals, documents, profiles] = await Promise.all([
-        supabase.from("profiles").select("id").eq("role", "investor"),
-        supabase.from("investments" as any).select("amount, current_value").eq("status", "active"),
+      const [
+        investorsResult,
+        positionsResult,
+        withdrawalsResult,
+        pendingInvestors,
+        recentTransactionsResult
+      ] = await Promise.all([
+        supabase.from("investors").select("id, status"),
+        supabase.from("investor_positions").select("current_value, investor_id"),
         supabase.from("withdrawal_requests").select("id").eq("status", "pending"),
-        supabase.from("documents").select("id").eq("status", "pending"),
-        supabase.from("profiles").select("id").eq("kyc_status", "pending"),
+        supabase.from("investors").select("id").eq("kyc_status", "pending"),
+        supabase.from("investments").select("id").gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
       ]);
 
-      const investmentData = ((investments.data || []) as any[]) as Investment[];
-      const totalAUM =
-        investmentData.reduce((sum: number, inv) => sum + (inv.current_value || 0), 0) || 0;
-      const activeInvestors = investmentData.length || 0;
+      // Calculate total AUM from investor positions
+      const positions = positionsResult.data || [];
+      const totalAUM = positions.reduce((sum, pos) => sum + Number(pos.current_value || 0), 0);
+
+      // Get active investors (those with positions)
+      const activeInvestorIds = new Set(positions.map(p => p.investor_id));
+      const activeInvestors = activeInvestorIds.size;
 
       setStats({
-        totalInvestors: investors.data?.length || 0,
+        totalInvestors: investorsResult.data?.length || 0,
         activeInvestors,
-        pendingVerifications: profiles.data?.length || 0,
+        pendingVerifications: pendingInvestors.data?.length || 0,
         totalAUM,
-        pendingWithdrawals: withdrawals.data?.length || 0,
-        pendingDocuments: documents.data?.length || 0,
-        recentActivity: 0,
+        pendingWithdrawals: withdrawalsResult.data?.length || 0,
+        pendingDocuments: 0,
+        recentActivity: recentTransactionsResult.data?.length || 0,
       });
     } catch (error) {
       console.error("Failed to load admin stats:", error);
