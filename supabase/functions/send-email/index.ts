@@ -1,10 +1,13 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+// Secure CORS configuration
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [];
+const corsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+});
 
 interface EmailRequest {
   to: string
@@ -16,12 +19,23 @@ interface EmailRequest {
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const headers = corsHeaders(origin);
+  
   // Handle CORS
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers })
   }
 
   try {
+    // CSRF validation for state-changing operations
+    const csrfToken = req.headers.get('x-csrf-token');
+    if (!csrfToken || csrfToken.length < 32) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid CSRF token' }),
+        { headers: { ...headers, 'Content-Type': 'application/json' }, status: 403 }
+      );
+    }
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -130,7 +144,7 @@ serve(async (req) => {
         subject: emailContent.subject
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...headers, 'Content-Type': 'application/json' },
         status: 200,
       }
     )
@@ -142,7 +156,7 @@ serve(async (req) => {
         error: error.message
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...headers, 'Content-Type': 'application/json' },
         status: 400,
       }
     )

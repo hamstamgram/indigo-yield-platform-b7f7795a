@@ -2,32 +2,38 @@ import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 import * as XLSX from 'https://esm.sh/xlsx@0.18.5';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+// Secure CORS configuration - Read-only export, CSRF not required but CORS restricted
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [];
+const corsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+});
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const headers = corsHeaders(origin);
+  
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers });
   }
 
   // Check authentication
   const authHeader = req.headers.get('Authorization');
   if (!authHeader) {
-    return new Response('Unauthorized', { status: 401, headers: corsHeaders });
+    return new Response('Unauthorized', { status: 401, headers });
   }
 
   const token = authHeader.replace('Bearer ', '');
   const { data: { user }, error: authError } = await supabase.auth.getUser(token);
   
   if (authError || !user) {
-    return new Response('Invalid token', { status: 401, headers: corsHeaders });
+    return new Response('Invalid token', { status: 401, headers });
   }
 
   // Check if user is admin
@@ -38,7 +44,7 @@ serve(async (req) => {
     .single();
 
   if (!profile?.is_admin) {
-    return new Response('Admin access required', { status: 403, headers: corsHeaders });
+    return new Response('Admin access required', { status: 403, headers });
   }
 
   try {
@@ -275,7 +281,7 @@ serve(async (req) => {
       new Uint8Array(excelBuffer), 
       {
         headers: {
-          ...corsHeaders,
+          ...headers,
           'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
           'Content-Disposition': `attachment; filename="${filename}"`
         }
@@ -292,7 +298,7 @@ serve(async (req) => {
       { 
         status: 500,
         headers: { 
-          ...corsHeaders,
+          ...headers,
           'Content-Type': 'application/json' 
         } 
       }

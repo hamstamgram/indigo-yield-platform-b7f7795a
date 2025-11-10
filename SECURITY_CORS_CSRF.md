@@ -26,7 +26,7 @@ const corsHeaders = (origin: string | null) => ({
 - Server-side: Token validation in all state-changing edge functions
 - Automatic inclusion via `src/lib/supabase/functions.ts` wrapper
 
-### 3. Updated Functions (7/25 completed)
+### 3. Updated Functions (16/25 completed)
 
 #### ✅ Fully Updated:
 1. `admin-backfill-historical` - Restricted CORS + CSRF validation
@@ -34,28 +34,28 @@ const corsHeaders = (origin: string | null) => ({
 3. `process-deposit` - Restricted CORS + CSRF validation
 4. `process-withdrawal` - Restricted CORS + CSRF validation
 5. `mfa-totp-initiate` - Restricted CORS + CSRF validation + **Fixed unencrypted fallback**
-6. `generate-report` - Restricted CORS + CSRF validation
-7. `excel_import` - Restricted CORS + CSRF validation
+6. `mfa-totp-verify` - Restricted CORS + CSRF validation
+7. `mfa-totp-disable` - Restricted CORS + CSRF validation
+8. `mfa-totp-status` - Restricted CORS (read-only, no CSRF needed)
+9. `generate-report` - Restricted CORS + CSRF validation
+10. `excel_import` - Restricted CORS + CSRF validation
+11. `send-email` - Restricted CORS + CSRF validation
+12. `calculate-yield` - Restricted CORS + CSRF validation
+13. `excel_export` - Restricted CORS (read-only export, no CSRF needed)
+14. `send-notification-email` - Restricted CORS + CSRF validation
+15. `get-crypto-prices` - Restricted CORS (disabled function, read-only)
+16. `verify_recaptcha` - Restricted CORS + CSRF validation
 
-#### 🔄 Pending Updates (18 functions):
+#### 🔄 Pending Updates (9 functions):
 - `calculate-performance`
-- `calculate-yield`
-- `excel_export`
 - `generate-tax-documents`
-- `get-crypto-prices`
 - `init-crypto-assets`
 - `investor-audit`
-- `mfa-totp-disable`
-- `mfa-totp-status`
-- `mfa-totp-verify`
 - `parity_check`
 - `portfolio-api`
 - `process-webhooks`
 - `run-compliance-checks`
-- `send-email`
-- `send-notification-email`
 - `status`
-- `verify_recaptcha`
 
 ## Required Configuration
 

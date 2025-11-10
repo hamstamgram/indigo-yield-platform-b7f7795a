@@ -2,10 +2,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+// Secure CORS configuration - Read-only function, CSRF not required
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [];
+const corsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+});
 
 // CoinMarketCap API configuration
 const CMC_API_BASE = 'https://pro-api.coinmarketcap.com'
@@ -23,9 +26,12 @@ const ASSET_CMC_IDS: Record<string, number> = {
 const EUR_USD_RATE = 1.08 // Fallback EUR rate
 
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const headers = corsHeaders(origin);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers });
   }
 
   // This function is disabled as the system now works with native token yields only
@@ -34,7 +40,7 @@ serve(async (req) => {
     message: 'This endpoint has been disabled as the system no longer requires USD conversions'
   }), {
     status: 410, // Gone
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...headers, 'Content-Type': 'application/json' },
   });
 });
 
