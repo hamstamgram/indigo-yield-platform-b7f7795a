@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Report History Page
  * View and download all generated reports
@@ -11,7 +10,6 @@ import {
   FileText,
   Download,
   Trash2,
-  Filter,
   Loader2,
   Search,
 } from 'lucide-react';

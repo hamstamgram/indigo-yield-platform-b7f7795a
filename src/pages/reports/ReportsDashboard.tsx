@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Reports Dashboard Page
  * Overview of all available reports and recent reports

@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 
 export default function PerformanceReportDetailsPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
 
   const { data: item, isLoading } = useQuery({
     queryKey: ['generated_reports', id],
@@ -78,7 +76,9 @@ export default function PerformanceReportDetailsPage() {
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
-              <CardTitle className="text-2xl">{item.name || item.title}</CardTitle>
+              <CardTitle className="text-2xl">
+                {item.report_type?.replace(/_/g, ' ').toUpperCase() || 'Report'}
+              </CardTitle>
               <CardDescription>
                 Created {new Date(item.created_at).toLocaleDateString()}
               </CardDescription>
@@ -105,13 +105,6 @@ export default function PerformanceReportDetailsPage() {
               <p>{new Date(item.updated_at || item.created_at).toLocaleString()}</p>
             </div>
           </div>
-
-          {item.description && (
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">Description</p>
-              <p>{item.description}</p>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Portfolio Performance Report Page
  */

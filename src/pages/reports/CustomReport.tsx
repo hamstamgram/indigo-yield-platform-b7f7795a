@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Custom Report Builder Page
  */
