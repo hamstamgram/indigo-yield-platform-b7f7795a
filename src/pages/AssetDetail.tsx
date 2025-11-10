@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -86,7 +85,7 @@ const AssetDetail = () => {
         const { data: assetInfo, error: assetError } = await supabase
           .from("assets")
           .select("*")
-          .eq("symbol", symbol.toUpperCase())
+          .eq("symbol", symbol.toUpperCase() as any)
           .maybeSingle();
 
         if (assetError && assetError.code !== "PGRST116") {
@@ -102,17 +101,17 @@ const AssetDetail = () => {
 
         // Format monthly yields for display
         const monthlyYields: MonthlyYield[] =
-          monthlyReports?.map((report) => {
+          monthlyReports?.map((report: any) => {
             const rateOfReturn =
-              report.opening_balance > 0 ? (report.yield_earned / report.opening_balance) * 100 : 0;
+              (report.opening_balance || 0) > 0 ? ((report.yield_earned || 0) / (report.opening_balance || 1)) * 100 : 0;
             return {
               id: report.id,
               report_month: report.report_month,
-              opening_balance: parseFloat(report.opening_balance || "0"),
-              closing_balance: parseFloat(report.closing_balance || "0"),
-              additions: parseFloat(report.additions || "0"),
-              withdrawals: parseFloat(report.withdrawals || "0"),
-              yield_earned: parseFloat(report.yield_earned || "0"),
+              opening_balance: parseFloat(String(report.opening_balance || 0)),
+              closing_balance: parseFloat(String(report.closing_balance || 0)),
+              additions: parseFloat(String(report.additions || 0)),
+              withdrawals: parseFloat(String(report.withdrawals || 0)),
+              yield_earned: parseFloat(String(report.yield_earned || 0)),
               rate_of_return: rateOfReturn,
             };
           }) || [];

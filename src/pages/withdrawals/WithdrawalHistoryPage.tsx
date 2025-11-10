@@ -1,7 +1,6 @@
-// @ts-nocheck
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Search, Filter } from 'lucide-react';
@@ -23,8 +22,6 @@ export default function WithdrawalHistoryPage() {
         .select('id')
         .eq('id', user.id)
         .maybeSingle();
-
-      if (!profile) throw new Error('Profile not found');
 
       if (!profile) throw new Error('Profile not found');
 
@@ -101,7 +98,7 @@ export default function WithdrawalHistoryPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
                           <h3 className="font-semibold">
-                            {item.funds?.name || 'Fund'} - {item.fund_class}
+                            {(item as any).funds?.name || 'Fund'} - {item.fund_class}
                           </h3>
                           <span className={`px-2 py-1 rounded text-xs font-medium ${
                             item.status === 'completed' ? 'bg-green-100 text-green-800' :
