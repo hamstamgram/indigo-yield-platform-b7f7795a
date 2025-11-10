@@ -9,6 +9,7 @@ import { SkipLink } from './components/accessibility/SkipLink';
 import { ErrorBoundary } from './components/error/ErrorBoundary';
 import { AuthProvider } from './lib/auth/context';
 import { SecurityProvider } from './components/security/SecurityProvider';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // UI Components
 import { Toaster } from './components/ui/sonner';
@@ -21,6 +22,16 @@ import { useFocusManagement } from './hooks/useFocusManagement';
 import { RouteSuspense } from './routing/RouteSuspense';
 
 // This hook has been moved to src/hooks/useFocusManagement.ts
+
+// Create a QueryClient instance
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
 // Main app content with focus management
 function AppContent() {
@@ -71,13 +82,15 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <SecurityProvider>
-        <AuthProvider>
-          <Router>
-            <AppContent />
-          </Router>
-        </AuthProvider>
-      </SecurityProvider>
+      <QueryClientProvider client={queryClient}>
+        <SecurityProvider>
+          <AuthProvider>
+            <Router>
+              <AppContent />
+            </Router>
+          </AuthProvider>
+        </SecurityProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }
