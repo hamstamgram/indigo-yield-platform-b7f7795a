@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,7 @@ interface SimpleNotification {
   title: string;
   body: string;
   type: string;
-  priority: string;
+  priority: string | null;
   read_at: string | null;
   created_at: string;
 }

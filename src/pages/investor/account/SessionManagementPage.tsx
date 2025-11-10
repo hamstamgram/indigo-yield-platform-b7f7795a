@@ -1,17 +1,16 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
-import { Monitor, Shield, Clock, MapPin } from 'lucide-react';
+import { Monitor, Shield, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth/context';
 
 interface SimpleSession {
   id: string;
-  device_label: string;
-  user_agent: string;
+  device_label: string | null;
+  user_agent: string | null;
   created_at: string;
   last_seen_at: string;
 }
