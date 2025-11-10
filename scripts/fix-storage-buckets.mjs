@@ -1,9 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  'https://nkfimvovosdehmyyjubn.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZmltdm92b3NkZWhteXlqdWJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjQ1NDU5OCwiZXhwIjoyMDYyMDMwNTk4fQ.2dG7IemW8SVQ7FcEe7Dcv41B7utJy0LtEjZhSMESa1k'
-);
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://nkfimvovosdehmyyjubn.supabase.co';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!SUPABASE_SERVICE_ROLE_KEY) {
+  console.error('❌ Missing required environment variable: SUPABASE_SERVICE_ROLE_KEY');
+  console.error('   Please set this variable before running the script:');
+  console.error('   export SUPABASE_SERVICE_ROLE_KEY=your_service_role_key');
+  console.error('');
+  console.error('   Get your service role key from:');
+  console.error('   https://supabase.com/dashboard/project/nkfimvovosdehmyyjubn/settings/api');
+  process.exit(1);
+}
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 async function fixStorageBuckets() {
   console.log('🔧 Fixing storage bucket configuration...\n');
