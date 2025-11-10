@@ -109,19 +109,25 @@ const ExpertInvestorMasterView = () => {
     }
   };
 
-  /**
-   * TODO: Update expertInvestorService to return per-asset data
-   * Currently aggregates different assets (BTC + ETH + SOL) which violates native currency requirement
-   * Service should return: aumByAsset: Array<{symbol, amount}>, earningsByAsset: Array<{symbol, amount}>
-   */
   const getTotalStats = () => {
-    const totalAum = filteredInvestors.reduce((sum, inv) => sum + inv.totalAum, 0);
-    const totalEarnings = filteredInvestors.reduce((sum, inv) => sum + inv.totalEarnings, 0);
-    const totalPositions = filteredInvestors.reduce((sum, inv) => sum + inv.positionCount, 0);
+    const assetTotals = new Map<string, { aum: number; earnings: number }>();
+    let totalPositions = 0;
+
+    filteredInvestors.forEach(inv => {
+      inv.aumByAsset.forEach(assetBreakdown => {
+        const existing = assetTotals.get(assetBreakdown.asset) || { aum: 0, earnings: 0 };
+        existing.aum += assetBreakdown.aum;
+        existing.earnings += assetBreakdown.earnings;
+        assetTotals.set(assetBreakdown.asset, existing);
+      });
+      totalPositions += inv.positionCount;
+    });
 
     return {
-      totalAum,
-      totalEarnings,
+      assetBreakdowns: Array.from(assetTotals.entries()).map(([asset, totals]) => ({
+        asset,
+        ...totals
+      })).sort((a, b) => b.aum - a.aum),
       totalPositions,
       investorCount: filteredInvestors.length,
     };
@@ -162,25 +168,43 @@ const ExpertInvestorMasterView = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total AUM</CardTitle>
+            <CardTitle className="text-sm font-medium">AUM by Asset</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatAssetValue(stats.totalAum)}</div>
-            <p className="text-xs text-muted-foreground">⚠️ Per-asset breakdown needed</p>
+            <div className="space-y-1">
+              {stats.assetBreakdowns.map(breakdown => (
+                <div key={breakdown.asset} className="flex justify-between items-center">
+                  <Badge variant="outline" className="font-mono">{breakdown.asset}</Badge>
+                  <span className="text-sm font-semibold">{formatAssetValue(breakdown.aum)}</span>
+                </div>
+              ))}
+              {stats.assetBreakdowns.length === 0 && (
+                <p className="text-xs text-muted-foreground">No positions</p>
+              )}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
+            <CardTitle className="text-sm font-medium">Earnings by Asset</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {formatAssetValue(stats.totalEarnings)}
+            <div className="space-y-1">
+              {stats.assetBreakdowns.map(breakdown => (
+                <div key={breakdown.asset} className="flex justify-between items-center">
+                  <Badge variant="outline" className="font-mono">{breakdown.asset}</Badge>
+                  <span className="text-sm font-semibold text-green-600">
+                    {formatAssetValue(breakdown.earnings)}
+                  </span>
+                </div>
+              ))}
+              {stats.assetBreakdowns.length === 0 && (
+                <p className="text-xs text-muted-foreground">No earnings</p>
+              )}
             </div>
-            <p className="text-xs text-muted-foreground">⚠️ Per-asset breakdown needed</p>
           </CardContent>
         </Card>
 
@@ -299,20 +323,38 @@ const ExpertInvestorMasterView = () => {
                   </TableCell>
 
                   <TableCell>
-                    <div>
-                      <span className="font-mono font-semibold">
-                        {formatAssetValue(investor.totalAum)}
-                      </span>
-                      <div className="text-xs text-muted-foreground">Per-asset view needed</div>
+                    <div className="space-y-1">
+                      {investor.aumByAsset.map(breakdown => (
+                        <div key={breakdown.asset} className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono text-xs">
+                            {breakdown.asset}
+                          </Badge>
+                          <span className="text-xs font-semibold">
+                            {formatAssetValue(breakdown.aum)}
+                          </span>
+                        </div>
+                      ))}
+                      {investor.aumByAsset.length === 0 && (
+                        <span className="text-xs text-muted-foreground">No positions</span>
+                      )}
                     </div>
                   </TableCell>
 
                   <TableCell>
-                    <div>
-                      <span className="font-mono text-green-600">
-                        {formatAssetValue(investor.totalEarnings)}
-                      </span>
-                      <div className="text-xs text-muted-foreground">Per-asset view needed</div>
+                    <div className="space-y-1">
+                      {investor.aumByAsset.map(breakdown => (
+                        <div key={breakdown.asset} className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono text-xs">
+                            {breakdown.asset}
+                          </Badge>
+                          <span className="text-xs font-semibold text-green-600">
+                            {formatAssetValue(breakdown.earnings)}
+                          </span>
+                        </div>
+                      ))}
+                      {investor.aumByAsset.length === 0 && (
+                        <span className="text-xs text-muted-foreground">No earnings</span>
+                      )}
                     </div>
                   </TableCell>
 

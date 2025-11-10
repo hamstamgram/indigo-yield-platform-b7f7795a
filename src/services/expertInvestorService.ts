@@ -1,5 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 
+export interface AssetBreakdown {
+  asset: string;
+  aum: number;
+  earnings: number;
+  principal: number;
+  positionCount: number;
+}
+
 export interface UnifiedInvestorData {
   id: string;
   profileId: string;
@@ -12,11 +20,13 @@ export interface UnifiedInvestorData {
   amlStatus: string;
   feePercentage: number;
   onboardingDate: string;
+  aumByAsset: AssetBreakdown[];
+  positionCount: number;
+  lastActivityDate: string;
+  // Legacy aggregated values for backward compatibility (deprecated)
   totalAum: number;
   totalEarnings: number;
   totalPrincipal: number;
-  positionCount: number;
-  lastActivityDate: string;
 }
 
 export interface UnifiedPositionData {
@@ -99,6 +109,9 @@ class ExpertInvestorService {
       // Calculate fee metrics
       const fees = await this.calculateFeeMetrics(investorId);
 
+      // Calculate per-asset breakdowns
+      const aumByAsset = this.calculateAssetBreakdowns(positions);
+
       // Build unified investor data
       const investor: UnifiedInvestorData = {
         id: investorData.id,
@@ -112,13 +125,15 @@ class ExpertInvestorService {
         amlStatus: investorData.aml_status || 'pending',
         feePercentage: profileData?.fee_percentage || 0.02,
         onboardingDate: investorData.onboarding_date || investorData.created_at || '',
-        totalAum: positions.reduce((sum, p) => sum + p.currentValue, 0),
-        totalEarnings: positions.reduce((sum, p) => sum + p.totalEarnings, 0),
-        totalPrincipal: positions.reduce((sum, p) => sum + p.costBasis, 0),
+        aumByAsset,
         positionCount: positions.length,
         lastActivityDate: positions.length > 0 
           ? new Date(Math.max(...positions.map(p => new Date(p.lastTransactionDate).getTime()))).toISOString()
-          : investorData.created_at || new Date().toISOString()
+          : investorData.created_at || new Date().toISOString(),
+        // Legacy aggregated values (deprecated - use aumByAsset instead)
+        totalAum: positions.reduce((sum, p) => sum + p.currentValue, 0),
+        totalEarnings: positions.reduce((sum, p) => sum + p.totalEarnings, 0),
+        totalPrincipal: positions.reduce((sum, p) => sum + p.costBasis, 0),
       };
 
       return {
@@ -157,6 +172,7 @@ class ExpertInvestorService {
             .single();
 
           const positions = await this.getUnifiedPositions(investor.id);
+          const aumByAsset = this.calculateAssetBreakdowns(positions);
           
           return {
             id: investor.id,
@@ -170,13 +186,15 @@ class ExpertInvestorService {
             amlStatus: investor.aml_status || 'pending',
             feePercentage: profileData?.fee_percentage || 0.02,
             onboardingDate: investor.onboarding_date || investor.created_at || '',
-            totalAum: positions.reduce((sum, p) => sum + p.currentValue, 0),
-            totalEarnings: positions.reduce((sum, p) => sum + p.totalEarnings, 0),
-            totalPrincipal: positions.reduce((sum, p) => sum + p.costBasis, 0),
+            aumByAsset,
             positionCount: positions.length,
             lastActivityDate: positions.length > 0 
               ? new Date(Math.max(...positions.map(p => new Date(p.lastTransactionDate).getTime()))).toISOString()
-              : investor.created_at || new Date().toISOString()
+              : investor.created_at || new Date().toISOString(),
+            // Legacy aggregated values (deprecated)
+            totalAum: positions.reduce((sum, p) => sum + p.currentValue, 0),
+            totalEarnings: positions.reduce((sum, p) => sum + p.totalEarnings, 0),
+            totalPrincipal: positions.reduce((sum, p) => sum + p.costBasis, 0),
           } as UnifiedInvestorData;
         })
       );
@@ -186,6 +204,32 @@ class ExpertInvestorService {
       console.error('Error getting all investors expert summary:', error);
       throw error;
     }
+  }
+
+  /**
+   * Calculate per-asset breakdowns from positions
+   */
+  private calculateAssetBreakdowns(positions: UnifiedPositionData[]): AssetBreakdown[] {
+    const assetMap = new Map<string, AssetBreakdown>();
+
+    positions.forEach(pos => {
+      const existing = assetMap.get(pos.asset) || {
+        asset: pos.asset,
+        aum: 0,
+        earnings: 0,
+        principal: 0,
+        positionCount: 0
+      };
+
+      existing.aum += pos.currentValue;
+      existing.earnings += pos.totalEarnings;
+      existing.principal += pos.costBasis;
+      existing.positionCount += 1;
+
+      assetMap.set(pos.asset, existing);
+    });
+
+    return Array.from(assetMap.values()).sort((a, b) => b.aum - a.aum);
   }
 
   /**
