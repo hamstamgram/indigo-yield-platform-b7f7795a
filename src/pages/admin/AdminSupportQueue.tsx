@@ -67,22 +67,20 @@ const AdminSupportQueue = () => {
     setDialogOpen(true);
   };
 
-  const handleStatusUpdate = async (newStatus: SupportTicket['status']) => {
+  const handleStatusUpdate = async (newStatus: string) => {
     if (!selectedTicket) return;
 
     try {
       setUpdating(true);
 
-      const action = newStatus === 'resolved' ? 'resolve' : 
-                     newStatus === 'closed' ? 'close' : 
+      const action = newStatus === 'resolved' || newStatus === 'closed' ? 'resolve' : 
                      newStatus === 'open' ? 'reopen' : 'assign';
 
       await supportService.actOnTicket(selectedTicket.id, {
-        action,
-        note: newStatus === 'resolved' ? resolutionNotes : undefined
+        action: action as any,
+        note: (newStatus === 'resolved' || newStatus === 'closed') ? resolutionNotes : undefined
       });
 
-      // Refresh tickets list
       await fetchSupportData();
 
       toast({
