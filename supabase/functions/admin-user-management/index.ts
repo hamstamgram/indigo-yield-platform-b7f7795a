@@ -1,10 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.3";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// Secure CORS configuration
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [];
+const corsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+});
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -33,12 +36,24 @@ interface UpdateUserRequest {
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const headers = corsHeaders(origin);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers });
   }
 
   try {
+    // CSRF validation for state-changing operations
+    const csrfToken = req.headers.get('x-csrf-token');
+    if (!csrfToken || csrfToken.length < 32) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid CSRF token' }),
+        { headers: { ...headers, 'Content-Type': 'application/json' }, status: 403 }
+      );
+    }
+    
     // Verify the request is from an authenticated admin
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -70,7 +85,7 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...headers, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
@@ -81,7 +96,7 @@ serve(async (req) => {
         error: error.message 
       }), {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...headers, 'Content-Type': 'application/json' },
       }
     );
   }

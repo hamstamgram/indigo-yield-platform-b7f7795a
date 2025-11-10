@@ -2,24 +2,38 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { generateSecret, otpauthURL } from 'https://deno.land/x/otpauth@v9.2.3/dist/otpauth.esm.js'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+// Secure CORS configuration
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [];
+const corsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+});
 
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const headers = corsHeaders(origin);
+  
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers })
   }
 
   if (req.method !== 'POST') {
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
-      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 405, headers: { ...headers, 'Content-Type': 'application/json' } }
     )
   }
 
   try {
+    // CSRF validation for state-changing operations
+    const csrfToken = req.headers.get('x-csrf-token');
+    if (!csrfToken || csrfToken.length < 32) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid CSRF token' }),
+        { headers: { ...headers, 'Content-Type': 'application/json' }, status: 403 }
+      );
+    }
     // Create Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -31,7 +45,7 @@ serve(async (req) => {
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...headers, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -41,7 +55,7 @@ serve(async (req) => {
     if (authError || !user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...headers, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -71,30 +85,36 @@ serve(async (req) => {
       period: 30
     })
 
-    // Encrypt and store the secret
-    const { error: encryptError } = await supabaseClient.rpc('encrypt_totp_secret', {
+    // Encrypt and store the secret - FAIL if encryption fails (security requirement)
+    const { data: encryptedSecret, error: encryptError } = await supabaseClient.rpc('encrypt_totp_secret', {
       secret_text: secret
     })
 
-    if (encryptError) {
-      // Fallback: store using user ID as encryption key
-      const { error: storeError } = await supabaseClient
-        .from('user_totp_settings')
-        .upsert({
-          user_id: user.id,
-          secret_encrypted: secret, // In production, this should be properly encrypted
-          enabled: false,
-          verified: false,
-          created_at: new Date().toISOString()
-        })
+    if (encryptError || !encryptedSecret) {
+      console.error('Failed to encrypt TOTP secret:', encryptError)
+      return new Response(
+        JSON.stringify({ error: 'Failed to encrypt TOTP secret. 2FA setup cannot proceed.' }),
+        { status: 500, headers: { ...headers, 'Content-Type': 'application/json' } }
+      )
+    }
 
-      if (storeError) {
-        console.error('Failed to store TOTP secret:', storeError)
-        return new Response(
-          JSON.stringify({ error: 'Failed to setup TOTP' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
+    // Store the encrypted secret
+    const { error: storeError } = await supabaseClient
+      .from('user_totp_settings')
+      .upsert({
+        user_id: user.id,
+        secret_encrypted: encryptedSecret,
+        enabled: false,
+        verified: false,
+        created_at: new Date().toISOString()
+      })
+
+    if (storeError) {
+      console.error('Failed to store TOTP secret:', storeError)
+      return new Response(
+        JSON.stringify({ error: 'Failed to setup TOTP' }),
+        { status: 500, headers: { ...headers, 'Content-Type': 'application/json' } }
+      )
     }
 
     return new Response(
@@ -102,14 +122,14 @@ serve(async (req) => {
         otpauth_url: otpauthUrl,
         secret_masked: secret.substring(0, 4) + '****'
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...headers, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
     console.error('Error:', error)
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...headers, 'Content-Type': 'application/json' } }
     )
   }
 })

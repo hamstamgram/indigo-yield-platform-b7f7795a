@@ -3,10 +3,13 @@ import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 import * as XLSX from 'https://esm.sh/xlsx@0.18.5';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// Secure CORS configuration
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [];
+const corsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+});
 
 // Initialize Supabase client with service role
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
