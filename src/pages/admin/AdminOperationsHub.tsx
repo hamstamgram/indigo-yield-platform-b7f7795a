@@ -4,6 +4,7 @@ import { OperationsStats } from "@/components/admin/operations/OperationsStats";
 import { QuickLinksGrid, QuickLink } from "@/components/admin/operations/QuickLinksGrid";
 import { RecentActivityFeed, ActivityItem } from "@/components/admin/operations/RecentActivityFeed";
 import { SystemStatus, SystemStatusItem } from "@/components/admin/operations/SystemStatus";
+import { PendingItemsBreakdown } from "@/components/admin/operations/PendingItemsBreakdown";
 import {
   Building2,
   TrendingUp,
@@ -26,7 +27,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { operationsService } from "@/services/operationsService";
+import { operationsService, type PendingBreakdown } from "@/services/operationsService";
 
 function AdminOperationsHubContent() {
   const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
@@ -36,6 +37,11 @@ function AdminOperationsHubContent() {
     activeInvestors: 0,
     totalAUM: 0,
     transactionTrend: "0%",
+  });
+  const [pendingBreakdown, setPendingBreakdown] = useState<PendingBreakdown>({
+    deposits: 0,
+    withdrawals: 0,
+    investments: 0,
   });
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(true);
 
@@ -140,6 +146,8 @@ function AdminOperationsHubContent() {
         totalAUM: metricsData.totalAUM,
         transactionTrend: trend,
       });
+
+      setPendingBreakdown(operationsService.getPendingBreakdown(metricsData));
     } catch (error) {
       console.error("Error loading metrics:", error);
       toast.error("Failed to load operations metrics");
@@ -376,6 +384,9 @@ function AdminOperationsHubContent() {
 
       {/* Stats Overview */}
       <OperationsStats stats={stats} />
+
+      {/* Pending Items Breakdown */}
+      <PendingItemsBreakdown breakdown={pendingBreakdown} isLoading={isLoadingMetrics} />
 
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-3">

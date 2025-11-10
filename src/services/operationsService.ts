@@ -10,6 +10,12 @@ export interface OperationsMetrics {
   pendingInvestments: number;
 }
 
+export interface PendingBreakdown {
+  deposits: number;
+  withdrawals: number;
+  investments: number;
+}
+
 export const operationsService = {
   /**
    * Get comprehensive operations metrics
@@ -110,6 +116,17 @@ export const operationsService = {
       console.error('Error fetching yesterday transactions:', error);
       return 0;
     }
+  },
+
+  /**
+   * Get pending items breakdown
+   */
+  getPendingBreakdown(metrics: OperationsMetrics): PendingBreakdown {
+    return {
+      deposits: metrics.pendingDeposits,
+      withdrawals: metrics.pendingWithdrawals,
+      investments: metrics.pendingInvestments,
+    };
   },
 
   /**
