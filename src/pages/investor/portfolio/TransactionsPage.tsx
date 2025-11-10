@@ -1,75 +1,59 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowUpRight, ArrowDownLeft, CreditCard, Calendar } from 'lucide-react';
-
-interface SimpleTransaction {
-  id: string;
-  amount: number;
-  asset_code: string;
-  type: string;
-  status: string;
-  created_at: string;
-  investor_name?: string;
-}
+import { transactionService, Transaction } from '@/services/transactionService';
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
+import { toast } from 'sonner';
 
 export default function TransactionsPage() {
-  const [transactions, setTransactions] = useState<SimpleTransaction[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [summary, setSummary] = useState({
+    totalCount: 0,
+    totalDeposits: 0,
+    totalWithdrawals: 0,
+    pendingCount: 0
+  });
 
-  useEffect(() => {
-    // Simulate loading transactions
-    setTimeout(() => {
-      setTransactions([
-        {
-          id: '1',
-          amount: 1000,
-          asset_code: 'BTC',
-          type: 'DEPOSIT',
-          status: 'confirmed',
-          created_at: new Date().toISOString(),
-          investor_name: 'REDACTED'
-        },
-        {
-          id: '2',
-          amount: 500,
-          asset_code: 'ETH',
-          type: 'WITHDRAWAL',
-          status: 'pending',
-          created_at: new Date(Date.now() - 86400000).toISOString(),
-          investor_name: 'REDACTED'
-        },
-        {
-          id: '3',
-          amount: 25,
-          asset_code: 'USDC',
-          type: 'FEE',
-          status: 'confirmed',
-          created_at: new Date(Date.now() - 172800000).toISOString(),
-          investor_name: 'REDACTED'
-        }
+  const loadTransactions = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [txData, summaryData] = await Promise.all([
+        transactionService.fetchUserTransactions(),
+        transactionService.calculateTransactionSummary()
       ]);
+      setTransactions(txData);
+      setSummary(summaryData);
+    } catch (error) {
+      console.error('Error loading transactions:', error);
+      toast.error('Failed to load transactions');
+    } finally {
       setLoading(false);
-    }, 1000);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }
   }, []);
 
+  useEffect(() => {
+    loadTransactions();
+  }, [loadTransactions]);
+
+  // Real-time subscription for live updates
+  useRealtimeSubscription({
+    table: 'transactions_v2',
+    event: '*',
+    onUpdate: loadTransactions
+  });
+
   const getTransactionIcon = (type: string) => {
-    switch (type) {
+    const typeUpper = (type || '').toUpperCase();
+    switch (typeUpper) {
       case 'DEPOSIT': return <ArrowDownLeft className="h-4 w-4 text-green-500" />;
       case 'WITHDRAWAL': return <ArrowUpRight className="h-4 w-4 text-red-500" />;
-      case 'FEE': return <CreditCard className="h-4 w-4 text-blue-500" />;
-      default: return <CreditCard className="h-4 w-4 text-gray-500" />;
-    }
-  };
-
-  const getStatusVariant = (status: string): 'default' | 'destructive' | 'outline' | 'secondary' => {
-    switch (status) {
-      case 'confirmed': return 'default';
-      case 'pending': return 'outline';
-      case 'failed': return 'destructive';
-      case 'cancelled': return 'secondary';
-      default: return 'secondary';
+      case 'FEE':
+      case 'INTEREST':
+      case 'YIELD':
+        return <CreditCard className="h-4 w-4 text-blue-500" />;
+      default: return <CreditCard className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -93,7 +77,7 @@ export default function TransactionsPage() {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{transactions.length}</div>
+            <div className="text-2xl font-bold">{summary.totalCount}</div>
             <p className="text-xs text-muted-foreground">
               All time
             </p>
@@ -107,10 +91,10 @@ export default function TransactionsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {transactions.filter(t => t.type === 'DEPOSIT').length}
+              ${summary.totalDeposits.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              Incoming transfers
+              Total deposits
             </p>
           </CardContent>
         </Card>
@@ -122,10 +106,10 @@ export default function TransactionsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {transactions.filter(t => t.type === 'WITHDRAWAL').length}
+              ${summary.totalWithdrawals.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              Outgoing transfers
+              Total withdrawals
             </p>
           </CardContent>
         </Card>
@@ -137,7 +121,7 @@ export default function TransactionsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {transactions.filter(t => t.status === 'pending').length}
+              {summary.pendingCount}
             </div>
             <p className="text-xs text-muted-foreground">
               Awaiting confirmation
@@ -158,35 +142,39 @@ export default function TransactionsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {transactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className="flex items-center justify-between p-4 border rounded-lg bg-card"
-              >
-                <div className="flex items-center gap-4">
-                  {getTransactionIcon(transaction.type)}
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{transaction.type}</span>
-                      <Badge variant="outline">{transaction.asset_code}</Badge>
-                      <Badge variant={getStatusVariant(transaction.status)}>
-                        {transaction.status}
-                      </Badge>
+            {transactions.map((transaction) => {
+              const txType = (transaction.txn_type || transaction.type || 'UNKNOWN').toUpperCase();
+              return (
+                <div
+                  key={transaction.id}
+                  className="flex items-center justify-between p-4 border rounded-lg bg-card"
+                >
+                  <div className="flex items-center gap-4">
+                    {getTransactionIcon(txType)}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{txType}</span>
+                        <Badge variant="outline">{transaction.asset}</Badge>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span>{new Date(transaction.occurred_at).toLocaleString()}</span>
+                        {transaction.notes && (
+                          <>
+                            <span>•</span>
+                            <span>{transaction.notes}</span>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span>Investor: {transaction.investor_name}</span>
-                      <span>•</span>
-                      <span>{new Date(transaction.created_at).toLocaleString()}</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-medium">
+                      {txType === 'WITHDRAWAL' ? '-' : '+'}{Number(transaction.amount).toLocaleString()} {transaction.asset}
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="font-medium">
-                    {transaction.type === 'WITHDRAWAL' ? '-' : '+'}{transaction.amount.toLocaleString()} {transaction.asset_code}
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {transactions.length === 0 && (
