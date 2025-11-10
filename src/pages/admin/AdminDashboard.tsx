@@ -69,7 +69,7 @@ function AdminDashboardContent() {
         positionsResult,
         withdrawalsResult,
         pendingInvestors,
-        recentTransactionsResult
+        recentActivityResult
       ] = await Promise.all([
         supabase.from("investors").select("id, status"),
         supabase.from("investor_positions").select("current_value, investor_id"),
@@ -93,7 +93,7 @@ function AdminDashboardContent() {
         totalAUM,
         pendingWithdrawals: withdrawalsResult.data?.length || 0,
         pendingDocuments: 0,
-        recentActivity: recentTransactionsResult.data?.length || 0,
+        recentActivity: recentActivityResult.data?.length || 0,
       });
     } catch (error) {
       console.error("Failed to load admin stats:", error);
