@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,6 +36,8 @@ const DocumentViewerPage: React.FC = () => {
   }, [id, currentUser]);
 
   const loadDocument = async () => {
+    if (!id) return;
+    
     try {
       const { data, error } = await supabase
         .from('documents')
@@ -51,10 +52,10 @@ const DocumentViewerPage: React.FC = () => {
       }
 
       if (error) throw error;
-      setDocument(data);
+      setDocument(data as any);
 
       // Get signed URL
-      const url = await getDocumentUrl(data.file_path);
+      const url = await getDocumentUrl(data.storage_path);
       setDocumentUrl(url);
     } catch (error) {
       console.error('Error loading document:', error);
@@ -174,7 +175,6 @@ const DocumentViewerPage: React.FC = () => {
       {document.mime_type === 'application/pdf' ? (
         <PDFViewer
           url={documentUrl}
-          fileName={document.file_name}
           onDownload={() => downloadDocument(document)}
         />
       ) : (

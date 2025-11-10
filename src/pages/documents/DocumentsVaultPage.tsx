@@ -1,12 +1,9 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDocuments } from '@/hooks/useDocuments';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   FileText,
   Search,
@@ -16,7 +13,6 @@ import {
   Trash2,
   Filter,
   FolderOpen,
-  Calendar,
   FileSpreadsheet,
   FileCheck,
   Shield
@@ -24,6 +20,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { DocumentCategory } from '@/types/documents';
+import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,

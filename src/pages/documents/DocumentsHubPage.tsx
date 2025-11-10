@@ -1,7 +1,6 @@
-// @ts-nocheck
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Search, Filter } from 'lucide-react';
@@ -20,7 +19,7 @@ export default function DocumentsHubPage() {
       let query = supabase
         .from('documents')
         .select('*')
-        .eq('investor_id', user.id);
+        .eq('user_id', user.id);
 
       if (searchTerm) {
         query = query.ilike('title', `%${searchTerm}%`);
@@ -76,7 +75,7 @@ export default function DocumentsHubPage() {
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-semibold">{item.name || item.title}</h3>
+                        <h3 className="font-semibold">{item.title}</h3>
                         <p className="text-sm text-muted-foreground">
                           {new Date(item.created_at).toLocaleDateString()}
                         </p>
