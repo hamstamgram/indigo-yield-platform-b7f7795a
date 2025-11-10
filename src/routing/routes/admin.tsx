@@ -15,6 +15,7 @@
 import { CoreAdminRoutes } from "./admin/core";
 import { InvestorRoutes } from "./admin/investors";
 import { InvestmentRoutes } from "./admin/investments";
+import { FeeRoutes } from "./admin/fees";
 import { OperationsRoutes } from "./admin/operations";
 import { ReportsRoutes } from "./admin/reports";
 import { SystemRoutes } from "./admin/system";
@@ -29,6 +30,7 @@ export function AdminRoutes() {
       {CoreAdminRoutes()}
       {InvestorRoutes()}
       {InvestmentRoutes()}
+      {FeeRoutes()}
       {OperationsRoutes()}
       {ReportsRoutes()}
       {SystemRoutes()}
