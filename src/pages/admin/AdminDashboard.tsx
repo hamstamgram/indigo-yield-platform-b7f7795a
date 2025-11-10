@@ -60,6 +60,46 @@ function AdminDashboardContent() {
 
   useEffect(() => {
     loadAdminStats();
+
+    // Set up real-time subscriptions for dynamic updates
+    const withdrawalChannel = supabase
+      .channel('admin-withdrawals')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'withdrawal_requests',
+          filter: 'status=eq.pending'
+        },
+        () => {
+          console.log('Withdrawal request changed, reloading stats...');
+          loadAdminStats();
+        }
+      )
+      .subscribe();
+
+    const investorChannel = supabase
+      .channel('admin-investors')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'investors',
+          filter: 'kyc_status=eq.pending'
+        },
+        () => {
+          console.log('Investor KYC status changed, reloading stats...');
+          loadAdminStats();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(withdrawalChannel);
+      supabase.removeChannel(investorChannel);
+    };
   }, []);
 
   const loadAdminStats = async () => {

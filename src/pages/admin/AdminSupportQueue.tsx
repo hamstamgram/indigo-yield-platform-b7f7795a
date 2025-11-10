@@ -24,6 +24,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { supportService, SupportTicket } from '@/services/supportService';
 import { adminServiceV2 } from '@/services/adminServiceV2';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminSupportQueue = () => {
   const [loading, setLoading] = useState(true);
@@ -59,6 +60,27 @@ const AdminSupportQueue = () => {
 
   useEffect(() => {
     fetchSupportData();
+
+    // Set up real-time subscription for new tickets
+    const ticketChannel = supabase
+      .channel('support-tickets')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'support_tickets'
+        },
+        (payload) => {
+          console.log('Support ticket changed:', payload);
+          fetchSupportData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ticketChannel);
+    };
   }, []);
 
   const handleTicketClick = (ticket: SupportTicket) => {
