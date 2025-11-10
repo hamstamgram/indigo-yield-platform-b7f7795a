@@ -12,6 +12,7 @@ import {
   Wallet,
   Receipt,
   Coins,
+  ArrowDownToLine,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
 
@@ -82,6 +83,12 @@ export function useNavItems(): NavItem[] {
       href: "/admin/assets",
       icon: Coins,
       description: "Asset management and price tracking",
+    },
+    {
+      title: "Deposits",
+      href: "/admin/deposits",
+      icon: ArrowDownToLine,
+      description: "Deposit tracking and approval",
     },
     {
       title: "Portfolio Management",
