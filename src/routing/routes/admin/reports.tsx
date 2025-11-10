@@ -8,7 +8,6 @@ import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
 const AdminReports = lazy(() => import("@/pages/admin/AdminReports"));
-const AdminReportsNew = lazy(() => import("@/pages/admin/AdminReports"));
 const HistoricalReportsDashboard = lazy(() => import("@/components/admin/investors/HistoricalReportsDashboard"));
 const AdminBatchReportsPage = lazy(() => import("@/pages/admin/AdminBatchReportsPage"));
 const PDFGenerationDemo = lazy(() =>
@@ -18,14 +17,6 @@ const PDFGenerationDemo = lazy(() =>
 export function ReportsRoutes() {
   return (
     <>
-      <Route
-        path="/admin/reports-admin"
-        element={
-          <AdminRoute>
-            <AdminReportsNew />
-          </AdminRoute>
-        }
-      />
       <Route
         path="/admin/reports"
         element={

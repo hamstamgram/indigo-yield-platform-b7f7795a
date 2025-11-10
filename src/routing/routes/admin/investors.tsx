@@ -7,9 +7,6 @@ import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const InvestorManagementView = lazy(() => import("@/components/admin/InvestorManagementView"));
-const AdminInvestorManagement = lazy(() => import("@/pages/admin/AdminInvestorManagement"));
-const AdminInvestorDetailNew = lazy(() => import("@/pages/admin/AdminInvestorDetail"));
 const AdminInvestorNewPage = lazy(() => import("@/pages/admin/investors/AdminInvestorNewPage"));
 const AdminInvestorDetailPage = lazy(() => import("@/pages/admin/investors/AdminInvestorDetailPage"));
 const AdminInvestorPositionsPage = lazy(() => import("@/pages/admin/investors/AdminInvestorPositionsPage"));
@@ -30,33 +27,7 @@ const InvestorStatusTracking = lazy(() =>
 export function InvestorRoutes() {
   return (
     <>
-      {/* New investor management */}
-      <Route
-        path="/admin/investors-management"
-        element={
-          <AdminRoute>
-            <AdminInvestorManagement />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/admin/investor/:id"
-        element={
-          <AdminRoute>
-            <AdminInvestorDetailNew />
-          </AdminRoute>
-        }
-      />
-
       {/* Main investor routes */}
-      <Route
-        path="/admin/investors"
-        element={
-          <AdminRoute>
-            <InvestorManagementView />
-          </AdminRoute>
-        }
-      />
       <Route
         path="/admin/investors/new"
         element={
@@ -125,7 +96,7 @@ export function InvestorRoutes() {
       />
 
       {/* Legacy redirect */}
-      <Route path="/admin-investors" element={<Navigate to="/admin/investors" replace />} />
+      <Route path="/admin-investors" element={<Navigate to="/admin/expert-investors" replace />} />
     </>
   );
 }
