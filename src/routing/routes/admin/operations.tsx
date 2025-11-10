@@ -19,7 +19,7 @@ const AdminTransactions = lazy(() => import("@/pages/admin/AdminTransactions"));
 const BalanceAdjustments = lazy(() =>
   import("@/pages/admin/BalanceAdjustments").then((m) => ({ default: m.BalanceAdjustments }))
 );
-const AdminOperations = lazy(() => import("@/pages/admin/settings/AdminOperations"));
+const AdminOperationsHub = lazy(() => import("@/pages/admin/AdminOperationsHub"));
 const FundManagement = lazy(() => import("@/pages/admin/funds/FundManagement"));
 const TestYieldPage = lazy(() => import("@/pages/admin/TestYieldPage"));
 
@@ -130,7 +130,7 @@ export function OperationsRoutes() {
         path="/admin/operations"
         element={
           <AdminRoute>
-            <AdminOperations />
+            <AdminOperationsHub />
           </AdminRoute>
         }
       />
