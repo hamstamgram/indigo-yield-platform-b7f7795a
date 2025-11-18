@@ -6,10 +6,13 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [];
+
+const corsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+});
 
 interface PerformanceRequest {
   investorId: string;
@@ -44,12 +47,23 @@ interface BenchmarkData {
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const headers = corsHeaders(origin);
+
   // Handle CORS
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers });
   }
 
   try {
+    // CSRF token validation
+    const csrfToken = req.headers.get('x-csrf-token');
+    if (!csrfToken || csrfToken.length < 32) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid CSRF token' }),
+        { status: 403, headers: { ...headers, 'Content-Type': 'application/json' } }
+      )
+    }
     // Create Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -180,7 +194,7 @@ serve(async (req) => {
         metrics,
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...headers, 'Content-Type': 'application/json' },
         status: 200,
       }
     );
@@ -193,7 +207,7 @@ serve(async (req) => {
         error: error instanceof Error ? error.message : 'Unknown error',
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...headers, 'Content-Type': 'application/json' },
         status: 400,
       }
     );

@@ -2,31 +2,46 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { TOTP } from 'https://deno.land/x/otpauth@v9.2.3/dist/otpauth.esm.js'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [];
+
+const corsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+});
 
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const headers = corsHeaders(origin);
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers })
   }
 
   if (req.method !== 'POST') {
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
-      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 405, headers: { ...headers, 'Content-Type': 'application/json' } }
     )
   }
 
   try {
+    // CSRF token validation
+    const csrfToken = req.headers.get('x-csrf-token');
+    if (!csrfToken || csrfToken.length < 32) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid CSRF token' }),
+        { status: 403, headers: { ...headers, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const body = await req.json()
     const { code } = body
 
     if (!code || !/^\d{6}$/.test(code)) {
       return new Response(
         JSON.stringify({ error: 'Invalid code format' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...headers, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -41,7 +56,7 @@ serve(async (req) => {
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...headers, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -51,7 +66,7 @@ serve(async (req) => {
     if (authError || !user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...headers, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -65,7 +80,7 @@ serve(async (req) => {
     if (totpError || !totpData) {
       return new Response(
         JSON.stringify({ error: 'TOTP not initialized' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...headers, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -129,7 +144,7 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ enabled: true }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...headers, 'Content-Type': 'application/json' } }
       )
     } else {
       // Log failed verification
@@ -140,7 +155,7 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ enabled: false, error: 'Invalid code' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...headers, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -148,7 +163,7 @@ serve(async (req) => {
     console.error('Error:', error)
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...headers, 'Content-Type': 'application/json' } }
     )
   }
 })
