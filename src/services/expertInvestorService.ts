@@ -161,43 +161,76 @@ class ExpertInvestorService {
 
       if (error) throw error;
 
-      // For each investor, get position summary
-      const investorsWithSummary = await Promise.all(
-        (data || []).map(async (investor) => {
-          // Get profile data
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('first_name, last_name, fee_percentage')
-            .eq('id', investor.profile_id || '')
-            .single();
+      // OPTIMIZED: Batch fetch all profile data and positions at once to avoid N+1 queries
+      // Extract all profile IDs and investor IDs
+      const profileIds = (data || []).map(inv => inv.profile_id).filter(Boolean) as string[];
+      const investorIds = (data || []).map(inv => inv.id);
 
-          const positions = await this.getUnifiedPositions(investor.id);
-          const aumByAsset = this.calculateAssetBreakdowns(positions);
-          
-          return {
-            id: investor.id,
-            profileId: investor.profile_id || '',
-            email: investor.email,
-            firstName: profileData?.first_name || '',
-            lastName: profileData?.last_name || '',
-            phone: investor.phone || undefined,
-            status: investor.status || 'pending',
-            kycStatus: investor.kyc_status || 'pending',
-            amlStatus: investor.aml_status || 'pending',
-            feePercentage: profileData?.fee_percentage || 0.02,
-            onboardingDate: investor.onboarding_date || investor.created_at || '',
-            aumByAsset,
-            positionCount: positions.length,
-            lastActivityDate: positions.length > 0 
-              ? new Date(Math.max(...positions.map(p => new Date(p.lastTransactionDate).getTime()))).toISOString()
-              : investor.created_at || new Date().toISOString(),
-            // Legacy aggregated values (deprecated)
-            totalAum: positions.reduce((sum, p) => sum + p.currentValue, 0),
-            totalEarnings: positions.reduce((sum, p) => sum + p.totalEarnings, 0),
-            totalPrincipal: positions.reduce((sum, p) => sum + p.costBasis, 0),
-          } as UnifiedInvestorData;
-        })
+      // Batch fetch all profiles in one query
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, fee_percentage')
+        .in('id', profileIds);
+
+      // Create a map for O(1) lookup
+      const profileMap = new Map(
+        (profilesData || []).map(profile => [profile.id, profile])
       );
+
+      // Batch fetch all positions with fund data in one query using JOIN
+      const { data: allPositions } = await supabase
+        .from('investor_positions')
+        .select(`
+          *,
+          funds!inner(
+            name,
+            code,
+            asset,
+            inception_date
+          )
+        `)
+        .in('investor_id', investorIds);
+
+      // Group positions by investor_id for O(1) lookup
+      const positionsByInvestor = new Map<string, any[]>();
+      (allPositions || []).forEach(position => {
+        const existing = positionsByInvestor.get(position.investor_id) || [];
+        existing.push(position);
+        positionsByInvestor.set(position.investor_id, existing);
+      });
+
+      // Now map investors with their data (no additional queries needed)
+      const investorsWithSummary = (data || []).map((investor) => {
+        const profileData = profileMap.get(investor.profile_id || '');
+        const rawPositions = positionsByInvestor.get(investor.id) || [];
+
+        // Transform raw positions to unified format
+        const positions = rawPositions.map(this.transformPosition);
+        const aumByAsset = this.calculateAssetBreakdowns(positions);
+
+        return {
+          id: investor.id,
+          profileId: investor.profile_id || '',
+          email: investor.email,
+          firstName: profileData?.first_name || '',
+          lastName: profileData?.last_name || '',
+          phone: investor.phone || undefined,
+          status: investor.status || 'pending',
+          kycStatus: investor.kyc_status || 'pending',
+          amlStatus: investor.aml_status || 'pending',
+          feePercentage: profileData?.fee_percentage || 0.02,
+          onboardingDate: investor.onboarding_date || investor.created_at || '',
+          aumByAsset,
+          positionCount: positions.length,
+          lastActivityDate: positions.length > 0
+            ? new Date(Math.max(...positions.map(p => new Date(p.lastTransactionDate).getTime()))).toISOString()
+            : investor.created_at || new Date().toISOString(),
+          // Legacy aggregated values (deprecated)
+          totalAum: positions.reduce((sum, p) => sum + p.currentValue, 0),
+          totalEarnings: positions.reduce((sum, p) => sum + p.totalEarnings, 0),
+          totalPrincipal: positions.reduce((sum, p) => sum + p.costBasis, 0),
+        } as UnifiedInvestorData;
+      });
 
       return investorsWithSummary;
     } catch (error) {
@@ -230,6 +263,37 @@ class ExpertInvestorService {
     });
 
     return Array.from(assetMap.values()).sort((a, b) => b.aum - a.aum);
+  }
+
+  /**
+   * Transform raw position data from database to UnifiedPositionData
+   * Used for batch processing to avoid N+1 queries
+   * Handles nested funds object from JOIN query
+   */
+  private transformPosition = (pos: any): UnifiedPositionData => {
+    // Extract fund data from nested object (from JOIN query)
+    const fundData = pos.funds || {};
+
+    return {
+      id: `${pos.fund_id}-${pos.investor_id}`,
+      investorId: pos.investor_id,
+      fundId: pos.fund_id,
+      fundName: fundData.name || 'Unknown Fund',
+      fundCode: fundData.code || 'UNK',
+      asset: fundData.asset || 'UNKNOWN',
+      fundClass: pos.fund_class || 'Standard',
+      shares: pos.shares || 0,
+      currentValue: pos.current_value || 0,
+      costBasis: pos.cost_basis || 0,
+      unrealizedPnl: pos.unrealized_pnl || 0,
+      realizedPnl: pos.realized_pnl || 0,
+      totalEarnings: (pos.unrealized_pnl || 0) + (pos.realized_pnl || 0),
+      inceptionDate: fundData.inception_date || pos.updated_at || new Date().toISOString(),
+      lastTransactionDate: pos.last_transaction_date || pos.updated_at || new Date().toISOString(),
+      lockUntilDate: pos.lock_until_date || undefined,
+      feeRate: 0.02,
+      aumPercentage: pos.aum_percentage || 0
+    };
   }
 
   /**
