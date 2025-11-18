@@ -14,7 +14,12 @@ import { format, subMonths, parseISO } from 'date-fns';
 interface InvestorReport {
   investor_id: string;
   investor_name: string;
-  investor_email: string;
+  investor_email: string; // Legacy: primary email
+  investor_emails: Array<{
+    email: string;
+    is_primary: boolean;
+    verified: boolean;
+  }>; // All emails for multi-recipient sending
   assets: Array<{
     asset_code: string;
     opening_balance: number;
@@ -63,6 +68,25 @@ const InvestorReports = () => {
         return;
       }
 
+      // Fetch all investor emails
+      const { data: allInvestorEmails, error: emailsError } = await supabase
+        .from('investor_emails')
+        .select('investor_id, email, is_primary, verified')
+        .order('investor_id, is_primary', { ascending: false }); // Primary first per investor
+
+      // Group emails by investor_id
+      const emailsByInvestor = (allInvestorEmails || []).reduce((acc, emailRecord) => {
+        if (!acc[emailRecord.investor_id]) {
+          acc[emailRecord.investor_id] = [];
+        }
+        acc[emailRecord.investor_id].push({
+          email: emailRecord.email,
+          is_primary: emailRecord.is_primary,
+          verified: emailRecord.verified,
+        });
+        return acc;
+      }, {} as Record<string, typeof allInvestorEmails>);
+
       // Fetch monthly reports for the selected month
       const { data: monthlyReports, error: reportsError } = await supabase
         .from('investor_monthly_reports')
@@ -99,10 +123,26 @@ const InvestorReports = () => {
         const total_value = assets.reduce((sum, asset) => sum + asset.closing_balance, 0);
         const total_yield = assets.reduce((sum, asset) => sum + asset.yield_earned, 0);
 
+        // Get all emails for this investor
+        const investorEmails = emailsByInvestor[investor.id] || [];
+
+        // Fallback to legacy email if no emails found
+        if (investorEmails.length === 0 && investor.email) {
+          investorEmails.push({
+            email: investor.email,
+            is_primary: true,
+            verified: false,
+          });
+        }
+
+        // Get primary email for legacy field
+        const primaryEmail = investorEmails.find(e => e.is_primary)?.email || investor.email;
+
         return {
           investor_id: investor.id,
           investor_name: investor.name || 'Unknown',
-          investor_email: investor.email,
+          investor_email: primaryEmail, // Legacy: primary email only
+          investor_emails: investorEmails, // All emails for multi-recipient sending
           assets,
           total_value,
           total_yield,
@@ -149,19 +189,63 @@ const InvestorReports = () => {
         return;
       }
 
-      // For MVP: Just mark as sent by creating a tracking record
-      // In production: Integrate with email service (SendGrid, AWS SES, etc.)
+      // Calculate total recipients (all emails for all investors with reports)
+      let totalRecipients = 0;
+      const emailBatchData: Array<{
+        investorId: string;
+        investorName: string;
+        recipientEmails: string[];
+      }> = [];
 
-      // Placeholder for email sending logic
-      // TODO: Integrate with Supabase Edge Function for email sending
+      reportsToSend.forEach(report => {
+        // Get all recipient emails (verified + primary)
+        const recipientEmails = report.investor_emails
+          .filter(e => e.verified || e.is_primary) // Send to verified emails + primary email
+          .map(e => e.email);
+
+        // Fallback to legacy email if no emails found
+        if (recipientEmails.length === 0 && report.investor_email) {
+          recipientEmails.push(report.investor_email);
+        }
+
+        totalRecipients += recipientEmails.length;
+
+        emailBatchData.push({
+          investorId: report.investor_id,
+          investorName: report.investor_name,
+          recipientEmails,
+        });
+      });
+
+      console.log('📧 Email Sending Summary:', {
+        investors: reportsToSend.length,
+        totalRecipients,
+        emailBatchData,
+      });
+
+      // For MVP: Log the email batch data
+      // In production: Call Supabase Edge Function or email service
+      // Example production code:
+      //
+      // for (const batch of emailBatchData) {
+      //   for (const recipientEmail of batch.recipientEmails) {
+      //     await supabase.functions.invoke('send-investor-report', {
+      //       body: {
+      //         investorId: batch.investorId,
+      //         recipientEmail: recipientEmail,
+      //         reportMonth: selectedMonth,
+      //       }
+      //     });
+      //   }
+      // }
 
       toast({
-        title: 'Email Integration Required',
-        description: `${reportsToSend.length} reports ready to send. Email service integration pending.`,
+        title: 'Multi-Email Support Ready',
+        description: `${reportsToSend.length} investors with ${totalRecipients} total recipients. Email service integration pending.`,
       });
 
       // For now, just show success
-      // In production, this would actually send emails
+      // In production, this would actually send emails via Supabase Edge Function
 
     } catch (error: any) {
       console.error('Error sending reports:', error);
@@ -398,7 +482,16 @@ const InvestorReports = () => {
                 {filteredReports.map((report) => (
                   <TableRow key={report.investor_id}>
                     <TableCell className="font-medium">{report.investor_name}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{report.investor_email}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <span>{report.investor_email}</span>
+                        {report.investor_emails.length > 1 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{report.investor_emails.length - 1} more
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
                         {report.assets.length > 0 ? (
@@ -471,6 +564,31 @@ const InvestorReports = () => {
                   <p className="text-2xl font-bold text-green-600">{formatCurrency(selectedInvestor.total_yield)}</p>
                 </div>
               </div>
+
+              {/* Email Recipients */}
+              {selectedInvestor.investor_emails.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold mb-2">Report Recipients ({selectedInvestor.investor_emails.length})</h3>
+                  <div className="space-y-2">
+                    {selectedInvestor.investor_emails.map((emailObj, index) => (
+                      <div
+                        key={index}
+                        className={`flex items-center gap-2 p-2 rounded ${
+                          emailObj.is_primary ? 'bg-indigo-50 border border-indigo-200' : 'bg-muted'
+                        }`}
+                      >
+                        <span className="text-sm flex-1">{emailObj.email}</span>
+                        {emailObj.is_primary && (
+                          <Badge variant="default" className="bg-indigo-600 text-xs">Primary</Badge>
+                        )}
+                        {emailObj.verified && (
+                          <Badge variant="outline" className="text-xs">Verified</Badge>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Per-Asset Breakdown */}
               <div>

@@ -274,6 +274,18 @@ export const adminNavGroups: NavGroup[] = [
         adminOnly: true,
       },
       {
+        title: "Onboarding",
+        href: "/admin/onboarding",
+        icon: <UserPlus className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
+        title: "Email Tracking",
+        href: "/admin/email-tracking",
+        icon: <Mail className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
         title: "Balance Adjustments",
         href: "/admin/balances/adjust",
         icon: <Calculator className="h-5 w-5" />,

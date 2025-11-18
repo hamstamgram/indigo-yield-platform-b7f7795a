@@ -13,7 +13,12 @@ const FUND_ICON_MAP: Record<string, string> = {
 interface InvestorReportData {
   investorId: string;
   investorName: string;
-  email: string;
+  email: string; // Legacy: primary email for backward compatibility
+  emails: Array<{
+    email: string;
+    isPrimary: boolean;
+    verified: boolean;
+  }>; // All emails for the investor
   reportMonth: string; // YYYY-MM format
   positions: Array<{
     fundName: string;
@@ -308,6 +313,29 @@ export async function fetchInvestorReportData(
       return null;
     }
 
+    // Fetch all emails for the investor
+    const { data: emailRecords, error: emailsError } = await supabase
+      .from('investor_emails')
+      .select('email, is_primary, verified')
+      .eq('investor_id', investorId)
+      .order('is_primary', { ascending: false }); // Primary email first
+
+    // Fallback to legacy email if no emails found
+    const emails = (emailRecords || []).map(e => ({
+      email: e.email,
+      isPrimary: e.is_primary,
+      verified: e.verified,
+    }));
+
+    // If no emails found in investor_emails table, use legacy email from investors table
+    if (emails.length === 0 && investor.email) {
+      emails.push({
+        email: investor.email,
+        isPrimary: true,
+        verified: false,
+      });
+    }
+
     // Fetch monthly report data
     const { data: positions, error: positionsError } = await supabase
       .from('investor_monthly_reports')
@@ -331,11 +359,15 @@ export async function fetchInvestorReportData(
       return null;
     }
 
+    // Get primary email for backward compatibility
+    const primaryEmail = emails.find(e => e.isPrimary)?.email || investor.email || '';
+
     // Transform data for report
     const reportData: InvestorReportData = {
       investorId: investor.id,
       investorName: `${investor.first_name} ${investor.last_name}`,
-      email: investor.email,
+      email: primaryEmail, // Legacy field: primary email only
+      emails: emails, // All emails for multi-recipient sending
       reportMonth,
       positions: positions.map((pos: any) => ({
         fundName: pos.funds?.name || 'Unknown Fund',
@@ -406,4 +438,30 @@ export async function generateReportsForAllInvestors(
     console.error('Error in generateReportsForAllInvestors:', error);
     return [];
   }
+}
+
+/**
+ * Get all recipient emails for an investor
+ * Returns verified emails + primary email (even if not verified)
+ */
+export function getRecipientEmails(reportData: InvestorReportData): string[] {
+  const recipients = new Set<string>();
+
+  reportData.emails.forEach(emailObj => {
+    // Include verified emails
+    if (emailObj.verified) {
+      recipients.add(emailObj.email);
+    }
+    // Always include primary email (even if not verified yet)
+    if (emailObj.isPrimary) {
+      recipients.add(emailObj.email);
+    }
+  });
+
+  // Fallback to legacy email if no emails found
+  if (recipients.size === 0 && reportData.email) {
+    recipients.add(reportData.email);
+  }
+
+  return Array.from(recipients);
 }
