@@ -15,6 +15,7 @@ const AdminWithdrawalsPage = lazy(() => import("@/pages/admin/AdminWithdrawalsPa
 const MonthlyDataEntry = lazy(() => import("@/pages/admin/MonthlyDataEntry"));
 const DailyRatesManagement = lazy(() => import("@/pages/admin/DailyRatesManagement"));
 const InvestorReports = lazy(() => import("@/pages/admin/InvestorReports"));
+const InvestorReportGenerator = lazy(() => import("@/pages/admin/InvestorReportGenerator"));
 const AdminTransactions = lazy(() => import("@/pages/admin/AdminTransactions"));
 const BalanceAdjustments = lazy(() =>
   import("@/pages/admin/BalanceAdjustments").then((m) => ({ default: m.BalanceAdjustments }))
@@ -58,6 +59,14 @@ export function OperationsRoutes() {
         element={
           <AdminRoute>
             <InvestorReports />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/report-generator"
+        element={
+          <AdminRoute>
+            <InvestorReportGenerator />
           </AdminRoute>
         }
       />

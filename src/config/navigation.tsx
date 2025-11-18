@@ -268,6 +268,12 @@ export const adminNavGroups: NavGroup[] = [
         adminOnly: true,
       },
       {
+        title: "Report Generator",
+        href: "/admin/report-generator",
+        icon: <Mail className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
         title: "Balance Adjustments",
         href: "/admin/balances/adjust",
         icon: <Calculator className="h-5 w-5" />,
