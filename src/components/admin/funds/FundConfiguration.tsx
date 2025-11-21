@@ -60,13 +60,13 @@ const FundConfiguration = () => {
 
   useEffect(() => {
     loadFunds();
-  }, []);
+  }, [loadFunds]);
 
   useEffect(() => {
     if (selectedFund && !isCreating) {
       loadFundData(selectedFund);
     }
-  }, [selectedFund, isCreating]);
+  }, [selectedFund, isCreating, loadFundData]);
 
   const loadFunds = async () => {
     try {

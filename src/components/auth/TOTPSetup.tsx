@@ -92,7 +92,7 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
     if (open && currentStep === 0) {
       initializeSetup();
     }
-  }, [open]);
+  }, [open, currentStep, initializeSetup]);
 
   const initializeSetup = async () => {
     if (!user?.id) return;

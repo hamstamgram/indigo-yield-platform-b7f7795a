@@ -99,7 +99,7 @@ const AdminYieldRates = () => {
     };
 
     fetchData();
-  }, []);
+  }, [toast, today]);
 
   const handleYieldChange = (assetId: number, value: string) => {
     const numValue = parseFloat(value);

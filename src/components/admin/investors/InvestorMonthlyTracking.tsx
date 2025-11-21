@@ -68,9 +68,9 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
   useEffect(() => {
     loadInvestorData();
     loadMonthlyReports();
-  }, [investorId, selectedAsset]);
+  }, [investorId, selectedAsset, loadInvestorData, loadMonthlyReports]);
 
-  const loadInvestorData = async () => {
+  const loadInvestorData = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("investors")
@@ -104,9 +104,9 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
         variant: "destructive",
       });
     }
-  };
+  }, [investorId, toast]);
 
-  const loadMonthlyReports = async () => {
+  const loadMonthlyReports = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -128,7 +128,7 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
     } finally {
       setLoading(false);
     }
-  };
+  }, [investorId, selectedAsset, toast]);
 
   const handleEdit = (report: MonthlyReport) => {
     setEditingReport(report.id);

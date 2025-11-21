@@ -42,9 +42,9 @@ const FundYieldManagerV2 = () => {
   useEffect(() => {
     fetchFunds();
     fetchYieldHistory();
-  }, []);
+  }, [fetchFunds, fetchYieldHistory]);
 
-  const fetchFunds = async () => {
+  const fetchFunds = useCallback(async () => {
     try {
       const data = await getAllFundsWithAUM();
       // Map to match FundWithAUM interface
@@ -64,9 +64,9 @@ const FundYieldManagerV2 = () => {
       console.error("Error fetching funds:", error);
       toast.error("Failed to load funds");
     }
-  };
+  }, [selectedFund, toast]);
 
-  const fetchYieldHistory = async () => {
+  const fetchYieldHistory = useCallback(async () => {
     try {
       // Fetch recent yield applications from the database
       const { data, error } = await supabase
@@ -80,7 +80,7 @@ const FundYieldManagerV2 = () => {
     } catch (error) {
       console.error("Error fetching yield history:", error);
     }
-  };
+  }, []);
 
   const previewFees = async () => {
     if (!selectedFund || !yieldPercentage) return;

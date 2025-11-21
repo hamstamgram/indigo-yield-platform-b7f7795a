@@ -18,7 +18,7 @@ const HistoricalReportsDashboard: React.FC = () => {
   const { toast } = useToast();
 
   // Fetch summary data
-  const fetchSummary = async () => {
+  const fetchSummary = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getHistoricalDataSummary();
@@ -33,11 +33,11 @@ const HistoricalReportsDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchSummary();
-  }, []);
+  }, [fetchSummary]);
 
   return (
     <div className="space-y-6">

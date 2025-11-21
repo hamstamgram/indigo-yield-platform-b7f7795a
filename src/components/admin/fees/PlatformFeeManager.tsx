@@ -44,9 +44,9 @@ const PlatformFeeManager = () => {
   useEffect(() => {
     fetchInvestorFees();
     fetchFeeStats();
-  }, [selectedAsset, selectedMonth]);
+  }, [selectedAsset, selectedMonth, fetchInvestorFees, fetchFeeStats]);
 
-  const fetchInvestorFees = async () => {
+  const fetchInvestorFees = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("investors")
@@ -106,9 +106,9 @@ const PlatformFeeManager = () => {
       console.error("Error fetching investor fees:", error);
       toast.error("Failed to load investor fee data");
     }
-  };
+  }, [selectedAsset, selectedMonth, toast]);
 
-  const fetchFeeStats = async () => {
+  const fetchFeeStats = useCallback(async () => {
     try {
       const startDate = `${selectedMonth}-01`;
       const endDate = new Date(
@@ -144,7 +144,7 @@ const PlatformFeeManager = () => {
       console.error("Error fetching fee stats:", error);
       toast.error("Failed to load fee statistics");
     }
-  };
+  }, [selectedAsset, selectedMonth, toast]);
 
   const updateInvestorFeeRate = async (investorId: string, newRate: number) => {
     if (newRate < 0 || newRate > 1) {

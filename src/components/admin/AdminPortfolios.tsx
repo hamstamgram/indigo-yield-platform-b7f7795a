@@ -190,7 +190,7 @@ const AdminPortfolios = ({
 
   useEffect(() => {
     fetchData();
-  }, [providedInvestors, providedAssets]);
+  }, [providedInvestors, providedAssets, fetchData]);
 
   useEffect(() => {
     if (searchTerm.trim() === "") {

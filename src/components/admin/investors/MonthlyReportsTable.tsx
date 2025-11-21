@@ -54,9 +54,9 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, i
 
   useEffect(() => {
     fetchReports();
-  }, [investorId]);
+  }, [investorId, fetchReports]);
 
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -74,7 +74,7 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, i
     } finally {
       setLoading(false);
     }
-  };
+  }, [investorId, toast]);
 
   const generateMonthlyTemplate = async () => {
     if (!selectedMonth) {

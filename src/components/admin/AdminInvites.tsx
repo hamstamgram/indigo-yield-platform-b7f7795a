@@ -207,7 +207,7 @@ const AdminInvites = () => {
   // Fetch invites on component mount
   useEffect(() => {
     fetchInvites();
-  }, []);
+  }, [fetchInvites]);
 
   return (
     <Card>

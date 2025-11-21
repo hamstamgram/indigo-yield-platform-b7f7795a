@@ -76,7 +76,7 @@ const AdminUsersList = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
 
   const toggleAdminStatus = async (userId: string, currentStatus: boolean) => {
     try {

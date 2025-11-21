@@ -29,7 +29,7 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({ data, onUpdate, onC
 
   useEffect(() => {
     validateForm();
-  }, [formData]);
+  }, [formData, validateForm]);
 
   const loadUserEmail = async () => {
     const {

@@ -109,16 +109,16 @@ export function MonthlyStatementManager() {
   // Load periods on mount
   useEffect(() => {
     loadPeriods();
-  }, []);
+  }, [loadPeriods]);
 
   // Load investors when period selected
   useEffect(() => {
     if (selectedPeriod) {
       loadInvestors(selectedPeriod.id);
     }
-  }, [selectedPeriod]);
+  }, [loadInvestors, selectedPeriod]);
 
-  const loadPeriods = async () => {
+  const loadPeriods = useCallback(async () => {
     try {
       const { data, error } = await statementsApi.getPeriods();
       if (error) throw new Error(error);
@@ -132,26 +132,29 @@ export function MonthlyStatementManager() {
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
 
-  const loadInvestors = async (periodId: string) => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await statementsApi.getPeriodInvestors(periodId);
-      if (error) throw new Error(error);
+  const loadInvestors = useCallback(
+    async (periodId: string) => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await statementsApi.getPeriodInvestors(periodId);
+        if (error) throw new Error(error);
 
-      setInvestors(data || []);
-    } catch (error) {
-      console.error("Load investors error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load investors",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        setInvestors(data || []);
+      } catch (error) {
+        console.error("Load investors error:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load investors",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [toast]
+  );
 
   const handleCreatePeriod = async (data: z.infer<typeof createPeriodSchema>) => {
     try {

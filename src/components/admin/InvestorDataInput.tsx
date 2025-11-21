@@ -105,8 +105,10 @@ export function InvestorDataInput({
     },
   });
 
-  const loadPerformanceData = async () => {
-      const { data, error }: { data: InvestorFundPerformance[] | null; error: string | null } = await statementsApi.getPerformanceData(periodId, investorId);
+  const loadPerformanceData = useCallback(async () => {
+    try {
+      const { data, error }: { data: InvestorFundPerformance[] | null; error: string | null } =
+        await statementsApi.getPerformanceData(periodId, investorId);
       if (error) throw new Error(error);
 
       const funds: Set<string> = new Set(data?.map((d) => d.fund_name) || []);
@@ -114,12 +116,12 @@ export function InvestorDataInput({
 
       // If we have data, load the first fund
       if (data && data.length > 0) {
+        // Data loaded, no specific action needed here
       }
-    } // Missing closing brace for try block
-    catch (error) {
+    } catch (error) {
       console.error("Load performance data error:", error);
     }
-
+  }, [periodId, investorId]);
 
   const loadFundData = useCallback(
     async (fundName: string) => {

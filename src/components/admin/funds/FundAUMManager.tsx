@@ -49,7 +49,7 @@ export default function FundAUMManager() {
     fetchFunds();
   }, []);
 
-  const fetchFunds = async () => {
+  const fetchFunds = useCallback(async () => {
     try {
       setIsLoading(true);
       const data = await getAllFundsWithAUM();
@@ -67,7 +67,7 @@ export default function FundAUMManager() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedFund, toast]);
 
   const handlePreviewYield = async () => {
     if (!selectedFund || !aumAmount) return;
@@ -105,7 +105,7 @@ export default function FundAUMManager() {
       setYieldPreview(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFund, aumAmount, aumDate]);
+  }, [selectedFund, aumAmount, aumDate, handlePreviewYield]);
 
   const handleSetAUM = async () => {
     if (!selectedFund || !aumAmount) {

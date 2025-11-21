@@ -62,7 +62,7 @@ const DocumentsStep: React.FC<DocumentsStepProps> = ({ data, onUpdate, onComplet
 
   useEffect(() => {
     validateStep();
-  }, [acknowledgedDocuments, finalAcknowledgment]);
+  }, [acknowledgedDocuments, finalAcknowledgment, validateStep]);
 
   const validateStep = () => {
     // Check if all required documents are acknowledged

@@ -59,7 +59,7 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
 
   useEffect(() => {
     validateStep();
-  }, [selectedFunds]);
+  }, [selectedFunds, validateStep]);
 
   const validateStep = () => {
     // At least one fund must be selected
