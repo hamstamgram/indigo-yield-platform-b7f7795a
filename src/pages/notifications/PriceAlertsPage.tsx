@@ -1,12 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { usePriceAlerts } from '@/hooks/useNotifications';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import React, { useState, useEffect } from "react";
+import { usePriceAlerts } from "@/hooks/useNotifications";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -23,28 +29,32 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Bell, Plus, Trash2, TrendingUp, TrendingDown, Activity } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { formatDistanceToNow } from 'date-fns';
+} from "@/components/ui/table";
+import { Bell, Plus, Trash2, TrendingUp, TrendingDown, Activity } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { formatDistanceToNow } from "date-fns";
 
 const PriceAlertsPage: React.FC = () => {
   const { toast } = useToast();
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const { alerts, loading, createAlert, updateAlert, deleteAlert } = usePriceAlerts(currentUser?.id);
+  const { alerts, loading, createAlert, updateAlert, deleteAlert } = usePriceAlerts(
+    currentUser?.id
+  );
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newAlert, setNewAlert] = useState({
-    asset_symbol: 'BTC',
-    alert_type: 'above' as 'above' | 'below' | 'change_percent',
+    asset_symbol: "BTC",
+    alert_type: "above" as "above" | "below" | "change_percent",
     threshold_value: 0,
     is_active: true,
   });
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setCurrentUser(user);
     };
     getUser();
@@ -60,22 +70,22 @@ const PriceAlertsPage: React.FC = () => {
       });
 
       toast({
-        title: 'Alert created',
-        description: 'Your price alert has been set successfully.',
+        title: "Alert created",
+        description: "Your price alert has been set successfully.",
       });
 
       setIsDialogOpen(false);
       setNewAlert({
-        asset_symbol: 'BTC',
-        alert_type: 'above',
+        asset_symbol: "BTC",
+        alert_type: "above",
         threshold_value: 0,
         is_active: true,
       });
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to create price alert.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to create price alert.",
+        variant: "destructive",
       });
     }
   };
@@ -84,14 +94,14 @@ const PriceAlertsPage: React.FC = () => {
     try {
       await updateAlert(alertId, { is_active: isActive });
       toast({
-        title: isActive ? 'Alert enabled' : 'Alert disabled',
-        description: `Price alert has been ${isActive ? 'enabled' : 'disabled'}.`,
+        title: isActive ? "Alert enabled" : "Alert disabled",
+        description: `Price alert has been ${isActive ? "enabled" : "disabled"}.`,
       });
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to update price alert.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update price alert.",
+        variant: "destructive",
       });
     }
   };
@@ -100,25 +110,25 @@ const PriceAlertsPage: React.FC = () => {
     try {
       await deleteAlert(alertId);
       toast({
-        title: 'Alert deleted',
-        description: 'Price alert has been removed.',
+        title: "Alert deleted",
+        description: "Price alert has been removed.",
       });
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to delete price alert.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to delete price alert.",
+        variant: "destructive",
       });
     }
   };
 
   const getAlertIcon = (type: string) => {
     switch (type) {
-      case 'above':
+      case "above":
         return <TrendingUp className="h-4 w-4" />;
-      case 'below':
+      case "below":
         return <TrendingDown className="h-4 w-4" />;
-      case 'change_percent':
+      case "change_percent":
         return <Activity className="h-4 w-4" />;
       default:
         return <Bell className="h-4 w-4" />;
@@ -127,12 +137,12 @@ const PriceAlertsPage: React.FC = () => {
 
   const getAlertTypeLabel = (type: string) => {
     switch (type) {
-      case 'above':
-        return 'Above';
-      case 'below':
-        return 'Below';
-      case 'change_percent':
-        return 'Change %';
+      case "above":
+        return "Above";
+      case "below":
+        return "Below";
+      case "change_percent":
+        return "Change %";
       default:
         return type;
     }
@@ -204,15 +214,17 @@ const PriceAlertsPage: React.FC = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="threshold">
-                  {newAlert.alert_type === 'change_percent' ? 'Percentage' : 'Price'} Threshold
+                  {newAlert.alert_type === "change_percent" ? "Percentage" : "Price"} Threshold
                 </Label>
                 <Input
                   id="threshold"
                   type="number"
-                  step={newAlert.alert_type === 'change_percent' ? '0.1' : '0.01'}
+                  step={newAlert.alert_type === "change_percent" ? "0.1" : "0.01"}
                   value={newAlert.threshold_value}
-                  onChange={(e) => setNewAlert({ ...newAlert, threshold_value: parseFloat(e.target.value) })}
-                  placeholder={newAlert.alert_type === 'change_percent' ? '5.0' : '50000.00'}
+                  onChange={(e) =>
+                    setNewAlert({ ...newAlert, threshold_value: parseFloat(e.target.value) })
+                  }
+                  placeholder={newAlert.alert_type === "change_percent" ? "5.0" : "50000.00"}
                 />
               </div>
 
@@ -230,9 +242,7 @@ const PriceAlertsPage: React.FC = () => {
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleCreateAlert}>
-                Create Alert
-              </Button>
+              <Button onClick={handleCreateAlert}>Create Alert</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -261,7 +271,7 @@ const PriceAlertsPage: React.FC = () => {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Active Alerts ({alerts.filter(a => a.is_active).length})</CardTitle>
+            <CardTitle>Active Alerts ({alerts.filter((a) => a.is_active).length})</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -287,11 +297,17 @@ const PriceAlertsPage: React.FC = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {alert.alert_type === 'change_percent' ? `${alert.threshold_value}%` : `$${alert.threshold_value.toLocaleString()}`}
+                      {alert.alert_type === "change_percent"
+                        ? `${alert.threshold_value}%`
+                        : `$${alert.threshold_value.toLocaleString()}`}
                     </TableCell>
                     <TableCell>
                       {alert.current_value ? (
-                        alert.alert_type === 'change_percent' ? `${alert.current_value}%` : `$${alert.current_value.toLocaleString()}`
+                        alert.alert_type === "change_percent" ? (
+                          `${alert.current_value}%`
+                        ) : (
+                          `$${alert.current_value.toLocaleString()}`
+                        )
                       ) : (
                         <span className="text-muted-foreground">-</span>
                       )}

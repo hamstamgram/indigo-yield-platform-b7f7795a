@@ -68,7 +68,8 @@ const StatementsPage = () => {
         rate_of_return_mtd:
           record.yield_earned && record.opening_balance
             ? (
-                (parseFloat(record.yield_earned.toString()) / parseFloat(record.opening_balance.toString())) *
+                (parseFloat(record.yield_earned.toString()) /
+                  parseFloat(record.opening_balance.toString())) *
                 100
               ).toFixed(4)
             : "0",

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Withdrawal } from '@/types/withdrawal';
+import { useState } from "react";
+import { Withdrawal } from "@/types/withdrawal";
 import {
   Dialog,
   DialogContent,
@@ -7,14 +7,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { withdrawalService } from '@/services/withdrawalService';
-import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { withdrawalService } from "@/services/withdrawalService";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 interface ApproveWithdrawalDialogProps {
   open: boolean;
@@ -30,7 +30,7 @@ export function ApproveWithdrawalDialog({
   onSuccess,
 }: ApproveWithdrawalDialogProps) {
   const [processedAmount, setProcessedAmount] = useState(withdrawal.requested_amount.toString());
-  const [adminNotes, setAdminNotes] = useState('');
+  const [adminNotes, setAdminNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,17 +40,17 @@ export function ApproveWithdrawalDialog({
     try {
       const amount = parseFloat(processedAmount);
       if (isNaN(amount) || amount <= 0) {
-        toast.error('Please enter a valid amount');
+        toast.error("Please enter a valid amount");
         return;
       }
 
       await withdrawalService.approveWithdrawal(withdrawal.id, amount, adminNotes);
-      toast.success('Withdrawal approved successfully');
+      toast.success("Withdrawal approved successfully");
       onSuccess();
       onOpenChange(false);
     } catch (error) {
-      console.error('Error approving withdrawal:', error);
-      toast.error('Failed to approve withdrawal');
+      console.error("Error approving withdrawal:", error);
+      toast.error("Failed to approve withdrawal");
     } finally {
       setIsSubmitting(false);
     }
@@ -88,9 +88,7 @@ export function ApproveWithdrawalDialog({
                 onChange={(e) => setProcessedAmount(e.target.value)}
                 required
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Adjust if processing fees apply
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">Adjust if processing fees apply</p>
             </div>
             <div>
               <Label htmlFor="adminNotes">Admin Notes (Optional)</Label>
@@ -119,7 +117,7 @@ export function ApproveWithdrawalDialog({
                   Approving...
                 </>
               ) : (
-                'Approve Withdrawal'
+                "Approve Withdrawal"
               )}
             </Button>
           </DialogFooter>

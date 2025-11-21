@@ -1,26 +1,26 @@
-import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { useParams, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Edit, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function PerformanceReportDetailsPage() {
   const { id } = useParams<{ id: string }>();
 
   const { data: item, isLoading } = useQuery({
-    queryKey: ['generated_reports', id],
+    queryKey: ["generated_reports", id],
     queryFn: async () => {
-      if (!id) throw new Error('No ID provided');
+      if (!id) throw new Error("No ID provided");
 
       const { data, error } = await supabase
-        .from('generated_reports')
-        .select('*')
-        .eq('id', id)
+        .from("generated_reports")
+        .select("*")
+        .eq("id", id)
         .maybeSingle();
 
-      if (!data) throw new Error('Report not found');
+      if (!data) throw new Error("Report not found");
 
       if (error) throw error;
       return data;
@@ -77,13 +77,13 @@ export default function PerformanceReportDetailsPage() {
           <div className="flex items-start justify-between">
             <div>
               <CardTitle className="text-2xl">
-                {item.report_type?.replace(/_/g, ' ').toUpperCase() || 'Report'}
+                {item.report_type?.replace(/_/g, " ").toUpperCase() || "Report"}
               </CardTitle>
               <CardDescription>
                 Created {new Date(item.created_at).toLocaleDateString()}
               </CardDescription>
             </div>
-            <Badge>{item.status || 'Active'}</Badge>
+            <Badge>{item.status || "Active"}</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -94,7 +94,7 @@ export default function PerformanceReportDetailsPage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Status</p>
-              <p className="capitalize">{item.status || 'Active'}</p>
+              <p className="capitalize">{item.status || "Active"}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Created</p>

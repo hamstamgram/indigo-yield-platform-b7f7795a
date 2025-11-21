@@ -3,9 +3,9 @@
  * Real-time system health checks for database, auth, storage, and email services
  */
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
-export type ServiceStatus = 'operational' | 'degraded' | 'down';
+export type ServiceStatus = "operational" | "degraded" | "down";
 
 export interface SystemHealth {
   name: string;
@@ -23,43 +23,40 @@ async function checkDatabase(): Promise<SystemHealth> {
   const startTime = Date.now();
   try {
     // Simple query to check database is responsive
-    const { error } = await supabase
-      .from('profiles')
-      .select('id')
-      .limit(1);
-    
+    const { error } = await supabase.from("profiles").select("id").limit(1);
+
     const responseTime = Date.now() - startTime;
-    
+
     if (error) {
       return {
-        name: 'Database',
-        status: 'down',
+        name: "Database",
+        status: "down",
         uptime: null,
         lastChecked: new Date(),
-        message: 'Connection failed',
-        responseTime
+        message: "Connection failed",
+        responseTime,
       };
     }
 
     // Consider degraded if response time > 1000ms
-    const status: ServiceStatus = responseTime > 1000 ? 'degraded' : 'operational';
-    
+    const status: ServiceStatus = responseTime > 1000 ? "degraded" : "operational";
+
     return {
-      name: 'Database',
+      name: "Database",
       status,
-      uptime: status === 'operational' ? 99.9 : 95.0,
+      uptime: status === "operational" ? 99.9 : 95.0,
       lastChecked: new Date(),
-      message: status === 'degraded' ? 'Slow response time' : undefined,
-      responseTime
+      message: status === "degraded" ? "Slow response time" : undefined,
+      responseTime,
     };
   } catch (error) {
     return {
-      name: 'Database',
-      status: 'down',
+      name: "Database",
+      status: "down",
       uptime: null,
       lastChecked: new Date(),
-      message: 'Service unavailable',
-      responseTime: Date.now() - startTime
+      message: "Service unavailable",
+      responseTime: Date.now() - startTime,
     };
   }
 }
@@ -72,36 +69,36 @@ async function checkAuthentication(): Promise<SystemHealth> {
   try {
     const { error } = await supabase.auth.getSession();
     const responseTime = Date.now() - startTime;
-    
+
     if (error) {
       return {
-        name: 'Authentication',
-        status: 'down',
+        name: "Authentication",
+        status: "down",
         uptime: null,
         lastChecked: new Date(),
-        message: 'Auth service unavailable',
-        responseTime
+        message: "Auth service unavailable",
+        responseTime,
       };
     }
 
-    const status: ServiceStatus = responseTime > 500 ? 'degraded' : 'operational';
-    
+    const status: ServiceStatus = responseTime > 500 ? "degraded" : "operational";
+
     return {
-      name: 'Authentication',
+      name: "Authentication",
       status,
-      uptime: status === 'operational' ? 100 : 98.0,
+      uptime: status === "operational" ? 100 : 98.0,
       lastChecked: new Date(),
-      message: status === 'degraded' ? 'Slow authentication' : undefined,
-      responseTime
+      message: status === "degraded" ? "Slow authentication" : undefined,
+      responseTime,
     };
   } catch (error) {
     return {
-      name: 'Authentication',
-      status: 'down',
+      name: "Authentication",
+      status: "down",
       uptime: null,
       lastChecked: new Date(),
-      message: 'Service error',
-      responseTime: Date.now() - startTime
+      message: "Service error",
+      responseTime: Date.now() - startTime,
     };
   }
 }
@@ -115,36 +112,36 @@ async function checkStorage(): Promise<SystemHealth> {
     // Check if we can list buckets (lightweight operation)
     const { error } = await supabase.storage.listBuckets();
     const responseTime = Date.now() - startTime;
-    
+
     if (error) {
       return {
-        name: 'File Storage',
-        status: 'down',
+        name: "File Storage",
+        status: "down",
         uptime: null,
         lastChecked: new Date(),
-        message: 'Storage unavailable',
-        responseTime
+        message: "Storage unavailable",
+        responseTime,
       };
     }
 
-    const status: ServiceStatus = responseTime > 800 ? 'degraded' : 'operational';
-    
+    const status: ServiceStatus = responseTime > 800 ? "degraded" : "operational";
+
     return {
-      name: 'File Storage',
+      name: "File Storage",
       status,
-      uptime: status === 'operational' ? 99.8 : 96.5,
+      uptime: status === "operational" ? 99.8 : 96.5,
       lastChecked: new Date(),
-      message: status === 'degraded' ? 'Slow storage access' : undefined,
-      responseTime
+      message: status === "degraded" ? "Slow storage access" : undefined,
+      responseTime,
     };
   } catch (error) {
     return {
-      name: 'File Storage',
-      status: 'down',
+      name: "File Storage",
+      status: "down",
       uptime: null,
       lastChecked: new Date(),
-      message: 'Service error',
-      responseTime: Date.now() - startTime
+      message: "Service error",
+      responseTime: Date.now() - startTime,
     };
   }
 }
@@ -156,11 +153,11 @@ async function checkEmail(): Promise<SystemHealth> {
   // Email service check would require an actual edge function call
   // For now, we'll mark it as operational since we can't easily test it without side effects
   return {
-    name: 'Email Service',
-    status: 'operational',
+    name: "Email Service",
+    status: "operational",
     uptime: 98.5,
     lastChecked: new Date(),
-    message: 'Status not actively monitored'
+    message: "Status not actively monitored",
   };
 }
 
@@ -173,7 +170,7 @@ export async function getSystemHealth(): Promise<SystemHealth[]> {
     checkDatabase(),
     checkAuthentication(),
     checkStorage(),
-    checkEmail()
+    checkEmail(),
   ]);
 
   return [database, auth, storage, email];
@@ -183,7 +180,7 @@ export async function getSystemHealth(): Promise<SystemHealth[]> {
  * Get overall system status
  */
 export function getOverallStatus(health: SystemHealth[]): ServiceStatus {
-  if (health.some(h => h.status === 'down')) return 'down';
-  if (health.some(h => h.status === 'degraded')) return 'degraded';
-  return 'operational';
+  if (health.some((h) => h.status === "down")) return "down";
+  if (health.some((h) => h.status === "degraded")) return "degraded";
+  return "operational";
 }

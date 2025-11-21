@@ -1,7 +1,7 @@
 /**
  * Admin Dashboard Page
  * Main admin overview with key metrics
- * 
+ *
  * TODO: Refactor to use correct database schema
  * - "investments" table doesn't exist, should query investor_positions or funds
  * - Update queries to match actual database structure
@@ -36,7 +36,6 @@ interface AdminStats {
   recentActivity: number;
 }
 
-
 interface AdminAction {
   title: string;
   description: string;
@@ -63,34 +62,34 @@ function AdminDashboardContent() {
 
     // Set up real-time subscriptions for dynamic updates
     const withdrawalChannel = supabase
-      .channel('admin-withdrawals')
+      .channel("admin-withdrawals")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'withdrawal_requests',
-          filter: 'status=eq.pending'
+          event: "*",
+          schema: "public",
+          table: "withdrawal_requests",
+          filter: "status=eq.pending",
         },
         () => {
-          console.log('Withdrawal request changed, reloading stats...');
+          console.log("Withdrawal request changed, reloading stats...");
           loadAdminStats();
         }
       )
       .subscribe();
 
     const investorChannel = supabase
-      .channel('admin-investors')
+      .channel("admin-investors")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'investors',
-          filter: 'kyc_status=eq.pending'
+          event: "*",
+          schema: "public",
+          table: "investors",
+          filter: "kyc_status=eq.pending",
         },
         () => {
-          console.log('Investor KYC status changed, reloading stats...');
+          console.log("Investor KYC status changed, reloading stats...");
           loadAdminStats();
         }
       )
@@ -109,13 +108,16 @@ function AdminDashboardContent() {
         positionsResult,
         withdrawalsResult,
         pendingInvestors,
-        recentActivityResult
+        recentActivityResult,
       ] = await Promise.all([
         supabase.from("investors").select("id, status"),
         supabase.from("investor_positions").select("current_value, investor_id"),
         supabase.from("withdrawal_requests").select("id").eq("status", "pending"),
         supabase.from("investors").select("id").eq("kyc_status", "pending"),
-        supabase.from("investments").select("id").gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
+        supabase
+          .from("investments")
+          .select("id")
+          .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
       ]);
 
       // Calculate total AUM from investor positions
@@ -123,7 +125,7 @@ function AdminDashboardContent() {
       const totalAUM = positions.reduce((sum, pos) => sum + Number(pos.current_value || 0), 0);
 
       // Get active investors (those with positions)
-      const activeInvestorIds = new Set(positions.map(p => p.investor_id));
+      const activeInvestorIds = new Set(positions.map((p) => p.investor_id));
       const activeInvestors = activeInvestorIds.size;
 
       setStats({

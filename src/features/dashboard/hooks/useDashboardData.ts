@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/auth/context';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from "react";
+import { useAuth } from "@/lib/auth/context";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DashboardData {
   totalValue: number;
@@ -22,7 +22,7 @@ export function useDashboardData() {
   const [state, setState] = useState<DashboardState>({
     data: null,
     loading: true,
-    error: null
+    error: null,
   });
 
   useEffect(() => {
@@ -30,13 +30,13 @@ export function useDashboardData() {
       if (!user) return;
 
       try {
-        setState(prev => ({ ...prev, loading: true, error: null }));
+        setState((prev) => ({ ...prev, loading: true, error: null }));
 
         // Get investor ID from user
         const { data: investors } = await supabase
-          .from('investors')
-          .select('id')
-          .eq('profile_id', user.id)
+          .from("investors")
+          .select("id")
+          .eq("profile_id", user.id)
           .single();
 
         if (!investors) {
@@ -47,31 +47,33 @@ export function useDashboardData() {
               totalGainPercent: 0,
               positions: [],
               recentTransactions: [],
-              topPerformers: []
+              topPerformers: [],
             },
             loading: false,
-            error: null
+            error: null,
           });
           return;
         }
 
         // Fetch investor positions
         const { data: positions } = await supabase
-          .from('investor_positions')
-          .select('*, funds(*)')
-          .eq('investor_id', investors.id);
+          .from("investor_positions")
+          .select("*, funds(*)")
+          .eq("investor_id", investors.id);
 
-        const totalValue = positions?.reduce((sum, pos) => sum + Number(pos.current_value || 0), 0) || 0;
-        const totalCost = positions?.reduce((sum, pos) => sum + Number(pos.cost_basis || 0), 0) || 0;
+        const totalValue =
+          positions?.reduce((sum, pos) => sum + Number(pos.current_value || 0), 0) || 0;
+        const totalCost =
+          positions?.reduce((sum, pos) => sum + Number(pos.cost_basis || 0), 0) || 0;
         const totalGain = totalValue - totalCost;
         const totalGainPercent = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
 
         // Fetch recent transactions
         const { data: transactions } = await supabase
-          .from('investments')
-          .select('*')
-          .eq('investor_id', investors.id)
-          .order('created_at', { ascending: false })
+          .from("investments")
+          .select("*")
+          .eq("investor_id", investors.id)
+          .order("created_at", { ascending: false })
           .limit(5);
 
         setState({
@@ -81,16 +83,16 @@ export function useDashboardData() {
             totalGainPercent,
             positions: positions || [],
             recentTransactions: transactions || [],
-            topPerformers: []
+            topPerformers: [],
           },
           loading: false,
-          error: null
+          error: null,
         });
       } catch (error) {
         setState({
           data: null,
           loading: false,
-          error: error instanceof Error ? error.message : 'Failed to fetch dashboard data'
+          error: error instanceof Error ? error.message : "Failed to fetch dashboard data",
         });
       }
     };
@@ -100,15 +102,15 @@ export function useDashboardData() {
 
   const refetch = () => {
     if (user) {
-      setState(prev => ({ ...prev, loading: true }));
+      setState((prev) => ({ ...prev, loading: true }));
       // Re-trigger useEffect
-      const event = new CustomEvent('dashboard-refetch');
+      const event = new CustomEvent("dashboard-refetch");
       window.dispatchEvent(event);
     }
   };
 
   return {
     ...state,
-    refetch
+    refetch,
   };
 }

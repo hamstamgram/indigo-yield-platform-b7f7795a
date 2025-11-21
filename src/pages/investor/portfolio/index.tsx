@@ -1,3 +1,3 @@
 // Portfolio Management Index - Holdings and performance
-export { default as TransactionsPage } from './TransactionsPage';
-export { default as PortfolioAnalyticsPage } from './PortfolioAnalyticsPage';
+export { default as TransactionsPage } from "./TransactionsPage";
+export { default as PortfolioAnalyticsPage } from "./PortfolioAnalyticsPage";

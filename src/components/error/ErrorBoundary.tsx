@@ -1,6 +1,6 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Component, ErrorInfo, ReactNode } from "react";
+import { AlertTriangle, RefreshCw, Home } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   children: ReactNode;
@@ -24,7 +24,7 @@ export class ErrorBoundary extends Component<Props, State> {
     this.state = {
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
     };
   }
 
@@ -32,14 +32,14 @@ export class ErrorBoundary extends Component<Props, State> {
     return {
       hasError: true,
       error,
-      errorInfo: null
+      errorInfo: null,
     };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log error to error reporting service
-    console.error('Error caught by boundary:', error, errorInfo);
-    
+    console.error("Error caught by boundary:", error, errorInfo);
+
     // Call custom error handler if provided
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
@@ -48,17 +48,17 @@ export class ErrorBoundary extends Component<Props, State> {
     // Update state with error info
     this.setState({
       error,
-      errorInfo
+      errorInfo,
     });
 
     // Report to error tracking service (e.g., Sentry)
-    if (typeof window !== 'undefined' && (window as any).Sentry) {
+    if (typeof window !== "undefined" && (window as any).Sentry) {
       (window as any).Sentry.captureException(error, {
         contexts: {
           react: {
-            componentStack: errorInfo.componentStack
-          }
-        }
+            componentStack: errorInfo.componentStack,
+          },
+        },
       });
     }
   }
@@ -67,12 +67,12 @@ export class ErrorBoundary extends Component<Props, State> {
     this.setState({
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
     });
   };
 
   handleGoHome = () => {
-    window.location.href = '/';
+    window.location.href = "/";
   };
 
   render() {
@@ -90,16 +90,15 @@ export class ErrorBoundary extends Component<Props, State> {
               <div className="mx-auto h-24 w-24 text-red-500 mb-4">
                 <AlertTriangle className="h-full w-full" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Oops! Something went wrong
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Oops! Something went wrong</h1>
               <p className="text-gray-600 mb-6">
-                We're sorry, but something unexpected happened. Please try refreshing the page or contact support if the problem persists.
+                We're sorry, but something unexpected happened. Please try refreshing the page or
+                contact support if the problem persists.
               </p>
             </div>
 
             {/* Error details (only in development) */}
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {process.env.NODE_ENV === "development" && this.state.error && (
               <details className="mb-6 text-left bg-red-50 border border-red-200 rounded-lg p-4">
                 <summary className="cursor-pointer font-semibold text-red-700 mb-2">
                   Error Details (Development Only)
@@ -179,7 +178,7 @@ export function withErrorBoundary<P extends object>(
 /**
  * Simple error boundary wrapper component
  */
-export const ErrorBoundaryWrapper: React.FC<{ 
+export const ErrorBoundaryWrapper: React.FC<{
   children: ReactNode;
   fallback?: ReactNode;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;

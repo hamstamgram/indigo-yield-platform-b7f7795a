@@ -1,13 +1,13 @@
 // Common type definitions to fix build errors
 
-export type FundStatus = 'active' | 'inactive' | 'suspended';
+export type FundStatus = "active" | "inactive" | "suspended";
 
 export interface FundConfiguration {
   id: string;
   code: string;
   name: string;
   currency: string;
-  benchmark: 'BTC' | 'ETH' | 'STABLE' | 'CUSTOM';
+  benchmark: "BTC" | "ETH" | "STABLE" | "CUSTOM";
   status: FundStatus;
   mgmt_fee_bps: number;
   perf_fee_bps: number;
@@ -119,7 +119,7 @@ export interface WithdrawalRequest {
   current_shares: number;
   expected_withdrawal: number;
   request_date: string;
-  status: 'pending' | 'approved' | 'processing' | 'completed' | 'rejected' | 'cancelled';
+  status: "pending" | "approved" | "processing" | "completed" | "rejected" | "cancelled";
 }
 
 export interface AuditLogEntry {
@@ -147,7 +147,7 @@ export interface Fund {
   id: string;
   code: string;
   name: string;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
   fund_class?: string;
   asset?: string;
   inception_date?: string;
@@ -162,7 +162,7 @@ export interface Investor {
   email: string;
   first_name: string;
   last_name: string;
-  status: 'Active' | 'Pending' | 'Closed';
+  status: "Active" | "Pending" | "Closed";
   created_at: string;
   updated_at: string;
 }
@@ -184,19 +184,29 @@ export function formatDuration(ms: number): string {
 
 export function getStatusIcon(status: string): string {
   switch (status) {
-    case 'success': return '✅';
-    case 'error': return '❌';
-    case 'pending': return '⏳';
-    default: return '❓';
+    case "success":
+      return "✅";
+    case "error":
+      return "❌";
+    case "pending":
+      return "⏳";
+    default:
+      return "❓";
   }
 }
 
-export function getStatusBadgeVariant(status: string): 'default' | 'destructive' | 'outline' | 'secondary' {
+export function getStatusBadgeVariant(
+  status: string
+): "default" | "destructive" | "outline" | "secondary" {
   switch (status) {
-    case 'success': return 'default';
-    case 'error': return 'destructive';
-    case 'pending': return 'outline';
-    default: return 'secondary';
+    case "success":
+      return "default";
+    case "error":
+      return "destructive";
+    case "pending":
+      return "outline";
+    default:
+      return "secondary";
   }
 }
 

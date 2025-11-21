@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Plus, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { generateMissingTemplates, type BulkGenerateOptions } from '@/services/historicalDataService';
+import React, { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Plus, RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import {
+  generateMissingTemplates,
+  type BulkGenerateOptions,
+} from "@/services/historicalDataService";
 
 interface GenerationResult {
   success: boolean;
@@ -18,8 +21,8 @@ interface GenerationResult {
 
 const BulkDataGenerator: React.FC = () => {
   const [loading, setLoading] = useState(false);
-  const [startMonth, setStartMonth] = useState('2024-06');
-  const [endMonth, setEndMonth] = useState('2024-09');
+  const [startMonth, setStartMonth] = useState("2024-06");
+  const [endMonth, setEndMonth] = useState("2024-09");
   const [result, setResult] = useState<GenerationResult | null>(null);
   const [progress, setProgress] = useState(0);
   const { toast } = useToast();
@@ -32,43 +35,43 @@ const BulkDataGenerator: React.FC = () => {
 
       // Simulate progress (real implementation would have actual progress updates)
       const progressInterval = setInterval(() => {
-        setProgress(prev => Math.min(prev + 10, 90));
+        setProgress((prev) => Math.min(prev + 10, 90));
       }, 500);
 
       const options: BulkGenerateOptions = {
         startMonth: startMonth,
-        endMonth: endMonth
+        endMonth: endMonth,
       };
 
       const generateResult = await generateMissingTemplates(options);
-      
+
       clearInterval(progressInterval);
       setProgress(100);
       setResult(generateResult);
 
       if (generateResult.success) {
         toast({
-          title: 'Success',
+          title: "Success",
           description: `Generated ${generateResult.generated} historical report templates`,
         });
       } else {
         toast({
-          title: 'Partial Success',
+          title: "Partial Success",
           description: `Generated ${generateResult.generated} templates with ${generateResult.errors.length} errors`,
-          variant: 'destructive'
+          variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('Error generating templates:', error);
+      console.error("Error generating templates:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to generate historical report templates',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to generate historical report templates",
+        variant: "destructive",
       });
       setResult({
         success: false,
         generated: 0,
-        errors: [error instanceof Error ? error.message : 'Unknown error']
+        errors: [error instanceof Error ? error.message : "Unknown error"],
       });
     } finally {
       setLoading(false);
@@ -78,8 +81,8 @@ const BulkDataGenerator: React.FC = () => {
   const resetForm = () => {
     setResult(null);
     setProgress(0);
-    setStartMonth('2024-06');
-    setEndMonth('2024-09');
+    setStartMonth("2024-06");
+    setEndMonth("2024-09");
   };
 
   return (
@@ -131,7 +134,7 @@ const BulkDataGenerator: React.FC = () => {
 
         {/* Result */}
         {result && (
-          <Alert className={result.success ? 'border-green-500' : 'border-yellow-500'}>
+          <Alert className={result.success ? "border-green-500" : "border-yellow-500"}>
             <div className="flex items-center gap-2">
               {result.success ? (
                 <CheckCircle className="h-4 w-4 text-green-600" />
@@ -141,16 +144,14 @@ const BulkDataGenerator: React.FC = () => {
               <AlertDescription>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Badge variant={result.success ? 'default' : 'secondary'}>
+                    <Badge variant={result.success ? "default" : "secondary"}>
                       {result.generated} templates generated
                     </Badge>
                     {result.errors.length > 0 && (
-                      <Badge variant="destructive">
-                        {result.errors.length} errors
-                      </Badge>
+                      <Badge variant="destructive">{result.errors.length} errors</Badge>
                     )}
                   </div>
-                  
+
                   {result.errors.length > 0 && (
                     <div className="text-sm text-muted-foreground">
                       <p className="font-medium">Errors encountered:</p>
@@ -172,7 +173,7 @@ const BulkDataGenerator: React.FC = () => {
 
         {/* Actions */}
         <div className="flex gap-2">
-          <Button 
+          <Button
             onClick={handleGenerate}
             disabled={loading || !startMonth || !endMonth}
             className="flex-1"
@@ -184,13 +185,9 @@ const BulkDataGenerator: React.FC = () => {
             )}
             Generate Historical Templates
           </Button>
-          
+
           {result && (
-            <Button 
-              variant="outline" 
-              onClick={resetForm}
-              disabled={loading}
-            >
+            <Button variant="outline" onClick={resetForm} disabled={loading}>
               Reset
             </Button>
           )}
@@ -200,8 +197,8 @@ const BulkDataGenerator: React.FC = () => {
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="text-sm">
-            This will create report templates for all active investors and assets between the specified months. 
-            Existing templates will be skipped to avoid duplicates.
+            This will create report templates for all active investors and assets between the
+            specified months. Existing templates will be skipped to avoid duplicates.
           </AlertDescription>
         </Alert>
       </CardContent>

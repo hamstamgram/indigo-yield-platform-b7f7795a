@@ -1,11 +1,3 @@
-/**
- * Dashboard Page - Investor Dashboard
- * 
- * TODO: Refactor database queries to match actual schema
- * - fund_assets table doesn't exist, should join to funds table
- * - Use current_value instead of current_balance
- * - Use cost_basis instead of initial_investment
- */
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -62,16 +54,14 @@ export default function DashboardPage() {
 
       const { data, error } = await supabase
         .from("investor_positions")
-        .select("*, fund_assets(*)")
+        .select("*, funds!inner(*)")
         .eq("investor_id", user.id);
 
       if (error) throw error;
 
-      const positions = (data || []);
-      const totalValue = positions.reduce(
-        (sum: number, pos: any) => sum + (pos.current_value || 0),
-        0
-      ) || 0;
+      const positions = data || [];
+      const totalValue =
+        positions.reduce((sum: number, pos: any) => sum + (pos.current_value || 0), 0) || 0;
       const totalGain =
         positions.reduce(
           (sum: number, pos: any) => sum + ((pos.current_value || 0) - (pos.cost_basis || 0)),
@@ -106,6 +96,30 @@ export default function DashboardPage() {
     },
   });
 
+  const { data: performanceData } = useQuery<PerformanceDataPoint[]>({
+    queryKey: ["performance-history"],
+    queryFn: async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user");
+
+      const { data, error } = await supabase
+        .from("portfolio_history")
+        .select("date, usd_value")
+        .eq("user_id", user.id)
+        .order("date", { ascending: true })
+        .limit(30);
+
+      if (error) throw error;
+
+      return (data || []).map((d: any) => ({
+        name: new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        value: d.usd_value,
+      }));
+    },
+  });
+
   const totalReturn =
     portfolioData?.totalValue && portfolioData.totalValue > 0
       ? (
@@ -114,19 +128,10 @@ export default function DashboardPage() {
         ).toFixed(2)
       : "0.00";
 
-  const mockPerformanceData: PerformanceDataPoint[] = [
-    { name: "Jan", value: 10000 },
-    { name: "Feb", value: 12000 },
-    { name: "Mar", value: 11500 },
-    { name: "Apr", value: 13500 },
-    { name: "May", value: 15000 },
-    { name: "Jun", value: 14500 },
-  ];
-
   const colors = ["#3b82f6", "#8b5cf6", "#ec4899", "#10b981"];
   const allocationData: AllocationDataPoint[] =
     portfolioData?.positions.map((pos: any, idx: number) => ({
-      name: pos.fund_assets?.asset_name || "Unknown",
+      name: pos.funds?.name || "Unknown",
       value: pos.current_value || 0,
       color: colors[idx % colors.length] || "#3b82f6",
     })) || [];
@@ -142,9 +147,10 @@ export default function DashboardPage() {
         <div className="flex gap-6">
           <div>
             <p className="text-sm text-blue-100">Today&apos;s Change</p>
+            {/* TODO: Implement real-time daily change */}
             <p className="text-2xl font-semibold flex items-center gap-1">
               <TrendingUp className="h-5 w-5" />
-              +2.4%
+              --
             </p>
           </div>
           <div>
@@ -202,7 +208,8 @@ export default function DashboardPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">6.5/10</div>
+            {/* TODO: Implement real risk score calculation */}
+            <div className="text-2xl font-bold">--</div>
             <p className="text-xs text-muted-foreground">Moderate risk</p>
           </CardContent>
         </Card>
@@ -217,7 +224,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={mockPerformanceData}>
+              <LineChart data={performanceData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
@@ -263,7 +270,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-2 gap-2">
                 {portfolioData?.positions.map((pos: any, idx: number) => {
                   const assetSymbol =
-                    pos.fund_assets?.asset_name?.toLowerCase().split(" ")[0] || "unknown";
+                    pos.funds?.name?.toLowerCase().split(" ")[0] || "unknown";
                   return (
                     <Link
                       key={idx}
@@ -271,7 +278,7 @@ export default function DashboardPage() {
                       className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent transition-colors"
                     >
                       <span className="font-medium">
-                        {pos.fund_assets?.asset_name || "Unknown"}
+                        {pos.funds?.name || "Unknown"}
                       </span>
                       <span className="text-sm text-muted-foreground">
                         ${(pos.current_value || 0).toLocaleString()}

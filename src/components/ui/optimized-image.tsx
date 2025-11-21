@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { cn } from '@/lib/utils';
+import React, { useState, useEffect, useRef } from "react";
+import { cn } from "@/lib/utils";
 
 interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
@@ -9,7 +9,7 @@ interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> 
   sizes?: string;
   priority?: boolean;
   className?: string;
-  placeholder?: 'blur' | 'empty';
+  placeholder?: "blur" | "empty";
   blurDataURL?: string;
   onLoad?: () => void;
   onError?: () => void;
@@ -31,7 +31,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   sizes,
   priority = false,
   className,
-  placeholder = 'empty',
+  placeholder = "empty",
   blurDataURL,
   onLoad,
   onError,
@@ -45,56 +45,54 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   // Generate optimized srcset for responsive images
   const generateSrcSet = (baseSrc: string): string => {
     // If it's an external URL, return as is
-    if (baseSrc.startsWith('http')) {
-      return '';
+    if (baseSrc.startsWith("http")) {
+      return "";
     }
 
     // Generate multiple sizes for local images
     const sizes = [640, 750, 828, 1080, 1200, 1920, 2048, 3840];
-    const ext = baseSrc.split('.').pop();
-    const base = baseSrc.substring(0, baseSrc.lastIndexOf('.'));
-    
-    return sizes
-      .map(size => `${base}-${size}w.${ext} ${size}w`)
-      .join(', ');
+    const ext = baseSrc.split(".").pop();
+    const base = baseSrc.substring(0, baseSrc.lastIndexOf("."));
+
+    return sizes.map((size) => `${base}-${size}w.${ext} ${size}w`).join(", ");
   };
 
   // Check WebP/AVIF support
   const supportsWebP = (): boolean => {
-    if (typeof window === 'undefined') return false;
-    const canvas = document.createElement('canvas');
+    if (typeof window === "undefined") return false;
+    const canvas = document.createElement("canvas");
     canvas.width = 1;
     canvas.height = 1;
-    return canvas.toDataURL('image/webp').indexOf('image/webp') === 5;
+    return canvas.toDataURL("image/webp").indexOf("image/webp") === 5;
   };
 
   const supportsAvif = (): boolean => {
-    if (typeof window === 'undefined') return false;
-    const canvas = document.createElement('canvas');
+    if (typeof window === "undefined") return false;
+    const canvas = document.createElement("canvas");
     canvas.width = 1;
     canvas.height = 1;
-    return canvas.toDataURL('image/avif').indexOf('image/avif') === 5;
+    return canvas.toDataURL("image/avif").indexOf("image/avif") === 5;
   };
 
   // Get optimized image source
   const getOptimizedSrc = (): string => {
     if (hasError) {
       // Fallback image
-      return '/placeholder.svg';
+      return "/placeholder.svg";
     }
 
     // If it's an external URL, return as is
-    if (src.startsWith('http')) {
+    if (src.startsWith("http")) {
       return src;
     }
 
-    const base = src.substring(0, src.lastIndexOf('.'));
+    const base = src.substring(0, src.lastIndexOf("."));
 
     // Try modern formats first
-    if (supportsAvif() && !src.includes('.svg')) {
+    if (supportsAvif() && !src.includes(".svg")) {
       return `${base}.avif`;
     }
-    if (supportsWebP() && !src.includes('.svg')) {
+    if (supportsWebP() && !src.includes(".svg")) {
       return `${base}.webp`;
     }
 
@@ -118,7 +116,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
         });
       },
       {
-        rootMargin: '50px',
+        rootMargin: "50px",
         threshold: 0.01,
       }
     );
@@ -144,11 +142,11 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   // Placeholder styles
   const placeholderStyles = (): React.CSSProperties => {
-    if (placeholder === 'blur' && blurDataURL) {
+    if (placeholder === "blur" && blurDataURL) {
       return {
         backgroundImage: `url(${blurDataURL})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
       };
     }
     return {};
@@ -157,8 +155,8 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   return (
     <div
       className={cn(
-        'relative overflow-hidden',
-        !isLoaded && 'bg-gray-100 animate-pulse',
+        "relative overflow-hidden",
+        !isLoaded && "bg-gray-100 animate-pulse",
         className
       )}
       style={{
@@ -170,23 +168,23 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
       {isInView && (
         <picture>
           {/* AVIF format */}
-          {!src.includes('.svg') && supportsAvif() && (
+          {!src.includes(".svg") && supportsAvif() && (
             <source
               type="image/avif"
-              srcSet={generateSrcSet(src.replace(/\.[^.]+$/, '.avif'))}
+              srcSet={generateSrcSet(src.replace(/\.[^.]+$/, ".avif"))}
               sizes={sizes}
             />
           )}
-          
+
           {/* WebP format */}
-          {!src.includes('.svg') && supportsWebP() && (
+          {!src.includes(".svg") && supportsWebP() && (
             <source
               type="image/webp"
-              srcSet={generateSrcSet(src.replace(/\.[^.]+$/, '.webp'))}
+              srcSet={generateSrcSet(src.replace(/\.[^.]+$/, ".webp"))}
               sizes={sizes}
             />
           )}
-          
+
           {/* Original format fallback */}
           <img
             ref={imgRef}
@@ -196,30 +194,30 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
             alt={alt}
             width={width}
             height={height}
-            loading={priority ? 'eager' : 'lazy'}
+            loading={priority ? "eager" : "lazy"}
             decoding="async"
             onLoad={handleLoad}
             onError={handleError}
             className={cn(
-              'transition-opacity duration-300',
-              isLoaded ? 'opacity-100' : 'opacity-0',
+              "transition-opacity duration-300",
+              isLoaded ? "opacity-100" : "opacity-0",
               className
             )}
             {...rest}
           />
         </picture>
       )}
-      
+
       {/* Loading skeleton */}
       {!isLoaded && !hasError && (
         <div
           className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-shimmer"
           style={{
-            backgroundSize: '200% 100%',
+            backgroundSize: "200% 100%",
           }}
         />
       )}
-      
+
       {/* Error state */}
       {hasError && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
@@ -244,21 +242,21 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
 // Export a preload function for critical images
 export const preloadImage = (src: string): void => {
-  if (typeof window === 'undefined') return;
-  
-  const link = document.createElement('link');
-  link.rel = 'preload';
-  link.as = 'image';
+  if (typeof window === "undefined") return;
+
+  const link = document.createElement("link");
+  link.rel = "preload";
+  link.as = "image";
   link.href = src;
-  
+
   // Check for WebP support and preload that instead
-  const canvas = document.createElement('canvas');
+  const canvas = document.createElement("canvas");
   canvas.width = 1;
   canvas.height = 1;
-  if (canvas.toDataURL('image/webp').indexOf('image/webp') === 5) {
-    const webpSrc = src.replace(/\.[^.]+$/, '.webp');
+  if (canvas.toDataURL("image/webp").indexOf("image/webp") === 5) {
+    const webpSrc = src.replace(/\.[^.]+$/, ".webp");
     link.href = webpSrc;
   }
-  
+
   document.head.appendChild(link);
 };

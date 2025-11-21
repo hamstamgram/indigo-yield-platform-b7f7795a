@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { UserPlus, Mail, DollarSign } from 'lucide-react';
-import InvestorForm, { InvestorFormValues } from '@/components/admin/investors/InvestorForm';
-import { Asset } from '@/types/investorTypes';
-import { createOrFindInvestorUser } from '@/services/userService';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { UserPlus, Mail, DollarSign } from "lucide-react";
+import InvestorForm, { InvestorFormValues } from "@/components/admin/investors/InvestorForm";
+import { Asset } from "@/types/investorTypes";
+import { createOrFindInvestorUser } from "@/services/userService";
 
 const AdminInvestorNewPage = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -21,19 +21,19 @@ const AdminInvestorNewPage = () => {
     try {
       setIsLoading(true);
       const { data, error } = await supabase
-        .from('assets')
-        .select('*')
-        .eq('is_active', true)
-        .order('name');
+        .from("assets")
+        .select("*")
+        .eq("is_active", true)
+        .order("name");
 
       if (error) throw error;
       setAssets(data || []);
     } catch (error) {
-      console.error('Error fetching assets:', error);
+      console.error("Error fetching assets:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to fetch assets',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to fetch assets",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -44,7 +44,7 @@ const AdminInvestorNewPage = () => {
     try {
       setIsSubmitting(true);
       console.log("Creating investor with values:", values);
-      
+
       // Create user or find existing one
       const userId = await createOrFindInvestorUser(values);
 
@@ -55,33 +55,29 @@ const AdminInvestorNewPage = () => {
       console.log("User created/found with ID:", userId);
 
       // Create profile entry
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: userId,
-          email: values.email,
-          first_name: values.first_name,
-          last_name: values.last_name,
-          is_admin: false,
-          user_type: 'investor'
-        });
+      const { error: profileError } = await supabase.from("profiles").upsert({
+        id: userId,
+        email: values.email,
+        first_name: values.first_name,
+        last_name: values.last_name,
+        is_admin: false,
+        user_type: "investor",
+      });
 
       if (profileError) {
-        console.error('Profile creation error:', profileError);
+        console.error("Profile creation error:", profileError);
       }
 
       // Create investor record
-      const { error: investorError } = await supabase
-        .from('investors')
-        .insert({
-          profile_id: userId,
-          name: `${values.first_name} ${values.last_name}`,
-          email: values.email,
-          status: 'active'
-        });
+      const { error: investorError } = await supabase.from("investors").insert({
+        profile_id: userId,
+        name: `${values.first_name} ${values.last_name}`,
+        email: values.email,
+        status: "active",
+      });
 
       if (investorError) {
-        console.error('Investor creation error:', investorError);
+        console.error("Investor creation error:", investorError);
       }
 
       toast({
@@ -90,13 +86,12 @@ const AdminInvestorNewPage = () => {
       });
 
       // Reset form or redirect
-      window.location.href = '/admin/investors';
-
+      window.location.href = "/admin/investors";
     } catch (error) {
       console.error("Error adding investor:", error);
       toast({
         title: "Error",
-        description: `Failed to add investor: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        description: `Failed to add investor: ${error instanceof Error ? error.message : "Unknown error"}`,
         variant: "destructive",
       });
     } finally {
@@ -109,7 +104,9 @@ const AdminInvestorNewPage = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Create New Investor</h1>
-          <p className="text-muted-foreground">Add a new investor to the platform with initial portfolio settings</p>
+          <p className="text-muted-foreground">
+            Add a new investor to the platform with initial portfolio settings
+          </p>
         </div>
       </div>
 
@@ -124,7 +121,7 @@ const AdminInvestorNewPage = () => {
             <p className="text-xs text-muted-foreground">Create user credentials and profile</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Portfolio Init</CardTitle>
@@ -135,7 +132,7 @@ const AdminInvestorNewPage = () => {
             <p className="text-xs text-muted-foreground">Set starting asset positions</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Notification</CardTitle>
@@ -165,11 +162,7 @@ const AdminInvestorNewPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <InvestorForm
-              onSubmit={handleSubmit}
-              isLoading={isSubmitting}
-              assets={assets}
-            />
+            <InvestorForm onSubmit={handleSubmit} isLoading={isSubmitting} assets={assets} />
           </CardContent>
         </Card>
       )}

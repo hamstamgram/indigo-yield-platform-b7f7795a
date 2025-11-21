@@ -48,9 +48,7 @@ export function DepositStats() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats?.pending || 0}</div>
-          <p className="text-xs text-muted-foreground">
-            Awaiting verification
-          </p>
+          <p className="text-xs text-muted-foreground">Awaiting verification</p>
         </CardContent>
       </Card>
 
@@ -61,9 +59,7 @@ export function DepositStats() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats?.verified || 0}</div>
-          <p className="text-xs text-muted-foreground">
-            Successfully processed
-          </p>
+          <p className="text-xs text-muted-foreground">Successfully processed</p>
         </CardContent>
       </Card>
 
@@ -74,9 +70,7 @@ export function DepositStats() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats?.rejected || 0}</div>
-          <p className="text-xs text-muted-foreground">
-            Failed verification
-          </p>
+          <p className="text-xs text-muted-foreground">Failed verification</p>
         </CardContent>
       </Card>
     </div>

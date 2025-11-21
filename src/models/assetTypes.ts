@@ -1,4 +1,3 @@
-
 export interface AssetSummary {
   id: number;
   symbol: string;

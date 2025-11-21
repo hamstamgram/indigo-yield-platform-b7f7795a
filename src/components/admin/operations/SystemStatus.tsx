@@ -46,15 +46,13 @@ export function SystemStatus({ systems }: SystemStatusProps) {
     );
   };
 
-  const overallStatus =
-    systems.every((s) => s.status === "operational")
-      ? "operational"
-      : systems.some((s) => s.status === "down")
+  const overallStatus = systems.every((s) => s.status === "operational")
+    ? "operational"
+    : systems.some((s) => s.status === "down")
       ? "down"
       : "degraded";
 
-  const averageUptime =
-    systems.reduce((sum, s) => sum + (s.uptime || 0), 0) / systems.length;
+  const averageUptime = systems.reduce((sum, s) => sum + (s.uptime || 0), 0) / systems.length;
 
   return (
     <Card>

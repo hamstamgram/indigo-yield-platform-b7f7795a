@@ -3,29 +3,24 @@
  * Generates branded investor statements with charts and tables
  */
 
-import jsPDF from 'jspdf';
-import { format } from 'date-fns';
-import { 
-  BrandingAssets, 
-  StatementData, 
-  PDFGenerationOptions, 
-  PDFGenerationResult 
-} from './types';
+import jsPDF from "jspdf";
+import { format } from "date-fns";
+import { BrandingAssets, StatementData, PDFGenerationOptions, PDFGenerationResult } from "./types";
 
 // Default branding for the platform
 const DEFAULT_BRANDING: BrandingAssets = {
   colors: {
-    primary: '#1e40af', // blue-700
-    secondary: '#64748b', // slate-500
-    accent: '#f59e0b', // amber-500
-    text: '#1f2937', // gray-800
-    textSecondary: '#6b7280', // gray-500
-    background: '#ffffff',
+    primary: "#1e40af", // blue-700
+    secondary: "#64748b", // slate-500
+    accent: "#f59e0b", // amber-500
+    text: "#1f2937", // gray-800
+    textSecondary: "#6b7280", // gray-500
+    background: "#ffffff",
   },
   fonts: {
-    primary: 'helvetica',
-    secondary: 'helvetica',
-    mono: 'courier',
+    primary: "helvetica",
+    secondary: "helvetica",
+    mono: "courier",
   },
 };
 
@@ -39,7 +34,7 @@ export class StatementPDFGenerator {
   private lineHeight: number = 6;
 
   constructor(branding: Partial<BrandingAssets> = {}) {
-    this.doc = new jsPDF('portrait', 'pt', 'A4');
+    this.doc = new jsPDF("portrait", "pt", "A4");
     this.branding = { ...DEFAULT_BRANDING, ...branding };
     this.pageWidth = this.doc.internal.pageSize.width;
     this.pageHeight = this.doc.internal.pageSize.height;
@@ -65,17 +60,17 @@ export class StatementPDFGenerator {
       this.generateSummaryPage(data);
       this.generateHoldingsPage(data);
       this.generatePerformancePage(data);
-      
+
       if (options.includeTransactions) {
         this.generateTransactionsPage(data);
       }
-      
+
       if (options.includeDisclosures) {
         this.generateDisclosuresPage();
       }
 
       // Get PDF as bytes
-      const pdfData = this.doc.output('arraybuffer');
+      const pdfData = this.doc.output("arraybuffer");
       const filename = this.generateFilename(data);
 
       const result: PDFGenerationResult = {
@@ -91,25 +86,26 @@ export class StatementPDFGenerator {
 
       console.log(`PDF generated in ${Date.now() - startTime}ms`, result.metadata);
       return result;
-
     } catch (error) {
-      console.error('PDF generation failed:', error);
+      console.error("PDF generation failed:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
 
   private setMetadata(data: StatementData, options: PDFGenerationOptions): void {
     const metadata = options.metadata || {};
-    
+
     this.doc.setProperties({
-      title: metadata.title || `${data.investor.fund_name} Statement - ${format(data.period.end, 'MMM yyyy')}`,
+      title:
+        metadata.title ||
+        `${data.investor.fund_name} Statement - ${format(data.period.end, "MMM yyyy")}`,
       author: metadata.author || data.investor.fund_name,
-      subject: metadata.subject || 'Investment Account Statement',
-      creator: metadata.creator || 'Indigo Yield Platform',
-      keywords: 'investment, statement, portfolio, performance',
+      subject: metadata.subject || "Investment Account Statement",
+      creator: metadata.creator || "Indigo Yield Platform",
+      keywords: "investment, statement, portfolio, performance",
     });
   }
 
@@ -119,15 +115,15 @@ export class StatementPDFGenerator {
     // Header with logo space
     if (this.branding.logo) {
       try {
-        this.doc.addImage(this.branding.logo, 'PNG', this.margin, this.currentY, 120, 40);
+        this.doc.addImage(this.branding.logo, "PNG", this.margin, this.currentY, 120, 40);
       } catch (error) {
-        console.warn('Failed to add logo:', error);
+        console.warn("Failed to add logo:", error);
       }
     }
     this.currentY += 80;
 
     // Fund name and statement title
-    this.doc.setFont(this.branding.fonts.primary, 'bold');
+    this.doc.setFont(this.branding.fonts.primary, "bold");
     this.doc.setFontSize(24);
     this.doc.setTextColor(this.branding.colors.primary);
     this.doc.text(data.investor.fund_name, this.margin, this.currentY);
@@ -135,20 +131,20 @@ export class StatementPDFGenerator {
 
     this.doc.setFontSize(18);
     this.doc.setTextColor(this.branding.colors.text);
-    this.doc.text('Investment Account Statement', this.margin, this.currentY);
+    this.doc.text("Investment Account Statement", this.margin, this.currentY);
     this.currentY += 50;
 
     // Statement period
-    this.doc.setFont(this.branding.fonts.primary, 'normal');
+    this.doc.setFont(this.branding.fonts.primary, "normal");
     this.doc.setFontSize(12);
     this.doc.setTextColor(this.branding.colors.textSecondary);
-    this.doc.text('Statement Period:', this.margin, this.currentY);
+    this.doc.text("Statement Period:", this.margin, this.currentY);
     this.currentY += this.lineHeight * 2;
 
     this.doc.setFontSize(14);
     this.doc.setTextColor(this.branding.colors.text);
     this.doc.text(
-      `${format(data.period.start, 'MMMM d, yyyy')} - ${format(data.period.end, 'MMMM d, yyyy')}`,
+      `${format(data.period.start, "MMMM d, yyyy")} - ${format(data.period.end, "MMMM d, yyyy")}`,
       this.margin,
       this.currentY
     );
@@ -176,13 +172,13 @@ export class StatementPDFGenerator {
     this.currentY = boxY + 20;
 
     // Account holder
-    this.doc.setFont(this.branding.fonts.primary, 'bold');
+    this.doc.setFont(this.branding.fonts.primary, "bold");
     this.doc.setFontSize(12);
     this.doc.setTextColor(this.branding.colors.textSecondary);
-    this.doc.text('Account Holder:', this.margin + 20, this.currentY);
+    this.doc.text("Account Holder:", this.margin + 20, this.currentY);
     this.currentY += this.lineHeight * 2;
 
-    this.doc.setFont(this.branding.fonts.primary, 'normal');
+    this.doc.setFont(this.branding.fonts.primary, "normal");
     this.doc.setFontSize(12);
     this.doc.setTextColor(this.branding.colors.text);
     this.doc.text(data.investor.name, this.margin + 20, this.currentY);
@@ -190,11 +186,11 @@ export class StatementPDFGenerator {
 
     // Account number (if available)
     if (data.investor.account_number) {
-      this.doc.setFont(this.branding.fonts.primary, 'bold');
+      this.doc.setFont(this.branding.fonts.primary, "bold");
       this.doc.setTextColor(this.branding.colors.textSecondary);
-      this.doc.text('Account Number:', this.margin + 20, this.currentY);
-      
-      this.doc.setFont(this.branding.fonts.mono, 'normal');
+      this.doc.text("Account Number:", this.margin + 20, this.currentY);
+
+      this.doc.setFont(this.branding.fonts.mono, "normal");
       this.doc.setTextColor(this.branding.colors.text);
       this.doc.text(data.investor.account_number, this.margin + 120, this.currentY);
     }
@@ -207,9 +203,9 @@ export class StatementPDFGenerator {
     const boxHeight = 200;
 
     // Background
-    const bgColor = this.hexToRgb(this.branding.colors.primary + '10'); // 10% opacity
+    const bgColor = this.hexToRgb(this.branding.colors.primary + "10"); // 10% opacity
     this.doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
-    this.doc.rect(this.margin, boxY, this.pageWidth - 2 * this.margin, boxHeight, 'F');
+    this.doc.rect(this.margin, boxY, this.pageWidth - 2 * this.margin, boxHeight, "F");
 
     // Border
     this.doc.setDrawColor(this.branding.colors.primary);
@@ -219,37 +215,67 @@ export class StatementPDFGenerator {
     this.currentY = boxY + 30;
 
     // Title
-    this.doc.setFont(this.branding.fonts.primary, 'bold');
+    this.doc.setFont(this.branding.fonts.primary, "bold");
     this.doc.setFontSize(16);
     this.doc.setTextColor(this.branding.colors.primary);
-    this.doc.text('Portfolio Summary', this.margin + 20, this.currentY);
+    this.doc.text("Portfolio Summary", this.margin + 20, this.currentY);
     this.currentY += 30;
 
     // Key metrics in two columns
     const leftCol = this.margin + 20;
     const rightCol = this.margin + (this.pageWidth - 2 * this.margin) / 2;
 
-    this.generateSummaryItem('Total Portfolio Value', this.formatCurrency(data.summary.totalValue), leftCol, this.currentY);
-    this.generateSummaryItem('Total Return', `${this.formatCurrency(data.summary.totalReturn)} (${this.formatPercent(data.summary.totalReturnPercent)})`, rightCol, this.currentY);
+    this.generateSummaryItem(
+      "Total Portfolio Value",
+      this.formatCurrency(data.summary.totalValue),
+      leftCol,
+      this.currentY
+    );
+    this.generateSummaryItem(
+      "Total Return",
+      `${this.formatCurrency(data.summary.totalReturn)} (${this.formatPercent(data.summary.totalReturnPercent)})`,
+      rightCol,
+      this.currentY
+    );
     this.currentY += 25;
 
-    this.generateSummaryItem('Beginning Value', this.formatCurrency(data.summary.beginningValue), leftCol, this.currentY);
-    this.generateSummaryItem('Net Deposits', this.formatCurrency(data.summary.netDeposits), rightCol, this.currentY);
+    this.generateSummaryItem(
+      "Beginning Value",
+      this.formatCurrency(data.summary.beginningValue),
+      leftCol,
+      this.currentY
+    );
+    this.generateSummaryItem(
+      "Net Deposits",
+      this.formatCurrency(data.summary.netDeposits),
+      rightCol,
+      this.currentY
+    );
     this.currentY += 25;
 
-    this.generateSummaryItem('Ending Value', this.formatCurrency(data.summary.endingValue), leftCol, this.currentY);
-    this.generateSummaryItem('Management Fees', this.formatCurrency(data.summary.managementFees), rightCol, this.currentY);
+    this.generateSummaryItem(
+      "Ending Value",
+      this.formatCurrency(data.summary.endingValue),
+      leftCol,
+      this.currentY
+    );
+    this.generateSummaryItem(
+      "Management Fees",
+      this.formatCurrency(data.summary.managementFees),
+      rightCol,
+      this.currentY
+    );
 
     this.currentY = boxY + boxHeight + 40;
   }
 
   private generateSummaryItem(label: string, value: string, x: number, y: number): void {
-    this.doc.setFont(this.branding.fonts.primary, 'normal');
+    this.doc.setFont(this.branding.fonts.primary, "normal");
     this.doc.setFontSize(10);
     this.doc.setTextColor(this.branding.colors.textSecondary);
     this.doc.text(label, x, y);
 
-    this.doc.setFont(this.branding.fonts.primary, 'bold');
+    this.doc.setFont(this.branding.fonts.primary, "bold");
     this.doc.setFontSize(12);
     this.doc.setTextColor(this.branding.colors.text);
     this.doc.text(value, x, y + 12);
@@ -257,15 +283,15 @@ export class StatementPDFGenerator {
 
   private generateSummaryPage(data: StatementData): void {
     this.currentY = this.margin;
-    this.generatePageHeader('Portfolio Summary');
-    
+    this.generatePageHeader("Portfolio Summary");
+
     // Add allocation chart if available
     if (data.charts.allocationChart) {
       try {
-        this.doc.addImage(data.charts.allocationChart, 'PNG', this.margin, this.currentY, 250, 200);
+        this.doc.addImage(data.charts.allocationChart, "PNG", this.margin, this.currentY, 250, 200);
         this.currentY += 220;
       } catch (error) {
-        console.warn('Failed to add allocation chart:', error);
+        console.warn("Failed to add allocation chart:", error);
       }
     }
 
@@ -276,7 +302,7 @@ export class StatementPDFGenerator {
   private generateHoldingsPage(data: StatementData): void {
     this.addNewPage();
     this.currentY = this.margin;
-    this.generatePageHeader('Portfolio Holdings');
+    this.generatePageHeader("Portfolio Holdings");
 
     // Holdings table
     this.generateHoldingsTable(data);
@@ -285,15 +311,22 @@ export class StatementPDFGenerator {
   private generatePerformancePage(data: StatementData): void {
     this.addNewPage();
     this.currentY = this.margin;
-    this.generatePageHeader('Performance Analysis');
+    this.generatePageHeader("Performance Analysis");
 
     // Add performance chart if available
     if (data.charts.performanceChart) {
       try {
-        this.doc.addImage(data.charts.performanceChart, 'PNG', this.margin, this.currentY, 400, 250);
+        this.doc.addImage(
+          data.charts.performanceChart,
+          "PNG",
+          this.margin,
+          this.currentY,
+          400,
+          250
+        );
         this.currentY += 270;
       } catch (error) {
-        console.warn('Failed to add performance chart:', error);
+        console.warn("Failed to add performance chart:", error);
       }
     }
 
@@ -306,7 +339,7 @@ export class StatementPDFGenerator {
   private generateTransactionsPage(data: StatementData): void {
     this.addNewPage();
     this.currentY = this.margin;
-    this.generatePageHeader('Transaction History');
+    this.generatePageHeader("Transaction History");
 
     this.generateTransactionsTable(data);
   }
@@ -314,17 +347,17 @@ export class StatementPDFGenerator {
   private generateDisclosuresPage(): void {
     this.addNewPage();
     this.currentY = this.margin;
-    this.generatePageHeader('Important Disclosures');
+    this.generatePageHeader("Important Disclosures");
 
     const disclosures = [
-      'This statement is provided for informational purposes only and should not be considered as investment advice.',
-      'Past performance does not guarantee future results.',
-      'All investments carry risk and may result in loss of principal.',
-      'Performance data includes reinvestment of distributions and is net of management fees.',
-      'Benchmarks are provided for comparison purposes only and may not reflect the actual composition or risk profile of the portfolio.',
+      "This statement is provided for informational purposes only and should not be considered as investment advice.",
+      "Past performance does not guarantee future results.",
+      "All investments carry risk and may result in loss of principal.",
+      "Performance data includes reinvestment of distributions and is net of management fees.",
+      "Benchmarks are provided for comparison purposes only and may not reflect the actual composition or risk profile of the portfolio.",
     ];
 
-    this.doc.setFont(this.branding.fonts.primary, 'normal');
+    this.doc.setFont(this.branding.fonts.primary, "normal");
     this.doc.setFontSize(10);
     this.doc.setTextColor(this.branding.colors.text);
 
@@ -338,23 +371,23 @@ export class StatementPDFGenerator {
 
   private generatePerformanceTable(data: StatementData): void {
     const tableData = [
-      ['Period', 'Return'],
-      ['Month-to-Date', this.formatPercent(data.performance.mtd)],
-      ['Quarter-to-Date', this.formatPercent(data.performance.qtd)],
-      ['Year-to-Date', this.formatPercent(data.performance.ytd)],
-      ['Inception-to-Date', this.formatPercent(data.performance.itd)],
+      ["Period", "Return"],
+      ["Month-to-Date", this.formatPercent(data.performance.mtd)],
+      ["Quarter-to-Date", this.formatPercent(data.performance.qtd)],
+      ["Year-to-Date", this.formatPercent(data.performance.ytd)],
+      ["Inception-to-Date", this.formatPercent(data.performance.itd)],
     ];
 
-    this.generateTable(tableData, ['Period', 'Return'], [150, 100]);
+    this.generateTable(tableData, ["Period", "Return"], [150, 100]);
   }
 
   private generateHoldingsTable(data: StatementData): void {
-    const headers = ['Asset', 'Symbol', 'Quantity', 'Price', 'Value', '% of Portfolio'];
+    const headers = ["Asset", "Symbol", "Quantity", "Price", "Value", "% of Portfolio"];
     const colWidths = [120, 80, 80, 80, 100, 80];
 
     const tableData = [
       headers,
-      ...data.holdings.map(holding => [
+      ...data.holdings.map((holding) => [
         holding.asset,
         holding.symbol,
         holding.quantity.toFixed(4),
@@ -371,39 +404,46 @@ export class StatementPDFGenerator {
     if (!data.performance.benchmark) return;
 
     const tableData = [
-      ['Period', 'Portfolio', 'Benchmark', 'Difference'],
-      ['Month-to-Date', 
+      ["Period", "Portfolio", "Benchmark", "Difference"],
+      [
+        "Month-to-Date",
         this.formatPercent(data.performance.mtd),
         this.formatPercent(data.performance.benchmark.mtd),
-        this.formatPercent(data.performance.mtd - data.performance.benchmark.mtd)
+        this.formatPercent(data.performance.mtd - data.performance.benchmark.mtd),
       ],
-      ['Quarter-to-Date', 
+      [
+        "Quarter-to-Date",
         this.formatPercent(data.performance.qtd),
         this.formatPercent(data.performance.benchmark.qtd),
-        this.formatPercent(data.performance.qtd - data.performance.benchmark.qtd)
+        this.formatPercent(data.performance.qtd - data.performance.benchmark.qtd),
       ],
-      ['Year-to-Date', 
+      [
+        "Year-to-Date",
         this.formatPercent(data.performance.ytd),
         this.formatPercent(data.performance.benchmark.ytd),
-        this.formatPercent(data.performance.ytd - data.performance.benchmark.ytd)
+        this.formatPercent(data.performance.ytd - data.performance.benchmark.ytd),
       ],
     ];
 
-    this.generateTable(tableData, ['Period', 'Portfolio', data.performance.benchmark.name, 'Difference'], [100, 80, 80, 80]);
+    this.generateTable(
+      tableData,
+      ["Period", "Portfolio", data.performance.benchmark.name, "Difference"],
+      [100, 80, 80, 80]
+    );
   }
 
   private generateTransactionsTable(data: StatementData): void {
-    const headers = ['Date', 'Type', 'Description', 'Amount', 'Balance'];
+    const headers = ["Date", "Type", "Description", "Amount", "Balance"];
     const colWidths = [80, 80, 200, 100, 100];
 
     const tableData = [
       headers,
-      ...data.transactions.map(tx => [
-        format(tx.date, 'MM/dd/yyyy'),
+      ...data.transactions.map((tx) => [
+        format(tx.date, "MM/dd/yyyy"),
         tx.type.charAt(0).toUpperCase() + tx.type.slice(1),
         tx.description,
         this.formatCurrency(tx.amount),
-        tx.balance ? this.formatCurrency(tx.balance) : '',
+        tx.balance ? this.formatCurrency(tx.balance) : "",
       ]),
     ];
 
@@ -425,9 +465,15 @@ export class StatementPDFGenerator {
     // Draw header
     const headerColor = this.hexToRgb(this.branding.colors.primary);
     this.doc.setFillColor(headerColor[0], headerColor[1], headerColor[2]);
-    this.doc.rect(this.margin, this.currentY, colWidths.reduce((a, b) => a + b, 0), headerHeight, 'F');
+    this.doc.rect(
+      this.margin,
+      this.currentY,
+      colWidths.reduce((a, b) => a + b, 0),
+      headerHeight,
+      "F"
+    );
 
-    this.doc.setFont(this.branding.fonts.primary, 'bold');
+    this.doc.setFont(this.branding.fonts.primary, "bold");
     this.doc.setFontSize(10);
     this.doc.setTextColor(255, 255, 255);
 
@@ -440,7 +486,7 @@ export class StatementPDFGenerator {
     this.currentY += headerHeight;
 
     // Draw rows
-    this.doc.setFont(this.branding.fonts.primary, 'normal');
+    this.doc.setFont(this.branding.fonts.primary, "normal");
     this.doc.setFontSize(9);
     this.doc.setTextColor(this.branding.colors.text);
 
@@ -448,7 +494,13 @@ export class StatementPDFGenerator {
       // Alternate row colors
       if (rowIndex % 2 === 1) {
         this.doc.setFillColor(248, 249, 250);
-        this.doc.rect(this.margin, this.currentY, colWidths.reduce((a, b) => a + b, 0), rowHeight, 'F');
+        this.doc.rect(
+          this.margin,
+          this.currentY,
+          colWidths.reduce((a, b) => a + b, 0),
+          rowHeight,
+          "F"
+        );
       }
 
       x = this.margin;
@@ -463,7 +515,7 @@ export class StatementPDFGenerator {
     // Draw table borders
     this.doc.setDrawColor(this.branding.colors.secondary);
     this.doc.setLineWidth(0.5);
-    
+
     // Horizontal lines
     for (let i = 0; i <= data.length; i++) {
       const y = startY + (i === 0 ? 0 : headerHeight + (i - 1) * rowHeight);
@@ -481,7 +533,7 @@ export class StatementPDFGenerator {
   }
 
   private generatePageHeader(title: string): void {
-    this.doc.setFont(this.branding.fonts.primary, 'bold');
+    this.doc.setFont(this.branding.fonts.primary, "bold");
     this.doc.setFontSize(16);
     this.doc.setTextColor(this.branding.colors.primary);
     this.doc.text(title, this.margin, this.currentY);
@@ -490,22 +542,27 @@ export class StatementPDFGenerator {
     // Underline
     this.doc.setDrawColor(this.branding.colors.primary);
     this.doc.setLineWidth(2);
-    this.doc.line(this.margin, this.currentY - 20, this.pageWidth - this.margin, this.currentY - 20);
+    this.doc.line(
+      this.margin,
+      this.currentY - 20,
+      this.pageWidth - this.margin,
+      this.currentY - 20
+    );
   }
 
   private generatePageFooter(): void {
     const footerY = this.pageHeight - this.margin;
-    
-    this.doc.setFont(this.branding.fonts.primary, 'normal');
+
+    this.doc.setFont(this.branding.fonts.primary, "normal");
     this.doc.setFontSize(8);
     this.doc.setTextColor(this.branding.colors.textSecondary);
-    
+
     // Page number
     const pageNumber = this.doc.getCurrentPageInfo().pageNumber;
     this.doc.text(`Page ${pageNumber}`, this.pageWidth - this.margin - 30, footerY);
-    
+
     // Generated date
-    this.doc.text(`Generated on ${format(new Date(), 'MMMM d, yyyy')}`, this.margin, footerY);
+    this.doc.text(`Generated on ${format(new Date(), "MMMM d, yyyy")}`, this.margin, footerY);
   }
 
   private addNewPage(): void {
@@ -515,23 +572,23 @@ export class StatementPDFGenerator {
   }
 
   private formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(amount);
   }
 
   private formatPercent(value: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'percent',
+    return new Intl.NumberFormat("en-US", {
+      style: "percent",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(value / 100);
   }
 
   private generateFilename(data: StatementData): string {
-    const period = format(data.period.end, 'yyyy-MM');
-    const investor = data.investor.name.replace(/[^a-zA-Z0-9]/g, '_');
+    const period = format(data.period.end, "yyyy-MM");
+    const investor = data.investor.name.replace(/[^a-zA-Z0-9]/g, "_");
     return `${data.investor.fund_code}_Statement_${period}_${investor}.pdf`;
   }
 

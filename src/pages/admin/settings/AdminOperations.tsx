@@ -1,49 +1,59 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Settings, Database, Users, Shield, AlertTriangle } from 'lucide-react';
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Settings, Database, Users, Shield, AlertTriangle } from "lucide-react";
 
 export default function AdminOperationsPage() {
   const [operations] = useState([
     {
-      id: '1',
-      name: 'System Maintenance',
-      status: 'scheduled',
-      description: 'Routine system maintenance and updates',
-      category: 'maintenance'
+      id: "1",
+      name: "System Maintenance",
+      status: "scheduled",
+      description: "Routine system maintenance and updates",
+      category: "maintenance",
     },
     {
-      id: '2', 
-      name: 'Database Backup',
-      status: 'running',
-      description: 'Daily automated database backup',
-      category: 'backup'
+      id: "2",
+      name: "Database Backup",
+      status: "running",
+      description: "Daily automated database backup",
+      category: "backup",
     },
     {
-      id: '3',
-      name: 'User Access Review',
-      status: 'completed',
-      description: 'Quarterly user access audit',
-      category: 'security'
-    }
+      id: "3",
+      name: "User Access Review",
+      status: "completed",
+      description: "Quarterly user access audit",
+      category: "security",
+    },
   ]);
 
-  const getStatusVariant = (status: string): 'default' | 'destructive' | 'outline' | 'secondary' => {
+  const getStatusVariant = (
+    status: string
+  ): "default" | "destructive" | "outline" | "secondary" => {
     switch (status) {
-      case 'running': return 'default';
-      case 'scheduled': return 'outline';
-      case 'completed': return 'secondary';
-      default: return 'secondary';
+      case "running":
+        return "default";
+      case "scheduled":
+        return "outline";
+      case "completed":
+        return "secondary";
+      default:
+        return "secondary";
     }
   };
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'maintenance': return <Settings className="h-4 w-4" />;
-      case 'backup': return <Database className="h-4 w-4" />;
-      case 'security': return <Shield className="h-4 w-4" />;
-      default: return <AlertTriangle className="h-4 w-4" />;
+      case "maintenance":
+        return <Settings className="h-4 w-4" />;
+      case "backup":
+        return <Database className="h-4 w-4" />;
+      case "security":
+        return <Shield className="h-4 w-4" />;
+      default:
+        return <AlertTriangle className="h-4 w-4" />;
     }
   };
 
@@ -64,11 +74,9 @@ export default function AdminOperationsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {operations.filter(op => op.status === 'running').length}
+              {operations.filter((op) => op.status === "running").length}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Currently running
-            </p>
+            <p className="text-xs text-muted-foreground">Currently running</p>
           </CardContent>
         </Card>
 
@@ -79,11 +87,9 @@ export default function AdminOperationsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {operations.filter(op => op.status === 'scheduled').length}
+              {operations.filter((op) => op.status === "scheduled").length}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Pending execution
-            </p>
+            <p className="text-xs text-muted-foreground">Pending execution</p>
           </CardContent>
         </Card>
 
@@ -94,11 +100,9 @@ export default function AdminOperationsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {operations.filter(op => op.status === 'completed').length}
+              {operations.filter((op) => op.status === "completed").length}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Today's tasks
-            </p>
+            <p className="text-xs text-muted-foreground">Today's tasks</p>
           </CardContent>
         </Card>
       </div>
@@ -109,9 +113,7 @@ export default function AdminOperationsPage() {
             <Settings className="h-5 w-5" />
             System Operations
           </CardTitle>
-          <CardDescription>
-            Overview of administrative tasks and system operations
-          </CardDescription>
+          <CardDescription>Overview of administrative tasks and system operations</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -125,13 +127,9 @@ export default function AdminOperationsPage() {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium">{operation.name}</h3>
-                      <Badge variant={getStatusVariant(operation.status)}>
-                        {operation.status}
-                      </Badge>
+                      <Badge variant={getStatusVariant(operation.status)}>{operation.status}</Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {operation.description}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{operation.description}</p>
                   </div>
                 </div>
                 <Button variant="outline" size="sm">
@@ -142,9 +140,7 @@ export default function AdminOperationsPage() {
           </div>
 
           {operations.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              No operations found
-            </div>
+            <div className="text-center py-8 text-muted-foreground">No operations found</div>
           )}
         </CardContent>
       </Card>

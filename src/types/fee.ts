@@ -1,5 +1,5 @@
-export type FeeKind = 'management' | 'performance' | 'platform' | 'other';
-export type FeeCalculationStatus = 'pending' | 'posted' | 'cancelled';
+export type FeeKind = "management" | "performance" | "platform" | "other";
+export type FeeCalculationStatus = "pending" | "posted" | "cancelled";
 
 export interface FeeCalculation {
   id: string;

@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageCircle, Send, X } from 'lucide-react';
-import { format } from 'date-fns';
+import React, { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { MessageCircle, Send, X } from "lucide-react";
+import { format } from "date-fns";
 
 interface ChatMessage {
   id: string;
-  sender_type: 'user' | 'agent' | 'system';
+  sender_type: "user" | "agent" | "system";
   message: string;
   created_at: string;
 }
@@ -17,13 +17,13 @@ interface ChatMessage {
 const LiveChatPage: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
-      id: '1',
-      sender_type: 'system',
-      message: 'Welcome to Indigo Yield support! How can we help you today?',
+      id: "1",
+      sender_type: "system",
+      message: "Welcome to Indigo Yield support! How can we help you today?",
       created_at: new Date().toISOString(),
     },
   ]);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
   const [isConnected] = useState(true);
 
   const handleSendMessage = () => {
@@ -31,20 +31,20 @@ const LiveChatPage: React.FC = () => {
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
-      sender_type: 'user',
+      sender_type: "user",
       message: newMessage,
       created_at: new Date().toISOString(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setNewMessage('');
+    setNewMessage("");
 
     // Simulate agent response
     setTimeout(() => {
       const agentMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        sender_type: 'agent',
-        message: 'Thank you for your message. A support agent will be with you shortly.',
+        sender_type: "agent",
+        message: "Thank you for your message. A support agent will be with you shortly.",
         created_at: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, agentMessage]);
@@ -61,13 +61,11 @@ const LiveChatPage: React.FC = () => {
                 <MessageCircle className="h-6 w-6" />
                 Live Chat Support
               </CardTitle>
-              <CardDescription>
-                Chat with our support team in real-time
-              </CardDescription>
+              <CardDescription>Chat with our support team in real-time</CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant={isConnected ? 'default' : 'secondary'}>
-                {isConnected ? 'Connected' : 'Disconnected'}
+              <Badge variant={isConnected ? "default" : "secondary"}>
+                {isConnected ? "Connected" : "Disconnected"}
               </Badge>
               <Button variant="ghost" size="icon">
                 <X className="h-4 w-4" />
@@ -82,29 +80,27 @@ const LiveChatPage: React.FC = () => {
               {messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex ${
-                    msg.sender_type === 'user' ? 'justify-end' : 'justify-start'
-                  }`}
+                  className={`flex ${msg.sender_type === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
                     className={`max-w-[80%] rounded-lg p-3 ${
-                      msg.sender_type === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : msg.sender_type === 'system'
-                        ? 'bg-muted text-muted-foreground'
-                        : 'bg-secondary'
+                      msg.sender_type === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : msg.sender_type === "system"
+                          ? "bg-muted text-muted-foreground"
+                          : "bg-secondary"
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-medium">
-                        {msg.sender_type === 'user'
-                          ? 'You'
-                          : msg.sender_type === 'agent'
-                          ? 'Support Agent'
-                          : 'System'}
+                        {msg.sender_type === "user"
+                          ? "You"
+                          : msg.sender_type === "agent"
+                            ? "Support Agent"
+                            : "System"}
                       </span>
                       <span className="text-xs opacity-70">
-                        {format(new Date(msg.created_at), 'h:mm a')}
+                        {format(new Date(msg.created_at), "h:mm a")}
                       </span>
                     </div>
                     <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
@@ -122,7 +118,7 @@ const LiveChatPage: React.FC = () => {
                 onChange={(e) => setNewMessage(e.target.value)}
                 rows={2}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
+                  if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
                     handleSendMessage();
                   }

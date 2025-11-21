@@ -8,7 +8,7 @@
  * @returns {boolean} Whether email is valid
  */
 export function isValidEmail(email) {
-  if (!email || typeof email !== 'string') return false;
+  if (!email || typeof email !== "string") return false;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
@@ -22,13 +22,13 @@ export function isValidEmail(email) {
  */
 export function validateAmount(amount, min = 0, max = Infinity) {
   if (amount === null || amount === undefined) {
-    return { isValid: false, error: 'Amount is required' };
+    return { isValid: false, error: "Amount is required" };
   }
 
   const parsed = parseFloat(amount);
-  
+
   if (isNaN(parsed)) {
-    return { isValid: false, error: 'Amount must be a valid number' };
+    return { isValid: false, error: "Amount must be a valid number" };
   }
 
   if (parsed < min) {
@@ -52,7 +52,7 @@ export function validateAmount(amount, min = 0, max = Infinity) {
 export function validatePercentage(percentage, min = -100, max = 100) {
   const result = validateAmount(percentage, min, max);
   if (!result.isValid) {
-    return { ...result, error: result.error.replace('Amount', 'Percentage') };
+    return { ...result, error: result.error.replace("Amount", "Percentage") };
   }
   return result;
 }
@@ -63,18 +63,18 @@ export function validatePercentage(percentage, min = -100, max = 100) {
  * @returns {{isValid: boolean, value?: string, error?: string}} Validation result
  */
 export function validateAssetCode(assetCode) {
-  if (!assetCode || typeof assetCode !== 'string') {
-    return { isValid: false, error: 'Asset code is required' };
+  if (!assetCode || typeof assetCode !== "string") {
+    return { isValid: false, error: "Asset code is required" };
   }
 
   const trimmed = assetCode.trim().toUpperCase();
-  
+
   if (trimmed.length < 2 || trimmed.length > 10) {
-    return { isValid: false, error: 'Asset code must be 2-10 characters' };
+    return { isValid: false, error: "Asset code must be 2-10 characters" };
   }
 
   if (!/^[A-Z0-9]+$/.test(trimmed)) {
-    return { isValid: false, error: 'Asset code must contain only letters and numbers' };
+    return { isValid: false, error: "Asset code must contain only letters and numbers" };
   }
 
   return { isValid: true, value: trimmed };
@@ -86,18 +86,18 @@ export function validateAssetCode(assetCode) {
  * @returns {{isValid: boolean, value?: Date, error?: string}} Validation result
  */
 export function validateDate(date) {
-  if (!date || typeof date !== 'string') {
-    return { isValid: false, error: 'Date is required' };
+  if (!date || typeof date !== "string") {
+    return { isValid: false, error: "Date is required" };
   }
 
   const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
   if (!dateRegex.test(date)) {
-    return { isValid: false, error: 'Date must be in YYYY-MM-DD format' };
+    return { isValid: false, error: "Date must be in YYYY-MM-DD format" };
   }
 
   const parsed = new Date(date);
   if (isNaN(parsed.getTime())) {
-    return { isValid: false, error: 'Invalid date' };
+    return { isValid: false, error: "Invalid date" };
   }
 
   return { isValid: true, value: parsed };
@@ -109,13 +109,13 @@ export function validateDate(date) {
  * @returns {{isValid: boolean, value?: string, error?: string}} Validation result
  */
 export function validateInvestorId(id) {
-  if (!id || typeof id !== 'string') {
-    return { isValid: false, error: 'Investor ID is required' };
+  if (!id || typeof id !== "string") {
+    return { isValid: false, error: "Investor ID is required" };
   }
 
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if (!uuidRegex.test(id)) {
-    return { isValid: false, error: 'Invalid investor ID format' };
+    return { isValid: false, error: "Invalid investor ID format" };
   }
 
   return { isValid: true, value: id };
@@ -128,13 +128,13 @@ export function validateInvestorId(id) {
  * @returns {string} Sanitized input
  */
 export function sanitizeInput(input, maxLength = 1000) {
-  if (!input || typeof input !== 'string') return '';
-  
+  if (!input || typeof input !== "string") return "";
+
   return input
     .trim()
     .slice(0, maxLength)
-    .replace(/[<>]/g, '') // Remove potential HTML/XML tags
-    .replace(/['";]/g, ''); // Remove quotes that could break SQL
+    .replace(/[<>]/g, "") // Remove potential HTML/XML tags
+    .replace(/['";]/g, ""); // Remove quotes that could break SQL
 }
 
 /**
@@ -144,19 +144,19 @@ export function sanitizeInput(input, maxLength = 1000) {
  * @returns {{isValid: boolean, missingFields?: string[], error?: string}} Validation result
  */
 export function validateRequiredFields(data, requiredFields) {
-  if (!data || typeof data !== 'object') {
-    return { isValid: false, error: 'Data object is required' };
+  if (!data || typeof data !== "object") {
+    return { isValid: false, error: "Data object is required" };
   }
 
-  const missingFields = requiredFields.filter(field => 
-    data[field] === null || data[field] === undefined || data[field] === ''
+  const missingFields = requiredFields.filter(
+    (field) => data[field] === null || data[field] === undefined || data[field] === ""
   );
 
   if (missingFields.length > 0) {
-    return { 
-      isValid: false, 
+    return {
+      isValid: false,
       missingFields,
-      error: `Missing required fields: ${missingFields.join(', ')}` 
+      error: `Missing required fields: ${missingFields.join(", ")}`,
     };
   }
 

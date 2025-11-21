@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,79 +27,74 @@ import { formatAssetValue } from "@/utils/kpiCalculations";
 
 const ExpertInvestorMasterView = () => {
   const navigate = useNavigate();
-  const [investors, setInvestors] = useState<UnifiedInvestorData[]>([]);
   const [filteredInvestors, setFilteredInvestors] = useState<UnifiedInvestorData[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("totalAum");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
-  useEffect(() => {
-    fetchInvestors();
-  }, []);
-
-  useEffect(() => {
-    filterAndSortInvestors();
-  }, [investors, searchTerm, statusFilter, sortBy, sortDirection]);
-
-  const fetchInvestors = async () => {
-    try {
-      setLoading(true);
-      const data = await expertInvestorService.getAllInvestorsExpertSummary();
-      setInvestors(data);
-    } catch (error) {
+  const { data: investors, isLoading } = useQuery({
+    queryKey: ["all-investors"],
+    queryFn: () => expertInvestorService.getAllInvestorsExpertSummary(),
+    onError: (error) => {
       console.error("Error fetching investors:", error);
       toast.error("Failed to load investor data");
-    } finally {
-      setLoading(false);
+    },
+  });
+
+  useEffect(() => {
+    if (investors) {
+      filterAndSortInvestors(investors);
     }
-  };
-
-  const filterAndSortInvestors = useCallback(() => {
-    let filtered = investors;
-
-    // Apply search filter
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (investor) =>
-          investor.firstName.toLowerCase().includes(term) ||
-          investor.lastName.toLowerCase().includes(term) ||
-          investor.email.toLowerCase().includes(term)
-      );
-    }
-
-    // Apply status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((investor) => investor.status === statusFilter);
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      let aValue: string | number | Date = a[sortBy as keyof UnifiedInvestorData] as
-        | string
-        | number
-        | Date;
-      let bValue: string | number | Date = b[sortBy as keyof UnifiedInvestorData] as
-        | string
-        | number
-        | Date;
-
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
-      }
-
-      if (sortDirection === "asc") {
-        return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
-      }
-    });
-
-    setFilteredInvestors(filtered);
   }, [investors, searchTerm, statusFilter, sortBy, sortDirection]);
+
+  const filterAndSortInvestors = useCallback(
+    (investorData: UnifiedInvestorData[]) => {
+      let filtered = investorData;
+
+      // Apply search filter
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        filtered = filtered.filter(
+          (investor) =>
+            investor.firstName.toLowerCase().includes(term) ||
+            investor.lastName.toLowerCase().includes(term) ||
+            investor.email.toLowerCase().includes(term)
+        );
+      }
+
+      // Apply status filter
+      if (statusFilter !== "all") {
+        filtered = filtered.filter((investor) => investor.status === statusFilter);
+      }
+
+      // Apply sorting
+      filtered.sort((a, b) => {
+        let aValue: string | number | Date = a[sortBy as keyof UnifiedInvestorData] as
+          | string
+          | number
+          | Date;
+        let bValue: string | number | Date = b[sortBy as keyof UnifiedInvestorData] as
+          | string
+          | number
+          | Date;
+
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+
+        if (sortDirection === "asc") {
+          return aValue > bValue ? 1 : -1;
+        } else {
+          return aValue < bValue ? 1 : -1;
+        }
+      });
+
+      setFilteredInvestors(filtered);
+    },
+    [searchTerm, statusFilter, sortBy, sortDirection]
+  );
 
   const handleSort = (column: string) => {
     if (sortBy === column) {
@@ -113,8 +109,8 @@ const ExpertInvestorMasterView = () => {
     const assetTotals = new Map<string, { aum: number; earnings: number }>();
     let totalPositions = 0;
 
-    filteredInvestors.forEach(inv => {
-      inv.aumByAsset.forEach(assetBreakdown => {
+    filteredInvestors.forEach((inv) => {
+      inv.aumByAsset.forEach((assetBreakdown) => {
         const existing = assetTotals.get(assetBreakdown.asset) || { aum: 0, earnings: 0 };
         existing.aum += assetBreakdown.aum;
         existing.earnings += assetBreakdown.earnings;
@@ -124,10 +120,12 @@ const ExpertInvestorMasterView = () => {
     });
 
     return {
-      assetBreakdowns: Array.from(assetTotals.entries()).map(([asset, totals]) => ({
-        asset,
-        ...totals
-      })).sort((a, b) => b.aum - a.aum),
+      assetBreakdowns: Array.from(assetTotals.entries())
+        .map(([asset, totals]) => ({
+          asset,
+          ...totals,
+        }))
+        .sort((a, b) => b.aum - a.aum),
       totalPositions,
       investorCount: filteredInvestors.length,
     };
@@ -135,7 +133,7 @@ const ExpertInvestorMasterView = () => {
 
   const stats = getTotalStats();
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -173,9 +171,11 @@ const ExpertInvestorMasterView = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
-              {stats.assetBreakdowns.map(breakdown => (
+              {stats.assetBreakdowns.map((breakdown) => (
                 <div key={breakdown.asset} className="flex justify-between items-center">
-                  <Badge variant="outline" className="font-mono">{breakdown.asset}</Badge>
+                  <Badge variant="outline" className="font-mono">
+                    {breakdown.asset}
+                  </Badge>
                   <span className="text-sm font-semibold">{formatAssetValue(breakdown.aum)}</span>
                 </div>
               ))}
@@ -193,9 +193,11 @@ const ExpertInvestorMasterView = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
-              {stats.assetBreakdowns.map(breakdown => (
+              {stats.assetBreakdowns.map((breakdown) => (
                 <div key={breakdown.asset} className="flex justify-between items-center">
-                  <Badge variant="outline" className="font-mono">{breakdown.asset}</Badge>
+                  <Badge variant="outline" className="font-mono">
+                    {breakdown.asset}
+                  </Badge>
                   <span className="text-sm font-semibold text-green-600">
                     {formatAssetValue(breakdown.earnings)}
                   </span>
@@ -324,7 +326,7 @@ const ExpertInvestorMasterView = () => {
 
                   <TableCell>
                     <div className="space-y-1">
-                      {investor.aumByAsset.map(breakdown => (
+                      {investor.aumByAsset.map((breakdown) => (
                         <div key={breakdown.asset} className="flex items-center gap-2">
                           <Badge variant="outline" className="font-mono text-xs">
                             {breakdown.asset}
@@ -342,7 +344,7 @@ const ExpertInvestorMasterView = () => {
 
                   <TableCell>
                     <div className="space-y-1">
-                      {investor.aumByAsset.map(breakdown => (
+                      {investor.aumByAsset.map((breakdown) => (
                         <div key={breakdown.asset} className="flex items-center gap-2">
                           <Badge variant="outline" className="font-mono text-xs">
                             {breakdown.asset}

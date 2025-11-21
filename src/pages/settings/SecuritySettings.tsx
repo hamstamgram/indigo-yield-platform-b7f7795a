@@ -1,4 +1,4 @@
-import TOTPManagement from '../../components/auth/TOTPManagement';
+import TOTPManagement from "../../components/auth/TOTPManagement";
 
 export default function SecuritySettings() {
   return (

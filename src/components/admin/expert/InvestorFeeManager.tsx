@@ -1,11 +1,11 @@
-import type React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { DollarSign, TrendingUp, Calendar } from 'lucide-react';
-import { UnifiedInvestorData } from '@/services/expertInvestorService';
-import { formatAssetValue } from '@/utils/kpiCalculations';
+import type React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { DollarSign, TrendingUp, Calendar } from "lucide-react";
+import { UnifiedInvestorData } from "@/services/expertInvestorService";
+import { formatAssetValue } from "@/utils/kpiCalculations";
 
 interface InvestorFeeManagerProps {
   investor: UnifiedInvestorData;
@@ -16,10 +16,7 @@ interface InvestorFeeManagerProps {
   };
 }
 
-const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({
-  investor,
-  fees,
-}) => {
+const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees }) => {
   return (
     <div className="space-y-6">
       {/* Fee Overview */}
@@ -31,9 +28,7 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatAssetValue(fees.totalFeesCollected)}</div>
-            <p className="text-xs text-muted-foreground">
-              Since inception
-            </p>
+            <p className="text-xs text-muted-foreground">Since inception</p>
           </CardContent>
         </Card>
 
@@ -44,9 +39,7 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatAssetValue(fees.monthlyFees)}</div>
-            <p className="text-xs text-muted-foreground">
-              Current month
-            </p>
+            <p className="text-xs text-muted-foreground">Current month</p>
           </CardContent>
         </Card>
 
@@ -57,9 +50,7 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatAssetValue(fees.yearToDateFees)}</div>
-            <p className="text-xs text-muted-foreground">
-              Year to date
-            </p>
+            <p className="text-xs text-muted-foreground">Year to date</p>
           </CardContent>
         </Card>
       </div>
@@ -80,9 +71,7 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({
                 <div className="text-2xl font-bold">
                   {(investor.feePercentage * 100).toFixed(2)}%
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Applied to gross yield
-                </p>
+                <p className="text-sm text-muted-foreground">Applied to gross yield</p>
               </div>
             </div>
 
@@ -90,11 +79,9 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({
               <Label htmlFor="estimated-monthly">Estimated Monthly Fee</Label>
               <div className="mt-2 p-3 bg-muted rounded-lg">
                 <div className="text-2xl font-bold">
-                  {formatAssetValue(investor.totalAum * investor.feePercentage * 0.072 / 12)}
+                  {formatAssetValue((investor.totalAum * investor.feePercentage * 0.072) / 12)}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Based on 7.2% APY assumption
-                </p>
+                <p className="text-sm text-muted-foreground">Based on 7.2% APY assumption</p>
               </div>
             </div>
           </div>
@@ -119,22 +106,18 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({
               </div>
               <div className="flex justify-between p-2 bg-primary/10 rounded font-medium">
                 <span>Estimated Annual Fee:</span>
-                <span className="font-mono">{formatAssetValue(investor.totalAum * 0.072 * investor.feePercentage)}</span>
+                <span className="font-mono">
+                  {formatAssetValue(investor.totalAum * 0.072 * investor.feePercentage)}
+                </span>
               </div>
             </div>
           </div>
 
           {/* Actions */}
           <div className="flex space-x-2 pt-4">
-            <Button variant="outline">
-              View Fee History
-            </Button>
-            <Button variant="outline">
-              Generate Fee Statement
-            </Button>
-            <Button variant="outline">
-              Adjust Fee Rate
-            </Button>
+            <Button variant="outline">View Fee History</Button>
+            <Button variant="outline">Generate Fee Statement</Button>
+            <Button variant="outline">Adjust Fee Rate</Button>
           </div>
         </CardContent>
       </Card>
@@ -143,9 +126,7 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({
       <Card>
         <CardHeader>
           <CardTitle>Collection Status</CardTitle>
-          <CardDescription>
-            Current status of fee collection and processing
-          </CardDescription>
+          <CardDescription>Current status of fee collection and processing</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -162,21 +143,15 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({
             <div className="flex items-center justify-between p-3 border rounded-lg">
               <div>
                 <div className="font-medium">Last Collection</div>
-                <div className="text-sm text-muted-foreground">
-                  Most recent fee collection date
-                </div>
+                <div className="text-sm text-muted-foreground">Most recent fee collection date</div>
               </div>
-              <div className="font-mono text-sm">
-                {new Date().toLocaleDateString()}
-              </div>
+              <div className="font-mono text-sm">{new Date().toLocaleDateString()}</div>
             </div>
 
             <div className="flex items-center justify-between p-3 border rounded-lg">
               <div>
                 <div className="font-medium">Next Collection</div>
-                <div className="text-sm text-muted-foreground">
-                  Estimated next collection date
-                </div>
+                <div className="text-sm text-muted-foreground">Estimated next collection date</div>
               </div>
               <div className="font-mono text-sm">
                 {new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleDateString()}

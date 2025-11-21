@@ -2,7 +2,7 @@
  * Simplified LP Management
  */
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 export interface LPSummary {
   id: string;
@@ -20,23 +20,23 @@ export interface LPSummary {
 export async function getAllLPs(): Promise<LPSummary[]> {
   try {
     const { data, error } = await supabase
-      .from('profiles')
-      .select('id, email, first_name, last_name')
-      .eq('is_admin', false);
+      .from("profiles")
+      .select("id, email, first_name, last_name")
+      .eq("is_admin", false);
 
     if (error) throw error;
 
-    return (data || []).map(profile => ({
+    return (data || []).map((profile) => ({
       id: profile.id,
-      name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Unknown',
+      name: `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || "Unknown",
       email: profile.email,
       totalInvested: 0,
       currentValue: 0,
       totalReturn: 0,
-      status: 'active'
+      status: "active",
     }));
   } catch (error) {
-    console.error('Error getting LPs:', error);
+    console.error("Error getting LPs:", error);
     return [];
   }
 }
@@ -47,24 +47,24 @@ export async function getAllLPs(): Promise<LPSummary[]> {
 export async function getLPById(id: string): Promise<LPSummary | null> {
   try {
     const { data, error } = await supabase
-      .from('profiles')
-      .select('id, email, first_name, last_name')
-      .eq('id', id)
+      .from("profiles")
+      .select("id, email, first_name, last_name")
+      .eq("id", id)
       .maybeSingle();
 
     if (error || !data) return null;
 
     return {
       id: data.id,
-      name: `${data.first_name || ''} ${data.last_name || ''}`.trim() || 'Unknown',
+      name: `${data.first_name || ""} ${data.last_name || ""}`.trim() || "Unknown",
       email: data.email,
       totalInvested: 0,
       currentValue: 0,
       totalReturn: 0,
-      status: 'active'
+      status: "active",
     };
   } catch (error) {
-    console.error('Error getting LP:', error);
+    console.error("Error getting LP:", error);
     return null;
   }
 }

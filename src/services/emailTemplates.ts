@@ -12,10 +12,14 @@
  */
 
 // CDN Assets
-const LOGO_URL = 'https://storage.mlcdn.com/account_image/855106/VpM1KYxEPvOaeLNp7IkP6K0xfOMSx6VmPaGM6vu7.png';
-const TWITTER_ICON = 'https://storage.mlcdn.com/account_image/855106/ynQCiRhVa69hFdZz7wjBbKPlNaOPYQpZ8zBqzAJc.png';
-const LINKEDIN_ICON = 'https://storage.mlcdn.com/account_image/855106/aXU7WPG09xNjxKv9R9sWo0K5fU00FrG9pC37H2Lz.png';
-const INSTAGRAM_ICON = 'https://storage.mlcdn.com/account_image/855106/pOPJaKxGjuVs2k9Oixh9CkxPGKDjsqDMXDPb4Wyu.png';
+const LOGO_URL =
+  "https://storage.mlcdn.com/account_image/855106/VpM1KYxEPvOaeLNp7IkP6K0xfOMSx6VmPaGM6vu7.png";
+const TWITTER_ICON =
+  "https://storage.mlcdn.com/account_image/855106/ynQCiRhVa69hFdZz7wjBbKPlNaOPYQpZ8zBqzAJc.png";
+const LINKEDIN_ICON =
+  "https://storage.mlcdn.com/account_image/855106/aXU7WPG09xNjxKv9R9sWo0K5fU00FrG9pC37H2Lz.png";
+const INSTAGRAM_ICON =
+  "https://storage.mlcdn.com/account_image/855106/pOPJaKxGjuVs2k9Oixh9CkxPGKDjsqDMXDPb4Wyu.png";
 
 /**
  * Email Base Styles
@@ -52,11 +56,15 @@ function renderEmailHeader(subtitle?: string): string {
             <td>
               <img src="${LOGO_URL}" alt="Indigo Yield" style="height: 40px; display: block;" />
             </td>
-            ${subtitle ? `
+            ${
+              subtitle
+                ? `
             <td align="right">
               <div style="font-family: 'Montserrat', Arial, sans-serif; font-size: 14px; color: #6b7280; margin: 0;">${subtitle}</div>
             </td>
-            ` : ''}
+            `
+                : ""
+            }
           </tr>
         </table>
       </td>
@@ -192,7 +200,7 @@ export function generatePasswordResetEmail(data: PasswordResetData): string {
     </tr>
   `;
 
-  return wrapEmailContent('Reset Your Password - Indigo Yield', content);
+  return wrapEmailContent("Reset Your Password - Indigo Yield", content);
 }
 
 /**
@@ -241,7 +249,7 @@ export function generatePlatformInvitationEmail(data: PlatformInvitationData): s
     </tr>
   `;
 
-  return wrapEmailContent('Your Invitation to Indigo Yield', content);
+  return wrapEmailContent("Your Invitation to Indigo Yield", content);
 }
 
 /**
@@ -288,7 +296,7 @@ export function generateWelcomeEmail(data: WelcomeEmailData): string {
     </tr>
   `;
 
-  return wrapEmailContent('Welcome to Indigo Yield', content);
+  return wrapEmailContent("Welcome to Indigo Yield", content);
 }
 
 /**
@@ -306,7 +314,7 @@ export interface WithdrawalConfirmationData {
 }
 
 export function generateWithdrawalConfirmationEmail(data: WithdrawalConfirmationData): string {
-  const formattedAmount = data.amount.toLocaleString('en-US', {
+  const formattedAmount = data.amount.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 6,
   });
@@ -397,13 +405,13 @@ export function generateWithdrawalConfirmationEmail(data: WithdrawalConfirmation
     </tr>
   `;
 
-  const withdrawalDateFormatted = new Date(data.withdrawalDate).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
+  const withdrawalDateFormatted = new Date(data.withdrawalDate).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   });
 
-  return wrapEmailContent('Withdrawal Confirmed - Indigo Yield', content, withdrawalDateFormatted);
+  return wrapEmailContent("Withdrawal Confirmed - Indigo Yield", content, withdrawalDateFormatted);
 }
 
 /**
@@ -411,7 +419,7 @@ export function generateWithdrawalConfirmationEmail(data: WithdrawalConfirmation
  */
 export interface SecurityAlertData {
   userName: string;
-  alertType: 'login' | 'password_change' | 'withdrawal' | 'suspicious_activity';
+  alertType: "login" | "password_change" | "withdrawal" | "suspicious_activity";
   alertDetails: string;
   timestamp: string;
   ipAddress?: string;
@@ -421,10 +429,10 @@ export interface SecurityAlertData {
 
 export function generateSecurityAlertEmail(data: SecurityAlertData): string {
   const alertTitles = {
-    login: 'New Login Detected',
-    password_change: 'Password Changed',
-    withdrawal: 'Withdrawal Request',
-    suspicious_activity: 'Suspicious Activity Detected',
+    login: "New Login Detected",
+    password_change: "Password Changed",
+    withdrawal: "Withdrawal Request",
+    suspicious_activity: "Suspicious Activity Detected",
   };
 
   const content = `
@@ -456,7 +464,9 @@ export function generateSecurityAlertEmail(data: SecurityAlertData): string {
                 </table>
               </td>
             </tr>
-            ${data.ipAddress ? `
+            ${
+              data.ipAddress
+                ? `
             <tr>
               <td style="padding: 8px 0;">
                 <table width="100%" cellpadding="0" cellspacing="0">
@@ -467,8 +477,12 @@ export function generateSecurityAlertEmail(data: SecurityAlertData): string {
                 </table>
               </td>
             </tr>
-            ` : ''}
-            ${data.location ? `
+            `
+                : ""
+            }
+            ${
+              data.location
+                ? `
             <tr>
               <td style="padding: 8px 0;">
                 <table width="100%" cellpadding="0" cellspacing="0">
@@ -479,7 +493,9 @@ export function generateSecurityAlertEmail(data: SecurityAlertData): string {
                 </table>
               </td>
             </tr>
-            ` : ''}
+            `
+                : ""
+            }
           </table>
         </div>
 
@@ -487,7 +503,9 @@ export function generateSecurityAlertEmail(data: SecurityAlertData): string {
           If this was you, you can safely ignore this email. If you didn't perform this action, please secure your account immediately.
         </p>
 
-        ${data.actionLink ? `
+        ${
+          data.actionLink
+            ? `
         <table width="100%" cellpadding="0" cellspacing="0">
           <tr>
             <td align="center" style="padding: 16px 0;">
@@ -497,7 +515,9 @@ export function generateSecurityAlertEmail(data: SecurityAlertData): string {
             </td>
           </tr>
         </table>
-        ` : ''}
+        `
+            : ""
+        }
 
         <div style="background-color: #f3f4f6; border-radius: 4px; padding: 16px; margin-top: 24px;">
           <p style="font-family: 'Montserrat', Arial, sans-serif; font-size: 12px; color: #6b7280; line-height: 1.5; margin: 0;">

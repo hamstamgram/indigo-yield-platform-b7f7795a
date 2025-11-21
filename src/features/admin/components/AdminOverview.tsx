@@ -10,7 +10,7 @@ interface AdminMetrics {
   totalPortfolioValue: number;
   totalTransactions: number;
   newUsersThisMonth: number;
-  systemHealth: 'good' | 'warning' | 'critical';
+  systemHealth: "good" | "warning" | "critical";
 }
 
 interface AdminOverviewProps {
@@ -26,19 +26,19 @@ export function AdminOverview({
   loading = false,
   onManageUsers,
   onSystemSettings,
-  className
+  className,
 }: AdminOverviewProps) {
-  const getHealthBadge = (health: AdminMetrics['systemHealth']) => {
+  const getHealthBadge = (health: AdminMetrics["systemHealth"]) => {
     const variants = {
-      good: 'default',
-      warning: 'secondary', 
-      critical: 'destructive'
+      good: "default",
+      warning: "secondary",
+      critical: "destructive",
     } as const;
 
     const labels = {
-      good: 'Healthy',
-      warning: 'Warning',
-      critical: 'Critical'
+      good: "Healthy",
+      warning: "Warning",
+      critical: "Critical",
     };
 
     return (
@@ -71,12 +71,14 @@ export function AdminOverview({
   return (
     <div className={cn("space-y-6", className)}>
       {/* System Health Alert */}
-      <Card className={cn(
-        "border-l-4",
-        metrics.systemHealth === 'good' && "border-l-green-500",
-        metrics.systemHealth === 'warning' && "border-l-yellow-500",
-        metrics.systemHealth === 'critical' && "border-l-red-500"
-      )}>
+      <Card
+        className={cn(
+          "border-l-4",
+          metrics.systemHealth === "good" && "border-l-green-500",
+          metrics.systemHealth === "warning" && "border-l-yellow-500",
+          metrics.systemHealth === "critical" && "border-l-red-500"
+        )}
+      >
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg">System Status</CardTitle>
           <div className="flex items-center space-x-2">
@@ -100,9 +102,7 @@ export function AdminOverview({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.totalUsers.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              {metrics.activeUsers} active this month
-            </p>
+            <p className="text-xs text-muted-foreground">{metrics.activeUsers} active this month</p>
           </CardContent>
         </Card>
 
@@ -113,11 +113,9 @@ export function AdminOverview({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${metrics.totalPortfolioValue.toLocaleString('en-US', { minimumFractionDigits: 0 })}
+              ${metrics.totalPortfolioValue.toLocaleString("en-US", { minimumFractionDigits: 0 })}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Across all users
-            </p>
+            <p className="text-xs text-muted-foreground">Across all users</p>
           </CardContent>
         </Card>
 
@@ -128,9 +126,7 @@ export function AdminOverview({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.totalTransactions.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              All time
-            </p>
+            <p className="text-xs text-muted-foreground">All time</p>
           </CardContent>
         </Card>
 
@@ -141,9 +137,7 @@ export function AdminOverview({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.newUsersThisMonth}</div>
-            <p className="text-xs text-muted-foreground">
-              This month
-            </p>
+            <p className="text-xs text-muted-foreground">This month</p>
           </CardContent>
         </Card>
       </div>

@@ -25,9 +25,7 @@
       "name": "x-frame-options",
       "present": false,
       "valid": false,
-      "issues": [
-        "Header is missing"
-      ],
+      "issues": ["Header is missing"],
       "description": "Prevents clickjacking",
       "required": true
     },

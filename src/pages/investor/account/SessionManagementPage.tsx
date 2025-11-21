@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
-import { Badge } from '@/components/ui/badge';
-import { Monitor, Shield, Clock } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/lib/auth/context';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
+import { Monitor, Shield, Clock } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth/context";
 
 interface SimpleSession {
   id: string;
@@ -42,10 +42,10 @@ export default function SessionManagementPage() {
 
       // Fetch sessions with basic data only
       const { data: sessionData } = await supabase
-        .from('user_sessions')
-        .select('id, device_label, user_agent, created_at, last_seen_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .from("user_sessions")
+        .select("id, device_label, user_agent, created_at, last_seen_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
       if (sessionData) {
         setSessions(sessionData);
@@ -53,17 +53,17 @@ export default function SessionManagementPage() {
 
       // Fetch access logs with basic data only
       const { data: logsData } = await supabase
-        .from('access_logs')
-        .select('id, event, created_at, success')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+        .from("access_logs")
+        .select("id, event, created_at, success")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
         .limit(20);
 
       if (logsData) {
         setAccessLogs(logsData);
       }
     } catch (error) {
-      console.error('Error fetching session data:', error);
+      console.error("Error fetching session data:", error);
       toast({
         title: "Error",
         description: "Failed to load session data",
@@ -94,9 +94,7 @@ export default function SessionManagementPage() {
               <Monitor className="h-5 w-5" />
               Active Sessions
             </CardTitle>
-            <CardDescription>
-              Your current login sessions across devices
-            </CardDescription>
+            <CardDescription>Your current login sessions across devices</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -109,7 +107,7 @@ export default function SessionManagementPage() {
                     <div className="flex items-center gap-2">
                       <Monitor className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium">
-                        {session.device_label || 'Unknown Device'}
+                        {session.device_label || "Unknown Device"}
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
@@ -134,9 +132,7 @@ export default function SessionManagementPage() {
             </div>
 
             {sessions.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                No active sessions found
-              </div>
+              <div className="text-center py-8 text-muted-foreground">No active sessions found</div>
             )}
           </CardContent>
         </Card>
@@ -147,9 +143,7 @@ export default function SessionManagementPage() {
               <Shield className="h-5 w-5" />
               Access Logs
             </CardTitle>
-            <CardDescription>
-              Recent login and security events
-            </CardDescription>
+            <CardDescription>Recent login and security events</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -159,11 +153,8 @@ export default function SessionManagementPage() {
                   className="flex items-center justify-between p-3 border rounded-lg bg-card"
                 >
                   <div className="flex items-center gap-3">
-                    <Badge 
-                      variant={log.success ? 'default' : 'destructive'}
-                      className="text-xs"
-                    >
-                      {log.success ? '✓' : '✗'}
+                    <Badge variant={log.success ? "default" : "destructive"} className="text-xs">
+                      {log.success ? "✓" : "✗"}
                     </Badge>
                     <span className="text-sm font-medium">{log.event}</span>
                   </div>
@@ -175,9 +166,7 @@ export default function SessionManagementPage() {
             </div>
 
             {accessLogs.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                No access logs found
-              </div>
+              <div className="text-center py-8 text-muted-foreground">No access logs found</div>
             )}
           </CardContent>
         </Card>

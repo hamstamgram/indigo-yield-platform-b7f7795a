@@ -20,11 +20,27 @@
       { "path": "/support", "title": "Support", "auth_guard": "DashboardLayout" },
       { "path": "/support-tickets", "title": "Support Tickets", "auth_guard": "DashboardLayout" },
       { "path": "/notifications", "title": "Notifications", "auth_guard": "DashboardLayout" },
-      { "path": "/portfolio/analytics", "title": "Portfolio Analytics", "auth_guard": "DashboardLayout" },
-      { "path": "/settings/sessions", "title": "Session Management", "auth_guard": "DashboardLayout" },
+      {
+        "path": "/portfolio/analytics",
+        "title": "Portfolio Analytics",
+        "auth_guard": "DashboardLayout"
+      },
+      {
+        "path": "/settings/sessions",
+        "title": "Session Management",
+        "auth_guard": "DashboardLayout"
+      },
       { "path": "/settings/profile", "title": "Profile Settings", "auth_guard": "DashboardLayout" },
-      { "path": "/settings/notifications", "title": "Notification Settings", "auth_guard": "DashboardLayout" },
-      { "path": "/settings/security", "title": "Security Settings", "auth_guard": "DashboardLayout" },
+      {
+        "path": "/settings/notifications",
+        "title": "Notification Settings",
+        "auth_guard": "DashboardLayout"
+      },
+      {
+        "path": "/settings/security",
+        "title": "Security Settings",
+        "auth_guard": "DashboardLayout"
+      },
       { "path": "/documents", "title": "Documents Vault", "auth_guard": "DashboardLayout" },
       { "path": "/statements", "title": "Statements", "auth_guard": "DashboardLayout" },
       { "path": "/transactions", "title": "Transactions", "auth_guard": "DashboardLayout" },
@@ -38,22 +54,54 @@
       { "path": "/admin/investors", "title": "Investors Management", "auth_guard": "RequireAdmin" },
       { "path": "/admin/investors/new", "title": "New Investor", "auth_guard": "RequireAdmin" },
       { "path": "/admin/investors/:id", "title": "Investor Detail", "auth_guard": "RequireAdmin" },
-      { "path": "/admin/investors/:id/positions", "title": "Investor Positions", "auth_guard": "RequireAdmin" },
-      { "path": "/admin/investors/:id/transactions", "title": "Investor Transactions", "auth_guard": "RequireAdmin" },
+      {
+        "path": "/admin/investors/:id/positions",
+        "title": "Investor Positions",
+        "auth_guard": "RequireAdmin"
+      },
+      {
+        "path": "/admin/investors/:id/transactions",
+        "title": "Investor Transactions",
+        "auth_guard": "RequireAdmin"
+      },
       { "path": "/admin/requests", "title": "Requests Queue", "auth_guard": "RequireAdmin" },
-      { "path": "/admin/statements", "title": "Statements Management", "auth_guard": "RequireAdmin" },
+      {
+        "path": "/admin/statements",
+        "title": "Statements Management",
+        "auth_guard": "RequireAdmin"
+      },
       { "path": "/admin/support", "title": "Support Queue", "auth_guard": "RequireAdmin" },
       { "path": "/admin/documents", "title": "Documents Management", "auth_guard": "RequireAdmin" },
       { "path": "/admin/reports", "title": "Batch Reports", "auth_guard": "RequireAdmin" },
-      { "path": "/admin/investors/create", "title": "Create Investor", "auth_guard": "RequireAdmin" },
-      { "path": "/admin/balances/adjust", "title": "Balance Adjustments", "auth_guard": "RequireAdmin" },
-      { "path": "/admin/investors/status", "title": "Investor Status", "auth_guard": "RequireAdmin" },
+      {
+        "path": "/admin/investors/create",
+        "title": "Create Investor",
+        "auth_guard": "RequireAdmin"
+      },
+      {
+        "path": "/admin/balances/adjust",
+        "title": "Balance Adjustments",
+        "auth_guard": "RequireAdmin"
+      },
+      {
+        "path": "/admin/investors/status",
+        "title": "Investor Status",
+        "auth_guard": "RequireAdmin"
+      },
       { "path": "/admin/fees", "title": "Fee Configuration", "auth_guard": "RequireAdmin" },
       { "path": "/admin/yield", "title": "Yield Management", "auth_guard": "RequireAdmin" },
-      { "path": "/admin/audit-drilldown", "title": "Audit Drilldown", "auth_guard": "RequireAdmin" },
+      {
+        "path": "/admin/audit-drilldown",
+        "title": "Audit Drilldown",
+        "auth_guard": "RequireAdmin"
+      },
       { "path": "/admin/pdf-demo", "title": "PDF Generation Demo", "auth_guard": "RequireAdmin" },
       { "path": "/admin-tools", "title": "Admin Tools (Legacy)", "auth_guard": "RequireAdmin" },
-      { "path": "/admin-operations", "title": "Admin Operations (Legacy)", "auth_guard": "RequireAdmin" },
+      {
+        "path": "/admin-operations",
+        "title": "Admin Operations (Legacy)",
+        "auth_guard": "RequireAdmin"
+      },
       { "path": "/admin/audit", "title": "Audit (Legacy)", "auth_guard": "RequireAdmin" }
     ],
     "redirects": [

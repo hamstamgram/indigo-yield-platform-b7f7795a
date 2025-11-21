@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Withdrawal } from '@/types/withdrawal';
+import { useState } from "react";
+import { Withdrawal } from "@/types/withdrawal";
 import {
   Dialog,
   DialogContent,
@@ -7,13 +7,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { withdrawalService } from '@/services/withdrawalService';
-import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { withdrawalService } from "@/services/withdrawalService";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 interface RejectWithdrawalDialogProps {
   open: boolean;
@@ -28,8 +28,8 @@ export function RejectWithdrawalDialog({
   withdrawal,
   onSuccess,
 }: RejectWithdrawalDialogProps) {
-  const [reason, setReason] = useState('');
-  const [adminNotes, setAdminNotes] = useState('');
+  const [reason, setReason] = useState("");
+  const [adminNotes, setAdminNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,17 +38,17 @@ export function RejectWithdrawalDialog({
 
     try {
       if (!reason.trim()) {
-        toast.error('Please provide a reason for rejection');
+        toast.error("Please provide a reason for rejection");
         return;
       }
 
       await withdrawalService.rejectWithdrawal(withdrawal.id, reason, adminNotes);
-      toast.success('Withdrawal rejected');
+      toast.success("Withdrawal rejected");
       onSuccess();
       onOpenChange(false);
     } catch (error) {
-      console.error('Error rejecting withdrawal:', error);
-      toast.error('Failed to reject withdrawal');
+      console.error("Error rejecting withdrawal:", error);
+      toast.error("Failed to reject withdrawal");
     } finally {
       setIsSubmitting(false);
     }
@@ -117,7 +117,7 @@ export function RejectWithdrawalDialog({
                   Rejecting...
                 </>
               ) : (
-                'Reject Withdrawal'
+                "Reject Withdrawal"
               )}
             </Button>
           </DialogFooter>

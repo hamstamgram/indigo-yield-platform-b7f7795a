@@ -1,8 +1,8 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const MAILERLITE_API_KEY = Deno.env.get('MAILERLITE_API_KEY') || '';
-const MAILERLITE_API_URL = 'https://connect.mailerlite.com/api';
+const MAILERLITE_API_KEY = Deno.env.get("MAILERLITE_API_KEY") || "";
+const MAILERLITE_API_URL = "https://connect.mailerlite.com/api";
 
 interface EmailRequest {
   to: string;
@@ -13,31 +13,31 @@ interface EmailRequest {
 
 serve(async (req: Request) => {
   // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
       },
     });
   }
 
   try {
     // Verify authentication
-    const authHeader = req.headers.get('Authorization');
+    const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized - No authorization header' }), {
+      return new Response(JSON.stringify({ error: "Unauthorized - No authorization header" }), {
         status: 401,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       });
     }
 
     // Verify admin access
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
       {
         global: {
           headers: { Authorization: authHeader },
@@ -51,23 +51,23 @@ serve(async (req: Request) => {
     } = await supabaseClient.auth.getUser();
 
     if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized - Invalid token' }), {
+      return new Response(JSON.stringify({ error: "Unauthorized - Invalid token" }), {
         status: 401,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       });
     }
 
     // Check if user is admin
     const { data: profile, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
       .single();
 
-    if (profileError || profile?.role !== 'admin') {
-      return new Response(JSON.stringify({ error: 'Forbidden - Admin access required' }), {
+    if (profileError || profile?.role !== "admin") {
+      return new Response(JSON.stringify({ error: "Forbidden - Admin access required" }), {
         status: 403,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       });
     }
 
@@ -77,18 +77,20 @@ serve(async (req: Request) => {
 
     if (!to || !investorName || !reportMonth || !htmlContent) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: to, investorName, reportMonth, htmlContent' }),
+        JSON.stringify({
+          error: "Missing required fields: to, investorName, reportMonth, htmlContent",
+        }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
 
     // Format report month for subject
-    const reportDate = new Date(reportMonth + '-01').toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
+    const reportDate = new Date(reportMonth + "-01").toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
     });
 
     // Send email via MailerLite
@@ -100,8 +102,8 @@ serve(async (req: Request) => {
         },
       ],
       from: {
-        email: 'reports@indigoyield.com',
-        name: 'Indigo Yield',
+        email: "reports@indigoyield.com",
+        name: "Indigo Yield",
       },
       subject: `Your Investment Report - ${reportDate}`,
       html: htmlContent,
@@ -109,64 +111,64 @@ serve(async (req: Request) => {
     };
 
     const mailerliteResponse = await fetch(`${MAILERLITE_API_URL}/emails`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${MAILERLITE_API_KEY}`,
-        'Accept': 'application/json',
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${MAILERLITE_API_KEY}`,
+        Accept: "application/json",
       },
       body: JSON.stringify(emailPayload),
     });
 
     if (!mailerliteResponse.ok) {
       const errorText = await mailerliteResponse.text();
-      console.error('MailerLite error:', errorText);
+      console.error("MailerLite error:", errorText);
       throw new Error(`MailerLite API error: ${mailerliteResponse.status} - ${errorText}`);
     }
 
     const mailerliteResult = await mailerliteResponse.json();
 
     // Log email send to database
-    await supabaseClient.from('email_logs').insert({
+    await supabaseClient.from("email_logs").insert({
       recipient_email: to,
       recipient_name: investorName,
       subject: `Your Investment Report - ${reportDate}`,
-      email_type: 'investor_report',
-      report_month: reportMonth + '-01',
+      email_type: "investor_report",
+      report_month: reportMonth + "-01",
       sent_by: user.id,
       sent_at: new Date().toISOString(),
-      status: 'sent',
+      status: "sent",
       external_id: mailerliteResult.data?.id || null,
     });
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Email sent successfully',
+        message: "Email sent successfully",
         recipient: to,
         reportMonth,
       }),
       {
         status: 200,
         headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
         },
       }
     );
   } catch (error: any) {
-    console.error('Error in send-investor-report:', error);
+    console.error("Error in send-investor-report:", error);
 
     return new Response(
       JSON.stringify({
-        error: 'Failed to send email',
-        message: error.message || 'Unknown error occurred',
+        error: "Failed to send email",
+        message: error.message || "Unknown error occurred",
       }),
       {
         status: 500,
         headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
         },
       }
     );

@@ -73,7 +73,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.user_id || !formData.asset_symbol || formData.amount <= 0) {
       toast.error("Please fill in all required fields");
       return;
@@ -87,9 +87,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Create New Deposit</DialogTitle>
-          <DialogDescription>
-            Manually record a new deposit for a user
-          </DialogDescription>
+          <DialogDescription>Manually record a new deposit for a user</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -97,9 +95,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
             <Label htmlFor="user_id">User *</Label>
             <Select
               value={formData.user_id}
-              onValueChange={(value) =>
-                setFormData({ ...formData, user_id: value })
-              }
+              onValueChange={(value) => setFormData({ ...formData, user_id: value })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a user" />
@@ -120,9 +116,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
               <Input
                 id="asset_symbol"
                 value={formData.asset_symbol}
-                onChange={(e) =>
-                  setFormData({ ...formData, asset_symbol: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, asset_symbol: e.target.value })}
                 placeholder="e.g., BTC, ETH, USDT"
                 required
                 maxLength={10}
@@ -137,9 +131,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
                 step="0.00000001"
                 min="0"
                 value={formData.amount}
-                onChange={(e) =>
-                  setFormData({ ...formData, amount: parseFloat(e.target.value) })
-                }
+                onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) })}
                 required
               />
             </div>
@@ -150,20 +142,14 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
             <Input
               id="transaction_hash"
               value={formData.transaction_hash}
-              onChange={(e) =>
-                setFormData({ ...formData, transaction_hash: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, transaction_hash: e.target.value })}
               placeholder="Optional blockchain transaction hash"
               maxLength={255}
             />
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={createMutation.isPending}>

@@ -2,8 +2,8 @@
  * Admin Settings Page - Platform configuration
  */
 
-import { Settings } from 'lucide-react';
-import { AdminGuard } from '@/components/admin/AdminGuard';
+import { Settings } from "lucide-react";
+import { AdminGuard } from "@/components/admin/AdminGuard";
 
 function AdminSettingsContent() {
   return (

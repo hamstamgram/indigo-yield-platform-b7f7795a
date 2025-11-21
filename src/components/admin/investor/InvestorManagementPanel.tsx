@@ -1,11 +1,24 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { InvestorSummaryV2, adminServiceV2 } from "@/services/adminServiceV2";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { toast } from "sonner";
@@ -24,56 +37,56 @@ export function InvestorManagementPanel({ investors, onDataChange }: InvestorMan
 
   // Real-time subscription for investor updates
   useRealtimeSubscription({
-    table: 'investors',
-    event: 'UPDATE',
+    table: "investors",
+    event: "UPDATE",
     onUpdate: () => {
-      console.log('Investor data updated, refreshing...');
+      console.log("Investor data updated, refreshing...");
       onDataChange();
-    }
+    },
   });
 
   // Real-time subscription for investor positions
   useRealtimeSubscription({
-    table: 'investor_positions',
-    event: '*',
+    table: "investor_positions",
+    event: "*",
     onUpdate: () => {
-      console.log('Investor positions updated, refreshing...');
+      console.log("Investor positions updated, refreshing...");
       onDataChange();
-    }
+    },
   });
 
-  const filteredInvestors = investors.filter(investor => {
-    const matchesSearch = 
+  const filteredInvestors = investors.filter((investor) => {
+    const matchesSearch =
       investor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       investor.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       investor.lastName?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesStatus = statusFilter === "all" || true; // Status filtering removed since it's not in new interface
-    
+
     return matchesSearch && matchesStatus;
   });
 
-  const updateInvestorStatus = async (investorId: string, newStatus: 'active' | 'inactive' | 'suspended') => {
+  const updateInvestorStatus = async (
+    investorId: string,
+    newStatus: "active" | "inactive" | "suspended"
+  ) => {
     try {
       setUpdating(investorId);
       await adminServiceV2.updateInvestorStatus(investorId, newStatus);
-      toast.success('Investor status updated successfully');
+      toast.success("Investor status updated successfully");
       onDataChange();
     } catch (error) {
-      console.error('Error updating investor status:', error);
-      toast.error('Failed to update investor status');
+      console.error("Error updating investor status:", error);
+      toast.error("Failed to update investor status");
     } finally {
       setUpdating(null);
     }
   };
 
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          Investor Management
-        </CardTitle>
+        <CardTitle className="flex items-center gap-2">Investor Management</CardTitle>
         <CardDescription>
           Manage investor accounts and positions ({investors.length} total)
         </CardDescription>
@@ -120,15 +133,16 @@ export function InvestorManagementPanel({ investors, onDataChange }: InvestorMan
               {filteredInvestors.map((investor) => (
                 <TableRow key={investor.id}>
                   <TableCell className="font-medium">
-                    {investor.firstName && investor.lastName 
+                    {investor.firstName && investor.lastName
                       ? `${investor.firstName} ${investor.lastName}`
-                      : investor.email.split('@')[0]
-                    }
+                      : investor.email.split("@")[0]}
                   </TableCell>
                   <TableCell>{investor.email}</TableCell>
-                  <TableCell>{investor.totalAum?.toLocaleString() || '0'}</TableCell>
+                  <TableCell>{investor.totalAum?.toLocaleString() || "0"}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{Object.keys(investor.portfolioDetails.assetBreakdown).length || 0}</Badge>
+                    <Badge variant="outline">
+                      {Object.keys(investor.portfolioDetails.assetBreakdown).length || 0}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge className="bg-green-100 text-green-800">Active</Badge>
@@ -142,11 +156,11 @@ export function InvestorManagementPanel({ investors, onDataChange }: InvestorMan
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      
+
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => updateInvestorStatus(investor.id, 'active')}
+                        onClick={() => updateInvestorStatus(investor.id, "active")}
                         disabled={updating === investor.id}
                       >
                         <UserCheck className="h-4 w-4" />

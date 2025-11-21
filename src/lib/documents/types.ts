@@ -3,21 +3,16 @@
  * For secure document storage and management
  */
 
-export type DocumentType = 
-  | 'statement'
-  | 'notice' 
-  | 'terms'
-  | 'agreement'
-  | 'report'
-  | 'certificate'
-  | 'other';
+export type DocumentType =
+  | "statement"
+  | "notice"
+  | "terms"
+  | "agreement"
+  | "report"
+  | "certificate"
+  | "other";
 
-export type DocumentStatus = 
-  | 'pending'
-  | 'processing'
-  | 'ready'
-  | 'expired'
-  | 'error';
+export type DocumentStatus = "pending" | "processing" | "ready" | "expired" | "error";
 
 export interface Document {
   id: string;
@@ -41,7 +36,7 @@ export interface Document {
   metadata?: {
     tags?: string[];
     category?: string;
-    confidentiality?: 'public' | 'confidential' | 'restricted';
+    confidentiality?: "public" | "confidential" | "restricted";
     retention_years?: number;
     requires_signature?: boolean;
   };
@@ -57,7 +52,7 @@ export interface DocumentUploadRequest {
   period_start?: Date;
   period_end?: Date;
   tax_year?: number;
-  metadata?: Document['metadata'];
+  metadata?: Document["metadata"];
 }
 
 export interface DocumentFilter {
@@ -91,80 +86,87 @@ export interface BulkUploadResult {
 }
 
 // Document type configurations
-export const DOCUMENT_TYPE_CONFIG: Record<DocumentType, {
-  label: string;
-  icon: string;
-  maxSize: number; // bytes
-  allowedMimeTypes: string[];
-  requiresPeriod: boolean;
-  description: string;
-}> = {
+export const DOCUMENT_TYPE_CONFIG: Record<
+  DocumentType,
+  {
+    label: string;
+    icon: string;
+    maxSize: number; // bytes
+    allowedMimeTypes: string[];
+    requiresPeriod: boolean;
+    description: string;
+  }
+> = {
   statement: {
-    label: 'Account Statement',
-    icon: 'FileText',
+    label: "Account Statement",
+    icon: "FileText",
     maxSize: 10 * 1024 * 1024, // 10MB
-    allowedMimeTypes: ['application/pdf'],
+    allowedMimeTypes: ["application/pdf"],
     requiresPeriod: true,
-    description: 'Monthly or quarterly account statements',
+    description: "Monthly or quarterly account statements",
   },
   notice: {
-    label: 'Fund Notice',
-    icon: 'Bell',
+    label: "Fund Notice",
+    icon: "Bell",
     maxSize: 5 * 1024 * 1024, // 5MB
-    allowedMimeTypes: ['application/pdf', 'text/plain', 'text/html'],
+    allowedMimeTypes: ["application/pdf", "text/plain", "text/html"],
     requiresPeriod: false,
-    description: 'Important fund announcements and notices',
+    description: "Important fund announcements and notices",
   },
   terms: {
-    label: 'Terms & Conditions',
-    icon: 'ScrollText',
+    label: "Terms & Conditions",
+    icon: "ScrollText",
     maxSize: 5 * 1024 * 1024, // 5MB
-    allowedMimeTypes: ['application/pdf'],
+    allowedMimeTypes: ["application/pdf"],
     requiresPeriod: false,
-    description: 'Fund terms and legal agreements',
+    description: "Fund terms and legal agreements",
   },
   agreement: {
-    label: 'Legal Agreement',
-    icon: 'FileSignature',
+    label: "Legal Agreement",
+    icon: "FileSignature",
     maxSize: 10 * 1024 * 1024, // 10MB
-    allowedMimeTypes: ['application/pdf'],
+    allowedMimeTypes: ["application/pdf"],
     requiresPeriod: false,
-    description: 'Legal agreements and contracts',
+    description: "Legal agreements and contracts",
   },
   report: {
-    label: 'Investment Report',
-    icon: 'BarChart3',
+    label: "Investment Report",
+    icon: "BarChart3",
     maxSize: 15 * 1024 * 1024, // 15MB
-    allowedMimeTypes: ['application/pdf', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+    allowedMimeTypes: [
+      "application/pdf",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ],
     requiresPeriod: true,
-    description: 'Performance and analytics reports',
+    description: "Performance and analytics reports",
   },
   certificate: {
-    label: 'Certificate',
-    icon: 'Award',
+    label: "Certificate",
+    icon: "Award",
     maxSize: 5 * 1024 * 1024, // 5MB
-    allowedMimeTypes: ['application/pdf'],
+    allowedMimeTypes: ["application/pdf"],
     requiresPeriod: false,
-    description: 'Investment certificates and confirmations',
+    description: "Investment certificates and confirmations",
   },
   other: {
-    label: 'Other Document',
-    icon: 'File',
+    label: "Other Document",
+    icon: "File",
     maxSize: 10 * 1024 * 1024, // 10MB
-    allowedMimeTypes: ['application/pdf', 'text/plain', 'image/png', 'image/jpeg'],
+    allowedMimeTypes: ["application/pdf", "text/plain", "image/png", "image/jpeg"],
     requiresPeriod: false,
-    description: 'Other fund-related documents',
+    description: "Other fund-related documents",
   },
 };
 
 export const MIME_TYPE_EXTENSIONS: Record<string, string> = {
-  'application/pdf': '.pdf',
-  'text/plain': '.txt',
-  'text/html': '.html',
-  'application/vnd.ms-excel': '.xls',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
-  'image/png': '.png',
-  'image/jpeg': '.jpg',
+  "application/pdf": ".pdf",
+  "text/plain": ".txt",
+  "text/html": ".html",
+  "application/vnd.ms-excel": ".xls",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+  "image/png": ".png",
+  "image/jpeg": ".jpg",
 };
 
 // Utility functions
@@ -188,7 +190,7 @@ export function validateDocumentUpload(request: DocumentUploadRequest): string[]
 
   // Required fields validation
   if (!request.title.trim()) {
-    errors.push('Document title is required');
+    errors.push("Document title is required");
   }
 
   if (config.requiresPeriod && !request.period_start) {
@@ -205,7 +207,7 @@ export function validateDocumentUpload(request: DocumentUploadRequest): string[]
 
   for (const pattern of piiPatterns) {
     if (pattern.test(filename)) {
-      errors.push('Filename should not contain personally identifiable information');
+      errors.push("Filename should not contain personally identifiable information");
       break;
     }
   }
@@ -214,7 +216,7 @@ export function validateDocumentUpload(request: DocumentUploadRequest): string[]
 }
 
 export function formatFileSize(bytes: number): string {
-  const units = ['B', 'KB', 'MB', 'GB'];
+  const units = ["B", "KB", "MB", "GB"];
   let size = bytes;
   let unitIndex = 0;
 
@@ -228,10 +230,10 @@ export function formatFileSize(bytes: number): string {
 
 export function generateSafeFilename(original: string, documentId: string): string {
   // Remove PII and special characters, add document ID
-  const extension = original.substring(original.lastIndexOf('.'));
+  const extension = original.substring(original.lastIndexOf("."));
   const baseName = original
-    .substring(0, original.lastIndexOf('.'))
-    .replace(/[^a-zA-Z0-9\-_]/g, '_')
+    .substring(0, original.lastIndexOf("."))
+    .replace(/[^a-zA-Z0-9\-_]/g, "_")
     .substring(0, 50); // Limit length
 
   return `${baseName}_${documentId}${extension}`;
@@ -241,7 +243,7 @@ export function getStoragePath(document: Partial<Document>): string {
   const { user_id, type, created_at, id } = document;
   const date = created_at || new Date();
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
 
   if (user_id) {
     // User-specific document

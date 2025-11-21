@@ -1,8 +1,14 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,21 +39,21 @@ const AdminInvites = () => {
   const fetchInvites = async () => {
     try {
       setLoading(true);
-      
+
       const { data, error } = await supabase
-        .from('admin_invites')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
+        .from("admin_invites")
+        .select("*")
+        .order("created_at", { ascending: false });
+
       if (error) throw error;
-      
+
       setInvites((data || []) as AdminInvite[]);
     } catch (error) {
-      console.error('Error fetching invites:', error);
+      console.error("Error fetching invites:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to fetch invitation data',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to fetch invitation data",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -58,62 +64,62 @@ const AdminInvites = () => {
   const createInvite = async () => {
     if (!newEmail || !isValidEmail(newEmail)) {
       toast({
-        title: 'Invalid Email',
-        description: 'Please enter a valid email address.',
-        variant: 'destructive',
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
       });
       return;
     }
 
     try {
       setCreating(true);
-      
+
       // Generate a random invite code
       const inviteCode = generateInviteCode();
-      
+
       // Set expiry date to 7 days from now
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
-      
+
       const { data, error } = await supabase
-        .from('admin_invites')
+        .from("admin_invites")
         .insert([
-          { 
-            email: newEmail, 
-            invite_code: inviteCode, 
+          {
+            email: newEmail,
+            invite_code: inviteCode,
             expires_at: expiresAt.toISOString(),
-          }
+          },
         ])
-        .select('*')
+        .select("*")
         .single();
-      
+
       if (error) {
-        if (error.code === '23505') {
+        if (error.code === "23505") {
           toast({
-            title: 'Duplicate Email',
-            description: 'An invitation for this email already exists.',
-            variant: 'destructive',
+            title: "Duplicate Email",
+            description: "An invitation for this email already exists.",
+            variant: "destructive",
           });
         } else {
           throw error;
         }
         return;
       }
-      
+
       toast({
-        title: 'Invitation Created',
-        description: 'Admin invitation has been created successfully.',
+        title: "Invitation Created",
+        description: "Admin invitation has been created successfully.",
       });
-      
+
       // Add the new invite to the state
       setInvites([data as AdminInvite, ...invites]);
       setNewEmail("");
     } catch (error) {
-      console.error('Error creating invite:', error);
+      console.error("Error creating invite:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to create invitation',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to create invitation",
+        variant: "destructive",
       });
     } finally {
       setCreating(false);
@@ -124,24 +130,24 @@ const AdminInvites = () => {
   const sendInvite = async (invite: AdminInvite) => {
     try {
       setSending(invite.id);
-      
+
       // Call the edge function to send the email
-      const { error } = await supabase.functions.invoke('send-admin-invite', {
-        body: { invite }
+      const { error } = await supabase.functions.invoke("send-admin-invite", {
+        body: { invite },
       });
-      
+
       if (error) throw error;
-      
+
       toast({
-        title: 'Invitation Sent',
+        title: "Invitation Sent",
         description: `Invitation email sent to ${invite.email}`,
       });
     } catch (error) {
-      console.error('Error sending invite:', error);
+      console.error("Error sending invite:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to send invitation email',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to send invitation email",
+        variant: "destructive",
       });
     } finally {
       setSending(null);
@@ -152,27 +158,24 @@ const AdminInvites = () => {
   const deleteInvite = async (id: string) => {
     try {
       setDeleting(id);
-      
-      const { error } = await supabase
-        .from('admin_invites')
-        .delete()
-        .eq('id', id);
-      
+
+      const { error } = await supabase.from("admin_invites").delete().eq("id", id);
+
       if (error) throw error;
-      
+
       // Remove the invite from state
-      setInvites(invites.filter(invite => invite.id !== id));
-      
+      setInvites(invites.filter((invite) => invite.id !== id));
+
       toast({
-        title: 'Invitation Deleted',
-        description: 'Admin invitation has been deleted.',
+        title: "Invitation Deleted",
+        description: "Admin invitation has been deleted.",
       });
     } catch (error) {
-      console.error('Error deleting invite:', error);
+      console.error("Error deleting invite:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to delete invitation',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to delete invitation",
+        variant: "destructive",
       });
     } finally {
       setDeleting(null);
@@ -183,10 +186,10 @@ const AdminInvites = () => {
   const copyInviteLink = (inviteCode: string) => {
     const link = `${window.location.origin}/admin-invite?code=${inviteCode}`;
     navigator.clipboard.writeText(link);
-    
+
     toast({
-      title: 'Link Copied',
-      description: 'Invitation link copied to clipboard',
+      title: "Link Copied",
+      description: "Invitation link copied to clipboard",
     });
   };
 
@@ -198,9 +201,7 @@ const AdminInvites = () => {
 
   // Helper to generate a random invite code
   const generateInviteCode = () => {
-    return [...Array(24)]
-      .map(() => Math.floor(Math.random() * 36).toString(36))
-      .join('');
+    return [...Array(24)].map(() => Math.floor(Math.random() * 36).toString(36)).join("");
   };
 
   // Fetch invites on component mount
@@ -221,7 +222,9 @@ const AdminInvites = () => {
             <h3 className="text-lg font-medium">Create New Invitation</h3>
             <div className="flex gap-4">
               <div className="flex-1">
-                <Label htmlFor="email" className="sr-only">Email</Label>
+                <Label htmlFor="email" className="sr-only">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   placeholder="Enter email address"
@@ -246,9 +249,7 @@ const AdminInvites = () => {
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             ) : invites.length === 0 ? (
-              <p className="text-center py-6 text-muted-foreground">
-                No active invitations found
-              </p>
+              <p className="text-center py-6 text-muted-foreground">No active invitations found</p>
             ) : (
               <div className="rounded-md border">
                 <Table>
@@ -265,12 +266,8 @@ const AdminInvites = () => {
                     {invites.map((invite) => (
                       <TableRow key={invite.id}>
                         <TableCell>{invite.email}</TableCell>
-                        <TableCell>
-                          {format(new Date(invite.created_at), "MMM d, yyyy")}
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(invite.expires_at), "MMM d, yyyy")}
-                        </TableCell>
+                        <TableCell>{format(new Date(invite.created_at), "MMM d, yyyy")}</TableCell>
+                        <TableCell>{format(new Date(invite.expires_at), "MMM d, yyyy")}</TableCell>
                         <TableCell>
                           <span
                             className={

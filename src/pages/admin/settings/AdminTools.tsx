@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
-import AdminPortfolios from '@/components/admin/AdminPortfolios';
-import { useInvestors } from '@/hooks/useInvestors';
+import { useEffect } from "react";
+import AdminPortfolios from "@/components/admin/AdminPortfolios";
+import { useInvestors } from "@/hooks/useInvestors";
 
 const AdminTools = () => {
   const { investors, assets, loading, refetch } = useInvestors();
@@ -15,11 +15,11 @@ const AdminTools = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Admin Tools</h1>
       </div>
-      <AdminPortfolios 
-        investors={investors} 
-        assets={assets} 
-        loading={loading} 
-        onRefresh={refetch} 
+      <AdminPortfolios
+        investors={investors}
+        assets={assets}
+        loading={loading}
+        onRefresh={refetch}
       />
     </div>
   );

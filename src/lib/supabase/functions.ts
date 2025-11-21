@@ -3,8 +3,8 @@
  * Automatically includes CSRF tokens and handles errors
  */
 
-import { supabase } from '@/integrations/supabase/client';
-import { addCsrfHeader } from '@/lib/security/csrf';
+import { supabase } from "@/integrations/supabase/client";
+import { addCsrfHeader } from "@/lib/security/csrf";
 
 export async function invokeFunction<T = any>(
   functionName: string,
@@ -16,7 +16,7 @@ export async function invokeFunction<T = any>(
   try {
     const { data, error } = await supabase.functions.invoke<T>(functionName, {
       body,
-      headers: addCsrfHeader(options?.headers || {})
+      headers: addCsrfHeader(options?.headers || {}),
     });
 
     if (error) {
@@ -27,9 +27,9 @@ export async function invokeFunction<T = any>(
     return { data, error: null };
   } catch (error) {
     console.error(`Function ${functionName} exception:`, error);
-    return { 
-      data: null, 
-      error: error instanceof Error ? error : new Error('Unknown error') 
+    return {
+      data: null,
+      error: error instanceof Error ? error : new Error("Unknown error"),
     };
   }
 }

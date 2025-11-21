@@ -7,10 +7,7 @@ export class AssetService {
     is_active?: boolean;
     search?: string;
   }): Promise<Asset[]> {
-    let query = supabase
-      .from("assets_v2")
-      .select("*")
-      .order("created_at", { ascending: false });
+    let query = supabase.from("assets_v2").select("*").order("created_at", { ascending: false });
 
     if (filters?.kind) {
       query = query.eq("kind", filters.kind);
@@ -70,10 +67,7 @@ export class AssetService {
   }
 
   async deleteAsset(assetId: string): Promise<void> {
-    const { error } = await supabase
-      .from("assets_v2")
-      .delete()
-      .eq("asset_id", assetId);
+    const { error } = await supabase.from("assets_v2").delete().eq("asset_id", assetId);
 
     if (error) throw error;
   }
@@ -123,9 +117,7 @@ export class AssetService {
     inactive: number;
     by_kind: Record<string, number>;
   }> {
-    const { data, error } = await supabase
-      .from("assets_v2")
-      .select("kind, is_active");
+    const { data, error } = await supabase.from("assets_v2").select("kind, is_active");
 
     if (error) throw error;
 

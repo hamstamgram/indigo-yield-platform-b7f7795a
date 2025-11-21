@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { FileText, Download, Calendar, Clock } from 'lucide-react';
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { FileText, Download, Calendar, Clock } from "lucide-react";
 
 interface SimpleReport {
   id: string;
   name: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: "pending" | "processing" | "completed" | "failed";
   created_at: string;
   file_size?: string;
 }
@@ -15,33 +15,40 @@ interface SimpleReport {
 export default function AdminBatchReportsPage() {
   const [reports] = useState<SimpleReport[]>([
     {
-      id: '1',
-      name: 'Monthly Statement Report',
-      status: 'completed',
+      id: "1",
+      name: "Monthly Statement Report",
+      status: "completed",
       created_at: new Date().toISOString(),
-      file_size: '2.4 MB'
+      file_size: "2.4 MB",
     },
     {
-      id: '2',
-      name: 'Portfolio Analytics Report',
-      status: 'processing',
-      created_at: new Date(Date.now() - 3600000).toISOString()
+      id: "2",
+      name: "Portfolio Analytics Report",
+      status: "processing",
+      created_at: new Date(Date.now() - 3600000).toISOString(),
     },
     {
-      id: '3',
-      name: 'Transaction Summary',
-      status: 'pending',
-      created_at: new Date(Date.now() - 7200000).toISOString()
-    }
+      id: "3",
+      name: "Transaction Summary",
+      status: "pending",
+      created_at: new Date(Date.now() - 7200000).toISOString(),
+    },
   ]);
 
-  const getStatusVariant = (status: string): 'default' | 'destructive' | 'outline' | 'secondary' => {
+  const getStatusVariant = (
+    status: string
+  ): "default" | "destructive" | "outline" | "secondary" => {
     switch (status) {
-      case 'completed': return 'default';
-      case 'processing': return 'outline';
-      case 'failed': return 'destructive';
-      case 'pending': return 'secondary';
-      default: return 'secondary';
+      case "completed":
+        return "default";
+      case "processing":
+        return "outline";
+      case "failed":
+        return "destructive";
+      case "pending":
+        return "secondary";
+      default:
+        return "secondary";
     }
   };
 
@@ -66,9 +73,7 @@ export default function AdminBatchReportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{reports.length}</div>
-            <p className="text-xs text-muted-foreground">
-              All time
-            </p>
+            <p className="text-xs text-muted-foreground">All time</p>
           </CardContent>
         </Card>
 
@@ -79,11 +84,9 @@ export default function AdminBatchReportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {reports.filter(r => r.status === 'completed').length}
+              {reports.filter((r) => r.status === "completed").length}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Ready for download
-            </p>
+            <p className="text-xs text-muted-foreground">Ready for download</p>
           </CardContent>
         </Card>
 
@@ -94,11 +97,9 @@ export default function AdminBatchReportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {reports.filter(r => r.status === 'processing').length}
+              {reports.filter((r) => r.status === "processing").length}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Currently generating
-            </p>
+            <p className="text-xs text-muted-foreground">Currently generating</p>
           </CardContent>
         </Card>
 
@@ -109,11 +110,9 @@ export default function AdminBatchReportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {reports.filter(r => r.status === 'pending').length}
+              {reports.filter((r) => r.status === "pending").length}
             </div>
-            <p className="text-xs text-muted-foreground">
-              In queue
-            </p>
+            <p className="text-xs text-muted-foreground">In queue</p>
           </CardContent>
         </Card>
       </div>
@@ -124,9 +123,7 @@ export default function AdminBatchReportsPage() {
             <FileText className="h-5 w-5" />
             Report History
           </CardTitle>
-          <CardDescription>
-            Generated reports and their current status
-          </CardDescription>
+          <CardDescription>Generated reports and their current status</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -140,9 +137,7 @@ export default function AdminBatchReportsPage() {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium">{report.name}</h3>
-                      <Badge variant={getStatusVariant(report.status)}>
-                        {report.status}
-                      </Badge>
+                      <Badge variant={getStatusVariant(report.status)}>{report.status}</Badge>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span>Created: {new Date(report.created_at).toLocaleString()}</span>
@@ -156,7 +151,7 @@ export default function AdminBatchReportsPage() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  {report.status === 'completed' && (
+                  {report.status === "completed" && (
                     <Button variant="outline" size="sm">
                       <Download className="h-4 w-4 mr-2" />
                       Download
@@ -171,9 +166,7 @@ export default function AdminBatchReportsPage() {
           </div>
 
           {reports.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              No reports found
-            </div>
+            <div className="text-center py-8 text-muted-foreground">No reports found</div>
           )}
         </CardContent>
       </Card>

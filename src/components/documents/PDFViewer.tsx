@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { useState } from "react";
+import { Document, Page, pdfjs } from "react-pdf";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   ChevronLeft,
   ChevronRight,
@@ -10,10 +10,10 @@ import {
   Download,
   Maximize,
   Minimize,
-  RotateCw
-} from 'lucide-react';
-import 'react-pdf/dist/Page/AnnotationLayer.css';
-import 'react-pdf/dist/Page/TextLayer.css';
+  RotateCw,
+} from "lucide-react";
+import "react-pdf/dist/Page/AnnotationLayer.css";
+import "react-pdf/dist/Page/TextLayer.css";
 
 // Set up the worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -36,7 +36,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url, onDownload }) => {
   }
 
   const changePage = (offset: number) => {
-    setPageNumber(prevPageNumber => prevPageNumber + offset);
+    setPageNumber((prevPageNumber) => prevPageNumber + offset);
   };
 
   const previousPage = () => {
@@ -48,15 +48,15 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url, onDownload }) => {
   };
 
   const zoomIn = () => {
-    setScale(prev => Math.min(prev + 0.2, 3.0));
+    setScale((prev) => Math.min(prev + 0.2, 3.0));
   };
 
   const zoomOut = () => {
-    setScale(prev => Math.max(prev - 0.2, 0.5));
+    setScale((prev) => Math.max(prev - 0.2, 0.5));
   };
 
   const rotate = () => {
-    setRotation(prev => (prev + 90) % 360);
+    setRotation((prev) => (prev + 90) % 360);
   };
 
   const toggleFullscreen = () => {
@@ -64,7 +64,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url, onDownload }) => {
   };
 
   return (
-    <Card className={isFullscreen ? 'fixed inset-0 z-50 rounded-none' : ''}>
+    <Card className={isFullscreen ? "fixed inset-0 z-50 rounded-none" : ""}>
       <div className="border-b p-4 bg-muted/50">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-2">
@@ -74,12 +74,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url, onDownload }) => {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={previousPage}
-              disabled={pageNumber <= 1}
-            >
+            <Button variant="outline" size="icon" onClick={previousPage} disabled={pageNumber <= 1}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
@@ -110,11 +105,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url, onDownload }) => {
             </Button>
 
             <Button variant="outline" size="icon" onClick={toggleFullscreen}>
-              {isFullscreen ? (
-                <Minimize className="h-4 w-4" />
-              ) : (
-                <Maximize className="h-4 w-4" />
-              )}
+              {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
             </Button>
 
             {onDownload && (
@@ -130,7 +121,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url, onDownload }) => {
         </div>
       </div>
 
-      <CardContent className={`p-0 ${isFullscreen ? 'h-[calc(100vh-80px)]' : 'h-[calc(100vh-300px)]'} overflow-auto bg-gray-100`}>
+      <CardContent
+        className={`p-0 ${isFullscreen ? "h-[calc(100vh-80px)]" : "h-[calc(100vh-300px)]"} overflow-auto bg-gray-100`}
+      >
         <div className="flex justify-center items-start min-h-full p-6">
           <Document
             file={url}

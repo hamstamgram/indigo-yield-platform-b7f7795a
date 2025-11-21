@@ -1,27 +1,36 @@
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Save, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useQuery } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, Save, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 
 const formSchema = z.object({
-  fund_id: z.string().uuid('Please select a fund'),
-  requested_amount: z.string().min(1, 'Amount is required').refine(
-    (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0,
-    'Amount must be greater than 0'
-  ),
-  withdrawal_type: z.enum(['partial', 'full']),
+  fund_id: z.string().uuid("Please select a fund"),
+  requested_amount: z
+    .string()
+    .min(1, "Amount is required")
+    .refine(
+      (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0,
+      "Amount must be greater than 0"
+    ),
+  withdrawal_type: z.enum(["partial", "full"]),
   notes: z.string().optional(),
 });
 
@@ -41,38 +50,42 @@ export default function NewWithdrawalPage() {
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      withdrawal_type: 'partial',
+      withdrawal_type: "partial",
     },
   });
 
-  const withdrawalType = watch('withdrawal_type');
-  const fundId = watch('fund_id');
+  const withdrawalType = watch("withdrawal_type");
+  const fundId = watch("fund_id");
 
   // Fetch user's funds and positions
   const { data: userFunds, isLoading: fundsLoading } = useQuery({
-    queryKey: ['user-funds-with-positions'],
+    queryKey: ["user-funds-with-positions"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user");
 
       // Get investor record
       const { data: investor } = await supabase
-        .from('investors')
-        .select('id')
-        .eq('profile_id', user.id)
+        .from("investors")
+        .select("id")
+        .eq("profile_id", user.id)
         .maybeSingle();
 
-      if (!investor) throw new Error('No investor record found');
+      if (!investor) throw new Error("No investor record found");
 
       // Get all positions with fund details
       const { data, error } = await supabase
-        .from('investor_positions')
-        .select(`
+        .from("investor_positions")
+        .select(
+          `
           *,
           funds:fund_id(id, name, code, fund_class)
-        `)
-        .eq('investor_id', investor.id)
-        .gt('current_value', 0);
+        `
+        )
+        .eq("investor_id", investor.id)
+        .gt("current_value", 0);
 
       if (error) throw error;
       return data;
@@ -87,60 +100,60 @@ export default function NewWithdrawalPage() {
       setMaxWithdrawal(fund?.current_value || 0);
 
       // If withdrawal type is 'full', set amount to max
-      if (withdrawalType === 'full' && fund) {
-        setValue('requested_amount', fund.current_value.toString());
+      if (withdrawalType === "full" && fund) {
+        setValue("requested_amount", fund.current_value.toString());
       }
     }
   }, [fundId, userFunds, withdrawalType, setValue]);
 
   const onSubmit = async (data: FormData) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user");
 
       // Get investor record
       const { data: investor } = await supabase
-        .from('investors')
-        .select('id')
-        .eq('profile_id', user.id)
+        .from("investors")
+        .select("id")
+        .eq("profile_id", user.id)
         .maybeSingle();
 
-      if (!investor) throw new Error('No investor record found');
+      if (!investor) throw new Error("No investor record found");
 
-      if (!investor) throw new Error('No investor record found');
+      if (!investor) throw new Error("No investor record found");
 
       // Get fund details
       const { data: fund } = await supabase
-        .from('funds')
-        .select('fund_class')
-        .eq('id', data.fund_id)
+        .from("funds")
+        .select("fund_class")
+        .eq("id", data.fund_id)
         .maybeSingle();
 
-      if (!fund) throw new Error('Fund not found');
+      if (!fund) throw new Error("Fund not found");
 
-      if (!fund) throw new Error('Fund not found');
+      if (!fund) throw new Error("Fund not found");
 
       // Create withdrawal request
-      const { error } = await supabase
-        .from('withdrawal_requests')
-        .insert({
-          investor_id: investor.id,
-          fund_id: data.fund_id,
-          fund_class: fund.fund_class,
-          requested_amount: parseFloat(data.requested_amount),
-          withdrawal_type: data.withdrawal_type,
-          notes: data.notes || null,
-          status: 'pending',
-          created_by: user.id,
-        });
+      const { error } = await supabase.from("withdrawal_requests").insert({
+        investor_id: investor.id,
+        fund_id: data.fund_id,
+        fund_class: fund.fund_class,
+        requested_amount: parseFloat(data.requested_amount),
+        withdrawal_type: data.withdrawal_type,
+        notes: data.notes || null,
+        status: "pending",
+        created_by: user.id,
+      });
 
       if (error) throw error;
 
-      toast.success('Withdrawal request submitted successfully');
-      navigate('/withdrawals/history');
+      toast.success("Withdrawal request submitted successfully");
+      navigate("/withdrawals/history");
     } catch (error: any) {
-      console.error('Error creating withdrawal request:', error);
-      toast.error(error.message || 'Failed to submit withdrawal request');
+      console.error("Error creating withdrawal request:", error);
+      toast.error(error.message || "Failed to submit withdrawal request");
     }
   };
 
@@ -189,18 +202,15 @@ export default function NewWithdrawalPage() {
             {/* Fund Selection */}
             <div className="space-y-2">
               <Label htmlFor="fund_id">Select Fund</Label>
-              <Select
-                onValueChange={(value) => setValue('fund_id', value)}
-                disabled={isSubmitting}
-              >
+              <Select onValueChange={(value) => setValue("fund_id", value)} disabled={isSubmitting}>
                 <SelectTrigger>
                   <SelectValue placeholder="Choose a fund to withdraw from" />
                 </SelectTrigger>
                 <SelectContent>
                   {userFunds.map((position: any) => (
                     <SelectItem key={position.fund_id} value={position.fund_id}>
-                      {position.funds.name} ({position.funds.fund_class}) -
-                      Available: {position.current_value.toFixed(2)}
+                      {position.funds.name} ({position.funds.fund_class}) - Available:{" "}
+                      {position.current_value.toFixed(2)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -214,7 +224,7 @@ export default function NewWithdrawalPage() {
             <div className="space-y-2">
               <Label htmlFor="withdrawal_type">Withdrawal Type</Label>
               <Select
-                onValueChange={(value: 'partial' | 'full') => setValue('withdrawal_type', value)}
+                onValueChange={(value: "partial" | "full") => setValue("withdrawal_type", value)}
                 defaultValue="partial"
                 disabled={isSubmitting}
               >
@@ -231,14 +241,16 @@ export default function NewWithdrawalPage() {
             {/* Amount */}
             <div className="space-y-2">
               <Label htmlFor="requested_amount">
-                Amount {selectedFund && `(Max: ${maxWithdrawal.toFixed(2)} ${selectedFund.funds.fund_class})`}
+                Amount{" "}
+                {selectedFund &&
+                  `(Max: ${maxWithdrawal.toFixed(2)} ${selectedFund.funds.fund_class})`}
               </Label>
               <Input
                 id="requested_amount"
                 type="number"
                 step="0.01"
-                {...register('requested_amount')}
-                disabled={isSubmitting || withdrawalType === 'full'}
+                {...register("requested_amount")}
+                disabled={isSubmitting || withdrawalType === "full"}
                 placeholder="Enter amount to withdraw"
               />
               {errors.requested_amount && (
@@ -251,7 +263,7 @@ export default function NewWithdrawalPage() {
               <Label htmlFor="notes">Notes (Optional)</Label>
               <Textarea
                 id="notes"
-                {...register('notes')}
+                {...register("notes")}
                 disabled={isSubmitting}
                 placeholder="Add any additional information about this withdrawal"
                 rows={3}
@@ -263,7 +275,8 @@ export default function NewWithdrawalPage() {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Your withdrawal request will be reviewed by an administrator. You will be notified once it has been processed.
+                  Your withdrawal request will be reviewed by an administrator. You will be notified
+                  once it has been processed.
                 </AlertDescription>
               </Alert>
             )}
@@ -273,7 +286,7 @@ export default function NewWithdrawalPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate('/withdrawals/history')}
+                onClick={() => navigate("/withdrawals/history")}
                 disabled={isSubmitting}
               >
                 Cancel

@@ -1,10 +1,10 @@
 /**
  * Portfolio Service - Updated for secure database schema
  */
-import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
-type AssetCode = Database['public']['Enums']['asset_code'];
+type AssetCode = Database["public"]["Enums"]["asset_code"];
 
 export interface PortfolioEntry {
   user_id: string;
@@ -27,15 +27,12 @@ export interface InvestorPosition {
  */
 export async function getUserPortfolio(userId: string): Promise<PortfolioEntry[]> {
   try {
-    const { data, error } = await supabase
-      .from('positions')
-      .select('*')
-      .eq('user_id', userId);
+    const { data, error } = await supabase.from("positions").select("*").eq("user_id", userId);
 
     if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error('Error fetching user portfolio:', error);
+    console.error("Error fetching user portfolio:", error);
     return [];
   }
 }
@@ -46,8 +43,9 @@ export async function getUserPortfolio(userId: string): Promise<PortfolioEntry[]
 export async function getInvestorPositions(investorId: string): Promise<InvestorPosition[]> {
   try {
     const { data, error } = await supabase
-      .from('investor_positions')
-      .select(`
+      .from("investor_positions")
+      .select(
+        `
         *,
         funds:fund_id (
           code,
@@ -55,13 +53,14 @@ export async function getInvestorPositions(investorId: string): Promise<Investor
           asset,
           fund_class
         )
-      `)
-      .eq('investor_id', investorId);
+      `
+      )
+      .eq("investor_id", investorId);
 
     if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error('Error fetching investor positions:', error);
+    console.error("Error fetching investor positions:", error);
     return [];
   }
 }
@@ -72,15 +71,15 @@ export async function getInvestorPositions(investorId: string): Promise<Investor
 export const fetchAssets = async () => {
   try {
     const { data, error } = await supabase
-      .from('assets')
-      .select('*')
-      .eq('is_active', true)
-      .order('name');
+      .from("assets")
+      .select("*")
+      .eq("is_active", true)
+      .order("name");
 
     if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error('Error fetching assets:', error);
+    console.error("Error fetching assets:", error);
     return [];
   }
 };
@@ -94,19 +93,19 @@ export const enrichInvestorsWithPortfolioData = async (investors: any[]) => {
       investors.map(async (investor) => {
         const positions = await getInvestorPositions(investor.id);
         const totalValue = positions.reduce((sum, pos) => sum + pos.current_value, 0);
-        
+
         return {
           ...investor,
           totalValue,
           positionCount: positions.length,
-          positions
+          positions,
         };
       })
     );
-    
+
     return enrichedInvestors;
   } catch (error) {
-    console.error('Error enriching investors with portfolio data:', error);
+    console.error("Error enriching investors with portfolio data:", error);
     return investors;
   }
 };
@@ -118,10 +117,10 @@ export async function createPortfolioEntries(investorId: string, assets: any[]):
   try {
     // This would typically create positions in the investor_positions table
     // For now, we'll just log the action
-    console.log('Creating portfolio entries for investor:', investorId, 'with assets:', assets);
+    console.log("Creating portfolio entries for investor:", investorId, "with assets:", assets);
     return true;
   } catch (error) {
-    console.error('Error creating portfolio entries:', error);
+    console.error("Error creating portfolio entries:", error);
     return false;
   }
 }
@@ -136,15 +135,15 @@ export async function updatePortfolioBalance(
 ): Promise<boolean> {
   try {
     const { error } = await supabase
-      .from('positions')
+      .from("positions")
       .update({ current_balance: newBalance, updated_at: new Date().toISOString() })
-      .eq('user_id', userId)
-      .eq('asset_code', assetCode as AssetCode);
+      .eq("user_id", userId)
+      .eq("asset_code", assetCode as AssetCode);
 
     if (error) throw error;
     return true;
   } catch (error) {
-    console.error('Error updating portfolio balance:', error);
+    console.error("Error updating portfolio balance:", error);
     return false;
   }
 }

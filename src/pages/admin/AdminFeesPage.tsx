@@ -53,19 +53,14 @@ function AdminFeesContent() {
   const loadAllData = async () => {
     setLoading(true);
     try {
-      const [
-        calculationsData,
-        structuresData,
-        summariesData,
-        statsData,
-        fundsData,
-      ] = await Promise.all([
-        feeService.getFeeCalculations(),
-        feeService.getFundFeeHistory(),
-        feeService.getFeeSummaries(),
-        feeService.getFeeStats(),
-        supabase.from("funds").select("id, name, code"),
-      ]);
+      const [calculationsData, structuresData, summariesData, statsData, fundsData] =
+        await Promise.all([
+          feeService.getFeeCalculations(),
+          feeService.getFundFeeHistory(),
+          feeService.getFeeSummaries(),
+          feeService.getFeeStats(),
+          supabase.from("funds").select("id, name, code"),
+        ]);
 
       setCalculations(calculationsData);
       setFilteredCalculations(calculationsData);
@@ -141,19 +136,13 @@ function AdminFeesContent() {
           <Card>
             <CardHeader>
               <CardTitle>Fee Calculations</CardTitle>
-              <CardDescription>
-                View and manage fee calculations for investors
-              </CardDescription>
+              <CardDescription>View and manage fee calculations for investors</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-4">
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search by investor..."
-                    className="pl-9"
-                    disabled
-                  />
+                  <Input placeholder="Search by investor..." className="pl-9" disabled />
                 </div>
 
                 <Select
@@ -223,10 +212,7 @@ function AdminFeesContent() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                 </div>
               ) : (
-                <FeeCalculationsTable
-                  calculations={filteredCalculations}
-                  onRefresh={loadAllData}
-                />
+                <FeeCalculationsTable calculations={filteredCalculations} onRefresh={loadAllData} />
               )}
             </CardContent>
           </Card>
@@ -260,9 +246,7 @@ function AdminFeesContent() {
           <Card>
             <CardHeader>
               <CardTitle>Monthly Fee Summary</CardTitle>
-              <CardDescription>
-                Aggregated fee collection by month
-              </CardDescription>
+              <CardDescription>Aggregated fee collection by month</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">

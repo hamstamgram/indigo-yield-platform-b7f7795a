@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Activity, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Activity, CheckCircle, AlertCircle, XCircle } from "lucide-react";
 
 interface ServiceStatus {
   name: string;
-  status: 'operational' | 'warning' | 'error';
+  status: "operational" | "warning" | "error";
   description: string;
   lastChecked: string;
 }
@@ -13,54 +13,64 @@ interface ServiceStatus {
 export default function StatusPage() {
   const [services] = useState<ServiceStatus[]>([
     {
-      name: 'Database',
-      status: 'operational',
-      description: 'All database operations running normally',
-      lastChecked: new Date().toISOString()
+      name: "Database",
+      status: "operational",
+      description: "All database operations running normally",
+      lastChecked: new Date().toISOString(),
     },
     {
-      name: 'Authentication',
-      status: 'operational', 
-      description: 'User authentication system operational',
-      lastChecked: new Date().toISOString()
+      name: "Authentication",
+      status: "operational",
+      description: "User authentication system operational",
+      lastChecked: new Date().toISOString(),
     },
     {
-      name: 'API Services',
-      status: 'operational',
-      description: 'All API endpoints responding normally',
-      lastChecked: new Date().toISOString()
+      name: "API Services",
+      status: "operational",
+      description: "All API endpoints responding normally",
+      lastChecked: new Date().toISOString(),
     },
     {
-      name: 'File Storage',
-      status: 'operational',
-      description: 'Document storage and retrieval operational',
-      lastChecked: new Date().toISOString()
-    }
+      name: "File Storage",
+      status: "operational",
+      description: "Document storage and retrieval operational",
+      lastChecked: new Date().toISOString(),
+    },
   ]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'operational': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'warning': return <AlertCircle className="h-4 w-4 text-yellow-500" />;
-      case 'error': return <XCircle className="h-4 w-4 text-red-500" />;
-      default: return <Activity className="h-4 w-4 text-gray-500" />;
+      case "operational":
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case "warning":
+        return <AlertCircle className="h-4 w-4 text-yellow-500" />;
+      case "error":
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <Activity className="h-4 w-4 text-gray-500" />;
     }
   };
 
-  const getStatusVariant = (status: string): 'default' | 'destructive' | 'outline' | 'secondary' => {
+  const getStatusVariant = (
+    status: string
+  ): "default" | "destructive" | "outline" | "secondary" => {
     switch (status) {
-      case 'operational': return 'default';
-      case 'warning': return 'outline';
-      case 'error': return 'destructive';
-      default: return 'secondary';
+      case "operational":
+        return "default";
+      case "warning":
+        return "outline";
+      case "error":
+        return "destructive";
+      default:
+        return "secondary";
     }
   };
 
-  const overallStatus = services.every(s => s.status === 'operational') 
-    ? 'operational' 
-    : services.some(s => s.status === 'error') 
-    ? 'error' 
-    : 'warning';
+  const overallStatus = services.every((s) => s.status === "operational")
+    ? "operational"
+    : services.some((s) => s.status === "error")
+      ? "error"
+      : "warning";
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -77,15 +87,16 @@ export default function StatusPage() {
             {getStatusIcon(overallStatus)}
             Overall System Status
           </CardTitle>
-          <CardDescription>
-            Current operational status of all platform services
-          </CardDescription>
+          <CardDescription>Current operational status of all platform services</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2 mb-4">
             <Badge variant={getStatusVariant(overallStatus)}>
-              {overallStatus === 'operational' ? 'All Systems Operational' :
-               overallStatus === 'error' ? 'Service Disruption' : 'Degraded Performance'}
+              {overallStatus === "operational"
+                ? "All Systems Operational"
+                : overallStatus === "error"
+                  ? "Service Disruption"
+                  : "Degraded Performance"}
             </Badge>
           </div>
         </CardContent>
@@ -100,15 +111,11 @@ export default function StatusPage() {
                   {getStatusIcon(service.status)}
                   {service.name}
                 </span>
-                <Badge variant={getStatusVariant(service.status)}>
-                  {service.status}
-                </Badge>
+                <Badge variant={getStatusVariant(service.status)}>{service.status}</Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-2">
-                {service.description}
-              </p>
+              <p className="text-sm text-muted-foreground mb-2">{service.description}</p>
               <p className="text-xs text-muted-foreground">
                 Last checked: {new Date(service.lastChecked).toLocaleString()}
               </p>

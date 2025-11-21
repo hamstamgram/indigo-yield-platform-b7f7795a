@@ -1,27 +1,30 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { MinusCircle, Info } from 'lucide-react';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { MinusCircle, Info } from "lucide-react";
 
 interface AdminWithdrawalFormProps {
   investors: any[];
   assets: any[];
 }
 
-const AdminWithdrawalForm: React.FC<AdminWithdrawalFormProps> = ({ 
-  investors, 
-  assets
-}) => {
+const AdminWithdrawalForm: React.FC<AdminWithdrawalFormProps> = ({ investors, assets }) => {
   const availableBalance = 0;
   const [formData, setFormData] = useState({
-    investor_id: '',
-    asset_id: '',
-    amount: '',
-    notes: ''
+    investor_id: "",
+    asset_id: "",
+    amount: "",
+    notes: "",
   });
   const { toast } = useToast();
 
@@ -30,11 +33,11 @@ const AdminWithdrawalForm: React.FC<AdminWithdrawalFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     toast({
-      title: 'Feature Temporarily Disabled',
-      description: 'Withdrawal processing is being updated for the new database schema',
-      variant: 'destructive',
+      title: "Feature Temporarily Disabled",
+      description: "Withdrawal processing is being updated for the new database schema",
+      variant: "destructive",
     });
   };
 
@@ -50,11 +53,11 @@ const AdminWithdrawalForm: React.FC<AdminWithdrawalFormProps> = ({
         <div className="flex items-center gap-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
           <Info className="h-5 w-5 text-yellow-600" />
           <div className="text-sm text-yellow-800">
-            This feature is temporarily unavailable while we update the database schema. 
-            All existing investor data remains safe and accessible.
+            This feature is temporarily unavailable while we update the database schema. All
+            existing investor data remains safe and accessible.
           </div>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4 opacity-50">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -115,9 +118,7 @@ const AdminWithdrawalForm: React.FC<AdminWithdrawalFormProps> = ({
 
             <div className="space-y-2">
               <Label>Available Balance</Label>
-              <div className="p-2 bg-muted rounded border">
-                {availableBalance.toFixed(6)}
-              </div>
+              <div className="p-2 bg-muted rounded border">{availableBalance.toFixed(6)}</div>
             </div>
           </div>
 

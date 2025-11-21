@@ -19,11 +19,7 @@ interface RejectDepositDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function RejectDepositDialog({
-  deposit,
-  open,
-  onOpenChange,
-}: RejectDepositDialogProps) {
+export function RejectDepositDialog({ deposit, open, onOpenChange }: RejectDepositDialogProps) {
   const queryClient = useQueryClient();
 
   const rejectMutation = useMutation({
@@ -45,8 +41,8 @@ export function RejectDepositDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Reject Deposit</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to reject this deposit? This action will mark the
-            deposit as rejected and cannot be undone.
+            Are you sure you want to reject this deposit? This action will mark the deposit as
+            rejected and cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -61,9 +57,7 @@ export function RejectDepositDialog({
           </div>
           <div className="flex justify-between">
             <span className="text-sm text-muted-foreground">Amount:</span>
-            <span className="text-sm font-medium">
-              {deposit.amount.toLocaleString()}
-            </span>
+            <span className="text-sm font-medium">{deposit.amount.toLocaleString()}</span>
           </div>
         </div>
 

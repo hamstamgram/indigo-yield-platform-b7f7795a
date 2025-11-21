@@ -10,8 +10,8 @@
  * - Error handling with detailed logging
  */
 
-import { supabase } from '@/integrations/supabase/client';
-import { getAirtableService, AirtableOnboardingRecord } from './airtableService';
+import { supabase } from "@/integrations/supabase/client";
+import { getAirtableService, AirtableOnboardingRecord } from "./airtableService";
 
 // =====================================================
 // TYPES & INTERFACES
@@ -34,7 +34,7 @@ export interface OnboardingSubmissionRow {
   additional_emails?: string[] | null;
   airtable_record_id: string;
   jotform_submission_id?: string | null;
-  status: 'pending' | 'processing' | 'approved' | 'rejected' | 'duplicate';
+  status: "pending" | "processing" | "approved" | "rejected" | "duplicate";
   submitted_at: string;
   raw_data: any; // JSONB
   notes?: string | null;
@@ -61,14 +61,14 @@ export class OnboardingSyncService {
     };
 
     try {
-      console.log('🔄 Starting onboarding sync from Airtable...');
+      console.log("🔄 Starting onboarding sync from Airtable...");
 
       // Fetch pending submissions from Airtable
       const airtableRecords = await this.airtableService.fetchPendingSubmissions();
       console.log(`📥 Found ${airtableRecords.length} pending submissions in Airtable`);
 
       if (airtableRecords.length === 0) {
-        console.log('✅ No pending submissions to sync');
+        console.log("✅ No pending submissions to sync");
         result.duration = Date.now() - startTime;
         return result;
       }
@@ -91,9 +91,8 @@ export class OnboardingSyncService {
           await this.insertSubmission(airtableRecord);
           result.recordsSynced++;
           console.log(`✅ Synced ${airtableRecord.id}`);
-
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
           result.errors.push({
             recordId: airtableRecord.id,
             error: errorMessage,
@@ -105,12 +104,13 @@ export class OnboardingSyncService {
       result.duration = Date.now() - startTime;
       result.success = result.errors.length === 0;
 
-      console.log(`✅ Sync complete: ${result.recordsSynced} synced, ${result.recordsSkipped} skipped, ${result.errors.length} errors (${result.duration}ms)`);
+      console.log(
+        `✅ Sync complete: ${result.recordsSynced} synced, ${result.recordsSkipped} skipped, ${result.errors.length} errors (${result.duration}ms)`
+      );
 
       return result;
-
     } catch (error) {
-      console.error('❌ Sync failed:', error);
+      console.error("❌ Sync failed:", error);
       result.success = false;
       result.duration = Date.now() - startTime;
       throw error;
@@ -127,9 +127,9 @@ export class OnboardingSyncService {
 
       // Check if already exists
       const { data: existing } = await supabase
-        .from('onboarding_submissions')
-        .select('id')
-        .eq('airtable_record_id', airtableRecordId)
+        .from("onboarding_submissions")
+        .select("id")
+        .eq("airtable_record_id", airtableRecordId)
         .single();
 
       if (existing) {
@@ -141,7 +141,6 @@ export class OnboardingSyncService {
         await this.insertSubmission(airtableRecord);
         console.log(`✅ Inserted submission ${airtableRecordId}`);
       }
-
     } catch (error) {
       console.error(`❌ Failed to sync submission ${airtableRecordId}:`, error);
       throw error;
@@ -163,7 +162,7 @@ export class OnboardingSyncService {
     };
 
     try {
-      console.log('🔄 Starting FULL sync from Airtable...');
+      console.log("🔄 Starting FULL sync from Airtable...");
 
       // Fetch all submissions from Airtable (no filter)
       const airtableRecords = await this.airtableService.fetchOnboardingSubmissions();
@@ -184,9 +183,8 @@ export class OnboardingSyncService {
             await this.insertSubmission(airtableRecord);
             result.recordsSynced++;
           }
-
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
           result.errors.push({
             recordId: airtableRecord.id,
             error: errorMessage,
@@ -198,12 +196,13 @@ export class OnboardingSyncService {
       result.duration = Date.now() - startTime;
       result.success = result.errors.length === 0;
 
-      console.log(`✅ Full sync complete: ${result.recordsSynced} synced, ${result.errors.length} errors (${result.duration}ms)`);
+      console.log(
+        `✅ Full sync complete: ${result.recordsSynced} synced, ${result.errors.length} errors (${result.duration}ms)`
+      );
 
       return result;
-
     } catch (error) {
-      console.error('❌ Full sync failed:', error);
+      console.error("❌ Full sync failed:", error);
       result.success = false;
       result.duration = Date.now() - startTime;
       throw error;
@@ -219,11 +218,11 @@ export class OnboardingSyncService {
    */
   private async getExistingAirtableRecordIds(): Promise<Set<string>> {
     const { data, error } = await supabase
-      .from('onboarding_submissions')
-      .select('airtable_record_id');
+      .from("onboarding_submissions")
+      .select("airtable_record_id");
 
     if (error) {
-      console.error('❌ Failed to fetch existing record IDs:', error);
+      console.error("❌ Failed to fetch existing record IDs:", error);
       throw error;
     }
 
@@ -236,9 +235,7 @@ export class OnboardingSyncService {
   private async insertSubmission(airtableRecord: AirtableOnboardingRecord): Promise<void> {
     const row = this.mapAirtableRecordToRow(airtableRecord);
 
-    const { error } = await supabase
-      .from('onboarding_submissions')
-      .insert(row);
+    const { error } = await supabase.from("onboarding_submissions").insert(row);
 
     if (error) {
       console.error(`❌ Failed to insert submission:`, error);
@@ -259,9 +256,9 @@ export class OnboardingSyncService {
     const { airtable_record_id, submitted_at, ...updateFields } = row;
 
     const { error } = await supabase
-      .from('onboarding_submissions')
+      .from("onboarding_submissions")
       .update(updateFields)
-      .eq('airtable_record_id', airtableRecordId);
+      .eq("airtable_record_id", airtableRecordId);
 
     if (error) {
       console.error(`❌ Failed to update submission:`, error);
@@ -277,31 +274,31 @@ export class OnboardingSyncService {
 
     // Parse additional emails (comma-separated string → array)
     let additionalEmails: string[] | null = null;
-    if (fields['Additional Emails']) {
-      additionalEmails = fields['Additional Emails']
-        .split(',')
+    if (fields["Additional Emails"]) {
+      additionalEmails = fields["Additional Emails"]
+        .split(",")
         .map((email) => email.trim())
         .filter(Boolean);
     }
 
     // Map status (default to 'pending')
-    let status: OnboardingSubmissionRow['status'] = 'pending';
+    let status: OnboardingSubmissionRow["status"] = "pending";
     if (fields.Status) {
-      status = fields.Status.toLowerCase() as OnboardingSubmissionRow['status'];
+      status = fields.Status.toLowerCase() as OnboardingSubmissionRow["status"];
     }
 
     return {
-      full_name: fields['Full Name'],
-      company_name: fields['Company Name'] || null,
-      email: fields['Email'],
-      phone: fields['Phone'] || null,
+      full_name: fields["Full Name"],
+      company_name: fields["Company Name"] || null,
+      email: fields["Email"],
+      phone: fields["Phone"] || null,
       additional_emails: additionalEmails,
       airtable_record_id: record.id,
-      jotform_submission_id: fields['Jotform Submission ID'] || null,
+      jotform_submission_id: fields["Jotform Submission ID"] || null,
       status,
       submitted_at: record.createdTime,
       raw_data: record, // Store full Airtable record for debugging
-      notes: fields['Notes'] || null,
+      notes: fields["Notes"] || null,
     };
   }
 }
@@ -322,13 +319,12 @@ export async function runBackgroundSync(): Promise<SyncResult> {
   const syncService = new OnboardingSyncService();
 
   try {
-    console.log('🕐 Background sync started');
+    console.log("🕐 Background sync started");
     const result = await syncService.syncPendingSubmissions();
-    console.log('🕐 Background sync completed:', result);
+    console.log("🕐 Background sync completed:", result);
     return result;
-
   } catch (error) {
-    console.error('❌ Background sync failed:', error);
+    console.error("❌ Background sync failed:", error);
     throw error;
   }
 }
@@ -362,7 +358,7 @@ export async function handleAirtableWebhook(recordIds: string[]): Promise<SyncRe
         await syncService.syncSubmissionById(recordId);
         result.recordsSynced++;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
         result.errors.push({ recordId, error: errorMessage });
         console.error(`❌ Failed to sync webhook record ${recordId}:`, error);
       }
@@ -371,12 +367,13 @@ export async function handleAirtableWebhook(recordIds: string[]): Promise<SyncRe
     result.duration = Date.now() - startTime;
     result.success = result.errors.length === 0;
 
-    console.log(`✅ Webhook processing complete: ${result.recordsSynced} synced, ${result.errors.length} errors (${result.duration}ms)`);
+    console.log(
+      `✅ Webhook processing complete: ${result.recordsSynced} synced, ${result.errors.length} errors (${result.duration}ms)`
+    );
 
     return result;
-
   } catch (error) {
-    console.error('❌ Webhook processing failed:', error);
+    console.error("❌ Webhook processing failed:", error);
     result.success = false;
     result.duration = Date.now() - startTime;
     throw error;

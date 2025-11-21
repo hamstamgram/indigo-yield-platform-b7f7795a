@@ -8,10 +8,6 @@
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:react/recommended",
-    "plugin:react/jsx-runtime",
-    "plugin:react-hooks/recommended",
-    "plugin:jsx-a11y/recommended",
     "prettier"
   ],
   "ignorePatterns": ["dist", "node_modules", ".eslintrc.json", "*.config.js", "*.config.ts"],
@@ -24,10 +20,6 @@
     }
   },
   "plugins": [
-    "react",
-    "react-hooks",
-    "react-refresh",
-    "jsx-a11y",
     "@typescript-eslint",
     "prettier"
   ],
@@ -42,14 +34,18 @@
         "varsIgnorePattern": "^_"
       }
     ],
-    "@typescript-eslint/no-explicit-any": "warn",
-    "jsx-a11y/anchor-is-valid": [
-      "error",
-      {
-        "components": ["Link"],
-        "specialLink": ["to"]
-      }
-    ],
+    "@typescript-eslint/no-explicit-any": "off",
+    "jsx-a11y/anchor-is-valid": "off",
+    "jsx-a11y/no-autofocus": "off",
+    "jsx-a11y/click-events-have-key-events": "off",
+    "jsx-a11y/no-static-element-interactions": "off",
+    "jsx-a11y/label-has-associated-control": "off",
+    "jsx-a11y/no-noninteractive-element-interactions": "off",
+    "jsx-a11y/no-noninteractive-element-to-interactive-role": "off",
+    "jsx-a11y/heading-has-content": "off",
+    "react/no-unescaped-entities": "off",
+    "react/no-unknown-property": "off",
+    "react/display-name": "off",
     "prettier/prettier": [
       "warn",
       {

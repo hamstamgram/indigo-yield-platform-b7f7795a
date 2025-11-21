@@ -1,21 +1,27 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { 
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import {
   getAllFundsWithAUM,
   updateInvestorAUMPercentages,
   processDailyAUMWithYield,
   previewDailyYieldCalculation,
-  type YieldCalculationResult
-} from '@/services/aumService';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Loader2, TrendingUp, Users, RefreshCw } from 'lucide-react';
-import { formatAssetValue } from '@/utils/kpiCalculations';
+  type YieldCalculationResult,
+} from "@/services/aumService";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Loader2, TrendingUp, Users, RefreshCw } from "lucide-react";
+import { formatAssetValue } from "@/utils/kpiCalculations";
 
 interface FundWithAUM {
   id: string;
@@ -30,9 +36,9 @@ interface FundWithAUM {
 
 export default function FundAUMManager() {
   const [funds, setFunds] = useState<FundWithAUM[]>([]);
-  const [selectedFund, setSelectedFund] = useState<string>('');
-  const [aumAmount, setAumAmount] = useState<string>('');
-  const [aumDate, setAumDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedFund, setSelectedFund] = useState<string>("");
+  const [aumAmount, setAumAmount] = useState<string>("");
+  const [aumDate, setAumDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUpdatingPercentages, setIsUpdatingPercentages] = useState(false);
   const [yieldPreview, setYieldPreview] = useState<YieldCalculationResult | null>(null);
@@ -52,11 +58,11 @@ export default function FundAUMManager() {
         setSelectedFund(data[0].id);
       }
     } catch (error) {
-      console.error('Error fetching funds:', error);
+      console.error("Error fetching funds:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to fetch funds data',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to fetch funds data",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -79,11 +85,11 @@ export default function FundAUMManager() {
       } else {
         setYieldPreview(null);
         if (result.error) {
-          console.error('Preview error:', result.error);
+          console.error("Preview error:", result.error);
         }
       }
     } catch (error) {
-      console.error('Error previewing yield:', error);
+      console.error("Error previewing yield:", error);
       setYieldPreview(null);
     } finally {
       setIsLoadingPreview(false);
@@ -104,35 +110,31 @@ export default function FundAUMManager() {
   const handleSetAUM = async () => {
     if (!selectedFund || !aumAmount) {
       toast({
-        title: 'Validation Error',
-        description: 'Please select a fund and enter an AUM amount',
-        variant: 'destructive',
+        title: "Validation Error",
+        description: "Please select a fund and enter an AUM amount",
+        variant: "destructive",
       });
       return;
     }
 
     try {
       setIsLoading(true);
-      
+
       // Use enhanced processing with automatic yield calculation
-      const result = await processDailyAUMWithYield(
-        selectedFund, 
-        parseFloat(aumAmount), 
-        aumDate
-      );
-      
+      const result = await processDailyAUMWithYield(selectedFund, parseFloat(aumAmount), aumDate);
+
       if (!result.success) {
-        throw new Error(result.error || 'Failed to process daily AUM');
+        throw new Error(result.error || "Failed to process daily AUM");
       }
-      
+
       // Build success message with yield information
       let successMessage = `Successfully processed daily AUM for ${aumDate}`;
-      
+
       if (result.yieldDistribution && result.yieldCalculation) {
         const yieldAmount = result.yieldCalculation.calculated_yield || 0;
         const yieldPercent = result.yieldCalculation.yield_percentage || 0;
         const investorsAffected = result.yieldDistribution.investors_affected;
-        
+
         successMessage += `\n🚀 Yield Generated: ${yieldAmount.toFixed(6)} (${yieldPercent.toFixed(4)}%)`;
         successMessage += `\n👥 Successfully distributed to ${investorsAffected} investors`;
       } else if (result.yieldCalculation && (result.yieldCalculation.calculated_yield || 0) <= 0) {
@@ -140,26 +142,26 @@ export default function FundAUMManager() {
       } else {
         successMessage += `\n📊 AUM updated successfully`;
       }
-      
+
       toast({
-        title: '✅ AUM & Yield Processed',
+        title: "✅ AUM & Yield Processed",
         description: successMessage,
-        duration: 8000
+        duration: 8000,
       });
-      
+
       // Refresh funds data and reset form
       await fetchFunds();
-      setAumAmount('');
+      setAumAmount("");
       setYieldPreview(null);
-      
     } catch (error) {
-      console.error('Error processing daily AUM:', error);
-      
+      console.error("Error processing daily AUM:", error);
+
       toast({
-        title: '❌ Operation Failed',
-        description: error instanceof Error ? error.message : 'Failed to process daily AUM with yield',
-        variant: 'destructive',
-        duration: 7000
+        title: "❌ Operation Failed",
+        description:
+          error instanceof Error ? error.message : "Failed to process daily AUM with yield",
+        variant: "destructive",
+        duration: 7000,
       });
     } finally {
       setIsLoading(false);
@@ -169,43 +171,42 @@ export default function FundAUMManager() {
   const handleRecalculatePercentages = async () => {
     if (!selectedFund) {
       toast({
-        title: 'Validation Error',
-        description: 'Please select a fund',
-        variant: 'destructive',
+        title: "Validation Error",
+        description: "Please select a fund",
+        variant: "destructive",
       });
       return;
     }
 
     try {
       setIsUpdatingPercentages(true);
-      
+
       const result = await updateInvestorAUMPercentages(selectedFund);
-      
+
       if (!result.success) {
-        throw new Error(result.error || 'Failed to update percentages');
+        throw new Error(result.error || "Failed to update percentages");
       }
-      
+
       toast({
-        title: '✅ Percentages Updated',
-        description: 'Successfully recalculated investor AUM percentages',
-        duration: 5000
+        title: "✅ Percentages Updated",
+        description: "Successfully recalculated investor AUM percentages",
+        duration: 5000,
       });
-      
     } catch (error) {
-      console.error('Error updating percentages:', error);
-      
+      console.error("Error updating percentages:", error);
+
       toast({
-        title: '❌ Operation Failed',
-        description: error instanceof Error ? error.message : 'Failed to update AUM percentages',
-        variant: 'destructive',
-        duration: 7000
+        title: "❌ Operation Failed",
+        description: error instanceof Error ? error.message : "Failed to update AUM percentages",
+        variant: "destructive",
+        duration: 7000,
       });
     } finally {
       setIsUpdatingPercentages(false);
     }
   };
 
-  const selectedFundData = funds.find(f => f.id === selectedFund);
+  const selectedFundData = funds.find((f) => f.id === selectedFund);
 
   return (
     <div className="space-y-6">
@@ -221,10 +222,10 @@ export default function FundAUMManager() {
       {/* Fund Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {funds.map((fund) => (
-          <Card 
+          <Card
             key={fund.id}
             className={`cursor-pointer transition-colors ${
-              selectedFund === fund.id ? 'ring-2 ring-primary' : ''
+              selectedFund === fund.id ? "ring-2 ring-primary" : ""
             }`}
             onClick={() => setSelectedFund(fund.id)}
           >
@@ -234,7 +235,7 @@ export default function FundAUMManager() {
                 <Badge>{fund.asset}</Badge>
               </div>
               <h3 className="font-semibold text-sm mb-3">{fund.name}</h3>
-              
+
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground flex items-center gap-1">
@@ -245,7 +246,7 @@ export default function FundAUMManager() {
                     {formatAssetValue(fund.latest_aum, fund.asset)} {fund.asset}
                   </span>
                 </div>
-                
+
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground flex items-center gap-1">
                     <Users className="h-3 w-3" />
@@ -274,11 +275,9 @@ export default function FundAUMManager() {
                 <TrendingUp className="h-5 w-5" />
                 Set Daily AUM
               </CardTitle>
-              <CardDescription>
-                Update the daily AUM value for the selected fund
-              </CardDescription>
+              <CardDescription>Update the daily AUM value for the selected fund</CardDescription>
             </div>
-            
+
             {selectedFundData && (
               <Button
                 variant="outline"
@@ -310,7 +309,7 @@ export default function FundAUMManager() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="aum-date">AUM Date</Label>
               <Input
@@ -320,10 +319,10 @@ export default function FundAUMManager() {
                 onChange={(e) => setAumDate(e.target.value)}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="aum-amount">
-                AUM Amount {selectedFundData ? `(${selectedFundData.asset})` : ''}
+                AUM Amount {selectedFundData ? `(${selectedFundData.asset})` : ""}
               </Label>
               <Input
                 id="aum-amount"
@@ -353,7 +352,8 @@ export default function FundAUMManager() {
                 <div>
                   <span className="text-muted-foreground">Current AUM:</span>
                   <span className="ml-2 font-medium">
-                    {formatAssetValue(selectedFundData.latest_aum, selectedFundData.asset)} {selectedFundData.asset}
+                    {formatAssetValue(selectedFundData.latest_aum, selectedFundData.asset)}{" "}
+                    {selectedFundData.asset}
                   </span>
                 </div>
                 <div>
@@ -372,66 +372,83 @@ export default function FundAUMManager() {
                 Yield Calculation Preview
                 {isLoadingPreview && <Loader2 className="h-4 w-4 animate-spin" />}
               </h4>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="text-blue-700 dark:text-blue-300 block">Previous AUM</span>
                   <span className="font-mono font-medium">
-                    {formatAssetValue(yieldPreview.previous_aum, selectedFundData?.asset || '')} {selectedFundData?.asset}
+                    {formatAssetValue(yieldPreview.previous_aum, selectedFundData?.asset || "")}{" "}
+                    {selectedFundData?.asset}
                   </span>
                 </div>
-                
+
                 <div>
                   <span className="text-blue-700 dark:text-blue-300 block">Deposits Today</span>
                   <span className="font-mono font-medium text-green-600">
-                    +{formatAssetValue(yieldPreview.deposits, selectedFundData?.asset || '')} {selectedFundData?.asset}
+                    +{formatAssetValue(yieldPreview.deposits, selectedFundData?.asset || "")}{" "}
+                    {selectedFundData?.asset}
                   </span>
                 </div>
-                
+
                 <div>
                   <span className="text-blue-700 dark:text-blue-300 block">Withdrawals Today</span>
                   <span className="font-mono font-medium text-red-600">
-                    -{formatAssetValue(yieldPreview.withdrawals, selectedFundData?.asset || '')} {selectedFundData?.asset}
+                    -{formatAssetValue(yieldPreview.withdrawals, selectedFundData?.asset || "")}{" "}
+                    {selectedFundData?.asset}
                   </span>
                 </div>
-                
+
                 <div>
                   <span className="text-blue-700 dark:text-blue-300 block">New AUM</span>
                   <span className="font-mono font-medium">
-                    {formatAssetValue(yieldPreview.current_aum, selectedFundData?.asset || '')} {selectedFundData?.asset}
+                    {formatAssetValue(yieldPreview.current_aum, selectedFundData?.asset || "")}{" "}
+                    {selectedFundData?.asset}
                   </span>
                 </div>
               </div>
-              
+
               <div className="mt-4 p-3 bg-white/60 dark:bg-gray-900/60 rounded-md border">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-blue-700 dark:text-blue-300 text-sm">Calculated Yield</span>
-                    <div className={`font-mono text-lg font-bold ${
-                      yieldPreview.calculated_yield >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {yieldPreview.calculated_yield >= 0 ? '+' : ''}
-                      {formatAssetValue(yieldPreview.calculated_yield, selectedFundData?.asset || '')} {selectedFundData?.asset}
+                    <span className="text-blue-700 dark:text-blue-300 text-sm">
+                      Calculated Yield
+                    </span>
+                    <div
+                      className={`font-mono text-lg font-bold ${
+                        yieldPreview.calculated_yield >= 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {yieldPreview.calculated_yield >= 0 ? "+" : ""}
+                      {formatAssetValue(
+                        yieldPreview.calculated_yield,
+                        selectedFundData?.asset || ""
+                      )}{" "}
+                      {selectedFundData?.asset}
                     </div>
                   </div>
-                  
+
                   <div className="text-right">
-                    <span className="text-blue-700 dark:text-blue-300 text-sm">Yield Percentage</span>
-                    <div className={`font-mono text-lg font-bold ${
-                      yieldPreview.yield_percentage >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {yieldPreview.yield_percentage >= 0 ? '+' : ''}
+                    <span className="text-blue-700 dark:text-blue-300 text-sm">
+                      Yield Percentage
+                    </span>
+                    <div
+                      className={`font-mono text-lg font-bold ${
+                        yieldPreview.yield_percentage >= 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {yieldPreview.yield_percentage >= 0 ? "+" : ""}
                       {yieldPreview.yield_percentage.toFixed(4)}%
                     </div>
                   </div>
                 </div>
-                
+
                 {yieldPreview.calculated_yield > 0 && (
                   <div className="mt-2 text-sm text-blue-600 dark:text-blue-400">
-                    ✨ This yield will be automatically distributed to all investors based on their AUM percentage
+                    ✨ This yield will be automatically distributed to all investors based on their
+                    AUM percentage
                   </div>
                 )}
-                
+
                 {yieldPreview.calculated_yield <= 0 && (
                   <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                     📊 No yield will be distributed (zero or negative yield)
@@ -440,17 +457,19 @@ export default function FundAUMManager() {
               </div>
             </div>
           )}
-          
+
           <Separator />
-          
+
           <div className="flex justify-end">
-            <Button 
+            <Button
               onClick={handleSetAUM}
               disabled={isLoading || !selectedFund || !aumAmount}
               className="min-w-[200px]"
             >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {yieldPreview && yieldPreview.calculated_yield > 0 ? 'Process AUM & Distribute Yield' : 'Set Daily AUM'}
+              {yieldPreview && yieldPreview.calculated_yield > 0
+                ? "Process AUM & Distribute Yield"
+                : "Set Daily AUM"}
             </Button>
           </div>
         </CardContent>

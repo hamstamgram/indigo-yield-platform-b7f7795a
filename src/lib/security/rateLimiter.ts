@@ -3,12 +3,12 @@
  * Protects API endpoints from abuse and DDoS attacks
  */
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 interface RateLimitConfig {
   windowMs: number;
   maxRequests: number;
-  identifier: 'ip' | 'user' | 'combined';
+  identifier: "ip" | "user" | "combined";
 }
 
 interface RateLimitStore {
@@ -36,12 +36,12 @@ class RateLimiter {
   ): Promise<{ allowed: boolean; remaining: number; resetTime: number }> {
     const now = Date.now();
     const key = `${config.identifier}:${identifier}`;
-    
+
     // Get or create rate limit entry
     if (!this.store[key] || this.store[key].resetTime < now) {
       this.store[key] = {
         requests: 0,
-        resetTime: now + config.windowMs
+        resetTime: now + config.windowMs,
       };
     }
 
@@ -59,31 +59,28 @@ class RateLimiter {
     return {
       allowed,
       remaining,
-      resetTime: entry.resetTime
+      resetTime: entry.resetTime,
     };
   }
 
   /**
    * Log rate limit violations for security monitoring
    */
-  private async logRateLimitViolation(
-    identifier: string,
-    config: RateLimitConfig
-  ) {
+  private async logRateLimitViolation(identifier: string, config: RateLimitConfig) {
     try {
-      await supabase.from('audit_log').insert({
-        action: 'RATE_LIMIT_EXCEEDED',
-        entity: 'api_request',
+      await supabase.from("audit_log").insert({
+        action: "RATE_LIMIT_EXCEEDED",
+        entity: "api_request",
         entity_id: identifier,
         meta: {
           identifier_type: config.identifier,
           max_requests: config.maxRequests,
           window_ms: config.windowMs,
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       });
     } catch (error) {
-      console.error('Failed to log rate limit violation:', error);
+      console.error("Failed to log rate limit violation:", error);
     }
   }
 
@@ -92,7 +89,7 @@ class RateLimiter {
    */
   private cleanup() {
     const now = Date.now();
-    Object.keys(this.store).forEach(key => {
+    Object.keys(this.store).forEach((key) => {
       if (this.store[key].resetTime < now) {
         delete this.store[key];
       }
@@ -115,22 +112,22 @@ class RateLimiter {
 export const RATE_LIMITS = {
   // Authentication endpoints
   auth: {
-    login: { windowMs: 15 * 60 * 1000, maxRequests: 5, identifier: 'ip' as const },
-    register: { windowMs: 60 * 60 * 1000, maxRequests: 3, identifier: 'ip' as const },
-    passwordReset: { windowMs: 60 * 60 * 1000, maxRequests: 3, identifier: 'ip' as const },
+    login: { windowMs: 15 * 60 * 1000, maxRequests: 5, identifier: "ip" as const },
+    register: { windowMs: 60 * 60 * 1000, maxRequests: 3, identifier: "ip" as const },
+    passwordReset: { windowMs: 60 * 60 * 1000, maxRequests: 3, identifier: "ip" as const },
   },
   // API endpoints
   api: {
-    default: { windowMs: 60 * 1000, maxRequests: 100, identifier: 'user' as const },
-    heavy: { windowMs: 60 * 1000, maxRequests: 10, identifier: 'user' as const },
-    sensitive: { windowMs: 60 * 1000, maxRequests: 20, identifier: 'user' as const },
+    default: { windowMs: 60 * 1000, maxRequests: 100, identifier: "user" as const },
+    heavy: { windowMs: 60 * 1000, maxRequests: 10, identifier: "user" as const },
+    sensitive: { windowMs: 60 * 1000, maxRequests: 20, identifier: "user" as const },
   },
   // Admin endpoints
   admin: {
-    default: { windowMs: 60 * 1000, maxRequests: 200, identifier: 'user' as const },
-    bulk: { windowMs: 60 * 1000, maxRequests: 5, identifier: 'user' as const },
-    export: { windowMs: 60 * 60 * 1000, maxRequests: 10, identifier: 'user' as const },
-  }
+    default: { windowMs: 60 * 1000, maxRequests: 200, identifier: "user" as const },
+    bulk: { windowMs: 60 * 1000, maxRequests: 5, identifier: "user" as const },
+    export: { windowMs: 60 * 60 * 1000, maxRequests: 10, identifier: "user" as const },
+  },
 };
 
 // Singleton instance
@@ -152,7 +149,7 @@ export function getRateLimiter(): RateLimiter {
 export function useRateLimit(config: RateLimitConfig) {
   const checkLimit = async (identifier?: string) => {
     const limiter = getRateLimiter();
-    const id = identifier || 'anonymous';
+    const id = identifier || "anonymous";
     return await limiter.checkLimit(id, config);
   };
 
@@ -168,11 +165,13 @@ export function withRateLimit(config: RateLimitConfig) {
 
     descriptor.value = async function (...args: any[]) {
       const limiter = getRateLimiter();
-      const { data: { user } } = await supabase.auth.getUser();
-      const identifier = user?.id || 'anonymous';
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const identifier = user?.id || "anonymous";
+
       const { allowed, resetTime } = await limiter.checkLimit(identifier, config);
-      
+
       if (!allowed) {
         throw new Error(`Rate limit exceeded. Try again at ${new Date(resetTime).toISOString()}`);
       }

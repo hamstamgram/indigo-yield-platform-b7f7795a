@@ -2,30 +2,32 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.3";
 
 // Secure CORS configuration
-const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [];
+const allowedOrigins = Deno.env.get("ALLOWED_ORIGINS")?.split(",") || [];
 const corsHeaders = (origin: string | null) => ({
-  'Access-Control-Allow-Origin': origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  "Access-Control-Allow-Origin":
+    origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-csrf-token",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 });
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 // Create admin client with service role key
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
-  auth: { autoRefreshToken: false, persistSession: false }
+  auth: { autoRefreshToken: false, persistSession: false },
 });
 
 // Create regular client for RLS-enabled operations
-const supabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!);
+const supabase = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!);
 
 interface CreateUserRequest {
   email: string;
   firstName: string;
   lastName: string;
   phone?: string;
-  role: 'LP' | 'admin';
+  role: "LP" | "admin";
   selectedFunds: string[];
   sendWelcomeEmail: boolean;
 }
@@ -36,48 +38,48 @@ interface UpdateUserRequest {
 }
 
 serve(async (req) => {
-  const origin = req.headers.get('origin');
+  const origin = req.headers.get("origin");
   const headers = corsHeaders(origin);
-  
+
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers });
   }
 
   try {
     // CSRF validation for state-changing operations
-    const csrfToken = req.headers.get('x-csrf-token');
+    const csrfToken = req.headers.get("x-csrf-token");
     if (!csrfToken || csrfToken.length < 32) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Invalid CSRF token' }),
-        { headers: { ...headers, 'Content-Type': 'application/json' }, status: 403 }
-      );
+      return new Response(JSON.stringify({ success: false, error: "Invalid CSRF token" }), {
+        headers: { ...headers, "Content-Type": "application/json" },
+        status: 403,
+      });
     }
-    
+
     // Verify the request is from an authenticated admin
-    const authHeader = req.headers.get('Authorization');
+    const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      throw new Error('Missing authorization header');
+      throw new Error("Missing authorization header");
     }
 
     // Set auth for regular client
-    supabase.auth.setAuth(authHeader.replace('Bearer ', ''));
-    
+    supabase.auth.setAuth(authHeader.replace("Bearer ", ""));
+
     // Verify admin status using our secure function
-    const { data: isAdmin, error: adminCheckError } = await supabase.rpc('is_admin_secure');
+    const { data: isAdmin, error: adminCheckError } = await supabase.rpc("is_admin_secure");
     if (adminCheckError || !isAdmin) {
-      throw new Error('Admin access required');
+      throw new Error("Admin access required");
     }
 
     const { action, ...params } = await req.json();
 
     let result;
-    
+
     switch (action) {
-      case 'createUser':
+      case "createUser":
         result = await createUser(params as CreateUserRequest);
         break;
-      case 'updateUser':
+      case "updateUser":
         result = await updateUser(params as UpdateUserRequest);
         break;
       default:
@@ -85,18 +87,18 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify(result), {
-      headers: { ...headers, 'Content-Type': 'application/json' },
+      headers: { ...headers, "Content-Type": "application/json" },
     });
-
   } catch (error) {
-    console.error('Error in admin-user-management function:', error);
+    console.error("Error in admin-user-management function:", error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message 
-      }), {
+      JSON.stringify({
+        success: false,
+        error: error.message,
+      }),
+      {
         status: 400,
-        headers: { ...headers, 'Content-Type': 'application/json' },
+        headers: { ...headers, "Content-Type": "application/json" },
       }
     );
   }
@@ -115,9 +117,9 @@ async function createUser(params: CreateUserRequest): Promise<any> {
       first_name: firstName,
       last_name: lastName,
       phone: phone || null,
-      is_admin: role === 'admin',
+      is_admin: role === "admin",
       created_by_admin: true,
-    }
+    },
   });
 
   if (createError) {
@@ -125,18 +127,18 @@ async function createUser(params: CreateUserRequest): Promise<any> {
   }
 
   if (!newUser.user) {
-    throw new Error('User creation failed - no user returned');
+    throw new Error("User creation failed - no user returned");
   }
 
   console.log(`Created user with ID: ${newUser.user.id}`);
 
   // Create profile record using secure RPC
-  const { error: profileError } = await supabase.rpc('create_investor_profile', {
+  const { error: profileError } = await supabase.rpc("create_investor_profile", {
     p_email: email,
     p_first_name: firstName,
     p_last_name: lastName,
     p_phone: phone,
-    p_send_invite: sendWelcomeEmail
+    p_send_invite: sendWelcomeEmail,
   });
 
   if (profileError) {
@@ -146,19 +148,16 @@ async function createUser(params: CreateUserRequest): Promise<any> {
   }
 
   // Store fund preferences if LP role
-  if (role === 'LP' && selectedFunds.length > 0) {
-    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      newUser.user.id,
-      {
-        user_metadata: {
-          ...newUser.user.user_metadata,
-          fund_preferences: selectedFunds,
-        }
-      }
-    );
+  if (role === "LP" && selectedFunds.length > 0) {
+    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(newUser.user.id, {
+      user_metadata: {
+        ...newUser.user.user_metadata,
+        fund_preferences: selectedFunds,
+      },
+    });
 
     if (updateError) {
-      console.warn('Failed to store fund preferences:', updateError);
+      console.warn("Failed to store fund preferences:", updateError);
     }
   }
 
@@ -169,7 +168,7 @@ async function createUser(params: CreateUserRequest): Promise<any> {
 
   // Create admin invite record
   const { data: invite, error: inviteError } = await supabase
-    .from('admin_invites')
+    .from("admin_invites")
     .insert({
       email: email,
       invite_code: inviteCode,
@@ -179,31 +178,31 @@ async function createUser(params: CreateUserRequest): Promise<any> {
     .single();
 
   if (inviteError) {
-    console.warn('Failed to create invite record:', inviteError);
+    console.warn("Failed to create invite record:", inviteError);
   }
 
   // Send welcome email if requested
   if (sendWelcomeEmail) {
     try {
-      const { error: notificationError } = await supabase.functions.invoke('ef_send_notification', {
+      const { error: notificationError } = await supabase.functions.invoke("ef_send_notification", {
         body: {
           user_id: newUser.user.id,
-          type: 'system',
-          title: 'Welcome to Indigo Yield',
+          type: "system",
+          title: "Welcome to Indigo Yield",
           body: `Your investor account has been created. Please check your email for setup instructions.`,
           data: {
             invite_code: inviteCode,
             expires_at: expiresAt.toISOString(),
           },
           send_email: true,
-        }
+        },
       });
 
       if (notificationError) {
-        console.warn('Failed to send welcome notification:', notificationError);
+        console.warn("Failed to send welcome notification:", notificationError);
       }
     } catch (emailError) {
-      console.warn('Email sending failed:', emailError);
+      console.warn("Email sending failed:", emailError);
     }
   }
 
@@ -214,7 +213,7 @@ async function createUser(params: CreateUserRequest): Promise<any> {
     user_id: newUser.user.id,
     email: email,
     invite_code: inviteCode,
-    message: `Investor account created successfully for ${email}. ${sendWelcomeEmail ? 'Welcome email sent.' : 'No email sent.'}`,
+    message: `Investor account created successfully for ${email}. ${sendWelcomeEmail ? "Welcome email sent." : "No email sent."}`,
     invite_id: invite?.id,
   };
 }
@@ -225,21 +224,19 @@ async function updateUser(params: UpdateUserRequest): Promise<any> {
   console.log(`Updating user ${userId} fund preferences`);
 
   // Get current user metadata
-  const { data: userData, error: getUserError } = await supabaseAdmin.auth.admin.getUserById(userId);
+  const { data: userData, error: getUserError } =
+    await supabaseAdmin.auth.admin.getUserById(userId);
   if (getUserError || !userData.user) {
-    throw new Error('User not found');
+    throw new Error("User not found");
   }
 
   // Update fund preferences
-  const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-    userId,
-    {
-      user_metadata: {
-        ...userData.user.user_metadata,
-        fund_preferences: fundPreferences,
-      }
-    }
-  );
+  const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+    user_metadata: {
+      ...userData.user.user_metadata,
+      fund_preferences: fundPreferences,
+    },
+  });
 
   if (updateError) {
     throw new Error(`Failed to update user: ${updateError.message}`);
@@ -248,6 +245,6 @@ async function updateUser(params: UpdateUserRequest): Promise<any> {
   return {
     success: true,
     user_id: userId,
-    message: 'User updated successfully',
+    message: "User updated successfully",
   };
 }

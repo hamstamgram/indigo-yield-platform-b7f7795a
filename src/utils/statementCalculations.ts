@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 export interface StatementData {
   investor_id: string;
@@ -39,7 +39,7 @@ export interface AssetStatement {
 export interface Transaction {
   id: string;
   date: string;
-  type: 'deposit' | 'withdrawal' | 'interest' | 'fee';
+  type: "deposit" | "withdrawal" | "interest" | "fee";
   amount: number;
   description: string;
   running_balance?: number;
@@ -53,18 +53,18 @@ export async function computeStatement(
   try {
     // Get investor profile
     const { data: investor, error: investorError } = await supabase
-      .from('profiles')
-      .select('id, first_name, last_name, email')
-      .eq('id', investor_id)
+      .from("profiles")
+      .select("id, first_name, last_name, email")
+      .eq("id", investor_id)
       .maybeSingle();
 
     if (!investor) {
-      console.error('Investor not found:', investorError);
+      console.error("Investor not found:", investorError);
       return null;
     }
 
     if (investorError || !investor) {
-      console.error('Investor not found:', investorError);
+      console.error("Investor not found:", investorError);
       return null;
     }
 
@@ -76,7 +76,7 @@ export async function computeStatement(
     // TODO: Implement full statement calculation when transaction schema is finalized
     return {
       investor_id,
-      investor_name: `${investor.first_name || ''} ${investor.last_name || ''}`.trim(),
+      investor_name: `${investor.first_name || ""} ${investor.last_name || ""}`.trim(),
       investor_email: investor.email,
       period_year,
       period_month,
@@ -93,21 +93,21 @@ export async function computeStatement(
         rate_of_return_mtd: 0,
         rate_of_return_qtd: 0,
         rate_of_return_ytd: 0,
-        rate_of_return_itd: 0
-      }
+        rate_of_return_itd: 0,
+      },
     };
   } catch (error) {
-    console.error('Error computing statement:', error);
+    console.error("Error computing statement:", error);
     return null;
   }
 }
 
 export function formatCurrency(amount: number, decimals: number = 2): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
     minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals
+    maximumFractionDigits: decimals,
   }).format(amount);
 }
 

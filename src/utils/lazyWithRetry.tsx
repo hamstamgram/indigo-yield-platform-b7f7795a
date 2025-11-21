@@ -1,4 +1,4 @@
-import { lazy, ComponentType, LazyExoticComponent } from 'react';
+import { lazy, ComponentType, LazyExoticComponent } from "react";
 
 interface RetryOptions {
   maxRetries?: number;
@@ -14,52 +14,54 @@ export function lazyWithRetry<T extends ComponentType<any>>(
   options: RetryOptions = {}
 ): LazyExoticComponent<T> {
   const { maxRetries = 3, retryDelay = 1000 } = options;
-  
+
   return lazy(async () => {
     let retries = 0;
-    
+
     while (retries < maxRetries) {
       try {
         return await importFn();
       } catch (error) {
         retries++;
-        
+
         if (retries === maxRetries) {
           // On final retry failure, try to recover by reloading
           console.error(`Failed to load module after ${maxRetries} retries:`, error);
-          
+
           // Check if it's a chunk loading error
-          if (error instanceof Error && error.message.includes('Loading chunk')) {
+          if (error instanceof Error && error.message.includes("Loading chunk")) {
             // Prompt user to reload
-            if (window.confirm('Failed to load application resources. Would you like to reload the page?')) {
+            if (
+              window.confirm(
+                "Failed to load application resources. Would you like to reload the page?"
+              )
+            ) {
               window.location.reload();
             }
           }
-          
+
           throw error;
         }
-        
+
         // Wait before retrying
-        await new Promise(resolve => setTimeout(resolve, retryDelay * retries));
+        await new Promise((resolve) => setTimeout(resolve, retryDelay * retries));
       }
     }
-    
-    throw new Error('Failed to load module');
+
+    throw new Error("Failed to load module");
   });
 }
 
 /**
  * Preload a lazy component to improve perceived performance
  */
-export function preloadComponent(
-  lazyComponent: LazyExoticComponent<any>
-): void {
+export function preloadComponent(lazyComponent: LazyExoticComponent<any>): void {
   // Trigger the lazy loading without rendering
   const componentPromise = (lazyComponent as any)._payload?._result;
-  if (componentPromise && typeof componentPromise.then === 'function') {
+  if (componentPromise && typeof componentPromise.then === "function") {
     componentPromise.catch(() => {
       // Silently handle preload errors
-      console.warn('Failed to preload component');
+      console.warn("Failed to preload component");
     });
   }
 }
@@ -71,16 +73,16 @@ export function lazyWithPreload<T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
   options: RetryOptions = {}
 ): LazyExoticComponent<T> & { preload: () => void } {
-  const LazyComponent = lazyWithRetry(importFn, options) as LazyExoticComponent<T> & { 
+  const LazyComponent = lazyWithRetry(importFn, options) as LazyExoticComponent<T> & {
     preload: () => void;
   };
-  
+
   LazyComponent.preload = () => {
-    importFn().catch(error => {
-      console.warn('Failed to preload component:', error);
+    importFn().catch((error) => {
+      console.warn("Failed to preload component:", error);
     });
   };
-  
+
   return LazyComponent;
 }
 
@@ -88,9 +90,9 @@ export function lazyWithPreload<T extends ComponentType<any>>(
  * Priority-based lazy loading for critical routes
  */
 export enum LoadPriority {
-  HIGH = 'high',
-  MEDIUM = 'medium',
-  LOW = 'low'
+  HIGH = "high",
+  MEDIUM = "medium",
+  LOW = "low",
 }
 
 interface PriorityLoadOptions extends RetryOptions {
@@ -102,7 +104,7 @@ export function lazyWithPriority<T extends ComponentType<any>>(
   options: PriorityLoadOptions = {}
 ): LazyExoticComponent<T> {
   const { priority = LoadPriority.MEDIUM, ...retryOptions } = options;
-  
+
   // High priority components get more retries and shorter delays
   if (priority === LoadPriority.HIGH) {
     retryOptions.maxRetries = retryOptions.maxRetries ?? 5;
@@ -111,6 +113,6 @@ export function lazyWithPriority<T extends ComponentType<any>>(
     retryOptions.maxRetries = retryOptions.maxRetries ?? 2;
     retryOptions.retryDelay = retryOptions.retryDelay ?? 2000;
   }
-  
+
   return lazyWithRetry(importFn, retryOptions);
 }

@@ -16,12 +16,7 @@
 
 import PDFDocument from "pdfkit";
 import { PassThrough } from "stream";
-import {
-  toDecimal,
-  formatMoney,
-  formatCrypto,
-  formatPercentage,
-} from "@/utils/financial";
+import { toDecimal, formatMoney, formatCrypto, formatPercentage } from "@/utils/financial";
 
 export interface StatementData {
   investor: {

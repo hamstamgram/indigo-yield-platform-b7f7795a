@@ -4,12 +4,12 @@
  */
 
 // Re-export all domain types
-export * from './investor';
-export * from './transaction';
-export * from './portfolio';
-export * from './fund';
-export * from './report';
-export * from './document';
+export * from "./investor";
+export * from "./transaction";
+export * from "./portfolio";
+export * from "./fund";
+export * from "./report";
+export * from "./document";
 
 // Common utility types
 export type AsyncResult<T> = {
@@ -26,7 +26,7 @@ export type PaginatedResult<T> = {
   total_pages: number;
 };
 
-export type SortOrder = 'asc' | 'desc';
+export type SortOrder = "asc" | "desc";
 
 export interface SortConfig {
   field: string;

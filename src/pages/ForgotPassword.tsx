@@ -56,17 +56,15 @@ export default function ForgotPassword() {
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <div className="w-full max-w-md">
           <div className="mb-8 flex justify-center">
-            <img 
-              src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png" 
+            <img
+              src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
               alt="Infinite Yield Fund"
               className="h-14"
             />
           </div>
           <Card className="border shadow-md">
             <CardHeader>
-              <CardTitle className="text-center text-2xl">
-                Check Your Email
-              </CardTitle>
+              <CardTitle className="text-center text-2xl">Check Your Email</CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <div className="flex justify-center">
@@ -97,17 +95,15 @@ export default function ForgotPassword() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         <div className="mb-8 flex justify-center">
-          <img 
-            src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png" 
+          <img
+            src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
             alt="Infinite Yield Fund"
             className="h-14"
           />
         </div>
         <Card className="border shadow-md">
           <CardHeader>
-            <CardTitle className="text-center text-2xl">
-              Reset Password
-            </CardTitle>
+            <CardTitle className="text-center text-2xl">Reset Password</CardTitle>
           </CardHeader>
           <CardContent>
             {error && (
@@ -116,7 +112,7 @@ export default function ForgotPassword() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            
+
             <form onSubmit={handleResetPassword} className="space-y-4">
               <div className="space-y-2">
                 <div className="relative">
@@ -131,18 +127,30 @@ export default function ForgotPassword() {
                   />
                 </div>
               </div>
-              
+
               <div className="pt-2 space-y-3">
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={loading}
-                >
+                <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? (
                     <span className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
                       </svg>
                       Sending...
                     </span>
@@ -150,7 +158,7 @@ export default function ForgotPassword() {
                     "Send Reset Link"
                   )}
                 </Button>
-                
+
                 <Link to="/login">
                   <Button variant="outline" className="w-full">
                     <ArrowLeft className="mr-2 h-4 w-4" />
@@ -161,7 +169,7 @@ export default function ForgotPassword() {
             </form>
           </CardContent>
         </Card>
-        
+
         <div className="mt-8 text-center text-sm text-muted-foreground">
           <p>Investor Portal - Secure Password Recovery</p>
         </div>

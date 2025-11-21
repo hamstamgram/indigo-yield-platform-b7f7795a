@@ -1,4 +1,4 @@
-import InvestorReports from './InvestorReports';
+import InvestorReports from "./InvestorReports";
 
 const AdminReports = () => {
   return <InvestorReports />;

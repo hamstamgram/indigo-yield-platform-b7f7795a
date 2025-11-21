@@ -1,10 +1,16 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { Download, FileText } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Download, FileText } from "lucide-react";
 
 interface InvestorSummary {
   id: string;
@@ -30,8 +36,8 @@ interface StatementData {
 
 const ProfessionalStatementGenerator = () => {
   const [investors, setInvestors] = useState<InvestorSummary[]>([]);
-  const [selectedInvestor, setSelectedInvestor] = useState<string>('');
-  const [selectedAsset, setSelectedAsset] = useState<string>('USDT');
+  const [selectedInvestor, setSelectedInvestor] = useState<string>("");
+  const [selectedAsset, setSelectedAsset] = useState<string>("USDT");
   const [statementData, setStatementData] = useState<StatementData | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -42,68 +48,66 @@ const ProfessionalStatementGenerator = () => {
   const fetchInvestors = async () => {
     try {
       const { data, error } = await supabase
-        .from('investors')
-        .select('id, name, email')
-        .eq('status', 'active')
-        .order('name');
+        .from("investors")
+        .select("id, name, email")
+        .eq("status", "active")
+        .order("name");
 
       if (error) throw error;
       setInvestors(data || []);
     } catch (error) {
-      console.error('Error fetching investors:', error);
-      toast.error('Failed to load investors');
+      console.error("Error fetching investors:", error);
+      toast.error("Failed to load investors");
     }
   };
 
   const generateStatement = async () => {
     if (!selectedInvestor) {
-      toast.error('Please select an investor');
+      toast.error("Please select an investor");
       return;
     }
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('get_investor_period_summary', {
+      const { data, error } = await supabase.rpc("get_investor_period_summary", {
         p_investor_id: selectedInvestor,
         p_asset_code: selectedAsset,
-        p_as_of_date: new Date().toISOString().split('T')[0]
+        p_as_of_date: new Date().toISOString().split("T")[0],
       });
 
       if (error) throw error;
-      
+
       // Handle the JSON response properly
-      if (data && typeof data === 'object' && !Array.isArray(data)) {
+      if (data && typeof data === "object" && !Array.isArray(data)) {
         setStatementData(data as unknown as StatementData);
       } else {
-        throw new Error('Invalid statement data format');
+        throw new Error("Invalid statement data format");
       }
     } catch (error) {
-      console.error('Error generating statement:', error);
-      toast.error('Failed to generate statement');
+      console.error("Error generating statement:", error);
+      toast.error("Failed to generate statement");
     } finally {
       setLoading(false);
     }
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 2,
     }).format(amount);
   };
 
   const formatPercentage = (rate: number) => {
     const isPositive = rate >= 0;
     return (
-      <span className={isPositive ? 'text-green-600' : 'text-red-600'}>
-        {rate.toFixed(2)}%
-      </span>
+      <span className={isPositive ? "text-green-600" : "text-red-600"}>{rate.toFixed(2)}%</span>
     );
   };
 
-  const selectedInvestorData = investors.find(inv => inv.id === selectedInvestor);
+  const selectedInvestorData = investors.find((inv) => inv.id === selectedInvestor);
 
   return (
     <div className="space-y-6">
@@ -123,7 +127,7 @@ const ProfessionalStatementGenerator = () => {
                   <SelectValue placeholder="Select investor" />
                 </SelectTrigger>
                 <SelectContent>
-                  {investors.map(investor => (
+                  {investors.map((investor) => (
                     <SelectItem key={investor.id} value={investor.id}>
                       {investor.name}
                     </SelectItem>
@@ -148,8 +152,8 @@ const ProfessionalStatementGenerator = () => {
             </div>
 
             <div className="flex items-end">
-              <Button 
-                onClick={generateStatement} 
+              <Button
+                onClick={generateStatement}
                 disabled={loading || !selectedInvestor}
                 className="w-full"
               >
@@ -175,13 +179,20 @@ const ProfessionalStatementGenerator = () => {
                 </div>
               </div>
               <div className="text-sm text-gray-600">
-                <p><strong>Account Holder:</strong> {selectedInvestorData.name}</p>
-                <p><strong>Account Number:</strong> {selectedInvestor.slice(-8).toUpperCase()}</p>
-                <p><strong>Statement Date:</strong> {new Date().toLocaleDateString('en-US', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}</p>
+                <p>
+                  <strong>Account Holder:</strong> {selectedInvestorData.name}
+                </p>
+                <p>
+                  <strong>Account Number:</strong> {selectedInvestor.slice(-8).toUpperCase()}
+                </p>
+                <p>
+                  <strong>Statement Date:</strong>{" "}
+                  {new Date().toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </p>
               </div>
             </div>
 
@@ -190,13 +201,27 @@ const ProfessionalStatementGenerator = () => {
               <table className="w-full border-collapse border border-gray-300">
                 <thead>
                   <tr className="bg-gray-50">
-                    <th className="border border-gray-300 px-4 py-3 text-left font-semibold">Period</th>
-                    <th className="border border-gray-300 px-4 py-3 text-right font-semibold">Beginning Balance</th>
-                    <th className="border border-gray-300 px-4 py-3 text-right font-semibold">Additions</th>
-                    <th className="border border-gray-300 px-4 py-3 text-right font-semibold">Withdrawals</th>
-                    <th className="border border-gray-300 px-4 py-3 text-right font-semibold">Net Income</th>
-                    <th className="border border-gray-300 px-4 py-3 text-right font-semibold">Ending Balance</th>
-                    <th className="border border-gray-300 px-4 py-3 text-right font-semibold">Rate of Return</th>
+                    <th className="border border-gray-300 px-4 py-3 text-left font-semibold">
+                      Period
+                    </th>
+                    <th className="border border-gray-300 px-4 py-3 text-right font-semibold">
+                      Beginning Balance
+                    </th>
+                    <th className="border border-gray-300 px-4 py-3 text-right font-semibold">
+                      Additions
+                    </th>
+                    <th className="border border-gray-300 px-4 py-3 text-right font-semibold">
+                      Withdrawals
+                    </th>
+                    <th className="border border-gray-300 px-4 py-3 text-right font-semibold">
+                      Net Income
+                    </th>
+                    <th className="border border-gray-300 px-4 py-3 text-right font-semibold">
+                      Ending Balance
+                    </th>
+                    <th className="border border-gray-300 px-4 py-3 text-right font-semibold">
+                      Rate of Return
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -230,16 +255,25 @@ const ProfessionalStatementGenerator = () => {
             {/* Footer */}
             <div className="mt-8 pt-6 border-t border-gray-200">
               <div className="text-xs text-gray-500 space-y-2">
-                <p><strong>Important Notes:</strong></p>
+                <p>
+                  <strong>Important Notes:</strong>
+                </p>
                 <ul className="list-disc list-inside space-y-1">
                   <li>Net Income reflects yield earned after platform fees have been deducted</li>
-                  <li>Rate of Return is calculated as Net Income divided by (Beginning Balance + Additions)</li>
+                  <li>
+                    Rate of Return is calculated as Net Income divided by (Beginning Balance +
+                    Additions)
+                  </li>
                   <li>All amounts are denominated in {selectedAsset} tokens</li>
-                  <li>This statement is generated from our secure database and reflects real-time positions</li>
+                  <li>
+                    This statement is generated from our secure database and reflects real-time
+                    positions
+                  </li>
                 </ul>
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   <p className="text-center">
-                    <strong>Indigo Yield Management</strong> | Generated on {new Date().toLocaleString()}
+                    <strong>Indigo Yield Management</strong> | Generated on{" "}
+                    {new Date().toLocaleString()}
                   </p>
                 </div>
               </div>

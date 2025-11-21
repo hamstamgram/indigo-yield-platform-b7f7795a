@@ -5,14 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import {
-  FileText,
-  Download,
-  Calendar,
-  Settings,
-  Loader2,
-  AlertCircle,
-} from "lucide-react";
+import { FileText, Download, Calendar, Settings, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -226,7 +219,9 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   };
 
   const isDateRangeRequired = (): boolean => {
-    return ["transaction_history", "custom_date_range", "tax_report"].includes(selectedReportType as string);
+    return ["transaction_history", "custom_date_range", "tax_report"].includes(
+      selectedReportType as string
+    );
   };
 
   return (

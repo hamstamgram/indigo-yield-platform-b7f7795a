@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 /**
  * TOTP (Time-Based One-Time Password) Utilities
@@ -7,7 +7,7 @@ import { useState } from 'react';
 
 export interface TOTPConfig {
   secret: string;
-  algorithm: 'SHA1' | 'SHA256' | 'SHA512';
+  algorithm: "SHA1" | "SHA256" | "SHA512";
   digits: 6 | 8;
   period: number;
   issuer: string;
@@ -57,8 +57,8 @@ export interface BackupCodeGenerationResult {
 }
 
 export class TOTPUtils {
-  private static readonly ISSUER = 'Indigo Yield Platform';
-  private static readonly BASE32_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  private static readonly ISSUER = "Indigo Yield Platform";
+  private static readonly BASE32_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
   /**
    * Generate a random TOTP secret
@@ -66,12 +66,12 @@ export class TOTPUtils {
   static generateSecret(length: number = 32): string {
     const bytes = new Uint8Array(length);
     crypto.getRandomValues(bytes);
-    
-    let secret = '';
+
+    let secret = "";
     for (let i = 0; i < bytes.length; i++) {
       secret += this.BASE32_CHARS[bytes[i] % 32];
     }
-    
+
     return secret;
   }
 
@@ -97,7 +97,7 @@ export class TOTPUtils {
     // Using a simple QR code generation approach
     // In a production app, you might want to use a dedicated QR code library
     const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(totpUrl)}`;
-    
+
     try {
       const response = await fetch(qrApiUrl);
       const blob = await response.blob();
@@ -108,7 +108,7 @@ export class TOTPUtils {
         reader.readAsDataURL(blob);
       });
     } catch (error) {
-      console.error('Failed to generate QR code:', error);
+      console.error("Failed to generate QR code:", error);
       // Fallback: return the URL as text
       return `data:text/plain;charset=utf-8,${encodeURIComponent(totpUrl)}`;
     }
@@ -118,32 +118,32 @@ export class TOTPUtils {
    * Verify TOTP code
    * This would typically be done server-side for security
    */
-  static async verifyTOTP(secret: string, token: string, config: Partial<TOTPConfig> = {}): Promise<boolean> {
-    const {
-      algorithm = 'SHA1',
-      digits = 6,
-      period = 30,
-    } = config;
+  static async verifyTOTP(
+    secret: string,
+    token: string,
+    config: Partial<TOTPConfig> = {}
+  ): Promise<boolean> {
+    const { algorithm = "SHA1", digits = 6, period = 30 } = config;
 
     try {
       // This is a simplified verification - in production, this should be done server-side
       // Using Web Crypto API for HMAC
       const key = await this.base32ToBytes(secret);
       const timeStep = Math.floor(Date.now() / 1000 / period);
-      
+
       // Check current time step and adjacent ones for clock skew
       for (let i = -1; i <= 1; i++) {
         const testTimeStep = timeStep + i;
         const expectedToken = await this.generateTOTPToken(key, testTimeStep, algorithm, digits);
-        
+
         if (expectedToken === token) {
           return true;
         }
       }
-      
+
       return false;
     } catch (error) {
-      console.error('TOTP verification failed:', error);
+      console.error("TOTP verification failed:", error);
       return false;
     }
   }
@@ -153,22 +153,22 @@ export class TOTPUtils {
    */
   static generateBackupCodes(count: number = 10, length: number = 8): string[] {
     const codes: string[] = [];
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
     for (let i = 0; i < count; i++) {
-      let code = '';
+      let code = "";
       for (let j = 0; j < length; j++) {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
       }
-      
+
       // Format code with hyphens for readability (e.g., ABCD-EFGH)
       if (length === 8) {
-        code = code.substring(0, 4) + '-' + code.substring(4);
+        code = code.substring(0, 4) + "-" + code.substring(4);
       }
-      
+
       codes.push(code);
     }
-    
+
     return codes;
   }
 
@@ -177,7 +177,7 @@ export class TOTPUtils {
    */
   static validateBackupCode(code: string): boolean {
     // Remove hyphens and check format
-    const cleanCode = code.replace(/-/g, '').toUpperCase();
+    const cleanCode = code.replace(/-/g, "").toUpperCase();
     return /^[A-Z0-9]{8}$/.test(cleanCode);
   }
 
@@ -185,29 +185,29 @@ export class TOTPUtils {
    * Hash backup code for secure storage
    */
   static async hashBackupCode(code: string): Promise<string> {
-    const cleanCode = code.replace(/-/g, '').toUpperCase();
+    const cleanCode = code.replace(/-/g, "").toUpperCase();
     const encoder = new TextEncoder();
-    const data = encoder.encode(cleanCode + 'BACKUP_CODE_SALT');
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const data = encoder.encode(cleanCode + "BACKUP_CODE_SALT");
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
   }
 
   /**
    * Format backup codes for display
    */
   static formatBackupCodesForDisplay(codes: string[]): string[] {
-    return codes.map(code => {
-      const cleanCode = code.replace(/-/g, '');
-      return cleanCode.substring(0, 4) + '-' + cleanCode.substring(4);
+    return codes.map((code) => {
+      const cleanCode = code.replace(/-/g, "");
+      return cleanCode.substring(0, 4) + "-" + cleanCode.substring(4);
     });
   }
 
   // Private helper methods
 
   private static async base32ToBytes(base32: string): Promise<Uint8Array> {
-    const cleanBase32 = base32.replace(/[^A-Z2-7]/g, '').toUpperCase();
-    const bytes = new Uint8Array(Math.floor(cleanBase32.length * 5 / 8));
+    const cleanBase32 = base32.replace(/[^A-Z2-7]/g, "").toUpperCase();
+    const bytes = new Uint8Array(Math.floor((cleanBase32.length * 5) / 8));
     let bitBuffer = 0;
     let bitCount = 0;
     let byteIndex = 0;
@@ -220,7 +220,7 @@ export class TOTPUtils {
       bitCount += 5;
 
       if (bitCount >= 8) {
-        bytes[byteIndex++] = (bitBuffer >> (bitCount - 8)) & 0xFF;
+        bytes[byteIndex++] = (bitBuffer >> (bitCount - 8)) & 0xff;
         bitCount -= 8;
       }
     }
@@ -239,52 +239,50 @@ export class TOTPUtils {
     const timeView = new DataView(timeBytes);
     timeView.setUint32(4, timeStep, false);
 
-    // Import secret as HMAC key  
-    const secretBuffer = secret.buffer instanceof ArrayBuffer 
-      ? secret.buffer 
-      : new ArrayBuffer(secret.byteLength);
+    // Import secret as HMAC key
+    const secretBuffer =
+      secret.buffer instanceof ArrayBuffer ? secret.buffer : new ArrayBuffer(secret.byteLength);
     const key = await crypto.subtle.importKey(
-      'raw',
+      "raw",
       secretBuffer,
-      { name: 'HMAC', hash: `SHA-${algorithm.substring(3)}` },
+      { name: "HMAC", hash: `SHA-${algorithm.substring(3)}` },
       false,
-      ['sign']
+      ["sign"]
     );
 
     // Generate HMAC
-    const signature = await crypto.subtle.sign('HMAC', key, timeBytes);
+    const signature = await crypto.subtle.sign("HMAC", key, timeBytes);
     const hashBytes = new Uint8Array(signature);
 
     // Dynamic truncation
-    const offset = hashBytes[hashBytes.length - 1] & 0x0F;
-    const truncatedHash = (
-      ((hashBytes[offset] & 0x7F) << 24) |
-      ((hashBytes[offset + 1] & 0xFF) << 16) |
-      ((hashBytes[offset + 2] & 0xFF) << 8) |
-      (hashBytes[offset + 3] & 0xFF)
-    );
+    const offset = hashBytes[hashBytes.length - 1] & 0x0f;
+    const truncatedHash =
+      ((hashBytes[offset] & 0x7f) << 24) |
+      ((hashBytes[offset + 1] & 0xff) << 16) |
+      ((hashBytes[offset + 2] & 0xff) << 8) |
+      (hashBytes[offset + 3] & 0xff);
 
     // Generate token
     const token = (truncatedHash % Math.pow(10, digits)).toString();
-    return token.padStart(digits, '0');
+    return token.padStart(digits, "0");
   }
 
   /**
    * Get device fingerprint for access logging
    */
   static getDeviceFingerprint(): string {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    ctx?.fillText('Device fingerprint', 10, 10);
-    
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    ctx?.fillText("Device fingerprint", 10, 10);
+
     const fingerprint = [
       navigator.userAgent,
       navigator.language,
-      screen.width + 'x' + screen.height,
+      screen.width + "x" + screen.height,
       new Date().getTimezoneOffset(),
       canvas.toDataURL(),
-    ].join('|');
-    
+    ].join("|");
+
     return btoa(fingerprint).substring(0, 32);
   }
 
@@ -295,12 +293,12 @@ export class TOTPUtils {
     try {
       // This is a best-effort client-side IP detection
       // In production, IP should be captured server-side
-      const response = await fetch('https://api.ipify.org?format=json');
+      const response = await fetch("https://api.ipify.org?format=json");
       const data = await response.json();
       return data.ip;
     } catch (error) {
-      console.warn('Failed to get client IP:', error);
-      return 'unknown';
+      console.warn("Failed to get client IP:", error);
+      return "unknown";
     }
   }
 }
@@ -318,10 +316,10 @@ export function useTOTP() {
   const generateQRCode = async (userEmail: string, secret: string) => {
     const config: TOTPConfig = {
       secret,
-      algorithm: 'SHA1',
+      algorithm: "SHA1",
       digits: 6,
       period: 30,
-      issuer: TOTPUtils['ISSUER'],
+      issuer: TOTPUtils["ISSUER"],
       accountName: userEmail,
     };
 

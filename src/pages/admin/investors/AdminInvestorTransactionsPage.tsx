@@ -1,13 +1,13 @@
-import { useParams } from 'react-router-dom';
-import { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { ArrowUpRight, ArrowDownLeft, CreditCard, Plus } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
-import { toast } from 'sonner';
-import { AddTransactionDialog } from '@/components/admin/AddTransactionDialog';
+import { useParams } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ArrowUpRight, ArrowDownLeft, CreditCard, Plus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
+import { toast } from "sonner";
+import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
 
 interface Transaction {
   id: string;
@@ -39,50 +39,48 @@ const AdminInvestorTransactionsPage = () => {
     totalCount: 0,
     totalDeposits: 0,
     totalWithdrawals: 0,
-    totalYield: 0
+    totalYield: 0,
   });
 
   const loadData = useCallback(async () => {
     if (!id) return;
-    
+
     try {
       setLoading(true);
 
       // Fetch investor info with fund_id
       const { data: investorData, error: investorError } = await supabase
-        .from('investors')
-        .select('id, name, email')
-        .eq('id', id)
+        .from("investors")
+        .select("id, name, email")
+        .eq("id", id)
         .single();
 
       if (investorError) throw investorError;
 
       // Get investor's primary fund (we'll use first investment's fund_id or a default)
       const { data: investmentData } = await supabase
-        .from('investments')
-        .select('fund_id')
-        .eq('investor_id', id)
+        .from("investments")
+        .select("fund_id")
+        .eq("investor_id", id)
         .limit(1)
         .single();
 
       // Get default fund if no investments yet
-      const { data: defaultFund } = await supabase
-        .from('funds')
-        .select('id')
-        .limit(1)
-        .single();
+      const { data: defaultFund } = await supabase.from("funds").select("id").limit(1).single();
 
       setInvestor({
         ...investorData,
-        fund_id: investmentData?.fund_id || defaultFund?.id || ''
+        fund_id: investmentData?.fund_id || defaultFund?.id || "",
       });
 
       // Fetch transactions
       const { data: txData, error: txError } = await supabase
-        .from('transactions_v2')
-        .select('id, investor_id, txn_type, asset, amount, type, occurred_at, notes, tx_hash, reference_id')
-        .eq('investor_id', id)
-        .order('occurred_at', { ascending: false })
+        .from("transactions_v2")
+        .select(
+          "id, investor_id, txn_type, asset, amount, type, occurred_at, notes, tx_hash, reference_id"
+        )
+        .eq("investor_id", id)
+        .order("occurred_at", { ascending: false })
         .limit(100);
 
       if (txError) throw txError;
@@ -94,26 +92,26 @@ const AdminInvestorTransactionsPage = () => {
         totalCount: txData?.length || 0,
         totalDeposits: 0,
         totalWithdrawals: 0,
-        totalYield: 0
+        totalYield: 0,
       };
 
-      txData?.forEach(tx => {
-        const txType = (tx.txn_type || tx.type || '').toUpperCase();
+      txData?.forEach((tx) => {
+        const txType = (tx.txn_type || tx.type || "").toUpperCase();
         const amount = Number(tx.amount);
-        
-        if (txType === 'DEPOSIT') {
+
+        if (txType === "DEPOSIT") {
           stats.totalDeposits += amount;
-        } else if (txType === 'WITHDRAWAL') {
+        } else if (txType === "WITHDRAWAL") {
           stats.totalWithdrawals += amount;
-        } else if (txType === 'YIELD' || txType === 'INTEREST') {
+        } else if (txType === "YIELD" || txType === "INTEREST") {
           stats.totalYield += amount;
         }
       });
 
       setSummary(stats);
     } catch (error) {
-      console.error('Error loading data:', error);
-      toast.error('Failed to load transaction data');
+      console.error("Error loading data:", error);
+      toast.error("Failed to load transaction data");
     } finally {
       setLoading(false);
     }
@@ -125,22 +123,25 @@ const AdminInvestorTransactionsPage = () => {
 
   // Real-time subscription
   useRealtimeSubscription({
-    table: 'transactions_v2',
-    event: '*',
+    table: "transactions_v2",
+    event: "*",
     filter: `investor_id=eq.${id}`,
-    onUpdate: loadData
+    onUpdate: loadData,
   });
 
   const getTransactionIcon = (type: string) => {
-    const typeUpper = (type || '').toUpperCase();
+    const typeUpper = (type || "").toUpperCase();
     switch (typeUpper) {
-      case 'DEPOSIT': return <ArrowDownLeft className="h-4 w-4 text-green-500" />;
-      case 'WITHDRAWAL': return <ArrowUpRight className="h-4 w-4 text-red-500" />;
-      case 'YIELD':
-      case 'INTEREST':
-      case 'FEE':
+      case "DEPOSIT":
+        return <ArrowDownLeft className="h-4 w-4 text-green-500" />;
+      case "WITHDRAWAL":
+        return <ArrowUpRight className="h-4 w-4 text-red-500" />;
+      case "YIELD":
+      case "INTEREST":
+      case "FEE":
         return <CreditCard className="h-4 w-4 text-blue-500" />;
-      default: return <CreditCard className="h-4 w-4 text-muted-foreground" />;
+      default:
+        return <CreditCard className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -151,7 +152,7 @@ const AdminInvestorTransactionsPage = () => {
   if (!investor) {
     return <div className="p-6">Investor not found</div>;
   }
-  
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -223,7 +224,7 @@ const AdminInvestorTransactionsPage = () => {
         <CardContent>
           <div className="space-y-4">
             {transactions.map((transaction) => {
-              const txType = (transaction.txn_type || transaction.type || 'UNKNOWN').toUpperCase();
+              const txType = (transaction.txn_type || transaction.type || "UNKNOWN").toUpperCase();
               return (
                 <div
                   key={transaction.id}
@@ -247,7 +248,9 @@ const AdminInvestorTransactionsPage = () => {
                         {transaction.tx_hash && (
                           <>
                             <span>•</span>
-                            <span className="font-mono text-xs">{transaction.tx_hash.substring(0, 10)}...</span>
+                            <span className="font-mono text-xs">
+                              {transaction.tx_hash.substring(0, 10)}...
+                            </span>
                           </>
                         )}
                       </div>
@@ -258,7 +261,8 @@ const AdminInvestorTransactionsPage = () => {
                   </div>
                   <div className="text-right">
                     <div className="font-medium">
-                      {txType === 'WITHDRAWAL' ? '-' : '+'}{Number(transaction.amount).toLocaleString()} {transaction.asset}
+                      {txType === "WITHDRAWAL" ? "-" : "+"}
+                      {Number(transaction.amount).toLocaleString()} {transaction.asset}
                     </div>
                   </div>
                 </div>

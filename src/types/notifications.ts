@@ -1,17 +1,17 @@
 export type NotificationType =
-  | 'transaction'
-  | 'alert'
-  | 'system'
-  | 'security'
-  | 'document'
-  | 'support'
-  | 'yield'
-  | 'portfolio'
-  | 'daily_rate';
+  | "transaction"
+  | "alert"
+  | "system"
+  | "security"
+  | "document"
+  | "support"
+  | "yield"
+  | "portfolio"
+  | "daily_rate";
 
-export type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type NotificationPriority = "low" | "medium" | "high" | "urgent";
 
-export type NotificationStatus = 'unread' | 'read' | 'archived';
+export type NotificationStatus = "unread" | "read" | "archived";
 
 export interface Notification {
   id: string;
@@ -43,7 +43,7 @@ export interface NotificationSettings {
   support_notifications: boolean;
   yield_notifications: boolean;
   portfolio_notifications: boolean;
-  email_frequency: 'realtime' | 'daily' | 'weekly';
+  email_frequency: "realtime" | "daily" | "weekly";
   quiet_hours_start?: string;
   quiet_hours_end?: string;
   created_at: string;
@@ -54,7 +54,7 @@ export interface PriceAlert {
   id: string;
   user_id: string;
   asset_symbol: string;
-  alert_type: 'above' | 'below' | 'change_percent';
+  alert_type: "above" | "below" | "change_percent";
   threshold_value: number;
   current_value?: number;
   is_active: boolean;

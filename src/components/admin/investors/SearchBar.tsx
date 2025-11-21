@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Search, X } from "lucide-react";
@@ -11,13 +10,13 @@ interface SearchBarProps {
 
 const SearchBar: React.FC<SearchBarProps> = ({ searchTerm, setSearchTerm }) => {
   const isMobile = useIsMobile();
-  
+
   const clearSearch = () => {
     setSearchTerm("");
   };
 
   return (
-    <div className={`relative ${isMobile ? 'w-full' : 'flex-grow'}`}>
+    <div className={`relative ${isMobile ? "w-full" : "flex-grow"}`}>
       <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
       <Input
         placeholder={isMobile ? "Search investors..." : "Search by name or email..."}

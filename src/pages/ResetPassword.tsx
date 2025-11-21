@@ -22,22 +22,22 @@ export default function ResetPassword() {
 
   useEffect(() => {
     // Try to get tokens from query params first
-    let accessToken = searchParams.get('access_token') || undefined;
-    let refreshToken = searchParams.get('refresh_token') || undefined;
+    let accessToken = searchParams.get("access_token") || undefined;
+    let refreshToken = searchParams.get("refresh_token") || undefined;
 
     // If not found, parse from URL hash (Supabase sometimes sends recovery tokens in the hash)
     if (!accessToken || !refreshToken) {
-      const rawHash = window.location.hash || '';
-      const hash = rawHash.startsWith('#') ? rawHash.slice(1) : rawHash;
+      const rawHash = window.location.hash || "";
+      const hash = rawHash.startsWith("#") ? rawHash.slice(1) : rawHash;
       if (hash) {
         const hashParams = new URLSearchParams(hash);
-        const type = hashParams.get('type');
-        accessToken = accessToken || hashParams.get('access_token') || undefined;
-        refreshToken = refreshToken || hashParams.get('refresh_token') || undefined;
+        const type = hashParams.get("type");
+        accessToken = accessToken || hashParams.get("access_token") || undefined;
+        refreshToken = refreshToken || hashParams.get("refresh_token") || undefined;
         // If we found tokens in hash, normalize URL to query-string form for consistency
-        if (accessToken && refreshToken && (type === 'recovery' || type === 'recovery_token')) {
+        if (accessToken && refreshToken && (type === "recovery" || type === "recovery_token")) {
           const cleanUrl = `${window.location.pathname}?access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
-          window.history.replaceState({}, '', cleanUrl);
+          window.history.replaceState({}, "", cleanUrl);
         }
       }
     }
@@ -91,7 +91,7 @@ export default function ResetPassword() {
 
     try {
       const { error } = await supabase.auth.updateUser({
-        password: password
+        password: password,
       });
 
       if (error) {
@@ -107,7 +107,7 @@ export default function ResetPassword() {
           title: "Password updated",
           description: "Your password has been successfully updated.",
         });
-        
+
         // Redirect to login after a short delay
         setTimeout(() => {
           navigate("/login", { replace: true });
@@ -130,25 +130,21 @@ export default function ResetPassword() {
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <div className="w-full max-w-md">
           <div className="mb-8 flex justify-center">
-            <img 
-              src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png" 
+            <img
+              src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
               alt="Infinite Yield Fund"
               className="h-14"
             />
           </div>
           <Card className="border shadow-md">
             <CardHeader>
-              <CardTitle className="text-center text-2xl">
-                Password Updated
-              </CardTitle>
+              <CardTitle className="text-center text-2xl">Password Updated</CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <div className="flex justify-center">
                 <CheckCircle2 className="h-16 w-16 text-green-500" />
               </div>
-              <p className="text-muted-foreground">
-                Your password has been successfully updated.
-              </p>
+              <p className="text-muted-foreground">Your password has been successfully updated.</p>
               <p className="text-sm text-muted-foreground">
                 You will be redirected to the login page shortly.
               </p>
@@ -163,17 +159,15 @@ export default function ResetPassword() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         <div className="mb-8 flex justify-center">
-          <img 
-            src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png" 
+          <img
+            src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
             alt="Infinite Yield Fund"
             className="h-14"
           />
         </div>
         <Card className="border shadow-md">
           <CardHeader>
-            <CardTitle className="text-center text-2xl">
-              Set New Password
-            </CardTitle>
+            <CardTitle className="text-center text-2xl">Set New Password</CardTitle>
           </CardHeader>
           <CardContent>
             {error && (
@@ -182,7 +176,7 @@ export default function ResetPassword() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            
+
             <form onSubmit={handleResetPassword} className="space-y-4">
               <div className="space-y-2">
                 <div className="relative">
@@ -203,16 +197,12 @@ export default function ResetPassword() {
                     className="absolute right-1 top-1 text-muted-foreground hover:text-foreground"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     <span className="sr-only">Toggle password visibility</span>
                   </Button>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
@@ -241,7 +231,7 @@ export default function ResetPassword() {
                   </Button>
                 </div>
               </div>
-              
+
               <div className="text-xs text-muted-foreground space-y-1">
                 <p>Password requirements:</p>
                 <ul className="list-disc list-inside space-y-1">
@@ -250,18 +240,30 @@ export default function ResetPassword() {
                   <li>Contains at least one number</li>
                 </ul>
               </div>
-              
+
               <div className="pt-2">
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={loading}
-                >
+                <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? (
                     <span className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
                       </svg>
                       Updating...
                     </span>
@@ -273,7 +275,7 @@ export default function ResetPassword() {
             </form>
           </CardContent>
         </Card>
-        
+
         <div className="mt-8 text-center text-sm text-muted-foreground">
           <p>Investor Portal - Secure Password Reset</p>
         </div>

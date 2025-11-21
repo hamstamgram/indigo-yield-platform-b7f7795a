@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 export interface AuditLogEntry {
   id: string;
@@ -41,29 +41,29 @@ class AuditLogService {
   }> {
     try {
       let query = supabase
-        .from('audit_log')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false });
+        .from("audit_log")
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false });
 
       // Apply filters
       if (filters.entity) {
-        query = query.eq('entity', filters.entity);
+        query = query.eq("entity", filters.entity);
       }
 
       if (filters.action) {
-        query = query.eq('action', filters.action);
+        query = query.eq("action", filters.action);
       }
 
       if (filters.actorUserId) {
-        query = query.eq('actor_user', filters.actorUserId);
+        query = query.eq("actor_user", filters.actorUserId);
       }
 
       if (filters.startDate) {
-        query = query.gte('created_at', filters.startDate);
+        query = query.gte("created_at", filters.startDate);
       }
 
       if (filters.endDate) {
-        query = query.lte('created_at', filters.endDate);
+        query = query.lte("created_at", filters.endDate);
       }
 
       // Apply pagination
@@ -80,10 +80,10 @@ class AuditLogService {
 
       return {
         data: enrichedData,
-        count: count || 0
+        count: count || 0,
       };
     } catch (error) {
-      console.error('Error fetching audit logs:', error);
+      console.error("Error fetching audit logs:", error);
       throw error;
     }
   }
@@ -93,17 +93,14 @@ class AuditLogService {
    */
   async getUniqueEntities(): Promise<string[]> {
     try {
-      const { data, error } = await supabase
-        .from('audit_log')
-        .select('entity')
-        .order('entity');
+      const { data, error } = await supabase.from("audit_log").select("entity").order("entity");
 
       if (error) throw error;
 
-      const uniqueEntities = Array.from(new Set((data || []).map(row => row.entity)));
+      const uniqueEntities = Array.from(new Set((data || []).map((row) => row.entity)));
       return uniqueEntities.sort();
     } catch (error) {
-      console.error('Error fetching unique entities:', error);
+      console.error("Error fetching unique entities:", error);
       return [];
     }
   }
@@ -113,17 +110,14 @@ class AuditLogService {
    */
   async getUniqueActions(): Promise<string[]> {
     try {
-      const { data, error } = await supabase
-        .from('audit_log')
-        .select('action')
-        .order('action');
+      const { data, error } = await supabase.from("audit_log").select("action").order("action");
 
       if (error) throw error;
 
-      const uniqueActions = Array.from(new Set((data || []).map(row => row.action)));
+      const uniqueActions = Array.from(new Set((data || []).map((row) => row.action)));
       return uniqueActions.sort();
     } catch (error) {
-      console.error('Error fetching unique actions:', error);
+      console.error("Error fetching unique actions:", error);
       return [];
     }
   }
@@ -133,16 +127,14 @@ class AuditLogService {
    */
   async getAuditLogSummary(filters: AuditLogFilters = {}): Promise<AuditLogSummary> {
     try {
-      let query = supabase
-        .from('audit_log')
-        .select('action, entity, actor_user');
+      let query = supabase.from("audit_log").select("action, entity, actor_user");
 
       if (filters.startDate) {
-        query = query.gte('created_at', filters.startDate);
+        query = query.gte("created_at", filters.startDate);
       }
 
       if (filters.endDate) {
-        query = query.lte('created_at', filters.endDate);
+        query = query.lte("created_at", filters.endDate);
       }
 
       const { data, error } = await query;
@@ -153,7 +145,7 @@ class AuditLogService {
       const entityCounts: Record<string, number> = {};
       const actorCounts: Record<string, number> = {};
 
-      (data || []).forEach(entry => {
+      (data || []).forEach((entry) => {
         actionCounts[entry.action] = (actionCounts[entry.action] || 0) + 1;
         entityCounts[entry.entity] = (entityCounts[entry.entity] || 0) + 1;
         if (entry.actor_user) {
@@ -170,15 +162,17 @@ class AuditLogService {
       const topActors = await Promise.all(
         topActorIds.map(async (userId) => {
           const { data: profile } = await supabase
-            .from('profiles')
-            .select('first_name, last_name, email')
-            .eq('id', userId)
+            .from("profiles")
+            .select("first_name, last_name, email")
+            .eq("id", userId)
             .single();
 
           return {
             user_id: userId,
-            name: profile ? `${profile.first_name} ${profile.last_name}`.trim() || profile.email : 'Unknown',
-            count: actorCounts[userId]
+            name: profile
+              ? `${profile.first_name} ${profile.last_name}`.trim() || profile.email
+              : "Unknown",
+            count: actorCounts[userId],
           };
         })
       );
@@ -187,15 +181,15 @@ class AuditLogService {
         totalEntries: data?.length || 0,
         actionCounts,
         entityCounts,
-        topActors
+        topActors,
       };
     } catch (error) {
-      console.error('Error getting audit log summary:', error);
+      console.error("Error getting audit log summary:", error);
       return {
         totalEntries: 0,
         actionCounts: {},
         entityCounts: {},
-        topActors: []
+        topActors: [],
       };
     }
   }
@@ -204,37 +198,40 @@ class AuditLogService {
    * Enrich audit log entries with actor information
    */
   private async enrichWithActorInfo(entries: any[]): Promise<AuditLogEntry[]> {
-    const uniqueActorIds = Array.from(new Set(entries.map(e => e.actor_user).filter(Boolean)));
+    const uniqueActorIds = Array.from(new Set(entries.map((e) => e.actor_user).filter(Boolean)));
 
     // Fetch all actor profiles in one query
     const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, first_name, last_name, email')
-      .in('id', uniqueActorIds);
+      .from("profiles")
+      .select("id, first_name, last_name, email")
+      .in("id", uniqueActorIds);
 
     const profileMap = new Map(
-      (profiles || []).map(p => [
+      (profiles || []).map((p) => [
         p.id,
         {
           name: `${p.first_name} ${p.last_name}`.trim() || p.email,
-          email: p.email
-        }
+          email: p.email,
+        },
       ])
     );
 
-    return entries.map(entry => ({
+    return entries.map((entry) => ({
       ...entry,
-      actor_name: entry.actor_user ? profileMap.get(entry.actor_user)?.name : 'System',
-      actor_email: entry.actor_user ? profileMap.get(entry.actor_user)?.email : undefined
+      actor_name: entry.actor_user ? profileMap.get(entry.actor_user)?.name : "System",
+      actor_email: entry.actor_user ? profileMap.get(entry.actor_user)?.email : undefined,
     }));
   }
 
   /**
    * Format changes for display
    */
-  formatChanges(oldValues: Record<string, any> | null, newValues: Record<string, any> | null): string {
-    if (!oldValues && !newValues) return 'No changes recorded';
-    
+  formatChanges(
+    oldValues: Record<string, any> | null,
+    newValues: Record<string, any> | null
+  ): string {
+    if (!oldValues && !newValues) return "No changes recorded";
+
     const changes: string[] = [];
 
     if (newValues && !oldValues) {
@@ -254,15 +251,15 @@ class AuditLogService {
       });
     } else if (oldValues && !newValues) {
       // Record deleted
-      changes.push('Record deleted');
+      changes.push("Record deleted");
     }
 
-    return changes.join(', ') || 'No changes';
+    return changes.join(", ") || "No changes";
   }
 
   private formatValue(value: any): string {
-    if (value === null || value === undefined) return 'null';
-    if (typeof value === 'object') return JSON.stringify(value);
+    if (value === null || value === undefined) return "null";
+    if (typeof value === "object") return JSON.stringify(value);
     return String(value);
   }
 }

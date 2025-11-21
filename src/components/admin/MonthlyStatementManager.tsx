@@ -16,29 +16,56 @@
  * - Error handling
  */
 
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Check, Eye, Send, FileText, Calendar, Users } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { statementsApi } from '@/services/api/statementsApi';
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader2, Check, Eye, Send, FileText, Calendar, Users } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { statementsApi } from "@/services/api/statementsApi";
 
 const createPeriodSchema = z.object({
   year: z.number().min(2024).max(2100),
   month: z.number().min(1).max(12),
-  period_name: z.string().min(1, 'Period name required'),
-  period_end_date: z.string().min(1, 'End date required'),
+  period_name: z.string().min(1, "Period name required"),
+  period_end_date: z.string().min(1, "End date required"),
 });
 
 interface StatementPeriod {
@@ -47,7 +74,7 @@ interface StatementPeriod {
   month: number;
   period_name: string;
   period_end_date: string;
-  status: 'DRAFT' | 'FINALIZED' | 'SENT';
+  status: "DRAFT" | "FINALIZED" | "SENT";
   created_at: string;
 }
 
@@ -67,7 +94,7 @@ export function MonthlyStatementManager() {
   const [isLoading, setIsLoading] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
-  const [previewHTML, setPreviewHTML] = useState('');
+  const [previewHTML, setPreviewHTML] = useState("");
   const { toast } = useToast();
 
   const {
@@ -96,13 +123,13 @@ export function MonthlyStatementManager() {
       const { data, error } = await statementsApi.getPeriods();
       if (error) throw new Error(error);
 
-      setPeriods(data as StatementPeriod[] || []);
+      setPeriods((data as StatementPeriod[]) || []);
     } catch (error) {
-      console.error('Load periods error:', error);
+      console.error("Load periods error:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load statement periods',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load statement periods",
+        variant: "destructive",
       });
     }
   };
@@ -115,11 +142,11 @@ export function MonthlyStatementManager() {
 
       setInvestors(data || []);
     } catch (error) {
-      console.error('Load investors error:', error);
+      console.error("Load investors error:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load investors',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load investors",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -132,7 +159,7 @@ export function MonthlyStatementManager() {
       if (error) throw new Error(error);
 
       toast({
-        title: 'Period Created',
+        title: "Period Created",
         description: `Statement period for ${data.period_name} created successfully`,
       });
 
@@ -140,11 +167,11 @@ export function MonthlyStatementManager() {
       resetPeriod();
       loadPeriods();
     } catch (error) {
-      console.error('Create period error:', error);
+      console.error("Create period error:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to create statement period',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to create statement period",
+        variant: "destructive",
       });
     }
   };
@@ -159,24 +186,24 @@ export function MonthlyStatementManager() {
 
       if (data && data.failed > 0) {
         toast({
-          title: 'Statements Generated with Errors',
+          title: "Statements Generated with Errors",
           description: `Generated ${data.success} statements successfully. ${data.failed} failed.`,
-          variant: 'destructive',
+          variant: "destructive",
         });
       } else {
         toast({
-          title: 'Statements Generated',
+          title: "Statements Generated",
           description: `Generated ${data?.success || 0} statements successfully`,
         });
       }
 
       loadInvestors(selectedPeriod.id);
     } catch (error) {
-      console.error('Generate statements error:', error);
+      console.error("Generate statements error:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to generate statements',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to generate statements",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -190,14 +217,14 @@ export function MonthlyStatementManager() {
       const { data, error } = await statementsApi.previewStatement(selectedPeriod.id, investorId);
       if (error) throw new Error(error);
 
-      setPreviewHTML(data || '');
+      setPreviewHTML(data || "");
       setShowPreviewDialog(true);
     } catch (error) {
-      console.error('Preview error:', error);
+      console.error("Preview error:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load preview',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load preview",
+        variant: "destructive",
       });
     }
   };
@@ -206,7 +233,7 @@ export function MonthlyStatementManager() {
     if (!selectedPeriod) return;
 
     const confirmed = window.confirm(
-      `Are you sure you want to send ${investors.filter(i => i.statement_generated && !i.statement_sent).length} statements?\n\nThis action cannot be undone.`
+      `Are you sure you want to send ${investors.filter((i) => i.statement_generated && !i.statement_sent).length} statements?\n\nThis action cannot be undone.`
     );
 
     if (!confirmed) return;
@@ -218,31 +245,33 @@ export function MonthlyStatementManager() {
 
       if (data && data.failed > 0) {
         toast({
-          title: 'Statements Sent with Errors',
+          title: "Statements Sent with Errors",
           description: `Sent ${data.success} statements successfully. ${data.failed} failed.`,
-          variant: 'destructive',
+          variant: "destructive",
         });
       } else {
         toast({
-          title: 'Statements Sent',
+          title: "Statements Sent",
           description: `Sent ${data?.success || 0} statements successfully`,
         });
       }
 
       loadInvestors(selectedPeriod.id);
     } catch (error) {
-      console.error('Send statements error:', error);
+      console.error("Send statements error:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to send statements',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to send statements",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const pendingStatementsCount = investors.filter(i => i.statement_generated && !i.statement_sent).length;
+  const pendingStatementsCount = investors.filter(
+    (i) => i.statement_generated && !i.statement_sent
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -289,7 +318,7 @@ export function MonthlyStatementManager() {
               {periods.map((period) => (
                 <Card
                   key={period.id}
-                  className={selectedPeriod?.id === period.id ? 'border-primary' : ''}
+                  className={selectedPeriod?.id === period.id ? "border-primary" : ""}
                 >
                   <CardHeader>
                     <div className="flex justify-between items-start">
@@ -301,9 +330,11 @@ export function MonthlyStatementManager() {
                       </div>
                       <Badge
                         variant={
-                          period.status === 'SENT' ? 'default' :
-                          period.status === 'FINALIZED' ? 'secondary' :
-                          'outline'
+                          period.status === "SENT"
+                            ? "default"
+                            : period.status === "FINALIZED"
+                              ? "secondary"
+                              : "outline"
                         }
                       >
                         {period.status}
@@ -313,9 +344,9 @@ export function MonthlyStatementManager() {
                   <CardFooter>
                     <Button
                       onClick={() => setSelectedPeriod(period)}
-                      variant={selectedPeriod?.id === period.id ? 'default' : 'outline'}
+                      variant={selectedPeriod?.id === period.id ? "default" : "outline"}
                     >
-                      {selectedPeriod?.id === period.id ? 'Selected' : 'Select Period'}
+                      {selectedPeriod?.id === period.id ? "Selected" : "Select Period"}
                     </Button>
                   </CardFooter>
                 </Card>
@@ -331,9 +362,7 @@ export function MonthlyStatementManager() {
               <Card>
                 <CardHeader>
                   <CardTitle>{selectedPeriod.period_name}</CardTitle>
-                  <CardDescription>
-                    Manage statements for this period
-                  </CardDescription>
+                  <CardDescription>Manage statements for this period</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-3 gap-4">
@@ -343,13 +372,13 @@ export function MonthlyStatementManager() {
                     </div>
                     <div className="text-center p-4 border rounded-lg">
                       <p className="text-2xl font-bold">
-                        {investors.filter(i => i.statement_generated).length}
+                        {investors.filter((i) => i.statement_generated).length}
                       </p>
                       <p className="text-sm text-muted-foreground">Generated</p>
                     </div>
                     <div className="text-center p-4 border rounded-lg">
                       <p className="text-2xl font-bold">
-                        {investors.filter(i => i.statement_sent).length}
+                        {investors.filter((i) => i.statement_sent).length}
                       </p>
                       <p className="text-sm text-muted-foreground">Sent</p>
                     </div>
@@ -358,7 +387,7 @@ export function MonthlyStatementManager() {
                   <div className="flex gap-2">
                     <Button
                       onClick={handleGenerateAll}
-                      disabled={isLoading || selectedPeriod.status === 'SENT'}
+                      disabled={isLoading || selectedPeriod.status === "SENT"}
                     >
                       {isLoading ? (
                         <>
@@ -471,17 +500,21 @@ export function MonthlyStatementManager() {
                     type="number"
                     min="2024"
                     max="2100"
-                    {...registerPeriod('year', { valueAsNumber: true })}
+                    {...registerPeriod("year", { valueAsNumber: true })}
                   />
                   {periodErrors.year && (
-                    <p className="text-sm text-destructive">{periodErrors.year.message as string}</p>
+                    <p className="text-sm text-destructive">
+                      {periodErrors.year.message as string}
+                    </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="month">Month</Label>
                   <Select
-                    onValueChange={(value) => registerPeriod('month').onChange({ target: { value: parseInt(value) } })}
+                    onValueChange={(value) =>
+                      registerPeriod("month").onChange({ target: { value: parseInt(value) } })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select month" />
@@ -489,13 +522,15 @@ export function MonthlyStatementManager() {
                     <SelectContent>
                       {Array.from({ length: 12 }, (_, i) => (
                         <SelectItem key={i + 1} value={(i + 1).toString()}>
-                          {new Date(2024, i).toLocaleString('default', { month: 'long' })}
+                          {new Date(2024, i).toLocaleString("default", { month: "long" })}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {periodErrors.month && (
-                    <p className="text-sm text-destructive">{periodErrors.month.message as string}</p>
+                    <p className="text-sm text-destructive">
+                      {periodErrors.month.message as string}
+                    </p>
                   )}
                 </div>
               </div>
@@ -505,22 +540,22 @@ export function MonthlyStatementManager() {
                 <Input
                   id="period_name"
                   placeholder="October 2025"
-                  {...registerPeriod('period_name')}
+                  {...registerPeriod("period_name")}
                 />
                 {periodErrors.period_name && (
-                  <p className="text-sm text-destructive">{periodErrors.period_name.message as string}</p>
+                  <p className="text-sm text-destructive">
+                    {periodErrors.period_name.message as string}
+                  </p>
                 )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="period_end_date">Period End Date</Label>
-                <Input
-                  id="period_end_date"
-                  type="date"
-                  {...registerPeriod('period_end_date')}
-                />
+                <Input id="period_end_date" type="date" {...registerPeriod("period_end_date")} />
                 {periodErrors.period_end_date && (
-                  <p className="text-sm text-destructive">{periodErrors.period_end_date.message as string}</p>
+                  <p className="text-sm text-destructive">
+                    {periodErrors.period_end_date.message as string}
+                  </p>
                 )}
               </div>
             </div>
@@ -540,17 +575,11 @@ export function MonthlyStatementManager() {
         <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Statement Preview</DialogTitle>
-            <DialogDescription>
-              Preview of the HTML email statement
-            </DialogDescription>
+            <DialogDescription>Preview of the HTML email statement</DialogDescription>
           </DialogHeader>
 
           <div className="border rounded-lg overflow-auto max-h-[70vh]">
-            <iframe
-              srcDoc={previewHTML}
-              className="w-full h-[70vh]"
-              title="Statement Preview"
-            />
+            <iframe srcDoc={previewHTML} className="w-full h-[70vh]" title="Statement Preview" />
           </div>
 
           <DialogFooter>

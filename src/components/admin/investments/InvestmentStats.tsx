@@ -22,12 +22,8 @@ export function InvestmentStats({ investments }: InvestmentStatsProps) {
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
-            ${totalActive.toLocaleString()}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {active.length} investments
-          </p>
+          <div className="text-2xl font-bold">${totalActive.toLocaleString()}</div>
+          <p className="text-xs text-muted-foreground">{active.length} investments</p>
         </CardContent>
       </Card>
 
@@ -37,12 +33,8 @@ export function InvestmentStats({ investments }: InvestmentStatsProps) {
           <Clock className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
-            ${totalPending.toLocaleString()}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {pending.length} pending
-          </p>
+          <div className="text-2xl font-bold">${totalPending.toLocaleString()}</div>
+          <p className="text-xs text-muted-foreground">{pending.length} pending</p>
         </CardContent>
       </Card>
 

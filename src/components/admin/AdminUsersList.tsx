@@ -1,8 +1,14 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth/context";
@@ -40,11 +46,11 @@ const AdminUsersList = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      
-      const { data, error } = await supabase.rpc('get_all_investors_with_details');
-      
+
+      const { data, error } = await supabase.rpc("get_all_investors_with_details");
+
       if (error) throw error;
-      
+
       // Map the RPC result to our UserProfile type
       const users = (data || []).map((user: any) => ({
         id: user.id,
@@ -54,14 +60,14 @@ const AdminUsersList = () => {
         is_admin: false, // This RPC only returns non-admin users
         created_at: user.created_at,
       }));
-      
+
       setUsers(users);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error("Error fetching users:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to fetch user data',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to fetch user data",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -74,36 +80,36 @@ const AdminUsersList = () => {
 
   const toggleAdminStatus = async (userId: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase.rpc('update_user_profile_secure', {
+      const { error } = await supabase.rpc("update_user_profile_secure", {
         p_user_id: userId,
-        p_status: !currentStatus ? 'Admin' : 'Active'
+        p_status: !currentStatus ? "Admin" : "Active",
       });
-      
+
       if (error) throw error;
-      
+
       toast({
-        title: 'Success',
-        description: `User admin status ${!currentStatus ? 'granted' : 'revoked'}`,
+        title: "Success",
+        description: `User admin status ${!currentStatus ? "granted" : "revoked"}`,
       });
-      
+
       // Refresh the users list
       fetchUsers();
     } catch (error) {
-      console.error('Error updating admin status:', error);
+      console.error("Error updating admin status:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to update admin status',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update admin status",
+        variant: "destructive",
       });
     }
   };
 
   const sendAdminInvite = async () => {
-    if (!inviteEmail || !inviteEmail.includes('@')) {
+    if (!inviteEmail || !inviteEmail.includes("@")) {
       toast({
-        title: 'Invalid Email',
-        description: 'Please provide a valid email address',
-        variant: 'destructive',
+        title: "Invalid Email",
+        description: "Please provide a valid email address",
+        variant: "destructive",
       });
       return;
     }
@@ -114,7 +120,7 @@ const AdminUsersList = () => {
       // Generate invite code (random string)
       const inviteCode = [...Array(24)]
         .map(() => Math.floor(Math.random() * 36).toString(36))
-        .join('');
+        .join("");
 
       // Set expiration date (7 days from now)
       const expiresAt = new Date();
@@ -124,39 +130,40 @@ const AdminUsersList = () => {
 
       // Insert the invite into the database
       const { data: invite, error: inviteError } = await supabase
-        .from('admin_invites')
-        .insert([{
-          email: inviteEmail,
-          invite_code: inviteCode,
-          expires_at: expiresAt.toISOString(),
-          created_by: user?.id
-        }])
-        .select('*')
+        .from("admin_invites")
+        .insert([
+          {
+            email: inviteEmail,
+            invite_code: inviteCode,
+            expires_at: expiresAt.toISOString(),
+            created_by: user?.id,
+          },
+        ])
+        .select("*")
         .single();
 
       if (inviteError) throw inviteError;
 
       // Send the invitation email
-      const { error: emailError } = await supabase.functions.invoke('send-admin-invite', {
-        body: { invite }
+      const { error: emailError } = await supabase.functions.invoke("send-admin-invite", {
+        body: { invite },
       });
 
       if (emailError) throw emailError;
 
       toast({
-        title: 'Invitation Sent',
+        title: "Invitation Sent",
         description: `An admin invitation has been sent to ${inviteEmail}`,
       });
 
-      setInviteEmail('');
+      setInviteEmail("");
       setIsInviteOpen(false);
-
     } catch (error: any) {
-      console.error('Error sending admin invite:', error);
+      console.error("Error sending admin invite:", error);
       toast({
-        title: 'Invitation Failed',
-        description: error.message || 'Failed to send admin invitation',
-        variant: 'destructive',
+        title: "Invitation Failed",
+        description: error.message || "Failed to send admin invitation",
+        variant: "destructive",
       });
     } finally {
       setSendingInvite(false);
@@ -168,7 +175,9 @@ const AdminUsersList = () => {
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>User Management</CardTitle>
-          <CardDescription>View and manage all user accounts. Grant or revoke admin privileges.</CardDescription>
+          <CardDescription>
+            View and manage all user accounts. Grant or revoke admin privileges.
+          </CardDescription>
         </div>
         <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
           <DialogTrigger asChild>
@@ -184,16 +193,18 @@ const AdminUsersList = () => {
             <div className="space-y-4 py-2">
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
-                <Input 
-                  id="email" 
-                  placeholder="email@example.com" 
+                <Input
+                  id="email"
+                  placeholder="email@example.com"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsInviteOpen(false)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
+                Cancel
+              </Button>
               <Button onClick={sendAdminInvite} disabled={sendingInvite}>
                 {sendingInvite && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Send Invitation
@@ -230,15 +241,15 @@ const AdminUsersList = () => {
                   users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>
-                        {user.first_name || ''} {user.last_name || ''}
+                        {user.first_name || ""} {user.last_name || ""}
                       </TableCell>
                       <TableCell>{user.email}</TableCell>
+                      <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>
-                        {new Date(user.created_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <span className={user.is_admin ? "text-green-600 font-medium" : "text-gray-500"}>
-                          {user.is_admin ? 'Admin' : 'User'}
+                        <span
+                          className={user.is_admin ? "text-green-600 font-medium" : "text-gray-500"}
+                        >
+                          {user.is_admin ? "Admin" : "User"}
                         </span>
                       </TableCell>
                       <TableCell>

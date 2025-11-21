@@ -44,14 +44,10 @@ export function FeeStructuresTable({ structures }: FeeStructuresTableProps) {
                 <TableCell>
                   <div>
                     <div className="font-medium">{structure.fund_name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {structure.fund_code}
-                    </div>
+                    <div className="text-xs text-muted-foreground">{structure.fund_code}</div>
                   </div>
                 </TableCell>
-                <TableCell>
-                  {new Date(structure.effective_from).toLocaleDateString()}
-                </TableCell>
+                <TableCell>{new Date(structure.effective_from).toLocaleDateString()}</TableCell>
                 <TableCell className="text-right font-mono">
                   {(structure.mgmt_fee_bps / 100).toFixed(2)}%
                 </TableCell>

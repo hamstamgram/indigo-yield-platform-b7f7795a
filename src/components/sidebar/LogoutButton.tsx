@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
@@ -23,7 +22,7 @@ const LogoutButton: React.FC<LogoutButtonProps> = ({ onLogout }) => {
       if (onLogout) {
         onLogout();
       }
-      navigate('/');
+      navigate("/");
     } catch (error) {
       toast({
         title: "Log out failed",

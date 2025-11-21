@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 export interface BackupCodeGenerationResult {
   codes: string[];
@@ -19,56 +19,63 @@ export class TOTPService {
   /**
    * Simplified TOTP service that works with existing database schema
    */
-  
+
   static async getTOTPSettings(_userId: string): Promise<TOTPSettings | null> {
     try {
       // For now, return null until TOTP tables are properly set up
       return null;
     } catch (error) {
-      console.error('Error fetching TOTP settings:', error);
+      console.error("Error fetching TOTP settings:", error);
       return null;
     }
   }
 
-  static async initializeTOTP(_userId: string): Promise<{ 
-    secret: string; 
-    qrCode: string; 
-    backupCodes: string[]; 
+  static async initializeTOTP(_userId: string): Promise<{
+    secret: string;
+    qrCode: string;
+    backupCodes: string[];
   } | null> {
     try {
       // Simplified implementation - return mock data for now
       return {
-        secret: 'MOCK_SECRET',
-        qrCode: 'data:image/png;base64,mock',
-        backupCodes: ['123456', '789012', '345678']
+        secret: "MOCK_SECRET",
+        qrCode: "data:image/png;base64,mock",
+        backupCodes: ["123456", "789012", "345678"],
       };
     } catch (error) {
-      console.error('Error initializing TOTP:', error);
+      console.error("Error initializing TOTP:", error);
       return null;
     }
   }
 
-  static async completeTOTPSetup(_userId: string, _verificationCode: string): Promise<{ 
-    success: boolean; 
-    backupCodes?: string[]; 
-    error?: string; 
+  static async completeTOTPSetup(
+    _userId: string,
+    _verificationCode: string
+  ): Promise<{
+    success: boolean;
+    backupCodes?: string[];
+    error?: string;
   }> {
     try {
       // Simplified implementation
       return {
         success: true,
-        backupCodes: ['123456', '789012', '345678']
+        backupCodes: ["123456", "789012", "345678"],
       };
     } catch (error) {
-      console.error('Error completing TOTP setup:', error);
+      console.error("Error completing TOTP setup:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Setup failed'
+        error: error instanceof Error ? error.message : "Setup failed",
       };
     }
   }
 
-  static async verifyTOTP(_userId: string, _code: string, isBackupCode: boolean = false): Promise<{
+  static async verifyTOTP(
+    _userId: string,
+    _code: string,
+    isBackupCode: boolean = false
+  ): Promise<{
     success: boolean;
     remaining_attempts?: number;
     locked_until?: string;
@@ -79,13 +86,13 @@ export class TOTPService {
       // Simplified implementation
       return {
         success: true,
-        backup_code_used: isBackupCode
+        backup_code_used: isBackupCode,
       };
     } catch (error) {
-      console.error('Error verifying TOTP:', error);
+      console.error("Error verifying TOTP:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Verification failed'
+        error: error instanceof Error ? error.message : "Verification failed",
       };
     }
   }
@@ -94,21 +101,21 @@ export class TOTPService {
     try {
       // Update profile to disable TOTP
       const { error } = await supabase
-        .from('profiles')
-        .update({ 
+        .from("profiles")
+        .update({
           totp_enabled: false,
-          totp_verified: false 
+          totp_verified: false,
         })
-        .eq('id', userId);
+        .eq("id", userId);
 
       if (error) throw error;
 
       return { success: true };
     } catch (error) {
-      console.error('Error disabling TOTP:', error);
+      console.error("Error disabling TOTP:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to disable TOTP'
+        error: error instanceof Error ? error.message : "Failed to disable TOTP",
       };
     }
   }
@@ -118,13 +125,13 @@ export class TOTPService {
       // Simplified implementation
       return {
         success: true,
-        codes: ['123456', '789012', '345678', '456789', '901234']
+        codes: ["123456", "789012", "345678", "456789", "901234"],
       };
     } catch (error) {
-      console.error('Error regenerating backup codes:', error);
+      console.error("Error regenerating backup codes:", error);
       return {
         success: false,
-        codes: []
+        codes: [],
       };
     }
   }
@@ -132,9 +139,9 @@ export class TOTPService {
   static async getUserBackupCodes(_userId: string): Promise<string[]> {
     try {
       // Simplified implementation
-      return ['123456', '789012', '345678'];
+      return ["123456", "789012", "345678"];
     } catch (error) {
-      console.error('Error fetching backup codes:', error);
+      console.error("Error fetching backup codes:", error);
       return [];
     }
   }

@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
-import { X, Download } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { X, Download } from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 }
 
 declare global {
@@ -12,7 +12,7 @@ declare global {
   }
 }
 
-const DISMISS_KEY = 'pwa-install-dismissed';
+const DISMISS_KEY = "pwa-install-dismissed";
 const DISMISS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export function InstallPrompt() {
@@ -35,10 +35,10 @@ export function InstallPrompt() {
     setIsIOS(iOS);
 
     // Check if already installed
-    const isStandalone = 
-      window.matchMedia('(display-mode: standalone)').matches ||
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as any).standalone === true;
-    
+
     if (isStandalone) {
       return;
     }
@@ -50,7 +50,7 @@ export function InstallPrompt() {
       setShowPrompt(true);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
     // For iOS, show instructions after a delay
     if (iOS && !isStandalone) {
@@ -58,7 +58,7 @@ export function InstallPrompt() {
     }
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     };
   }, []);
 
@@ -68,14 +68,14 @@ export function InstallPrompt() {
     try {
       await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      
-      if (outcome === 'accepted') {
-        console.log('PWA installed');
+
+      if (outcome === "accepted") {
+        console.log("PWA installed");
       } else {
-        console.log('PWA installation dismissed');
+        console.log("PWA installation dismissed");
       }
     } catch (error) {
-      console.error('Installation failed:', error);
+      console.error("Installation failed:", error);
     } finally {
       setDeferredPrompt(null);
       setShowPrompt(false);
@@ -106,11 +106,11 @@ export function InstallPrompt() {
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 {isIOS ? (
                   <>
-                    Tap the share button <span className="inline-block">⎘</span> and select 
-                    "Add to Home Screen" to install
+                    Tap the share button <span className="inline-block">⎘</span> and select "Add to
+                    Home Screen" to install
                   </>
                 ) : (
-                  'Install our app for a better experience with offline access'
+                  "Install our app for a better experience with offline access"
                 )}
               </p>
               {!isIOS && (

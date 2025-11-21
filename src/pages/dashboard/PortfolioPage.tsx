@@ -1,37 +1,41 @@
 /**
  * Portfolio Page
- * 
+ *
  * TODO: Refactor database queries to match actual schema
- * - fund_assets doesn't exist, should join funds table  
+ * - fund_assets doesn't exist, should join funds table
  * - Use current_value instead of current_balance
  * - Use cost_basis instead of initial_investment
  * - Remove references to asset_symbol, asset_name (should be from funds table)
  */
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, TrendingDown, Plus, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Progress } from '@/components/ui/progress';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TrendingUp, TrendingDown, Plus, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Progress } from "@/components/ui/progress";
 
 export default function PortfolioPage() {
   const { data: positions, isLoading } = useQuery({
-    queryKey: ['portfolio-positions'],
+    queryKey: ["portfolio-positions"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user");
 
       const { data, error } = await supabase
-        .from('investor_positions')
-        .select(`
+        .from("investor_positions")
+        .select(
+          `
           *,
           fund_assets(*)
-        `)
-        .eq('investor_id', user.id)
-        .eq('status', 'active');
+        `
+        )
+        .eq("investor_id", user.id)
+        .eq("status", "active");
 
       if (error) throw error;
       return data;
@@ -41,7 +45,7 @@ export default function PortfolioPage() {
   const totalValue = positions?.reduce((sum, pos) => sum + (pos.current_value || 0), 0) || 0;
   const totalCost = positions?.reduce((sum, pos) => sum + (pos.cost_basis || 0), 0) || 0;
   const totalGain = totalValue - totalCost;
-  const totalReturn = totalCost > 0 ? ((totalGain / totalCost) * 100).toFixed(2) : '0.00';
+  const totalReturn = totalCost > 0 ? ((totalGain / totalCost) * 100).toFixed(2) : "0.00";
 
   return (
     <div className="space-y-6">
@@ -78,11 +82,14 @@ export default function PortfolioPage() {
             <CardTitle className="text-sm font-medium">Total Gain/Loss</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${totalGain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {totalGain >= 0 ? '+' : ''}${totalGain.toLocaleString()}
+            <div
+              className={`text-2xl font-bold ${totalGain >= 0 ? "text-green-600" : "text-red-600"}`}
+            >
+              {totalGain >= 0 ? "+" : ""}${totalGain.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              {parseFloat(totalReturn) >= 0 ? '+' : ''}{totalReturn}% return
+              {parseFloat(totalReturn) >= 0 ? "+" : ""}
+              {totalReturn}% return
             </p>
           </CardContent>
         </Card>
@@ -119,10 +126,9 @@ export default function PortfolioPage() {
                 const positionGain = (position.current_value || 0) - (position.cost_basis || 0);
                 const positionReturn = position.cost_basis
                   ? ((positionGain / position.cost_basis) * 100).toFixed(2)
-                  : '0.00';
-                const allocation = totalValue > 0
-                  ? ((position.current_value / totalValue) * 100).toFixed(1)
-                  : '0';
+                  : "0.00";
+                const allocation =
+                  totalValue > 0 ? ((position.current_value / totalValue) * 100).toFixed(1) : "0";
 
                 return (
                   <Card key={position.fund_id}>
@@ -134,18 +140,12 @@ export default function PortfolioPage() {
                               FD
                             </div>
                             <div>
-                              <h3 className="font-semibold text-lg">
-                                Fund
-                              </h3>
-                              <p className="text-sm text-muted-foreground">
-                                {position.fund_id}
-                              </p>
+                              <h3 className="font-semibold text-lg">Fund</h3>
+                              <p className="text-sm text-muted-foreground">{position.fund_id}</p>
                             </div>
                           </div>
                         </div>
-                        <Badge variant="default">
-                          active
-                        </Badge>
+                        <Badge variant="default">active</Badge>
                       </div>
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
@@ -164,8 +164,10 @@ export default function PortfolioPage() {
                         <div>
                           <p className="text-xs text-muted-foreground mb-1">Gain/Loss</p>
                           <div className="flex items-center gap-1">
-                            <p className={`text-lg font-semibold ${positionGain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {positionGain >= 0 ? '+' : ''}${positionGain.toLocaleString()}
+                            <p
+                              className={`text-lg font-semibold ${positionGain >= 0 ? "text-green-600" : "text-red-600"}`}
+                            >
+                              {positionGain >= 0 ? "+" : ""}${positionGain.toLocaleString()}
                             </p>
                             {positionGain >= 0 ? (
                               <TrendingUp className="h-4 w-4 text-green-600" />
@@ -176,8 +178,11 @@ export default function PortfolioPage() {
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground mb-1">Return</p>
-                          <p className={`text-lg font-semibold ${Number(positionReturn) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {Number(positionReturn) >= 0 ? '+' : ''}{positionReturn}%
+                          <p
+                            className={`text-lg font-semibold ${Number(positionReturn) >= 0 ? "text-green-600" : "text-red-600"}`}
+                          >
+                            {Number(positionReturn) >= 0 ? "+" : ""}
+                            {positionReturn}%
                           </p>
                         </div>
                       </div>
@@ -198,9 +203,7 @@ export default function PortfolioPage() {
                           </Link>
                         </Button>
                         <Button variant="outline" size="sm" asChild>
-                          <Link to={`/transactions?fund=${position.fund_id}`}>
-                            Transactions
-                          </Link>
+                          <Link to={`/transactions?fund=${position.fund_id}`}>Transactions</Link>
                         </Button>
                       </div>
                     </CardContent>

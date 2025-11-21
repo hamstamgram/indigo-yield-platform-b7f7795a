@@ -8,7 +8,9 @@ import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
 const AdminReports = lazy(() => import("@/pages/admin/AdminReports"));
-const HistoricalReportsDashboard = lazy(() => import("@/components/admin/investors/HistoricalReportsDashboard"));
+const HistoricalReportsDashboard = lazy(
+  () => import("@/components/admin/investors/HistoricalReportsDashboard")
+);
 const AdminBatchReportsPage = lazy(() => import("@/pages/admin/AdminBatchReportsPage"));
 const PDFGenerationDemo = lazy(() =>
   import("@/components/pdf/PDFGenerationDemo").then((m) => ({ default: m.PDFGenerationDemo }))

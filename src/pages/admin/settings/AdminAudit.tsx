@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Search, User, Activity } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Search, User, Activity } from "lucide-react";
 
 interface SimpleAuditLog {
   id: string;
@@ -16,7 +16,7 @@ interface SimpleAuditLog {
 
 export default function AdminAuditPage() {
   const [auditLogs, setAuditLogs] = useState<SimpleAuditLog[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,24 +26,25 @@ export default function AdminAuditPage() {
   const fetchAuditLogs = async () => {
     try {
       const { data } = await supabase
-        .from('audit_log')
-        .select('id, action, entity, created_at, actor_user')
-        .order('created_at', { ascending: false })
+        .from("audit_log")
+        .select("id, action, entity, created_at, actor_user")
+        .order("created_at", { ascending: false })
         .limit(100);
 
       if (data) {
         setAuditLogs(data);
       }
     } catch (error) {
-      console.error('Error fetching audit logs:', error);
+      console.error("Error fetching audit logs:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredLogs = auditLogs.filter(log =>
-    log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    log.entity.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredLogs = auditLogs.filter(
+    (log) =>
+      log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.entity.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -65,9 +66,7 @@ export default function AdminAuditPage() {
             <Activity className="h-5 w-5" />
             Recent Activity
           </CardTitle>
-          <CardDescription>
-            Track all system changes and administrative actions
-          </CardDescription>
+          <CardDescription>Track all system changes and administrative actions</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 mb-6">
@@ -95,7 +94,7 @@ export default function AdminAuditPage() {
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">
-                      {log.actor_user || 'System'}
+                      {log.actor_user || "System"}
                     </span>
                   </div>
                   <Badge variant="outline">{log.action}</Badge>

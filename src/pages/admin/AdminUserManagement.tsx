@@ -2,19 +2,19 @@
  * Admin User Management Page - Manage admin users
  */
 
-import { UserCog } from 'lucide-react';
-import { AdminGuard } from '@/components/admin/AdminGuard';
-import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { UserCog } from "lucide-react";
+import { AdminGuard } from "@/components/admin/AdminGuard";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 
 function AdminUserManagementContent() {
-  const [email, setEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -30,8 +30,8 @@ function AdminUserManagementContent() {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase.functions.invoke('set-user-password', {
-        body: { email, password: newPassword }
+      const { error } = await supabase.functions.invoke("set-user-password", {
+        body: { email, password: newPassword },
       });
 
       if (error) throw error;
@@ -40,9 +40,9 @@ function AdminUserManagementContent() {
         title: "Success",
         description: `Password updated for ${email}`,
       });
-      
-      setEmail('');
-      setNewPassword('');
+
+      setEmail("");
+      setNewPassword("");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -78,7 +78,7 @@ function AdminUserManagementContent() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="password">New Password</Label>
             <Input
@@ -90,12 +90,8 @@ function AdminUserManagementContent() {
             />
           </div>
 
-          <Button 
-            onClick={handlePasswordReset} 
-            disabled={isLoading}
-            className="w-full"
-          >
-            {isLoading ? 'Updating...' : 'Update Password'}
+          <Button onClick={handlePasswordReset} disabled={isLoading} className="w-full">
+            {isLoading ? "Updating..." : "Update Password"}
           </Button>
         </CardContent>
       </Card>

@@ -3,9 +3,9 @@
  * Clean abstractions for portfolio-related data
  */
 
-import { Database } from '@/integrations/supabase/types';
+import { Database } from "@/integrations/supabase/types";
 
-type AssetCode = Database['public']['Enums']['asset_code'];
+type AssetCode = Database["public"]["Enums"]["asset_code"];
 
 export interface PortfolioPosition {
   fund_id: string;

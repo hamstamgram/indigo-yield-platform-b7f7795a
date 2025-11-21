@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,24 +9,24 @@ export const useInvestorInvite = (onSuccess?: () => void) => {
   const createInvite = async (email: string) => {
     try {
       setIsSending(true);
-      
+
       // Generate a new invite code
       const inviteCode = Math.random().toString(36).substring(2, 15);
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7); // Invite expires in 7 days
-      
+
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       // Store or create invite in the database
-      const { error: inviteError } = await supabase
-        .from('admin_invites')
-        .insert({
-          email: email,
-          invite_code: inviteCode,
-          created_by: user?.id,
-          expires_at: expiresAt.toISOString()
-        });
+      const { error: inviteError } = await supabase.from("admin_invites").insert({
+        email: email,
+        invite_code: inviteCode,
+        created_by: user?.id,
+        expires_at: expiresAt.toISOString(),
+      });
 
       if (inviteError) {
         console.error("Invite creation error:", inviteError);
@@ -59,6 +58,6 @@ export const useInvestorInvite = (onSuccess?: () => void) => {
 
   return {
     createInvite,
-    isSending
+    isSending,
   };
 };

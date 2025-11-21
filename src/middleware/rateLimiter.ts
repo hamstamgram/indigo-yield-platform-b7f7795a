@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 interface RateLimitConfig {
   windowMs: number;
@@ -34,16 +34,16 @@ class RateLimiter {
     if (data.user) {
       return `user:${data.user.id}`;
     }
-    
+
     // Fallback to IP address from headers
-    const forwarded = req.headers.get('x-forwarded-for');
-    const ip = forwarded ? forwarded.split(',')[0] : 'unknown';
+    const forwarded = req.headers.get("x-forwarded-for");
+    const ip = forwarded ? forwarded.split(",")[0] : "unknown";
     return `ip:${ip}`;
   }
 
   private cleanup() {
     const now = Date.now();
-    Object.keys(this.store).forEach(key => {
+    Object.keys(this.store).forEach((key) => {
       if (this.store[key].resetTime < now) {
         delete this.store[key];
       }
@@ -57,7 +57,7 @@ class RateLimiter {
 
     const key = await this.config.keyGenerator!(req);
     const now = Date.now();
-    
+
     if (!this.store[key] || this.store[key].resetTime < now) {
       // New window
       this.store[key] = {
@@ -84,8 +84,8 @@ class RateLimiter {
 
 // Rate limiters for different route types
 export const apiRateLimiter = new RateLimiter({
-  windowMs: parseInt(import.meta.env.VITE_RATE_LIMIT_WINDOW_MS || '60000'),
-  maxRequests: parseInt(import.meta.env.VITE_RATE_LIMIT_MAX_REQUESTS || '100'),
+  windowMs: parseInt(import.meta.env.VITE_RATE_LIMIT_WINDOW_MS || "60000"),
+  maxRequests: parseInt(import.meta.env.VITE_RATE_LIMIT_MAX_REQUESTS || "100"),
 });
 
 export const adminRateLimiter = new RateLimiter({
@@ -103,13 +103,13 @@ export function useRateLimit(limiter: RateLimiter = apiRateLimiter) {
   const checkRateLimit = async (req?: Request): Promise<boolean> => {
     const request = req || new Request(window.location.href);
     const { allowed, retryAfter } = await limiter.check(request);
-    
+
     if (!allowed) {
       console.warn(`Rate limit exceeded. Retry after ${retryAfter} seconds`);
       // Could trigger a toast notification here
       return false;
     }
-    
+
     return true;
   };
 
@@ -122,25 +122,25 @@ export async function rateLimitMiddleware(
   limiter: RateLimiter = apiRateLimiter
 ): Promise<Response | null> {
   const { allowed, retryAfter } = await limiter.check(req);
-  
+
   if (!allowed) {
     return new Response(
       JSON.stringify({
-        error: 'Too many requests',
+        error: "Too many requests",
         retryAfter,
       }),
       {
         status: 429,
         headers: {
-          'Content-Type': 'application/json',
-          'Retry-After': retryAfter?.toString() || '60',
-          'X-RateLimit-Limit': import.meta.env.VITE_RATE_LIMIT_MAX_REQUESTS || '100',
-          'X-RateLimit-Remaining': '0',
-          'X-RateLimit-Reset': new Date(Date.now() + (retryAfter || 60) * 1000).toISOString(),
+          "Content-Type": "application/json",
+          "Retry-After": retryAfter?.toString() || "60",
+          "X-RateLimit-Limit": import.meta.env.VITE_RATE_LIMIT_MAX_REQUESTS || "100",
+          "X-RateLimit-Remaining": "0",
+          "X-RateLimit-Reset": new Date(Date.now() + (retryAfter || 60) * 1000).toISOString(),
         },
       }
     );
   }
-  
+
   return null; // Continue processing
 }

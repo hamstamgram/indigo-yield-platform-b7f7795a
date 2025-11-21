@@ -108,9 +108,7 @@ function AdminInvestmentsContent() {
       <Card>
         <CardHeader>
           <CardTitle>All Investments</CardTitle>
-          <CardDescription>
-            Filter and manage investment transactions
-          </CardDescription>
+          <CardDescription>Filter and manage investment transactions</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-4">
@@ -120,9 +118,7 @@ function AdminInvestmentsContent() {
                 placeholder="Search by investor name, email, or reference..."
                 className="pl-9"
                 value={filters.search || ""}
-                onChange={(e) =>
-                  setFilters({ ...filters, search: e.target.value })
-                }
+                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
               />
             </div>
 
@@ -175,10 +171,7 @@ function AdminInvestmentsContent() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
             </div>
           ) : (
-            <InvestmentsTable
-              investments={filteredInvestments}
-              onRefresh={loadData}
-            />
+            <InvestmentsTable investments={filteredInvestments} onRefresh={loadData} />
           )}
         </CardContent>
       </Card>

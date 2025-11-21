@@ -1,15 +1,15 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ExpertInvestorService } from '@/services/expertInvestorService';
-import { CACHE_KEYS } from '@/utils/performance/caching';
-import type { UnifiedInvestorData, ExpertInvestorSummary } from '@/services/expertInvestorService';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ExpertInvestorService } from "@/services/expertInvestorService";
+import { CACHE_KEYS } from "@/utils/performance/caching";
+import type { UnifiedInvestorData, ExpertInvestorSummary } from "@/services/expertInvestorService";
 
 const expertInvestorService = new ExpertInvestorService();
 
 // Cache keys for investor data
 export const INVESTOR_CACHE_KEYS = {
-  ALL_INVESTORS: 'allInvestors',
-  INVESTOR_DETAIL: 'investorDetail',
-  INVESTOR_POSITIONS: 'investorPositions',
+  ALL_INVESTORS: "allInvestors",
+  INVESTOR_DETAIL: "investorDetail",
+  INVESTOR_POSITIONS: "investorPositions",
 } as const;
 
 /**
@@ -195,7 +195,7 @@ export function useUpdateInvestorStatus() {
     mutationFn: async ({ investorId, status }: { investorId: string; status: string }) => {
       // TODO: Replace with actual update service method
       // return await investorService.updateStatus(investorId, status);
-      throw new Error('Not implemented - add actual service method');
+      throw new Error("Not implemented - add actual service method");
     },
     // Optimistic update: immediately update the UI before API responds
     onMutate: async ({ investorId, status }) => {
@@ -268,15 +268,13 @@ export function useCacheStats() {
   const cache = queryClient.getQueryCache();
 
   const queries = cache.getAll();
-  const activeQueries = queries.filter(q => q.state.status === 'success');
-  const staleQueries = queries.filter(q => q.isStale());
+  const activeQueries = queries.filter((q) => q.state.status === "success");
+  const staleQueries = queries.filter((q) => q.isStale());
 
   return {
     queryCount: queries.length,
     activeCount: activeQueries.length,
     staleCount: staleQueries.length,
-    hitRate: queries.length > 0
-      ? ((activeQueries.length / queries.length) * 100).toFixed(2)
-      : '0',
+    hitRate: queries.length > 0 ? ((activeQueries.length / queries.length) * 100).toFixed(2) : "0",
   };
 }

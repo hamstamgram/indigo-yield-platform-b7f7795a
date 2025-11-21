@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { PlusCircle, Loader2 } from 'lucide-react';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { PlusCircle, Loader2 } from "lucide-react";
 
 interface AdminDepositFormProps {
   investors: any[];
@@ -14,50 +20,48 @@ interface AdminDepositFormProps {
   onSuccess?: () => void;
 }
 
-const AdminDepositForm: React.FC<AdminDepositFormProps> = ({ 
-  investors, 
-  assets, 
-  onSuccess 
-}) => {
+const AdminDepositForm: React.FC<AdminDepositFormProps> = ({ investors, assets, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    investor_id: '',
-    asset_id: '',
-    amount: '',
-    tx_hash: '',
-    notes: ''
+    investor_id: "",
+    asset_id: "",
+    amount: "",
+    tx_hash: "",
+    notes: "",
   });
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.investor_id || !formData.asset_id || !formData.amount) {
       toast({
-        title: 'Validation Error',
-        description: 'Please fill in all required fields',
-        variant: 'destructive',
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
       });
       return;
     }
 
     setLoading(true);
-    
+
     try {
       // Get current user (admin)
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No authenticated user');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user");
 
       // Record the deposit
       const { data: deposit, error: depositError } = await supabase
-        .from('deposits')
+        .from("deposits")
         .insert({
           user_id: formData.investor_id,
-          asset_symbol: assets.find(a => a.id === parseInt(formData.asset_id))?.symbol || 'USDT',
+          asset_symbol: assets.find((a) => a.id === parseInt(formData.asset_id))?.symbol || "USDT",
           amount: parseFloat(formData.amount),
           transaction_hash: formData.tx_hash || null,
-          status: 'confirmed',
-          created_by: user.id
+          status: "confirmed",
+          created_by: user.id,
         })
         .select()
         .single();
@@ -65,89 +69,85 @@ const AdminDepositForm: React.FC<AdminDepositFormProps> = ({
       if (depositError) throw depositError;
 
       // Update portfolio balance (using positions table)
-      const selectedAsset = assets.find(a => a.id === parseInt(formData.asset_id));
-      const assetCode = selectedAsset?.symbol as "BTC" | "ETH" | "SOL" | "USDT" | "USDC" | "EURC" || 'USDT';
-      
+      const selectedAsset = assets.find((a) => a.id === parseInt(formData.asset_id));
+      const assetCode =
+        (selectedAsset?.symbol as "BTC" | "ETH" | "SOL" | "USDT" | "USDC" | "EURC") || "USDT";
+
       const { data: existingPosition } = await supabase
-        .from('positions')
-        .select('*')
-        .eq('user_id', formData.investor_id)
-        .eq('asset_code', assetCode)
+        .from("positions")
+        .select("*")
+        .eq("user_id", formData.investor_id)
+        .eq("asset_code", assetCode)
         .maybeSingle();
 
       if (existingPosition) {
         // Update existing position
         const { error: updateError } = await supabase
-          .from('positions')
+          .from("positions")
           .update({
             current_balance: existingPosition.current_balance + parseFloat(formData.amount),
             principal: existingPosition.principal + parseFloat(formData.amount),
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
-          .eq('id', existingPosition.id);
+          .eq("id", existingPosition.id);
 
         if (updateError) throw updateError;
       } else {
         // Create new position entry
-        const { error: createError } = await supabase
-          .from('positions')
-          .insert({
-            user_id: formData.investor_id,
-            asset_code: assetCode,
-            current_balance: parseFloat(formData.amount),
-            principal: parseFloat(formData.amount),
-            total_earned: 0
-          });
+        const { error: createError } = await supabase.from("positions").insert({
+          user_id: formData.investor_id,
+          asset_code: assetCode,
+          current_balance: parseFloat(formData.amount),
+          principal: parseFloat(formData.amount),
+          total_earned: 0,
+        });
 
         if (createError) throw createError;
       }
 
       // Skip transaction recording for now - needs proper schema alignment
-      console.log('Deposit recorded successfully, skipping transaction log');
+      console.log("Deposit recorded successfully, skipping transaction log");
 
       // Log to audit trail
-      const { error: auditError } = await supabase
-        .from('audit_log')
-        .insert({
-          actor_user: user.id,
-          action: 'CREATE_DEPOSIT',
-          entity: 'deposits',
-          entity_id: deposit.id,
-          new_values: {
-            investor_id: formData.investor_id,
-            asset_id: formData.asset_id,
-            amount: formData.amount,
-            tx_hash: formData.tx_hash
-          },
-          meta: {
-            notes: formData.notes
-          }
-        });
+      const { error: auditError } = await supabase.from("audit_log").insert({
+        actor_user: user.id,
+        action: "CREATE_DEPOSIT",
+        entity: "deposits",
+        entity_id: deposit.id,
+        new_values: {
+          investor_id: formData.investor_id,
+          asset_id: formData.asset_id,
+          amount: formData.amount,
+          tx_hash: formData.tx_hash,
+        },
+        meta: {
+          notes: formData.notes,
+        },
+      });
 
-      if (auditError) console.error('Audit log error:', auditError);
+      if (auditError) console.error("Audit log error:", auditError);
 
       toast({
-        title: 'Deposit Recorded',
-        description: `Successfully added ${formData.amount} ${assets.find(a => a.id === parseInt(formData.asset_id))?.symbol} deposit`,
+        title: "Deposit Recorded",
+        description: `Successfully added ${formData.amount} ${assets.find((a) => a.id === parseInt(formData.asset_id))?.symbol} deposit`,
       });
 
       // Reset form
       setFormData({
-        investor_id: '',
-        asset_id: '',
-        amount: '',
-        tx_hash: '',
-        notes: ''
+        investor_id: "",
+        asset_id: "",
+        amount: "",
+        tx_hash: "",
+        notes: "",
       });
 
       if (onSuccess) onSuccess();
-      
     } catch (error: any) {
-      console.error('Deposit error:', error);
+      console.error("Deposit error:", error);
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to record deposit',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to record deposit",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);

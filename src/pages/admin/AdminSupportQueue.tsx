@@ -1,30 +1,36 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { 
-  MessageCircle, 
-  Clock, 
-  CheckCircle, 
-  AlertTriangle,
-  RefreshCw,
-  Search
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { supportService, SupportTicket } from '@/services/supportService';
-import { adminServiceV2 } from '@/services/adminServiceV2';
-import { supabase } from '@/integrations/supabase/client';
+} from "@/components/ui/dialog";
+import { MessageCircle, Clock, CheckCircle, AlertTriangle, RefreshCw, Search } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supportService, SupportTicket } from "@/services/supportService";
+import { adminServiceV2 } from "@/services/adminServiceV2";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminSupportQueue = () => {
   const [loading, setLoading] = useState(true);
@@ -32,13 +38,12 @@ const AdminSupportQueue = () => {
   const [_investors, setInvestors] = useState<any[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [priorityFilter, setPriorityFilter] = useState('all');
-  const [resolutionNotes, setResolutionNotes] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [resolutionNotes, setResolutionNotes] = useState("");
   const [updating, setUpdating] = useState(false);
   const { toast } = useToast();
-
 
   const fetchSupportData = async () => {
     try {
@@ -49,9 +54,9 @@ const AdminSupportQueue = () => {
       setInvestors(investorsData);
     } catch (error: any) {
       toast({
-        title: 'Error loading support queue',
-        description: error.message || 'Failed to load support tickets',
-        variant: 'destructive',
+        title: "Error loading support queue",
+        description: error.message || "Failed to load support tickets",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -63,16 +68,16 @@ const AdminSupportQueue = () => {
 
     // Set up real-time subscription for new tickets
     const ticketChannel = supabase
-      .channel('support-tickets')
+      .channel("support-tickets")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'support_tickets'
+          event: "*",
+          schema: "public",
+          table: "support_tickets",
         },
         (payload) => {
-          console.log('Support ticket changed:', payload);
+          console.log("Support ticket changed:", payload);
           fetchSupportData();
         }
       )
@@ -85,7 +90,7 @@ const AdminSupportQueue = () => {
 
   const handleTicketClick = (ticket: SupportTicket) => {
     setSelectedTicket(ticket);
-    setResolutionNotes(ticket.resolution_notes || '');
+    setResolutionNotes(ticket.resolution_notes || "");
     setDialogOpen(true);
   };
 
@@ -95,83 +100,102 @@ const AdminSupportQueue = () => {
     try {
       setUpdating(true);
 
-      const action = newStatus === 'resolved' || newStatus === 'closed' ? 'resolve' : 
-                     newStatus === 'open' ? 'reopen' : 'assign';
+      const action =
+        newStatus === "resolved" || newStatus === "closed"
+          ? "resolve"
+          : newStatus === "open"
+            ? "reopen"
+            : "assign";
 
       await supportService.actOnTicket(selectedTicket.id, {
         action: action as any,
-        note: (newStatus === 'resolved' || newStatus === 'closed') ? resolutionNotes : undefined
+        note: newStatus === "resolved" || newStatus === "closed" ? resolutionNotes : undefined,
       });
 
       await fetchSupportData();
 
       toast({
-        title: 'Ticket Updated',
+        title: "Ticket Updated",
         description: `Ticket status changed to ${newStatus}`,
       });
 
-      if (newStatus === 'resolved' || newStatus === 'closed') {
+      if (newStatus === "resolved" || newStatus === "closed") {
         setDialogOpen(false);
       }
-
     } catch (error: any) {
-      console.error('Error updating ticket:', error);
+      console.error("Error updating ticket:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to update ticket status',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update ticket status",
+        variant: "destructive",
       });
     } finally {
       setUpdating(false);
     }
   };
 
-  const filteredTickets = tickets.filter(ticket => {
-    const matchesSearch = ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (ticket.user_name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                         (ticket.user_email?.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
-    const matchesPriority = priorityFilter === 'all' || ticket.priority === priorityFilter;
-    
+  const filteredTickets = tickets.filter((ticket) => {
+    const matchesSearch =
+      ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ticket.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ticket.user_email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
+    const matchesPriority = priorityFilter === "all" || ticket.priority === priorityFilter;
+
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
-  const getStatusColor = (status: SupportTicket['status']) => {
+  const getStatusColor = (status: SupportTicket["status"]) => {
     switch (status) {
-      case 'open': return 'bg-red-100 text-red-800';
-      case 'in-progress': return 'bg-yellow-100 text-yellow-800';
-      case 'resolved': return 'bg-green-100 text-green-800';
-      case 'closed': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "open":
+        return "bg-red-100 text-red-800";
+      case "in-progress":
+        return "bg-yellow-100 text-yellow-800";
+      case "resolved":
+        return "bg-green-100 text-green-800";
+      case "closed":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
-  const getPriorityColor = (priority: SupportTicket['priority']) => {
+  const getPriorityColor = (priority: SupportTicket["priority"]) => {
     switch (priority) {
-      case 'urgent': return 'bg-red-100 text-red-800';
-      case 'high': return 'bg-orange-100 text-orange-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "urgent":
+        return "bg-red-100 text-red-800";
+      case "high":
+        return "bg-orange-100 text-orange-800";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800";
+      case "low":
+        return "bg-blue-100 text-blue-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
-  const getStatusIcon = (status: SupportTicket['status']) => {
+  const getStatusIcon = (status: SupportTicket["status"]) => {
     switch (status) {
-      case 'open': return <MessageCircle className="h-4 w-4" />;
-      case 'in-progress': return <Clock className="h-4 w-4" />;
-      case 'resolved': return <CheckCircle className="h-4 w-4" />;
-      case 'closed': return <CheckCircle className="h-4 w-4" />;
-      default: return <MessageCircle className="h-4 w-4" />;
+      case "open":
+        return <MessageCircle className="h-4 w-4" />;
+      case "in-progress":
+        return <Clock className="h-4 w-4" />;
+      case "resolved":
+        return <CheckCircle className="h-4 w-4" />;
+      case "closed":
+        return <CheckCircle className="h-4 w-4" />;
+      default:
+        return <MessageCircle className="h-4 w-4" />;
     }
   };
 
   const ticketStats = {
     total: tickets.length,
-    open: tickets.filter(t => t.status === 'open').length,
-    inProgress: tickets.filter(t => t.status === 'in_progress').length,
-    resolved: tickets.filter(t => t.status === 'resolved').length,
-    urgent: tickets.filter(t => t.priority === 'urgent').length,
+    open: tickets.filter((t) => t.status === "open").length,
+    inProgress: tickets.filter((t) => t.status === "in_progress").length,
+    resolved: tickets.filter((t) => t.status === "resolved").length,
+    urgent: tickets.filter((t) => t.priority === "urgent").length,
   };
 
   if (loading) {
@@ -337,23 +361,17 @@ const AdminSupportQueue = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={getPriorityColor(ticket.priority)}>
-                        {ticket.priority}
-                      </Badge>
+                      <Badge className={getPriorityColor(ticket.priority)}>{ticket.priority}</Badge>
                     </TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(ticket.status)}>
-                        {ticket.status.replace('-', ' ')}
+                        {ticket.status.replace("-", " ")}
                       </Badge>
                     </TableCell>
                     <TableCell>{ticket.category}</TableCell>
                     <TableCell>{new Date(ticket.created_at).toLocaleDateString()}</TableCell>
                     <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleTicketClick(ticket)}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => handleTicketClick(ticket)}>
                         View
                       </Button>
                     </TableCell>
@@ -371,7 +389,7 @@ const AdminSupportQueue = () => {
           <DialogHeader>
             <DialogTitle>Ticket Details</DialogTitle>
           </DialogHeader>
-          
+
           {selectedTicket && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -379,7 +397,7 @@ const AdminSupportQueue = () => {
                   <label className="text-sm font-medium">Status</label>
                   <div className="mt-1">
                     <Badge className={getStatusColor(selectedTicket.status)}>
-                      {selectedTicket.status.replace('-', ' ')}
+                      {selectedTicket.status.replace("-", " ")}
                     </Badge>
                   </div>
                 </div>
@@ -408,7 +426,7 @@ const AdminSupportQueue = () => {
                 </div>
               </div>
 
-              {selectedTicket.status !== 'resolved' && (
+              {selectedTicket.status !== "resolved" && (
                 <div>
                   <label className="text-sm font-medium">Resolution Notes</label>
                   <Textarea
@@ -433,18 +451,18 @@ const AdminSupportQueue = () => {
 
           <DialogFooter className="flex justify-between">
             <div className="flex gap-2">
-              {selectedTicket?.status !== 'in-progress' && (
+              {selectedTicket?.status !== "in-progress" && (
                 <Button
                   variant="outline"
-                  onClick={() => handleStatusUpdate('in-progress')}
+                  onClick={() => handleStatusUpdate("in-progress")}
                   disabled={updating}
                 >
                   Mark In Progress
                 </Button>
               )}
-              {selectedTicket?.status !== 'resolved' && (
+              {selectedTicket?.status !== "resolved" && (
                 <Button
-                  onClick={() => handleStatusUpdate('resolved')}
+                  onClick={() => handleStatusUpdate("resolved")}
                   disabled={updating || !resolutionNotes.trim()}
                 >
                   Resolve

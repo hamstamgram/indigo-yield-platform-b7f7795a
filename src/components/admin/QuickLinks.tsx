@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,7 @@ const QuickLinks: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-      
+
       <Card className="border-0 shadow-md h-full flex flex-col">
         <CardHeader>
           <CardTitle>Portfolio Management</CardTitle>
@@ -38,7 +37,7 @@ const QuickLinks: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-      
+
       <Card className="border-0 shadow-md h-full flex flex-col">
         <CardHeader>
           <CardTitle>Yield Settings</CardTitle>

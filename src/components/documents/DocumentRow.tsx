@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Download, Eye, FileText, Calendar, User } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Download, Eye, FileText, Calendar, User } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 export interface Document {
   id: string;
   name: string;
-  type: 'statement' | 'tax' | 'legal' | 'notice' | 'other';
+  type: "statement" | "tax" | "legal" | "notice" | "other";
   size: number;
   created_at: string;
   investor_id?: string;
@@ -24,19 +24,19 @@ interface DocumentRowProps {
 }
 
 const documentTypeColors = {
-  statement: 'bg-blue-100 text-blue-800',
-  tax: 'bg-green-100 text-green-800',
-  legal: 'bg-purple-100 text-purple-800',
-  notice: 'bg-orange-100 text-orange-800',
-  other: 'bg-gray-100 text-gray-800',
+  statement: "bg-blue-100 text-blue-800",
+  tax: "bg-green-100 text-green-800",
+  legal: "bg-purple-100 text-purple-800",
+  notice: "bg-orange-100 text-orange-800",
+  other: "bg-gray-100 text-gray-800",
 };
 
 const documentTypeLabels = {
-  statement: 'Statement',
-  tax: 'Tax Document',
-  legal: 'Legal',
-  notice: 'Notice',
-  other: 'Other',
+  statement: "Statement",
+  tax: "Tax Document",
+  legal: "Legal",
+  notice: "Notice",
+  other: "Other",
 };
 
 export default function DocumentRow({
@@ -44,32 +44,32 @@ export default function DocumentRow({
   onDownload,
   onPreview,
   showInvestor = false,
-  className = '',
+  className = "",
 }: DocumentRowProps) {
   const [downloading, setDownloading] = useState(false);
 
   const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const handleDownload = async () => {
     try {
       setDownloading(true);
       const signedUrl = await onDownload(document);
-      
+
       // Create a temporary link and trigger download
-      const link = window.document.createElement('a');
+      const link = window.document.createElement("a");
       link.href = signedUrl;
       link.download = document.name;
       window.document.body.appendChild(link);
       link.click();
       window.document.body.removeChild(link);
     } catch (error) {
-      console.error('Failed to download document:', error);
+      console.error("Failed to download document:", error);
     } finally {
       setDownloading(false);
     }
@@ -93,9 +93,7 @@ export default function DocumentRow({
           {/* Document Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-2 mb-2">
-              <h3 className="text-sm font-medium text-gray-900 truncate">
-                {document.name}
-              </h3>
+              <h3 className="text-sm font-medium text-gray-900 truncate">{document.name}</h3>
               <Badge className={documentTypeColors[document.type]}>
                 {documentTypeLabels[document.type]}
               </Badge>
@@ -109,9 +107,11 @@ export default function DocumentRow({
             <div className="flex items-center text-xs text-gray-500 space-x-4">
               <div className="flex items-center space-x-1">
                 <Calendar className="h-3 w-3" />
-                <span>{formatDistanceToNow(new Date(document.created_at), { addSuffix: true })}</span>
+                <span>
+                  {formatDistanceToNow(new Date(document.created_at), { addSuffix: true })}
+                </span>
               </div>
-              
+
               <div className="flex items-center space-x-1">
                 <span>{formatFileSize(document.size)}</span>
               </div>
@@ -133,8 +133,7 @@ export default function DocumentRow({
                     <span key={key} className="mr-3">
                       {key}: {String(value)}
                     </span>
-                  ))
-                }
+                  ))}
               </div>
             )}
           </div>

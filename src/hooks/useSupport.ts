@@ -49,7 +49,11 @@ export function useTicketMessages(_ticketId?: string) {
 
   const sendMessage = useCallback(
     async (_message: Omit<TicketMessage, "id" | "created_at" | "updated_at">) => {
-      toast({ title: "Not available", description: "Ticket messages feature not yet implemented.", variant: "destructive" });
+      toast({
+        title: "Not available",
+        description: "Ticket messages feature not yet implemented.",
+        variant: "destructive",
+      });
       return null;
     },
     [toast]

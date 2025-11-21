@@ -71,9 +71,7 @@ export function AssetsTable() {
               ) : (
                 assets?.map((asset: Asset) => (
                   <TableRow key={asset.asset_id}>
-                    <TableCell className="font-mono font-semibold">
-                      {asset.symbol}
-                    </TableCell>
+                    <TableCell className="font-mono font-semibold">{asset.symbol}</TableCell>
                     <TableCell>{asset.name}</TableCell>
                     <TableCell>
                       <Badge variant="outline">{asset.kind}</Badge>
@@ -87,9 +85,7 @@ export function AssetsTable() {
                         <Badge variant="secondary">Inactive</Badge>
                       )}
                     </TableCell>
-                    <TableCell>
-                      {format(new Date(asset.created_at), "MMM d, yyyy")}
-                    </TableCell>
+                    <TableCell>{format(new Date(asset.created_at), "MMM d, yyyy")}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
@@ -99,11 +95,7 @@ export function AssetsTable() {
                         >
                           <TrendingUp className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedAsset(asset)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedAsset(asset)}>
                           <Edit className="h-4 w-4" />
                         </Button>
                       </div>

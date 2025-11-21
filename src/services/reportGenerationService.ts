@@ -1,13 +1,19 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 // Fund icon mapping from CDN
 const FUND_ICON_MAP: Record<string, string> = {
-  'BTC YIELD FUND': 'https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png',
-  'ETH YIELD FUND': 'https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png',
-  'USDC YIELD FUND': 'https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png',
-  'USDT YIELD FUND': 'https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png',
-  'SOL YIELD FUND': 'https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFQ.png',
-  'EURC YIELD FUND': 'https://storage.mlcdn.com/account_image/855106/kwV87oiC7c4dnG6zkl95MnV5yafAxWlFbQgjmaIm.png',
+  "BTC YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
+  "ETH YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
+  "USDC YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png",
+  "USDT YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
+  "SOL YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFQ.png",
+  "EURC YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/kwV87oiC7c4dnG6zkl95MnV5yafAxWlFbQgjmaIm.png",
 };
 
 interface InvestorReportData {
@@ -37,29 +43,32 @@ interface InvestorReportData {
  */
 function normalizeNumber(value: number): string {
   if (value < 0) {
-    return `(${Math.abs(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`;
+    return `(${Math.abs(value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`;
   }
-  return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 /**
  * Get color for rate of return (green for positive, red for negative)
  */
 function getReturnColor(rateOfReturn: number): string {
-  return rateOfReturn >= 0 ? '#16a34a' : '#dc2626';
+  return rateOfReturn >= 0 ? "#16a34a" : "#dc2626";
 }
 
 /**
  * Get fund icon URL from CDN
  */
 function getFundIcon(fundName: string): string {
-  return FUND_ICON_MAP[fundName] || 'https://storage.mlcdn.com/account_image/855106/default-fund-icon.png';
+  return (
+    FUND_ICON_MAP[fundName] ||
+    "https://storage.mlcdn.com/account_image/855106/default-fund-icon.png"
+  );
 }
 
 /**
  * Generate a single fund block HTML
  */
-function generateFundBlock(position: InvestorReportData['positions'][0]): string {
+function generateFundBlock(position: InvestorReportData["positions"][0]): string {
   const returnColor = getReturnColor(position.rateOfReturn);
   const fundIcon = getFundIcon(position.fundName);
 
@@ -164,12 +173,12 @@ function generateFundBlock(position: InvestorReportData['positions'][0]): string
  * Generate complete HTML email report
  */
 export function generateInvestorReport(data: InvestorReportData): string {
-  const reportDate = new Date(data.reportMonth + '-01').toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
+  const reportDate = new Date(data.reportMonth + "-01").toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
   });
 
-  const fundBlocks = data.positions.map(generateFundBlock).join('\n');
+  const fundBlocks = data.positions.map(generateFundBlock).join("\n");
 
   return `
 <!DOCTYPE html>
@@ -303,25 +312,25 @@ export async function fetchInvestorReportData(
   try {
     // Fetch investor details
     const { data: investor, error: investorError } = await supabase
-      .from('investors')
-      .select('id, first_name, last_name, email')
-      .eq('id', investorId)
+      .from("investors")
+      .select("id, first_name, last_name, email")
+      .eq("id", investorId)
       .single();
 
     if (investorError || !investor) {
-      console.error('Error fetching investor:', investorError);
+      console.error("Error fetching investor:", investorError);
       return null;
     }
 
     // Fetch all emails for the investor
     const { data: emailRecords, error: emailsError } = await supabase
-      .from('investor_emails')
-      .select('email, is_primary, verified')
-      .eq('investor_id', investorId)
-      .order('is_primary', { ascending: false }); // Primary email first
+      .from("investor_emails")
+      .select("email, is_primary, verified")
+      .eq("investor_id", investorId)
+      .order("is_primary", { ascending: false }); // Primary email first
 
     // Fallback to legacy email if no emails found
-    const emails = (emailRecords || []).map(e => ({
+    const emails = (emailRecords || []).map((e) => ({
       email: e.email,
       isPrimary: e.is_primary,
       verified: e.verified,
@@ -338,19 +347,21 @@ export async function fetchInvestorReportData(
 
     // Fetch monthly report data
     const { data: positions, error: positionsError } = await supabase
-      .from('investor_monthly_reports')
-      .select(`
+      .from("investor_monthly_reports")
+      .select(
+        `
         *,
         funds:fund_id (
           name,
           asset_code
         )
-      `)
-      .eq('investor_id', investorId)
-      .eq('report_month', reportMonth + '-01');
+      `
+      )
+      .eq("investor_id", investorId)
+      .eq("report_month", reportMonth + "-01");
 
     if (positionsError) {
-      console.error('Error fetching positions:', positionsError);
+      console.error("Error fetching positions:", positionsError);
       return null;
     }
 
@@ -360,7 +371,7 @@ export async function fetchInvestorReportData(
     }
 
     // Get primary email for backward compatibility
-    const primaryEmail = emails.find(e => e.isPrimary)?.email || investor.email || '';
+    const primaryEmail = emails.find((e) => e.isPrimary)?.email || investor.email || "";
 
     // Transform data for report
     const reportData: InvestorReportData = {
@@ -370,8 +381,8 @@ export async function fetchInvestorReportData(
       emails: emails, // All emails for multi-recipient sending
       reportMonth,
       positions: positions.map((pos: any) => ({
-        fundName: pos.funds?.name || 'Unknown Fund',
-        currencyName: pos.funds?.asset_code || 'Unknown',
+        fundName: pos.funds?.name || "Unknown Fund",
+        currencyName: pos.funds?.asset_code || "Unknown",
         openingBalance: pos.opening_balance || 0,
         additions: pos.additions || 0,
         withdrawals: pos.withdrawals || 0,
@@ -383,7 +394,7 @@ export async function fetchInvestorReportData(
 
     return reportData;
   } catch (error) {
-    console.error('Error in fetchInvestorReportData:', error);
+    console.error("Error in fetchInvestorReportData:", error);
     return null;
   }
 }
@@ -415,12 +426,12 @@ export async function generateReportsForAllInvestors(
   try {
     // Fetch all active investors
     const { data: investors, error } = await supabase
-      .from('investors')
-      .select('id')
-      .eq('status', 'active');
+      .from("investors")
+      .select("id")
+      .eq("status", "active");
 
     if (error || !investors) {
-      console.error('Error fetching investors:', error);
+      console.error("Error fetching investors:", error);
       return [];
     }
 
@@ -433,9 +444,11 @@ export async function generateReportsForAllInvestors(
     );
 
     // Filter out null results
-    return reports.filter((report): report is { html: string; data: InvestorReportData } => report !== null);
+    return reports.filter(
+      (report): report is { html: string; data: InvestorReportData } => report !== null
+    );
   } catch (error) {
-    console.error('Error in generateReportsForAllInvestors:', error);
+    console.error("Error in generateReportsForAllInvestors:", error);
     return [];
   }
 }
@@ -447,7 +460,7 @@ export async function generateReportsForAllInvestors(
 export function getRecipientEmails(reportData: InvestorReportData): string[] {
   const recipients = new Set<string>();
 
-  reportData.emails.forEach(emailObj => {
+  reportData.emails.forEach((emailObj) => {
     // Include verified emails
     if (emailObj.verified) {
       recipients.add(emailObj.email);

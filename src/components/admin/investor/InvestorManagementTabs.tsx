@@ -1,19 +1,19 @@
-import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
-import { Users, FileSpreadsheet, Calendar, Settings } from 'lucide-react';
-import { InvestorManagementPanel } from './InvestorManagementPanel';
-import BulkOperationsPanel from '../investors/BulkOperationsPanel';
-import InvestorLifecyclePanel from '../investors/InvestorLifecyclePanel';
+import React from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { Users, FileSpreadsheet, Calendar, Settings } from "lucide-react";
+import { InvestorManagementPanel } from "./InvestorManagementPanel";
+import BulkOperationsPanel from "../investors/BulkOperationsPanel";
+import InvestorLifecyclePanel from "../investors/InvestorLifecyclePanel";
 
 interface InvestorManagementTabsProps {
   investors: any[];
   onDataChange: () => void;
 }
 
-const InvestorManagementTabs: React.FC<InvestorManagementTabsProps> = ({ 
-  investors, 
-  onDataChange 
+const InvestorManagementTabs: React.FC<InvestorManagementTabsProps> = ({
+  investors,
+  onDataChange,
 }) => {
   return (
     <div className="space-y-6">
@@ -45,10 +45,7 @@ const InvestorManagementTabs: React.FC<InvestorManagementTabsProps> = ({
         </TabsList>
 
         <TabsContent value="investors" className="mt-6">
-          <InvestorManagementPanel 
-            investors={investors} 
-            onDataChange={onDataChange} 
-          />
+          <InvestorManagementPanel investors={investors} onDataChange={onDataChange} />
         </TabsContent>
 
         <TabsContent value="bulk" className="mt-6">

@@ -3,12 +3,17 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 interface AuditRequest {
-  report_type?: "overview" | "reconciliation" | "compliance" | "anomalies" | "activity" | "full_report";
+  report_type?:
+    | "overview"
+    | "reconciliation"
+    | "compliance"
+    | "anomalies"
+    | "activity"
+    | "full_report";
   investor_id?: string;
   format?: "json" | "summary";
 }
@@ -28,24 +33,20 @@ serve(async (req) => {
       console.error("Missing required environment variables");
       return new Response(
         JSON.stringify({
-          error: "Server configuration error. Please contact support."
+          error: "Server configuration error. Please contact support.",
         }),
         {
           status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
 
-    const supabaseClient = createClient(
-      supabaseUrl,
-      supabaseAnonKey,
-      {
-        global: {
-          headers: { Authorization: req.headers.get("Authorization")! },
-        },
-      }
-    );
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: { Authorization: req.headers.get("Authorization")! },
+      },
+    });
 
     // Authenticate user
     const {
@@ -54,13 +55,10 @@ serve(async (req) => {
     } = await supabaseClient.auth.getUser();
 
     if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Verify admin permission
@@ -71,13 +69,10 @@ serve(async (req) => {
       .single();
 
     if (!adminData) {
-      return new Response(
-        JSON.stringify({ error: "Forbidden: Admin access required" }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Forbidden: Admin access required" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Parse request
@@ -124,9 +119,12 @@ serve(async (req) => {
           reconciliation_data: reconData,
           summary: {
             total_investors: reconData?.length || 0,
-            mismatches: reconData?.filter((r: any) => r.reconciliation_status === "MISMATCH").length || 0,
-            total_discrepancy: reconData?.reduce((sum: number, r: any) => sum + (r.invested_discrepancy || 0), 0) || 0
-          }
+            mismatches:
+              reconData?.filter((r: any) => r.reconciliation_status === "MISMATCH").length || 0,
+            total_discrepancy:
+              reconData?.reduce((sum: number, r: any) => sum + (r.invested_discrepancy || 0), 0) ||
+              0,
+          },
         };
         break;
 
@@ -143,11 +141,15 @@ serve(async (req) => {
           compliance_data: compData,
           summary: {
             total: compData?.length || 0,
-            kyc_compliant: compData?.filter((c: any) => c.kyc_compliance_status === "COMPLIANT").length || 0,
-            doc_compliant: compData?.filter((c: any) => c.document_compliance_status === "COMPLIANT").length || 0,
-            profile_complete: compData?.filter((c: any) => c.profile_completeness === "COMPLETE").length || 0,
-            active: compData?.filter((c: any) => c.activity_status === "ACTIVE").length || 0
-          }
+            kyc_compliant:
+              compData?.filter((c: any) => c.kyc_compliance_status === "COMPLIANT").length || 0,
+            doc_compliant:
+              compData?.filter((c: any) => c.document_compliance_status === "COMPLIANT").length ||
+              0,
+            profile_complete:
+              compData?.filter((c: any) => c.profile_completeness === "COMPLETE").length || 0,
+            active: compData?.filter((c: any) => c.activity_status === "ACTIVE").length || 0,
+          },
         };
         break;
 
@@ -163,11 +165,12 @@ serve(async (req) => {
           anomalies: anomData,
           summary: {
             total_anomalies: anomData?.length || 0,
-            by_type: anomData?.reduce((acc: any, anom: any) => {
-              acc[anom.anomaly_type] = (acc[anom.anomaly_type] || 0) + 1;
-              return acc;
-            }, {}) || {}
-          }
+            by_type:
+              anomData?.reduce((acc: any, anom: any) => {
+                acc[anom.anomaly_type] = (acc[anom.anomaly_type] || 0) + 1;
+                return acc;
+              }, {}) || {},
+          },
         };
         break;
 
@@ -187,17 +190,19 @@ serve(async (req) => {
             active: actData?.filter((a: any) => a.activity_level === "ACTIVE").length || 0,
             moderate: actData?.filter((a: any) => a.activity_level === "MODERATE").length || 0,
             low: actData?.filter((a: any) => a.activity_level === "LOW").length || 0,
-            dormant: actData?.filter((a: any) => a.activity_level === "DORMANT").length || 0
-          }
+            dormant: actData?.filter((a: any) => a.activity_level === "DORMANT").length || 0,
+          },
         };
         break;
 
       case "full_report":
         // Generate comprehensive report
-        const { data: reportData, error: reportError } = await supabaseClient
-          .rpc("generate_investor_audit_report", {
-            p_investor_id: investorId || null
-          });
+        const { data: reportData, error: reportError } = await supabaseClient.rpc(
+          "generate_investor_audit_report",
+          {
+            p_investor_id: investorId || null,
+          }
+        );
 
         if (reportError) throw reportError;
         result = reportData;
@@ -206,11 +211,12 @@ serve(async (req) => {
       default:
         return new Response(
           JSON.stringify({
-            error: "Invalid report_type. Options: overview, reconciliation, compliance, anomalies, activity, full_report"
+            error:
+              "Invalid report_type. Options: overview, reconciliation, compliance, anomalies, activity, full_report",
           }),
           {
             status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" }
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
           }
         );
     }
@@ -223,8 +229,8 @@ serve(async (req) => {
       entity_id: investorId || "all",
       meta: {
         report_type: reportType,
-        format: format
-      }
+        format: format,
+      },
     });
 
     // Format response
@@ -234,8 +240,8 @@ serve(async (req) => {
         summary: result.summary || {
           report_type: reportType,
           investor_id: investorId,
-          record_count: Array.isArray(result) ? result.length : 1
-        }
+          record_count: Array.isArray(result) ? result.length : 1,
+        },
       };
     }
 
@@ -245,14 +251,13 @@ serve(async (req) => {
         report_type: reportType,
         investor_id: investorId,
         data: result,
-        generated_at: new Date().toISOString()
+        generated_at: new Date().toISOString(),
       }),
       {
         status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
-
   } catch (error) {
     const errorId = crypto.randomUUID();
     console.error("Investor audit error:", { errorId, error: error.message });
@@ -260,11 +265,11 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         error: "An error occurred while generating the audit report",
-        error_id: errorId
+        error_id: errorId,
       }),
       {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   }

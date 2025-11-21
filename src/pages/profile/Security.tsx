@@ -3,8 +3,8 @@
  * Password changes, 2FA, and session management
  */
 
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Shield,
@@ -15,13 +15,13 @@ import {
   Check,
   X,
   AlertTriangle,
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,11 +32,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/lib/auth/context';
-import { supabase } from '@/integrations/supabase/client';
-import { format } from 'date-fns';
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth/context";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 interface Session {
   id: string;
@@ -51,9 +51,9 @@ export default function Security() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
 
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
@@ -74,15 +74,15 @@ export default function Security() {
       // Mock data - in production, fetch from your sessions table
       setSessions([
         {
-          id: '1',
-          device: 'Chrome on Mac OS',
-          location: 'San Francisco, US',
+          id: "1",
+          device: "Chrome on Mac OS",
+          location: "San Francisco, US",
           lastActive: new Date().toISOString(),
           current: true,
         },
       ]);
     } catch (error) {
-      console.error('Failed to load sessions:', error);
+      console.error("Failed to load sessions:", error);
     } finally {
       setLoadingSessions(false);
     }
@@ -93,18 +93,18 @@ export default function Security() {
 
     if (newPassword !== confirmPassword) {
       toast({
-        title: 'Error',
-        description: 'New passwords do not match',
-        variant: 'destructive',
+        title: "Error",
+        description: "New passwords do not match",
+        variant: "destructive",
       });
       return;
     }
 
     if (newPassword.length < 8) {
       toast({
-        title: 'Error',
-        description: 'Password must be at least 8 characters long',
-        variant: 'destructive',
+        title: "Error",
+        description: "Password must be at least 8 characters long",
+        variant: "destructive",
       });
       return;
     }
@@ -117,18 +117,18 @@ export default function Security() {
       if (error) throw error;
 
       toast({
-        title: 'Success',
-        description: 'Your password has been changed successfully',
+        title: "Success",
+        description: "Your password has been changed successfully",
       });
 
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
     } catch (error) {
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to change password',
-        variant: 'destructive',
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to change password",
+        variant: "destructive",
       });
     } finally {
       setChangingPassword(false);
@@ -139,11 +139,11 @@ export default function Security() {
     try {
       // In production, generate TOTP secret and show QR code
       toast({
-        title: 'Coming Soon',
-        description: '2FA setup will be available soon',
+        title: "Coming Soon",
+        description: "2FA setup will be available soon",
       });
     } catch (error) {
-      console.error('Failed to enable 2FA:', error);
+      console.error("Failed to enable 2FA:", error);
     }
   };
 
@@ -151,12 +151,12 @@ export default function Security() {
     try {
       // In production, disable TOTP
       toast({
-        title: 'Success',
-        description: 'Two-factor authentication has been disabled',
+        title: "Success",
+        description: "Two-factor authentication has been disabled",
       });
       setTwoFactorEnabled(false);
     } catch (error) {
-      console.error('Failed to disable 2FA:', error);
+      console.error("Failed to disable 2FA:", error);
     }
   };
 
@@ -164,25 +164,25 @@ export default function Security() {
     try {
       // Revoke specific session
       toast({
-        title: 'Success',
-        description: 'Session has been revoked',
+        title: "Success",
+        description: "Session has been revoked",
       });
       loadActiveSessions();
     } catch (error) {
-      console.error('Failed to revoke session:', error);
+      console.error("Failed to revoke session:", error);
     }
   };
 
   const handleRevokeAllSessions = async () => {
     try {
-      await supabase.auth.signOut({ scope: 'others' });
+      await supabase.auth.signOut({ scope: "others" });
       toast({
-        title: 'Success',
-        description: 'All other sessions have been revoked',
+        title: "Success",
+        description: "All other sessions have been revoked",
       });
       loadActiveSessions();
     } catch (error) {
-      console.error('Failed to revoke sessions:', error);
+      console.error("Failed to revoke sessions:", error);
     }
   };
 
@@ -190,7 +190,7 @@ export default function Security() {
     <div className="container max-w-4xl mx-auto px-4 py-8 space-y-8">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
@@ -234,9 +234,7 @@ export default function Security() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
               />
-              <p className="text-xs text-muted-foreground">
-                Must be at least 8 characters long
-              </p>
+              <p className="text-xs text-muted-foreground">Must be at least 8 characters long</p>
             </div>
 
             <div className="space-y-2">
@@ -257,7 +255,7 @@ export default function Security() {
                   Changing...
                 </>
               ) : (
-                'Change Password'
+                "Change Password"
               )}
             </Button>
           </form>
@@ -277,7 +275,7 @@ export default function Security() {
                 Add an extra layer of security to your account
               </CardDescription>
             </div>
-            <Badge variant={twoFactorEnabled ? 'default' : 'secondary'}>
+            <Badge variant={twoFactorEnabled ? "default" : "secondary"}>
               {twoFactorEnabled ? (
                 <>
                   <Check className="mr-1 h-3 w-3" />
@@ -325,9 +323,7 @@ export default function Security() {
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDisable2FA}>
-                      Disable 2FA
-                    </AlertDialogAction>
+                    <AlertDialogAction onClick={handleDisable2FA}>Disable 2FA</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
@@ -416,7 +412,7 @@ export default function Security() {
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">{session.location}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Last active: {format(new Date(session.lastActive), 'PPpp')}
+                          Last active: {format(new Date(session.lastActive), "PPpp")}
                         </p>
                       </div>
                     </div>

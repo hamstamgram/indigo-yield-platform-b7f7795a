@@ -39,52 +39,68 @@
           "tasks": [
             {
               "task": "Create PortfolioService with Supabase integration",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Services/PortfolioService.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Services/PortfolioService.swift"
+              ],
               "code_sample": "protocol PortfolioServiceProtocol {\n    func fetchPortfolio(for investorId: UUID) async throws -> Portfolio\n    func subscribeToPortfolioUpdates(investorId: UUID) -> AsyncStream<Portfolio>\n}\n\nclass PortfolioService: PortfolioServiceProtocol {\n    private let repository: PortfolioRepositoryProtocol\n    \n    init(repository: PortfolioRepositoryProtocol) {\n        self.repository = repository\n    }\n}",
               "explanation": "Protocol-based service following SOLID principles with async/await support for modern Swift concurrency",
               "status": "open"
             },
             {
               "task": "Create TransactionService for transaction management",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Services/TransactionService.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Services/TransactionService.swift"
+              ],
               "code_sample": "protocol TransactionServiceProtocol {\n    func fetchTransactions(for investorId: UUID, limit: Int) async throws -> [Transaction]\n    func fetchTransaction(id: UUID) async throws -> Transaction\n}\n\nclass TransactionService: TransactionServiceProtocol {\n    private let repository: TransactionRepositoryProtocol\n    \n    init(repository: TransactionRepositoryProtocol) {\n        self.repository = repository\n    }\n}",
               "status": "open"
             },
             {
               "task": "Create DocumentService for PDF and statement handling",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Services/DocumentService.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Services/DocumentService.swift"
+              ],
               "code_sample": "protocol DocumentServiceProtocol {\n    func fetchStatements(for investorId: UUID) async throws -> [Statement]\n    func generateSignedURL(for documentPath: String) async throws -> URL\n    func downloadDocument(from signedURL: URL) async throws -> Data\n}\n\nclass DocumentService: DocumentServiceProtocol {\n    private let repository: StatementRepositoryProtocol\n    private let storageService: StorageServiceProtocol\n}",
               "explanation": "Implements secure document handling with signed URLs per security requirements",
               "status": "open"
             },
             {
               "task": "Create WithdrawalService for withdrawal request management",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Services/WithdrawalService.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Services/WithdrawalService.swift"
+              ],
               "code_sample": "protocol WithdrawalServiceProtocol {\n    func fetchWithdrawalRequests(for investorId: UUID) async throws -> [WithdrawalRequest]\n    func submitWithdrawalRequest(_ request: WithdrawalRequest) async throws\n    func cancelWithdrawalRequest(id: UUID) async throws\n}\n\nclass WithdrawalService: WithdrawalServiceProtocol {\n    private let repository: WithdrawalRepositoryProtocol\n}",
               "status": "open"
             },
             {
               "task": "Create AdminService for admin-only operations",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Services/AdminService.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Services/AdminService.swift"
+              ],
               "code_sample": "protocol AdminServiceProtocol {\n    func fetchPendingApprovals() async throws -> [ApprovalRequest]\n    func approveRequest(id: UUID, notes: String?) async throws\n    func rejectRequest(id: UUID, reason: String) async throws\n    func fetchAllInvestors() async throws -> [InvestorProfile]\n}\n\nclass AdminService: AdminServiceProtocol {\n    private let supabaseClient: SupabaseClient\n}",
               "explanation": "Admin operations must be secured with proper RLS policies on backend",
               "status": "open"
             },
             {
               "task": "Create RealtimeService for live data subscriptions",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Services/RealtimeService.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Services/RealtimeService.swift"
+              ],
               "code_sample": "protocol RealtimeServiceProtocol {\n    func subscribeToChannel(_ channel: String, onEvent: @escaping (RealtimePayload) -> Void)\n    func unsubscribeFromChannel(_ channel: String)\n    func disconnect()\n}\n\nclass RealtimeService: RealtimeServiceProtocol {\n    private let client: SupabaseClient\n    private var subscriptions: [String: RealtimeChannel] = [:]\n}",
               "status": "open"
             },
             {
               "task": "Create OfflineManager for offline data synchronization",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Services/OfflineManager.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Services/OfflineManager.swift"
+              ],
               "code_sample": "protocol OfflineManagerProtocol {\n    func syncData() async throws\n    func cacheData<T: Codable>(_ data: T, for key: String) async throws\n    func getCachedData<T: Codable>(_ type: T.Type, for key: String) async throws -> T?\n}\n\nclass OfflineManager: OfflineManagerProtocol {\n    private let coreDataStack: CoreDataStack\n}",
               "status": "open"
             },
             {
               "task": "Update ServiceLocator to properly initialize all services",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/App/ServiceLocator.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/App/ServiceLocator.swift"
+              ],
               "code_sample": "private func initializeServices() {\n    guard let client = supabaseClient else { return }\n    \n    // Initialize repositories first\n    portfolioRepository = PortfolioRepository(supabase: client, coreData: coreDataStack)\n    transactionRepository = TransactionRepository(supabase: client, coreData: coreDataStack)\n    \n    // Initialize services with dependencies\n    portfolioService = PortfolioService(repository: portfolioRepository)\n    transactionService = TransactionService(repository: transactionRepository)\n    documentService = DocumentService(repository: statementRepository, storageService: storageService)\n    withdrawalService = WithdrawalService(repository: withdrawalRepository)\n    adminService = AdminService(supabase: client)\n    realtimeService = RealtimeService(client: client)\n    offlineManager = OfflineManager(coreDataStack: coreDataStack)\n}",
               "explanation": "Proper dependency injection order with repositories initialized before services",
               "status": "open"
@@ -99,14 +115,18 @@
           "tasks": [
             {
               "task": "Create CertificatePinningManager for MITM protection",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Security/CertificatePinningManager.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Security/CertificatePinningManager.swift"
+              ],
               "code_sample": "class CertificatePinningManager: NSObject {\n    static let shared = CertificatePinningManager()\n    \n    private var pinnedCertificates: [String: Data] = [:]\n    \n    func configure() {\n        loadPinnedCertificates()\n    }\n    \n    private func loadPinnedCertificates() {\n        // Load certificates from bundle\n        guard let certPath = Bundle.main.path(forResource: \"supabase-cert\", ofType: \"cer\"),\n              let certData = NSData(contentsOfFile: certPath) else {\n            fatalError(\"Could not load pinned certificate\")\n        }\n        pinnedCertificates[\"supabase.co\"] = certData as Data\n    }\n}",
               "explanation": "Implements certificate pinning for Supabase connections to prevent MITM attacks",
               "status": "open"
             },
             {
               "task": "Create SecurityManager with jailbreak detection",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Security/SecurityManager.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Security/SecurityManager.swift"
+              ],
               "code_sample": "class SecurityManager {\n    static func isJailbroken() -> Bool {\n        // Check for jailbreak indicators\n        let jailbreakPaths = [\n            \"/Applications/Cydia.app\",\n            \"/usr/sbin/sshd\",\n            \"/etc/apt\"\n        ]\n        \n        for path in jailbreakPaths {\n            if FileManager.default.fileExists(atPath: path) {\n                return true\n            }\n        }\n        \n        return canWriteToRootDirectory()\n    }\n    \n    static func configureATS() {\n        // App Transport Security configuration\n    }\n}",
               "explanation": "Basic jailbreak detection for security compliance",
               "status": "open"
@@ -124,7 +144,9 @@
             },
             {
               "task": "Update SupabaseConfig to use environment configurations",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Config/SupabaseConfig.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Config/SupabaseConfig.swift"
+              ],
               "code_sample": "struct SupabaseConfig {\n    static var current: SupabaseConfig {\n        #if DEBUG\n        return development\n        #elseif STAGING\n        return staging\n        #else\n        return production\n        #endif\n    }\n    \n    let url: String\n    let anonKey: String\n    let environment: String\n    \n    static let development = SupabaseConfig(\n        url: Bundle.main.object(forInfoDictionaryKey: \"SUPABASE_URL\") as! String,\n        anonKey: Bundle.main.object(forInfoDictionaryKey: \"SUPABASE_ANON_KEY\") as! String,\n        environment: \"development\"\n    )\n}",
               "explanation": "Environment-aware configuration preventing hardcoded credentials",
               "status": "open"
@@ -138,7 +160,7 @@
       "description": "Implement missing architectural patterns and fix layer violations. Focus on Repository pattern, ViewModel implementations, and proper separation of concerns.",
       "issues": [
         {
-          "priority": "High", 
+          "priority": "High",
           "title": "Implement Repository Pattern for Data Layer",
           "description": "Repository interfaces and implementations referenced but missing. Critical for testability and clean architecture principles.",
           "recommendation": "Implement repository pattern with protocols for each data entity, providing abstraction over Supabase and Core Data persistence layers.",
@@ -170,7 +192,7 @@
               "status": "open"
             },
             {
-              "task": "Create WithdrawalRepository", 
+              "task": "Create WithdrawalRepository",
               "file_paths": [
                 "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Data/Repositories/WithdrawalRepository.swift",
                 "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Data/Repositories/WithdrawalRepositoryProtocol.swift"
@@ -187,29 +209,39 @@
           "tasks": [
             {
               "task": "Create DashboardViewModel",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/ViewModels/DashboardViewModel.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/ViewModels/DashboardViewModel.swift"
+              ],
               "code_sample": "@MainActor\nclass DashboardViewModel: ObservableObject {\n    @Published var portfolio: Portfolio?\n    @Published var recentTransactions: [Transaction] = []\n    @Published var performanceData: [PerformanceData] = []\n    @Published var isLoading = false\n    @Published var errorMessage: String?\n    \n    private let portfolioService: PortfolioServiceProtocol\n    private let transactionService: TransactionServiceProtocol\n    \n    init(portfolioService: PortfolioServiceProtocol, transactionService: TransactionServiceProtocol) {\n        self.portfolioService = portfolioService\n        self.transactionService = transactionService\n    }\n    \n    func loadData() async {\n        isLoading = true\n        defer { isLoading = false }\n        \n        do {\n            async let portfolioTask = loadPortfolio()\n            async let transactionsTask = loadRecentTransactions()\n            \n            _ = try await (portfolioTask, transactionsTask)\n        } catch {\n            errorMessage = error.localizedDescription\n        }\n    }\n}",
               "explanation": "MainActor ViewModel with proper async/await patterns and error handling",
               "status": "open"
             },
             {
               "task": "Create PortfolioViewModel",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/ViewModels/PortfolioViewModel.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/ViewModels/PortfolioViewModel.swift"
+              ],
               "status": "open"
             },
             {
               "task": "Create AdminDashboardViewModel",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/ViewModels/AdminDashboardViewModel.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/ViewModels/AdminDashboardViewModel.swift"
+              ],
               "status": "open"
             },
             {
               "task": "Create TransactionViewModel",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/ViewModels/TransactionViewModel.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/ViewModels/TransactionViewModel.swift"
+              ],
               "status": "open"
             },
             {
               "task": "Update Views to use dependency injection for ViewModels",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Views/Dashboard/DashboardView.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Views/Dashboard/DashboardView.swift"
+              ],
               "code_sample": "struct DashboardView: View {\n    @EnvironmentObject var serviceLocator: ServiceLocator\n    @StateObject private var viewModel: DashboardViewModel\n    \n    init() {\n        // This approach requires factory or move to environmentObject\n        // Better: inject via environmentObject in ServiceLocator\n    }\n    \n    // Alternative: Use computed property with serviceLocator\n    private var dashboardViewModel: DashboardViewModel {\n        return serviceLocator.makeDashboardViewModel()\n    }\n}",
               "explanation": "Proper dependency injection pattern avoiding direct ViewModel creation in Views",
               "status": "open"
@@ -224,7 +256,9 @@
           "tasks": [
             {
               "task": "Add ViewModel factory methods to ServiceLocator",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/App/ServiceLocator.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/App/ServiceLocator.swift"
+              ],
               "code_sample": "// Add to ServiceLocator class\nfunc makeDashboardViewModel() -> DashboardViewModel {\n    return DashboardViewModel(\n        portfolioService: portfolioService,\n        transactionService: transactionService\n    )\n}\n\nfunc makePortfolioViewModel() -> PortfolioViewModel {\n    return PortfolioViewModel(portfolioService: portfolioService)\n}\n\nfunc makeAdminDashboardViewModel() -> AdminDashboardViewModel {\n    return AdminDashboardViewModel(adminService: adminService)\n}",
               "explanation": "Factory methods enable proper dependency injection while maintaining ServiceLocator as single dependency",
               "status": "open"
@@ -275,7 +309,9 @@
             },
             {
               "task": "Extract TwoFactorView from AuthenticationView",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Views/Authentication/TwoFactorView.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Views/Authentication/TwoFactorView.swift"
+              ],
               "explanation": "2FA UI is complex enough to warrant separate file and has independent preview requirements",
               "status": "open"
             },
@@ -299,7 +335,9 @@
           "tasks": [
             {
               "task": "Remove duplicate Portfolio model from SupabaseService",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Services/SupabaseService.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Services/SupabaseService.swift"
+              ],
               "explanation": "Keep model definition in Models/Portfolio.swift and remove from service files",
               "status": "open"
             },
@@ -332,14 +370,18 @@
           "tasks": [
             {
               "task": "Create ViewState enum for standardized state management",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/State/ViewState.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/State/ViewState.swift"
+              ],
               "code_sample": "enum ViewState<T> {\n    case idle\n    case loading\n    case loaded(T)\n    case error(Error)\n    \n    var isLoading: Bool {\n        if case .loading = self { return true }\n        return false\n    }\n    \n    var data: T? {\n        if case .loaded(let data) = self { return data }\n        return nil\n    }\n    \n    var error: Error? {\n        if case .error(let error) = self { return error }\n        return nil\n    }\n}",
               "explanation": "Standardized state management reduces boilerplate and improves consistency",
               "status": "open"
             },
             {
               "task": "Create ErrorHandler protocol for centralized error handling",
-              "file_paths": ["/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Error/ErrorHandler.swift"],
+              "file_paths": [
+                "/Users/mama/indigo-yield-platform-v01/ios/IndigoInvestor/Core/Error/ErrorHandler.swift"
+              ],
               "code_sample": "protocol ErrorHandler {\n    func handle(_ error: Error)\n}\n\nclass DefaultErrorHandler: ErrorHandler {\n    func handle(_ error: Error) {\n        // Log error\n        Logger.error(\"Application Error: \\(error)\")\n        \n        // Report to crash analytics if configured\n        // Present user-friendly message\n    }\n}",
               "explanation": "Centralized error handling improves debugging and user experience",
               "status": "open"

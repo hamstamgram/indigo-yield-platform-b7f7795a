@@ -7,14 +7,14 @@ import { ArrowUpRight, ArrowDownLeft, Filter, Download } from "lucide-react";
 
 interface Transaction {
   id: string;
-  type: 'buy' | 'sell' | 'dividend' | 'deposit' | 'withdrawal';
+  type: "buy" | "sell" | "dividend" | "deposit" | "withdrawal";
   symbol?: string;
   quantity?: number;
   price?: number;
   amount: number;
   fee?: number;
   date: string;
-  status: 'completed' | 'pending' | 'failed';
+  status: "completed" | "pending" | "failed";
   description?: string;
 }
 
@@ -31,28 +31,28 @@ export function TransactionHistory({
   loading = false,
   onFilter,
   onExport,
-  className
+  className,
 }: TransactionHistoryProps) {
-  const getTransactionIcon = (type: Transaction['type']) => {
+  const getTransactionIcon = (type: Transaction["type"]) => {
     switch (type) {
-      case 'buy':
-      case 'deposit':
+      case "buy":
+      case "deposit":
         return <ArrowDownLeft className="h-4 w-4 text-green-600" />;
-      case 'sell':
-      case 'withdrawal':
+      case "sell":
+      case "withdrawal":
         return <ArrowUpRight className="h-4 w-4 text-red-600" />;
-      case 'dividend':
+      case "dividend":
         return <ArrowDownLeft className="h-4 w-4 text-blue-600" />;
       default:
         return <ArrowUpRight className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
-  const getStatusBadge = (status: Transaction['status']) => {
+  const getStatusBadge = (status: Transaction["status"]) => {
     const variants = {
-      completed: 'default',
-      pending: 'secondary',
-      failed: 'destructive'
+      completed: "default",
+      pending: "secondary",
+      failed: "destructive",
     } as const;
 
     return (
@@ -62,9 +62,9 @@ export function TransactionHistory({
     );
   };
 
-  const formatAmount = (amount: number, type: Transaction['type']) => {
-    const prefix = ['buy', 'deposit', 'dividend'].includes(type) ? '+' : '-';
-    return `${prefix}$${Math.abs(amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+  const formatAmount = (amount: number, type: Transaction["type"]) => {
+    const prefix = ["buy", "deposit", "dividend"].includes(type) ? "+" : "-";
+    return `${prefix}$${Math.abs(amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
   };
 
   if (loading) {
@@ -117,17 +117,16 @@ export function TransactionHistory({
       </CardHeader>
       <CardContent>
         {transactions.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No transactions found
-          </div>
+          <div className="text-center py-8 text-muted-foreground">No transactions found</div>
         ) : (
           <div className="space-y-4">
             {transactions.map((transaction) => (
-              <div key={transaction.id} className="flex items-center justify-between py-2 border-b last:border-b-0">
+              <div
+                key={transaction.id}
+                className="flex items-center justify-between py-2 border-b last:border-b-0"
+              >
                 <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0">
-                    {getTransactionIcon(transaction.type)}
-                  </div>
+                  <div className="flex-shrink-0">{getTransactionIcon(transaction.type)}</div>
                   <div>
                     <div className="font-medium flex items-center space-x-2">
                       <span className="capitalize">{transaction.type}</span>
@@ -139,7 +138,7 @@ export function TransactionHistory({
                       {getStatusBadge(transaction.status)}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {format(new Date(transaction.date), 'MMM dd, yyyy HH:mm')}
+                      {format(new Date(transaction.date), "MMM dd, yyyy HH:mm")}
                       {transaction.quantity && (
                         <span className="ml-2">
                           {transaction.quantity} shares @ ${transaction.price?.toFixed(2)}
@@ -154,12 +153,14 @@ export function TransactionHistory({
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className={cn(
-                    "font-medium",
-                    ['buy', 'deposit', 'dividend'].includes(transaction.type) 
-                      ? "text-green-600" 
-                      : "text-red-600"
-                  )}>
+                  <div
+                    className={cn(
+                      "font-medium",
+                      ["buy", "deposit", "dividend"].includes(transaction.type)
+                        ? "text-green-600"
+                        : "text-red-600"
+                    )}
+                  >
                     {formatAmount(transaction.amount, transaction.type)}
                   </div>
                   {transaction.fee && transaction.fee > 0 && (

@@ -50,9 +50,7 @@ export function AssetStats() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats?.active || 0}</div>
-          <p className="text-xs text-muted-foreground">
-            Available for trading
-          </p>
+          <p className="text-xs text-muted-foreground">Available for trading</p>
         </CardContent>
       </Card>
 
@@ -63,9 +61,7 @@ export function AssetStats() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats?.inactive || 0}</div>
-          <p className="text-xs text-muted-foreground">
-            Not available for trading
-          </p>
+          <p className="text-xs text-muted-foreground">Not available for trading</p>
         </CardContent>
       </Card>
 
@@ -75,12 +71,8 @@ export function AssetStats() {
           <Coins className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
-            {Object.keys(stats?.by_kind || {}).length}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Different asset categories
-          </p>
+          <div className="text-2xl font-bold">{Object.keys(stats?.by_kind || {}).length}</div>
+          <p className="text-xs text-muted-foreground">Different asset categories</p>
         </CardContent>
       </Card>
     </div>

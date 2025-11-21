@@ -16,10 +16,10 @@ export function parseInvestorData(investor, positions) {
       firstName: investor.first_name,
       lastName: investor.last_name,
       email: investor.email,
-      fullName: `${investor.first_name} ${investor.last_name}`
+      fullName: `${investor.first_name} ${investor.last_name}`,
     },
     positions: positions.map(parsePositionData),
-    summary: calculatePortfolioSummary(positions)
+    summary: calculatePortfolioSummary(positions),
   };
 }
 
@@ -32,16 +32,16 @@ export function parsePositionData(position) {
   const principal = parseFloat(position.principal) || 0;
   const currentBalance = parseFloat(position.current_balance) || 0;
   const totalEarned = parseFloat(position.total_earned) || 0;
-  
+
   return {
     assetCode: position.asset_code,
     principal,
     currentBalance,
     totalEarned,
-    rateOfReturn: principal > 0 ? ((totalEarned / principal) * 100) : 0,
+    rateOfReturn: principal > 0 ? (totalEarned / principal) * 100 : 0,
     // Additional calculated fields for future use
     netChange: currentBalance - principal,
-    isPositive: totalEarned > 0
+    isPositive: totalEarned > 0,
   };
 }
 
@@ -69,9 +69,9 @@ export function calculatePortfolioSummary(positions) {
     totalPrincipal,
     totalCurrentBalance,
     totalEarned,
-    totalRateOfReturn: totalPrincipal > 0 ? ((totalEarned / totalPrincipal) * 100) : 0,
+    totalRateOfReturn: totalPrincipal > 0 ? (totalEarned / totalPrincipal) * 100 : 0,
     activePositions,
-    totalPositions: positions.length
+    totalPositions: positions.length,
   };
 }
 
@@ -82,11 +82,11 @@ export function calculatePortfolioSummary(positions) {
  */
 export function groupPositionsByAsset(positions) {
   const grouped = {};
-  
+
   for (const position of positions) {
     grouped[position.asset_code] = position;
   }
-  
+
   return grouped;
 }
 
@@ -96,9 +96,7 @@ export function groupPositionsByAsset(positions) {
  * @returns {array} Filtered positions
  */
 export function filterActivePositions(positions) {
-  return positions.filter(position => 
-    parseFloat(position.current_balance) > 0
-  );
+  return positions.filter((position) => parseFloat(position.current_balance) > 0);
 }
 
 /**
@@ -108,11 +106,11 @@ export function filterActivePositions(positions) {
  * @returns {object} Performance metrics for the period
  */
 export function calculatePeriodPerformance(position, period) {
-  // This is a placeholder - in production, this would calculate 
+  // This is a placeholder - in production, this would calculate
   // actual period-specific performance based on historical data
   const principal = parseFloat(position.principal) || 0;
   const earned = parseFloat(position.total_earned) || 0;
-  
+
   return {
     period,
     beginningBalance: principal,
@@ -120,7 +118,7 @@ export function calculatePeriodPerformance(position, period) {
     netIncome: earned,
     additions: 0, // Would come from transaction history
     redemptions: 0, // Would come from transaction history
-    rateOfReturn: principal > 0 ? ((earned / principal) * 100) : 0
+    rateOfReturn: principal > 0 ? (earned / principal) * 100 : 0,
   };
 }
 
@@ -130,8 +128,8 @@ export function calculatePeriodPerformance(position, period) {
  * @returns {string} Formatted date string
  */
 export function formatStatementDate(date) {
-  const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  return date.toLocaleDateString('en-US', options);
+  const options = { year: "numeric", month: "long", day: "numeric" };
+  return date.toLocaleDateString("en-US", options);
 }
 
 /**
@@ -141,9 +139,9 @@ export function formatStatementDate(date) {
  * @returns {string} Formatted filename
  */
 export function generateStatementFilename(investor, index = 1) {
-  const paddedIndex = String(index).padStart(2, '0');
-  const firstName = investor.first_name.replace(/\s+/g, '_');
-  const lastName = investor.last_name.replace(/\s+/g, '_');
-  
+  const paddedIndex = String(index).padStart(2, "0");
+  const firstName = investor.first_name.replace(/\s+/g, "_");
+  const lastName = investor.last_name.replace(/\s+/g, "_");
+
   return `${paddedIndex}_${firstName}_${lastName}.html`;
 }

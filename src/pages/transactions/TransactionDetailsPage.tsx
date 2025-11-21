@@ -1,26 +1,26 @@
-import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { useParams, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Edit, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function TransactionDetailsDetailsPage() {
   const { id } = useParams<{ id: string }>();
 
   const { data: item, isLoading } = useQuery({
-    queryKey: ['transactions', id],
+    queryKey: ["transactions", id],
     queryFn: async () => {
-      if (!id) throw new Error('No ID provided');
+      if (!id) throw new Error("No ID provided");
 
       const { data, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('id', id)
+        .from("transactions")
+        .select("*")
+        .eq("id", id)
         .maybeSingle();
 
-      if (!data) throw new Error('Transaction not found');
+      if (!data) throw new Error("Transaction not found");
 
       if (error) throw error;
       return data;
@@ -77,13 +77,13 @@ export default function TransactionDetailsDetailsPage() {
           <div className="flex items-start justify-between">
             <div>
               <CardTitle className="text-2xl">
-                {item.type?.replace(/_/g, ' ').toUpperCase() || 'Transaction'}
+                {item.type?.replace(/_/g, " ").toUpperCase() || "Transaction"}
               </CardTitle>
               <CardDescription>
                 Created {new Date(item.created_at).toLocaleDateString()}
               </CardDescription>
             </div>
-            <Badge>{item.status || 'Active'}</Badge>
+            <Badge>{item.status || "Active"}</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -94,7 +94,7 @@ export default function TransactionDetailsDetailsPage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Status</p>
-              <p className="capitalize">{item.status || 'Active'}</p>
+              <p className="capitalize">{item.status || "Active"}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Created</p>
@@ -102,7 +102,9 @@ export default function TransactionDetailsDetailsPage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Amount</p>
-              <p>{item.amount} {item.asset_code}</p>
+              <p>
+                {item.amount} {item.asset_code}
+              </p>
             </div>
           </div>
 

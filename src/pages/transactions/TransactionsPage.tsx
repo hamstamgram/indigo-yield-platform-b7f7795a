@@ -1,31 +1,30 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Plus, Search, Filter } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, Search, Filter } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useState } from "react";
 
 export default function TransactionsPage() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ['transactions', searchTerm],
+    queryKey: ["transactions", searchTerm],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user");
 
-      let query = supabase
-        .from('transactions')
-        .select('*')
-        .eq('user_id', user.id);
+      let query = supabase.from("transactions").select("*").eq("user_id", user.id);
 
       if (searchTerm) {
-        query = query.ilike('note', `%${searchTerm}%`);
+        query = query.ilike("note", `%${searchTerm}%`);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -65,9 +64,7 @@ export default function TransactionsPage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="py-12 text-center text-muted-foreground">
-              Loading...
-            </div>
+            <div className="py-12 text-center text-muted-foreground">Loading...</div>
           ) : items && items.length > 0 ? (
             <div className="space-y-4">
               {items.map((item) => (
@@ -76,16 +73,14 @@ export default function TransactionsPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="font-semibold">
-                          {item.type?.replace(/_/g, ' ').toUpperCase() || 'Transaction'}
+                          {item.type?.replace(/_/g, " ").toUpperCase() || "Transaction"}
                         </h3>
                         <p className="text-sm text-muted-foreground">
                           {new Date(item.created_at).toLocaleDateString()}
                         </p>
                       </div>
                       <Button variant="outline" size="sm" asChild>
-                        <Link to={`/transactions/${item.id}`}>
-                          View Details
-                        </Link>
+                        <Link to={`/transactions/${item.id}`}>View Details</Link>
                       </Button>
                     </div>
                   </CardContent>

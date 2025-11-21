@@ -16,6 +16,9 @@ const AuditDrilldown = lazy(() => import("@/pages/admin/AuditDrilldown"));
 const AdminUserManagement = lazy(() => import("@/pages/admin/AdminUserManagement"));
 const AdminCompliance = lazy(() => import("@/pages/admin/AdminCompliance"));
 const DataIntegrityDashboard = lazy(() => import("@/pages/admin/DataIntegrityDashboard"));
+const SystemHealthPage = lazy(
+  () => import("@/pages/admin/system-health/SystemHealthPage")
+);
 
 export function SystemRoutes() {
   return (
@@ -70,6 +73,16 @@ export function SystemRoutes() {
         element={
           <AdminRoute>
             <DataIntegrityDashboard />
+          </AdminRoute>
+        }
+      />
+
+      {/* System Health */}
+      <Route
+        path="/admin/system-health"
+        element={
+          <AdminRoute>
+            <SystemHealthPage />
           </AdminRoute>
         }
       />

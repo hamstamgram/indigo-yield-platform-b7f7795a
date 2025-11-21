@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
-import { Badge } from '@/components/ui/badge';
-import { BarChart3, TrendingUp, DollarSign, Target } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { FundConfiguration } from '@/types/common';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
+import { BarChart3, TrendingUp, DollarSign, Target } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { FundConfiguration } from "@/types/common";
 
 export default function PortfolioAnalyticsPage() {
   const [fundConfigs, setFundConfigs] = useState<FundConfiguration[]>([]);
@@ -19,19 +19,19 @@ export default function PortfolioAnalyticsPage() {
   const fetchAnalytics = async () => {
     try {
       const { data } = await supabase
-        .from('fund_configurations')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("fund_configurations")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (data) {
-        const mappedData = data.map(item => ({
+        const mappedData = data.map((item) => ({
           ...item,
-          status: item.status === 'suspended' ? 'inactive' : item.status
+          status: item.status === "suspended" ? "inactive" : item.status,
         })) as FundConfiguration[];
         setFundConfigs(mappedData);
       }
     } catch (error) {
-      console.error('Error fetching analytics:', error);
+      console.error("Error fetching analytics:", error);
       toast({
         title: "Error",
         description: "Failed to load analytics data",
@@ -63,9 +63,7 @@ export default function PortfolioAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{fundConfigs.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Active investment funds
-            </p>
+            <p className="text-xs text-muted-foreground">Active investment funds</p>
           </CardContent>
         </Card>
 
@@ -76,13 +74,16 @@ export default function PortfolioAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {fundConfigs.length > 0 
-                ? (fundConfigs.reduce((acc, f) => acc + f.mgmt_fee_bps, 0) / fundConfigs.length / 100).toFixed(2)
-                : 0}%
+              {fundConfigs.length > 0
+                ? (
+                    fundConfigs.reduce((acc, f) => acc + f.mgmt_fee_bps, 0) /
+                    fundConfigs.length /
+                    100
+                  ).toFixed(2)
+                : 0}
+              %
             </div>
-            <p className="text-xs text-muted-foreground">
-              Management fee rate
-            </p>
+            <p className="text-xs text-muted-foreground">Management fee rate</p>
           </CardContent>
         </Card>
 
@@ -93,13 +94,16 @@ export default function PortfolioAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {fundConfigs.length > 0 
-                ? (fundConfigs.reduce((acc, f) => acc + f.perf_fee_bps, 0) / fundConfigs.length / 100).toFixed(2)
-                : 0}%
+              {fundConfigs.length > 0
+                ? (
+                    fundConfigs.reduce((acc, f) => acc + f.perf_fee_bps, 0) /
+                    fundConfigs.length /
+                    100
+                  ).toFixed(2)
+                : 0}
+              %
             </div>
-            <p className="text-xs text-muted-foreground">
-              Average performance fee
-            </p>
+            <p className="text-xs text-muted-foreground">Average performance fee</p>
           </CardContent>
         </Card>
 
@@ -110,11 +114,9 @@ export default function PortfolioAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {fundConfigs.filter(f => f.status === 'active').length}
+              {fundConfigs.filter((f) => f.status === "active").length}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Of {fundConfigs.length} total funds
-            </p>
+            <p className="text-xs text-muted-foreground">Of {fundConfigs.length} total funds</p>
           </CardContent>
         </Card>
       </div>
@@ -125,9 +127,7 @@ export default function PortfolioAnalyticsPage() {
             <Target className="h-5 w-5" />
             Fund Configurations
           </CardTitle>
-          <CardDescription>
-            Overview of all configured investment funds
-          </CardDescription>
+          <CardDescription>Overview of all configured investment funds</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -139,7 +139,7 @@ export default function PortfolioAnalyticsPage() {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <h3 className="font-medium">{fund.name}</h3>
-                    <Badge variant={fund.status === 'active' ? 'default' : 'secondary'}>
+                    <Badge variant={fund.status === "active" ? "default" : "secondary"}>
                       {fund.status}
                     </Badge>
                   </div>

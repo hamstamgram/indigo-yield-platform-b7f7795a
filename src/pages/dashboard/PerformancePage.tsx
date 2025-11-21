@@ -14,7 +14,11 @@ export default function PerformanceDetailsPage() {
     queryFn: async () => {
       if (!id) throw new Error("No ID provided");
 
-      const { data, error } = await supabase.from("daily_nav").select("*").eq("id", id).maybeSingle();
+      const { data, error } = await supabase
+        .from("daily_nav")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
 
       if (!data) throw new Error("Performance data not found");
 
@@ -72,7 +76,9 @@ export default function PerformanceDetailsPage() {
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
-              <CardTitle className="text-2xl">{(item as any).name || (item as any).title}</CardTitle>
+              <CardTitle className="text-2xl">
+                {(item as any).name || (item as any).title}
+              </CardTitle>
               <CardDescription>
                 Created {new Date((item as any).created_at).toLocaleDateString()}
               </CardDescription>
@@ -96,7 +102,9 @@ export default function PerformanceDetailsPage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Updated</p>
-              <p>{new Date((item as any).updated_at || (item as any).created_at).toLocaleString()}</p>
+              <p>
+                {new Date((item as any).updated_at || (item as any).created_at).toLocaleString()}
+              </p>
             </div>
           </div>
 

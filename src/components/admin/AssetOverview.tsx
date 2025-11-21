@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
@@ -25,7 +24,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({ loading, assetSummaries }
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             {assetSummaries.map((asset) => (
-              <AssetSummaryCard 
+              <AssetSummaryCard
                 key={asset.id}
                 id={asset.id}
                 symbol={asset.symbol}

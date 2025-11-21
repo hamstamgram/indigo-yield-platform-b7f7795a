@@ -1,8 +1,7 @@
-
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Send, Save } from 'lucide-react';
-import InvestorAssetDropdown from '../InvestorAssetDropdown';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Send, Save } from "lucide-react";
+import InvestorAssetDropdown from "../InvestorAssetDropdown";
 
 interface CardActionsProps {
   isEditing: boolean;
@@ -27,39 +26,31 @@ const CardActions: React.FC<CardActionsProps> = ({
   onSave,
   onSendEmail,
   email,
-  onAssetAdded
+  onAssetAdded,
 }) => {
   return (
     <>
       {isEditing ? (
-        <Button 
-          variant="default" 
+        <Button
+          variant="default"
           size="sm"
           onClick={onSave}
           disabled={isSaving}
           className="ml-auto"
         >
           <Save className="h-4 w-4 mr-1" />
-          {isSaving ? 'Saving...' : 'Save'}
+          {isSaving ? "Saving..." : "Save"}
         </Button>
       ) : (
         <>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={onEdit}
-          >
+          <Button variant="outline" size="sm" onClick={onEdit}>
             Edit
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => onSendEmail(email)}
-          >
+          <Button variant="outline" size="sm" onClick={() => onSendEmail(email)}>
             <Send className="h-4 w-4 mr-1" />
             Send Invite
           </Button>
-          <InvestorAssetDropdown 
+          <InvestorAssetDropdown
             userId={userId}
             assets={assets}
             existingAssets={existingAssets}

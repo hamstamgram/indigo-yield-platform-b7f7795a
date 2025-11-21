@@ -12,20 +12,34 @@
  * - Complete audit trail
  */
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { formatCrypto, toDecimal } from '@/utils/financial';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Check, X, AlertTriangle, Copy } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { formatCrypto, toDecimal } from "@/utils/financial";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, Check, X, AlertTriangle, Copy } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface WithdrawalRequest {
   id: string;
@@ -36,7 +50,7 @@ interface WithdrawalRequest {
   amount: string;
   destination: string;
   destination_type: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PROCESSING' | 'COMPLETED';
+  status: "PENDING" | "APPROVED" | "REJECTED" | "PROCESSING" | "COMPLETED";
   reason?: string;
   notes?: string;
   requested_at: string;
@@ -85,13 +99,13 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
       const available = toDecimal(selectedRequest.available_balance);
 
       if (requested.greaterThan(available)) {
-        throw new Error('Insufficient balance for withdrawal');
+        throw new Error("Insufficient balance for withdrawal");
       }
 
       // Submit approval
       const response = await fetch(`/api/admin/withdrawals/${selectedRequest.id}/approve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tx_hash: data.txHash,
           admin_notes: data.notes,
@@ -100,16 +114,16 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Approval failed');
+        throw new Error(error.message || "Approval failed");
       }
 
       // Log audit event
-      await fetch('/api/audit/log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/audit/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: 'WITHDRAWAL_APPROVED',
-          resource_type: 'withdrawal_requests',
+          action: "WITHDRAWAL_APPROVED",
+          resource_type: "withdrawal_requests",
           resource_id: selectedRequest.id,
           metadata: {
             investor_id: selectedRequest.user_id,
@@ -121,7 +135,7 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
       });
 
       toast({
-        title: 'Withdrawal Approved',
+        title: "Withdrawal Approved",
         description: `Withdrawal for ${selectedRequest.investor_name} has been approved.`,
       });
 
@@ -131,9 +145,9 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
       onRefresh?.();
     } catch (error) {
       toast({
-        title: 'Approval Failed',
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
-        variant: 'destructive',
+        title: "Approval Failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
       });
     } finally {
       setIsApproving(false);
@@ -146,8 +160,8 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
     setIsRejecting(true);
     try {
       const response = await fetch(`/api/admin/withdrawals/${selectedRequest.id}/reject`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           rejection_reason: data.rejectionReason,
         }),
@@ -155,16 +169,16 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Rejection failed');
+        throw new Error(error.message || "Rejection failed");
       }
 
       // Log audit event
-      await fetch('/api/audit/log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/audit/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: 'WITHDRAWAL_REJECTED',
-          resource_type: 'withdrawal_requests',
+          action: "WITHDRAWAL_REJECTED",
+          resource_type: "withdrawal_requests",
           resource_id: selectedRequest.id,
           metadata: {
             investor_id: selectedRequest.user_id,
@@ -176,7 +190,7 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
       });
 
       toast({
-        title: 'Withdrawal Rejected',
+        title: "Withdrawal Rejected",
         description: `Withdrawal for ${selectedRequest.investor_name} has been rejected.`,
       });
 
@@ -186,9 +200,9 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
       onRefresh?.();
     } catch (error) {
       toast({
-        title: 'Rejection Failed',
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
-        variant: 'destructive',
+        title: "Rejection Failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
       });
     } finally {
       setIsRejecting(false);
@@ -198,31 +212,25 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({
-      description: 'Copied to clipboard',
+      description: "Copied to clipboard",
     });
   };
 
-  const pendingRequests = requests.filter(r => r.status === 'PENDING');
-  const processedRequests = requests.filter(r => r.status !== 'PENDING');
+  const pendingRequests = requests.filter((r) => r.status === "PENDING");
+  const processedRequests = requests.filter((r) => r.status !== "PENDING");
 
   return (
     <div className="space-y-6">
       <Tabs defaultValue="pending" className="w-full">
         <TabsList>
-          <TabsTrigger value="pending">
-            Pending ({pendingRequests.length})
-          </TabsTrigger>
-          <TabsTrigger value="processed">
-            Processed ({processedRequests.length})
-          </TabsTrigger>
+          <TabsTrigger value="pending">Pending ({pendingRequests.length})</TabsTrigger>
+          <TabsTrigger value="processed">Processed ({processedRequests.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pending" className="space-y-4">
           {pendingRequests.length === 0 ? (
             <Alert>
-              <AlertDescription>
-                No pending withdrawal requests
-              </AlertDescription>
+              <AlertDescription>No pending withdrawal requests</AlertDescription>
             </Alert>
           ) : (
             pendingRequests.map((request) => {
@@ -235,16 +243,10 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div>
-                        <CardTitle className="text-lg">
-                          {request.investor_name}
-                        </CardTitle>
-                        <CardDescription>
-                          {request.investor_email}
-                        </CardDescription>
+                        <CardTitle className="text-lg">{request.investor_name}</CardTitle>
+                        <CardDescription>{request.investor_email}</CardDescription>
                       </div>
-                      <Badge variant="outline">
-                        {request.status}
-                      </Badge>
+                      <Badge variant="outline">{request.status}</Badge>
                     </div>
                   </CardHeader>
 
@@ -270,7 +272,8 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
                       <Alert variant="destructive">
                         <AlertTriangle className="h-4 w-4" />
                         <AlertDescription>
-                          <strong>Insufficient Balance:</strong> Investor does not have enough {request.asset_symbol} to complete this withdrawal
+                          <strong>Insufficient Balance:</strong> Investor does not have enough{" "}
+                          {request.asset_symbol} to complete this withdrawal
                         </AlertDescription>
                       </Alert>
                     )}
@@ -309,9 +312,7 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
                     {/* Requested Date */}
                     <div>
                       <Label className="text-sm text-muted-foreground">Requested</Label>
-                      <p className="text-sm">
-                        {new Date(request.requested_at).toLocaleString()}
-                      </p>
+                      <p className="text-sm">{new Date(request.requested_at).toLocaleString()}</p>
                     </div>
                   </CardContent>
 
@@ -349,18 +350,18 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-lg">
-                      {request.investor_name}
-                    </CardTitle>
+                    <CardTitle className="text-lg">{request.investor_name}</CardTitle>
                     <CardDescription>
                       {formatCrypto(request.amount, 8, request.asset_symbol)}
                     </CardDescription>
                   </div>
                   <Badge
                     variant={
-                      request.status === 'COMPLETED' ? 'default' :
-                      request.status === 'REJECTED' ? 'destructive' :
-                      'secondary'
+                      request.status === "COMPLETED"
+                        ? "default"
+                        : request.status === "REJECTED"
+                          ? "destructive"
+                          : "secondary"
                     }
                   >
                     {request.status}
@@ -387,11 +388,11 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
               {selectedRequest && (
                 <Alert>
                   <AlertDescription>
-                    Approving withdrawal of{' '}
+                    Approving withdrawal of{" "}
                     <strong>
                       {formatCrypto(selectedRequest.amount, 8, selectedRequest.asset_symbol)}
-                    </strong>
-                    {' '}for <strong>{selectedRequest.investor_name}</strong>
+                    </strong>{" "}
+                    for <strong>{selectedRequest.investor_name}</strong>
                   </AlertDescription>
                 </Alert>
               )}
@@ -401,8 +402,8 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
                 <Input
                   id="txHash"
                   placeholder="0x..."
-                  {...registerApprove('txHash', {
-                    required: 'Transaction hash is required',
+                  {...registerApprove("txHash", {
+                    required: "Transaction hash is required",
                   })}
                 />
                 {approveErrors.txHash && (
@@ -416,7 +417,7 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
                   id="notes"
                   placeholder="Any additional notes..."
                   rows={3}
-                  {...registerApprove('notes')}
+                  {...registerApprove("notes")}
                 />
               </div>
             </div>
@@ -437,7 +438,7 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
                     Approving...
                   </>
                 ) : (
-                  'Approve'
+                  "Approve"
                 )}
               </Button>
             </DialogFooter>
@@ -460,11 +461,11 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
               {selectedRequest && (
                 <Alert variant="destructive">
                   <AlertDescription>
-                    Rejecting withdrawal of{' '}
+                    Rejecting withdrawal of{" "}
                     <strong>
                       {formatCrypto(selectedRequest.amount, 8, selectedRequest.asset_symbol)}
-                    </strong>
-                    {' '}for <strong>{selectedRequest.investor_name}</strong>
+                    </strong>{" "}
+                    for <strong>{selectedRequest.investor_name}</strong>
                   </AlertDescription>
                 </Alert>
               )}
@@ -475,11 +476,11 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
                   id="rejectionReason"
                   placeholder="Explain why this withdrawal is being rejected..."
                   rows={4}
-                  {...registerReject('rejectionReason', {
-                    required: 'Rejection reason is required',
+                  {...registerReject("rejectionReason", {
+                    required: "Rejection reason is required",
                     minLength: {
                       value: 10,
-                      message: 'Please provide a detailed reason (min 10 characters)',
+                      message: "Please provide a detailed reason (min 10 characters)",
                     },
                   })}
                 />
@@ -505,7 +506,7 @@ export function WithdrawalApprovalPanel({ requests, onRefresh }: WithdrawalAppro
                     Rejecting...
                   </>
                 ) : (
-                  'Reject'
+                  "Reject"
                 )}
               </Button>
             </DialogFooter>

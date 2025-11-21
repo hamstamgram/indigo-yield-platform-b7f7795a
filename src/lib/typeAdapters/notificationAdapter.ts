@@ -3,9 +3,9 @@
  * Transform between Supabase notification types and application types
  */
 
-import { Database } from '@/integrations/supabase/types';
+import { Database } from "@/integrations/supabase/types";
 
-type SupabaseNotification = Database['public']['Tables']['notifications']['Row'];
+type SupabaseNotification = Database["public"]["Tables"]["notifications"]["Row"];
 
 export interface Notification {
   id: string;
@@ -13,7 +13,7 @@ export interface Notification {
   type: string;
   title: string;
   body: string;
-  priority: 'low' | 'medium' | 'high' | null;
+  priority: "low" | "medium" | "high" | null;
   read_at: string | null;
   data_jsonb: Record<string, any> | null;
   created_at: string;

@@ -1,27 +1,33 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { toast } from 'sonner';
-import { AdminOnly } from '@/components/ui/RoleGate';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { supabase } from '@/integrations/supabase/client';
-import { UserPlus, AlertTriangle, CheckCircle } from 'lucide-react';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import { AdminOnly } from "@/components/ui/RoleGate";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { supabase } from "@/integrations/supabase/client";
+import { UserPlus, AlertTriangle, CheckCircle } from "lucide-react";
 
 const createInvestorSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email("Please enter a valid email address"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   phone: z.string().optional(),
-  role: z.enum(['LP', 'admin']).default('LP'),
-  selectedFunds: z.array(z.string()).min(1, 'At least one fund must be selected'),
+  role: z.enum(["LP", "admin"]).default("LP"),
+  selectedFunds: z.array(z.string()).min(1, "At least one fund must be selected"),
   sendWelcomeEmail: z.boolean().default(true),
 });
 
@@ -31,7 +37,7 @@ interface Fund {
   id: string;
   code: string;
   name: string;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
 }
 
 export function InvestorAccountCreation() {
@@ -49,14 +55,14 @@ export function InvestorAccountCreation() {
     handleSubmit,
     formState: { errors },
     setValue,
-    watch
+    watch,
   } = useForm<CreateInvestorForm>({
     resolver: zodResolver(createInvestorSchema),
     defaultValues: {
-      role: 'LP',
+      role: "LP",
       selectedFunds: [],
       sendWelcomeEmail: true,
-    }
+    },
   });
 
   // Load available funds on component mount
@@ -67,32 +73,32 @@ export function InvestorAccountCreation() {
   const loadAvailableFunds = async () => {
     try {
       const { data, error } = await supabase
-        .from('fund_configurations')
-        .select('id, code, name, status')
-        .eq('status', 'active')
-        .order('name');
+        .from("fund_configurations")
+        .select("id, code, name, status")
+        .eq("status", "active")
+        .order("name");
 
       if (error) throw error;
-      
-      const transformedFunds: Fund[] = (data || []).map(fund => ({
+
+      const transformedFunds: Fund[] = (data || []).map((fund) => ({
         ...fund,
-        status: fund.status === 'suspended' ? 'inactive' : fund.status
+        status: fund.status === "suspended" ? "inactive" : fund.status,
       }));
       setAvailableFunds(transformedFunds);
     } catch (error) {
-      console.error('Error loading funds:', error);
-      toast.error('Failed to load available funds');
+      console.error("Error loading funds:", error);
+      toast.error("Failed to load available funds");
     }
   };
 
-  const selectedFunds = watch('selectedFunds');
+  const selectedFunds = watch("selectedFunds");
 
   const toggleFundSelection = (fundId: string) => {
     const current = selectedFunds || [];
     const updated = current.includes(fundId)
-      ? current.filter(id => id !== fundId)
+      ? current.filter((id) => id !== fundId)
       : [...current, fundId];
-    setValue('selectedFunds', updated);
+    setValue("selectedFunds", updated);
   };
 
   const onSubmit = async (data: CreateInvestorForm) => {
@@ -101,9 +107,9 @@ export function InvestorAccountCreation() {
 
     try {
       // Use secure Edge Function for admin user creation
-      const { data: result, error } = await supabase.functions.invoke('admin-user-management', {
+      const { data: result, error } = await supabase.functions.invoke("admin-user-management", {
         body: {
-          action: 'createUser',
+          action: "createUser",
           email: data.email,
           firstName: data.firstName,
           lastName: data.lastName,
@@ -111,7 +117,7 @@ export function InvestorAccountCreation() {
           role: data.role,
           selectedFunds: data.selectedFunds,
           sendWelcomeEmail: data.sendWelcomeEmail,
-        }
+        },
       });
 
       if (error) {
@@ -119,28 +125,28 @@ export function InvestorAccountCreation() {
       }
 
       if (!result?.success) {
-        throw new Error(result?.error || 'Failed to create user');
+        throw new Error(result?.error || "Failed to create user");
       }
 
       // Log audit event
-      const { data: { user } } = await supabase.auth.getUser();
-      await supabase
-        .from('audit_log')
-        .insert({
-          actor_user: user?.id,
-          action: 'CREATE_INVESTOR_ACCOUNT',
-          entity: 'profiles',
-          entity_id: result.user_id,
-          new_values: {
-            email: data.email,
-            role: data.role,
-            fund_count: data.selectedFunds.length,
-          },
-          meta: {
-            invite_sent: data.sendWelcomeEmail,
-            invite_code: result.invite_code,
-          }
-        });
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      await supabase.from("audit_log").insert({
+        actor_user: user?.id,
+        action: "CREATE_INVESTOR_ACCOUNT",
+        entity: "profiles",
+        entity_id: result.user_id,
+        new_values: {
+          email: data.email,
+          role: data.role,
+          fund_count: data.selectedFunds.length,
+        },
+        meta: {
+          invite_sent: data.sendWelcomeEmail,
+          invite_code: result.invite_code,
+        },
+      });
 
       setCreationResult({
         success: true,
@@ -148,15 +154,14 @@ export function InvestorAccountCreation() {
         inviteId: result.invite_id,
       });
 
-      toast.success('Investor account created successfully');
-
+      toast.success("Investor account created successfully");
     } catch (error: any) {
-      console.error('Error creating investor account:', error);
+      console.error("Error creating investor account:", error);
       setCreationResult({
         success: false,
-        message: error.message || 'Failed to create investor account',
+        message: error.message || "Failed to create investor account",
       });
-      toast.error('Failed to create investor account');
+      toast.error("Failed to create investor account");
     } finally {
       setIsSubmitting(false);
     }
@@ -176,14 +181,16 @@ export function InvestorAccountCreation() {
         </div>
 
         {creationResult && (
-          <Alert className={`mb-6 ${creationResult.success ? 'border-green-200 bg-green-50' : ''}`} 
-                variant={creationResult.success ? 'default' : 'destructive'}>
+          <Alert
+            className={`mb-6 ${creationResult.success ? "border-green-200 bg-green-50" : ""}`}
+            variant={creationResult.success ? "default" : "destructive"}
+          >
             {creationResult.success ? (
               <CheckCircle className="h-4 w-4 text-green-600" />
             ) : (
               <AlertTriangle className="h-4 w-4" />
             )}
-            <AlertDescription className={creationResult.success ? 'text-green-700' : ''}>
+            <AlertDescription className={creationResult.success ? "text-green-700" : ""}>
               {creationResult.message}
             </AlertDescription>
           </Alert>
@@ -206,12 +213,10 @@ export function InvestorAccountCreation() {
                     id="email"
                     type="email"
                     placeholder="investor@example.com"
-                    {...register('email')}
+                    {...register("email")}
                     disabled={isSubmitting}
                   />
-                  {errors.email && (
-                    <p className="text-sm text-red-600">{errors.email.message}</p>
-                  )}
+                  {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -220,7 +225,7 @@ export function InvestorAccountCreation() {
                     id="phone"
                     type="tel"
                     placeholder="+1 (555) 123-4567"
-                    {...register('phone')}
+                    {...register("phone")}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -232,7 +237,7 @@ export function InvestorAccountCreation() {
                   <Input
                     id="firstName"
                     placeholder="John"
-                    {...register('firstName')}
+                    {...register("firstName")}
                     disabled={isSubmitting}
                   />
                   {errors.firstName && (
@@ -245,7 +250,7 @@ export function InvestorAccountCreation() {
                   <Input
                     id="lastName"
                     placeholder="Smith"
-                    {...register('lastName')}
+                    {...register("lastName")}
                     disabled={isSubmitting}
                   />
                   {errors.lastName && (
@@ -258,8 +263,8 @@ export function InvestorAccountCreation() {
               <div className="space-y-2">
                 <Label htmlFor="role">Account Role *</Label>
                 <Select
-                  value={watch('role')}
-                  onValueChange={(value: 'LP' | 'admin') => setValue('role', value)}
+                  value={watch("role")}
+                  onValueChange={(value: "LP" | "admin") => setValue("role", value)}
                   disabled={isSubmitting}
                 >
                   <SelectTrigger>
@@ -270,23 +275,24 @@ export function InvestorAccountCreation() {
                     <SelectItem value="admin">Administrator</SelectItem>
                   </SelectContent>
                 </Select>
-                {errors.role && (
-                  <p className="text-sm text-red-600">{errors.role.message}</p>
-                )}
+                {errors.role && <p className="text-sm text-red-600">{errors.role.message}</p>}
               </div>
 
               {/* Fund Selection (only for LP role) */}
-              {watch('role') === 'LP' && (
+              {watch("role") === "LP" && (
                 <div className="space-y-4">
                   <Label>Fund Access *</Label>
                   <p className="text-sm text-muted-foreground">
                     Select which funds this investor will have access to:
                   </p>
-                  
+
                   {availableFunds.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {availableFunds.map((fund) => (
-                        <div key={fund.id} className="flex items-center space-x-2 p-3 border rounded-lg">
+                        <div
+                          key={fund.id}
+                          className="flex items-center space-x-2 p-3 border rounded-lg"
+                        >
                           <Checkbox
                             id={`fund-${fund.id}`}
                             checked={selectedFunds?.includes(fund.id) || false}
@@ -294,15 +300,13 @@ export function InvestorAccountCreation() {
                             disabled={isSubmitting}
                           />
                           <div className="flex-1">
-                            <Label 
-                              htmlFor={`fund-${fund.id}`} 
+                            <Label
+                              htmlFor={`fund-${fund.id}`}
                               className="font-medium cursor-pointer"
                             >
                               {fund.name}
                             </Label>
-                            <p className="text-sm text-muted-foreground">
-                              Code: {fund.code}
-                            </p>
+                            <p className="text-sm text-muted-foreground">Code: {fund.code}</p>
                           </div>
                         </div>
                       ))}
@@ -327,8 +331,8 @@ export function InvestorAccountCreation() {
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="sendWelcomeEmail"
-                    checked={watch('sendWelcomeEmail')}
-                    onCheckedChange={(checked) => setValue('sendWelcomeEmail', checked as boolean)}
+                    checked={watch("sendWelcomeEmail")}
+                    onCheckedChange={(checked) => setValue("sendWelcomeEmail", checked as boolean)}
                     disabled={isSubmitting}
                   />
                   <Label htmlFor="sendWelcomeEmail">
@@ -342,17 +346,17 @@ export function InvestorAccountCreation() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate('/admin/investors')}
+                  onClick={() => navigate("/admin/investors")}
                   disabled={isSubmitting}
                 >
                   Cancel
                 </Button>
-                
+
                 <Button
                   type="submit"
-                  disabled={isSubmitting || (watch('role') === 'LP' && selectedFunds?.length === 0)}
+                  disabled={isSubmitting || (watch("role") === "LP" && selectedFunds?.length === 0)}
                 >
-                  {isSubmitting ? 'Creating Account...' : 'Create Account'}
+                  {isSubmitting ? "Creating Account..." : "Create Account"}
                 </Button>
               </div>
             </form>

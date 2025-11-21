@@ -3,11 +3,11 @@
  * Clean abstractions for fund-related entities
  */
 
-import { Database } from '@/integrations/supabase/types';
+import { Database } from "@/integrations/supabase/types";
 
-type DbFund = Database['public']['Tables']['funds']['Row'];
-type FundStatus = Database['public']['Enums']['fund_status'];
-type BenchmarkType = Database['public']['Enums']['benchmark_type'];
+type DbFund = Database["public"]["Tables"]["funds"]["Row"];
+type FundStatus = Database["public"]["Enums"]["fund_status"];
+type BenchmarkType = Database["public"]["Enums"]["benchmark_type"];
 
 export interface Fund {
   id: string;
@@ -76,7 +76,7 @@ export function mapDbFundToFund(dbFund: DbFund): Fund {
     name: dbFund.name,
     fund_class: dbFund.fund_class,
     asset: dbFund.asset,
-    status: dbFund.status || 'inactive',
+    status: dbFund.status || "inactive",
     inception_date: dbFund.inception_date,
     mgmt_fee_bps: dbFund.mgmt_fee_bps,
     perf_fee_bps: dbFund.perf_fee_bps,

@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ArrowUpCircle, Clock, CheckCircle, XCircle, Info } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowUpCircle, Clock, CheckCircle, XCircle, Info } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Deposit {
   id: string;
@@ -28,33 +28,36 @@ const DepositsPage = () => {
   const fetchDeposits = async () => {
     try {
       setLoading(true);
-      
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
       if (userError) throw userError;
-      if (!user) throw new Error('No authenticated user');
+      if (!user) throw new Error("No authenticated user");
 
       const { data: depositsData, error: depositsError } = await supabase
-        .from('deposits')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .from("deposits")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
       if (depositsError) throw depositsError;
 
       // Transform data for type compatibility
-      const transformedDeposits = (depositsData || []).map(deposit => ({
+      const transformedDeposits = (depositsData || []).map((deposit) => ({
         ...deposit,
         asset_id: 1, // Mock for type compatibility
-        asset: { symbol: deposit.asset_symbol, name: deposit.asset_symbol }
+        asset: { symbol: deposit.asset_symbol, name: deposit.asset_symbol },
       }));
 
       setDeposits(transformedDeposits);
     } catch (error: any) {
-      console.error('Error fetching deposits:', error);
+      console.error("Error fetching deposits:", error);
       toast({
-        title: 'Error loading deposits',
-        description: error.message || 'Failed to load deposit history',
-        variant: 'destructive',
+        title: "Error loading deposits",
+        description: error.message || "Failed to load deposit history",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -63,11 +66,11 @@ const DepositsPage = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'confirmed':
+      case "confirmed":
         return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'pending':
+      case "pending":
         return <Clock className="h-4 w-4 text-yellow-600" />;
-      case 'failed':
+      case "failed":
         return <XCircle className="h-4 w-4 text-red-600" />;
       default:
         return <Clock className="h-4 w-4 text-gray-600" />;
@@ -76,14 +79,14 @@ const DepositsPage = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed':
-        return 'default';
-      case 'pending':
-        return 'secondary';
-      case 'failed':
-        return 'destructive';
+      case "confirmed":
+        return "default";
+      case "pending":
+        return "secondary";
+      case "failed":
+        return "destructive";
       default:
-        return 'secondary';
+        return "secondary";
     }
   };
 
@@ -119,7 +122,7 @@ const DepositsPage = () => {
           <div className="flex items-center gap-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
             <Info className="h-5 w-5 text-yellow-600" />
             <div className="text-sm text-yellow-800">
-              Deposit functionality is temporarily unavailable while we update the database schema. 
+              Deposit functionality is temporarily unavailable while we update the database schema.
               All existing deposit data remains safe and accessible.
             </div>
           </div>
@@ -132,15 +135,20 @@ const DepositsPage = () => {
           ) : (
             <div className="space-y-4">
               {deposits.map((deposit) => (
-                <div key={deposit.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div
+                  key={deposit.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
                   <div className="flex items-center gap-4">
-                    {getStatusIcon(deposit.status || 'pending')}
+                    {getStatusIcon(deposit.status || "pending")}
                     <div>
                       <div className="font-semibold">
                         {deposit.amount} {deposit.asset_symbol}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {deposit.created_at ? new Date(deposit.created_at).toLocaleDateString() : 'N/A'}
+                        {deposit.created_at
+                          ? new Date(deposit.created_at).toLocaleDateString()
+                          : "N/A"}
                       </div>
                       {deposit.transaction_hash && (
                         <div className="text-xs text-muted-foreground font-mono">
@@ -149,8 +157,8 @@ const DepositsPage = () => {
                       )}
                     </div>
                   </div>
-                  <Badge variant={getStatusColor(deposit.status || 'pending')}>
-                    {deposit.status || 'pending'}
+                  <Badge variant={getStatusColor(deposit.status || "pending")}>
+                    {deposit.status || "pending"}
                   </Badge>
                 </div>
               ))}

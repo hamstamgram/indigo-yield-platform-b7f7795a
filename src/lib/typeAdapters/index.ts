@@ -3,6 +3,6 @@
  * This layer bridges the gap between database schema and application domain models
  */
 
-export * from './documentAdapter';
-export * from './investorAdapter';
-export * from './notificationAdapter';
+export * from "./documentAdapter";
+export * from "./investorAdapter";
+export * from "./notificationAdapter";

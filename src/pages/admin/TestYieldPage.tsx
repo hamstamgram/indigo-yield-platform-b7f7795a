@@ -1,77 +1,84 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { applyDailyYieldToFund, getAllFundsWithAUM } from '@/services/aumService';
-import { toast } from 'sonner';
-import { CheckCircle, AlertCircle, Loader2, Target } from 'lucide-react';
-import { formatAssetValue } from '@/utils/kpiCalculations';
+import React, { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { applyDailyYieldToFund, getAllFundsWithAUM } from "@/services/aumService";
+import { toast } from "sonner";
+import { CheckCircle, AlertCircle, Loader2, Target } from "lucide-react";
+import { formatAssetValue } from "@/utils/kpiCalculations";
 
 const TestYieldPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [funds, setFunds] = useState<any[]>([]);
-  const [selectedFund, setSelectedFund] = useState<string>('');
-  const [yieldPercentage, setYieldPercentage] = useState<string>('0.01');
+  const [selectedFund, setSelectedFund] = useState<string>("");
+  const [yieldPercentage, setYieldPercentage] = useState<string>("0.01");
   const [result, setResult] = useState<any>(null);
 
   React.useEffect(() => {
     const loadFunds = async () => {
       const fundsData = await getAllFundsWithAUM();
       // Only show funds with AUM > 0
-      const fundsWithAUM = fundsData.filter(f => f.latest_aum > 0);
+      const fundsWithAUM = fundsData.filter((f) => f.latest_aum > 0);
       setFunds(fundsWithAUM);
     };
     loadFunds();
   }, []);
 
-  const selectedFundData = funds.find(f => f.id === selectedFund);
+  const selectedFundData = funds.find((f) => f.id === selectedFund);
 
   const handleTestYield = async () => {
     if (!selectedFund || !yieldPercentage) {
-      toast.error('Please select a fund and enter yield percentage');
+      toast.error("Please select a fund and enter yield percentage");
       return;
     }
 
     setIsLoading(true);
     setResult(null);
-    
+
     try {
       const response = await applyDailyYieldToFund(
         selectedFund,
         parseFloat(yieldPercentage),
-        new Date().toISOString().split('T')[0]
+        new Date().toISOString().split("T")[0]
       );
-      
+
       if (response.success) {
         setResult(response.data);
-        toast.success('Test yield applied successfully!');
+        toast.success("Test yield applied successfully!");
       } else {
-        toast.error(response.error || 'Failed to apply yield');
+        toast.error(response.error || "Failed to apply yield");
       }
-      
     } catch (error) {
-      console.error('Test yield error:', error);
-      toast.error('Failed to apply test yield');
+      console.error("Test yield error:", error);
+      toast.error("Failed to apply test yield");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const estimatedYield = selectedFundData && yieldPercentage 
-    ? selectedFundData.latest_aum * (parseFloat(yieldPercentage) / 100)
-    : 0;
+  const estimatedYield =
+    selectedFundData && yieldPercentage
+      ? selectedFundData.latest_aum * (parseFloat(yieldPercentage) / 100)
+      : 0;
 
   return (
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Test Yield System</h1>
-        <p className="text-gray-500 dark:text-gray-400">Test the native token yield distribution system</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          Test the native token yield distribution system
+        </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        
         {/* Test Controls */}
         <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <CardHeader>
@@ -81,7 +88,6 @@ const TestYieldPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            
             <div className="space-y-2">
               <Label htmlFor="fund-select">Select Fund</Label>
               <Select value={selectedFund} onValueChange={setSelectedFund}>
@@ -91,7 +97,8 @@ const TestYieldPage = () => {
                 <SelectContent>
                   {funds.map((fund) => (
                     <SelectItem key={fund.id} value={fund.id}>
-                      {fund.name} ({fund.asset}) - {formatAssetValue(fund.latest_aum, fund.asset)} {fund.asset}
+                      {fund.name} ({fund.asset}) - {formatAssetValue(fund.latest_aum, fund.asset)}{" "}
+                      {fund.asset}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -125,11 +132,17 @@ const TestYieldPage = () => {
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span>Fund AUM:</span>
-                    <span className="font-mono">{formatAssetValue(selectedFundData.latest_aum, selectedFundData.asset)} {selectedFundData.asset}</span>
+                    <span className="font-mono">
+                      {formatAssetValue(selectedFundData.latest_aum, selectedFundData.asset)}{" "}
+                      {selectedFundData.asset}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Daily Yield:</span>
-                    <span className="font-mono text-green-600">+{formatAssetValue(estimatedYield, selectedFundData.asset)} {selectedFundData.asset}</span>
+                    <span className="font-mono text-green-600">
+                      +{formatAssetValue(estimatedYield, selectedFundData.asset)}{" "}
+                      {selectedFundData.asset}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Investors Affected:</span>
@@ -139,7 +152,7 @@ const TestYieldPage = () => {
               </div>
             )}
 
-            <Button 
+            <Button
               onClick={handleTestYield}
               disabled={isLoading || !selectedFund || !yieldPercentage}
               className="w-full"
@@ -151,10 +164,9 @@ const TestYieldPage = () => {
                   Applying Yield...
                 </>
               ) : (
-                'Apply Test Yield'
+                "Apply Test Yield"
               )}
             </Button>
-
           </CardContent>
         </Card>
 
@@ -162,19 +174,16 @@ const TestYieldPage = () => {
         <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <CardHeader>
             <CardTitle>Test Results</CardTitle>
-            <CardDescription>
-              Yield application results in native token amounts
-            </CardDescription>
+            <CardDescription>Yield application results in native token amounts</CardDescription>
           </CardHeader>
           <CardContent>
-            
             {result ? (
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-green-600">
                   <CheckCircle className="h-5 w-5" />
                   <span className="font-medium">Yield Applied Successfully</span>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div className="space-y-2">
                     <div className="font-medium">Application Details</div>
@@ -185,17 +194,23 @@ const TestYieldPage = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <div className="font-medium">Native Token Results</div>
                     <div className="space-y-1">
                       <div className="flex justify-between">
                         <span>Fund AUM:</span>
-                        <span className="font-mono">{formatAssetValue(result.fund_aum, selectedFundData?.asset)} {selectedFundData?.asset}</span>
+                        <span className="font-mono">
+                          {formatAssetValue(result.fund_aum, selectedFundData?.asset)}{" "}
+                          {selectedFundData?.asset}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span>Total Yield:</span>
-                        <span className="font-mono text-green-600">+{formatAssetValue(result.total_yield_generated, selectedFundData?.asset)} {selectedFundData?.asset}</span>
+                        <span className="font-mono text-green-600">
+                          +{formatAssetValue(result.total_yield_generated, selectedFundData?.asset)}{" "}
+                          {selectedFundData?.asset}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span>Investors:</span>
@@ -211,11 +226,11 @@ const TestYieldPage = () => {
                       ✅ Native Token System Working
                     </div>
                     <div className="text-green-700 dark:text-green-300">
-                      All yields calculated and distributed in {selectedFundData?.asset} tokens - no currency conversions needed!
+                      All yields calculated and distributed in {selectedFundData?.asset} tokens - no
+                      currency conversions needed!
                     </div>
                   </div>
                 </div>
-                
               </div>
             ) : (
               <div className="flex items-center justify-center py-8 text-muted-foreground">
@@ -226,19 +241,15 @@ const TestYieldPage = () => {
                 </div>
               </div>
             )}
-
           </CardContent>
         </Card>
-
       </div>
 
       {/* Available Funds Summary */}
       <Card className="mt-6 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
         <CardHeader>
           <CardTitle>Available Funds for Testing</CardTitle>
-          <CardDescription>
-            Funds with AUM set and ready for yield distribution
-          </CardDescription>
+          <CardDescription>Funds with AUM set and ready for yield distribution</CardDescription>
         </CardHeader>
         <CardContent>
           {funds.length > 0 ? (
@@ -247,8 +258,12 @@ const TestYieldPage = () => {
                 <div key={fund.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <div className="font-medium">{fund.name}</div>
                   <div className="text-sm text-muted-foreground">Asset: {fund.asset}</div>
-                  <div className="font-mono text-sm">AUM: {formatAssetValue(fund.latest_aum, fund.asset)} {fund.asset}</div>
-                  <div className="text-xs text-muted-foreground">{fund.investor_count} investors</div>
+                  <div className="font-mono text-sm">
+                    AUM: {formatAssetValue(fund.latest_aum, fund.asset)} {fund.asset}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {fund.investor_count} investors
+                  </div>
                 </div>
               ))}
             </div>
@@ -261,7 +276,6 @@ const TestYieldPage = () => {
           )}
         </CardContent>
       </Card>
-
     </div>
   );
 };

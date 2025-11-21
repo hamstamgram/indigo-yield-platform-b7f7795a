@@ -3,8 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 interface PortfolioPosition {
@@ -44,29 +43,25 @@ serve(async (req) => {
     if (!supabaseUrl || !supabaseAnonKey) {
       console.error("Missing required environment variables", {
         has_url: !!supabaseUrl,
-        has_key: !!supabaseAnonKey
+        has_key: !!supabaseAnonKey,
       });
 
       return new Response(
         JSON.stringify({
-          error: "Server configuration error. Please contact support."
+          error: "Server configuration error. Please contact support.",
         }),
         {
           status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
 
-    const supabaseClient = createClient(
-      supabaseUrl,
-      supabaseAnonKey,
-      {
-        global: {
-          headers: { Authorization: req.headers.get("Authorization")! },
-        },
-      }
-    );
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: { Authorization: req.headers.get("Authorization")! },
+      },
+    });
 
     // Get authenticated user
     const {
@@ -75,13 +70,10 @@ serve(async (req) => {
     } = await supabaseClient.auth.getUser();
 
     if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const url = new URL(req.url);
@@ -96,20 +88,18 @@ serve(async (req) => {
         .single();
 
       if (!adminData) {
-        return new Response(
-          JSON.stringify({ error: "Forbidden: Admin access required" }),
-          {
-            status: 403,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
+        return new Response(JSON.stringify({ error: "Forbidden: Admin access required" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
     }
 
     // Fetch portfolio positions with current prices
     const { data: positions, error: positionsError } = await supabaseClient
       .from("portfolio_positions")
-      .select(`
+      .select(
+        `
         *,
         crypto_assets (
           id,
@@ -118,7 +108,8 @@ serve(async (req) => {
           current_price,
           price_updated_at
         )
-      `)
+      `
+      )
       .eq("user_id", userId)
       .eq("is_active", true);
 
@@ -129,9 +120,7 @@ serve(async (req) => {
       const currentPrice = pos.crypto_assets?.current_price || 0;
       const currentValue = pos.quantity * currentPrice;
       const unrealizedPnl = currentValue - pos.cost_basis;
-      const unrealizedPnlPercent = pos.cost_basis > 0
-        ? (unrealizedPnl / pos.cost_basis) * 100
-        : 0;
+      const unrealizedPnlPercent = pos.cost_basis > 0 ? (unrealizedPnl / pos.cost_basis) * 100 : 0;
 
       return {
         asset_id: pos.asset_id,
@@ -149,9 +138,8 @@ serve(async (req) => {
     const totalValue = portfolioPositions.reduce((sum, pos) => sum + pos.current_value, 0);
     const totalCostBasis = portfolioPositions.reduce((sum, pos) => sum + pos.cost_basis, 0);
     const totalUnrealizedPnl = totalValue - totalCostBasis;
-    const totalUnrealizedPnlPercent = totalCostBasis > 0
-      ? (totalUnrealizedPnl / totalCostBasis) * 100
-      : 0;
+    const totalUnrealizedPnlPercent =
+      totalCostBasis > 0 ? (totalUnrealizedPnl / totalCostBasis) * 100 : 0;
 
     // Get total realized P&L from transactions
     const { data: realizedPnl } = await supabaseClient
@@ -176,18 +164,15 @@ serve(async (req) => {
       last_updated: new Date().toISOString(),
     };
 
-    return new Response(
-      JSON.stringify(summary),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify(summary), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("Portfolio API error:", error);
     return new Response(
       JSON.stringify({
-        error: error instanceof Error ? error.message : "Internal server error"
+        error: error instanceof Error ? error.message : "Internal server error",
       }),
       {
         status: 500,

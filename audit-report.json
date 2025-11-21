@@ -5,15 +5,10 @@
       "name": "@lhci/cli",
       "severity": "low",
       "isDirect": true,
-      "via": [
-        "inquirer",
-        "tmp"
-      ],
+      "via": ["inquirer", "tmp"],
       "effects": [],
       "range": "*",
-      "nodes": [
-        "node_modules/@lhci/cli"
-      ],
+      "nodes": ["node_modules/@lhci/cli"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.1.0",
@@ -24,14 +19,10 @@
       "name": "@playwright/test",
       "severity": "high",
       "isDirect": true,
-      "via": [
-        "playwright"
-      ],
+      "via": ["playwright"],
       "effects": [],
       "range": "0.9.7 - 0.1112.0-alpha2 || 1.38.0-alpha-1692262648000 - 1.55.1-beta-1758616458000",
-      "nodes": [
-        "node_modules/@playwright/test"
-      ],
+      "nodes": ["node_modules/@playwright/test"],
       "fixAvailable": true
     },
     "axios": {
@@ -46,9 +37,7 @@
           "title": "Axios is vulnerable to DoS attack through lack of data size check",
           "url": "https://github.com/advisories/GHSA-4hjh-wcwx-xvwj",
           "severity": "high",
-          "cwe": [
-            "CWE-770"
-          ],
+          "cwe": ["CWE-770"],
           "cvss": {
             "score": 7.5,
             "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
@@ -58,9 +47,7 @@
       ],
       "effects": [],
       "range": "1.0.0 - 1.11.0",
-      "nodes": [
-        "node_modules/axios"
-      ],
+      "nodes": ["node_modules/axios"],
       "fixAvailable": true
     },
     "esbuild": {
@@ -75,9 +62,7 @@
           "title": "esbuild enables any website to send any requests to the development server and read the response",
           "url": "https://github.com/advisories/GHSA-67mh-4wv8-2f99",
           "severity": "moderate",
-          "cwe": [
-            "CWE-346"
-          ],
+          "cwe": ["CWE-346"],
           "cvss": {
             "score": 5.3,
             "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N"
@@ -85,29 +70,19 @@
           "range": "<=0.24.2"
         }
       ],
-      "effects": [
-        "vite"
-      ],
+      "effects": ["vite"],
       "range": "<=0.24.2",
-      "nodes": [
-        "node_modules/vite/node_modules/esbuild"
-      ],
+      "nodes": ["node_modules/vite/node_modules/esbuild"],
       "fixAvailable": true
     },
     "external-editor": {
       "name": "external-editor",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "tmp"
-      ],
-      "effects": [
-        "inquirer"
-      ],
+      "via": ["tmp"],
+      "effects": ["inquirer"],
       "range": ">=1.1.1",
-      "nodes": [
-        "node_modules/external-editor"
-      ],
+      "nodes": ["node_modules/external-editor"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.1.0",
@@ -118,16 +93,10 @@
       "name": "inquirer",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "external-editor"
-      ],
-      "effects": [
-        "@lhci/cli"
-      ],
+      "via": ["external-editor"],
+      "effects": ["@lhci/cli"],
       "range": "3.0.0 - 8.2.6 || 9.0.0 - 9.3.7",
-      "nodes": [
-        "node_modules/inquirer"
-      ],
+      "nodes": ["node_modules/inquirer"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.1.0",
@@ -146,9 +115,7 @@
           "title": "Playwright downloads and installs browsers without verifying the authenticity of the SSL certificate",
           "url": "https://github.com/advisories/GHSA-7mvr-c777-76hp",
           "severity": "high",
-          "cwe": [
-            "CWE-347"
-          ],
+          "cwe": ["CWE-347"],
           "cvss": {
             "score": 0,
             "vectorString": null
@@ -156,13 +123,9 @@
           "range": "<1.55.1"
         }
       ],
-      "effects": [
-        "@playwright/test"
-      ],
+      "effects": ["@playwright/test"],
       "range": "<1.55.1",
-      "nodes": [
-        "node_modules/playwright"
-      ],
+      "nodes": ["node_modules/playwright"],
       "fixAvailable": true
     },
     "tar-fs": {
@@ -177,10 +140,7 @@
           "title": "tar-fs has a symlink validation bypass if destination directory is predictable with a specific tarball",
           "url": "https://github.com/advisories/GHSA-vj76-c3g6-qr5v",
           "severity": "high",
-          "cwe": [
-            "CWE-22",
-            "CWE-61"
-          ],
+          "cwe": ["CWE-22", "CWE-61"],
           "cvss": {
             "score": 0,
             "vectorString": null
@@ -190,9 +150,7 @@
       ],
       "effects": [],
       "range": "3.0.0 - 3.1.0",
-      "nodes": [
-        "node_modules/tar-fs"
-      ],
+      "nodes": ["node_modules/tar-fs"],
       "fixAvailable": true
     },
     "tmp": {
@@ -207,9 +165,7 @@
           "title": "tmp allows arbitrary temporary file / directory write via symbolic link `dir` parameter",
           "url": "https://github.com/advisories/GHSA-52f5-9888-hmc6",
           "severity": "low",
-          "cwe": [
-            "CWE-59"
-          ],
+          "cwe": ["CWE-59"],
           "cvss": {
             "score": 2.5,
             "vectorString": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:N/I:L/A:N"
@@ -217,15 +173,9 @@
           "range": "<=0.2.3"
         }
       ],
-      "effects": [
-        "@lhci/cli",
-        "external-editor"
-      ],
+      "effects": ["@lhci/cli", "external-editor"],
       "range": "<=0.2.3",
-      "nodes": [
-        "node_modules/external-editor/node_modules/tmp",
-        "node_modules/tmp"
-      ],
+      "nodes": ["node_modules/external-editor/node_modules/tmp", "node_modules/tmp"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.1.0",
@@ -244,9 +194,7 @@
           "title": "vite allows server.fs.deny bypass via backslash on Windows",
           "url": "https://github.com/advisories/GHSA-93m4-6634-74q7",
           "severity": "moderate",
-          "cwe": [
-            "CWE-22"
-          ],
+          "cwe": ["CWE-22"],
           "cvss": {
             "score": 0,
             "vectorString": null
@@ -257,9 +205,7 @@
       ],
       "effects": [],
       "range": "0.11.0 - 6.1.6",
-      "nodes": [
-        "node_modules/vite"
-      ],
+      "nodes": ["node_modules/vite"],
       "fixAvailable": true
     },
     "xlsx": {
@@ -274,9 +220,7 @@
           "title": "Prototype Pollution in sheetJS",
           "url": "https://github.com/advisories/GHSA-4r6h-8v6p-xvw6",
           "severity": "high",
-          "cwe": [
-            "CWE-1321"
-          ],
+          "cwe": ["CWE-1321"],
           "cvss": {
             "score": 7.8,
             "vectorString": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H"
@@ -290,9 +234,7 @@
           "title": "SheetJS Regular Expression Denial of Service (ReDoS)",
           "url": "https://github.com/advisories/GHSA-5pgg-2g8v-p4x9",
           "severity": "high",
-          "cwe": [
-            "CWE-1333"
-          ],
+          "cwe": ["CWE-1333"],
           "cvss": {
             "score": 7.5,
             "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
@@ -302,9 +244,7 @@
       ],
       "effects": [],
       "range": "*",
-      "nodes": [
-        "node_modules/xlsx"
-      ],
+      "nodes": ["node_modules/xlsx"],
       "fixAvailable": false
     }
   },

@@ -7,9 +7,7 @@
     },
     "memory": {
       "command": "node",
-      "args": [
-        "/Users/mama/Desktop/mcp-servers/mcp-servers-official/src/memory/dist/index.js"
-      ],
+      "args": ["/Users/mama/Desktop/mcp-servers/mcp-servers-official/src/memory/dist/index.js"],
       "env": {
         "MEMORY_DB_PATH": "/Users/mama/indigo-yield-platform-v01/.mcp/memory.sqlite"
       },
@@ -27,10 +25,7 @@
     },
     "brightdata": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@brightdata/mcp@2.5.0"
-      ],
+      "args": ["-y", "@brightdata/mcp@2.5.0"],
       "env": {
         "BRIGHTDATA_API_TOKEN": "{{env.BRIGHTDATA_API_TOKEN}}"
       },
@@ -38,10 +33,7 @@
     },
     "context7": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp@1.0.17"
-      ],
+      "args": ["-y", "@upstash/context7-mcp@1.0.17"],
       "env": {
         "UPSTASH_VECTOR_REST_URL": "{{env.UPSTASH_VECTOR_REST_URL}}",
         "UPSTASH_VECTOR_REST_TOKEN": "{{env.UPSTASH_VECTOR_REST_TOKEN}}"
@@ -50,10 +42,7 @@
     },
     "brave-search": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@brave/brave-search-mcp-server@1.3.7"
-      ],
+      "args": ["-y", "@brave/brave-search-mcp-server@1.3.7"],
       "env": {
         "BRAVE_API_KEY": "{{env.BRAVE_API_KEY}}"
       },
@@ -115,13 +104,7 @@
       "SENTRY_TOKEN",
       "MAILERLITE_API_TOKEN"
     ],
-    "optional": [
-      "SMTP_HOST",
-      "SMTP_PORT",
-      "SMTP_USER",
-      "SMTP_PASS",
-      "POSTHOG_KEY"
-    ]
+    "optional": ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "POSTHOG_KEY"]
   },
   "notes": {
     "smtp": "For transactional emails, use nodemailer or similar libraries directly. For marketing emails, use MailerLite MCP.",

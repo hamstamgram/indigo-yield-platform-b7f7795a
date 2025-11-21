@@ -1,15 +1,19 @@
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/hooks/use-toast';
-import { getInvestorPositions, updateInvestorPosition, type InvestorPosition } from '@/services/fundService';
-import FundAssetDropdown from '@/components/admin/investors/FundAssetDropdown';
-import { TrendingUp, Percent, Users, Save } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import {
+  getInvestorPositions,
+  updateInvestorPosition,
+  type InvestorPosition,
+} from "@/services/fundService";
+import FundAssetDropdown from "@/components/admin/investors/FundAssetDropdown";
+import { TrendingUp, Percent, Users, Save } from "lucide-react";
 
 const AdminInvestorPositionsPage = () => {
   const { id } = useParams();
@@ -27,17 +31,17 @@ const AdminInvestorPositionsPage = () => {
 
   const fetchPositions = async () => {
     if (!id) return;
-    
+
     try {
       setIsLoading(true);
       const data = await getInvestorPositions(id);
       setPositions(data);
     } catch (error) {
-      console.error('Error fetching positions:', error);
+      console.error("Error fetching positions:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load investor positions',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load investor positions",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -50,35 +54,35 @@ const AdminInvestorPositionsPage = () => {
       [fundId]: {
         shares: position.shares,
         current_value: position.current_value,
-        cost_basis: position.cost_basis
-      }
+        cost_basis: position.cost_basis,
+      },
     });
   };
 
   const handleSavePosition = async (fundId: string) => {
     if (!id || !editValues[fundId]) return;
-    
+
     try {
       const updates = editValues[fundId];
       const result = await updateInvestorPosition(id, fundId, updates);
-      
+
       if (!result.success) {
         throw new Error(result.error);
       }
-      
+
       toast({
-        title: 'Success',
-        description: 'Position updated successfully',
+        title: "Success",
+        description: "Position updated successfully",
       });
-      
+
       await fetchPositions();
       setEditingPosition(null);
       setEditValues({});
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update position',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to update position",
+        variant: "destructive",
       });
     }
   };
@@ -89,12 +93,12 @@ const AdminInvestorPositionsPage = () => {
   };
 
   const updateEditValue = (fundId: string, field: string, value: string) => {
-    setEditValues(prev => ({
+    setEditValues((prev) => ({
       ...prev,
       [fundId]: {
         ...prev[fundId],
-        [field]: parseFloat(value) || 0
-      }
+        [field]: parseFloat(value) || 0,
+      },
     }));
   };
 
@@ -129,25 +133,29 @@ const AdminInvestorPositionsPage = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Shares</p>
-                <p className="text-lg font-semibold">{positions.reduce((sum, pos) => sum + pos.shares, 0).toFixed(8)}</p>
+                <p className="text-lg font-semibold">
+                  {positions.reduce((sum, pos) => sum + pos.shares, 0).toFixed(8)}
+                </p>
               </div>
               <TrendingUp className="h-8 w-8 text-purple-600" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Active Positions</p>
-                <p className="text-lg font-semibold">{positions.filter(pos => pos.shares > 0).length}</p>
+                <p className="text-lg font-semibold">
+                  {positions.filter((pos) => pos.shares > 0).length}
+                </p>
               </div>
               <Percent className="h-8 w-8 text-green-600" />
             </div>
@@ -164,16 +172,9 @@ const AdminInvestorPositionsPage = () => {
                 <TrendingUp className="h-5 w-5" />
                 Fund Positions
               </CardTitle>
-              <CardDescription>
-                View and manage positions across different funds
-              </CardDescription>
+              <CardDescription>View and manage positions across different funds</CardDescription>
             </div>
-            {id && (
-              <FundAssetDropdown
-                investorId={id}
-                onFundAdded={fetchPositions}
-              />
-            )}
+            {id && <FundAssetDropdown investorId={id} onFundAdded={fetchPositions} />}
           </div>
         </CardHeader>
         <CardContent>
@@ -188,26 +189,29 @@ const AdminInvestorPositionsPage = () => {
                 <div key={position.fund_id} className="border rounded-lg p-4 space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-semibold text-lg">{position.fund?.name || 'Unknown Fund'}</h3>
+                      <h3 className="font-semibold text-lg">
+                        {position.fund?.name || "Unknown Fund"}
+                      </h3>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <Badge variant="outline">{position.fund?.code || 'N/A'}</Badge>
-                        <span>{position.fund?.asset || 'N/A'}</span>
+                        <Badge variant="outline">{position.fund?.code || "N/A"}</Badge>
+                        <span>{position.fund?.asset || "N/A"}</span>
                         <span>Class {position.fund_class}</span>
                       </div>
                     </div>
-                    
+
                     <div className="text-right">
                       <div className="text-lg font-semibold">
-                        {position.current_value?.toFixed(8) || '0.00000000'} {position.fund?.asset || 'N/A'}
+                        {position.current_value?.toFixed(8) || "0.00000000"}{" "}
+                        {position.fund?.asset || "N/A"}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {position.aum_percentage?.toFixed(2) || '0.00'}% of fund AUM
+                        {position.aum_percentage?.toFixed(2) || "0.00"}% of fund AUM
                       </div>
                     </div>
                   </div>
-                  
+
                   <Separator />
-                  
+
                   {editingPosition === position.fund_id ? (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
@@ -217,10 +221,12 @@ const AdminInvestorPositionsPage = () => {
                           type="number"
                           step="0.00000001"
                           value={editValues[position.fund_id]?.shares || 0}
-                          onChange={(e) => updateEditValue(position.fund_id, 'shares', e.target.value)}
+                          onChange={(e) =>
+                            updateEditValue(position.fund_id, "shares", e.target.value)
+                          }
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label htmlFor={`value-${position.fund_id}`}>Current Value</Label>
                         <Input
@@ -228,10 +234,12 @@ const AdminInvestorPositionsPage = () => {
                           type="number"
                           step="0.01"
                           value={editValues[position.fund_id]?.current_value || 0}
-                          onChange={(e) => updateEditValue(position.fund_id, 'current_value', e.target.value)}
+                          onChange={(e) =>
+                            updateEditValue(position.fund_id, "current_value", e.target.value)
+                          }
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label htmlFor={`cost-${position.fund_id}`}>Cost Basis</Label>
                         <Input
@@ -239,7 +247,9 @@ const AdminInvestorPositionsPage = () => {
                           type="number"
                           step="0.01"
                           value={editValues[position.fund_id]?.cost_basis || 0}
-                          onChange={(e) => updateEditValue(position.fund_id, 'cost_basis', e.target.value)}
+                          onChange={(e) =>
+                            updateEditValue(position.fund_id, "cost_basis", e.target.value)
+                          }
                         />
                       </div>
                     </div>
@@ -247,27 +257,37 @@ const AdminInvestorPositionsPage = () => {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
                         <span className="text-muted-foreground">Current Value:</span>
-                        <span className="ml-2 font-medium">{position.current_value?.toFixed(8) || '0'} {position.fund?.asset}</span>
+                        <span className="ml-2 font-medium">
+                          {position.current_value?.toFixed(8) || "0"} {position.fund?.asset}
+                        </span>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Cost Basis:</span>
-                        <span className="ml-2 font-medium">{position.cost_basis?.toFixed(8) || '0'} {position.fund?.asset}</span>
+                        <span className="ml-2 font-medium">
+                          {position.cost_basis?.toFixed(8) || "0"} {position.fund?.asset}
+                        </span>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Unrealized P&L:</span>
-                        <span className={`ml-2 font-medium ${position.unrealized_pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {position.unrealized_pnl >= 0 ? '+' : ''}{position.unrealized_pnl?.toFixed(8) || '0'} {position.fund?.asset}
+                        <span
+                          className={`ml-2 font-medium ${position.unrealized_pnl >= 0 ? "text-green-600" : "text-red-600"}`}
+                        >
+                          {position.unrealized_pnl >= 0 ? "+" : ""}
+                          {position.unrealized_pnl?.toFixed(8) || "0"} {position.fund?.asset}
                         </span>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Realized P&L:</span>
-                        <span className={`ml-2 font-medium ${position.realized_pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {position.realized_pnl >= 0 ? '+' : ''}{position.realized_pnl?.toFixed(8) || '0'} {position.fund?.asset}
+                        <span
+                          className={`ml-2 font-medium ${position.realized_pnl >= 0 ? "text-green-600" : "text-red-600"}`}
+                        >
+                          {position.realized_pnl >= 0 ? "+" : ""}
+                          {position.realized_pnl?.toFixed(8) || "0"} {position.fund?.asset}
                         </span>
                       </div>
                     </div>
                   )}
-                  
+
                   <div className="flex justify-end gap-2">
                     {editingPosition === position.fund_id ? (
                       <>

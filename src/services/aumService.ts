@@ -3,10 +3,10 @@
  * Handles fund AUM management and automated yield distribution
  */
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 // Note: transaction_type_v2 enum may not exist yet, using string literal union as fallback
-type TransactionType = 'DEPOSIT' | 'WITHDRAWAL' | 'FEE' | 'INTEREST';
+type TransactionType = "DEPOSIT" | "WITHDRAWAL" | "FEE" | "INTEREST";
 
 export interface FundAUM {
   id: string;
@@ -57,20 +57,20 @@ async function getPreviousDayAUM(fundId: string, currentDate: string): Promise<n
     const currentDateObj = new Date(currentDate);
     const previousDateObj = new Date(currentDateObj);
     previousDateObj.setDate(currentDateObj.getDate() - 1);
-    
-    const previousDate = previousDateObj.toISOString().split('T')[0];
+
+    const previousDate = previousDateObj.toISOString().split("T")[0];
 
     const { data, error } = await supabase
-      .from('fund_daily_aum')
-      .select('total_aum')
-      .eq('fund_id', fundId)
-      .eq('aum_date', previousDate)
+      .from("fund_daily_aum")
+      .select("total_aum")
+      .eq("fund_id", fundId)
+      .eq("aum_date", previousDate)
       .maybeSingle();
 
     if (error) throw error;
     return data?.total_aum || 0;
   } catch (error) {
-    console.error('Error fetching previous day AUM:', error);
+    console.error("Error fetching previous day AUM:", error);
     return 0;
   }
 }
@@ -81,10 +81,10 @@ async function getPreviousDayAUM(fundId: string, currentDate: string): Promise<n
 async function getDayTransactions(fundId: string, date: string): Promise<DailyTransactionsSummary> {
   try {
     const { data, error } = await supabase
-      .from('transactions_v2')
-      .select('amount, type')
-      .eq('fund_id', fundId)
-      .eq('tx_date', date);
+      .from("transactions_v2")
+      .select("amount, type")
+      .eq("fund_id", fundId)
+      .eq("tx_date", date);
 
     if (error) throw error;
 
@@ -93,9 +93,9 @@ async function getDayTransactions(fundId: string, date: string): Promise<DailyTr
 
     data?.forEach((transaction) => {
       const txType = transaction.type as TransactionType;
-      if (txType === 'DEPOSIT') {
+      if (txType === "DEPOSIT") {
         deposits += Number(transaction.amount);
-      } else if (txType === 'WITHDRAWAL') {
+      } else if (txType === "WITHDRAWAL") {
         withdrawals += Number(transaction.amount);
       }
     });
@@ -103,10 +103,10 @@ async function getDayTransactions(fundId: string, date: string): Promise<DailyTr
     return {
       deposits,
       withdrawals,
-      net_flow: deposits - withdrawals
+      net_flow: deposits - withdrawals,
     };
   } catch (error) {
-    console.error('Error fetching day transactions:', error);
+    console.error("Error fetching day transactions:", error);
     return { deposits: 0, withdrawals: 0, net_flow: 0 };
   }
 }
@@ -115,17 +115,22 @@ async function getDayTransactions(fundId: string, date: string): Promise<DailyTr
  * Calculate daily yield based on AUM changes after processing deposits/withdrawals
  * Formula: Daily Yield = (Today's AUM - Yesterday's AUM + Withdrawals - Deposits)
  */
-async function calculateDailyYield(fundId: string, currentAUM: number, date: string): Promise<YieldCalculationResult> {
+async function calculateDailyYield(
+  fundId: string,
+  currentAUM: number,
+  date: string
+): Promise<YieldCalculationResult> {
   try {
     // Get previous day's AUM
     const previousAUM = await getPreviousDayAUM(fundId, date);
-    
+
     // Get day's transactions
     const transactions = await getDayTransactions(fundId, date);
-    
+
     // Calculate yield: currentAUM - previousAUM + withdrawals - deposits
-    const calculatedYield = currentAUM - previousAUM + transactions.withdrawals - transactions.deposits;
-    
+    const calculatedYield =
+      currentAUM - previousAUM + transactions.withdrawals - transactions.deposits;
+
     // Calculate yield percentage
     const yieldPercentage = previousAUM > 0 ? (calculatedYield / previousAUM) * 100 : 0;
 
@@ -135,10 +140,10 @@ async function calculateDailyYield(fundId: string, currentAUM: number, date: str
       deposits: transactions.deposits,
       withdrawals: transactions.withdrawals,
       calculated_yield: calculatedYield,
-      yield_percentage: yieldPercentage
+      yield_percentage: yieldPercentage,
     };
   } catch (error) {
-    console.error('Error calculating daily yield:', error);
+    console.error("Error calculating daily yield:", error);
     throw error;
   }
 }
@@ -152,20 +157,20 @@ export async function setFundDailyAUM(
   aumDate?: string
 ): Promise<{ success: boolean; data?: any; error?: string }> {
   try {
-    const { data, error } = await supabase.rpc('set_fund_daily_aum', {
+    const { data, error } = await supabase.rpc("set_fund_daily_aum", {
       p_fund_id: fundId,
       p_aum_amount: aumAmount,
-      p_aum_date: aumDate || new Date().toISOString().split('T')[0]
+      p_aum_date: aumDate || new Date().toISOString().split("T")[0],
     });
 
     if (error) throw error;
 
     return { success: true, data: data as any };
   } catch (error) {
-    console.error('Error setting fund daily AUM:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Failed to set AUM'
+    console.error("Error setting fund daily AUM:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to set AUM",
     };
   }
 }
@@ -180,8 +185,9 @@ export async function getFundAUMHistory(
 ): Promise<FundAUM[]> {
   try {
     let query = supabase
-      .from('fund_daily_aum')
-      .select(`
+      .from("fund_daily_aum")
+      .select(
+        `
         *,
         fund:funds (
           code,
@@ -189,19 +195,20 @@ export async function getFundAUMHistory(
           asset,
           fund_class
         )
-      `)
-      .order('aum_date', { ascending: false });
+      `
+      )
+      .order("aum_date", { ascending: false });
 
     if (fundId) {
-      query = query.eq('fund_id', fundId);
+      query = query.eq("fund_id", fundId);
     }
 
     if (startDate) {
-      query = query.gte('aum_date', startDate);
+      query = query.gte("aum_date", startDate);
     }
 
     if (endDate) {
-      query = query.lte('aum_date', endDate);
+      query = query.lte("aum_date", endDate);
     }
 
     const { data, error } = await query;
@@ -209,7 +216,7 @@ export async function getFundAUMHistory(
     if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error('Error fetching fund AUM history:', error);
+    console.error("Error fetching fund AUM history:", error);
     return [];
   }
 }
@@ -223,20 +230,20 @@ export async function applyDailyYieldToFund(
   applicationDate?: string
 ): Promise<{ success: boolean; data?: YieldDistributionResult; error?: string }> {
   try {
-    const { data, error } = await supabase.rpc('apply_daily_yield_to_fund', {
+    const { data, error } = await supabase.rpc("apply_daily_yield_to_fund", {
       p_fund_id: fundId,
       p_daily_yield_percentage: yieldPercentage,
-      p_application_date: applicationDate || new Date().toISOString().split('T')[0]
+      p_application_date: applicationDate || new Date().toISOString().split("T")[0],
     });
 
     if (error) throw error;
 
     return { success: true, data: data as unknown as YieldDistributionResult };
   } catch (error) {
-    console.error('Error applying daily yield:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Failed to apply yield'
+    console.error("Error applying daily yield:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to apply yield",
     };
   }
 }
@@ -249,19 +256,19 @@ export async function updateInvestorAUMPercentages(
   totalAUM?: number
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await supabase.rpc('update_investor_aum_percentages', {
+    const { error } = await supabase.rpc("update_investor_aum_percentages", {
       p_fund_id: fundId,
-      p_total_aum: totalAUM
+      p_total_aum: totalAUM,
     });
 
     if (error) throw error;
 
     return { success: true };
   } catch (error) {
-    console.error('Error updating AUM percentages:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Failed to update percentages'
+    console.error("Error updating AUM percentages:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update percentages",
     };
   }
 }
@@ -272,8 +279,9 @@ export async function updateInvestorAUMPercentages(
 export async function getFundInvestorPositions(fundId: string) {
   try {
     const { data, error } = await supabase
-      .from('investor_positions')
-      .select(`
+      .from("investor_positions")
+      .select(
+        `
         *,
         investor:investors (
           name,
@@ -283,15 +291,16 @@ export async function getFundInvestorPositions(fundId: string) {
             last_name
           )
         )
-      `)
-      .eq('fund_id', fundId)
-      .gt('current_value', 0)
-      .order('current_value', { ascending: false });
+      `
+      )
+      .eq("fund_id", fundId)
+      .gt("current_value", 0)
+      .order("current_value", { ascending: false });
 
     if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error('Error fetching fund investor positions:', error);
+    console.error("Error fetching fund investor positions:", error);
     return [];
   }
 }
@@ -302,10 +311,10 @@ export async function getFundInvestorPositions(fundId: string) {
 export async function getAllFundsWithAUM() {
   try {
     const { data: funds, error: fundsError } = await supabase
-      .from('funds')
-      .select('*')
-      .eq('status', 'active')
-      .order('name');
+      .from("funds")
+      .select("*")
+      .eq("status", "active")
+      .order("name");
 
     if (fundsError) throw fundsError;
 
@@ -314,20 +323,20 @@ export async function getAllFundsWithAUM() {
       (funds || []).map(async (fund) => {
         // First try to get from fund_daily_aum table
         const { data: aumData } = await supabase
-          .from('fund_daily_aum')
-          .select('*')
-          .eq('fund_id', fund.id)
-          .order('aum_date', { ascending: false })
+          .from("fund_daily_aum")
+          .select("*")
+          .eq("fund_id", fund.id)
+          .order("aum_date", { ascending: false })
           .limit(1)
           .maybeSingle();
 
         // If no AUM data exists, calculate from investor positions
         if (!aumData) {
           const { data: positions } = await supabase
-            .from('investor_positions')
-            .select('current_value, investor_id')
-            .eq('fund_id', fund.id)
-            .gt('current_value', 0);
+            .from("investor_positions")
+            .select("current_value, investor_id")
+            .eq("fund_id", fund.id)
+            .gt("current_value", 0);
 
           const totalAUM = positions?.reduce((sum, pos) => sum + (pos.current_value || 0), 0) || 0;
           const investorCount = positions?.length || 0;
@@ -336,7 +345,7 @@ export async function getAllFundsWithAUM() {
             ...fund,
             latest_aum: totalAUM,
             latest_aum_date: null,
-            investor_count: investorCount
+            investor_count: investorCount,
           };
         }
 
@@ -344,14 +353,14 @@ export async function getAllFundsWithAUM() {
           ...fund,
           latest_aum: aumData.total_aum || 0,
           latest_aum_date: aumData.aum_date,
-          investor_count: aumData.investor_count || 0
+          investor_count: aumData.investor_count || 0,
         };
       })
     );
 
     return fundsWithAUM;
   } catch (error) {
-    console.error('Error fetching funds with AUM:', error);
+    console.error("Error fetching funds with AUM:", error);
     return [];
   }
 }
@@ -364,43 +373,43 @@ export async function processDailyAUMWithYield(
   fundId: string,
   newAUM: number,
   date?: string
-): Promise<{ 
-  success: boolean; 
-  yieldCalculation?: YieldCalculationResult; 
-  yieldDistribution?: YieldDistributionResult; 
-  error?: string; 
+): Promise<{
+  success: boolean;
+  yieldCalculation?: YieldCalculationResult;
+  yieldDistribution?: YieldDistributionResult;
+  error?: string;
 }> {
   try {
-    const aumDate = date || new Date().toISOString().split('T')[0];
+    const aumDate = date || new Date().toISOString().split("T")[0];
 
     // Step 1: Calculate automatic yield based on AUM changes
     const yieldCalculation = await calculateDailyYield(fundId, newAUM, aumDate);
-    
+
     // Step 2: Set the daily AUM
     const aumResult = await setFundDailyAUM(fundId, newAUM, aumDate);
-    
+
     if (!aumResult.success) {
-      throw new Error(aumResult.error || 'Failed to set daily AUM');
+      throw new Error(aumResult.error || "Failed to set daily AUM");
     }
 
     // Step 3: Apply yield distribution to investors if there's positive yield
     let yieldDistribution: YieldDistributionResult | undefined;
-    
+
     if (yieldCalculation.calculated_yield > 0 && yieldCalculation.yield_percentage > 0) {
       const yieldResult = await applyDailyYieldToFund(
-        fundId, 
-        yieldCalculation.yield_percentage, 
+        fundId,
+        yieldCalculation.yield_percentage,
         aumDate
       );
-      
+
       if (!yieldResult.success) {
-        throw new Error(`Yield distribution failed: ${yieldResult.error || 'Unknown error'}`);
+        throw new Error(`Yield distribution failed: ${yieldResult.error || "Unknown error"}`);
       }
-      
+
       if (yieldResult.data) {
         yieldDistribution = yieldResult.data;
       } else {
-        throw new Error('Yield distribution succeeded but returned no data');
+        throw new Error("Yield distribution succeeded but returned no data");
       }
     }
 
@@ -410,14 +419,13 @@ export async function processDailyAUMWithYield(
     return {
       success: true,
       yieldCalculation,
-      yieldDistribution
+      yieldDistribution,
     };
-
   } catch (error) {
-    console.error('Error processing daily AUM with yield:', error);
+    console.error("Error processing daily AUM with yield:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to process daily AUM'
+      error: error instanceof Error ? error.message : "Failed to process daily AUM",
     };
   }
 }
@@ -430,41 +438,40 @@ export async function previewDailyYieldCalculation(
   fundId: string,
   newAUM: number,
   date?: string
-): Promise<{ 
-  success: boolean; 
-  preview?: YieldCalculationResult & { fund_info: any }; 
-  error?: string; 
+): Promise<{
+  success: boolean;
+  preview?: YieldCalculationResult & { fund_info: any };
+  error?: string;
 }> {
   try {
-    const aumDate = date || new Date().toISOString().split('T')[0];
+    const aumDate = date || new Date().toISOString().split("T")[0];
 
     // Get fund information
     const { data: fund, error: fundError } = await supabase
-      .from('funds')
-      .select('code, name, asset, fund_class')
-      .eq('id', fundId)
+      .from("funds")
+      .select("code, name, asset, fund_class")
+      .eq("id", fundId)
       .maybeSingle();
 
-    if (!fund) throw new Error('Fund not found');
+    if (!fund) throw new Error("Fund not found");
 
     if (fundError) throw fundError;
 
     // Calculate yield without applying changes
     const yieldCalculation = await calculateDailyYield(fundId, newAUM, aumDate);
-    
+
     return {
       success: true,
       preview: {
         ...yieldCalculation,
-        fund_info: fund
-      }
+        fund_info: fund,
+      },
     };
-
   } catch (error) {
-    console.error('Error previewing daily yield calculation:', error);
+    console.error("Error previewing daily yield calculation:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to preview yield calculation'
+      error: error instanceof Error ? error.message : "Failed to preview yield calculation",
     };
   }
 }

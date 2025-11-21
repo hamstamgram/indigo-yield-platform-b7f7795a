@@ -28,9 +28,6 @@
         "recommendation": "Move to VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables"
       }
     ],
-    "missing_required_vars": [
-      "SENTRY_DSN",
-      "POSTHOG_API_KEY"
-    ]
+    "missing_required_vars": ["SENTRY_DSN", "POSTHOG_API_KEY"]
   }
 }

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -15,11 +14,11 @@ interface AssetSummaryProps {
 
 // Format helpers
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
     maximumFractionDigits: 0,
-    minimumFractionDigits: 0
+    minimumFractionDigits: 0,
   }).format(value);
 };
 
@@ -29,17 +28,18 @@ const formatPercent = (value: number) => {
 
 const formatCrypto = (value: number, symbol: string) => {
   // Format crypto values with appropriate decimals
-  const decimals = symbol.toLowerCase() === 'btc' ? 8 : 
-                  symbol.toLowerCase() === 'usdc' ? 2 : 4;
-                  
+  const decimals = symbol.toLowerCase() === "btc" ? 8 : symbol.toLowerCase() === "usdc" ? 2 : 4;
+
   // For large values like USDC, format with commas
   if (value > 10000) {
-    return new Intl.NumberFormat('en-US', {
-      maximumFractionDigits: decimals,
-      minimumFractionDigits: decimals
-    }).format(value) + ` ${symbol.toUpperCase()}`;
+    return (
+      new Intl.NumberFormat("en-US", {
+        maximumFractionDigits: decimals,
+        minimumFractionDigits: decimals,
+      }).format(value) + ` ${symbol.toUpperCase()}`
+    );
   }
-  
+
   return `${value.toFixed(decimals)} ${symbol.toUpperCase()}`;
 };
 
@@ -50,7 +50,7 @@ const AssetSummaryCard: React.FC<AssetSummaryProps> = ({
   totalBalance,
   usdValue,
   totalUsers,
-  avgYield
+  avgYield,
 }) => {
   return (
     <Card key={id} className="bg-gray-50 dark:bg-gray-800 border-0 h-full">
@@ -65,7 +65,7 @@ const AssetSummaryCard: React.FC<AssetSummaryProps> = ({
             <p className="text-sm text-gray-500">{symbol}</p>
           </div>
         </div>
-        
+
         {/* Balance information - fully stacked layout for clarity */}
         <div className="space-y-6">
           {/* Balance section */}
@@ -75,7 +75,7 @@ const AssetSummaryCard: React.FC<AssetSummaryProps> = ({
               {formatCrypto(totalBalance, symbol)}
             </p>
           </div>
-          
+
           {/* USD Value section */}
           <div>
             <p className="text-sm text-gray-500 mb-1">USD Value</p>
@@ -83,17 +83,15 @@ const AssetSummaryCard: React.FC<AssetSummaryProps> = ({
               {formatCurrency(usdValue)}
             </p>
           </div>
-          
+
           {/* Statistics in a grid */}
           <div className="grid grid-cols-2 gap-4 pt-2">
             {/* Users count */}
             <div>
               <p className="text-sm text-gray-500 mb-1">Users</p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                {totalUsers}
-              </p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-white">{totalUsers}</p>
             </div>
-            
+
             {/* Average yield */}
             <div>
               <p className="text-sm text-gray-500 mb-1">Avg Yield</p>

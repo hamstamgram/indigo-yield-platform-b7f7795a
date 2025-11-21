@@ -133,9 +133,7 @@ export function DepositsTable() {
                         "—"
                       )}
                     </TableCell>
-                    <TableCell>
-                      {format(new Date(deposit.created_at), "MMM d, yyyy")}
-                    </TableCell>
+                    <TableCell>{format(new Date(deposit.created_at), "MMM d, yyyy")}</TableCell>
                     <TableCell className="text-right">
                       {deposit.status === "pending" && (
                         <div className="flex justify-end gap-2">

@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Download, Trash2, FileText } from 'lucide-react';
-import { format } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client';
-import { Document } from '@/types/documents';
-import { useDocuments } from '@/hooks/useDocuments';
-import PDFViewer from '@/components/documents/PDFViewer';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { ArrowLeft, Download, Trash2, FileText } from "lucide-react";
+import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { Document } from "@/types/documents";
+import { useDocuments } from "@/hooks/useDocuments";
+import PDFViewer from "@/components/documents/PDFViewer";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const DocumentViewerPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,7 +23,9 @@ const DocumentViewerPage: React.FC = () => {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setCurrentUser(user);
     };
     getUser();
@@ -37,16 +39,16 @@ const DocumentViewerPage: React.FC = () => {
 
   const loadDocument = async () => {
     if (!id) return;
-    
+
     try {
       const { data, error } = await supabase
-        .from('documents')
-        .select('*')
-        .eq('id', id)
+        .from("documents")
+        .select("*")
+        .eq("id", id)
         .maybeSingle();
 
       if (!data) {
-        console.error('Document not found');
+        console.error("Document not found");
         setLoading(false);
         return;
       }
@@ -58,16 +60,16 @@ const DocumentViewerPage: React.FC = () => {
       const url = await getDocumentUrl(data.storage_path);
       setDocumentUrl(url);
     } catch (error) {
-      console.error('Error loading document:', error);
+      console.error("Error loading document:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async () => {
-    if (document && window.confirm('Are you sure you want to delete this document?')) {
+    if (document && window.confirm("Are you sure you want to delete this document?")) {
       await deleteDocument(document.id, document.file_path);
-      navigate('/documents');
+      navigate("/documents");
     }
   };
 
@@ -97,7 +99,7 @@ const DocumentViewerPage: React.FC = () => {
             <p className="text-muted-foreground text-center mb-4">
               This document may have been deleted or you don't have permission to view it.
             </p>
-            <Button onClick={() => navigate('/documents')}>
+            <Button onClick={() => navigate("/documents")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Documents
             </Button>
@@ -108,14 +110,14 @@ const DocumentViewerPage: React.FC = () => {
   }
 
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <Button variant="ghost" onClick={() => navigate('/documents')} className="gap-2">
+      <Button variant="ghost" onClick={() => navigate("/documents")} className="gap-2">
         <ArrowLeft className="h-4 w-4" />
         Back to Documents
       </Button>
@@ -130,14 +132,18 @@ const DocumentViewerPage: React.FC = () => {
               )}
               <div className="flex items-center gap-2 mt-3">
                 <Badge variant="outline">{document.category}</Badge>
-                <Badge variant={document.status === 'available' ? 'default' : 'secondary'}>
+                <Badge variant={document.status === "available" ? "default" : "secondary"}>
                   {document.status}
                 </Badge>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => downloadDocument(document)} className="gap-2">
+              <Button
+                variant="outline"
+                onClick={() => downloadDocument(document)}
+                className="gap-2"
+              >
                 <Download className="h-4 w-4" />
                 Download
               </Button>
@@ -162,7 +168,7 @@ const DocumentViewerPage: React.FC = () => {
             </div>
             <div>
               <p className="text-muted-foreground">Uploaded</p>
-              <p className="font-medium">{format(new Date(document.created_at), 'MMM d, yyyy')}</p>
+              <p className="font-medium">{format(new Date(document.created_at), "MMM d, yyyy")}</p>
             </div>
             <div>
               <p className="text-muted-foreground">Downloads</p>
@@ -172,11 +178,8 @@ const DocumentViewerPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {document.mime_type === 'application/pdf' ? (
-        <PDFViewer
-          url={documentUrl}
-          onDownload={() => downloadDocument(document)}
-        />
+      {document.mime_type === "application/pdf" ? (
+        <PDFViewer url={documentUrl} onDownload={() => downloadDocument(document)} />
       ) : (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">

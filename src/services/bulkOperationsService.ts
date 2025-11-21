@@ -1,11 +1,11 @@
 /**
  * Bulk Operations Service - Handles CSV import/export and bulk data operations
  */
-import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
-import * as XLSX from 'xlsx';
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+import * as XLSX from "xlsx";
 
-type AssetCode = Database['public']['Enums']['asset_code'];
+type AssetCode = Database["public"]["Enums"]["asset_code"];
 
 export interface PositionImportRow {
   investor_email: string;
@@ -29,49 +29,53 @@ export interface ImportResult {
 export async function exportInvestorPositions(): Promise<Blob> {
   try {
     const { data, error } = await supabase
-      .from('positions')
-      .select(`
+      .from("positions")
+      .select(
+        `
         user_id,
         asset_code,
         current_balance,
         principal,
         total_earned,
         updated_at
-      `)
-      .order('updated_at', { ascending: false });
+      `
+      )
+      .order("updated_at", { ascending: false });
 
     if (error) throw error;
 
     // Get user emails separately to avoid relation issues
-    const userIds = [...new Set(data?.map(p => p.user_id) || [])];
+    const userIds = [...new Set(data?.map((p) => p.user_id) || [])];
     const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, email, first_name, last_name')
-      .in('id', userIds);
+      .from("profiles")
+      .select("id, email, first_name, last_name")
+      .in("id", userIds);
 
-    const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+    const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
 
-    const csvData = data?.map(position => {
-      const profile = profileMap.get(position.user_id);
-      return {
-        investor_email: profile?.email || 'Unknown',
-        investor_name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Unknown',
-        asset_symbol: position.asset_code,
-        current_balance: position.current_balance,
-        principal: position.principal,
-        total_earned: position.total_earned,
-        last_updated: position.updated_at
-      };
-    }) || [];
+    const csvData =
+      data?.map((position) => {
+        const profile = profileMap.get(position.user_id);
+        return {
+          investor_email: profile?.email || "Unknown",
+          investor_name:
+            `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() || "Unknown",
+          asset_symbol: position.asset_code,
+          current_balance: position.current_balance,
+          principal: position.principal,
+          total_earned: position.total_earned,
+          last_updated: position.updated_at,
+        };
+      }) || [];
 
     const ws = XLSX.utils.json_to_sheet(csvData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Positions');
-    
-    const buffer = XLSX.write(wb, { type: 'array', bookType: 'csv' });
-    return new Blob([buffer], { type: 'text/csv' });
+    XLSX.utils.book_append_sheet(wb, ws, "Positions");
+
+    const buffer = XLSX.write(wb, { type: "array", bookType: "csv" });
+    return new Blob([buffer], { type: "text/csv" });
   } catch (error) {
-    console.error('Error exporting positions:', error);
+    console.error("Error exporting positions:", error);
     throw error;
   }
 }
@@ -94,7 +98,7 @@ export async function importPositionsFromCSV(
       processed: 0,
       failed: 0,
       errors: [],
-      data: []
+      data: [],
     };
 
     for (const row of rawData) {
@@ -108,9 +112,9 @@ export async function importPositionsFromCSV(
 
         // Get investor ID from email
         const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('email', row.investor_email)
+          .from("profiles")
+          .select("id")
+          .eq("email", row.investor_email)
           .maybeSingle();
 
         if (profileError || !profile) {
@@ -121,9 +125,9 @@ export async function importPositionsFromCSV(
 
         // Validate asset exists
         const { data: asset, error: assetError } = await supabase
-          .from('assets')
-          .select('symbol')
-          .eq('symbol', row.asset_symbol)
+          .from("assets")
+          .select("symbol")
+          .eq("symbol", row.asset_symbol)
           .maybeSingle();
 
         if (assetError || !asset) {
@@ -138,24 +142,23 @@ export async function importPositionsFromCSV(
           asset_code: row.asset_symbol as AssetCode,
           current_balance: parseFloat(row.balance),
           principal: row.principal ? parseFloat(row.principal) : parseFloat(row.balance),
-          total_earned: 0
+          total_earned: 0,
         };
 
-        const { error: upsertError } = await supabase
-          .from('positions')
-          .upsert(positionData, { 
-            onConflict: 'user_id,asset_code',
-            ignoreDuplicates: !overwriteExisting 
-          });
+        const { error: upsertError } = await supabase.from("positions").upsert(positionData, {
+          onConflict: "user_id,asset_code",
+          ignoreDuplicates: !overwriteExisting,
+        });
 
         if (upsertError) {
-          result.errors.push(`Failed to update ${row.investor_email} ${row.asset_symbol}: ${upsertError.message}`);
+          result.errors.push(
+            `Failed to update ${row.investor_email} ${row.asset_symbol}: ${upsertError.message}`
+          );
           result.failed++;
         } else {
           result.processed++;
           result.data?.push(positionData);
         }
-
       } catch (rowError: any) {
         result.errors.push(`Row processing error: ${rowError.message}`);
         result.failed++;
@@ -164,14 +167,13 @@ export async function importPositionsFromCSV(
 
     result.success = result.failed === 0;
     return result;
-
   } catch (error: any) {
-    console.error('Import error:', error);
+    console.error("Import error:", error);
     return {
       success: false,
       processed: 0,
       failed: 0,
-      errors: [error.message || 'Unknown import error']
+      errors: [error.message || "Unknown import error"],
     };
   }
 }
@@ -191,21 +193,23 @@ export async function bulkBalanceAdjustment(
     success: true,
     processed: 0,
     failed: 0,
-    errors: []
+    errors: [],
   };
 
   try {
     for (const adjustment of adjustments) {
       // Get current balance
       const { data: position, error: fetchError } = await supabase
-        .from('positions')
-        .select('current_balance')
-        .eq('user_id', adjustment.investor_id)
-        .eq('asset_code', adjustment.asset_code as AssetCode)
+        .from("positions")
+        .select("current_balance")
+        .eq("user_id", adjustment.investor_id)
+        .eq("asset_code", adjustment.asset_code as AssetCode)
         .maybeSingle();
 
       if (fetchError || !position) {
-        result.errors.push(`Position not found for adjustment: ${adjustment.investor_id} ${adjustment.asset_code}`);
+        result.errors.push(
+          `Position not found for adjustment: ${adjustment.investor_id} ${adjustment.asset_code}`
+        );
         result.failed++;
         continue;
       }
@@ -213,17 +217,19 @@ export async function bulkBalanceAdjustment(
       const newBalance = position.current_balance + adjustment.adjustment_amount;
 
       if (newBalance < 0) {
-        result.errors.push(`Adjustment would result in negative balance: ${adjustment.investor_id} ${adjustment.asset_code}`);
+        result.errors.push(
+          `Adjustment would result in negative balance: ${adjustment.investor_id} ${adjustment.asset_code}`
+        );
         result.failed++;
         continue;
       }
 
       // Update balance
       const { error: updateError } = await supabase
-        .from('positions')
+        .from("positions")
         .update({ current_balance: newBalance })
-        .eq('user_id', adjustment.investor_id)
-        .eq('asset_code', adjustment.asset_code as AssetCode);
+        .eq("user_id", adjustment.investor_id)
+        .eq("asset_code", adjustment.asset_code as AssetCode);
 
       if (updateError) {
         result.errors.push(`Failed to update balance: ${updateError.message}`);
@@ -232,18 +238,16 @@ export async function bulkBalanceAdjustment(
       }
 
       // Log the adjustment
-      const { error: auditError } = await supabase
-        .from('balance_adjustments')
-        .insert({
-          user_id: adjustment.investor_id,
-          amount: adjustment.adjustment_amount,
-          reason: adjustment.reason,
-          currency: adjustment.asset_code,
-          created_by: (await supabase.auth.getUser()).data.user?.id || ''
-        });
+      const { error: auditError } = await supabase.from("balance_adjustments").insert({
+        user_id: adjustment.investor_id,
+        amount: adjustment.adjustment_amount,
+        reason: adjustment.reason,
+        currency: adjustment.asset_code,
+        created_by: (await supabase.auth.getUser()).data.user?.id || "",
+      });
 
       if (auditError) {
-        console.warn('Failed to log adjustment:', auditError);
+        console.warn("Failed to log adjustment:", auditError);
       }
 
       result.processed++;
@@ -251,9 +255,8 @@ export async function bulkBalanceAdjustment(
 
     result.success = result.failed === 0;
     return result;
-
   } catch (error: any) {
-    result.errors.push(error.message || 'Bulk adjustment failed');
+    result.errors.push(error.message || "Bulk adjustment failed");
     result.success = false;
     return result;
   }
@@ -265,25 +268,25 @@ export async function bulkBalanceAdjustment(
 export function generateSampleCSV(): Blob {
   const sampleData = [
     {
-      investor_email: 'investor@example.com',
-      asset_symbol: 'BTC',
+      investor_email: "investor@example.com",
+      asset_symbol: "BTC",
       balance: 1.5,
       principal: 1.0,
-      notes: 'Initial deposit'
+      notes: "Initial deposit",
     },
     {
-      investor_email: 'investor@example.com',
-      asset_symbol: 'ETH',
+      investor_email: "investor@example.com",
+      asset_symbol: "ETH",
       balance: 10.0,
       principal: 8.5,
-      notes: 'Second investment'
-    }
+      notes: "Second investment",
+    },
   ];
 
   const ws = XLSX.utils.json_to_sheet(sampleData);
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Sample');
-  
-  const buffer = XLSX.write(wb, { type: 'array', bookType: 'csv' });
-  return new Blob([buffer], { type: 'text/csv' });
+  XLSX.utils.book_append_sheet(wb, ws, "Sample");
+
+  const buffer = XLSX.write(wb, { type: "array", bookType: "csv" });
+  return new Blob([buffer], { type: "text/csv" });
 }

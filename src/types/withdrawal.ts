@@ -1,4 +1,10 @@
-export type WithdrawalStatus = 'pending' | 'approved' | 'processing' | 'completed' | 'rejected' | 'cancelled';
+export type WithdrawalStatus =
+  | "pending"
+  | "approved"
+  | "processing"
+  | "completed"
+  | "rejected"
+  | "cancelled";
 
 export interface Withdrawal {
   id: string;
@@ -29,7 +35,7 @@ export interface Withdrawal {
 
 export interface WithdrawalFilters {
   search?: string;
-  status?: WithdrawalStatus | 'all';
+  status?: WithdrawalStatus | "all";
   fund_id?: string;
 }
 

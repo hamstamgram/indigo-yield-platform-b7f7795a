@@ -170,11 +170,7 @@ export const feeService = {
   },
 
   // Get investor period summary (MTD, QTD, YTD, ITD)
-  async getInvestorPeriodSummary(
-    investorId: string,
-    assetCode: string,
-    asOfDate?: string
-  ) {
+  async getInvestorPeriodSummary(investorId: string, assetCode: string, asOfDate?: string) {
     try {
       const { data, error } = await supabase.rpc("get_investor_period_summary", {
         p_investor_id: investorId,
@@ -231,10 +227,7 @@ export const feeService = {
       if (error) throw error;
 
       return (
-        data?.reduce(
-          (sum, fee) => sum + parseFloat(fee.fee_amount?.toString() || "0"),
-          0
-        ) || 0
+        data?.reduce((sum, fee) => sum + parseFloat(fee.fee_amount?.toString() || "0"), 0) || 0
       );
     } catch (error) {
       console.error("Error fetching total fees collected:", error);
@@ -247,11 +240,13 @@ export const feeService = {
   async getFeeCalculations(filters?: FeeFilters): Promise<FeeCalculation[]> {
     let query = supabase
       .from("fee_calculations")
-      .select(`
+      .select(
+        `
         *,
         investor:investors!inner(id, name),
         fund:funds!inner(id, name, code)
-      `)
+      `
+      )
       .order("calculation_date", { ascending: false });
 
     if (filters?.status) {
@@ -299,10 +294,12 @@ export const feeService = {
   async getFundFeeHistory(): Promise<FundFeeStructure[]> {
     const { data, error } = await supabase
       .from("fund_fee_history")
-      .select(`
+      .select(
+        `
         *,
         fund:funds!inner(id, name, code)
-      `)
+      `
+      )
       .order("effective_from", { ascending: false });
 
     if (error) throw error;
@@ -331,9 +328,7 @@ export const feeService = {
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
       .toISOString()
       .split("T")[0];
-    const firstDayOfYear = new Date(now.getFullYear(), 0, 1)
-      .toISOString()
-      .split("T")[0];
+    const firstDayOfYear = new Date(now.getFullYear(), 0, 1).toISOString().split("T")[0];
 
     // Get this month's fees
     const { data: monthFees } = await supabase
@@ -342,10 +337,7 @@ export const feeService = {
       .gte("calculation_date", firstDayOfMonth)
       .eq("status", "posted");
 
-    const totalFeesThisMonth = (monthFees || []).reduce(
-      (sum, f) => sum + Number(f.fee_amount),
-      0
-    );
+    const totalFeesThisMonth = (monthFees || []).reduce((sum, f) => sum + Number(f.fee_amount), 0);
 
     // Get this year's fees
     const { data: yearFees } = await supabase
@@ -354,10 +346,7 @@ export const feeService = {
       .gte("calculation_date", firstDayOfYear)
       .eq("status", "posted");
 
-    const totalFeesThisYear = (yearFees || []).reduce(
-      (sum, f) => sum + Number(f.fee_amount),
-      0
-    );
+    const totalFeesThisYear = (yearFees || []).reduce((sum, f) => sum + Number(f.fee_amount), 0);
 
     // Get pending calculations
     const { count: pendingCount } = await supabase
@@ -449,11 +438,7 @@ export const feeService = {
     return data;
   },
 
-  async updateFundFees(
-    fundId: string,
-    mgmtFeeBps: number,
-    perfFeeBps: number
-  ): Promise<void> {
+  async updateFundFees(fundId: string, mgmtFeeBps: number, perfFeeBps: number): Promise<void> {
     const { error } = await supabase
       .from("funds")
       .update({

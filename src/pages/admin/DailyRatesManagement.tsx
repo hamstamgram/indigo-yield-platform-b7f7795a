@@ -1,16 +1,23 @@
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
-import { TrendingUp, TrendingDown, Save, Send, AlertCircle, Info } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { format } from 'date-fns';
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { TrendingUp, TrendingDown, Save, Send, AlertCircle, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { format } from "date-fns";
 
 interface DailyRate {
   id?: string;
@@ -28,52 +35,52 @@ interface DailyRate {
 export default function DailyRatesManagement() {
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split('T')[0] // YYYY-MM-DD format
+    new Date().toISOString().split("T")[0] // YYYY-MM-DD format
   );
   const [editingRates, setEditingRates] = useState<DailyRate>({
     rate_date: selectedDate,
-    btc_rate: '0',
-    eth_rate: '0',
-    sol_rate: '0',
-    usdt_rate: '1.00', // Stablecoins default to 1
-    usdc_rate: '1.00',
-    eurc_rate: '1.00',
-    notes: '',
+    btc_rate: "0",
+    eth_rate: "0",
+    sol_rate: "0",
+    usdt_rate: "1.00", // Stablecoins default to 1
+    usdc_rate: "1.00",
+    eurc_rate: "1.00",
+    notes: "",
   });
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const assets = [
-    { code: 'BTC', name: 'Bitcoin', color: 'orange' },
-    { code: 'ETH', name: 'Ethereum', color: 'blue' },
-    { code: 'SOL', name: 'Solana', color: 'purple' },
-    { code: 'USDT', name: 'Tether', color: 'green', stablecoin: true },
-    { code: 'USDC', name: 'USD Coin', color: 'blue', stablecoin: true },
-    { code: 'EURC', name: 'Euro Coin', color: 'blue', stablecoin: true },
+    { code: "BTC", name: "Bitcoin", color: "orange" },
+    { code: "ETH", name: "Ethereum", color: "blue" },
+    { code: "SOL", name: "Solana", color: "purple" },
+    { code: "USDT", name: "Tether", color: "green", stablecoin: true },
+    { code: "USDC", name: "USD Coin", color: "blue", stablecoin: true },
+    { code: "EURC", name: "Euro Coin", color: "blue", stablecoin: true },
   ];
 
   // Fetch existing rate for selected date
   const { data: existingRate, isLoading } = useQuery({
-    queryKey: ['daily-rate', selectedDate],
+    queryKey: ["daily-rate", selectedDate],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('daily_rates' as any)
-        .select('*')
-        .eq('rate_date', selectedDate)
+        .from("daily_rates" as any)
+        .select("*")
+        .eq("rate_date", selectedDate)
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code !== "PGRST116") throw error;
       return data as any;
     },
   });
 
   // Fetch last 7 days of rates for history
   const { data: recentRates } = useQuery({
-    queryKey: ['recent-daily-rates'],
+    queryKey: ["recent-daily-rates"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('daily_rates' as any)
-        .select('*')
-        .order('rate_date', { ascending: false })
+        .from("daily_rates" as any)
+        .select("*")
+        .order("rate_date", { ascending: false })
         .limit(7);
 
       if (error) throw error;
@@ -87,25 +94,25 @@ export default function DailyRatesManagement() {
       setEditingRates({
         id: existingRate.id,
         rate_date: existingRate.rate_date,
-        btc_rate: existingRate.btc_rate?.toString() || '0',
-        eth_rate: existingRate.eth_rate?.toString() || '0',
-        sol_rate: existingRate.sol_rate?.toString() || '0',
-        usdt_rate: existingRate.usdt_rate?.toString() || '1.00',
-        usdc_rate: existingRate.usdc_rate?.toString() || '1.00',
-        eurc_rate: existingRate.eurc_rate?.toString() || '1.00',
-        notes: existingRate.notes || '',
+        btc_rate: existingRate.btc_rate?.toString() || "0",
+        eth_rate: existingRate.eth_rate?.toString() || "0",
+        sol_rate: existingRate.sol_rate?.toString() || "0",
+        usdt_rate: existingRate.usdt_rate?.toString() || "1.00",
+        usdc_rate: existingRate.usdc_rate?.toString() || "1.00",
+        eurc_rate: existingRate.eurc_rate?.toString() || "1.00",
+        notes: existingRate.notes || "",
       });
       setHasUnsavedChanges(false);
     } else {
       setEditingRates({
         rate_date: selectedDate,
-        btc_rate: '0',
-        eth_rate: '0',
-        sol_rate: '0',
-        usdt_rate: '1.00',
-        usdc_rate: '1.00',
-        eurc_rate: '1.00',
-        notes: '',
+        btc_rate: "0",
+        eth_rate: "0",
+        sol_rate: "0",
+        usdt_rate: "1.00",
+        usdc_rate: "1.00",
+        eurc_rate: "1.00",
+        notes: "",
       });
       setHasUnsavedChanges(false);
     }
@@ -113,20 +120,22 @@ export default function DailyRatesManagement() {
 
   // Update date when selectedDate changes
   useEffect(() => {
-    setEditingRates(prev => ({ ...prev, rate_date: selectedDate }));
+    setEditingRates((prev) => ({ ...prev, rate_date: selectedDate }));
   }, [selectedDate]);
 
   // Handle field changes
   const handleRateChange = (field: keyof DailyRate, value: string) => {
-    setEditingRates(prev => ({ ...prev, [field]: value }));
+    setEditingRates((prev) => ({ ...prev, [field]: value }));
     setHasUnsavedChanges(true);
   };
 
   // Save mutation
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No authenticated user');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user");
 
       const rateData = {
         rate_date: editingRates.rate_date,
@@ -141,34 +150,34 @@ export default function DailyRatesManagement() {
         updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
-        .from('daily_rates' as any)
-        .upsert(rateData, {
-          onConflict: 'rate_date',
-        });
+      const { error } = await supabase.from("daily_rates" as any).upsert(rateData, {
+        onConflict: "rate_date",
+      });
 
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Daily rates saved successfully');
+      toast.success("Daily rates saved successfully");
       setHasUnsavedChanges(false);
-      queryClient.invalidateQueries({ queryKey: ['daily-rate'] });
-      queryClient.invalidateQueries({ queryKey: ['recent-daily-rates'] });
+      queryClient.invalidateQueries({ queryKey: ["daily-rate"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-daily-rates"] });
     },
     onError: (error: any) => {
-      console.error('Error saving daily rates:', error);
-      toast.error(error.message || 'Failed to save daily rates');
+      console.error("Error saving daily rates:", error);
+      toast.error(error.message || "Failed to save daily rates");
     },
   });
 
   // Send notification mutation
   const sendNotificationMutation = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No authenticated user');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user");
 
       // Call the database function to send notifications
-      const { data, error } = await supabase.rpc('send_daily_rate_notifications' as any, {
+      const { data, error } = await supabase.rpc("send_daily_rate_notifications" as any, {
         p_rate_date: editingRates.rate_date,
         p_btc_rate: parseFloat(editingRates.btc_rate),
         p_eth_rate: parseFloat(editingRates.eth_rate),
@@ -188,8 +197,8 @@ export default function DailyRatesManagement() {
       toast.success(`Daily rates sent to ${count} investors via notification`);
     },
     onError: (error: any) => {
-      console.error('Error sending notification:', error);
-      toast.error(error.message || 'Failed to send notification');
+      console.error("Error sending notification:", error);
+      toast.error(error.message || "Failed to send notification");
     },
   });
 
@@ -223,8 +232,9 @@ export default function DailyRatesManagement() {
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Enter today's rates for all funds. Click "Save" to store, then "Send Notification" to alert all investors.
-          Rates are sent daily via platform notifications and iOS push notifications.
+          Enter today's rates for all funds. Click "Save" to store, then "Send Notification" to
+          alert all investors. Rates are sent daily via platform notifications and iOS push
+          notifications.
         </AlertDescription>
       </Alert>
 
@@ -243,7 +253,7 @@ export default function DailyRatesManagement() {
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                max={new Date().toISOString().split('T')[0]}
+                max={new Date().toISOString().split("T")[0]}
                 className="mt-1"
               />
             </div>
@@ -263,9 +273,9 @@ export default function DailyRatesManagement() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Daily Rates - {format(new Date(selectedDate), 'MMMM dd, yyyy')}</CardTitle>
+              <CardTitle>Daily Rates - {format(new Date(selectedDate), "MMMM dd, yyyy")}</CardTitle>
               <CardDescription>
-                {hasUnsavedChanges ? 'Unsaved changes' : 'All changes saved'}
+                {hasUnsavedChanges ? "Unsaved changes" : "All changes saved"}
               </CardDescription>
             </div>
             <div className="flex gap-2">
@@ -274,7 +284,7 @@ export default function DailyRatesManagement() {
                 disabled={!hasUnsavedChanges || saveMutation.isPending}
               >
                 <Save className="h-4 w-4 mr-2" />
-                {saveMutation.isPending ? 'Saving...' : 'Save Rates'}
+                {saveMutation.isPending ? "Saving..." : "Save Rates"}
               </Button>
               <Button
                 onClick={() => sendNotificationMutation.mutate()}
@@ -282,7 +292,7 @@ export default function DailyRatesManagement() {
                 variant="default"
               >
                 <Send className="h-4 w-4 mr-2" />
-                {sendNotificationMutation.isPending ? 'Sending...' : 'Send Notification'}
+                {sendNotificationMutation.isPending ? "Sending..." : "Send Notification"}
               </Button>
             </div>
           </div>
@@ -328,19 +338,24 @@ export default function DailyRatesManagement() {
                       </TableCell>
                       <TableCell>
                         {change !== null && (
-                          <div className={`flex items-center gap-1 ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          <div
+                            className={`flex items-center gap-1 ${change >= 0 ? "text-green-600" : "text-red-600"}`}
+                          >
                             {change >= 0 ? (
                               <TrendingUp className="h-4 w-4" />
                             ) : (
                               <TrendingDown className="h-4 w-4" />
                             )}
-                            <span className="font-medium">{change >= 0 ? '+' : ''}{change.toFixed(2)}%</span>
+                            <span className="font-medium">
+                              {change >= 0 ? "+" : ""}
+                              {change.toFixed(2)}%
+                            </span>
                           </div>
                         )}
                       </TableCell>
                       <TableCell>
                         <span className="text-muted-foreground">
-                          {previousRate ? `$${parseFloat(previousRate).toFixed(2)}` : 'N/A'}
+                          {previousRate ? `$${parseFloat(previousRate).toFixed(2)}` : "N/A"}
                         </span>
                       </TableCell>
                     </TableRow>
@@ -354,8 +369,8 @@ export default function DailyRatesManagement() {
               <Label htmlFor="notes">Notes (Optional)</Label>
               <Input
                 id="notes"
-                value={editingRates.notes || ''}
-                onChange={(e) => handleRateChange('notes', e.target.value)}
+                value={editingRates.notes || ""}
+                onChange={(e) => handleRateChange("notes", e.target.value)}
                 placeholder="Add any notes about today's rates..."
                 className="mt-1"
               />
@@ -392,14 +407,26 @@ export default function DailyRatesManagement() {
                     recentRates.map((rate: any) => (
                       <TableRow key={rate.id}>
                         <TableCell className="font-medium">
-                          {format(new Date(rate.rate_date), 'MMM dd, yyyy')}
+                          {format(new Date(rate.rate_date), "MMM dd, yyyy")}
                         </TableCell>
-                        <TableCell className="text-right">${parseFloat(rate.btc_rate).toFixed(2)}</TableCell>
-                        <TableCell className="text-right">${parseFloat(rate.eth_rate).toFixed(2)}</TableCell>
-                        <TableCell className="text-right">${parseFloat(rate.sol_rate).toFixed(2)}</TableCell>
-                        <TableCell className="text-right">${parseFloat(rate.usdt_rate).toFixed(2)}</TableCell>
-                        <TableCell className="text-right">${parseFloat(rate.usdc_rate).toFixed(2)}</TableCell>
-                        <TableCell className="text-right">${parseFloat(rate.eurc_rate).toFixed(2)}</TableCell>
+                        <TableCell className="text-right">
+                          ${parseFloat(rate.btc_rate).toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          ${parseFloat(rate.eth_rate).toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          ${parseFloat(rate.sol_rate).toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          ${parseFloat(rate.usdt_rate).toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          ${parseFloat(rate.usdc_rate).toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          ${parseFloat(rate.eurc_rate).toFixed(2)}
+                        </TableCell>
                       </TableRow>
                     ))
                   ) : (
@@ -421,7 +448,8 @@ export default function DailyRatesManagement() {
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            You have unsaved changes. Click "Save Rates" to persist your data before sending notifications.
+            You have unsaved changes. Click "Save Rates" to persist your data before sending
+            notifications.
           </AlertDescription>
         </Alert>
       )}

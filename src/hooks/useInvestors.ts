@@ -10,7 +10,7 @@ export const useInvestors = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(false);
   const { toast } = useToast();
-  
+
   // Set up search functionality
   const { searchTerm, setSearchTerm, filteredInvestors } = useInvestorSearch(investors);
 
@@ -19,22 +19,21 @@ export const useInvestors = () => {
     try {
       setLoading(true);
       console.log("Fetching investor data...");
-      
+
       // Fetch assets - use mock data for now
       const mockAssets = [
-        { id: 1, symbol: 'USDC', name: 'USD Coin', is_active: true },
-        { id: 2, symbol: 'ETH', name: 'Ethereum', is_active: true }
+        { id: 1, symbol: "USDC", name: "USD Coin", is_active: true },
+        { id: 2, symbol: "ETH", name: "Ethereum", is_active: true },
       ];
       setAssets(mockAssets);
-      
+
       // Fetch investors with summary using adminServiceV2
       const investorsWithSummary = await adminServiceV2.getAllInvestorsWithSummary();
-      
+
       setInvestors(investorsWithSummary);
       console.log("Loaded investors with consolidated service:", investorsWithSummary.length);
-      
     } catch (error) {
-      console.error('Error in main investor data fetch:', error);
+      console.error("Error in main investor data fetch:", error);
       toast({
         title: "Error",
         description: "Failed to load investor data",
@@ -46,18 +45,18 @@ export const useInvestors = () => {
       setLoading(false);
     }
   }, [toast]);
-  
+
   // Initial data fetch
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-  
+
   // Provide a refetch method to refresh data
   const refetch = useCallback(() => {
     console.log("Refetching investor data...");
     fetchData();
   }, [fetchData]);
-  
+
   return {
     investors,
     filteredInvestors,
@@ -66,6 +65,6 @@ export const useInvestors = () => {
     loading,
     assets,
     isAdmin,
-    refetch
+    refetch,
   };
 };

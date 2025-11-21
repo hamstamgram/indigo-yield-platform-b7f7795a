@@ -9,6 +9,12 @@ import { AdminRoute } from "../../AdminRoute";
 
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const PortfolioDashboard = lazy(() => import("@/pages/admin/PortfolioDashboard"));
+const AdminTransactionsPage = lazy(
+  () => import("@/pages/admin/transactions/AdminTransactionsPage")
+);
+const MonthlyReportsPage = lazy(
+  () => import("@/pages/admin/reports/MonthlyReportsPage")
+);
 
 export function CoreAdminRoutes() {
   return (
@@ -26,6 +32,22 @@ export function CoreAdminRoutes() {
         element={
           <AdminRoute>
             <PortfolioDashboard />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/transactions"
+        element={
+          <AdminRoute>
+            <AdminTransactionsPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/reports/monthly"
+        element={
+          <AdminRoute>
+            <MonthlyReportsPage />
           </AdminRoute>
         }
       />

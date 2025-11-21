@@ -2,10 +2,10 @@
  * Fund Service - Enhanced fund management with investor allocation
  */
 
-import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
-type FundStatus = Database['public']['Enums']['fund_status'];
+type FundStatus = Database["public"]["Enums"]["fund_status"];
 
 export interface Fund {
   id: string;
@@ -42,15 +42,15 @@ export interface InvestorPosition {
 export async function getAllFunds(): Promise<Fund[]> {
   try {
     const { data, error } = await supabase
-      .from('funds')
-      .select('*')
-      .eq('status', 'active')
-      .order('name');
+      .from("funds")
+      .select("*")
+      .eq("status", "active")
+      .order("name");
 
     if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error('Error fetching funds:', error);
+    console.error("Error fetching funds:", error);
     return [];
   }
 }
@@ -60,16 +60,12 @@ export async function getAllFunds(): Promise<Fund[]> {
  */
 export async function getFundById(fundId: string): Promise<Fund | null> {
   try {
-    const { data, error } = await supabase
-      .from('funds')
-      .select('*')
-      .eq('id', fundId)
-      .maybeSingle();
+    const { data, error } = await supabase.from("funds").select("*").eq("id", fundId).maybeSingle();
 
     if (error) throw error;
     return data;
   } catch (error) {
-    console.error('Error fetching fund:', error);
+    console.error("Error fetching fund:", error);
     return null;
   }
 }
@@ -83,20 +79,20 @@ export async function addFundToInvestor(
   initialInvestment: number = 0
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await supabase.rpc('add_fund_to_investor', {
+    const { error } = await supabase.rpc("add_fund_to_investor", {
       p_investor_id: investorId,
       p_fund_id: fundId,
-      p_initial_investment: initialInvestment
+      p_initial_investment: initialInvestment,
     });
 
     if (error) throw error;
 
     return { success: true };
   } catch (error) {
-    console.error('Error adding fund to investor:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Failed to add fund'
+    console.error("Error adding fund to investor:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to add fund",
     };
   }
 }
@@ -107,8 +103,9 @@ export async function addFundToInvestor(
 export async function getInvestorPositions(investorId: string): Promise<InvestorPosition[]> {
   try {
     const { data, error } = await supabase
-      .from('investor_positions')
-      .select(`
+      .from("investor_positions")
+      .select(
+        `
         *,
         fund:funds (
           id,
@@ -117,14 +114,15 @@ export async function getInvestorPositions(investorId: string): Promise<Investor
           asset,
           fund_class
         )
-      `)
-      .eq('investor_id', investorId)
-      .order('current_value', { ascending: false });
+      `
+      )
+      .eq("investor_id", investorId)
+      .order("current_value", { ascending: false });
 
     if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error('Error fetching investor positions:', error);
+    console.error("Error fetching investor positions:", error);
     return [];
   }
 }
@@ -139,22 +137,22 @@ export async function updateInvestorPosition(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const { error } = await supabase
-      .from('investor_positions')
+      .from("investor_positions")
       .update({
         ...updates,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
-      .eq('investor_id', investorId)
-      .eq('fund_id', fundId);
+      .eq("investor_id", investorId)
+      .eq("fund_id", fundId);
 
     if (error) throw error;
 
     return { success: true };
   } catch (error) {
-    console.error('Error updating investor position:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Failed to update position'
+    console.error("Error updating investor position:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update position",
     };
   }
 }
@@ -166,26 +164,26 @@ export async function getAvailableFundsForInvestor(investorId: string): Promise<
   try {
     // Get all active funds
     const { data: allFunds, error: fundsError } = await supabase
-      .from('funds')
-      .select('*')
-      .eq('status', 'active');
+      .from("funds")
+      .select("*")
+      .eq("status", "active");
 
     if (fundsError) throw fundsError;
 
     // Get investor's current positions
     const { data: positions, error: positionsError } = await supabase
-      .from('investor_positions')
-      .select('fund_id')
-      .eq('investor_id', investorId);
+      .from("investor_positions")
+      .select("fund_id")
+      .eq("investor_id", investorId);
 
     if (positionsError) throw positionsError;
 
-    const existingFundIds = new Set(positions?.map(p => p.fund_id) || []);
-    
+    const existingFundIds = new Set(positions?.map((p) => p.fund_id) || []);
+
     // Filter out funds where investor already has positions
-    return (allFunds || []).filter(fund => !existingFundIds.has(fund.id));
+    return (allFunds || []).filter((fund) => !existingFundIds.has(fund.id));
   } catch (error) {
-    console.error('Error fetching available funds:', error);
+    console.error("Error fetching available funds:", error);
     return [];
   }
 }
@@ -199,19 +197,19 @@ export async function removeFundFromInvestor(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const { error } = await supabase
-      .from('investor_positions')
+      .from("investor_positions")
       .delete()
-      .eq('investor_id', investorId)
-      .eq('fund_id', fundId);
+      .eq("investor_id", investorId)
+      .eq("fund_id", fundId);
 
     if (error) throw error;
 
     return { success: true };
   } catch (error) {
-    console.error('Error removing fund from investor:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Failed to remove fund'
+    console.error("Error removing fund from investor:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to remove fund",
     };
   }
 }
@@ -222,9 +220,9 @@ export async function removeFundFromInvestor(
 export async function getFundPerformanceSummary(fundId: string) {
   try {
     const { data: positions, error } = await supabase
-      .from('investor_positions')
-      .select('*')
-      .eq('fund_id', fundId);
+      .from("investor_positions")
+      .select("*")
+      .eq("fund_id", fundId);
 
     if (error) throw error;
 
@@ -233,18 +231,18 @@ export async function getFundPerformanceSummary(fundId: string) {
       totalAUM: positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0,
       totalCostBasis: positions?.reduce((sum, p) => sum + (p.cost_basis || 0), 0) || 0,
       totalUnrealizedPnL: positions?.reduce((sum, p) => sum + (p.unrealized_pnl || 0), 0) || 0,
-      totalRealizedPnL: positions?.reduce((sum, p) => sum + (p.realized_pnl || 0), 0) || 0
+      totalRealizedPnL: positions?.reduce((sum, p) => sum + (p.realized_pnl || 0), 0) || 0,
     };
 
     return summary;
   } catch (error) {
-    console.error('Error fetching fund performance:', error);
+    console.error("Error fetching fund performance:", error);
     return {
       totalInvestors: 0,
       totalAUM: 0,
       totalCostBasis: 0,
       totalUnrealizedPnL: 0,
-      totalRealizedPnL: 0
+      totalRealizedPnL: 0,
     };
   }
 }

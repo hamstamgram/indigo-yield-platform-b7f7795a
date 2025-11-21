@@ -1,17 +1,17 @@
 /**
  * Transaction Domain Types
  * Clean abstractions for transaction-related entities
- * 
+ *
  * Database Schema Note:
  * The codebase references 'transactions_v2' but this table may not exist in all environments.
  * This module provides type-safe abstractions that can work with various transaction schemas.
  */
 
-import { Database } from '@/integrations/supabase/types';
+import { Database } from "@/integrations/supabase/types";
 
 // Get enum types from database
-type TransactionType = Database['public']['Enums']['transaction_type'];
-type AssetCode = Database['public']['Enums']['asset_code'];
+type TransactionType = Database["public"]["Enums"]["transaction_type"];
+type AssetCode = Database["public"]["Enums"]["asset_code"];
 
 /**
  * Application-level transaction type
@@ -54,12 +54,15 @@ export interface TransactionSummary {
   total_yield: number;
   net_flow: number;
   transaction_count: number;
-  by_asset: Record<string, {
-    deposits: number;
-    withdrawals: number;
-    fees: number;
-    yield: number;
-  }>;
+  by_asset: Record<
+    string,
+    {
+      deposits: number;
+      withdrawals: number;
+      fees: number;
+      yield: number;
+    }
+  >;
 }
 
 /**
@@ -96,8 +99,10 @@ export function mapDbTransactionToTransaction(dbTx: any): Transaction {
 /**
  * Type guard to check if transaction has profile data
  */
-export function isTransactionWithProfile(tx: Transaction | TransactionWithProfile): tx is TransactionWithProfile {
-  return 'investor' in tx;
+export function isTransactionWithProfile(
+  tx: Transaction | TransactionWithProfile
+): tx is TransactionWithProfile {
+  return "investor" in tx;
 }
 
 /**
@@ -115,10 +120,10 @@ export function getTransactionInvestorName(tx: TransactionWithProfile): string {
  */
 export function formatTransactionType(type: TransactionType): string {
   const typeMap: Record<string, string> = {
-    DEPOSIT: 'Deposit',
-    WITHDRAWAL: 'Withdrawal',
-    FEE: 'Fee',
-    INTEREST: 'Interest',
+    DEPOSIT: "Deposit",
+    WITHDRAWAL: "Withdrawal",
+    FEE: "Fee",
+    INTEREST: "Interest",
   };
   return typeMap[type] || type.charAt(0) + type.slice(1).toLowerCase();
 }
@@ -128,10 +133,10 @@ export function formatTransactionType(type: TransactionType): string {
  */
 export function getTransactionNetAmount(tx: Transaction): number {
   const amount = Number(tx.amount) || 0;
-  if (tx.type === 'DEPOSIT' || tx.type === 'INTEREST') {
+  if (tx.type === "DEPOSIT" || tx.type === "INTEREST") {
     return amount;
   }
-  if (tx.type === 'WITHDRAWAL' || tx.type === 'FEE') {
+  if (tx.type === "WITHDRAWAL" || tx.type === "FEE") {
     return -amount;
   }
   return amount;

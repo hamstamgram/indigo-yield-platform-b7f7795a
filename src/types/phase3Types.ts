@@ -1,9 +1,9 @@
 // Phase 3 TypeScript Types
 // Generated for new database tables and features
 
-export type TicketStatus = 'open' | 'in_progress' | 'waiting_on_lp' | 'closed';
-export type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
-export type TicketCategory = 'account' | 'portfolio' | 'statement' | 'technical' | 'general';
+export type TicketStatus = "open" | "in_progress" | "waiting_on_lp" | "closed";
+export type TicketPriority = "low" | "medium" | "high" | "urgent";
+export type TicketCategory = "account" | "portfolio" | "statement" | "technical" | "general";
 
 export interface SupportTicket {
   id: string;
@@ -28,8 +28,8 @@ export interface TicketMessage {
   is_admin: boolean;
 }
 
-export type NotificationType = 'deposit' | 'statement' | 'performance' | 'system' | 'support';
-export type NotificationPriority = 'low' | 'medium' | 'high';
+export type NotificationType = "deposit" | "statement" | "performance" | "system" | "support";
+export type NotificationPriority = "low" | "medium" | "high";
 
 export interface Notification {
   id: string;
@@ -43,7 +43,7 @@ export interface Notification {
   created_at: string;
 }
 
-export type DocumentType = 'statement' | 'notice' | 'terms' | 'tax' | 'other';
+export type DocumentType = "statement" | "notice" | "terms" | "tax" | "other";
 
 export interface Document {
   id: string;
@@ -72,8 +72,8 @@ export interface UserSession {
   revoked_by?: string;
 }
 
-export type FundStatus = 'active' | 'inactive';
-export type BenchmarkType = 'BTC' | 'ETH' | 'STABLE' | 'CUSTOM';
+export type FundStatus = "active" | "inactive";
+export type BenchmarkType = "BTC" | "ETH" | "STABLE" | "CUSTOM";
 
 export interface FundConfiguration {
   id: string;
@@ -93,14 +93,20 @@ export interface FundConfiguration {
 
 export interface YieldSettings {
   id: string;
-  frequency: 'daily' | 'weekly';
+  frequency: "daily" | "weekly";
   rate_bps: number;
   effective_from: string;
   created_by?: string;
   created_at: string;
 }
 
-export type AccessEvent = 'login' | 'logout' | '2fa_setup' | '2fa_verify' | 'session_revoked' | 'password_change';
+export type AccessEvent =
+  | "login"
+  | "logout"
+  | "2fa_setup"
+  | "2fa_verify"
+  | "session_revoked"
+  | "password_change";
 
 export interface AccessLog {
   id: string;
@@ -113,7 +119,7 @@ export interface AccessLog {
   created_at: string;
 }
 
-export type ShareScope = 'portfolio' | 'documents' | 'statement';
+export type ShareScope = "portfolio" | "documents" | "statement";
 
 export interface SecureShare {
   id: string;
@@ -187,7 +193,7 @@ export interface InvestorProfile extends Record<string, any> {
   avatar_url?: string;
   totp_enabled: boolean;
   totp_verified: boolean;
-  status: 'Active' | 'Pending' | 'Closed';
+  status: "Active" | "Pending" | "Closed";
   created_at: string;
   updated_at: string;
 }
@@ -211,7 +217,7 @@ export interface OnboardingData {
 export interface PortfolioAnalytics {
   user_id: string;
   fund_id?: string;
-  period: 'MTD' | 'QTD' | 'YTD' | 'ITD';
+  period: "MTD" | "QTD" | "YTD" | "ITD";
   returns: number[];
   dates: string[];
   benchmark_returns?: number[];
@@ -271,7 +277,7 @@ export interface ErrorEvent {
   user_id?: string;
   url?: string;
   timestamp: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   tags?: Record<string, string>;
 }
 
@@ -292,7 +298,7 @@ export interface ShareViewerData {
 }
 
 // Theme types
-export type ThemeMode = 'system' | 'light' | 'dark';
+export type ThemeMode = "system" | "light" | "dark";
 
 export interface ThemePreference {
   mode: ThemeMode;

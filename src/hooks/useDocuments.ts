@@ -5,7 +5,12 @@
  */
 
 import { useState } from "react";
-import type { Document as LegacyDocument, DocumentFilter, DocumentStats, DocumentUpload } from "@/types/documents";
+import type {
+  Document as LegacyDocument,
+  DocumentFilter,
+  DocumentStats,
+  DocumentUpload,
+} from "@/types/documents";
 import { useToast } from "@/hooks/use-toast";
 
 export function useDocuments(_userId?: string, _filter?: DocumentFilter) {

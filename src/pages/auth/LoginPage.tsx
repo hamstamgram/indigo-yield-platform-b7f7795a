@@ -1,21 +1,28 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, LogIn, Loader2 } from 'lucide-react';
-import AppLogo from '@/components/AppLogo';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Eye, EyeOff, LogIn, Loader2 } from "lucide-react";
+import AppLogo from "@/components/AppLogo";
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
   rememberMe: z.boolean().optional(),
 });
 
@@ -48,12 +55,12 @@ export default function LoginPage() {
       if (error) throw error;
 
       if (authData.session) {
-        toast.success('Welcome back!');
-        navigate('/dashboard');
+        toast.success("Welcome back!");
+        navigate("/dashboard");
       }
     } catch (error: any) {
-      console.error('Login error:', error);
-      toast.error(error.message || 'Invalid email or password');
+      console.error("Login error:", error);
+      toast.error(error.message || "Invalid email or password");
     } finally {
       setIsLoading(false);
     }
@@ -62,14 +69,14 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider: "google",
         options: {
           redirectTo: `${window.location.origin}/dashboard`,
         },
       });
       if (error) throw error;
     } catch (error: any) {
-      toast.error(error.message || 'Failed to sign in with Google');
+      toast.error(error.message || "Failed to sign in with Google");
     }
   };
 
@@ -83,9 +90,7 @@ export default function LoginPage() {
               <AppLogo className="h-12" />
             </div>
             <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-            <CardDescription>
-              Sign in to your account to continue
-            </CardDescription>
+            <CardDescription>Sign in to your account to continue</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -95,12 +100,10 @@ export default function LoginPage() {
                   id="email"
                   type="email"
                   placeholder="name@example.com"
-                  {...register('email')}
+                  {...register("email")}
                   disabled={isLoading}
                 />
-                {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email.message}</p>
-                )}
+                {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
               </div>
 
               <div className="space-y-2">
@@ -108,9 +111,9 @@ export default function LoginPage() {
                 <div className="relative">
                   <Input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    {...register('password')}
+                    {...register("password")}
                     disabled={isLoading}
                   />
                   <button
@@ -118,11 +121,7 @@ export default function LoginPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 {errors.password && (
@@ -132,18 +131,12 @@ export default function LoginPage() {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Checkbox id="rememberMe" {...register('rememberMe')} />
-                  <Label
-                    htmlFor="rememberMe"
-                    className="text-sm font-normal cursor-pointer"
-                  >
+                  <Checkbox id="rememberMe" {...register("rememberMe")} />
+                  <Label htmlFor="rememberMe" className="text-sm font-normal cursor-pointer">
                     Remember me
                   </Label>
                 </div>
-                <Link
-                  to="/forgot-password"
-                  className="text-sm text-primary hover:underline"
-                >
+                <Link to="/forgot-password" className="text-sm text-primary hover:underline">
                   Forgot password?
                 </Link>
               </div>
@@ -168,9 +161,7 @@ export default function LoginPage() {
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
-                </span>
+                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
               </div>
             </div>
 
@@ -204,7 +195,7 @@ export default function LoginPage() {
           </CardContent>
           <CardFooter className="flex justify-center">
             <p className="text-sm text-muted-foreground">
-              Don't have an account?{' '}
+              Don't have an account?{" "}
               <Link to="/register" className="text-primary hover:underline font-medium">
                 Sign up
               </Link>
@@ -216,9 +207,7 @@ export default function LoginPage() {
       {/* Right side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-indigo-700 p-12 items-center justify-center">
         <div className="text-white space-y-6 max-w-md">
-          <h1 className="text-4xl font-bold">
-            Secure, Professional Wealth Management
-          </h1>
+          <h1 className="text-4xl font-bold">Secure, Professional Wealth Management</h1>
           <p className="text-xl text-blue-100">
             Access your portfolio, track performance, and manage investments with
             institutional-grade security.
@@ -252,9 +241,7 @@ export default function LoginPage() {
               </div>
               <div>
                 <p className="font-medium">24/7 Support</p>
-                <p className="text-sm text-blue-100">
-                  Dedicated support team always ready to help
-                </p>
+                <p className="text-sm text-blue-100">Dedicated support team always ready to help</p>
               </div>
             </div>
           </div>

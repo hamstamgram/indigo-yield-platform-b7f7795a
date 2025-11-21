@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 // Adapted to existing support_tickets table schema
 export interface SupportTicket {
@@ -28,25 +28,31 @@ export interface CreateTicketPayload {
 }
 
 export interface TicketAction {
-  action: 'assign' | 'resolve' | 'close' | 'reopen';
+  action: "assign" | "resolve" | "close" | "reopen";
   assigned_to?: string;
   note?: string;
 }
 
 export const supportService = {
   async createTicket(payload: CreateTicketPayload) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
 
     const { data, error } = await supabase
-      .from('support_tickets')
-      .insert([{
-        subject: payload.subject,
-        messages_jsonb: [{ text: payload.description, timestamp: new Date().toISOString(), sender: 'user' }],
-        priority: payload.priority as any,
-        category: (payload.category || 'general') as any,
-        user_id: user.id,
-      }])
+      .from("support_tickets")
+      .insert([
+        {
+          subject: payload.subject,
+          messages_jsonb: [
+            { text: payload.description, timestamp: new Date().toISOString(), sender: "user" },
+          ],
+          priority: payload.priority as any,
+          category: (payload.category || "general") as any,
+          user_id: user.id,
+        },
+      ])
       .select()
       .single();
 
@@ -56,32 +62,35 @@ export const supportService = {
 
   async listTickets(): Promise<{ tickets: SupportTicket[]; total: number }> {
     const { data, error, count } = await supabase
-      .from('support_tickets')
-      .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false });
+      .from("support_tickets")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
 
-    const enrichedData = await Promise.all((data || []).map(async (ticket: any) => {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('email, first_name, last_name')
-        .eq('id', ticket.user_id)
-        .single();
-      
-      // Extract description from messages_jsonb
-      const messages = Array.isArray(ticket.messages_jsonb) ? ticket.messages_jsonb : [];
-      const firstMessage = messages[0];
-      const lastMessage = messages[messages.length - 1];
-      
-      return {
-        ...ticket,
-        description: firstMessage?.text || '',
-        resolution_notes: lastMessage?.sender === 'admin' ? lastMessage.text : undefined,
-        user_email: profile?.email,
-        user_name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || profile?.email,
-      };
-    }));
+    const enrichedData = await Promise.all(
+      (data || []).map(async (ticket: any) => {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("email, first_name, last_name")
+          .eq("id", ticket.user_id)
+          .single();
+
+        // Extract description from messages_jsonb
+        const messages = Array.isArray(ticket.messages_jsonb) ? ticket.messages_jsonb : [];
+        const firstMessage = messages[0];
+        const lastMessage = messages[messages.length - 1];
+
+        return {
+          ...ticket,
+          description: firstMessage?.text || "",
+          resolution_notes: lastMessage?.sender === "admin" ? lastMessage.text : undefined,
+          user_email: profile?.email,
+          user_name:
+            `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() || profile?.email,
+        };
+      })
+    );
 
     return { tickets: enrichedData, total: count || 0 };
   },
@@ -90,39 +99,39 @@ export const supportService = {
     const updates: any = { updated_at: new Date().toISOString() };
 
     switch (action.action) {
-      case 'assign':
+      case "assign":
         updates.assigned_admin_id = action.assigned_to;
-        updates.status = 'in_progress';
+        updates.status = "in_progress";
         break;
-      case 'resolve':
-        updates.status = 'closed';
+      case "resolve":
+        updates.status = "closed";
         // Add resolution note to messages
         if (action.note) {
           const { data: ticket } = await supabase
-            .from('support_tickets')
-            .select('messages_jsonb')
-            .eq('id', ticketId)
+            .from("support_tickets")
+            .select("messages_jsonb")
+            .eq("id", ticketId)
             .single();
-          
+
           const messages = Array.isArray(ticket?.messages_jsonb) ? ticket.messages_jsonb : [];
           updates.messages_jsonb = [
             ...messages,
-            { text: action.note, timestamp: new Date().toISOString(), sender: 'admin' }
+            { text: action.note, timestamp: new Date().toISOString(), sender: "admin" },
           ];
         }
         break;
-      case 'close':
-        updates.status = 'closed';
+      case "close":
+        updates.status = "closed";
         break;
-      case 'reopen':
-        updates.status = 'open';
+      case "reopen":
+        updates.status = "open";
         break;
     }
 
     const { data, error } = await supabase
-      .from('support_tickets')
+      .from("support_tickets")
       .update(updates)
-      .eq('id', ticketId)
+      .eq("id", ticketId)
       .select()
       .single();
 

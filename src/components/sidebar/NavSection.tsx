@@ -1,4 +1,3 @@
-
 import { NavItem } from "@/types/navigation";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronDown, ChevronRight, Loader2 } from "lucide-react";
@@ -16,14 +15,14 @@ type NavSectionProps = {
   className?: string;
 };
 
-const NavSection = ({ 
-  title, 
-  items, 
-  onItemClick, 
-  showTitle = true, 
-  isExpanded = true, 
+const NavSection = ({
+  title,
+  items,
+  onItemClick,
+  showTitle = true,
+  isExpanded = true,
   onToggle,
-  className 
+  className,
 }: NavSectionProps) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,22 +30,22 @@ const NavSection = ({
 
   const handleNavigation = async (href: string) => {
     // Add loading state for heavy routes
-    const heavyRoutes = ['/admin/reports', '/admin/audit', '/statements'];
+    const heavyRoutes = ["/admin/reports", "/admin/audit", "/statements"];
     if (heavyRoutes.includes(href)) {
-      setLoadingItems(prev => [...prev, href]);
+      setLoadingItems((prev) => [...prev, href]);
     }
-    
+
     navigate(href);
     onItemClick?.();
-    
+
     // Remove loading state after navigation
     setTimeout(() => {
-      setLoadingItems(prev => prev.filter(item => item !== href));
+      setLoadingItems((prev) => prev.filter((item) => item !== href));
     }, 500);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, href: string) => {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       handleNavigation(href);
     }
@@ -57,24 +56,24 @@ const NavSection = ({
     if (location.pathname === href) {
       return true;
     }
-    
+
     // Handle admin routes - if we're on an admin route and the nav item is also admin
-    if (location.pathname.startsWith('/admin') && href.startsWith('/admin')) {
+    if (location.pathname.startsWith("/admin") && href.startsWith("/admin")) {
       // For admin dashboard, only highlight if exact match
-      if (href === '/admin' && location.pathname === '/admin') {
+      if (href === "/admin" && location.pathname === "/admin") {
         return true;
       }
       // For other admin routes, check if current path starts with the nav href
-      if (href !== '/admin' && location.pathname.startsWith(href)) {
+      if (href !== "/admin" && location.pathname.startsWith(href)) {
         return true;
       }
     }
-    
+
     // Handle non-admin routes
-    if (!location.pathname.startsWith('/admin') && !href.startsWith('/admin')) {
-      return location.pathname.startsWith(href) && href !== '/';
+    if (!location.pathname.startsWith("/admin") && !href.startsWith("/admin")) {
+      return location.pathname.startsWith(href) && href !== "/";
     }
-    
+
     return false;
   };
 
@@ -92,20 +91,59 @@ const NavSection = ({
               onClick={onToggle}
               className="h-6 w-6 p-0 text-sidebar-foreground/60 hover:text-sidebar-foreground"
               aria-expanded={isExpanded}
-              aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${title} section`}
+              aria-label={`${isExpanded ? "Collapse" : "Expand"} ${title} section`}
             >
-              {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              {isExpanded ? (
+                <ChevronDown className="h-3 w-3" />
+              ) : (
+                <ChevronRight className="h-3 w-3" />
+              )}
             </Button>
           )}
         </div>
       )}
-      
+
       {isExpanded && (
         <ul className="space-y-1" role="menu">
           {items.map((item, index) => {
             const isItemActive = isActive(item.href);
             const isLoading = loadingItems.includes(item.href);
-            
+            const [isSubNavExpanded, setIsSubNavExpanded] = useState(isItemActive);
+
+            if (item.subNav) {
+              return (
+                <li key={index} role="none">
+                  <button
+                    onClick={() => setIsSubNavExpanded(!isSubNavExpanded)}
+                    className={cn(
+                      "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-between space-x-3 group focus:outline-none focus:ring-2 focus:ring-sidebar-ring",
+                      isItemActive
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    )}
+                    aria-expanded={isSubNavExpanded}
+                  >
+                    <span className="flex items-center space-x-3">
+                      {item.icon}
+                      <span className="flex-1 truncate">{item.title}</span>
+                    </span>
+                    {isSubNavExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  </button>
+                  {isSubNavExpanded && (
+                    <div className="pl-4 pt-2">
+                      <NavSection
+                        title=""
+                        items={item.subNav}
+                        onItemClick={onItemClick}
+                        showTitle={false}
+                        isExpanded={true}
+                      />
+                    </div>
+                  )}
+                </li>
+              );
+            }
+
             return (
               <li key={index} role="none">
                 <button
@@ -124,11 +162,7 @@ const NavSection = ({
                   tabIndex={0}
                 >
                   <span className="flex items-center shrink-0">
-                    {isLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      item.icon
-                    )}
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : item.icon}
                   </span>
                   <span className="flex-1 truncate">{item.title}</span>
                   {isItemActive && (

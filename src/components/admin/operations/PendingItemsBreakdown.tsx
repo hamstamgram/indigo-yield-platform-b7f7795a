@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, ArrowDownToLine, ArrowUpFromLine, TrendingUp, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, ArrowDownToLine, ArrowUpFromLine, TrendingUp, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface PendingBreakdown {
   deposits: number;
@@ -19,31 +19,31 @@ export function PendingItemsBreakdown({ breakdown, isLoading }: PendingItemsBrea
 
   const items = [
     {
-      title: 'Pending Deposits',
+      title: "Pending Deposits",
       count: breakdown.deposits,
       icon: ArrowDownToLine,
-      description: 'Awaiting verification',
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      href: '/admin/deposits',
+      description: "Awaiting verification",
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      href: "/admin/deposits",
     },
     {
-      title: 'Pending Withdrawals',
+      title: "Pending Withdrawals",
       count: breakdown.withdrawals,
       icon: ArrowUpFromLine,
-      description: 'Awaiting approval',
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      href: '/admin/withdrawals',
+      description: "Awaiting approval",
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
+      href: "/admin/withdrawals",
     },
     {
-      title: 'Pending Investments',
+      title: "Pending Investments",
       count: breakdown.investments,
       icon: TrendingUp,
-      description: 'Awaiting processing',
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      href: '/admin/investments',
+      description: "Awaiting processing",
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      href: "/admin/investments",
     },
   ];
 
@@ -87,12 +87,12 @@ export function PendingItemsBreakdown({ breakdown, isLoading }: PendingItemsBrea
                     </div>
                   </div>
                   <Button
-                    variant={hasPending ? 'default' : 'outline'}
+                    variant={hasPending ? "default" : "outline"}
                     size="sm"
                     onClick={() => navigate(item.href)}
                     className="gap-2"
                   >
-                    {hasPending ? 'Review' : 'View All'}
+                    {hasPending ? "Review" : "View All"}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>

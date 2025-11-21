@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { Bell, X, CheckCircle, AlertCircle, Users } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
+import { useState } from "react";
+import { Bell, X, CheckCircle, AlertCircle, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 
 export function RealtimeNotifications() {
   const { notifications, clearNotifications, removeNotification } = useRealtimeNotifications();
@@ -13,11 +13,11 @@ export function RealtimeNotifications() {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'withdrawal_update':
+      case "withdrawal_update":
         return <CheckCircle className="h-4 w-4 text-blue-500" />;
-      case 'yield_applied':
+      case "yield_applied":
         return <AlertCircle className="h-4 w-4 text-green-500" />;
-      case 'investor_update':
+      case "investor_update":
         return <Users className="h-4 w-4 text-purple-500" />;
       default:
         return <Bell className="h-4 w-4" />;
@@ -25,24 +25,20 @@ export function RealtimeNotifications() {
   };
 
   const formatTime = (timestamp: Date) => {
-    return timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="relative"
-        >
+        <Button variant="outline" size="sm" className="relative">
           <Bell className="h-4 w-4" />
           {notifications.length > 0 && (
-            <Badge 
-              variant="destructive" 
+            <Badge
+              variant="destructive"
               className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
             >
-              {notifications.length > 9 ? '9+' : notifications.length}
+              {notifications.length > 9 ? "9+" : notifications.length}
             </Badge>
           )}
         </Button>
@@ -78,14 +74,10 @@ export function RealtimeNotifications() {
                       key={notification.id}
                       className="flex items-start gap-3 p-3 hover:bg-muted/50 transition-colors"
                     >
-                      <div className="flex-shrink-0 mt-0.5">
-                        {getIcon(notification.type)}
-                      </div>
+                      <div className="flex-shrink-0 mt-0.5">{getIcon(notification.type)}</div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium truncate">
-                            {notification.title}
-                          </p>
+                          <p className="text-sm font-medium truncate">{notification.title}</p>
                           <Button
                             variant="ghost"
                             size="sm"

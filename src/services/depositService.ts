@@ -3,10 +3,7 @@ import type { Deposit, DepositFormData, DepositFilters } from "@/types/deposit";
 
 export class DepositService {
   async getDeposits(filters?: DepositFilters): Promise<Deposit[]> {
-    let query = supabase
-      .from("deposits")
-      .select("*")
-      .order("created_at", { ascending: false });
+    let query = supabase.from("deposits").select("*").order("created_at", { ascending: false });
 
     if (filters?.status) {
       query = query.eq("status", filters.status);
@@ -35,8 +32,10 @@ export class DepositService {
     if (error) throw error;
 
     // Fetch user profiles for all deposits
-    const userIds = [...new Set(deposits?.map((d) => d.user_id).filter((id): id is string => id !== null))];
-    
+    const userIds = [
+      ...new Set(deposits?.map((d) => d.user_id).filter((id): id is string => id !== null)),
+    ];
+
     if (userIds.length === 0) {
       return (deposits || []) as Deposit[];
     }
@@ -147,9 +146,7 @@ export class DepositService {
     total_amount: number;
     by_asset: Record<string, { count: number; amount: number }>;
   }> {
-    const { data, error } = await supabase
-      .from("deposits")
-      .select("status, asset_symbol, amount");
+    const { data, error } = await supabase.from("deposits").select("status, asset_symbol, amount");
 
     if (error) throw error;
 

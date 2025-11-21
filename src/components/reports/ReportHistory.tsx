@@ -3,8 +3,8 @@
  * Displays user's generated reports with download and management options
  */
 
-import { useState, useEffect } from 'react';
-import { format, formatDistanceToNow } from 'date-fns';
+import { useState, useEffect } from "react";
+import { format, formatDistanceToNow } from "date-fns";
 import {
   FileText,
   Download,
@@ -15,9 +15,9 @@ import {
   Loader2,
   Filter,
   Search,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -25,28 +25,28 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { ReportsApi } from '@/services/api/reportsApi';
-import { GeneratedReport, ReportType, ReportStatus } from '@/types/reports';
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { ReportsApi } from "@/services/api/reportsApi";
+import { GeneratedReport, ReportType, ReportStatus } from "@/types/reports";
 
 export const ReportHistory: React.FC = () => {
   const { toast } = useToast();
 
   const [reports, setReports] = useState<GeneratedReport[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState<ReportStatus | 'all'>('all');
-  const [filterType] = useState<ReportType | 'all'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState<ReportStatus | "all">("all");
+  const [filterType] = useState<ReportType | "all">("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,17 +58,17 @@ export const ReportHistory: React.FC = () => {
     setLoading(true);
     try {
       const filters: any = {};
-      if (filterStatus !== 'all') filters.status = filterStatus;
-      if (filterType !== 'all') filters.reportType = filterType;
+      if (filterStatus !== "all") filters.status = filterStatus;
+      if (filterType !== "all") filters.reportType = filterType;
 
       const data = await ReportsApi.getUserReports(filters);
       setReports(data);
     } catch (error) {
-      console.error('Failed to load reports:', error);
+      console.error("Failed to load reports:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load reports',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load reports",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -81,23 +81,23 @@ export const ReportHistory: React.FC = () => {
       const result = await ReportsApi.downloadReport({ reportId });
 
       if (result.success && result.downloadUrl) {
-        window.open(result.downloadUrl, '_blank');
+        window.open(result.downloadUrl, "_blank");
         toast({
-          title: 'Success',
-          description: 'Download started',
+          title: "Success",
+          description: "Download started",
         });
 
         // Refresh reports to update download count
         await loadReports();
       } else {
-        throw new Error(result.error || 'Download failed');
+        throw new Error(result.error || "Download failed");
       }
     } catch (error) {
-      console.error('Download failed:', error);
+      console.error("Download failed:", error);
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Download failed',
-        variant: 'destructive',
+        title: "Error",
+        description: error instanceof Error ? error.message : "Download failed",
+        variant: "destructive",
       });
     } finally {
       setDownloadingId(null);
@@ -105,7 +105,7 @@ export const ReportHistory: React.FC = () => {
   };
 
   const handleDelete = async (reportId: string) => {
-    if (!confirm('Are you sure you want to delete this report?')) {
+    if (!confirm("Are you sure you want to delete this report?")) {
       return;
     }
 
@@ -114,47 +114,47 @@ export const ReportHistory: React.FC = () => {
 
       if (result.success) {
         toast({
-          title: 'Success',
-          description: 'Report deleted successfully',
+          title: "Success",
+          description: "Report deleted successfully",
         });
         await loadReports();
       } else {
-        throw new Error(result.error || 'Delete failed');
+        throw new Error(result.error || "Delete failed");
       }
     } catch (error) {
-      console.error('Delete failed:', error);
+      console.error("Delete failed:", error);
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Delete failed',
-        variant: 'destructive',
+        title: "Error",
+        description: error instanceof Error ? error.message : "Delete failed",
+        variant: "destructive",
       });
     }
   };
 
   const getStatusBadge = (status: ReportStatus) => {
     switch (status) {
-      case 'completed':
+      case "completed":
         return (
           <Badge variant="default" className="bg-green-600">
             <CheckCircle className="mr-1 h-3 w-3" />
             Completed
           </Badge>
         );
-      case 'processing':
+      case "processing":
         return (
           <Badge variant="secondary">
             <Loader2 className="mr-1 h-3 w-3 animate-spin" />
             Processing
           </Badge>
         );
-      case 'queued':
+      case "queued":
         return (
           <Badge variant="secondary">
             <Clock className="mr-1 h-3 w-3" />
             Queued
           </Badge>
         );
-      case 'failed':
+      case "failed":
         return (
           <Badge variant="destructive">
             <XCircle className="mr-1 h-3 w-3" />
@@ -167,7 +167,7 @@ export const ReportHistory: React.FC = () => {
   };
 
   const formatFileSize = (bytes: number | null): string => {
-    if (!bytes) return 'N/A';
+    if (!bytes) return "N/A";
     const mb = bytes / (1024 * 1024);
     if (mb < 1) {
       return `${(bytes / 1024).toFixed(1)} KB`;
@@ -177,9 +177,9 @@ export const ReportHistory: React.FC = () => {
 
   const formatReportType = (type: ReportType): string => {
     return type
-      .split('_')
+      .split("_")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+      .join(" ");
   };
 
   const filteredReports = reports.filter((report) => {
@@ -217,7 +217,10 @@ export const ReportHistory: React.FC = () => {
             </div>
           </div>
 
-          <Select value={filterStatus} onValueChange={(value: ReportStatus | 'all') => setFilterStatus(value)}>
+          <Select
+            value={filterStatus}
+            onValueChange={(value: ReportStatus | "all") => setFilterStatus(value)}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -246,9 +249,9 @@ export const ReportHistory: React.FC = () => {
             <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">No Reports Found</h3>
             <p className="text-muted-foreground">
-              {searchQuery || filterStatus !== 'all' || filterType !== 'all'
-                ? 'Try adjusting your filters'
-                : 'Generate your first report to get started'}
+              {searchQuery || filterStatus !== "all" || filterType !== "all"
+                ? "Try adjusting your filters"
+                : "Generate your first report to get started"}
             </p>
           </div>
         ) : (
@@ -272,8 +275,8 @@ export const ReportHistory: React.FC = () => {
                         <div className="font-medium">{formatReportType(report.reportType)}</div>
                         {report.dateRangeStart && report.dateRangeEnd && (
                           <div className="text-sm text-muted-foreground">
-                            {format(new Date(report.dateRangeStart), 'MMM dd')} -{' '}
-                            {format(new Date(report.dateRangeEnd), 'MMM dd, yyyy')}
+                            {format(new Date(report.dateRangeStart), "MMM dd")} -{" "}
+                            {format(new Date(report.dateRangeEnd), "MMM dd, yyyy")}
                           </div>
                         )}
                       </div>
@@ -288,14 +291,15 @@ export const ReportHistory: React.FC = () => {
                       </div>
                       {report.downloadCount > 0 && (
                         <div className="text-xs text-muted-foreground">
-                          Downloaded {report.downloadCount} time{report.downloadCount !== 1 ? 's' : ''}
+                          Downloaded {report.downloadCount} time
+                          {report.downloadCount !== 1 ? "s" : ""}
                         </div>
                       )}
                     </TableCell>
                     <TableCell>{formatFileSize(report.fileSizeBytes)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
-                        {report.status === 'completed' && (
+                        {report.status === "completed" && (
                           <Button
                             size="sm"
                             variant="outline"

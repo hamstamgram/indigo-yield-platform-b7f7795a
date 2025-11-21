@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { applySecurityHeaders, generateCSRFToken, validateCSRFToken } from '@/lib/security/headers';
-import { supabase } from '@/integrations/supabase/client';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { applySecurityHeaders, generateCSRFToken, validateCSRFToken } from "@/lib/security/headers";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SecurityContextType {
   csrfToken: string;
@@ -10,51 +10,51 @@ interface SecurityContextType {
 }
 
 const SecurityContext = createContext<SecurityContextType>({
-  csrfToken: '',
+  csrfToken: "",
   validateRequest: () => false,
-  refreshCSRF: () => '',
-  logSecurityEvent: async () => {}
+  refreshCSRF: () => "",
+  logSecurityEvent: async () => {},
 });
 
 export const useSecurity = () => {
   const context = useContext(SecurityContext);
   if (!context) {
-    throw new Error('useSecurity must be used within a SecurityProvider');
+    throw new Error("useSecurity must be used within a SecurityProvider");
   }
   return context;
 };
 
 export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [csrfToken, setCsrfToken] = useState('');
+  const [csrfToken, setCsrfToken] = useState("");
 
   useEffect(() => {
     // Apply security headers on mount
     applySecurityHeaders();
-    
+
     // Generate initial CSRF token
     const token = generateCSRFToken();
     setCsrfToken(token);
 
     // Log application start
-    logSecurityEvent('APP_START', { 
+    logSecurityEvent("APP_START", {
       timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent 
+      userAgent: navigator.userAgent,
     });
 
     // Set up security monitoring
     const handleSecurityViolation = (event: SecurityPolicyViolationEvent) => {
-      logSecurityEvent('CSP_VIOLATION', {
+      logSecurityEvent("CSP_VIOLATION", {
         violatedDirective: event.violatedDirective,
         blockedURI: event.blockedURI,
         documentURI: event.documentURI,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     };
 
-    document.addEventListener('securitypolicyviolation', handleSecurityViolation);
+    document.addEventListener("securitypolicyviolation", handleSecurityViolation);
 
     return () => {
-      document.removeEventListener('securitypolicyviolation', handleSecurityViolation);
+      document.removeEventListener("securitypolicyviolation", handleSecurityViolation);
     };
   }, []);
 
@@ -71,12 +71,12 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const logSecurityEvent = async (eventType: string, details?: any): Promise<void> => {
     try {
-      await supabase.rpc('log_security_event', {
+      await supabase.rpc("log_security_event", {
         event_type: eventType,
-        details: details || {}
+        details: details || {},
       });
     } catch (error) {
-      console.warn('Failed to log security event:', error);
+      console.warn("Failed to log security event:", error);
     }
   };
 
@@ -84,12 +84,8 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     csrfToken,
     validateRequest,
     refreshCSRF,
-    logSecurityEvent
+    logSecurityEvent,
   };
 
-  return (
-    <SecurityContext.Provider value={value}>
-      {children}
-    </SecurityContext.Provider>
-  );
+  return <SecurityContext.Provider value={value}>{children}</SecurityContext.Provider>;
 };

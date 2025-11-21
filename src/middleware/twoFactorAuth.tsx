@@ -1,62 +1,67 @@
-import React from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Navigate } from 'react-router-dom';
+import React from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Navigate } from "react-router-dom";
 
 interface MFAStatus {
   enrolled: boolean;
   verified: boolean;
   factors: Array<{
     id: string;
-    type: 'totp';
-    status: 'verified' | 'unverified';
+    type: "totp";
+    status: "verified" | "unverified";
   }>;
 }
 
 export async function checkMFAStatus(): Promise<MFAStatus> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (!user) {
       return { enrolled: false, verified: false, factors: [] };
     }
 
     // Check MFA factors
     const { data: factors, error } = await supabase.auth.mfa.listFactors();
-    
+
     if (error) {
-      console.error('Error checking MFA factors:', error);
+      console.error("Error checking MFA factors:", error);
       return { enrolled: false, verified: false, factors: [] };
     }
 
-    const verifiedFactors = factors?.totp?.filter(f => f.status === 'verified') || [];
-    
+    const verifiedFactors = factors?.totp?.filter((f) => f.status === "verified") || [];
+
     return {
       enrolled: factors?.totp?.length > 0,
       verified: verifiedFactors.length > 0,
-      factors: factors?.totp?.map(f => ({ 
-        ...f, 
-        type: 'totp' as const, 
-        status: f.status as 'verified' | 'unverified' 
-      })) || [],
+      factors:
+        factors?.totp?.map((f) => ({
+          ...f,
+          type: "totp" as const,
+          status: f.status as "verified" | "unverified",
+        })) || [],
     };
   } catch (error) {
-    console.error('MFA status check failed:', error);
+    console.error("MFA status check failed:", error);
     return { enrolled: false, verified: false, factors: [] };
   }
 }
 
 export async function enforceAdminMFA(): Promise<boolean> {
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
     return false;
   }
 
   // Check if user is admin/staff
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('is_admin')
-    .eq('id', user.id)
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
     .maybeSingle();
 
   if (!profile?.is_admin) {
@@ -65,9 +70,9 @@ export async function enforceAdminMFA(): Promise<boolean> {
 
   // Check MFA status
   const mfaStatus = await checkMFAStatus();
-  
+
   if (!mfaStatus.verified) {
-    console.warn('Admin user without verified MFA attempted access');
+    console.warn("Admin user without verified MFA attempted access");
     return false;
   }
 
@@ -78,8 +83,8 @@ export async function setupMFA() {
   try {
     // Enroll TOTP factor
     const { data, error } = await supabase.auth.mfa.enroll({
-      factorType: 'totp',
-      friendlyName: 'Indigo Yield Platform',
+      factorType: "totp",
+      friendlyName: "Indigo Yield Platform",
     });
 
     if (error) {
@@ -92,7 +97,7 @@ export async function setupMFA() {
       factorId: data.id,
     };
   } catch (error) {
-    console.error('MFA enrollment failed:', error);
+    console.error("MFA enrollment failed:", error);
     throw error;
   }
 }
@@ -101,7 +106,7 @@ export async function verifyMFA(factorId: string, code: string) {
   try {
     // First create a challenge
     const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({
-      factorId
+      factorId,
     });
 
     if (challengeError) throw challengeError;
@@ -119,7 +124,7 @@ export async function verifyMFA(factorId: string, code: string) {
 
     return { success: true };
   } catch (error) {
-    console.error('MFA verification failed:', error);
+    console.error("MFA verification failed:", error);
     return { success: false, error };
   }
 }
@@ -127,15 +132,15 @@ export async function verifyMFA(factorId: string, code: string) {
 export async function challengeMFA() {
   try {
     const { data: factors } = await supabase.auth.mfa.listFactors();
-    
+
     if (!factors?.totp?.length) {
-      throw new Error('No MFA factors enrolled');
+      throw new Error("No MFA factors enrolled");
     }
 
-    const verifiedFactor = factors.totp.find(f => f.status === 'verified');
-    
+    const verifiedFactor = factors.totp.find((f) => f.status === "verified");
+
     if (!verifiedFactor) {
-      throw new Error('No verified MFA factors');
+      throw new Error("No verified MFA factors");
     }
 
     const { data, error } = await supabase.auth.mfa.challenge({
@@ -148,7 +153,7 @@ export async function challengeMFA() {
 
     return { challengeId: data.id, factorId: verifiedFactor.id };
   } catch (error) {
-    console.error('MFA challenge failed:', error);
+    console.error("MFA challenge failed:", error);
     throw error;
   }
 }
@@ -167,7 +172,7 @@ export async function verifyMFAChallenge(challengeId: string, code: string) {
 
     return { success: true, data };
   } catch (error) {
-    console.error('MFA challenge verification failed:', error);
+    console.error("MFA challenge verification failed:", error);
     return { success: false, error };
   }
 }

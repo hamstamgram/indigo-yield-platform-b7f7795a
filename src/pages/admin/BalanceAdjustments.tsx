@@ -1,31 +1,45 @@
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { toast } from 'sonner';
-import { AdminOnly } from '@/components/ui/RoleGate';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { supabase } from '@/integrations/supabase/client';
-import { redactForAdmin } from '@/lib/security/redact-pii';
-import { DollarSign, AlertTriangle, TrendingUp, TrendingDown, FileText, Users } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import { AdminOnly } from "@/components/ui/RoleGate";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { redactForAdmin } from "@/lib/security/redact-pii";
+import { DollarSign, AlertTriangle, TrendingUp, TrendingDown, FileText, Users } from "lucide-react";
 
 const adjustmentSchema = z.object({
-  user_id: z.string().uuid('Please select a valid investor'),
+  user_id: z.string().uuid("Please select a valid investor"),
   fund_id: z.string().uuid().optional(),
-  amount: z.string()
-    .refine((val) => !isNaN(parseFloat(val)), 'Amount must be a valid number')
+  amount: z
+    .string()
+    .refine((val) => !isNaN(parseFloat(val)), "Amount must be a valid number")
     .transform((val) => parseFloat(val))
-    .refine((val) => val !== 0, 'Amount cannot be zero')
-    .refine((val) => Math.abs(val) >= 0.01, 'Minimum adjustment is $0.01'),
-  currency: z.string().default('USD'),
-  reason: z.string().min(10, 'Reason must be at least 10 characters'),
+    .refine((val) => val !== 0, "Amount cannot be zero")
+    .refine((val) => Math.abs(val) >= 0.01, "Minimum adjustment is $0.01"),
+  currency: z.string().default("USD"),
+  reason: z.string().min(10, "Reason must be at least 10 characters"),
   notes: z.string().optional(),
   audit_ref: z.string().optional(),
 });
@@ -50,7 +64,7 @@ interface AdjustmentPreview {
   investor: Investor;
   fund?: Fund;
   amount: number;
-  type: 'credit' | 'debit';
+  type: "credit" | "debit";
   reason: string;
   notes?: string;
   audit_ref?: string;
@@ -71,12 +85,12 @@ export function BalanceAdjustments() {
     watch,
     reset,
     trigger,
-    getValues
+    getValues,
   } = useForm<AdjustmentForm>({
     resolver: zodResolver(adjustmentSchema),
     defaultValues: {
-      currency: 'USD',
-    }
+      currency: "USD",
+    },
   });
 
   // Load data on component mount
@@ -87,39 +101,39 @@ export function BalanceAdjustments() {
 
   const loadInvestors = async () => {
     try {
-      const { data, error } = await supabase
-        .rpc('get_all_non_admin_profiles');
+      const { data, error } = await supabase.rpc("get_all_non_admin_profiles");
 
       if (error) throw error;
 
-      const mapped = (data as any[] | null)?.map((p) => ({
-        id: p.id,
-        email: p.email,
-        first_name: p.first_name,
-        last_name: p.last_name,
-        status: 'Active' as string,
-      })) || [];
+      const mapped =
+        (data as any[] | null)?.map((p) => ({
+          id: p.id,
+          email: p.email,
+          first_name: p.first_name,
+          last_name: p.last_name,
+          status: "Active" as string,
+        })) || [];
 
       setInvestors(mapped);
     } catch (error) {
-      console.error('Error loading investors:', error);
-      toast.error('Failed to load investors');
+      console.error("Error loading investors:", error);
+      toast.error("Failed to load investors");
     }
   };
 
   const loadFunds = async () => {
     try {
       const { data, error } = await supabase
-        .from('fund_configurations')
-        .select('id, code, name')
-        .eq('status', 'active')
-        .order('name');
+        .from("fund_configurations")
+        .select("id, code, name")
+        .eq("status", "active")
+        .order("name");
 
       if (error) throw error;
       setFunds(data || []);
     } catch (error) {
-      console.error('Error loading funds:', error);
-      toast.error('Failed to load funds');
+      console.error("Error loading funds:", error);
+      toast.error("Failed to load funds");
     }
   };
 
@@ -133,11 +147,11 @@ export function BalanceAdjustments() {
     const isValid = await trigger();
     if (!isValid) return;
 
-    const selectedInvestor = investors.find(inv => inv.id === data.user_id);
-    const selectedFund = data.fund_id ? funds.find(fund => fund.id === data.fund_id) : undefined;
+    const selectedInvestor = investors.find((inv) => inv.id === data.user_id);
+    const selectedFund = data.fund_id ? funds.find((fund) => fund.id === data.fund_id) : undefined;
 
     if (!selectedInvestor) {
-      toast.error('Selected investor not found');
+      toast.error("Selected investor not found");
       return;
     }
 
@@ -145,7 +159,7 @@ export function BalanceAdjustments() {
       investor: selectedInvestor,
       fund: selectedFund,
       amount: Math.abs(data.amount),
-      type: data.amount > 0 ? 'credit' : 'debit',
+      type: data.amount > 0 ? "credit" : "debit",
       reason: data.reason,
       notes: data.notes,
       audit_ref: data.audit_ref || generateAuditRef(),
@@ -158,13 +172,13 @@ export function BalanceAdjustments() {
     if (!adjustmentPreview) return;
 
     setIsSubmitting(true);
-    
+
     try {
       const formData = getValues();
-      
+
       // Insert balance adjustment record
       const { data: adjustment, error: adjustmentError } = await supabase
-        .from('balance_adjustments')
+        .from("balance_adjustments")
         .insert({
           user_id: formData.user_id,
           fund_id: formData.fund_id || null,
@@ -193,27 +207,25 @@ export function BalanceAdjustments() {
         audit_ref: adjustmentPreview.audit_ref,
       };
 
-      await supabase
-        .from('audit_log')
-        .insert({
-          actor_user: (await supabase.auth.getUser()).data.user?.id,
-          action: 'CREATE_BALANCE_ADJUSTMENT',
-          entity: 'balance_adjustments',
-          entity_id: adjustment.id,
-          new_values: auditData,
-          meta: {
-            adjustment_type: adjustmentPreview.type,
-            has_notes: !!formData.notes,
-          }
-        });
+      await supabase.from("audit_log").insert({
+        actor_user: (await supabase.auth.getUser()).data.user?.id,
+        action: "CREATE_BALANCE_ADJUSTMENT",
+        entity: "balance_adjustments",
+        entity_id: adjustment.id,
+        new_values: auditData,
+        meta: {
+          adjustment_type: adjustmentPreview.type,
+          has_notes: !!formData.notes,
+        },
+      });
 
       // Send notification to investor
       try {
-        await supabase.functions.invoke('ef_send_notification', {
+        await supabase.functions.invoke("ef_send_notification", {
           body: {
             user_id: formData.user_id,
-            type: 'system',
-            title: 'Balance Adjustment Applied',
+            type: "system",
+            title: "Balance Adjustment Applied",
             body: `A ${adjustmentPreview.type} of $${adjustmentPreview.amount.toLocaleString()} has been applied to your account. Reference: ${adjustmentPreview.audit_ref}`,
             data: {
               adjustment_id: adjustment.id,
@@ -221,31 +233,32 @@ export function BalanceAdjustments() {
               type: adjustmentPreview.type,
               audit_ref: adjustmentPreview.audit_ref,
             },
-            priority: 'medium',
+            priority: "medium",
             send_email: true,
-          }
+          },
         });
       } catch (notificationError) {
-        console.warn('Failed to send notification:', notificationError);
+        console.warn("Failed to send notification:", notificationError);
       }
 
-      toast.success(`Balance adjustment applied successfully. Reference: ${adjustmentPreview.audit_ref}`);
-      
+      toast.success(
+        `Balance adjustment applied successfully. Reference: ${adjustmentPreview.audit_ref}`
+      );
+
       // Reset form and close dialog
       reset();
       setShowPreview(false);
       setAdjustmentPreview(null);
-
     } catch (error: any) {
-      console.error('Error creating balance adjustment:', error);
-      toast.error(error.message || 'Failed to create balance adjustment');
+      console.error("Error creating balance adjustment:", error);
+      toast.error(error.message || "Failed to create balance adjustment");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const selectedAmount = watch('amount');
-  const adjustmentType = selectedAmount ? (selectedAmount > 0 ? 'credit' : 'debit') : null;
+  const selectedAmount = watch("amount");
+  const adjustmentType = selectedAmount ? (selectedAmount > 0 ? "credit" : "debit") : null;
 
   return (
     <AdminOnly>
@@ -273,8 +286,8 @@ export function BalanceAdjustments() {
               <div className="space-y-2">
                 <Label htmlFor="user_id">Select Investor *</Label>
                 <Select
-                  value={watch('user_id') || ''}
-                  onValueChange={(value) => setValue('user_id', value)}
+                  value={watch("user_id") || ""}
+                  onValueChange={(value) => setValue("user_id", value)}
                   disabled={isSubmitting}
                 >
                   <SelectTrigger>
@@ -291,8 +304,7 @@ export function BalanceAdjustments() {
                           <span className="font-medium">
                             {investor.first_name && investor.last_name
                               ? `${investor.first_name} ${investor.last_name}`
-                              : investor.email
-                            }
+                              : investor.email}
                           </span>
                           <span className="text-sm text-muted-foreground">
                             {redactForAdmin(investor.email)} • Status: {investor.status}
@@ -302,17 +314,15 @@ export function BalanceAdjustments() {
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.user_id && (
-                  <p className="text-sm text-red-600">{errors.user_id.message}</p>
-                )}
+                {errors.user_id && <p className="text-sm text-red-600">{errors.user_id.message}</p>}
               </div>
 
               {/* Fund Selection (Optional) */}
               <div className="space-y-2">
                 <Label htmlFor="fund_id">Fund (Optional)</Label>
                 <Select
-                  value={watch('fund_id') || ''}
-                  onValueChange={(value) => setValue('fund_id', value || undefined)}
+                  value={watch("fund_id") || ""}
+                  onValueChange={(value) => setValue("fund_id", value || undefined)}
                   disabled={isSubmitting}
                 >
                   <SelectTrigger>
@@ -339,33 +349,40 @@ export function BalanceAdjustments() {
                       type="number"
                       step="0.01"
                       placeholder="Enter amount (positive for credit, negative for debit)"
-                      {...register('amount')}
+                      {...register("amount")}
                       disabled={isSubmitting}
                       className="pr-20"
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 text-sm text-muted-foreground">
-                      {adjustmentType === 'credit' && <TrendingUp className="h-4 w-4 text-green-600" />}
-                      {adjustmentType === 'debit' && <TrendingDown className="h-4 w-4 text-red-600" />}
+                      {adjustmentType === "credit" && (
+                        <TrendingUp className="h-4 w-4 text-green-600" />
+                      )}
+                      {adjustmentType === "debit" && (
+                        <TrendingDown className="h-4 w-4 text-red-600" />
+                      )}
                       {adjustmentType && (
-                        <span className={adjustmentType === 'credit' ? 'text-green-600' : 'text-red-600'}>
+                        <span
+                          className={
+                            adjustmentType === "credit" ? "text-green-600" : "text-red-600"
+                          }
+                        >
                           {adjustmentType}
                         </span>
                       )}
                     </div>
                   </div>
-                  {errors.amount && (
-                    <p className="text-sm text-red-600">{errors.amount.message}</p>
-                  )}
+                  {errors.amount && <p className="text-sm text-red-600">{errors.amount.message}</p>}
                   <p className="text-sm text-muted-foreground">
-                    Use positive values for credits (adding funds) and negative values for debits (removing funds).
+                    Use positive values for credits (adding funds) and negative values for debits
+                    (removing funds).
                   </p>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="currency">Currency *</Label>
                   <Select
-                    value={watch('currency')}
-                    onValueChange={(value) => setValue('currency', value)}
+                    value={watch("currency")}
+                    onValueChange={(value) => setValue("currency", value)}
                     disabled={isSubmitting}
                   >
                     <SelectTrigger>
@@ -386,13 +403,11 @@ export function BalanceAdjustments() {
                 <Textarea
                   id="reason"
                   placeholder="Provide a detailed explanation for this balance adjustment..."
-                  {...register('reason')}
+                  {...register("reason")}
                   disabled={isSubmitting}
                   className="min-h-[100px]"
                 />
-                {errors.reason && (
-                  <p className="text-sm text-red-600">{errors.reason.message}</p>
-                )}
+                {errors.reason && <p className="text-sm text-red-600">{errors.reason.message}</p>}
               </div>
 
               <div className="space-y-2">
@@ -400,7 +415,7 @@ export function BalanceAdjustments() {
                 <Textarea
                   id="notes"
                   placeholder="Any additional information or context..."
-                  {...register('notes')}
+                  {...register("notes")}
                   disabled={isSubmitting}
                 />
               </div>
@@ -411,7 +426,7 @@ export function BalanceAdjustments() {
                 <Input
                   id="audit_ref"
                   placeholder="Custom reference ID (auto-generated if empty)"
-                  {...register('audit_ref')}
+                  {...register("audit_ref")}
                   disabled={isSubmitting}
                 />
                 <p className="text-sm text-muted-foreground">
@@ -423,9 +438,9 @@ export function BalanceAdjustments() {
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Important:</strong> Balance adjustments directly affect investor portfolios and are 
-                  permanent. Ensure all information is accurate before proceeding. This action will be logged 
-                  and the investor will be notified.
+                  <strong>Important:</strong> Balance adjustments directly affect investor
+                  portfolios and are permanent. Ensure all information is accurate before
+                  proceeding. This action will be logged and the investor will be notified.
                 </AlertDescription>
               </Alert>
 
@@ -439,10 +454,12 @@ export function BalanceAdjustments() {
                 >
                   Clear Form
                 </Button>
-                
+
                 <Button
                   type="submit"
-                  disabled={isSubmitting || !watch('user_id') || !watch('amount') || !watch('reason')}
+                  disabled={
+                    isSubmitting || !watch("user_id") || !watch("amount") || !watch("reason")
+                  }
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   Preview Adjustment
@@ -461,7 +478,8 @@ export function BalanceAdjustments() {
                 Review Balance Adjustment
               </DialogTitle>
               <DialogDescription>
-                Please review the adjustment details before confirming. This action cannot be undone.
+                Please review the adjustment details before confirming. This action cannot be
+                undone.
               </DialogDescription>
             </DialogHeader>
 
@@ -473,8 +491,7 @@ export function BalanceAdjustments() {
                     <span>
                       {adjustmentPreview.investor.first_name && adjustmentPreview.investor.last_name
                         ? `${adjustmentPreview.investor.first_name} ${adjustmentPreview.investor.last_name}`
-                        : redactForAdmin(adjustmentPreview.investor.email)
-                      }
+                        : redactForAdmin(adjustmentPreview.investor.email)}
                     </span>
                   </div>
 
@@ -486,16 +503,20 @@ export function BalanceAdjustments() {
                   {adjustmentPreview.fund && (
                     <div className="flex items-center justify-between">
                       <span className="font-medium">Fund:</span>
-                      <span>{adjustmentPreview.fund.name} ({adjustmentPreview.fund.code})</span>
+                      <span>
+                        {adjustmentPreview.fund.name} ({adjustmentPreview.fund.code})
+                      </span>
                     </div>
                   )}
 
                   <div className="flex items-center justify-between">
                     <span className="font-medium">Adjustment Type:</span>
-                    <span className={`flex items-center gap-1 font-medium ${
-                      adjustmentPreview.type === 'credit' ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {adjustmentPreview.type === 'credit' ? (
+                    <span
+                      className={`flex items-center gap-1 font-medium ${
+                        adjustmentPreview.type === "credit" ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {adjustmentPreview.type === "credit" ? (
                         <TrendingUp className="h-4 w-4" />
                       ) : (
                         <TrendingDown className="h-4 w-4" />
@@ -506,9 +527,11 @@ export function BalanceAdjustments() {
 
                   <div className="flex items-center justify-between">
                     <span className="font-medium">Amount:</span>
-                    <span className={`text-lg font-bold ${
-                      adjustmentPreview.type === 'credit' ? 'text-green-600' : 'text-red-600'
-                    }`}>
+                    <span
+                      className={`text-lg font-bold ${
+                        adjustmentPreview.type === "credit" ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
                       ${adjustmentPreview.amount.toLocaleString()} USD
                     </span>
                   </div>
@@ -548,9 +571,15 @@ export function BalanceAdjustments() {
               <Button
                 onClick={onConfirmAdjustment}
                 disabled={isSubmitting}
-                className={adjustmentPreview?.type === 'credit' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+                className={
+                  adjustmentPreview?.type === "credit"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-red-600 hover:bg-red-700"
+                }
               >
-                {isSubmitting ? 'Processing...' : `Confirm ${adjustmentPreview?.type?.toUpperCase()}`}
+                {isSubmitting
+                  ? "Processing..."
+                  : `Confirm ${adjustmentPreview?.type?.toUpperCase()}`}
               </Button>
             </DialogFooter>
           </DialogContent>

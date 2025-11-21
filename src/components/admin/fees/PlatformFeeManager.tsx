@@ -1,12 +1,18 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { DollarSign, Percent, TrendingUp, Users } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { DollarSign, Percent, TrendingUp, Users } from "lucide-react";
 
 interface InvestorFee {
   investor_id: string;
@@ -29,10 +35,10 @@ interface FeeStats {
 const PlatformFeeManager = () => {
   const [investorFees, setInvestorFees] = useState<InvestorFee[]>([]);
   const [feeStats, setFeeStats] = useState<FeeStats[]>([]);
-  const [selectedAsset, setSelectedAsset] = useState<string>('USDT');
+  const [selectedAsset, setSelectedAsset] = useState<string>("USDT");
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7));
   const [editingInvestor, setEditingInvestor] = useState<string | null>(null);
-  const [newFeeRate, setNewFeeRate] = useState<string>('');
+  const [newFeeRate, setNewFeeRate] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -43,117 +49,136 @@ const PlatformFeeManager = () => {
   const fetchInvestorFees = async () => {
     try {
       const { data, error } = await supabase
-        .from('investors')
-        .select(`
+        .from("investors")
+        .select(
+          `
           id,
           name,
           email,
           profiles!inner(fee_percentage)
-        `)
-        .eq('status', 'active');
+        `
+        )
+        .eq("status", "active");
 
       if (error) throw error;
 
       // Get fee collection data for the selected month
       const startDate = `${selectedMonth}-01`;
-      const endDate = new Date(new Date(selectedMonth).getFullYear(), new Date(selectedMonth).getMonth() + 1, 0)
-        .toISOString().slice(0, 10);
+      const endDate = new Date(
+        new Date(selectedMonth).getFullYear(),
+        new Date(selectedMonth).getMonth() + 1,
+        0
+      )
+        .toISOString()
+        .slice(0, 10);
 
       const { data: feeData, error: feeError } = await supabase
-        .from('platform_fees_collected')
-        .select('investor_id, fee_amount')
-        .eq('asset_code', selectedAsset)
-        .gte('fee_month', startDate)
-        .lte('fee_month', endDate);
+        .from("platform_fees_collected")
+        .select("investor_id, fee_amount")
+        .eq("asset_code", selectedAsset)
+        .gte("fee_month", startDate)
+        .lte("fee_month", endDate);
 
       if (feeError) throw feeError;
 
-      const feesMap = feeData?.reduce((acc, fee) => {
-        acc[fee.investor_id] = (acc[fee.investor_id] || 0) + parseFloat(fee.fee_amount.toString());
-        return acc;
-      }, {} as Record<string, number>) || {};
+      const feesMap =
+        feeData?.reduce(
+          (acc, fee) => {
+            acc[fee.investor_id] =
+              (acc[fee.investor_id] || 0) + parseFloat(fee.fee_amount.toString());
+            return acc;
+          },
+          {} as Record<string, number>
+        ) || {};
 
-      const formattedData: InvestorFee[] = data?.map(investor => ({
-        investor_id: investor.id,
-        investor_name: investor.name,
-        investor_email: investor.email,
-        current_fee_rate: investor.profiles?.fee_percentage || 0.02,
-        total_fees_collected: feesMap[investor.id] || 0,
-        last_updated: new Date().toISOString()
-      })) || [];
+      const formattedData: InvestorFee[] =
+        data?.map((investor) => ({
+          investor_id: investor.id,
+          investor_name: investor.name,
+          investor_email: investor.email,
+          current_fee_rate: investor.profiles?.fee_percentage || 0.02,
+          total_fees_collected: feesMap[investor.id] || 0,
+          last_updated: new Date().toISOString(),
+        })) || [];
 
       setInvestorFees(formattedData);
     } catch (error) {
-      console.error('Error fetching investor fees:', error);
-      toast.error('Failed to load investor fee data');
+      console.error("Error fetching investor fees:", error);
+      toast.error("Failed to load investor fee data");
     }
   };
 
   const fetchFeeStats = async () => {
     try {
       const startDate = `${selectedMonth}-01`;
-      const endDate = new Date(new Date(selectedMonth).getFullYear(), new Date(selectedMonth).getMonth() + 1, 0)
-        .toISOString().slice(0, 10);
+      const endDate = new Date(
+        new Date(selectedMonth).getFullYear(),
+        new Date(selectedMonth).getMonth() + 1,
+        0
+      )
+        .toISOString()
+        .slice(0, 10);
 
       const { data, error } = await supabase
-        .from('monthly_fee_summary')
-        .select('*')
-        .eq('asset_code', selectedAsset)
-        .gte('summary_month', startDate)
-        .lte('summary_month', endDate)
-        .order('summary_month', { ascending: false });
+        .from("monthly_fee_summary")
+        .select("*")
+        .eq("asset_code", selectedAsset)
+        .gte("summary_month", startDate)
+        .lte("summary_month", endDate)
+        .order("summary_month", { ascending: false });
 
       if (error) throw error;
 
-      const formattedStats: FeeStats[] = data?.map(stat => ({
-        total_fees_collected: parseFloat(stat.total_fees_collected.toString()),
-        total_gross_yield: parseFloat(stat.total_gross_yield.toString()),
-        total_net_yield: parseFloat(stat.total_net_yield.toString()),
-        investor_count: stat.investor_count,
-        asset_code: stat.asset_code,
-        month: stat.summary_month
-      })) || [];
+      const formattedStats: FeeStats[] =
+        data?.map((stat) => ({
+          total_fees_collected: parseFloat(stat.total_fees_collected.toString()),
+          total_gross_yield: parseFloat(stat.total_gross_yield.toString()),
+          total_net_yield: parseFloat(stat.total_net_yield.toString()),
+          investor_count: stat.investor_count,
+          asset_code: stat.asset_code,
+          month: stat.summary_month,
+        })) || [];
 
       setFeeStats(formattedStats);
     } catch (error) {
-      console.error('Error fetching fee stats:', error);
-      toast.error('Failed to load fee statistics');
+      console.error("Error fetching fee stats:", error);
+      toast.error("Failed to load fee statistics");
     }
   };
 
   const updateInvestorFeeRate = async (investorId: string, newRate: number) => {
     if (newRate < 0 || newRate > 1) {
-      toast.error('Fee rate must be between 0% and 100%');
+      toast.error("Fee rate must be between 0% and 100%");
       return;
     }
 
     setLoading(true);
     try {
       const { error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({ fee_percentage: newRate })
-        .eq('id', investorId);
+        .eq("id", investorId);
 
       if (error) throw error;
 
-      toast.success('Fee rate updated successfully');
+      toast.success("Fee rate updated successfully");
       setEditingInvestor(null);
-      setNewFeeRate('');
+      setNewFeeRate("");
       fetchInvestorFees();
     } catch (error) {
-      console.error('Error updating fee rate:', error);
-      toast.error('Failed to update fee rate');
+      console.error("Error updating fee rate:", error);
+      toast.error("Failed to update fee rate");
     } finally {
       setLoading(false);
     }
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
       minimumFractionDigits: 2,
-      maximumFractionDigits: 6
+      maximumFractionDigits: 6,
     }).format(amount);
   };
 
@@ -165,7 +190,7 @@ const PlatformFeeManager = () => {
     (acc, stat) => ({
       totalFeesCollected: acc.totalFeesCollected + stat.total_fees_collected,
       totalGrossYield: acc.totalGrossYield + stat.total_gross_yield,
-      totalNetYield: acc.totalNetYield + stat.total_net_yield
+      totalNetYield: acc.totalNetYield + stat.total_net_yield,
     }),
     { totalFeesCollected: 0, totalGrossYield: 0, totalNetYield: 0 }
   );
@@ -230,9 +255,7 @@ const PlatformFeeManager = () => {
               <TrendingUp className="h-5 w-5 text-blue-600" />
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Gross Yield</p>
-                <p className="text-2xl font-bold">
-                  {formatCurrency(totalStats.totalGrossYield)}
-                </p>
+                <p className="text-2xl font-bold">{formatCurrency(totalStats.totalGrossYield)}</p>
               </div>
             </div>
           </CardContent>
@@ -244,9 +267,7 @@ const PlatformFeeManager = () => {
               <Percent className="h-5 w-5 text-purple-600" />
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Net Yield</p>
-                <p className="text-2xl font-bold">
-                  {formatCurrency(totalStats.totalNetYield)}
-                </p>
+                <p className="text-2xl font-bold">{formatCurrency(totalStats.totalNetYield)}</p>
               </div>
             </div>
           </CardContent>
@@ -258,9 +279,7 @@ const PlatformFeeManager = () => {
               <Users className="h-5 w-5 text-orange-600" />
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Active Investors</p>
-                <p className="text-2xl font-bold">
-                  {investorFees.length}
-                </p>
+                <p className="text-2xl font-bold">{investorFees.length}</p>
               </div>
             </div>
           </CardContent>
@@ -318,10 +337,12 @@ const PlatformFeeManager = () => {
                         <div className="flex items-center gap-2 justify-center">
                           <Button
                             size="sm"
-                            onClick={() => updateInvestorFeeRate(
-                              investor.investor_id,
-                              parseFloat(newFeeRate) / 100
-                            )}
+                            onClick={() =>
+                              updateInvestorFeeRate(
+                                investor.investor_id,
+                                parseFloat(newFeeRate) / 100
+                              )
+                            }
                             disabled={loading || !newFeeRate}
                           >
                             Save
@@ -331,7 +352,7 @@ const PlatformFeeManager = () => {
                             variant="outline"
                             onClick={() => {
                               setEditingInvestor(null);
-                              setNewFeeRate('');
+                              setNewFeeRate("");
                             }}
                           >
                             Cancel

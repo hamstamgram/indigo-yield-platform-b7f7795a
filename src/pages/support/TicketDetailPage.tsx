@@ -1,31 +1,33 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useTicketMessages } from '@/hooks/useSupport';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, Send, Paperclip } from 'lucide-react';
-import { format } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client';
-import { SupportTicket } from '@/types/support';
-import { Skeleton } from '@/components/ui/skeleton';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useTicketMessages } from "@/hooks/useSupport";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ArrowLeft, Send, Paperclip } from "lucide-react";
+import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { SupportTicket } from "@/types/support";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const TicketDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [ticket, setTicket] = useState<SupportTicket | null>(null);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
   const { messages, sendMessage } = useTicketMessages(id);
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setCurrentUser(user);
     };
     getUser();
@@ -39,16 +41,16 @@ const TicketDetailPage: React.FC = () => {
 
   const loadTicket = async () => {
     if (!id) return;
-    
+
     try {
       const { data, error } = await supabase
-        .from('support_tickets')
-        .select('*')
-        .eq('id', id)
+        .from("support_tickets")
+        .select("*")
+        .eq("id", id)
         .maybeSingle();
 
       if (!data) {
-        console.error('Ticket not found');
+        console.error("Ticket not found");
         setLoading(false);
         return;
       }
@@ -56,7 +58,7 @@ const TicketDetailPage: React.FC = () => {
       if (error) throw error;
       setTicket(data as any);
     } catch (error) {
-      console.error('Error loading ticket:', error);
+      console.error("Error loading ticket:", error);
     } finally {
       setLoading(false);
     }
@@ -72,7 +74,7 @@ const TicketDetailPage: React.FC = () => {
       message: newMessage,
     });
 
-    setNewMessage('');
+    setNewMessage("");
   };
 
   if (loading) {
@@ -97,7 +99,7 @@ const TicketDetailPage: React.FC = () => {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <h3 className="text-lg font-semibold mb-2">Ticket not found</h3>
-            <Button onClick={() => navigate('/support/tickets')}>
+            <Button onClick={() => navigate("/support/tickets")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Tickets
             </Button>
@@ -109,7 +111,7 @@ const TicketDetailPage: React.FC = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6 max-w-4xl">
-      <Button variant="ghost" onClick={() => navigate('/support/tickets')} className="gap-2">
+      <Button variant="ghost" onClick={() => navigate("/support/tickets")} className="gap-2">
         <ArrowLeft className="h-4 w-4" />
         Back to Tickets
       </Button>
@@ -120,16 +122,17 @@ const TicketDetailPage: React.FC = () => {
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <Badge variant="outline">{ticket.ticket_number}</Badge>
-                <Badge variant={ticket.status === 'open' ? 'default' : 'secondary'}>
+                <Badge variant={ticket.status === "open" ? "default" : "secondary"}>
                   {ticket.status}
                 </Badge>
-                <Badge variant={ticket.priority === 'urgent' ? 'destructive' : 'default'}>
+                <Badge variant={ticket.priority === "urgent" ? "destructive" : "default"}>
                   {ticket.priority}
                 </Badge>
               </div>
               <CardTitle className="text-2xl">{ticket.subject}</CardTitle>
               <p className="text-sm text-muted-foreground mt-2">
-                Category: {ticket.category} • Created {format(new Date(ticket.created_at), 'MMM d, yyyy')}
+                Category: {ticket.category} • Created{" "}
+                {format(new Date(ticket.created_at), "MMM d, yyyy")}
               </p>
             </div>
           </div>
@@ -157,21 +160,19 @@ const TicketDetailPage: React.FC = () => {
                   {messages.map((msg) => (
                     <div
                       key={msg.id}
-                      className={`flex ${msg.is_staff ? 'justify-start' : 'justify-end'}`}
+                      className={`flex ${msg.is_staff ? "justify-start" : "justify-end"}`}
                     >
                       <div
                         className={`max-w-[80%] rounded-lg p-3 ${
-                          msg.is_staff
-                            ? 'bg-muted'
-                            : 'bg-primary text-primary-foreground'
+                          msg.is_staff ? "bg-muted" : "bg-primary text-primary-foreground"
                         }`}
                       >
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-xs font-medium">
-                            {msg.is_staff ? 'Support Team' : 'You'}
+                            {msg.is_staff ? "Support Team" : "You"}
                           </span>
                           <span className="text-xs opacity-70">
-                            {format(new Date(msg.created_at), 'MMM d, h:mm a')}
+                            {format(new Date(msg.created_at), "MMM d, h:mm a")}
                           </span>
                         </div>
                         <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
@@ -189,7 +190,7 @@ const TicketDetailPage: React.FC = () => {
                 onChange={(e) => setNewMessage(e.target.value)}
                 rows={3}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
+                  if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
                     handleSendMessage();
                   }

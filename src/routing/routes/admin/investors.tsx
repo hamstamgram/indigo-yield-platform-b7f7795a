@@ -8,11 +8,19 @@ import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
 const AdminInvestorNewPage = lazy(() => import("@/pages/admin/investors/AdminInvestorNewPage"));
-const AdminInvestorDetailPage = lazy(() => import("@/pages/admin/investors/AdminInvestorDetailPage"));
-const AdminInvestorPositionsPage = lazy(() => import("@/pages/admin/investors/AdminInvestorPositionsPage"));
-const AdminInvestorTransactionsPage = lazy(() => import("@/pages/admin/investors/AdminInvestorTransactionsPage"));
+const AdminInvestorDetailPage = lazy(
+  () => import("@/pages/admin/investors/AdminInvestorDetailPage")
+);
+const AdminInvestorPositionsPage = lazy(
+  () => import("@/pages/admin/investors/AdminInvestorPositionsPage")
+);
+const AdminInvestorTransactionsPage = lazy(
+  () => import("@/pages/admin/investors/AdminInvestorTransactionsPage")
+);
 const ExpertInvestorMasterView = lazy(() => import("@/pages/admin/ExpertInvestorMasterView"));
-const ExpertInvestorDashboard = lazy(() => import("@/components/admin/expert/ExpertInvestorDashboard"));
+const ExpertInvestorDashboard = lazy(
+  () => import("@/components/admin/expert/ExpertInvestorDashboard")
+);
 const InvestorAccountCreation = lazy(() =>
   import("@/pages/admin/InvestorAccountCreation").then((m) => ({
     default: m.InvestorAccountCreation,

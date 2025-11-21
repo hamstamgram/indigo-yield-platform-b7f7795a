@@ -2,11 +2,11 @@
  * Portfolio Performance Report Page
  */
 
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, TrendingUp } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ReportBuilder } from '@/components/reports/ReportBuilder';
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ReportBuilder } from "@/components/reports/ReportBuilder";
 
 export default function PortfolioPerformance() {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ export default function PortfolioPerformance() {
   return (
     <div className="container max-w-5xl mx-auto px-4 py-8 space-y-8">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/reports')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate("/reports")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>

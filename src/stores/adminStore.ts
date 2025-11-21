@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { immer } from 'zustand/middleware/immer';
+import { create } from "zustand";
+import { immer } from "zustand/middleware/immer";
 
 interface AdminMetrics {
   totalUsers: number;
@@ -7,14 +7,14 @@ interface AdminMetrics {
   totalPortfolioValue: number;
   totalTransactions: number;
   newUsersThisMonth: number;
-  systemHealth: 'good' | 'warning' | 'critical';
+  systemHealth: "good" | "warning" | "critical";
 }
 
 interface User {
   id: string;
   email: string;
   name?: string;
-  status: 'active' | 'inactive' | 'suspended';
+  status: "active" | "inactive" | "suspended";
   created_at: string;
   last_sign_in: string;
   is_admin: boolean;
@@ -22,7 +22,7 @@ interface User {
 
 interface SystemAlert {
   id: string;
-  type: 'info' | 'warning' | 'error';
+  type: "info" | "warning" | "error";
   message: string;
   timestamp: Date;
   acknowledged: boolean;
@@ -48,7 +48,7 @@ interface AdminActions {
   updateUser: (userId: string, updates: Partial<User>) => void;
   addUser: (user: User) => void;
   removeUser: (userId: string) => void;
-  addSystemAlert: (alert: Omit<SystemAlert, 'id' | 'timestamp' | 'acknowledged'>) => void;
+  addSystemAlert: (alert: Omit<SystemAlert, "id" | "timestamp" | "acknowledged">) => void;
   acknowledgeAlert: (alertId: string) => void;
   clearAlerts: () => void;
   clearAdminData: () => void;
@@ -67,86 +67,100 @@ export const useAdminStore = create<AdminState & AdminActions>()(
     lastRefresh: null,
 
     // Actions
-    setMetrics: (metrics) => set((state) => {
-      state.metrics = metrics;
-      state.lastRefresh = new Date();
-    }),
+    setMetrics: (metrics) =>
+      set((state) => {
+        state.metrics = metrics;
+        state.lastRefresh = new Date();
+      }),
 
-    setUsers: (users) => set((state) => {
-      state.users = users;
-    }),
+    setUsers: (users) =>
+      set((state) => {
+        state.users = users;
+      }),
 
-    setSelectedUser: (user) => set((state) => {
-      state.selectedUser = user;
-    }),
+    setSelectedUser: (user) =>
+      set((state) => {
+        state.selectedUser = user;
+      }),
 
-    setSystemAlerts: (alerts) => set((state) => {
-      state.systemAlerts = alerts;
-    }),
+    setSystemAlerts: (alerts) =>
+      set((state) => {
+        state.systemAlerts = alerts;
+      }),
 
-    setLoading: (loading) => set((state) => {
-      state.loading = loading;
-    }),
+    setLoading: (loading) =>
+      set((state) => {
+        state.loading = loading;
+      }),
 
-    setError: (error) => set((state) => {
-      state.error = error;
-    }),
+    setError: (error) =>
+      set((state) => {
+        state.error = error;
+      }),
 
-    updateUser: (userId, updates) => set((state) => {
-      const index = state.users.findIndex(u => u.id === userId);
-      if (index !== -1) {
-        state.users[index] = { ...state.users[index], ...updates };
-      }
-      
-      if (state.selectedUser?.id === userId) {
-        state.selectedUser = { ...state.selectedUser, ...updates };
-      }
-    }),
+    updateUser: (userId, updates) =>
+      set((state) => {
+        const index = state.users.findIndex((u) => u.id === userId);
+        if (index !== -1) {
+          state.users[index] = { ...state.users[index], ...updates };
+        }
 
-    addUser: (user) => set((state) => {
-      state.users.unshift(user); // Add to beginning for recent users first
-    }),
+        if (state.selectedUser?.id === userId) {
+          state.selectedUser = { ...state.selectedUser, ...updates };
+        }
+      }),
 
-    removeUser: (userId) => set((state) => {
-      state.users = state.users.filter(u => u.id !== userId);
-      if (state.selectedUser?.id === userId) {
+    addUser: (user) =>
+      set((state) => {
+        state.users.unshift(user); // Add to beginning for recent users first
+      }),
+
+    removeUser: (userId) =>
+      set((state) => {
+        state.users = state.users.filter((u) => u.id !== userId);
+        if (state.selectedUser?.id === userId) {
+          state.selectedUser = null;
+        }
+      }),
+
+    addSystemAlert: (alert) =>
+      set((state) => {
+        const newAlert: SystemAlert = {
+          ...alert,
+          id: `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          timestamp: new Date(),
+          acknowledged: false,
+        };
+        state.systemAlerts.unshift(newAlert);
+      }),
+
+    acknowledgeAlert: (alertId) =>
+      set((state) => {
+        const alert = state.systemAlerts.find((a) => a.id === alertId);
+        if (alert) {
+          alert.acknowledged = true;
+        }
+      }),
+
+    clearAlerts: () =>
+      set((state) => {
+        state.systemAlerts = [];
+      }),
+
+    clearAdminData: () =>
+      set((state) => {
+        state.metrics = null;
+        state.users = [];
         state.selectedUser = null;
-      }
-    }),
+        state.systemAlerts = [];
+        state.error = null;
+        state.lastRefresh = null;
+      }),
 
-    addSystemAlert: (alert) => set((state) => {
-      const newAlert: SystemAlert = {
-        ...alert,
-        id: `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        timestamp: new Date(),
-        acknowledged: false
-      };
-      state.systemAlerts.unshift(newAlert);
-    }),
-
-    acknowledgeAlert: (alertId) => set((state) => {
-      const alert = state.systemAlerts.find(a => a.id === alertId);
-      if (alert) {
-        alert.acknowledged = true;
-      }
-    }),
-
-    clearAlerts: () => set((state) => {
-      state.systemAlerts = [];
-    }),
-
-    clearAdminData: () => set((state) => {
-      state.metrics = null;
-      state.users = [];
-      state.selectedUser = null;
-      state.systemAlerts = [];
-      state.error = null;
-      state.lastRefresh = null;
-    }),
-
-    setLastRefresh: (date) => set((state) => {
-      state.lastRefresh = date;
-    }),
+    setLastRefresh: (date) =>
+      set((state) => {
+        state.lastRefresh = date;
+      }),
   }))
 );
 
@@ -160,22 +174,16 @@ export const useAdminError = () => useAdminStore((state) => state.error);
 export const useLastRefresh = () => useAdminStore((state) => state.lastRefresh);
 
 // Computed selectors
-export const useUnacknowledgedAlerts = () => 
-  useAdminStore((state) => 
-    state.systemAlerts.filter(alert => !alert.acknowledged)
+export const useUnacknowledgedAlerts = () =>
+  useAdminStore((state) => state.systemAlerts.filter((alert) => !alert.acknowledged));
+
+export const useCriticalAlerts = () =>
+  useAdminStore((state) =>
+    state.systemAlerts.filter((alert) => alert.type === "error" && !alert.acknowledged)
   );
 
-export const useCriticalAlerts = () => 
-  useAdminStore((state) => 
-    state.systemAlerts.filter(alert => alert.type === 'error' && !alert.acknowledged)
-  );
+export const useActiveUsers = () =>
+  useAdminStore((state) => state.users.filter((user) => user.status === "active"));
 
-export const useActiveUsers = () => 
-  useAdminStore((state) => 
-    state.users.filter(user => user.status === 'active')
-  );
-
-export const useAdminUsersOnly = () => 
-  useAdminStore((state) => 
-    state.users.filter(user => user.is_admin)
-  );
+export const useAdminUsersOnly = () =>
+  useAdminStore((state) => state.users.filter((user) => user.is_admin));

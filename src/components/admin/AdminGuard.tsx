@@ -3,10 +3,10 @@
  * Protects admin-only routes with role-based access control
  */
 
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { Shield, Loader2 } from 'lucide-react';
-import { useAuth } from '@/lib/auth/context';
+import React from "react";
+import { Navigate } from "react-router-dom";
+import { Shield, Loader2 } from "lucide-react";
+import { useAuth } from "@/lib/auth/context";
 
 interface AdminGuardProps {
   children: React.ReactNode;

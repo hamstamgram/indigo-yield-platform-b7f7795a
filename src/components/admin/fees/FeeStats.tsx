@@ -15,9 +15,7 @@ export function FeeStats({ stats }: FeeStatsProps) {
           <DollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
-            ${stats.totalFeesThisMonth.toLocaleString()}
-          </div>
+          <div className="text-2xl font-bold">${stats.totalFeesThisMonth.toLocaleString()}</div>
           <p className="text-xs text-muted-foreground">Month-to-date collected</p>
         </CardContent>
       </Card>
@@ -28,9 +26,7 @@ export function FeeStats({ stats }: FeeStatsProps) {
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
-            ${stats.totalFeesThisYear.toLocaleString()}
-          </div>
+          <div className="text-2xl font-bold">${stats.totalFeesThisYear.toLocaleString()}</div>
           <p className="text-xs text-muted-foreground">Year-to-date total</p>
         </CardContent>
       </Card>

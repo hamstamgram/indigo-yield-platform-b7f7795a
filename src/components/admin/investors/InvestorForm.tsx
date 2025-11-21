@@ -1,15 +1,14 @@
-
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -46,7 +45,7 @@ const InvestorForm: React.FC<InvestorFormProps> = ({
   onSubmit,
   isLoading,
   assets,
-  defaultValues = {}
+  defaultValues = {},
 }) => {
   const form = useForm<InvestorFormValues>({
     resolver: zodResolver(formSchema),
@@ -58,13 +57,13 @@ const InvestorForm: React.FC<InvestorFormProps> = ({
       eth_balance: "0",
       sol_balance: "0",
       usdc_balance: "0",
-      ...defaultValues
+      ...defaultValues,
     },
   });
 
   // Get the asset symbols for our supported assets
-  const assetSymbols = assets.map(asset => asset.symbol.toLowerCase());
-  
+  const assetSymbols = assets.map((asset) => asset.symbol.toLowerCase());
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -82,7 +81,7 @@ const InvestorForm: React.FC<InvestorFormProps> = ({
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="first_name"
@@ -96,7 +95,7 @@ const InvestorForm: React.FC<InvestorFormProps> = ({
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="last_name"
@@ -115,7 +114,7 @@ const InvestorForm: React.FC<InvestorFormProps> = ({
         <div className="pt-4 border-t">
           <h3 className="text-lg font-medium mb-4">Initial Balances</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            {assetSymbols.includes('btc') && (
+            {assetSymbols.includes("btc") && (
               <FormField
                 control={form.control}
                 name="btc_balance"
@@ -130,8 +129,8 @@ const InvestorForm: React.FC<InvestorFormProps> = ({
                 )}
               />
             )}
-            
-            {assetSymbols.includes('eth') && (
+
+            {assetSymbols.includes("eth") && (
               <FormField
                 control={form.control}
                 name="eth_balance"
@@ -146,8 +145,8 @@ const InvestorForm: React.FC<InvestorFormProps> = ({
                 )}
               />
             )}
-            
-            {assetSymbols.includes('sol') && (
+
+            {assetSymbols.includes("sol") && (
               <FormField
                 control={form.control}
                 name="sol_balance"
@@ -162,8 +161,8 @@ const InvestorForm: React.FC<InvestorFormProps> = ({
                 )}
               />
             )}
-            
-            {assetSymbols.includes('usdc') && (
+
+            {assetSymbols.includes("usdc") && (
               <FormField
                 control={form.control}
                 name="usdc_balance"

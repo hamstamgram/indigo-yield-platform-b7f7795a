@@ -1,40 +1,47 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, UserPlus, Loader2, Check, X } from 'lucide-react';
-import AppLogo from '@/components/AppLogo';
-import { Progress } from '@/components/ui/progress';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Eye, EyeOff, UserPlus, Loader2, Check, X } from "lucide-react";
+import AppLogo from "@/components/AppLogo";
+import { Progress } from "@/components/ui/progress";
 
 const registerSchema = z
   .object({
-    firstName: z.string().min(2, 'First name must be at least 2 characters'),
-    lastName: z.string().min(2, 'Last name must be at least 2 characters'),
-    email: z.string().email('Invalid email address'),
+    firstName: z.string().min(2, "First name must be at least 2 characters"),
+    lastName: z.string().min(2, "Last name must be at least 2 characters"),
+    email: z.string().email("Invalid email address"),
     password: z
       .string()
-      .min(8, 'Password must be at least 8 characters')
-      .regex(/[A-Z]/, 'Password must contain an uppercase letter')
-      .regex(/[a-z]/, 'Password must contain a lowercase letter')
-      .regex(/[0-9]/, 'Password must contain a number')
-      .regex(/[^A-Za-z0-9]/, 'Password must contain a special character'),
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Password must contain an uppercase letter")
+      .regex(/[a-z]/, "Password must contain a lowercase letter")
+      .regex(/[0-9]/, "Password must contain a number")
+      .regex(/[^A-Za-z0-9]/, "Password must contain a special character"),
     confirmPassword: z.string(),
     phone: z.string().optional(),
     acceptTerms: z.boolean().refine((val) => val === true, {
-      message: 'You must accept the terms and conditions',
+      message: "You must accept the terms and conditions",
     }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
-    path: ['confirmPassword'],
+    path: ["confirmPassword"],
   });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
@@ -58,7 +65,7 @@ export default function RegisterPage() {
     },
   });
 
-  const password = watch('password');
+  const password = watch("password");
 
   // Calculate password strength
   const calculatePasswordStrength = (pwd: string) => {
@@ -94,22 +101,22 @@ export default function RegisterPage() {
       if (error) throw error;
 
       if (authData.user) {
-        toast.success('Registration successful! Please check your email to verify your account.');
-        navigate('/verify-email');
+        toast.success("Registration successful! Please check your email to verify your account.");
+        navigate("/verify-email");
       }
     } catch (error: any) {
-      console.error('Registration error:', error);
-      toast.error(error.message || 'Failed to create account');
+      console.error("Registration error:", error);
+      toast.error(error.message || "Failed to create account");
     } finally {
       setIsLoading(false);
     }
   };
 
   const getPasswordStrengthText = () => {
-    if (passwordStrength < 25) return 'Weak';
-    if (passwordStrength < 50) return 'Fair';
-    if (passwordStrength < 75) return 'Good';
-    return 'Strong';
+    if (passwordStrength < 25) return "Weak";
+    if (passwordStrength < 50) return "Fair";
+    if (passwordStrength < 75) return "Good";
+    return "Strong";
   };
 
   return (
@@ -122,9 +129,7 @@ export default function RegisterPage() {
               <AppLogo className="h-12" />
             </div>
             <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-            <CardDescription>
-              Enter your information to get started
-            </CardDescription>
+            <CardDescription>Enter your information to get started</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -134,7 +139,7 @@ export default function RegisterPage() {
                   <Input
                     id="firstName"
                     placeholder="John"
-                    {...register('firstName')}
+                    {...register("firstName")}
                     disabled={isLoading}
                   />
                   {errors.firstName && (
@@ -146,7 +151,7 @@ export default function RegisterPage() {
                   <Input
                     id="lastName"
                     placeholder="Doe"
-                    {...register('lastName')}
+                    {...register("lastName")}
                     disabled={isLoading}
                   />
                   {errors.lastName && (
@@ -161,12 +166,10 @@ export default function RegisterPage() {
                   id="email"
                   type="email"
                   placeholder="name@example.com"
-                  {...register('email')}
+                  {...register("email")}
                   disabled={isLoading}
                 />
-                {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email.message}</p>
-                )}
+                {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
               </div>
 
               <div className="space-y-2">
@@ -175,7 +178,7 @@ export default function RegisterPage() {
                   id="phone"
                   type="tel"
                   placeholder="+1 (555) 000-0000"
-                  {...register('phone')}
+                  {...register("phone")}
                   disabled={isLoading}
                 />
               </div>
@@ -185,9 +188,9 @@ export default function RegisterPage() {
                 <div className="relative">
                   <Input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    {...register('password')}
+                    {...register("password")}
                     disabled={isLoading}
                   />
                   <button
@@ -195,11 +198,7 @@ export default function RegisterPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 {password && (
@@ -209,20 +208,44 @@ export default function RegisterPage() {
                       <span className="text-xs font-medium">{getPasswordStrengthText()}</span>
                     </div>
                     <div className="text-xs space-y-1">
-                      <div className={`flex items-center gap-1 ${password.length >= 8 ? 'text-green-600' : 'text-muted-foreground'}`}>
-                        {password.length >= 8 ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                      <div
+                        className={`flex items-center gap-1 ${password.length >= 8 ? "text-green-600" : "text-muted-foreground"}`}
+                      >
+                        {password.length >= 8 ? (
+                          <Check className="h-3 w-3" />
+                        ) : (
+                          <X className="h-3 w-3" />
+                        )}
                         <span>At least 8 characters</span>
                       </div>
-                      <div className={`flex items-center gap-1 ${/[A-Z]/.test(password) ? 'text-green-600' : 'text-muted-foreground'}`}>
-                        {/[A-Z]/.test(password) ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                      <div
+                        className={`flex items-center gap-1 ${/[A-Z]/.test(password) ? "text-green-600" : "text-muted-foreground"}`}
+                      >
+                        {/[A-Z]/.test(password) ? (
+                          <Check className="h-3 w-3" />
+                        ) : (
+                          <X className="h-3 w-3" />
+                        )}
                         <span>One uppercase letter</span>
                       </div>
-                      <div className={`flex items-center gap-1 ${/[0-9]/.test(password) ? 'text-green-600' : 'text-muted-foreground'}`}>
-                        {/[0-9]/.test(password) ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                      <div
+                        className={`flex items-center gap-1 ${/[0-9]/.test(password) ? "text-green-600" : "text-muted-foreground"}`}
+                      >
+                        {/[0-9]/.test(password) ? (
+                          <Check className="h-3 w-3" />
+                        ) : (
+                          <X className="h-3 w-3" />
+                        )}
                         <span>One number</span>
                       </div>
-                      <div className={`flex items-center gap-1 ${/[^A-Za-z0-9]/.test(password) ? 'text-green-600' : 'text-muted-foreground'}`}>
-                        {/[^A-Za-z0-9]/.test(password) ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                      <div
+                        className={`flex items-center gap-1 ${/[^A-Za-z0-9]/.test(password) ? "text-green-600" : "text-muted-foreground"}`}
+                      >
+                        {/[^A-Za-z0-9]/.test(password) ? (
+                          <Check className="h-3 w-3" />
+                        ) : (
+                          <X className="h-3 w-3" />
+                        )}
                         <span>One special character</span>
                       </div>
                     </div>
@@ -238,9 +261,9 @@ export default function RegisterPage() {
                 <div className="relative">
                   <Input
                     id="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
+                    type={showConfirmPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    {...register('confirmPassword')}
+                    {...register("confirmPassword")}
                     disabled={isLoading}
                   />
                   <button
@@ -261,13 +284,16 @@ export default function RegisterPage() {
               </div>
 
               <div className="flex items-start space-x-2">
-                <Checkbox id="acceptTerms" {...register('acceptTerms')} />
-                <Label htmlFor="acceptTerms" className="text-sm font-normal leading-none cursor-pointer">
-                  I agree to the{' '}
+                <Checkbox id="acceptTerms" {...register("acceptTerms")} />
+                <Label
+                  htmlFor="acceptTerms"
+                  className="text-sm font-normal leading-none cursor-pointer"
+                >
+                  I agree to the{" "}
                   <Link to="/terms" className="text-primary hover:underline">
                     Terms of Service
-                  </Link>{' '}
-                  and{' '}
+                  </Link>{" "}
+                  and{" "}
                   <Link to="/privacy" className="text-primary hover:underline">
                     Privacy Policy
                   </Link>
@@ -294,7 +320,7 @@ export default function RegisterPage() {
           </CardContent>
           <CardFooter className="flex justify-center">
             <p className="text-sm text-muted-foreground">
-              Already have an account?{' '}
+              Already have an account?{" "}
               <Link to="/login" className="text-primary hover:underline font-medium">
                 Sign in
               </Link>
@@ -339,9 +365,7 @@ export default function RegisterPage() {
               </div>
               <div>
                 <p className="font-medium">Transparent Fees</p>
-                <p className="text-sm text-blue-100">
-                  No hidden charges, clear pricing structure
-                </p>
+                <p className="text-sm text-blue-100">No hidden charges, clear pricing structure</p>
               </div>
             </div>
           </div>

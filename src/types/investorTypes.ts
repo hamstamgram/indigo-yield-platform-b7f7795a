@@ -1,4 +1,3 @@
-
 export interface Investor {
   id: string;
   email: string;
@@ -10,8 +9,8 @@ export interface Investor {
     [key: string]: {
       balance: number;
       usd_value: number;
-    }
-  }
+    };
+  };
 }
 
 export interface Asset {

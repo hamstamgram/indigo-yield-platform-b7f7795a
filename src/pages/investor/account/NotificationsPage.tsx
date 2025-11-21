@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
-import { Badge } from '@/components/ui/badge';
-import { Bell, BellOff, Trash2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
+import { Bell, BellOff, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface SimpleNotification {
   id: string;
@@ -31,16 +31,16 @@ export default function NotificationsPage() {
       if (!userData.user) return;
 
       const { data } = await supabase
-        .from('notifications')
-        .select('id, title, body, type, priority, read_at, created_at')
-        .eq('user_id', userData.user.id)
-        .order('created_at', { ascending: false });
+        .from("notifications")
+        .select("id, title, body, type, priority, read_at, created_at")
+        .eq("user_id", userData.user.id)
+        .order("created_at", { ascending: false });
 
       if (data) {
         setNotifications(data);
       }
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.error("Error fetching notifications:", error);
     } finally {
       setLoading(false);
     }
@@ -49,12 +49,12 @@ export default function NotificationsPage() {
   const markAsRead = async (id: string) => {
     try {
       await supabase
-        .from('notifications')
+        .from("notifications")
         .update({ read_at: new Date().toISOString() })
-        .eq('id', id);
+        .eq("id", id);
 
-      setNotifications(prev =>
-        prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n)
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, read_at: new Date().toISOString() } : n))
       );
 
       toast({
@@ -62,25 +62,22 @@ export default function NotificationsPage() {
         description: "Notification marked as read",
       });
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      console.error("Error marking notification as read:", error);
     }
   };
 
   const deleteNotification = async (id: string) => {
     try {
-      await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', id);
+      await supabase.from("notifications").delete().eq("id", id);
 
-      setNotifications(prev => prev.filter(n => n.id !== id));
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
 
       toast({
         title: "Success",
         description: "Notification deleted",
       });
     } catch (error) {
-      console.error('Error deleting notification:', error);
+      console.error("Error deleting notification:", error);
     }
   };
 
@@ -110,7 +107,7 @@ export default function NotificationsPage() {
               <div
                 key={notification.id}
                 className={`p-4 border rounded-lg ${
-                  notification.read_at ? 'bg-muted/50' : 'bg-card'
+                  notification.read_at ? "bg-muted/50" : "bg-card"
                 }`}
               >
                 <div className="flex justify-between items-start">
@@ -118,7 +115,7 @@ export default function NotificationsPage() {
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium">{notification.title}</h3>
                       <Badge
-                        variant={notification.priority === 'high' ? 'destructive' : 'secondary'}
+                        variant={notification.priority === "high" ? "destructive" : "secondary"}
                       >
                         {notification.priority}
                       </Badge>
@@ -153,9 +150,7 @@ export default function NotificationsPage() {
           </div>
 
           {notifications.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              No notifications found
-            </div>
+            <div className="text-center py-8 text-muted-foreground">No notifications found</div>
           )}
         </CardContent>
       </Card>

@@ -1,23 +1,15 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import {
-  ArrowLeft,
-  Bell,
-  Calendar,
-  ExternalLink,
-  Archive,
-  Trash2,
-  CheckCheck
-} from 'lucide-react';
-import { format } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client';
-import { Notification } from '@/types/notifications';
-import { useToast } from '@/hooks/use-toast';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { ArrowLeft, Bell, Calendar, ExternalLink, Archive, Trash2, CheckCheck } from "lucide-react";
+import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { Notification } from "@/types/notifications";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const NotificationDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -36,16 +28,16 @@ const NotificationDetailPage: React.FC = () => {
 
   const loadNotification = async () => {
     if (!id) return;
-    
+
     try {
       const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('id', id)
+        .from("notifications")
+        .select("*")
+        .eq("id", id)
         .maybeSingle();
 
       if (error) throw error;
-      
+
       if (data) {
         // Map database notification to Notification type
         setNotification({
@@ -54,8 +46,8 @@ const NotificationDetailPage: React.FC = () => {
           type: data.type as any, // DB enum types may differ from app NotificationType
           title: data.title,
           message: data.body, // DB uses 'body', app uses 'message'
-          priority: data.priority || 'medium',
-          status: data.read_at ? 'read' : 'unread', // Derive status from read_at
+          priority: data.priority || "medium",
+          status: data.read_at ? "read" : "unread", // Derive status from read_at
           created_at: data.created_at,
           read_at: data.read_at || undefined,
           metadata: (data.data_jsonb as any) || {},
@@ -64,11 +56,11 @@ const NotificationDetailPage: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('Error loading notification:', error);
+      console.error("Error loading notification:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load notification details.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load notification details.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -77,64 +69,58 @@ const NotificationDetailPage: React.FC = () => {
 
   const markAsRead = async () => {
     if (!id) return;
-    
+
     try {
       await supabase
-        .from('notifications')
+        .from("notifications")
         .update({
-          read_at: new Date().toISOString()
+          read_at: new Date().toISOString(),
         })
-        .eq('id', id);
+        .eq("id", id);
     } catch (error) {
-      console.error('Error marking as read:', error);
+      console.error("Error marking as read:", error);
     }
   };
 
   const handleArchive = async () => {
     if (!id) return;
-    
+
     try {
       // Notifications table doesn't have status/archived_at, just delete for now
-      await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', id);
+      await supabase.from("notifications").delete().eq("id", id);
 
       toast({
-        title: 'Archived',
-        description: 'Notification has been archived.',
+        title: "Archived",
+        description: "Notification has been archived.",
       });
 
-      navigate('/notifications');
+      navigate("/notifications");
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to archive notification.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to archive notification.",
+        variant: "destructive",
       });
     }
   };
 
   const handleDelete = async () => {
     if (!id) return;
-    
+
     try {
-      await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', id);
+      await supabase.from("notifications").delete().eq("id", id);
 
       toast({
-        title: 'Deleted',
-        description: 'Notification has been deleted.',
+        title: "Deleted",
+        description: "Notification has been deleted.",
       });
 
-      navigate('/notifications');
+      navigate("/notifications");
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to delete notification.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to delete notification.",
+        variant: "destructive",
       });
     }
   };
@@ -167,7 +153,7 @@ const NotificationDetailPage: React.FC = () => {
             <p className="text-muted-foreground text-center mb-4">
               This notification may have been deleted or you don't have permission to view it.
             </p>
-            <Button onClick={() => navigate('/notifications')}>
+            <Button onClick={() => navigate("/notifications")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Notifications
             </Button>
@@ -179,11 +165,7 @@ const NotificationDetailPage: React.FC = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6 max-w-4xl">
-      <Button
-        variant="ghost"
-        onClick={() => navigate('/notifications')}
-        className="gap-2"
-      >
+      <Button variant="ghost" onClick={() => navigate("/notifications")} className="gap-2">
         <ArrowLeft className="h-4 w-4" />
         Back to Notifications
       </Button>
@@ -194,21 +176,17 @@ const NotificationDetailPage: React.FC = () => {
             <div className="flex-1">
               <CardTitle className="text-2xl flex items-center gap-2">
                 {notification.title}
-                {notification.status === 'unread' && (
-                  <Badge variant="default">New</Badge>
-                )}
+                {notification.status === "unread" && <Badge variant="default">New</Badge>}
               </CardTitle>
               <div className="flex items-center gap-3 mt-3">
-                <Badge variant="outline">
-                  {notification.type}
-                </Badge>
+                <Badge variant="outline">{notification.type}</Badge>
                 <Badge
                   variant={
-                    notification.priority === 'urgent'
-                      ? 'destructive'
-                      : notification.priority === 'high'
-                      ? 'default'
-                      : 'secondary'
+                    notification.priority === "urgent"
+                      ? "destructive"
+                      : notification.priority === "high"
+                        ? "default"
+                        : "secondary"
                   }
                 >
                   {notification.priority} priority
@@ -217,20 +195,10 @@ const NotificationDetailPage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleArchive}
-                title="Archive"
-              >
+              <Button variant="outline" size="icon" onClick={handleArchive} title="Archive">
                 <Archive className="h-4 w-4" />
               </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleDelete}
-                title="Delete"
-              >
+              <Button variant="outline" size="icon" onClick={handleDelete} title="Delete">
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
@@ -244,16 +212,14 @@ const NotificationDetailPage: React.FC = () => {
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <Calendar className="h-4 w-4" />
               <span>
-                {format(new Date(notification.created_at), 'EEEE, MMMM d, yyyy • h:mm a')}
+                {format(new Date(notification.created_at), "EEEE, MMMM d, yyyy • h:mm a")}
               </span>
             </div>
 
             {notification.read_at && (
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <CheckCheck className="h-4 w-4" />
-                <span>
-                  Read {format(new Date(notification.read_at), 'MMMM d, yyyy • h:mm a')}
-                </span>
+                <span>Read {format(new Date(notification.read_at), "MMMM d, yyyy • h:mm a")}</span>
               </div>
             )}
           </div>
@@ -262,9 +228,7 @@ const NotificationDetailPage: React.FC = () => {
 
           <div className="prose max-w-none">
             <h3 className="text-lg font-semibold mb-2">Message</h3>
-            <p className="text-muted-foreground whitespace-pre-wrap">
-              {notification.message}
-            </p>
+            <p className="text-muted-foreground whitespace-pre-wrap">{notification.message}</p>
           </div>
 
           {notification.metadata && Object.keys(notification.metadata).length > 0 && (
@@ -276,10 +240,10 @@ const NotificationDetailPage: React.FC = () => {
                   {Object.entries(notification.metadata).map(([key, value]) => (
                     <div key={key} className="flex items-center justify-between">
                       <span className="text-sm font-medium capitalize">
-                        {key.replace(/_/g, ' ')}:
+                        {key.replace(/_/g, " ")}:
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                        {typeof value === "object" ? JSON.stringify(value) : String(value)}
                       </span>
                     </div>
                   ))}
@@ -300,7 +264,7 @@ const NotificationDetailPage: React.FC = () => {
                   }}
                   className="gap-2"
                 >
-                  {notification.action_label || 'View Details'}
+                  {notification.action_label || "View Details"}
                   <ExternalLink className="h-4 w-4" />
                 </Button>
               </div>

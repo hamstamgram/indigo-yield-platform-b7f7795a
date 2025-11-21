@@ -1,15 +1,21 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import {
   generateReportForInvestor,
   generateReportsForAllInvestors,
   type fetchInvestorReportData,
-} from '@/services/reportGenerationService';
-import { Loader2, Mail, Eye, Send, CheckCircle2, XCircle } from 'lucide-react';
+} from "@/services/reportGenerationService";
+import { Loader2, Mail, Eye, Send, CheckCircle2, XCircle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,8 +25,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
+} from "@/components/ui/alert-dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Investor {
   id: string;
@@ -41,10 +47,12 @@ export default function InvestorReportGenerator() {
 
   // State
   const [investors, setInvestors] = useState<Investor[]>([]);
-  const [selectedInvestor, setSelectedInvestor] = useState<string>('all');
-  const [selectedMonth, setSelectedMonth] = useState<string>('');
-  const [previewHtml, setPreviewHtml] = useState<string>('');
-  const [previewData, setPreviewData] = useState<Awaited<ReturnType<typeof fetchInvestorReportData>> | null>(null);
+  const [selectedInvestor, setSelectedInvestor] = useState<string>("all");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [previewHtml, setPreviewHtml] = useState<string>("");
+  const [previewData, setPreviewData] = useState<Awaited<
+    ReturnType<typeof fetchInvestorReportData>
+  > | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -56,7 +64,7 @@ export default function InvestorReportGenerator() {
     const date = new Date();
     date.setMonth(date.getMonth() - i);
     const value = date.toISOString().slice(0, 7); // YYYY-MM
-    const label = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+    const label = date.toLocaleDateString("en-US", { year: "numeric", month: "long" });
     return { value, label };
   });
 
@@ -75,19 +83,19 @@ export default function InvestorReportGenerator() {
   async function fetchInvestors() {
     try {
       const { data, error } = await supabase
-        .from('investors')
-        .select('id, first_name, last_name, email')
-        .eq('status', 'active')
-        .order('first_name');
+        .from("investors")
+        .select("id, first_name, last_name, email")
+        .eq("status", "active")
+        .order("first_name");
 
       if (error) throw error;
       setInvestors(data || []);
     } catch (error) {
-      console.error('Error fetching investors:', error);
+      console.error("Error fetching investors:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load investors. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load investors. Please try again.",
+        variant: "destructive",
       });
     }
   }
@@ -95,36 +103,38 @@ export default function InvestorReportGenerator() {
   async function handleGeneratePreview() {
     if (!selectedMonth) {
       toast({
-        title: 'Missing Information',
-        description: 'Please select a month for the report.',
-        variant: 'destructive',
+        title: "Missing Information",
+        description: "Please select a month for the report.",
+        variant: "destructive",
       });
       return;
     }
 
     setIsGenerating(true);
-    setPreviewHtml('');
+    setPreviewHtml("");
     setPreviewData(null);
 
     try {
-      if (selectedInvestor === 'all') {
+      if (selectedInvestor === "all") {
         // Generate preview for first investor
         const firstInvestor = investors[0];
         if (!firstInvestor) {
-          throw new Error('No investors found');
+          throw new Error("No investors found");
         }
 
         const report = await generateReportForInvestor(firstInvestor.id, selectedMonth);
 
         if (!report) {
-          throw new Error(`No data found for ${firstInvestor.first_name} ${firstInvestor.last_name} in ${selectedMonth}`);
+          throw new Error(
+            `No data found for ${firstInvestor.first_name} ${firstInvestor.last_name} in ${selectedMonth}`
+          );
         }
 
         setPreviewHtml(report.html);
         setPreviewData(report.data);
 
         toast({
-          title: 'Preview Generated',
+          title: "Preview Generated",
           description: `Showing preview for ${firstInvestor.first_name} ${firstInvestor.last_name}. All ${investors.length} investors will receive similar reports.`,
         });
       } else {
@@ -133,23 +143,25 @@ export default function InvestorReportGenerator() {
 
         if (!report) {
           const investor = investors.find((inv) => inv.id === selectedInvestor);
-          throw new Error(`No data found for ${investor?.first_name} ${investor?.last_name} in ${selectedMonth}`);
+          throw new Error(
+            `No data found for ${investor?.first_name} ${investor?.last_name} in ${selectedMonth}`
+          );
         }
 
         setPreviewHtml(report.html);
         setPreviewData(report.data);
 
         toast({
-          title: 'Preview Generated',
-          description: 'Report preview is ready. Review it before sending.',
+          title: "Preview Generated",
+          description: "Report preview is ready. Review it before sending.",
         });
       }
     } catch (error: any) {
-      console.error('Error generating preview:', error);
+      console.error("Error generating preview:", error);
       toast({
-        title: 'Generation Failed',
-        description: error.message || 'Failed to generate report preview.',
-        variant: 'destructive',
+        title: "Generation Failed",
+        description: error.message || "Failed to generate report preview.",
+        variant: "destructive",
       });
     } finally {
       setIsGenerating(false);
@@ -159,9 +171,9 @@ export default function InvestorReportGenerator() {
   async function handleSendReports() {
     if (!previewHtml) {
       toast({
-        title: 'No Preview',
-        description: 'Please generate a preview first.',
-        variant: 'destructive',
+        title: "No Preview",
+        description: "Please generate a preview first.",
+        variant: "destructive",
       });
       return;
     }
@@ -177,19 +189,21 @@ export default function InvestorReportGenerator() {
     try {
       let reports;
 
-      if (selectedInvestor === 'all') {
+      if (selectedInvestor === "all") {
         // Generate all reports
         reports = await generateReportsForAllInvestors(selectedMonth);
 
         if (reports.length === 0) {
-          throw new Error(`No reports generated. Check if investors have data for ${selectedMonth}.`);
+          throw new Error(
+            `No reports generated. Check if investors have data for ${selectedMonth}.`
+          );
         }
       } else {
         // Generate single report
         const report = await generateReportForInvestor(selectedInvestor, selectedMonth);
 
         if (!report) {
-          throw new Error('Failed to generate report.');
+          throw new Error("Failed to generate report.");
         }
 
         reports = [report];
@@ -200,7 +214,7 @@ export default function InvestorReportGenerator() {
 
       for (const report of reports) {
         try {
-          const { error } = await supabase.functions.invoke('send-investor-report', {
+          const { error } = await supabase.functions.invoke("send-investor-report", {
             body: {
               to: report.data.email,
               investorName: report.data.investorName,
@@ -228,7 +242,7 @@ export default function InvestorReportGenerator() {
             investorId: report.data.investorId,
             investorName: report.data.investorName,
             success: false,
-            error: error.message || 'Unknown error',
+            error: error.message || "Unknown error",
           });
         }
 
@@ -243,16 +257,16 @@ export default function InvestorReportGenerator() {
       const failCount = results.filter((r) => !r.success).length;
 
       toast({
-        title: 'Reports Sent',
-        description: `Successfully sent ${successCount} report(s). ${failCount > 0 ? `${failCount} failed.` : ''}`,
-        variant: failCount > 0 ? 'destructive' : 'default',
+        title: "Reports Sent",
+        description: `Successfully sent ${successCount} report(s). ${failCount > 0 ? `${failCount} failed.` : ""}`,
+        variant: failCount > 0 ? "destructive" : "default",
       });
     } catch (error: any) {
-      console.error('Error sending reports:', error);
+      console.error("Error sending reports:", error);
       toast({
-        title: 'Send Failed',
-        description: error.message || 'Failed to send reports.',
-        variant: 'destructive',
+        title: "Send Failed",
+        description: error.message || "Failed to send reports.",
+        variant: "destructive",
       });
     } finally {
       setIsSending(false);
@@ -260,13 +274,13 @@ export default function InvestorReportGenerator() {
   }
 
   const selectedInvestorName =
-    selectedInvestor === 'all'
+    selectedInvestor === "all"
       ? `All Investors (${investors.length})`
       : investors.find((inv) => inv.id === selectedInvestor)
-      ? `${investors.find((inv) => inv.id === selectedInvestor)?.first_name} ${
-          investors.find((inv) => inv.id === selectedInvestor)?.last_name
-        }`
-      : '';
+        ? `${investors.find((inv) => inv.id === selectedInvestor)?.first_name} ${
+            investors.find((inv) => inv.id === selectedInvestor)?.last_name
+          }`
+        : "";
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -401,10 +415,7 @@ export default function InvestorReportGenerator() {
 
             {previewHtml && (
               <ScrollArea className="h-[600px] border rounded-lg">
-                <div
-                  className="bg-white"
-                  dangerouslySetInnerHTML={{ __html: previewHtml }}
-                />
+                <div className="bg-white" dangerouslySetInnerHTML={{ __html: previewHtml }} />
               </ScrollArea>
             )}
           </CardContent>
@@ -417,16 +428,16 @@ export default function InvestorReportGenerator() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Send Reports</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to send reports to{' '}
-              <span className="font-semibold">{selectedInvestorName}</span> for{' '}
+              Are you sure you want to send reports to{" "}
+              <span className="font-semibold">{selectedInvestorName}</span> for{" "}
               <span className="font-semibold">
                 {monthOptions.find((m) => m.value === selectedMonth)?.label}
               </span>
               ?
-              {selectedInvestor === 'all' && (
+              {selectedInvestor === "all" && (
                 <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
-                  <strong>Warning:</strong> This will send {investors.length} emails. This action cannot
-                  be undone.
+                  <strong>Warning:</strong> This will send {investors.length} emails. This action
+                  cannot be undone.
                 </div>
               )}
             </AlertDialogDescription>
@@ -444,7 +455,7 @@ export default function InvestorReportGenerator() {
           <AlertDialogHeader>
             <AlertDialogTitle>Send Results</AlertDialogTitle>
             <AlertDialogDescription>
-              Report sending completed. {sendResults.filter((r) => r.success).length} successful,{' '}
+              Report sending completed. {sendResults.filter((r) => r.success).length} successful,{" "}
               {sendResults.filter((r) => !r.success).length} failed.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -454,9 +465,7 @@ export default function InvestorReportGenerator() {
                 <div
                   key={index}
                   className={`flex items-start space-x-3 p-3 rounded-lg border ${
-                    result.success
-                      ? 'bg-green-50 border-green-200'
-                      : 'bg-red-50 border-red-200'
+                    result.success ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
                   }`}
                 >
                   {result.success ? (
@@ -466,18 +475,14 @@ export default function InvestorReportGenerator() {
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900">{result.investorName}</p>
-                    {result.error && (
-                      <p className="text-xs text-red-700 mt-1">{result.error}</p>
-                    )}
+                    {result.error && <p className="text-xs text-red-700 mt-1">{result.error}</p>}
                   </div>
                 </div>
               ))}
             </div>
           </ScrollArea>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setShowResultsDialog(false)}>
-              Close
-            </AlertDialogAction>
+            <AlertDialogAction onClick={() => setShowResultsDialog(false)}>Close</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

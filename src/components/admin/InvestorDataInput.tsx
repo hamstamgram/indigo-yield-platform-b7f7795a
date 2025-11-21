@@ -24,7 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { statementsApi } from "@/services/api/statementsApi";
+import { statementsApi, type InvestorFundPerformance } from "@/services/api/statementsApi";
 
 const FUND_NAMES = [
   "BTC YIELD FUND",
@@ -105,22 +105,21 @@ export function InvestorDataInput({
     },
   });
 
-  const loadPerformanceData = useCallback(async () => {
-    try {
-      const { data, error } = await statementsApi.getPerformanceData(periodId, investorId);
+  const loadPerformanceData = async () => {
+      const { data, error }: { data: InvestorFundPerformance[] | null; error: string | null } = await statementsApi.getPerformanceData(periodId, investorId);
       if (error) throw new Error(error);
 
-      const funds = new Set(data?.map((d: any) => d.fund_name) || []);
+      const funds: Set<string> = new Set(data?.map((d) => d.fund_name) || []);
       setAvailableFunds(funds);
 
       // If we have data, load the first fund
       if (data && data.length > 0) {
-        setSelectedFund(data[0].fund_name);
       }
-    } catch (error) {
+    } // Missing closing brace for try block
+    catch (error) {
       console.error("Load performance data error:", error);
     }
-  }, [periodId, investorId]);
+
 
   const loadFundData = useCallback(
     async (fundName: string) => {
@@ -190,7 +189,6 @@ export function InvestorDataInput({
     loadFundData(selectedFund);
   }, [selectedFund, setValue, loadFundData]);
 
-
   const handleSaveData = async (data: PerformanceFormData) => {
     setIsLoading(true);
     try {
@@ -244,7 +242,9 @@ export function InvestorDataInput({
               <Label htmlFor={fieldName}>{label}</Label>
               <Input id={fieldName} type="text" placeholder="0.00" {...register(fieldName)} />
               {errors[fieldName] && (
-                <p className="text-sm text-destructive">{String(errors[fieldName]?.message || '')}</p>
+                <p className="text-sm text-destructive">
+                  {String(errors[fieldName]?.message || "")}
+                </p>
               )}
             </div>
           );

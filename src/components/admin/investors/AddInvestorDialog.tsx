@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Dialog,
@@ -22,10 +21,7 @@ interface AddInvestorDialogProps {
   onInvestorAdded: () => void;
 }
 
-const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({ 
-  assets, 
-  onInvestorAdded 
-}) => {
+const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({ assets, onInvestorAdded }) => {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -35,7 +31,7 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
     try {
       setIsLoading(true);
       console.log("Creating investor with values:", values);
-      
+
       // Create user or find existing one
       const userId = await createOrFindInvestorUser(values);
 
@@ -62,17 +58,16 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
 
       // Close dialog first, then refresh data after a delay
       setOpen(false);
-      
+
       // Refresh the parent component after dialog is closed
       setTimeout(() => {
         onInvestorAdded();
       }, 1000);
-
     } catch (error) {
       console.error("Error adding investor:", error);
       toast({
         title: "Error",
-        description: `Failed to add investor: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        description: `Failed to add investor: ${error instanceof Error ? error.message : "Unknown error"}`,
         variant: "destructive",
       });
     } finally {
@@ -101,11 +96,7 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({
             Create a new investor account and set initial portfolio balances.
           </DialogDescription>
         </DialogHeader>
-        <InvestorForm
-          onSubmit={handleSubmit}
-          isLoading={isLoading}
-          assets={assets}
-        />
+        <InvestorForm onSubmit={handleSubmit} isLoading={isLoading} assets={assets} />
       </DialogContent>
     </Dialog>
   );

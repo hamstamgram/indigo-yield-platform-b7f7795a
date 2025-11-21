@@ -11,8 +11,8 @@
  * - Security audit logging
  */
 
-import { test, expect, type Page } from '@playwright/test';
-import * as fs from 'fs';
+import { test, expect, type Page } from "@playwright/test";
+import * as fs from "fs";
 
 // Get base URL from environment or preview file
 const getBaseUrl = () => {
@@ -21,10 +21,10 @@ const getBaseUrl = () => {
   }
 
   try {
-    const previewUrl = fs.readFileSync('.preview-url', 'utf8').trim();
+    const previewUrl = fs.readFileSync(".preview-url", "utf8").trim();
     return previewUrl;
   } catch {
-    return 'http://localhost:5173'; // Default dev server
+    return "http://localhost:5173"; // Default dev server
   }
 };
 
@@ -50,7 +50,7 @@ const testResults: Array<{
 // Helper function to login as admin
 async function loginAsAdmin(page: Page) {
   if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-    throw new Error('Admin credentials not provided in environment variables');
+    throw new Error("Admin credentials not provided in environment variables");
   }
 
   await page.goto(`${BASE_URL}/login`);
@@ -65,7 +65,7 @@ async function loginAsAdmin(page: Page) {
 // Helper function to login as LP (non-admin)
 async function loginAsLP(page: Page) {
   if (!LP_EMAIL || !LP_PASSWORD) {
-    throw new Error('LP credentials not provided in environment variables');
+    throw new Error("LP credentials not provided in environment variables");
   }
 
   await page.goto(`${BASE_URL}/login`);
@@ -81,13 +81,13 @@ async function loginAsLP(page: Page) {
 function setupConsoleErrorCapture(page: Page) {
   const errors: string[] = [];
 
-  page.on('console', (msg) => {
-    if (msg.type() === 'error') {
+  page.on("console", (msg) => {
+    if (msg.type() === "error") {
       errors.push(msg.text());
     }
   });
 
-  page.on('pageerror', (exception) => {
+  page.on("pageerror", (exception) => {
     errors.push(exception.message);
   });
 
@@ -96,105 +96,105 @@ function setupConsoleErrorCapture(page: Page) {
 
 // Helper to verify access denied page
 async function verifyAccessDenied(page: Page) {
-  await expect(page.locator('text=Access Denied')).toBeVisible({ timeout: 5000 });
-  await expect(page.locator('text=Admin privileges are required')).toBeVisible();
-  await expect(page.locator('text=Go to Dashboard')).toBeVisible();
+  await expect(page.locator("text=Access Denied")).toBeVisible({ timeout: 5000 });
+  await expect(page.locator("text=Admin privileges are required")).toBeVisible();
+  await expect(page.locator("text=Go to Dashboard")).toBeVisible();
 }
 
 // Define all 12 admin pages
 const adminPages = [
   {
-    name: 'Admin Dashboard',
-    path: '/admin',
-    expectedContent: ['Admin Dashboard', 'Total AUM', 'Total Investors'],
-    actions: ['Quick Actions']
+    name: "Admin Dashboard",
+    path: "/admin",
+    expectedContent: ["Admin Dashboard", "Total AUM", "Total Investors"],
+    actions: ["Quick Actions"],
   },
   {
-    name: 'Investor Management',
-    path: '/admin/investors',
-    expectedContent: ['Investor Management', 'All Investors'],
-    actions: ['Search', 'View Details']
+    name: "Investor Management",
+    path: "/admin/investors",
+    expectedContent: ["Investor Management", "All Investors"],
+    actions: ["Search", "View Details"],
   },
   {
-    name: 'Investor Details',
-    path: '/admin/investors/test-investor-id',
-    expectedContent: ['Investor Details', 'Total Principal'],
-    actions: ['Back to Investors']
+    name: "Investor Details",
+    path: "/admin/investors/test-investor-id",
+    expectedContent: ["Investor Details", "Total Principal"],
+    actions: ["Back to Investors"],
   },
   {
-    name: 'All Transactions',
-    path: '/admin/transactions',
-    expectedContent: ['All Transactions', 'Platform-wide transaction history'],
-    actions: []
+    name: "All Transactions",
+    path: "/admin/transactions",
+    expectedContent: ["All Transactions", "Platform-wide transaction history"],
+    actions: [],
   },
   {
-    name: 'Withdrawal Approvals',
-    path: '/admin/withdrawals',
-    expectedContent: ['Withdrawal Approvals', 'Review and approve pending withdrawals'],
-    actions: []
+    name: "Withdrawal Approvals",
+    path: "/admin/withdrawals",
+    expectedContent: ["Withdrawal Approvals", "Review and approve pending withdrawals"],
+    actions: [],
   },
   {
-    name: 'Document Review Queue',
-    path: '/admin/documents',
-    expectedContent: ['Document Review Queue', 'Review KYC and other submitted documents'],
-    actions: []
+    name: "Document Review Queue",
+    path: "/admin/documents",
+    expectedContent: ["Document Review Queue", "Review KYC and other submitted documents"],
+    actions: [],
   },
   {
-    name: 'Compliance Dashboard',
-    path: '/admin/compliance',
-    expectedContent: ['Compliance Dashboard', 'KYC/AML oversight and monitoring'],
-    actions: []
+    name: "Compliance Dashboard",
+    path: "/admin/compliance",
+    expectedContent: ["Compliance Dashboard", "KYC/AML oversight and monitoring"],
+    actions: [],
   },
   {
-    name: 'Admin Reports',
-    path: '/admin/reports',
-    expectedContent: ['Reports', 'Investor'],
-    actions: []
+    name: "Admin Reports",
+    path: "/admin/reports",
+    expectedContent: ["Reports", "Investor"],
+    actions: [],
   },
   {
-    name: 'Fee Management',
-    path: '/admin/fees',
-    expectedContent: ['Fee Management', 'Configure platform fees and pricing'],
-    actions: []
+    name: "Fee Management",
+    path: "/admin/fees",
+    expectedContent: ["Fee Management", "Configure platform fees and pricing"],
+    actions: [],
   },
   {
-    name: 'Platform Settings',
-    path: '/admin/settings',
-    expectedContent: ['Platform Settings', 'Configure platform-wide settings'],
-    actions: []
+    name: "Platform Settings",
+    path: "/admin/settings",
+    expectedContent: ["Platform Settings", "Configure platform-wide settings"],
+    actions: [],
   },
   {
-    name: 'Audit Logs',
-    path: '/admin/audit-logs',
-    expectedContent: ['Audit Logs', 'System audit trail and activity logs'],
-    actions: []
+    name: "Audit Logs",
+    path: "/admin/audit-logs",
+    expectedContent: ["Audit Logs", "System audit trail and activity logs"],
+    actions: [],
   },
   {
-    name: 'User Management',
-    path: '/admin/users',
-    expectedContent: ['User Management', 'Manage admin user accounts and permissions'],
-    actions: []
-  }
+    name: "User Management",
+    path: "/admin/users",
+    expectedContent: ["User Management", "Manage admin user accounts and permissions"],
+    actions: [],
+  },
 ];
 
-test.describe('AdminGuard Component Security Tests', () => {
+test.describe("AdminGuard Component Security Tests", () => {
   test.beforeEach(async ({ page }) => {
     // Skip tests if credentials are not provided
     if (!ADMIN_EMAIL || !ADMIN_PASSWORD || !LP_EMAIL || !LP_PASSWORD) {
-      test.skip('Credentials not provided - skipping admin security tests');
+      test.skip("Credentials not provided - skipping admin security tests");
     }
   });
 
-  test('AdminGuard blocks unauthenticated access', async ({ page }) => {
+  test("AdminGuard blocks unauthenticated access", async ({ page }) => {
     // Try to access admin page without authentication
     await page.goto(`${BASE_URL}/admin`);
 
     // Should redirect to login
     await page.waitForURL(/\/login/, { timeout: 5000 });
-    expect(page.url()).toContain('/login');
+    expect(page.url()).toContain("/login");
   });
 
-  test('AdminGuard shows Access Denied for non-admin users', async ({ page }) => {
+  test("AdminGuard shows Access Denied for non-admin users", async ({ page }) => {
     const errors = setupConsoleErrorCapture(page);
 
     await loginAsLP(page);
@@ -206,40 +206,40 @@ test.describe('AdminGuard Component Security Tests', () => {
     await verifyAccessDenied(page);
 
     // Take screenshot for documentation
-    await page.screenshot({ path: 'tests/screenshots/admin-access-denied.png' });
+    await page.screenshot({ path: "tests/screenshots/admin-access-denied.png" });
   });
 
-  test('AdminGuard allows admin user access', async ({ page }) => {
+  test("AdminGuard allows admin user access", async ({ page }) => {
     const errors = setupConsoleErrorCapture(page);
 
     await loginAsAdmin(page);
     await page.goto(`${BASE_URL}/admin`);
 
     // Should see admin dashboard content
-    await expect(page.locator('text=Admin Dashboard')).toBeVisible();
+    await expect(page.locator("text=Admin Dashboard")).toBeVisible();
 
     // Should NOT see Access Denied
-    await expect(page.locator('text=Access Denied')).not.toBeVisible();
+    await expect(page.locator("text=Access Denied")).not.toBeVisible();
   });
 });
 
-test.describe('Admin Page 1: Dashboard', () => {
+test.describe("Admin Page 1: Dashboard", () => {
   test.beforeEach(async ({ page }) => {
     if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-      test.skip('Admin credentials not provided');
+      test.skip("Admin credentials not provided");
     }
   });
 
-  test('admin can access dashboard and see metrics', async ({ page }) => {
+  test("admin can access dashboard and see metrics", async ({ page }) => {
     const errors = setupConsoleErrorCapture(page);
     const result = {
-      page: 'Admin Dashboard',
-      path: '/admin',
+      page: "Admin Dashboard",
+      path: "/admin",
       adminAccess: false,
       nonAdminBlocked: false,
       dataLoaded: false,
       securityPass: true,
-      errors: []
+      errors: [],
     };
 
     try {
@@ -249,20 +249,20 @@ test.describe('Admin Page 1: Dashboard', () => {
       result.adminAccess = true;
 
       // Verify dashboard content
-      await expect(page.locator('text=Admin Dashboard')).toBeVisible();
-      await expect(page.locator('text=Total Investors')).toBeVisible();
-      await expect(page.locator('text=Total AUM')).toBeVisible();
-      await expect(page.locator('text=Pending Actions')).toBeVisible();
+      await expect(page.locator("text=Admin Dashboard")).toBeVisible();
+      await expect(page.locator("text=Total Investors")).toBeVisible();
+      await expect(page.locator("text=Total AUM")).toBeVisible();
+      await expect(page.locator("text=Pending Actions")).toBeVisible();
 
       result.dataLoaded = true;
 
       // Verify quick actions are present
-      await expect(page.locator('text=Quick Actions')).toBeVisible();
+      await expect(page.locator("text=Quick Actions")).toBeVisible();
 
       // Take screenshot
-      await page.screenshot({ path: 'tests/screenshots/admin-dashboard-full.png' });
+      await page.screenshot({ path: "tests/screenshots/admin-dashboard-full.png" });
 
-      result.errors = errors.filter(e => !e.includes('DevTools'));
+      result.errors = errors.filter((e) => !e.includes("DevTools"));
       result.securityPass = result.errors.length === 0;
     } catch (error) {
       result.errors.push((error as Error).message);
@@ -272,9 +272,9 @@ test.describe('Admin Page 1: Dashboard', () => {
     testResults.push(result);
   });
 
-  test('non-admin cannot access dashboard', async ({ page }) => {
+  test("non-admin cannot access dashboard", async ({ page }) => {
     if (!LP_EMAIL || !LP_PASSWORD) {
-      test.skip('LP credentials not provided');
+      test.skip("LP credentials not provided");
     }
 
     await loginAsLP(page);
@@ -284,29 +284,29 @@ test.describe('Admin Page 1: Dashboard', () => {
 
     // Update test result
     const lastResult = testResults[testResults.length - 1];
-    if (lastResult && lastResult.path === '/admin') {
+    if (lastResult && lastResult.path === "/admin") {
       lastResult.nonAdminBlocked = true;
     }
   });
 });
 
-test.describe('Admin Page 2: Investor Management', () => {
+test.describe("Admin Page 2: Investor Management", () => {
   test.beforeEach(async ({ page }) => {
     if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-      test.skip('Admin credentials not provided');
+      test.skip("Admin credentials not provided");
     }
   });
 
-  test('admin can access investor list and search', async ({ page }) => {
+  test("admin can access investor list and search", async ({ page }) => {
     const errors = setupConsoleErrorCapture(page);
     const result = {
-      page: 'Investor Management',
-      path: '/admin/investors',
+      page: "Investor Management",
+      path: "/admin/investors",
       adminAccess: false,
       nonAdminBlocked: false,
       dataLoaded: false,
       securityPass: true,
-      errors: []
+      errors: [],
     };
 
     try {
@@ -316,26 +316,26 @@ test.describe('Admin Page 2: Investor Management', () => {
       result.adminAccess = true;
 
       // Verify page content
-      await expect(page.locator('text=Investor Management')).toBeVisible();
-      await expect(page.locator('text=All Investors')).toBeVisible();
+      await expect(page.locator("text=Investor Management")).toBeVisible();
+      await expect(page.locator("text=All Investors")).toBeVisible();
 
       // Verify search functionality exists
       const searchInput = page.locator('input[placeholder*="Search"]');
       await expect(searchInput).toBeVisible();
 
       // Verify table structure
-      await expect(page.locator('table')).toBeVisible();
+      await expect(page.locator("table")).toBeVisible();
 
       result.dataLoaded = true;
 
       // Test search functionality
-      await searchInput.fill('test');
+      await searchInput.fill("test");
       await page.waitForTimeout(500);
 
       // Take screenshot
-      await page.screenshot({ path: 'tests/screenshots/admin-investors-list.png' });
+      await page.screenshot({ path: "tests/screenshots/admin-investors-list.png" });
 
-      result.errors = errors.filter(e => !e.includes('DevTools'));
+      result.errors = errors.filter((e) => !e.includes("DevTools"));
       result.securityPass = result.errors.length === 0;
     } catch (error) {
       result.errors.push((error as Error).message);
@@ -345,9 +345,9 @@ test.describe('Admin Page 2: Investor Management', () => {
     testResults.push(result);
   });
 
-  test('non-admin cannot access investor list', async ({ page }) => {
+  test("non-admin cannot access investor list", async ({ page }) => {
     if (!LP_EMAIL || !LP_PASSWORD) {
-      test.skip('LP credentials not provided');
+      test.skip("LP credentials not provided");
     }
 
     await loginAsLP(page);
@@ -356,29 +356,29 @@ test.describe('Admin Page 2: Investor Management', () => {
     await verifyAccessDenied(page);
 
     const lastResult = testResults[testResults.length - 1];
-    if (lastResult && lastResult.path === '/admin/investors') {
+    if (lastResult && lastResult.path === "/admin/investors") {
       lastResult.nonAdminBlocked = true;
     }
   });
 });
 
-test.describe('Admin Page 3: Investor Details', () => {
+test.describe("Admin Page 3: Investor Details", () => {
   test.beforeEach(async ({ page }) => {
     if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-      test.skip('Admin credentials not provided');
+      test.skip("Admin credentials not provided");
     }
   });
 
-  test('admin can access investor detail page', async ({ page }) => {
+  test("admin can access investor detail page", async ({ page }) => {
     const errors = setupConsoleErrorCapture(page);
     const result = {
-      page: 'Investor Details',
-      path: '/admin/investors/:id',
+      page: "Investor Details",
+      path: "/admin/investors/:id",
       adminAccess: false,
       nonAdminBlocked: false,
       dataLoaded: false,
       securityPass: true,
-      errors: []
+      errors: [],
     };
 
     try {
@@ -388,7 +388,7 @@ test.describe('Admin Page 3: Investor Details', () => {
       await page.goto(`${BASE_URL}/admin/investors`);
 
       // Try to click first investor if available
-      const viewButton = page.locator('text=View Details').first();
+      const viewButton = page.locator("text=View Details").first();
       if (await viewButton.isVisible({ timeout: 3000 }).catch(() => false)) {
         await viewButton.click();
         await page.waitForURL(/\/admin\/investors\/[^/]+$/, { timeout: 5000 });
@@ -400,14 +400,14 @@ test.describe('Admin Page 3: Investor Details', () => {
       result.adminAccess = true;
 
       // Verify detail page loaded (even if no data)
-      await expect(page.locator('text=Investor Details')).toBeVisible();
+      await expect(page.locator("text=Investor Details")).toBeVisible();
 
       result.dataLoaded = true;
 
       // Take screenshot
-      await page.screenshot({ path: 'tests/screenshots/admin-investor-detail.png' });
+      await page.screenshot({ path: "tests/screenshots/admin-investor-detail.png" });
 
-      result.errors = errors.filter(e => !e.includes('DevTools'));
+      result.errors = errors.filter((e) => !e.includes("DevTools"));
       result.securityPass = result.errors.length === 0;
     } catch (error) {
       result.errors.push((error as Error).message);
@@ -417,9 +417,9 @@ test.describe('Admin Page 3: Investor Details', () => {
     testResults.push(result);
   });
 
-  test('non-admin cannot access investor details', async ({ page }) => {
+  test("non-admin cannot access investor details", async ({ page }) => {
     if (!LP_EMAIL || !LP_PASSWORD) {
-      test.skip('LP credentials not provided');
+      test.skip("LP credentials not provided");
     }
 
     await loginAsLP(page);
@@ -428,29 +428,29 @@ test.describe('Admin Page 3: Investor Details', () => {
     await verifyAccessDenied(page);
 
     const lastResult = testResults[testResults.length - 1];
-    if (lastResult && lastResult.path === '/admin/investors/:id') {
+    if (lastResult && lastResult.path === "/admin/investors/:id") {
       lastResult.nonAdminBlocked = true;
     }
   });
 });
 
-test.describe('Admin Page 4: All Transactions', () => {
+test.describe("Admin Page 4: All Transactions", () => {
   test.beforeEach(async ({ page }) => {
     if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-      test.skip('Admin credentials not provided');
+      test.skip("Admin credentials not provided");
     }
   });
 
-  test('admin can access transactions page', async ({ page }) => {
+  test("admin can access transactions page", async ({ page }) => {
     const errors = setupConsoleErrorCapture(page);
     const result = {
-      page: 'All Transactions',
-      path: '/admin/transactions',
+      page: "All Transactions",
+      path: "/admin/transactions",
       adminAccess: false,
       nonAdminBlocked: false,
       dataLoaded: false,
       securityPass: true,
-      errors: []
+      errors: [],
     };
 
     try {
@@ -459,12 +459,12 @@ test.describe('Admin Page 4: All Transactions', () => {
 
       result.adminAccess = true;
 
-      await expect(page.locator('text=All Transactions')).toBeVisible();
+      await expect(page.locator("text=All Transactions")).toBeVisible();
       result.dataLoaded = true;
 
-      await page.screenshot({ path: 'tests/screenshots/admin-transactions.png' });
+      await page.screenshot({ path: "tests/screenshots/admin-transactions.png" });
 
-      result.errors = errors.filter(e => !e.includes('DevTools'));
+      result.errors = errors.filter((e) => !e.includes("DevTools"));
       result.securityPass = result.errors.length === 0;
     } catch (error) {
       result.errors.push((error as Error).message);
@@ -474,9 +474,9 @@ test.describe('Admin Page 4: All Transactions', () => {
     testResults.push(result);
   });
 
-  test('non-admin cannot access transactions', async ({ page }) => {
+  test("non-admin cannot access transactions", async ({ page }) => {
     if (!LP_EMAIL || !LP_PASSWORD) {
-      test.skip('LP credentials not provided');
+      test.skip("LP credentials not provided");
     }
 
     await loginAsLP(page);
@@ -484,29 +484,29 @@ test.describe('Admin Page 4: All Transactions', () => {
     await verifyAccessDenied(page);
 
     const lastResult = testResults[testResults.length - 1];
-    if (lastResult && lastResult.path === '/admin/transactions') {
+    if (lastResult && lastResult.path === "/admin/transactions") {
       lastResult.nonAdminBlocked = true;
     }
   });
 });
 
-test.describe('Admin Page 5: Withdrawal Approvals', () => {
+test.describe("Admin Page 5: Withdrawal Approvals", () => {
   test.beforeEach(async ({ page }) => {
     if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-      test.skip('Admin credentials not provided');
+      test.skip("Admin credentials not provided");
     }
   });
 
-  test('admin can access withdrawals page', async ({ page }) => {
+  test("admin can access withdrawals page", async ({ page }) => {
     const errors = setupConsoleErrorCapture(page);
     const result = {
-      page: 'Withdrawal Approvals',
-      path: '/admin/withdrawals',
+      page: "Withdrawal Approvals",
+      path: "/admin/withdrawals",
       adminAccess: false,
       nonAdminBlocked: false,
       dataLoaded: false,
       securityPass: true,
-      errors: []
+      errors: [],
     };
 
     try {
@@ -515,12 +515,12 @@ test.describe('Admin Page 5: Withdrawal Approvals', () => {
 
       result.adminAccess = true;
 
-      await expect(page.locator('text=Withdrawal Approvals')).toBeVisible();
+      await expect(page.locator("text=Withdrawal Approvals")).toBeVisible();
       result.dataLoaded = true;
 
-      await page.screenshot({ path: 'tests/screenshots/admin-withdrawals.png' });
+      await page.screenshot({ path: "tests/screenshots/admin-withdrawals.png" });
 
-      result.errors = errors.filter(e => !e.includes('DevTools'));
+      result.errors = errors.filter((e) => !e.includes("DevTools"));
       result.securityPass = result.errors.length === 0;
     } catch (error) {
       result.errors.push((error as Error).message);
@@ -530,9 +530,9 @@ test.describe('Admin Page 5: Withdrawal Approvals', () => {
     testResults.push(result);
   });
 
-  test('non-admin cannot access withdrawals', async ({ page }) => {
+  test("non-admin cannot access withdrawals", async ({ page }) => {
     if (!LP_EMAIL || !LP_PASSWORD) {
-      test.skip('LP credentials not provided');
+      test.skip("LP credentials not provided");
     }
 
     await loginAsLP(page);
@@ -540,29 +540,29 @@ test.describe('Admin Page 5: Withdrawal Approvals', () => {
     await verifyAccessDenied(page);
 
     const lastResult = testResults[testResults.length - 1];
-    if (lastResult && lastResult.path === '/admin/withdrawals') {
+    if (lastResult && lastResult.path === "/admin/withdrawals") {
       lastResult.nonAdminBlocked = true;
     }
   });
 });
 
-test.describe('Admin Page 6: Document Review Queue', () => {
+test.describe("Admin Page 6: Document Review Queue", () => {
   test.beforeEach(async ({ page }) => {
     if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-      test.skip('Admin credentials not provided');
+      test.skip("Admin credentials not provided");
     }
   });
 
-  test('admin can access documents page', async ({ page }) => {
+  test("admin can access documents page", async ({ page }) => {
     const errors = setupConsoleErrorCapture(page);
     const result = {
-      page: 'Document Review Queue',
-      path: '/admin/documents',
+      page: "Document Review Queue",
+      path: "/admin/documents",
       adminAccess: false,
       nonAdminBlocked: false,
       dataLoaded: false,
       securityPass: true,
-      errors: []
+      errors: [],
     };
 
     try {
@@ -571,12 +571,12 @@ test.describe('Admin Page 6: Document Review Queue', () => {
 
       result.adminAccess = true;
 
-      await expect(page.locator('text=Document Review Queue')).toBeVisible();
+      await expect(page.locator("text=Document Review Queue")).toBeVisible();
       result.dataLoaded = true;
 
-      await page.screenshot({ path: 'tests/screenshots/admin-documents.png' });
+      await page.screenshot({ path: "tests/screenshots/admin-documents.png" });
 
-      result.errors = errors.filter(e => !e.includes('DevTools'));
+      result.errors = errors.filter((e) => !e.includes("DevTools"));
       result.securityPass = result.errors.length === 0;
     } catch (error) {
       result.errors.push((error as Error).message);
@@ -586,9 +586,9 @@ test.describe('Admin Page 6: Document Review Queue', () => {
     testResults.push(result);
   });
 
-  test('non-admin cannot access documents', async ({ page }) => {
+  test("non-admin cannot access documents", async ({ page }) => {
     if (!LP_EMAIL || !LP_PASSWORD) {
-      test.skip('LP credentials not provided');
+      test.skip("LP credentials not provided");
     }
 
     await loginAsLP(page);
@@ -596,29 +596,29 @@ test.describe('Admin Page 6: Document Review Queue', () => {
     await verifyAccessDenied(page);
 
     const lastResult = testResults[testResults.length - 1];
-    if (lastResult && lastResult.path === '/admin/documents') {
+    if (lastResult && lastResult.path === "/admin/documents") {
       lastResult.nonAdminBlocked = true;
     }
   });
 });
 
-test.describe('Admin Page 7: Compliance Dashboard', () => {
+test.describe("Admin Page 7: Compliance Dashboard", () => {
   test.beforeEach(async ({ page }) => {
     if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-      test.skip('Admin credentials not provided');
+      test.skip("Admin credentials not provided");
     }
   });
 
-  test('admin can access compliance page', async ({ page }) => {
+  test("admin can access compliance page", async ({ page }) => {
     const errors = setupConsoleErrorCapture(page);
     const result = {
-      page: 'Compliance Dashboard',
-      path: '/admin/compliance',
+      page: "Compliance Dashboard",
+      path: "/admin/compliance",
       adminAccess: false,
       nonAdminBlocked: false,
       dataLoaded: false,
       securityPass: true,
-      errors: []
+      errors: [],
     };
 
     try {
@@ -627,12 +627,12 @@ test.describe('Admin Page 7: Compliance Dashboard', () => {
 
       result.adminAccess = true;
 
-      await expect(page.locator('text=Compliance Dashboard')).toBeVisible();
+      await expect(page.locator("text=Compliance Dashboard")).toBeVisible();
       result.dataLoaded = true;
 
-      await page.screenshot({ path: 'tests/screenshots/admin-compliance.png' });
+      await page.screenshot({ path: "tests/screenshots/admin-compliance.png" });
 
-      result.errors = errors.filter(e => !e.includes('DevTools'));
+      result.errors = errors.filter((e) => !e.includes("DevTools"));
       result.securityPass = result.errors.length === 0;
     } catch (error) {
       result.errors.push((error as Error).message);
@@ -642,9 +642,9 @@ test.describe('Admin Page 7: Compliance Dashboard', () => {
     testResults.push(result);
   });
 
-  test('non-admin cannot access compliance', async ({ page }) => {
+  test("non-admin cannot access compliance", async ({ page }) => {
     if (!LP_EMAIL || !LP_PASSWORD) {
-      test.skip('LP credentials not provided');
+      test.skip("LP credentials not provided");
     }
 
     await loginAsLP(page);
@@ -652,29 +652,29 @@ test.describe('Admin Page 7: Compliance Dashboard', () => {
     await verifyAccessDenied(page);
 
     const lastResult = testResults[testResults.length - 1];
-    if (lastResult && lastResult.path === '/admin/compliance') {
+    if (lastResult && lastResult.path === "/admin/compliance") {
       lastResult.nonAdminBlocked = true;
     }
   });
 });
 
-test.describe('Admin Page 8: Admin Reports', () => {
+test.describe("Admin Page 8: Admin Reports", () => {
   test.beforeEach(async ({ page }) => {
     if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-      test.skip('Admin credentials not provided');
+      test.skip("Admin credentials not provided");
     }
   });
 
-  test('admin can access reports page', async ({ page }) => {
+  test("admin can access reports page", async ({ page }) => {
     const errors = setupConsoleErrorCapture(page);
     const result = {
-      page: 'Admin Reports',
-      path: '/admin/reports',
+      page: "Admin Reports",
+      path: "/admin/reports",
       adminAccess: false,
       nonAdminBlocked: false,
       dataLoaded: false,
       securityPass: true,
-      errors: []
+      errors: [],
     };
 
     try {
@@ -684,13 +684,13 @@ test.describe('Admin Page 8: Admin Reports', () => {
       result.adminAccess = true;
 
       // Reports page may show various content
-      const pageLoaded = await page.locator('h1').isVisible({ timeout: 5000 });
+      const pageLoaded = await page.locator("h1").isVisible({ timeout: 5000 });
       expect(pageLoaded).toBeTruthy();
       result.dataLoaded = true;
 
-      await page.screenshot({ path: 'tests/screenshots/admin-reports.png' });
+      await page.screenshot({ path: "tests/screenshots/admin-reports.png" });
 
-      result.errors = errors.filter(e => !e.includes('DevTools'));
+      result.errors = errors.filter((e) => !e.includes("DevTools"));
       result.securityPass = result.errors.length === 0;
     } catch (error) {
       result.errors.push((error as Error).message);
@@ -700,9 +700,9 @@ test.describe('Admin Page 8: Admin Reports', () => {
     testResults.push(result);
   });
 
-  test('non-admin cannot access reports', async ({ page }) => {
+  test("non-admin cannot access reports", async ({ page }) => {
     if (!LP_EMAIL || !LP_PASSWORD) {
-      test.skip('LP credentials not provided');
+      test.skip("LP credentials not provided");
     }
 
     await loginAsLP(page);
@@ -710,29 +710,29 @@ test.describe('Admin Page 8: Admin Reports', () => {
     await verifyAccessDenied(page);
 
     const lastResult = testResults[testResults.length - 1];
-    if (lastResult && lastResult.path === '/admin/reports') {
+    if (lastResult && lastResult.path === "/admin/reports") {
       lastResult.nonAdminBlocked = true;
     }
   });
 });
 
-test.describe('Admin Page 9: Fee Management', () => {
+test.describe("Admin Page 9: Fee Management", () => {
   test.beforeEach(async ({ page }) => {
     if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-      test.skip('Admin credentials not provided');
+      test.skip("Admin credentials not provided");
     }
   });
 
-  test('admin can access fees page', async ({ page }) => {
+  test("admin can access fees page", async ({ page }) => {
     const errors = setupConsoleErrorCapture(page);
     const result = {
-      page: 'Fee Management',
-      path: '/admin/fees',
+      page: "Fee Management",
+      path: "/admin/fees",
       adminAccess: false,
       nonAdminBlocked: false,
       dataLoaded: false,
       securityPass: true,
-      errors: []
+      errors: [],
     };
 
     try {
@@ -741,12 +741,12 @@ test.describe('Admin Page 9: Fee Management', () => {
 
       result.adminAccess = true;
 
-      await expect(page.locator('text=Fee Management')).toBeVisible();
+      await expect(page.locator("text=Fee Management")).toBeVisible();
       result.dataLoaded = true;
 
-      await page.screenshot({ path: 'tests/screenshots/admin-fees.png' });
+      await page.screenshot({ path: "tests/screenshots/admin-fees.png" });
 
-      result.errors = errors.filter(e => !e.includes('DevTools'));
+      result.errors = errors.filter((e) => !e.includes("DevTools"));
       result.securityPass = result.errors.length === 0;
     } catch (error) {
       result.errors.push((error as Error).message);
@@ -756,9 +756,9 @@ test.describe('Admin Page 9: Fee Management', () => {
     testResults.push(result);
   });
 
-  test('non-admin cannot access fees', async ({ page }) => {
+  test("non-admin cannot access fees", async ({ page }) => {
     if (!LP_EMAIL || !LP_PASSWORD) {
-      test.skip('LP credentials not provided');
+      test.skip("LP credentials not provided");
     }
 
     await loginAsLP(page);
@@ -766,29 +766,29 @@ test.describe('Admin Page 9: Fee Management', () => {
     await verifyAccessDenied(page);
 
     const lastResult = testResults[testResults.length - 1];
-    if (lastResult && lastResult.path === '/admin/fees') {
+    if (lastResult && lastResult.path === "/admin/fees") {
       lastResult.nonAdminBlocked = true;
     }
   });
 });
 
-test.describe('Admin Page 10: Platform Settings', () => {
+test.describe("Admin Page 10: Platform Settings", () => {
   test.beforeEach(async ({ page }) => {
     if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-      test.skip('Admin credentials not provided');
+      test.skip("Admin credentials not provided");
     }
   });
 
-  test('admin can access settings page', async ({ page }) => {
+  test("admin can access settings page", async ({ page }) => {
     const errors = setupConsoleErrorCapture(page);
     const result = {
-      page: 'Platform Settings',
-      path: '/admin/settings',
+      page: "Platform Settings",
+      path: "/admin/settings",
       adminAccess: false,
       nonAdminBlocked: false,
       dataLoaded: false,
       securityPass: true,
-      errors: []
+      errors: [],
     };
 
     try {
@@ -797,12 +797,12 @@ test.describe('Admin Page 10: Platform Settings', () => {
 
       result.adminAccess = true;
 
-      await expect(page.locator('text=Platform Settings')).toBeVisible();
+      await expect(page.locator("text=Platform Settings")).toBeVisible();
       result.dataLoaded = true;
 
-      await page.screenshot({ path: 'tests/screenshots/admin-settings.png' });
+      await page.screenshot({ path: "tests/screenshots/admin-settings.png" });
 
-      result.errors = errors.filter(e => !e.includes('DevTools'));
+      result.errors = errors.filter((e) => !e.includes("DevTools"));
       result.securityPass = result.errors.length === 0;
     } catch (error) {
       result.errors.push((error as Error).message);
@@ -812,9 +812,9 @@ test.describe('Admin Page 10: Platform Settings', () => {
     testResults.push(result);
   });
 
-  test('non-admin cannot access settings', async ({ page }) => {
+  test("non-admin cannot access settings", async ({ page }) => {
     if (!LP_EMAIL || !LP_PASSWORD) {
-      test.skip('LP credentials not provided');
+      test.skip("LP credentials not provided");
     }
 
     await loginAsLP(page);
@@ -822,29 +822,29 @@ test.describe('Admin Page 10: Platform Settings', () => {
     await verifyAccessDenied(page);
 
     const lastResult = testResults[testResults.length - 1];
-    if (lastResult && lastResult.path === '/admin/settings') {
+    if (lastResult && lastResult.path === "/admin/settings") {
       lastResult.nonAdminBlocked = true;
     }
   });
 });
 
-test.describe('Admin Page 11: Audit Logs', () => {
+test.describe("Admin Page 11: Audit Logs", () => {
   test.beforeEach(async ({ page }) => {
     if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-      test.skip('Admin credentials not provided');
+      test.skip("Admin credentials not provided");
     }
   });
 
-  test('admin can access audit logs page', async ({ page }) => {
+  test("admin can access audit logs page", async ({ page }) => {
     const errors = setupConsoleErrorCapture(page);
     const result = {
-      page: 'Audit Logs',
-      path: '/admin/audit-logs',
+      page: "Audit Logs",
+      path: "/admin/audit-logs",
       adminAccess: false,
       nonAdminBlocked: false,
       dataLoaded: false,
       securityPass: true,
-      errors: []
+      errors: [],
     };
 
     try {
@@ -853,12 +853,12 @@ test.describe('Admin Page 11: Audit Logs', () => {
 
       result.adminAccess = true;
 
-      await expect(page.locator('text=Audit Logs')).toBeVisible();
+      await expect(page.locator("text=Audit Logs")).toBeVisible();
       result.dataLoaded = true;
 
-      await page.screenshot({ path: 'tests/screenshots/admin-audit-logs.png' });
+      await page.screenshot({ path: "tests/screenshots/admin-audit-logs.png" });
 
-      result.errors = errors.filter(e => !e.includes('DevTools'));
+      result.errors = errors.filter((e) => !e.includes("DevTools"));
       result.securityPass = result.errors.length === 0;
     } catch (error) {
       result.errors.push((error as Error).message);
@@ -868,9 +868,9 @@ test.describe('Admin Page 11: Audit Logs', () => {
     testResults.push(result);
   });
 
-  test('non-admin cannot access audit logs', async ({ page }) => {
+  test("non-admin cannot access audit logs", async ({ page }) => {
     if (!LP_EMAIL || !LP_PASSWORD) {
-      test.skip('LP credentials not provided');
+      test.skip("LP credentials not provided");
     }
 
     await loginAsLP(page);
@@ -878,29 +878,29 @@ test.describe('Admin Page 11: Audit Logs', () => {
     await verifyAccessDenied(page);
 
     const lastResult = testResults[testResults.length - 1];
-    if (lastResult && lastResult.path === '/admin/audit-logs') {
+    if (lastResult && lastResult.path === "/admin/audit-logs") {
       lastResult.nonAdminBlocked = true;
     }
   });
 });
 
-test.describe('Admin Page 12: User Management', () => {
+test.describe("Admin Page 12: User Management", () => {
   test.beforeEach(async ({ page }) => {
     if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-      test.skip('Admin credentials not provided');
+      test.skip("Admin credentials not provided");
     }
   });
 
-  test('admin can access users page', async ({ page }) => {
+  test("admin can access users page", async ({ page }) => {
     const errors = setupConsoleErrorCapture(page);
     const result = {
-      page: 'User Management',
-      path: '/admin/users',
+      page: "User Management",
+      path: "/admin/users",
       adminAccess: false,
       nonAdminBlocked: false,
       dataLoaded: false,
       securityPass: true,
-      errors: []
+      errors: [],
     };
 
     try {
@@ -909,12 +909,12 @@ test.describe('Admin Page 12: User Management', () => {
 
       result.adminAccess = true;
 
-      await expect(page.locator('text=User Management')).toBeVisible();
+      await expect(page.locator("text=User Management")).toBeVisible();
       result.dataLoaded = true;
 
-      await page.screenshot({ path: 'tests/screenshots/admin-users.png' });
+      await page.screenshot({ path: "tests/screenshots/admin-users.png" });
 
-      result.errors = errors.filter(e => !e.includes('DevTools'));
+      result.errors = errors.filter((e) => !e.includes("DevTools"));
       result.securityPass = result.errors.length === 0;
     } catch (error) {
       result.errors.push((error as Error).message);
@@ -924,9 +924,9 @@ test.describe('Admin Page 12: User Management', () => {
     testResults.push(result);
   });
 
-  test('non-admin cannot access users', async ({ page }) => {
+  test("non-admin cannot access users", async ({ page }) => {
     if (!LP_EMAIL || !LP_PASSWORD) {
-      test.skip('LP credentials not provided');
+      test.skip("LP credentials not provided");
     }
 
     await loginAsLP(page);
@@ -934,7 +934,7 @@ test.describe('Admin Page 12: User Management', () => {
     await verifyAccessDenied(page);
 
     const lastResult = testResults[testResults.length - 1];
-    if (lastResult && lastResult.path === '/admin/users') {
+    if (lastResult && lastResult.path === "/admin/users") {
       lastResult.nonAdminBlocked = true;
     }
   });
@@ -946,15 +946,17 @@ test.afterAll(async () => {
   const report = generateMarkdownReport(testResults);
 
   // Write report to file
-  fs.writeFileSync('test-reports/admin-tests.md', report);
+  fs.writeFileSync("test-reports/admin-tests.md", report);
 
-  console.log('\n✅ Test report generated: test-reports/admin-tests.md');
-  console.log(`\n📊 Summary: ${testResults.filter(r => r.securityPass).length}/${testResults.length} pages passed security tests`);
+  console.log("\n✅ Test report generated: test-reports/admin-tests.md");
+  console.log(
+    `\n📊 Summary: ${testResults.filter((r) => r.securityPass).length}/${testResults.length} pages passed security tests`
+  );
 });
 
 function generateMarkdownReport(results: typeof testResults): string {
   const timestamp = new Date().toISOString();
-  const passCount = results.filter(r => r.securityPass).length;
+  const passCount = results.filter((r) => r.securityPass).length;
   const totalCount = results.length;
   const passRate = ((passCount / totalCount) * 100).toFixed(1);
 
@@ -979,19 +981,19 @@ function generateMarkdownReport(results: typeof testResults): string {
   report += `## Detailed Test Results\n\n`;
 
   results.forEach((result, index) => {
-    const status = result.securityPass ? '✅ PASS' : '❌ FAIL';
+    const status = result.securityPass ? "✅ PASS" : "❌ FAIL";
     report += `### ${index + 1}. ${result.page}\n\n`;
     report += `**Route:** \`${result.path}\`\n\n`;
     report += `**Security Status:** ${status}\n\n`;
     report += `**Test Results:**\n`;
-    report += `- Admin Access: ${result.adminAccess ? '✅ Granted' : '❌ Denied'}\n`;
-    report += `- Non-Admin Blocked: ${result.nonAdminBlocked ? '✅ Yes' : '❌ No'}\n`;
-    report += `- Data Loaded: ${result.dataLoaded ? '✅ Yes' : '❌ No'}\n`;
-    report += `- Console Errors: ${result.errors.length > 0 ? `⚠️ ${result.errors.length} errors` : '✅ None'}\n\n`;
+    report += `- Admin Access: ${result.adminAccess ? "✅ Granted" : "❌ Denied"}\n`;
+    report += `- Non-Admin Blocked: ${result.nonAdminBlocked ? "✅ Yes" : "❌ No"}\n`;
+    report += `- Data Loaded: ${result.dataLoaded ? "✅ Yes" : "❌ No"}\n`;
+    report += `- Console Errors: ${result.errors.length > 0 ? `⚠️ ${result.errors.length} errors` : "✅ None"}\n\n`;
 
     if (result.errors.length > 0) {
       report += `**Errors Detected:**\n`;
-      result.errors.forEach(error => {
+      result.errors.forEach((error) => {
         report += `- \`${error}\`\n`;
       });
       report += `\n`;
@@ -1020,7 +1022,7 @@ function generateMarkdownReport(results: typeof testResults): string {
   report += `All ${totalCount} admin pages are wrapped with AdminGuard:\n\n`;
 
   results.forEach((result, index) => {
-    const icon = result.securityPass ? '🔒' : '⚠️';
+    const icon = result.securityPass ? "🔒" : "⚠️";
     report += `${index + 1}. ${icon} \`${result.path}\` - ${result.page}\n`;
   });
 
@@ -1032,8 +1034,8 @@ function generateMarkdownReport(results: typeof testResults): string {
     report += `✅ **All pages are properly secured.** No action required.\n\n`;
   } else {
     report += `⚠️ **Some pages require attention:**\n\n`;
-    const failedPages = results.filter(r => !r.securityPass);
-    failedPages.forEach(page => {
+    const failedPages = results.filter((r) => !r.securityPass);
+    failedPages.forEach((page) => {
       report += `- **${page.page}** (\`${page.path}\`):\n`;
       if (!page.adminAccess) {
         report += `  - Enable admin access\n`;
@@ -1077,7 +1079,7 @@ function generateMarkdownReport(results: typeof testResults): string {
   report += `### Admin Page Routes\n\n`;
   report += `\`\`\`typescript\n`;
   report += `// All admin routes are protected with AdminRoute wrapper\n`;
-  results.forEach(result => {
+  results.forEach((result) => {
     report += `<Route path="${result.path}" element={<AdminRoute><Component /></AdminRoute>} />\n`;
   });
   report += `\`\`\`\n\n`;

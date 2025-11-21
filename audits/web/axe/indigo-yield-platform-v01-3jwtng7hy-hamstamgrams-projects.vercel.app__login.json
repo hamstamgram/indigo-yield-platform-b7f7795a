@@ -23,10 +23,7 @@
       {
         "id": "accesskeys",
         "impact": null,
-        "tags": [
-          "cat.keyboard",
-          "best-practice"
-        ],
+        "tags": ["cat.keyboard", "best-practice"],
         "description": "Ensure every accesskey attribute value is unique",
         "help": "accesskey attribute value should be unique",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/accesskeys?application=webdriverjs",
@@ -57,13 +54,7 @@
       {
         "id": "aria-braille-equivalent",
         "impact": null,
-        "tags": [
-          "cat.aria",
-          "wcag2a",
-          "wcag412",
-          "EN-301-549",
-          "EN-9.4.1.2"
-        ],
+        "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
         "description": "Ensure aria-braillelabel and aria-brailleroledescription have a non-braille equivalent",
         "help": "aria-braille attributes must have a non-braille equivalent",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-braille-equivalent?application=webdriverjs",
@@ -72,10 +63,7 @@
       {
         "id": "aria-dialog-name",
         "impact": null,
-        "tags": [
-          "cat.aria",
-          "best-practice"
-        ],
+        "tags": ["cat.aria", "best-practice"],
         "description": "Ensure every ARIA dialog and alertdialog node has an accessible name",
         "help": "ARIA dialog and alertdialog nodes should have an accessible name",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-dialog-name?application=webdriverjs",
@@ -102,13 +90,7 @@
       {
         "id": "aria-meter-name",
         "impact": null,
-        "tags": [
-          "cat.aria",
-          "wcag2a",
-          "wcag111",
-          "EN-301-549",
-          "EN-9.1.1.1"
-        ],
+        "tags": ["cat.aria", "wcag2a", "wcag111", "EN-301-549", "EN-9.1.1.1"],
         "description": "Ensure every ARIA meter node has an accessible name",
         "help": "ARIA meter nodes must have an accessible name",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-meter-name?application=webdriverjs",
@@ -117,13 +99,7 @@
       {
         "id": "aria-progressbar-name",
         "impact": null,
-        "tags": [
-          "cat.aria",
-          "wcag2a",
-          "wcag111",
-          "EN-301-549",
-          "EN-9.1.1.1"
-        ],
+        "tags": ["cat.aria", "wcag2a", "wcag111", "EN-301-549", "EN-9.1.1.1"],
         "description": "Ensure every ARIA progressbar node has an accessible name",
         "help": "ARIA progressbar nodes must have an accessible name",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-progressbar-name?application=webdriverjs",
@@ -132,13 +108,7 @@
       {
         "id": "aria-required-children",
         "impact": null,
-        "tags": [
-          "cat.aria",
-          "wcag2a",
-          "wcag131",
-          "EN-301-549",
-          "EN-9.1.3.1"
-        ],
+        "tags": ["cat.aria", "wcag2a", "wcag131", "EN-301-549", "EN-9.1.3.1"],
         "description": "Ensure elements with an ARIA role that require child roles contain them",
         "help": "Certain ARIA roles must contain particular children",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-required-children?application=webdriverjs",
@@ -147,13 +117,7 @@
       {
         "id": "aria-required-parent",
         "impact": null,
-        "tags": [
-          "cat.aria",
-          "wcag2a",
-          "wcag131",
-          "EN-301-549",
-          "EN-9.1.3.1"
-        ],
+        "tags": ["cat.aria", "wcag2a", "wcag131", "EN-301-549", "EN-9.1.3.1"],
         "description": "Ensure elements with an ARIA role that require parent roles are contained by them",
         "help": "Certain ARIA roles must be contained by particular parents",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-required-parent?application=webdriverjs",
@@ -162,10 +126,7 @@
       {
         "id": "aria-text",
         "impact": null,
-        "tags": [
-          "cat.aria",
-          "best-practice"
-        ],
+        "tags": ["cat.aria", "best-practice"],
         "description": "Ensure role=\"text\" is used on elements with no focusable descendants",
         "help": "\"role=text\" should have no focusable descendants",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-text?application=webdriverjs",
@@ -192,13 +153,7 @@
       {
         "id": "aria-tooltip-name",
         "impact": null,
-        "tags": [
-          "cat.aria",
-          "wcag2a",
-          "wcag412",
-          "EN-301-549",
-          "EN-9.4.1.2"
-        ],
+        "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
         "description": "Ensure every ARIA tooltip node has an accessible name",
         "help": "ARIA tooltip nodes must have an accessible name",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-tooltip-name?application=webdriverjs",
@@ -207,10 +162,7 @@
       {
         "id": "aria-treeitem-name",
         "impact": null,
-        "tags": [
-          "cat.aria",
-          "best-practice"
-        ],
+        "tags": ["cat.aria", "best-practice"],
         "description": "Ensure every ARIA treeitem node has an accessible name",
         "help": "ARIA treeitem nodes should have an accessible name",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-treeitem-name?application=webdriverjs",
@@ -238,13 +190,7 @@
       {
         "id": "definition-list",
         "impact": null,
-        "tags": [
-          "cat.structure",
-          "wcag2a",
-          "wcag131",
-          "EN-301-549",
-          "EN-9.1.3.1"
-        ],
+        "tags": ["cat.structure", "wcag2a", "wcag131", "EN-301-549", "EN-9.1.3.1"],
         "description": "Ensure <dl> elements are structured correctly",
         "help": "<dl> elements must only directly contain properly-ordered <dt> and <dd> groups, <script>, <template> or <div> elements",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/definition-list?application=webdriverjs",
@@ -253,13 +199,7 @@
       {
         "id": "dlitem",
         "impact": null,
-        "tags": [
-          "cat.structure",
-          "wcag2a",
-          "wcag131",
-          "EN-301-549",
-          "EN-9.1.3.1"
-        ],
+        "tags": ["cat.structure", "wcag2a", "wcag131", "EN-301-549", "EN-9.1.3.1"],
         "description": "Ensure <dt> and <dd> elements are contained by a <dl>",
         "help": "<dt> and <dd> elements must be contained by a <dl>",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/dlitem?application=webdriverjs",
@@ -268,13 +208,7 @@
       {
         "id": "duplicate-id-aria",
         "impact": null,
-        "tags": [
-          "cat.parsing",
-          "wcag2a",
-          "wcag412",
-          "EN-301-549",
-          "EN-9.4.1.2"
-        ],
+        "tags": ["cat.parsing", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
         "description": "Ensure every id attribute value used in ARIA and in labels is unique",
         "help": "IDs used in ARIA and labels must be unique",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/duplicate-id-aria?application=webdriverjs",
@@ -283,10 +217,7 @@
       {
         "id": "empty-table-header",
         "impact": null,
-        "tags": [
-          "cat.name-role-value",
-          "best-practice"
-        ],
+        "tags": ["cat.name-role-value", "best-practice"],
         "description": "Ensure table headers have discernible text",
         "help": "Table header text should not be empty",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/empty-table-header?application=webdriverjs",
@@ -295,15 +226,7 @@
       {
         "id": "frame-focusable-content",
         "impact": null,
-        "tags": [
-          "cat.keyboard",
-          "wcag2a",
-          "wcag211",
-          "TTv5",
-          "TT4.a",
-          "EN-301-549",
-          "EN-9.2.1.1"
-        ],
+        "tags": ["cat.keyboard", "wcag2a", "wcag211", "TTv5", "TT4.a", "EN-301-549", "EN-9.2.1.1"],
         "description": "Ensure <frame> and <iframe> elements with focusable content do not have tabindex=-1",
         "help": "Frames with focusable content must not have tabindex=-1",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/frame-focusable-content?application=webdriverjs",
@@ -312,11 +235,7 @@
       {
         "id": "frame-tested",
         "impact": null,
-        "tags": [
-          "cat.structure",
-          "best-practice",
-          "review-item"
-        ],
+        "tags": ["cat.structure", "best-practice", "review-item"],
         "description": "Ensure <iframe> and <frame> elements contain the axe-core script",
         "help": "Frames should be tested with axe-core",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/frame-tested?application=webdriverjs",
@@ -361,14 +280,7 @@
       {
         "id": "html-xml-lang-mismatch",
         "impact": null,
-        "tags": [
-          "cat.language",
-          "wcag2a",
-          "wcag311",
-          "EN-301-549",
-          "EN-9.3.1.1",
-          "ACT"
-        ],
+        "tags": ["cat.language", "wcag2a", "wcag311", "EN-301-549", "EN-9.3.1.1", "ACT"],
         "description": "Ensure that HTML elements with both valid lang and xml:lang attributes agree on the base language of the page",
         "help": "HTML elements with lang and xml:lang must have the same base language",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/html-xml-lang-mismatch?application=webdriverjs",
@@ -398,10 +310,7 @@
       {
         "id": "image-redundant-alt",
         "impact": null,
-        "tags": [
-          "cat.text-alternatives",
-          "best-practice"
-        ],
+        "tags": ["cat.text-alternatives", "best-practice"],
         "description": "Ensure image alternative is not repeated as text",
         "help": "Alternative text of images should not be repeated as text",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/image-redundant-alt?application=webdriverjs",
@@ -452,10 +361,7 @@
       {
         "id": "landmark-complementary-is-top-level",
         "impact": null,
-        "tags": [
-          "cat.semantics",
-          "best-practice"
-        ],
+        "tags": ["cat.semantics", "best-practice"],
         "description": "Ensure the complementary landmark or aside is at top level",
         "help": "Aside should not be contained in another landmark",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-complementary-is-top-level?application=webdriverjs",
@@ -464,10 +370,7 @@
       {
         "id": "landmark-contentinfo-is-top-level",
         "impact": null,
-        "tags": [
-          "cat.semantics",
-          "best-practice"
-        ],
+        "tags": ["cat.semantics", "best-practice"],
         "description": "Ensure the contentinfo landmark is at top level",
         "help": "Contentinfo landmark should not be contained in another landmark",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-contentinfo-is-top-level?application=webdriverjs",
@@ -476,13 +379,7 @@
       {
         "id": "list",
         "impact": null,
-        "tags": [
-          "cat.structure",
-          "wcag2a",
-          "wcag131",
-          "EN-301-549",
-          "EN-9.1.3.1"
-        ],
+        "tags": ["cat.structure", "wcag2a", "wcag131", "EN-301-549", "EN-9.1.3.1"],
         "description": "Ensure that lists are structured correctly",
         "help": "<ul> and <ol> must only directly contain <li>, <script> or <template> elements",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/list?application=webdriverjs",
@@ -491,13 +388,7 @@
       {
         "id": "listitem",
         "impact": null,
-        "tags": [
-          "cat.structure",
-          "wcag2a",
-          "wcag131",
-          "EN-301-549",
-          "EN-9.1.3.1"
-        ],
+        "tags": ["cat.structure", "wcag2a", "wcag131", "EN-301-549", "EN-9.1.3.1"],
         "description": "Ensure <li> elements are used semantically",
         "help": "<li> elements must be contained in a <ul> or <ol>",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/listitem?application=webdriverjs",
@@ -506,15 +397,7 @@
       {
         "id": "marquee",
         "impact": null,
-        "tags": [
-          "cat.parsing",
-          "wcag2a",
-          "wcag222",
-          "TTv5",
-          "TT2.b",
-          "EN-301-549",
-          "EN-9.2.2.2"
-        ],
+        "tags": ["cat.parsing", "wcag2a", "wcag222", "TTv5", "TT2.b", "EN-301-549", "EN-9.2.2.2"],
         "description": "Ensure <marquee> elements are not used",
         "help": "<marquee> elements are deprecated and must not be used",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/marquee?application=webdriverjs",
@@ -557,11 +440,7 @@
       {
         "id": "presentation-role-conflict",
         "impact": null,
-        "tags": [
-          "cat.aria",
-          "best-practice",
-          "ACT"
-        ],
+        "tags": ["cat.aria", "best-practice", "ACT"],
         "description": "Elements marked as presentational should not have global ARIA or tabindex to ensure all screen readers ignore them",
         "help": "Ensure elements marked as presentational are consistently ignored",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/presentation-role-conflict?application=webdriverjs",
@@ -590,10 +469,7 @@
       {
         "id": "scope-attr-valid",
         "impact": null,
-        "tags": [
-          "cat.tables",
-          "best-practice"
-        ],
+        "tags": ["cat.tables", "best-practice"],
         "description": "Ensure the scope attribute is used correctly on tables",
         "help": "scope attribute should be used correctly",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/scope-attr-valid?application=webdriverjs",
@@ -660,10 +536,7 @@
       {
         "id": "skip-link",
         "impact": null,
-        "tags": [
-          "cat.keyboard",
-          "best-practice"
-        ],
+        "tags": ["cat.keyboard", "best-practice"],
         "description": "Ensure all skip links have a focusable target",
         "help": "The skip-link target should exist and be focusable",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/skip-link?application=webdriverjs",
@@ -711,10 +584,7 @@
       {
         "id": "table-duplicate-name",
         "impact": null,
-        "tags": [
-          "cat.tables",
-          "best-practice"
-        ],
+        "tags": ["cat.tables", "best-practice"],
         "description": "Ensure the <caption> element does not contain the same text as the summary attribute",
         "help": "Tables should not have the same summary and caption",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/table-duplicate-name?application=webdriverjs",
@@ -818,13 +688,7 @@
       {
         "id": "aria-allowed-attr",
         "impact": null,
-        "tags": [
-          "cat.aria",
-          "wcag2a",
-          "wcag412",
-          "EN-301-549",
-          "EN-9.4.1.2"
-        ],
+        "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
         "description": "Ensure an element's role supports its ARIA attributes",
         "help": "Elements must only use supported ARIA attributes",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-allowed-attr?application=webdriverjs",
@@ -851,9 +715,7 @@
             ],
             "impact": null,
             "html": "<a href=\"/home\" aria-label=\"Vercel logo\" data-testid=\"header/navbar/logo\" id=\"\" data-zone=\"6a379c\" class=\"link-module__Q1NRQq__link pointer-events-none cursor-default\" data-prefetch=\"true\">",
-            "target": [
-              ".pointer-events-none"
-            ]
+            "target": [".pointer-events-none"]
           },
           {
             "any": [],
@@ -877,9 +739,7 @@
             ],
             "impact": null,
             "html": "<span aria-controls=\"\" aria-expanded=\"false\" aria-haspopup=\"true\" class=\"left-6 top-[23px] z-[var(--header-zindex)] inline-flex size-5 rounded-sm no-underline outline-offset-2 fixed\" id=\"\" role=\"button\" style=\"position:absolute;transform:none\">",
-            "target": [
-              ".left-6"
-            ]
+            "target": [".left-6"]
           },
           {
             "any": [],
@@ -903,9 +763,7 @@
             ],
             "impact": null,
             "html": "<svg aria-label=\"Vercel Logo\" fill=\"var(--geist-foreground)\" viewBox=\"0 0 75 65\" height=\"18\"><path d=\"M37.59.25l36.95 64H.64l36.95-64z\"></path></svg>",
-            "target": [
-              "svg[aria-label=\"Vercel Logo\"]"
-            ]
+            "target": ["svg[aria-label=\"Vercel Logo\"]"]
           },
           {
             "any": [],
@@ -929,9 +787,7 @@
             ],
             "impact": null,
             "html": "<input aria-label=\"Email Address\" data-testid=\"login/email-input\" placeholder=\"Email Address\" required=\"\" aria-invalid=\"false\" autocapitalize=\"none\" autocomplete=\"email\" autocorrect=\"off\" class=\"input-module__q7zwrG__input\" data-geist-input=\"\" id=\"input-_R_aqltknpfknil76lb_\" spellcheck=\"false\" type=\"email\" name=\"email\" value=\"\">",
-            "target": [
-              "#input-_R_aqltknpfknil76lb_"
-            ]
+            "target": ["#input-_R_aqltknpfknil76lb_"]
           },
           {
             "any": [],
@@ -955,9 +811,7 @@
             ],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with Google\" data-testid=\"login/google-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with Google\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with Google\"]"]
           },
           {
             "any": [],
@@ -981,9 +835,7 @@
             ],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with GitHub\" data-testid=\"login/github-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with GitHub\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with GitHub\"]"]
           },
           {
             "any": [],
@@ -1007,22 +859,14 @@
             ],
             "impact": null,
             "html": "<div aria-live=\"assertive\" id=\"__next-route-announcer__\" role=\"alert\" style=\"position: absolute; border: 0px; height: 1px; margin: -1px; padding: 0px; width: 1px; clip: rect(0px, 0px, 0px, 0px); overflow: hidden; white-space: nowrap; overflow-wrap: normal;\"></div>",
-            "target": [
-              [
-                "next-route-announcer",
-                "#__next-route-announcer__"
-              ]
-            ]
+            "target": [["next-route-announcer", "#__next-route-announcer__"]]
           }
         ]
       },
       {
         "id": "aria-allowed-role",
         "impact": null,
-        "tags": [
-          "cat.aria",
-          "best-practice"
-        ],
+        "tags": ["cat.aria", "best-practice"],
         "description": "Ensure role attribute has an appropriate value for the element",
         "help": "ARIA role should be appropriate for the element",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-allowed-role?application=webdriverjs",
@@ -1041,9 +885,7 @@
             "none": [],
             "impact": null,
             "html": "<span aria-controls=\"\" aria-expanded=\"false\" aria-haspopup=\"true\" class=\"left-6 top-[23px] z-[var(--header-zindex)] inline-flex size-5 rounded-sm no-underline outline-offset-2 fixed\" id=\"\" role=\"button\" style=\"position:absolute;transform:none\">",
-            "target": [
-              ".left-6"
-            ]
+            "target": [".left-6"]
           },
           {
             "any": [
@@ -1059,9 +901,7 @@
             "none": [],
             "impact": null,
             "html": "<a role=\"link\" type=\"submit\" tabindex=\"0\" data-react-aria-pressable=\"true\" data-testid=\"header/sign-up\" data-zone=\"same\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__small button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"false\" data-suffix=\"false\" data-version=\"v1\" style=\"--geist-icon-size:16px\" href=\"/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Findigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app%252Flogin%26nonce%3D9dcc285dd1dee2d437cb67bca252934baa53b803edfe99ecfadba0ff695b9846\">",
-            "target": [
-              ".button-module__QyrFCa__small"
-            ]
+            "target": [".button-module__QyrFCa__small"]
           },
           {
             "any": [
@@ -1077,9 +917,7 @@
             "none": [],
             "impact": null,
             "html": "<div class=\"border-0 border-t border-solid border-t-gray-alpha-400\" role=\"presentation\"></div>",
-            "target": [
-              ".border-0"
-            ]
+            "target": [".border-0"]
           },
           {
             "any": [
@@ -1095,12 +933,7 @@
             "none": [],
             "impact": null,
             "html": "<div aria-live=\"assertive\" id=\"__next-route-announcer__\" role=\"alert\" style=\"position: absolute; border: 0px; height: 1px; margin: -1px; padding: 0px; width: 1px; clip: rect(0px, 0px, 0px, 0px); overflow: hidden; white-space: nowrap; overflow-wrap: normal;\"></div>",
-            "target": [
-              [
-                "next-route-announcer",
-                "#__next-route-announcer__"
-              ]
-            ]
+            "target": [["next-route-announcer", "#__next-route-announcer__"]]
           }
         ]
       },
@@ -1135,22 +968,14 @@
             "none": [],
             "impact": null,
             "html": "<span aria-controls=\"\" aria-expanded=\"false\" aria-haspopup=\"true\" class=\"left-6 top-[23px] z-[var(--header-zindex)] inline-flex size-5 rounded-sm no-underline outline-offset-2 fixed\" id=\"\" role=\"button\" style=\"position:absolute;transform:none\">",
-            "target": [
-              ".left-6"
-            ]
+            "target": [".left-6"]
           }
         ]
       },
       {
         "id": "aria-conditional-attr",
         "impact": null,
-        "tags": [
-          "cat.aria",
-          "wcag2a",
-          "wcag412",
-          "EN-301-549",
-          "EN-9.4.1.2"
-        ],
+        "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
         "description": "Ensure ARIA attributes are used as described in the specification of the element's role",
         "help": "ARIA attributes must be used as specified for the element's role",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-conditional-attr?application=webdriverjs",
@@ -1169,9 +994,7 @@
             "none": [],
             "impact": null,
             "html": "<a href=\"/home\" aria-label=\"Vercel logo\" data-testid=\"header/navbar/logo\" id=\"\" data-zone=\"6a379c\" class=\"link-module__Q1NRQq__link pointer-events-none cursor-default\" data-prefetch=\"true\">",
-            "target": [
-              ".pointer-events-none"
-            ]
+            "target": [".pointer-events-none"]
           },
           {
             "any": [],
@@ -1187,9 +1010,7 @@
             "none": [],
             "impact": null,
             "html": "<span aria-controls=\"\" aria-expanded=\"false\" aria-haspopup=\"true\" class=\"left-6 top-[23px] z-[var(--header-zindex)] inline-flex size-5 rounded-sm no-underline outline-offset-2 fixed\" id=\"\" role=\"button\" style=\"position:absolute;transform:none\">",
-            "target": [
-              ".left-6"
-            ]
+            "target": [".left-6"]
           },
           {
             "any": [],
@@ -1205,9 +1026,7 @@
             "none": [],
             "impact": null,
             "html": "<svg aria-label=\"Vercel Logo\" fill=\"var(--geist-foreground)\" viewBox=\"0 0 75 65\" height=\"18\"><path d=\"M37.59.25l36.95 64H.64l36.95-64z\"></path></svg>",
-            "target": [
-              "svg[aria-label=\"Vercel Logo\"]"
-            ]
+            "target": ["svg[aria-label=\"Vercel Logo\"]"]
           },
           {
             "any": [],
@@ -1223,9 +1042,7 @@
             "none": [],
             "impact": null,
             "html": "<input aria-label=\"Email Address\" data-testid=\"login/email-input\" placeholder=\"Email Address\" required=\"\" aria-invalid=\"false\" autocapitalize=\"none\" autocomplete=\"email\" autocorrect=\"off\" class=\"input-module__q7zwrG__input\" data-geist-input=\"\" id=\"input-_R_aqltknpfknil76lb_\" spellcheck=\"false\" type=\"email\" name=\"email\" value=\"\">",
-            "target": [
-              "#input-_R_aqltknpfknil76lb_"
-            ]
+            "target": ["#input-_R_aqltknpfknil76lb_"]
           },
           {
             "any": [],
@@ -1241,9 +1058,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with Google\" data-testid=\"login/google-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with Google\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with Google\"]"]
           },
           {
             "any": [],
@@ -1259,9 +1074,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with GitHub\" data-testid=\"login/github-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with GitHub\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with GitHub\"]"]
           },
           {
             "any": [],
@@ -1277,25 +1090,14 @@
             "none": [],
             "impact": null,
             "html": "<div aria-live=\"assertive\" id=\"__next-route-announcer__\" role=\"alert\" style=\"position: absolute; border: 0px; height: 1px; margin: -1px; padding: 0px; width: 1px; clip: rect(0px, 0px, 0px, 0px); overflow: hidden; white-space: nowrap; overflow-wrap: normal;\"></div>",
-            "target": [
-              [
-                "next-route-announcer",
-                "#__next-route-announcer__"
-              ]
-            ]
+            "target": [["next-route-announcer", "#__next-route-announcer__"]]
           }
         ]
       },
       {
         "id": "aria-deprecated-role",
         "impact": null,
-        "tags": [
-          "cat.aria",
-          "wcag2a",
-          "wcag412",
-          "EN-301-549",
-          "EN-9.4.1.2"
-        ],
+        "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
         "description": "Ensure elements do not use deprecated roles",
         "help": "Deprecated ARIA roles must not be used",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-deprecated-role?application=webdriverjs",
@@ -1314,9 +1116,7 @@
             ],
             "impact": null,
             "html": "<span aria-controls=\"\" aria-expanded=\"false\" aria-haspopup=\"true\" class=\"left-6 top-[23px] z-[var(--header-zindex)] inline-flex size-5 rounded-sm no-underline outline-offset-2 fixed\" id=\"\" role=\"button\" style=\"position:absolute;transform:none\">",
-            "target": [
-              ".left-6"
-            ]
+            "target": [".left-6"]
           },
           {
             "any": [],
@@ -1332,9 +1132,7 @@
             ],
             "impact": null,
             "html": "<a role=\"link\" type=\"submit\" tabindex=\"0\" data-react-aria-pressable=\"true\" data-testid=\"header/sign-up\" data-zone=\"same\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__small button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"false\" data-suffix=\"false\" data-version=\"v1\" style=\"--geist-icon-size:16px\" href=\"/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Findigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app%252Flogin%26nonce%3D9dcc285dd1dee2d437cb67bca252934baa53b803edfe99ecfadba0ff695b9846\">",
-            "target": [
-              ".button-module__QyrFCa__small"
-            ]
+            "target": [".button-module__QyrFCa__small"]
           },
           {
             "any": [],
@@ -1350,9 +1148,7 @@
             ],
             "impact": null,
             "html": "<div class=\"border-0 border-t border-solid border-t-gray-alpha-400\" role=\"presentation\"></div>",
-            "target": [
-              ".border-0"
-            ]
+            "target": [".border-0"]
           },
           {
             "any": [],
@@ -1368,12 +1164,7 @@
             ],
             "impact": null,
             "html": "<div aria-live=\"assertive\" id=\"__next-route-announcer__\" role=\"alert\" style=\"position: absolute; border: 0px; height: 1px; margin: -1px; padding: 0px; width: 1px; clip: rect(0px, 0px, 0px, 0px); overflow: hidden; white-space: nowrap; overflow-wrap: normal;\"></div>",
-            "target": [
-              [
-                "next-route-announcer",
-                "#__next-route-announcer__"
-              ]
-            ]
+            "target": [["next-route-announcer", "#__next-route-announcer__"]]
           }
         ]
       },
@@ -1407,9 +1198,7 @@
             "none": [],
             "impact": null,
             "html": "<body class=\"tailwind tailwind-preflight\">",
-            "target": [
-              "body"
-            ]
+            "target": ["body"]
           }
         ]
       },
@@ -1457,22 +1246,14 @@
             "none": [],
             "impact": null,
             "html": "<span aria-hidden=\"true\" class=\"geist-spacer\" data-version=\"v1\" style=\"margin-top:11px\"></span>",
-            "target": [
-              ".geist-spacer"
-            ]
+            "target": [".geist-spacer"]
           }
         ]
       },
       {
         "id": "aria-prohibited-attr",
         "impact": null,
-        "tags": [
-          "cat.aria",
-          "wcag2a",
-          "wcag412",
-          "EN-301-549",
-          "EN-9.4.1.2"
-        ],
+        "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
         "description": "Ensure ARIA attributes are not prohibited for an element's role",
         "help": "Elements must only use permitted ARIA attributes",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-prohibited-attr?application=webdriverjs",
@@ -1491,9 +1272,7 @@
             ],
             "impact": null,
             "html": "<a href=\"/home\" aria-label=\"Vercel logo\" data-testid=\"header/navbar/logo\" id=\"\" data-zone=\"6a379c\" class=\"link-module__Q1NRQq__link pointer-events-none cursor-default\" data-prefetch=\"true\">",
-            "target": [
-              ".pointer-events-none"
-            ]
+            "target": [".pointer-events-none"]
           },
           {
             "any": [],
@@ -1509,9 +1288,7 @@
             ],
             "impact": null,
             "html": "<span aria-controls=\"\" aria-expanded=\"false\" aria-haspopup=\"true\" class=\"left-6 top-[23px] z-[var(--header-zindex)] inline-flex size-5 rounded-sm no-underline outline-offset-2 fixed\" id=\"\" role=\"button\" style=\"position:absolute;transform:none\">",
-            "target": [
-              ".left-6"
-            ]
+            "target": [".left-6"]
           },
           {
             "any": [],
@@ -1527,9 +1304,7 @@
             ],
             "impact": null,
             "html": "<svg aria-label=\"Vercel Logo\" fill=\"var(--geist-foreground)\" viewBox=\"0 0 75 65\" height=\"18\"><path d=\"M37.59.25l36.95 64H.64l36.95-64z\"></path></svg>",
-            "target": [
-              "svg[aria-label=\"Vercel Logo\"]"
-            ]
+            "target": ["svg[aria-label=\"Vercel Logo\"]"]
           },
           {
             "any": [],
@@ -1545,9 +1320,7 @@
             ],
             "impact": null,
             "html": "<input aria-label=\"Email Address\" data-testid=\"login/email-input\" placeholder=\"Email Address\" required=\"\" aria-invalid=\"false\" autocapitalize=\"none\" autocomplete=\"email\" autocorrect=\"off\" class=\"input-module__q7zwrG__input\" data-geist-input=\"\" id=\"input-_R_aqltknpfknil76lb_\" spellcheck=\"false\" type=\"email\" name=\"email\" value=\"\">",
-            "target": [
-              "#input-_R_aqltknpfknil76lb_"
-            ]
+            "target": ["#input-_R_aqltknpfknil76lb_"]
           },
           {
             "any": [],
@@ -1563,9 +1336,7 @@
             ],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with Google\" data-testid=\"login/google-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with Google\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with Google\"]"]
           },
           {
             "any": [],
@@ -1581,9 +1352,7 @@
             ],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with GitHub\" data-testid=\"login/github-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with GitHub\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with GitHub\"]"]
           },
           {
             "any": [],
@@ -1599,25 +1368,14 @@
             ],
             "impact": null,
             "html": "<div aria-live=\"assertive\" id=\"__next-route-announcer__\" role=\"alert\" style=\"position: absolute; border: 0px; height: 1px; margin: -1px; padding: 0px; width: 1px; clip: rect(0px, 0px, 0px, 0px); overflow: hidden; white-space: nowrap; overflow-wrap: normal;\"></div>",
-            "target": [
-              [
-                "next-route-announcer",
-                "#__next-route-announcer__"
-              ]
-            ]
+            "target": [["next-route-announcer", "#__next-route-announcer__"]]
           }
         ]
       },
       {
         "id": "aria-required-attr",
         "impact": null,
-        "tags": [
-          "cat.aria",
-          "wcag2a",
-          "wcag412",
-          "EN-301-549",
-          "EN-9.4.1.2"
-        ],
+        "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
         "description": "Ensure elements with ARIA roles have all required ARIA attributes",
         "help": "Required ARIA attributes must be provided",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-required-attr?application=webdriverjs",
@@ -1636,9 +1394,7 @@
             "none": [],
             "impact": null,
             "html": "<span aria-controls=\"\" aria-expanded=\"false\" aria-haspopup=\"true\" class=\"left-6 top-[23px] z-[var(--header-zindex)] inline-flex size-5 rounded-sm no-underline outline-offset-2 fixed\" id=\"\" role=\"button\" style=\"position:absolute;transform:none\">",
-            "target": [
-              ".left-6"
-            ]
+            "target": [".left-6"]
           },
           {
             "any": [
@@ -1654,9 +1410,7 @@
             "none": [],
             "impact": null,
             "html": "<a role=\"link\" type=\"submit\" tabindex=\"0\" data-react-aria-pressable=\"true\" data-testid=\"header/sign-up\" data-zone=\"same\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__small button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"false\" data-suffix=\"false\" data-version=\"v1\" style=\"--geist-icon-size:16px\" href=\"/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Findigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app%252Flogin%26nonce%3D9dcc285dd1dee2d437cb67bca252934baa53b803edfe99ecfadba0ff695b9846\">",
-            "target": [
-              ".button-module__QyrFCa__small"
-            ]
+            "target": [".button-module__QyrFCa__small"]
           },
           {
             "any": [
@@ -1672,9 +1426,7 @@
             "none": [],
             "impact": null,
             "html": "<div class=\"border-0 border-t border-solid border-t-gray-alpha-400\" role=\"presentation\"></div>",
-            "target": [
-              ".border-0"
-            ]
+            "target": [".border-0"]
           },
           {
             "any": [
@@ -1690,25 +1442,14 @@
             "none": [],
             "impact": null,
             "html": "<div aria-live=\"assertive\" id=\"__next-route-announcer__\" role=\"alert\" style=\"position: absolute; border: 0px; height: 1px; margin: -1px; padding: 0px; width: 1px; clip: rect(0px, 0px, 0px, 0px); overflow: hidden; white-space: nowrap; overflow-wrap: normal;\"></div>",
-            "target": [
-              [
-                "next-route-announcer",
-                "#__next-route-announcer__"
-              ]
-            ]
+            "target": [["next-route-announcer", "#__next-route-announcer__"]]
           }
         ]
       },
       {
         "id": "aria-roles",
         "impact": null,
-        "tags": [
-          "cat.aria",
-          "wcag2a",
-          "wcag412",
-          "EN-301-549",
-          "EN-9.4.1.2"
-        ],
+        "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
         "description": "Ensure all elements with a role attribute use a valid value",
         "help": "ARIA roles used must conform to valid values",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-roles?application=webdriverjs",
@@ -1741,9 +1482,7 @@
             ],
             "impact": null,
             "html": "<span aria-controls=\"\" aria-expanded=\"false\" aria-haspopup=\"true\" class=\"left-6 top-[23px] z-[var(--header-zindex)] inline-flex size-5 rounded-sm no-underline outline-offset-2 fixed\" id=\"\" role=\"button\" style=\"position:absolute;transform:none\">",
-            "target": [
-              ".left-6"
-            ]
+            "target": [".left-6"]
           },
           {
             "any": [],
@@ -1773,9 +1512,7 @@
             ],
             "impact": null,
             "html": "<a role=\"link\" type=\"submit\" tabindex=\"0\" data-react-aria-pressable=\"true\" data-testid=\"header/sign-up\" data-zone=\"same\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__small button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"false\" data-suffix=\"false\" data-version=\"v1\" style=\"--geist-icon-size:16px\" href=\"/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Findigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app%252Flogin%26nonce%3D9dcc285dd1dee2d437cb67bca252934baa53b803edfe99ecfadba0ff695b9846\">",
-            "target": [
-              ".button-module__QyrFCa__small"
-            ]
+            "target": [".button-module__QyrFCa__small"]
           },
           {
             "any": [],
@@ -1805,9 +1542,7 @@
             ],
             "impact": null,
             "html": "<div class=\"border-0 border-t border-solid border-t-gray-alpha-400\" role=\"presentation\"></div>",
-            "target": [
-              ".border-0"
-            ]
+            "target": [".border-0"]
           },
           {
             "any": [],
@@ -1837,25 +1572,14 @@
             ],
             "impact": null,
             "html": "<div aria-live=\"assertive\" id=\"__next-route-announcer__\" role=\"alert\" style=\"position: absolute; border: 0px; height: 1px; margin: -1px; padding: 0px; width: 1px; clip: rect(0px, 0px, 0px, 0px); overflow: hidden; white-space: nowrap; overflow-wrap: normal;\"></div>",
-            "target": [
-              [
-                "next-route-announcer",
-                "#__next-route-announcer__"
-              ]
-            ]
+            "target": [["next-route-announcer", "#__next-route-announcer__"]]
           }
         ]
       },
       {
         "id": "aria-valid-attr-value",
         "impact": "critical",
-        "tags": [
-          "cat.aria",
-          "wcag2a",
-          "wcag412",
-          "EN-301-549",
-          "EN-9.4.1.2"
-        ],
+        "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
         "description": "Ensure all ARIA attributes have valid values",
         "help": "ARIA attributes must conform to valid values",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-valid-attr-value?application=webdriverjs",
@@ -1888,9 +1612,7 @@
             "none": [],
             "impact": null,
             "html": "<a href=\"/home\" aria-label=\"Vercel logo\" data-testid=\"header/navbar/logo\" id=\"\" data-zone=\"6a379c\" class=\"link-module__Q1NRQq__link pointer-events-none cursor-default\" data-prefetch=\"true\">",
-            "target": [
-              ".pointer-events-none"
-            ]
+            "target": [".pointer-events-none"]
           },
           {
             "any": [],
@@ -1920,9 +1642,7 @@
             "none": [],
             "impact": null,
             "html": "<svg aria-label=\"Vercel Logo\" fill=\"var(--geist-foreground)\" viewBox=\"0 0 75 65\" height=\"18\"><path d=\"M37.59.25l36.95 64H.64l36.95-64z\"></path></svg>",
-            "target": [
-              "svg[aria-label=\"Vercel Logo\"]"
-            ]
+            "target": ["svg[aria-label=\"Vercel Logo\"]"]
           },
           {
             "any": [],
@@ -1952,9 +1672,7 @@
             "none": [],
             "impact": null,
             "html": "<input aria-label=\"Email Address\" data-testid=\"login/email-input\" placeholder=\"Email Address\" required=\"\" aria-invalid=\"false\" autocapitalize=\"none\" autocomplete=\"email\" autocorrect=\"off\" class=\"input-module__q7zwrG__input\" data-geist-input=\"\" id=\"input-_R_aqltknpfknil76lb_\" spellcheck=\"false\" type=\"email\" name=\"email\" value=\"\">",
-            "target": [
-              "#input-_R_aqltknpfknil76lb_"
-            ]
+            "target": ["#input-_R_aqltknpfknil76lb_"]
           },
           {
             "any": [],
@@ -1984,9 +1702,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with Google\" data-testid=\"login/google-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with Google\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with Google\"]"]
           },
           {
             "any": [],
@@ -2016,9 +1732,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with GitHub\" data-testid=\"login/github-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with GitHub\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with GitHub\"]"]
           },
           {
             "any": [],
@@ -2048,25 +1762,14 @@
             "none": [],
             "impact": null,
             "html": "<div aria-live=\"assertive\" id=\"__next-route-announcer__\" role=\"alert\" style=\"position: absolute; border: 0px; height: 1px; margin: -1px; padding: 0px; width: 1px; clip: rect(0px, 0px, 0px, 0px); overflow: hidden; white-space: nowrap; overflow-wrap: normal;\"></div>",
-            "target": [
-              [
-                "next-route-announcer",
-                "#__next-route-announcer__"
-              ]
-            ]
+            "target": [["next-route-announcer", "#__next-route-announcer__"]]
           }
         ]
       },
       {
         "id": "aria-valid-attr",
         "impact": null,
-        "tags": [
-          "cat.aria",
-          "wcag2a",
-          "wcag412",
-          "EN-301-549",
-          "EN-9.4.1.2"
-        ],
+        "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
         "description": "Ensure attributes that begin with aria- are valid ARIA attributes",
         "help": "ARIA attributes must conform to valid names",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-valid-attr?application=webdriverjs",
@@ -2085,9 +1788,7 @@
             "none": [],
             "impact": null,
             "html": "<a href=\"/home\" aria-label=\"Vercel logo\" data-testid=\"header/navbar/logo\" id=\"\" data-zone=\"6a379c\" class=\"link-module__Q1NRQq__link pointer-events-none cursor-default\" data-prefetch=\"true\">",
-            "target": [
-              ".pointer-events-none"
-            ]
+            "target": [".pointer-events-none"]
           },
           {
             "any": [
@@ -2103,9 +1804,7 @@
             "none": [],
             "impact": null,
             "html": "<span aria-controls=\"\" aria-expanded=\"false\" aria-haspopup=\"true\" class=\"left-6 top-[23px] z-[var(--header-zindex)] inline-flex size-5 rounded-sm no-underline outline-offset-2 fixed\" id=\"\" role=\"button\" style=\"position:absolute;transform:none\">",
-            "target": [
-              ".left-6"
-            ]
+            "target": [".left-6"]
           },
           {
             "any": [
@@ -2121,9 +1820,7 @@
             "none": [],
             "impact": null,
             "html": "<svg aria-label=\"Vercel Logo\" fill=\"var(--geist-foreground)\" viewBox=\"0 0 75 65\" height=\"18\"><path d=\"M37.59.25l36.95 64H.64l36.95-64z\"></path></svg>",
-            "target": [
-              "svg[aria-label=\"Vercel Logo\"]"
-            ]
+            "target": ["svg[aria-label=\"Vercel Logo\"]"]
           },
           {
             "any": [
@@ -2139,9 +1836,7 @@
             "none": [],
             "impact": null,
             "html": "<input aria-label=\"Email Address\" data-testid=\"login/email-input\" placeholder=\"Email Address\" required=\"\" aria-invalid=\"false\" autocapitalize=\"none\" autocomplete=\"email\" autocorrect=\"off\" class=\"input-module__q7zwrG__input\" data-geist-input=\"\" id=\"input-_R_aqltknpfknil76lb_\" spellcheck=\"false\" type=\"email\" name=\"email\" value=\"\">",
-            "target": [
-              "#input-_R_aqltknpfknil76lb_"
-            ]
+            "target": ["#input-_R_aqltknpfknil76lb_"]
           },
           {
             "any": [
@@ -2157,9 +1852,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with Google\" data-testid=\"login/google-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with Google\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with Google\"]"]
           },
           {
             "any": [
@@ -2175,9 +1868,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with GitHub\" data-testid=\"login/github-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with GitHub\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with GitHub\"]"]
           },
           {
             "any": [
@@ -2193,26 +1884,14 @@
             "none": [],
             "impact": null,
             "html": "<div aria-live=\"assertive\" id=\"__next-route-announcer__\" role=\"alert\" style=\"position: absolute; border: 0px; height: 1px; margin: -1px; padding: 0px; width: 1px; clip: rect(0px, 0px, 0px, 0px); overflow: hidden; white-space: nowrap; overflow-wrap: normal;\"></div>",
-            "target": [
-              [
-                "next-route-announcer",
-                "#__next-route-announcer__"
-              ]
-            ]
+            "target": [["next-route-announcer", "#__next-route-announcer__"]]
           }
         ]
       },
       {
         "id": "autocomplete-valid",
         "impact": null,
-        "tags": [
-          "cat.forms",
-          "wcag21aa",
-          "wcag135",
-          "EN-301-549",
-          "EN-9.1.3.5",
-          "ACT"
-        ],
+        "tags": ["cat.forms", "wcag21aa", "wcag135", "EN-301-549", "EN-9.1.3.5", "ACT"],
         "description": "Ensure the autocomplete attribute is correct and suitable for the form field",
         "help": "autocomplete attribute must be used correctly",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/autocomplete-valid?application=webdriverjs",
@@ -2231,23 +1910,14 @@
             "none": [],
             "impact": null,
             "html": "<input aria-label=\"Email Address\" data-testid=\"login/email-input\" placeholder=\"Email Address\" required=\"\" aria-invalid=\"false\" autocapitalize=\"none\" autocomplete=\"email\" autocorrect=\"off\" class=\"input-module__q7zwrG__input\" data-geist-input=\"\" id=\"input-_R_aqltknpfknil76lb_\" spellcheck=\"false\" type=\"email\" name=\"email\" value=\"\">",
-            "target": [
-              "#input-_R_aqltknpfknil76lb_"
-            ]
+            "target": ["#input-_R_aqltknpfknil76lb_"]
           }
         ]
       },
       {
         "id": "avoid-inline-spacing",
         "impact": null,
-        "tags": [
-          "cat.structure",
-          "wcag21aa",
-          "wcag1412",
-          "EN-301-549",
-          "EN-9.1.4.12",
-          "ACT"
-        ],
+        "tags": ["cat.structure", "wcag21aa", "wcag1412", "EN-301-549", "EN-9.1.4.12", "ACT"],
         "description": "Ensure that text spacing set through style attributes can be adjusted with custom stylesheets",
         "help": "Inline text spacing must be adjustable with custom stylesheets",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/avoid-inline-spacing?application=webdriverjs",
@@ -2280,9 +1950,7 @@
             "none": [],
             "impact": null,
             "html": "<html class=\"geist_mono_98cac566-module__bcNCwW__variable geist_1620151b-module__2VSEvG__variable light-theme js-focus-visible\" lang=\"en-US\" style=\"color-scheme: light; background-color: rgb(255, 255, 255);\">",
-            "target": [
-              "html"
-            ]
+            "target": ["html"]
           },
           {
             "any": [],
@@ -2312,9 +1980,7 @@
             "none": [],
             "impact": null,
             "html": "<span aria-controls=\"\" aria-expanded=\"false\" aria-haspopup=\"true\" class=\"left-6 top-[23px] z-[var(--header-zindex)] inline-flex size-5 rounded-sm no-underline outline-offset-2 fixed\" id=\"\" role=\"button\" style=\"position:absolute;transform:none\">",
-            "target": [
-              ".left-6"
-            ]
+            "target": [".left-6"]
           },
           {
             "any": [],
@@ -2344,9 +2010,7 @@
             "none": [],
             "impact": null,
             "html": "<nav class=\"stack-module__UbbKhW__stack stack w-full gap-3 stack-module__UbbKhW__padding\" data-version=\"v1\" style=\"--stack-flex:1;--stack-direction:row;--stack-align:center;--stack-justify:end;--sm-stack-padding:0px 0px 0px;--md-stack-padding:0px 0px 0px 32px;--lg-stack-padding:0px 0px 0px 32px;--xl-stack-padding:0px 0px 0px 32px;--stack-gap:24px\">",
-            "target": [
-              ".w-full"
-            ]
+            "target": [".w-full"]
           },
           {
             "any": [],
@@ -2376,9 +2040,7 @@
             "none": [],
             "impact": null,
             "html": "<nav class=\"stack-module__UbbKhW__stack stack\" data-version=\"v1\" style=\"--stack-flex:initial;--stack-direction:row;--stack-align:center;--stack-justify:end;--stack-padding:0px;--stack-gap:12px\">",
-            "target": [
-              ".w-full > nav"
-            ]
+            "target": [".w-full > nav"]
           },
           {
             "any": [],
@@ -2408,9 +2070,7 @@
             "none": [],
             "impact": null,
             "html": "<a role=\"link\" type=\"submit\" tabindex=\"0\" data-react-aria-pressable=\"true\" data-testid=\"header/sign-up\" data-zone=\"same\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__small button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"false\" data-suffix=\"false\" data-version=\"v1\" style=\"--geist-icon-size:16px\" href=\"/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Findigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app%252Flogin%26nonce%3D9dcc285dd1dee2d437cb67bca252934baa53b803edfe99ecfadba0ff695b9846\">",
-            "target": [
-              ".button-module__QyrFCa__small"
-            ]
+            "target": [".button-module__QyrFCa__small"]
           },
           {
             "any": [],
@@ -2440,9 +2100,7 @@
             "none": [],
             "impact": null,
             "html": "<p class=\"text-module__eElGjq__wrapper\" data-version=\"v1\" style=\"--text-color:inherit;--text-size:0.875rem;--text-line-height:1.25rem;--text-letter-spacing:initial;--text-weight:500\">Sign Up</p>",
-            "target": [
-              ".button-module__QyrFCa__content > p"
-            ]
+            "target": [".button-module__QyrFCa__content > p"]
           },
           {
             "any": [],
@@ -2472,9 +2130,7 @@
             "none": [],
             "impact": null,
             "html": "<main class=\"stack-module__UbbKhW__stack stack min-h-[calc(100vh-var(--header-height))] text-[14px] leading-[24px] [&amp;:has([data-not-found])]:bg-background-100 bg-[var(--ds-background-200)]\" data-version=\"v1\" style=\"--stack-flex:initial;--stack-direction:column;--stack-align:stretch;--stack-justify:center;--stack-padding:0px;--stack-gap:0px\">",
-            "target": [
-              "main"
-            ]
+            "target": ["main"]
           },
           {
             "any": [],
@@ -2504,9 +2160,7 @@
             "none": [],
             "impact": null,
             "html": "<h1 class=\"text-module__eElGjq__wrapper\" data-version=\"v1\" style=\"--text-color:var(--ds-gray-1000);--text-size:2rem;--text-line-height:2.5rem;--text-letter-spacing:-0.049375rem;--text-weight:600;letter-spacing:-0.96px\">Log in to Vercel</h1>",
-            "target": [
-              "h1"
-            ]
+            "target": ["h1"]
           },
           {
             "any": [],
@@ -2536,9 +2190,7 @@
             "none": [],
             "impact": null,
             "html": "<div class=\"input-module__q7zwrG__container input-module__q7zwrG__large\" data-geist-input-wrapper=\"\" data-version=\"v1\" style=\"--geist-icon-size:24px\">",
-            "target": [
-              ".input-module__q7zwrG__container"
-            ]
+            "target": [".input-module__q7zwrG__container"]
           },
           {
             "any": [],
@@ -2568,9 +2220,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"submit\" tabindex=\"0\" data-react-aria-pressable=\"true\" data-testid=\"login/email-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset geist-new-themed geist-new-default geist-new-default-fill button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"false\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              ".geist-new-default"
-            ]
+            "target": [".geist-new-default"]
           },
           {
             "any": [],
@@ -2600,9 +2250,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with Google\" data-testid=\"login/google-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with Google\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with Google\"]"]
           },
           {
             "any": [],
@@ -2696,9 +2344,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with GitHub\" data-testid=\"login/github-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with GitHub\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with GitHub\"]"]
           },
           {
             "any": [],
@@ -2792,9 +2438,7 @@
             "none": [],
             "impact": null,
             "html": "<div style=\"overflow:visible;will-change:height;height:0\"><div style=\"overflow:visible\"></div></div>",
-            "target": [
-              "form[data-testid=\"login/saml-button\"] > div"
-            ]
+            "target": ["form[data-testid=\"login/saml-button\"] > div"]
           },
           {
             "any": [],
@@ -2824,9 +2468,7 @@
             "none": [],
             "impact": null,
             "html": "<div style=\"overflow:visible\"></div>",
-            "target": [
-              "form[data-testid=\"login/saml-button\"] > div > div"
-            ]
+            "target": ["form[data-testid=\"login/saml-button\"] > div > div"]
           },
           {
             "any": [],
@@ -2984,9 +2626,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"submit\" tabindex=\"0\" data-react-aria-pressable=\"true\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset geist-new-themed geist-new-tertiary geist-new-tertiary-fill button-module__QyrFCa__tertiary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"false\" data-suffix=\"false\" data-version=\"v1\" style=\"--geist-icon-size:16px\">",
-            "target": [
-              ".geist-new-tertiary"
-            ]
+            "target": [".geist-new-tertiary"]
           },
           {
             "any": [],
@@ -3016,9 +2656,7 @@
             "none": [],
             "impact": null,
             "html": "<p class=\"text-module__eElGjq__wrapper\" data-version=\"v1\" style=\"--text-color:var(--ds-gray-1000);--text-size:1rem;--text-line-height:1.5rem;--text-letter-spacing:initial;--text-weight:400\">",
-            "target": [
-              ".flex-1 > p"
-            ]
+            "target": [".flex-1 > p"]
           },
           {
             "any": [],
@@ -3048,9 +2686,7 @@
             "none": [],
             "impact": null,
             "html": "<div class=\"stack-module__UbbKhW__stack stack\" data-version=\"v1\" style=\"--stack-flex:initial;--stack-direction:column;--stack-align:center;--stack-justify:center;--stack-padding:0px;--stack-gap:16px\">",
-            "target": [
-              "footer > .stack-module__UbbKhW__stack.stack[data-version=\"v1\"]"
-            ]
+            "target": ["footer > .stack-module__UbbKhW__stack.stack[data-version=\"v1\"]"]
           },
           {
             "any": [],
@@ -3112,9 +2748,7 @@
             "none": [],
             "impact": null,
             "html": "<next-route-announcer style=\"position: absolute;\"></next-route-announcer>",
-            "target": [
-              "next-route-announcer"
-            ]
+            "target": ["next-route-announcer"]
           }
         ]
       },
@@ -3151,9 +2785,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"submit\" tabindex=\"0\" data-react-aria-pressable=\"true\" data-testid=\"login/email-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset geist-new-themed geist-new-default geist-new-default-fill button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"false\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              ".geist-new-default"
-            ]
+            "target": [".geist-new-default"]
           },
           {
             "any": [
@@ -3176,9 +2808,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with Google\" data-testid=\"login/google-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with Google\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with Google\"]"]
           },
           {
             "any": [
@@ -3201,9 +2831,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with GitHub\" data-testid=\"login/github-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with GitHub\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with GitHub\"]"]
           },
           {
             "any": [
@@ -3255,9 +2883,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"submit\" tabindex=\"0\" data-react-aria-pressable=\"true\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset geist-new-themed geist-new-tertiary geist-new-tertiary-fill button-module__QyrFCa__tertiary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"false\" data-suffix=\"false\" data-version=\"v1\" style=\"--geist-icon-size:16px\">",
-            "target": [
-              ".geist-new-tertiary"
-            ]
+            "target": [".geist-new-tertiary"]
           }
         ]
       },
@@ -3294,9 +2920,7 @@
                 "relatedNodes": [
                   {
                     "html": "<h1 class=\"text-module__eElGjq__wrapper\" data-version=\"v1\" style=\"--text-color:var(--ds-gray-1000);--text-size:2rem;--text-line-height:2.5rem;--text-letter-spacing:-0.049375rem;--text-weight:600;letter-spacing:-0.96px\">Log in to Vercel</h1>",
-                    "target": [
-                      "h1"
-                    ]
+                    "target": ["h1"]
                   }
                 ],
                 "impact": "serious",
@@ -3308,9 +2932,7 @@
                 "relatedNodes": [
                   {
                     "html": "<main class=\"stack-module__UbbKhW__stack stack min-h-[calc(100vh-var(--header-height))] text-[14px] leading-[24px] [&amp;:has([data-not-found])]:bg-background-100 bg-[var(--ds-background-200)]\" data-version=\"v1\" style=\"--stack-flex:initial;--stack-direction:column;--stack-align:stretch;--stack-justify:center;--stack-padding:0px;--stack-gap:0px\">",
-                    "target": [
-                      "main"
-                    ]
+                    "target": ["main"]
                   }
                 ],
                 "impact": "serious",
@@ -3321,9 +2943,7 @@
             "none": [],
             "impact": null,
             "html": "<html class=\"geist_mono_98cac566-module__bcNCwW__variable geist_1620151b-module__2VSEvG__variable light-theme js-focus-visible\" lang=\"en-US\" style=\"color-scheme: light; background-color: rgb(255, 255, 255);\">",
-            "target": [
-              "html"
-            ]
+            "target": ["html"]
           }
         ]
       },
@@ -3365,9 +2985,7 @@
             "none": [],
             "impact": null,
             "html": "<p class=\"text-module__eElGjq__wrapper\" data-version=\"v1\" style=\"--text-color:inherit;--text-size:0.875rem;--text-line-height:1.25rem;--text-letter-spacing:initial;--text-weight:500\">Sign Up</p>",
-            "target": [
-              ".button-module__QyrFCa__content > p"
-            ]
+            "target": [".button-module__QyrFCa__content > p"]
           },
           {
             "any": [
@@ -3390,9 +3008,7 @@
             "none": [],
             "impact": null,
             "html": "<input aria-label=\"Email Address\" data-testid=\"login/email-input\" placeholder=\"Email Address\" required=\"\" aria-invalid=\"false\" autocapitalize=\"none\" autocomplete=\"email\" autocorrect=\"off\" class=\"input-module__q7zwrG__input\" data-geist-input=\"\" id=\"input-_R_aqltknpfknil76lb_\" spellcheck=\"false\" type=\"email\" name=\"email\" value=\"\">",
-            "target": [
-              "#input-_R_aqltknpfknil76lb_"
-            ]
+            "target": ["#input-_R_aqltknpfknil76lb_"]
           },
           {
             "any": [
@@ -3415,9 +3031,7 @@
             "none": [],
             "impact": null,
             "html": "<span class=\"button-module__QyrFCa__content\">Continue<!-- --> with Email</span>",
-            "target": [
-              ".geist-new-default > .button-module__QyrFCa__content"
-            ]
+            "target": [".geist-new-default > .button-module__QyrFCa__content"]
           },
           {
             "any": [
@@ -3540,9 +3154,7 @@
             "none": [],
             "impact": null,
             "html": "<span class=\"button-module__QyrFCa__content\">Show other options</span>",
-            "target": [
-              ".geist-new-tertiary > .button-module__QyrFCa__content"
-            ]
+            "target": [".geist-new-tertiary > .button-module__QyrFCa__content"]
           },
           {
             "any": [
@@ -3565,9 +3177,7 @@
             "none": [],
             "impact": null,
             "html": "<p class=\"text-module__eElGjq__wrapper\" data-version=\"v1\" style=\"--text-color:var(--ds-gray-1000);--text-size:1rem;--text-line-height:1.5rem;--text-letter-spacing:initial;--text-weight:400\">",
-            "target": [
-              ".flex-1 > p"
-            ]
+            "target": [".flex-1 > p"]
           }
         ]
       },
@@ -3602,19 +3212,14 @@
             "none": [],
             "impact": null,
             "html": "<html class=\"geist_mono_98cac566-module__bcNCwW__variable geist_1620151b-module__2VSEvG__variable light-theme js-focus-visible\" lang=\"en-US\" style=\"color-scheme: light; background-color: rgb(255, 255, 255);\">",
-            "target": [
-              "html"
-            ]
+            "target": ["html"]
           }
         ]
       },
       {
         "id": "empty-heading",
         "impact": null,
-        "tags": [
-          "cat.name-role-value",
-          "best-practice"
-        ],
+        "tags": ["cat.name-role-value", "best-practice"],
         "description": "Ensure headings have discernible text",
         "help": "Headings should not be empty",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/empty-heading?application=webdriverjs",
@@ -3633,24 +3238,14 @@
             "none": [],
             "impact": null,
             "html": "<h1 class=\"text-module__eElGjq__wrapper\" data-version=\"v1\" style=\"--text-color:var(--ds-gray-1000);--text-size:2rem;--text-line-height:2.5rem;--text-letter-spacing:-0.049375rem;--text-weight:600;letter-spacing:-0.96px\">Log in to Vercel</h1>",
-            "target": [
-              "h1"
-            ]
+            "target": ["h1"]
           }
         ]
       },
       {
         "id": "form-field-multiple-labels",
         "impact": null,
-        "tags": [
-          "cat.forms",
-          "wcag2a",
-          "wcag332",
-          "TTv5",
-          "TT5.c",
-          "EN-301-549",
-          "EN-9.3.3.2"
-        ],
+        "tags": ["cat.forms", "wcag2a", "wcag332", "TTv5", "TT5.c", "EN-301-549", "EN-9.3.3.2"],
         "description": "Ensure form field does not have multiple label elements",
         "help": "Form field must not have multiple label elements",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/form-field-multiple-labels?application=webdriverjs",
@@ -3669,19 +3264,14 @@
             ],
             "impact": null,
             "html": "<input aria-label=\"Email Address\" data-testid=\"login/email-input\" placeholder=\"Email Address\" required=\"\" aria-invalid=\"false\" autocapitalize=\"none\" autocomplete=\"email\" autocorrect=\"off\" class=\"input-module__q7zwrG__input\" data-geist-input=\"\" id=\"input-_R_aqltknpfknil76lb_\" spellcheck=\"false\" type=\"email\" name=\"email\" value=\"\">",
-            "target": [
-              "#input-_R_aqltknpfknil76lb_"
-            ]
+            "target": ["#input-_R_aqltknpfknil76lb_"]
           }
         ]
       },
       {
         "id": "heading-order",
         "impact": null,
-        "tags": [
-          "cat.semantics",
-          "best-practice"
-        ],
+        "tags": ["cat.semantics", "best-practice"],
         "description": "Ensure the order of headings is semantically correct",
         "help": "Heading levels should only increase by one",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/heading-order?application=webdriverjs",
@@ -3709,9 +3299,7 @@
             "none": [],
             "impact": null,
             "html": "<h1 class=\"text-module__eElGjq__wrapper\" data-version=\"v1\" style=\"--text-color:var(--ds-gray-1000);--text-size:2rem;--text-line-height:2.5rem;--text-letter-spacing:-0.049375rem;--text-weight:600;letter-spacing:-0.96px\">Log in to Vercel</h1>",
-            "target": [
-              "h1"
-            ]
+            "target": ["h1"]
           }
         ]
       },
@@ -3746,9 +3334,7 @@
             "none": [],
             "impact": null,
             "html": "<html class=\"geist_mono_98cac566-module__bcNCwW__variable geist_1620151b-module__2VSEvG__variable light-theme js-focus-visible\" lang=\"en-US\" style=\"color-scheme: light; background-color: rgb(255, 255, 255);\">",
-            "target": [
-              "html"
-            ]
+            "target": ["html"]
           }
         ]
       },
@@ -3783,19 +3369,14 @@
             ],
             "impact": null,
             "html": "<html class=\"geist_mono_98cac566-module__bcNCwW__variable geist_1620151b-module__2VSEvG__variable light-theme js-focus-visible\" lang=\"en-US\" style=\"color-scheme: light; background-color: rgb(255, 255, 255);\">",
-            "target": [
-              "html"
-            ]
+            "target": ["html"]
           }
         ]
       },
       {
         "id": "label-title-only",
         "impact": null,
-        "tags": [
-          "cat.forms",
-          "best-practice"
-        ],
+        "tags": ["cat.forms", "best-practice"],
         "description": "Ensure that every form element has a visible label and is not solely labeled using hidden labels, or the title or aria-describedby attributes",
         "help": "Form elements should have a visible label",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/label-title-only?application=webdriverjs",
@@ -3814,9 +3395,7 @@
             ],
             "impact": null,
             "html": "<input aria-label=\"Email Address\" data-testid=\"login/email-input\" placeholder=\"Email Address\" required=\"\" aria-invalid=\"false\" autocapitalize=\"none\" autocomplete=\"email\" autocorrect=\"off\" class=\"input-module__q7zwrG__input\" data-geist-input=\"\" id=\"input-_R_aqltknpfknil76lb_\" spellcheck=\"false\" type=\"email\" name=\"email\" value=\"\">",
-            "target": [
-              "#input-_R_aqltknpfknil76lb_"
-            ]
+            "target": ["#input-_R_aqltknpfknil76lb_"]
           }
         ]
       },
@@ -3868,19 +3447,14 @@
             ],
             "impact": null,
             "html": "<input aria-label=\"Email Address\" data-testid=\"login/email-input\" placeholder=\"Email Address\" required=\"\" aria-invalid=\"false\" autocapitalize=\"none\" autocomplete=\"email\" autocorrect=\"off\" class=\"input-module__q7zwrG__input\" data-geist-input=\"\" id=\"input-_R_aqltknpfknil76lb_\" spellcheck=\"false\" type=\"email\" name=\"email\" value=\"\">",
-            "target": [
-              "#input-_R_aqltknpfknil76lb_"
-            ]
+            "target": ["#input-_R_aqltknpfknil76lb_"]
           }
         ]
       },
       {
         "id": "landmark-banner-is-top-level",
         "impact": null,
-        "tags": [
-          "cat.semantics",
-          "best-practice"
-        ],
+        "tags": ["cat.semantics", "best-practice"],
         "description": "Ensure the banner landmark is at top level",
         "help": "Banner landmark should not be contained in another landmark",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-banner-is-top-level?application=webdriverjs",
@@ -3901,19 +3475,14 @@
             "none": [],
             "impact": null,
             "html": "<header class=\"flex h-header min-h-[var(--header-height)] items-center px-4 md:px-6 [&amp;&gt;*:not(a)]:h-header [&amp;_ul]:m-0 [&amp;_ul]:list-none [&amp;_ul]:p-0 [&amp;_a]:ease-[easing-function:ease] [&amp;_a]:no-underline [&amp;_a]:transition-colors [&amp;_a]:duration-200 [&amp;_button]:ease-[easing-function:ease] [&amp;_button]:transition-colors [&amp;_button]:duration-200 bg-background-200\" data-navigation-header=\"\">",
-            "target": [
-              "header"
-            ]
+            "target": ["header"]
           }
         ]
       },
       {
         "id": "landmark-main-is-top-level",
         "impact": null,
-        "tags": [
-          "cat.semantics",
-          "best-practice"
-        ],
+        "tags": ["cat.semantics", "best-practice"],
         "description": "Ensure the main landmark is at top level",
         "help": "Main landmark should not be contained in another landmark",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-main-is-top-level?application=webdriverjs",
@@ -3934,19 +3503,14 @@
             "none": [],
             "impact": null,
             "html": "<main class=\"stack-module__UbbKhW__stack stack min-h-[calc(100vh-var(--header-height))] text-[14px] leading-[24px] [&amp;:has([data-not-found])]:bg-background-100 bg-[var(--ds-background-200)]\" data-version=\"v1\" style=\"--stack-flex:initial;--stack-direction:column;--stack-align:stretch;--stack-justify:center;--stack-padding:0px;--stack-gap:0px\">",
-            "target": [
-              "main"
-            ]
+            "target": ["main"]
           }
         ]
       },
       {
         "id": "landmark-no-duplicate-banner",
         "impact": null,
-        "tags": [
-          "cat.semantics",
-          "best-practice"
-        ],
+        "tags": ["cat.semantics", "best-practice"],
         "description": "Ensure the document has at most one banner landmark",
         "help": "Document should not have more than one banner landmark",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-no-duplicate-banner?application=webdriverjs",
@@ -3965,19 +3529,14 @@
             "none": [],
             "impact": null,
             "html": "<header class=\"flex h-header min-h-[var(--header-height)] items-center px-4 md:px-6 [&amp;&gt;*:not(a)]:h-header [&amp;_ul]:m-0 [&amp;_ul]:list-none [&amp;_ul]:p-0 [&amp;_a]:ease-[easing-function:ease] [&amp;_a]:no-underline [&amp;_a]:transition-colors [&amp;_a]:duration-200 [&amp;_button]:ease-[easing-function:ease] [&amp;_button]:transition-colors [&amp;_button]:duration-200 bg-background-200\" data-navigation-header=\"\">",
-            "target": [
-              "header"
-            ]
+            "target": ["header"]
           }
         ]
       },
       {
         "id": "landmark-no-duplicate-contentinfo",
         "impact": null,
-        "tags": [
-          "cat.semantics",
-          "best-practice"
-        ],
+        "tags": ["cat.semantics", "best-practice"],
         "description": "Ensure the document has at most one contentinfo landmark",
         "help": "Document should not have more than one contentinfo landmark",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-no-duplicate-contentinfo?application=webdriverjs",
@@ -3996,19 +3555,14 @@
             "none": [],
             "impact": null,
             "html": "<footer class=\"py-6\">",
-            "target": [
-              "footer"
-            ]
+            "target": ["footer"]
           }
         ]
       },
       {
         "id": "landmark-no-duplicate-main",
         "impact": null,
-        "tags": [
-          "cat.semantics",
-          "best-practice"
-        ],
+        "tags": ["cat.semantics", "best-practice"],
         "description": "Ensure the document has at most one main landmark",
         "help": "Document should not have more than one main landmark",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-no-duplicate-main?application=webdriverjs",
@@ -4027,19 +3581,14 @@
             "none": [],
             "impact": null,
             "html": "<main class=\"stack-module__UbbKhW__stack stack min-h-[calc(100vh-var(--header-height))] text-[14px] leading-[24px] [&amp;:has([data-not-found])]:bg-background-100 bg-[var(--ds-background-200)]\" data-version=\"v1\" style=\"--stack-flex:initial;--stack-direction:column;--stack-align:stretch;--stack-justify:center;--stack-padding:0px;--stack-gap:0px\">",
-            "target": [
-              "main"
-            ]
+            "target": ["main"]
           }
         ]
       },
       {
         "id": "landmark-one-main",
         "impact": null,
-        "tags": [
-          "cat.semantics",
-          "best-practice"
-        ],
+        "tags": ["cat.semantics", "best-practice"],
         "description": "Ensure the document has a main landmark",
         "help": "Document should have one main landmark",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-one-main?application=webdriverjs",
@@ -4053,9 +3602,7 @@
                 "relatedNodes": [
                   {
                     "html": "<main class=\"stack-module__UbbKhW__stack stack min-h-[calc(100vh-var(--header-height))] text-[14px] leading-[24px] [&amp;:has([data-not-found])]:bg-background-100 bg-[var(--ds-background-200)]\" data-version=\"v1\" style=\"--stack-flex:initial;--stack-direction:column;--stack-align:stretch;--stack-justify:center;--stack-padding:0px;--stack-gap:0px\">",
-                    "target": [
-                      "main"
-                    ]
+                    "target": ["main"]
                   }
                 ],
                 "impact": "moderate",
@@ -4065,19 +3612,14 @@
             "none": [],
             "impact": null,
             "html": "<html class=\"geist_mono_98cac566-module__bcNCwW__variable geist_1620151b-module__2VSEvG__variable light-theme js-focus-visible\" lang=\"en-US\" style=\"color-scheme: light; background-color: rgb(255, 255, 255);\">",
-            "target": [
-              "html"
-            ]
+            "target": ["html"]
           }
         ]
       },
       {
         "id": "landmark-unique",
         "impact": "moderate",
-        "tags": [
-          "cat.semantics",
-          "best-practice"
-        ],
+        "tags": ["cat.semantics", "best-practice"],
         "description": "Ensure landmarks are unique",
         "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-unique?application=webdriverjs",
@@ -4099,9 +3641,7 @@
             "none": [],
             "impact": null,
             "html": "<header class=\"flex h-header min-h-[var(--header-height)] items-center px-4 md:px-6 [&amp;&gt;*:not(a)]:h-header [&amp;_ul]:m-0 [&amp;_ul]:list-none [&amp;_ul]:p-0 [&amp;_a]:ease-[easing-function:ease] [&amp;_a]:no-underline [&amp;_a]:transition-colors [&amp;_a]:duration-200 [&amp;_button]:ease-[easing-function:ease] [&amp;_button]:transition-colors [&amp;_button]:duration-200 bg-background-200\" data-navigation-header=\"\">",
-            "target": [
-              "header"
-            ]
+            "target": ["header"]
           },
           {
             "any": [
@@ -4120,24 +3660,14 @@
             "none": [],
             "impact": null,
             "html": "<main class=\"stack-module__UbbKhW__stack stack min-h-[calc(100vh-var(--header-height))] text-[14px] leading-[24px] [&amp;:has([data-not-found])]:bg-background-100 bg-[var(--ds-background-200)]\" data-version=\"v1\" style=\"--stack-flex:initial;--stack-direction:column;--stack-align:stretch;--stack-justify:center;--stack-padding:0px;--stack-gap:0px\">",
-            "target": [
-              "main"
-            ]
+            "target": ["main"]
           }
         ]
       },
       {
         "id": "link-in-text-block",
         "impact": null,
-        "tags": [
-          "cat.color",
-          "wcag2a",
-          "wcag141",
-          "TTv5",
-          "TT13.a",
-          "EN-301-549",
-          "EN-9.1.4.1"
-        ],
+        "tags": ["cat.color", "wcag2a", "wcag141", "TTv5", "TT13.a", "EN-301-549", "EN-9.1.4.1"],
         "description": "Ensure links are distinguished from surrounding text in a way that does not rely on color",
         "help": "Links must be distinguishable without relying on color",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/link-in-text-block?application=webdriverjs",
@@ -4150,9 +3680,7 @@
                 "relatedNodes": [
                   {
                     "html": "<p class=\"text-module__eElGjq__wrapper\" data-version=\"v1\" style=\"--text-color:var(--ds-gray-1000);--text-size:1rem;--text-line-height:1.5rem;--text-letter-spacing:initial;--text-weight:400\">",
-                    "target": [
-                      ".flex-1 > p"
-                    ]
+                    "target": [".flex-1 > p"]
                   }
                 ],
                 "impact": "serious",
@@ -4163,9 +3691,7 @@
             "none": [],
             "impact": null,
             "html": "<a data-zone=\"same\" class=\"link-module__Q1NRQq__link link-module__Q1NRQq__highlight\" href=\"/signup?next=%2Fsso-api%3Furl%3Dhttps%3A%2F%2Findigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app%2Flogin%26nonce%3D9dcc285dd1dee2d437cb67bca252934baa53b803edfe99ecfadba0ff695b9846\">",
-            "target": [
-              ".link-module__Q1NRQq__highlight"
-            ]
+            "target": [".link-module__Q1NRQq__highlight"]
           }
         ]
       },
@@ -4212,9 +3738,7 @@
             ],
             "impact": null,
             "html": "<a class=\"skip-nav-link-module__uw4zXa__skipLink\" href=\"#geist-skip-nav\" tabindex=\"0\">Skip to content</a>",
-            "target": [
-              ".skip-nav-link-module__uw4zXa__skipLink"
-            ]
+            "target": [".skip-nav-link-module__uw4zXa__skipLink"]
           },
           {
             "any": [
@@ -4245,9 +3769,7 @@
             ],
             "impact": null,
             "html": "<a href=\"/home\" aria-label=\"Vercel logo\" data-testid=\"header/navbar/logo\" id=\"\" data-zone=\"6a379c\" class=\"link-module__Q1NRQq__link pointer-events-none cursor-default\" data-prefetch=\"true\">",
-            "target": [
-              ".pointer-events-none"
-            ]
+            "target": [".pointer-events-none"]
           },
           {
             "any": [
@@ -4271,9 +3793,7 @@
             ],
             "impact": null,
             "html": "<a role=\"link\" type=\"submit\" tabindex=\"0\" data-react-aria-pressable=\"true\" data-testid=\"header/sign-up\" data-zone=\"same\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__small button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"false\" data-suffix=\"false\" data-version=\"v1\" style=\"--geist-icon-size:16px\" href=\"/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Findigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app%252Flogin%26nonce%3D9dcc285dd1dee2d437cb67bca252934baa53b803edfe99ecfadba0ff695b9846\">",
-            "target": [
-              ".button-module__QyrFCa__small"
-            ]
+            "target": [".button-module__QyrFCa__small"]
           },
           {
             "any": [
@@ -4297,9 +3817,7 @@
             ],
             "impact": null,
             "html": "<a data-zone=\"same\" class=\"link-module__Q1NRQq__link link-module__Q1NRQq__highlight\" href=\"/signup?next=%2Fsso-api%3Furl%3Dhttps%3A%2F%2Findigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app%2Flogin%26nonce%3D9dcc285dd1dee2d437cb67bca252934baa53b803edfe99ecfadba0ff695b9846\">",
-            "target": [
-              ".link-module__Q1NRQq__highlight"
-            ]
+            "target": [".link-module__Q1NRQq__highlight"]
           },
           {
             "any": [
@@ -4323,9 +3841,7 @@
             ],
             "impact": null,
             "html": "<a href=\"/legal/terms\" data-zone=\"6a379c\" class=\"link-module__Q1NRQq__link text-xs text-[var(--accents-4)] hover:text-[var(--accents-5)]\">Terms</a>",
-            "target": [
-              "a[href$=\"terms\"]"
-            ]
+            "target": ["a[href$=\"terms\"]"]
           },
           {
             "any": [
@@ -4349,19 +3865,14 @@
             ],
             "impact": null,
             "html": "<a href=\"/legal/privacy-policy\" data-zone=\"6a379c\" class=\"link-module__Q1NRQq__link text-xs text-[var(--accents-4)] hover:text-[var(--accents-5)]\">Privacy Policy</a>",
-            "target": [
-              "a[href$=\"privacy-policy\"]"
-            ]
+            "target": ["a[href$=\"privacy-policy\"]"]
           }
         ]
       },
       {
         "id": "meta-viewport-large",
         "impact": null,
-        "tags": [
-          "cat.sensory-and-visual-cues",
-          "best-practice"
-        ],
+        "tags": ["cat.sensory-and-visual-cues", "best-practice"],
         "description": "Ensure <meta name=\"viewport\"> can scale a significant amount",
         "help": "Users should be able to zoom and scale the text up to 500%",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/meta-viewport-large?application=webdriverjs",
@@ -4380,24 +3891,14 @@
             "none": [],
             "impact": null,
             "html": "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1\">",
-            "target": [
-              "meta[name=\"viewport\"]"
-            ]
+            "target": ["meta[name=\"viewport\"]"]
           }
         ]
       },
       {
         "id": "nested-interactive",
         "impact": null,
-        "tags": [
-          "cat.keyboard",
-          "wcag2a",
-          "wcag412",
-          "TTv5",
-          "TT6.a",
-          "EN-301-549",
-          "EN-9.4.1.2"
-        ],
+        "tags": ["cat.keyboard", "wcag2a", "wcag412", "TTv5", "TT6.a", "EN-301-549", "EN-9.4.1.2"],
         "description": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
         "help": "Interactive controls must not be nested",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/nested-interactive?application=webdriverjs",
@@ -4416,9 +3917,7 @@
             "none": [],
             "impact": null,
             "html": "<span aria-controls=\"\" aria-expanded=\"false\" aria-haspopup=\"true\" class=\"left-6 top-[23px] z-[var(--header-zindex)] inline-flex size-5 rounded-sm no-underline outline-offset-2 fixed\" id=\"\" role=\"button\" style=\"position:absolute;transform:none\">",
-            "target": [
-              ".left-6"
-            ]
+            "target": [".left-6"]
           },
           {
             "any": [
@@ -4434,9 +3933,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"submit\" tabindex=\"0\" data-react-aria-pressable=\"true\" data-testid=\"login/email-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset geist-new-themed geist-new-default geist-new-default-fill button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"false\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              ".geist-new-default"
-            ]
+            "target": [".geist-new-default"]
           },
           {
             "any": [
@@ -4452,9 +3949,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with Google\" data-testid=\"login/google-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with Google\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with Google\"]"]
           },
           {
             "any": [
@@ -4470,9 +3965,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with GitHub\" data-testid=\"login/github-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with GitHub\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with GitHub\"]"]
           },
           {
             "any": [
@@ -4524,19 +4017,14 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"submit\" tabindex=\"0\" data-react-aria-pressable=\"true\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset geist-new-themed geist-new-tertiary geist-new-tertiary-fill button-module__QyrFCa__tertiary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"false\" data-suffix=\"false\" data-version=\"v1\" style=\"--geist-icon-size:16px\">",
-            "target": [
-              ".geist-new-tertiary"
-            ]
+            "target": [".geist-new-tertiary"]
           }
         ]
       },
       {
         "id": "page-has-heading-one",
         "impact": null,
-        "tags": [
-          "cat.semantics",
-          "best-practice"
-        ],
+        "tags": ["cat.semantics", "best-practice"],
         "description": "Ensure that the page, or at least one of its frames contains a level-one heading",
         "help": "Page should contain a level-one heading",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/page-has-heading-one?application=webdriverjs",
@@ -4550,9 +4038,7 @@
                 "relatedNodes": [
                   {
                     "html": "<h1 class=\"text-module__eElGjq__wrapper\" data-version=\"v1\" style=\"--text-color:var(--ds-gray-1000);--text-size:2rem;--text-line-height:2.5rem;--text-letter-spacing:-0.049375rem;--text-weight:600;letter-spacing:-0.96px\">Log in to Vercel</h1>",
-                    "target": [
-                      "h1"
-                    ]
+                    "target": ["h1"]
                   }
                 ],
                 "impact": "moderate",
@@ -4562,19 +4048,14 @@
             "none": [],
             "impact": null,
             "html": "<html class=\"geist_mono_98cac566-module__bcNCwW__variable geist_1620151b-module__2VSEvG__variable light-theme js-focus-visible\" lang=\"en-US\" style=\"color-scheme: light; background-color: rgb(255, 255, 255);\">",
-            "target": [
-              "html"
-            ]
+            "target": ["html"]
           }
         ]
       },
       {
         "id": "region",
         "impact": "moderate",
-        "tags": [
-          "cat.keyboard",
-          "best-practice"
-        ],
+        "tags": ["cat.keyboard", "best-practice"],
         "description": "Ensure all page content is contained by landmarks",
         "help": "All page content should be contained by landmarks",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/region?application=webdriverjs",
@@ -4595,9 +4076,7 @@
             "none": [],
             "impact": null,
             "html": "<span class=\"dark-theme invert-theme\"></span>",
-            "target": [
-              ".dark-theme"
-            ]
+            "target": [".dark-theme"]
           },
           {
             "any": [
@@ -4615,9 +4094,7 @@
             "none": [],
             "impact": null,
             "html": "<div class=\"min-h-vh relative\">",
-            "target": [
-              ".min-h-vh"
-            ]
+            "target": [".min-h-vh"]
           },
           {
             "any": [
@@ -4635,9 +4112,7 @@
             "none": [],
             "impact": null,
             "html": "<header class=\"flex h-header min-h-[var(--header-height)] items-center px-4 md:px-6 [&amp;&gt;*:not(a)]:h-header [&amp;_ul]:m-0 [&amp;_ul]:list-none [&amp;_ul]:p-0 [&amp;_a]:ease-[easing-function:ease] [&amp;_a]:no-underline [&amp;_a]:transition-colors [&amp;_a]:duration-200 [&amp;_button]:ease-[easing-function:ease] [&amp;_button]:transition-colors [&amp;_button]:duration-200 bg-background-200\" data-navigation-header=\"\">",
-            "target": [
-              "header"
-            ]
+            "target": ["header"]
           },
           {
             "any": [
@@ -4655,9 +4130,7 @@
             "none": [],
             "impact": null,
             "html": "<a href=\"/home\" aria-label=\"Vercel logo\" data-testid=\"header/navbar/logo\" id=\"\" data-zone=\"6a379c\" class=\"link-module__Q1NRQq__link pointer-events-none cursor-default\" data-prefetch=\"true\">",
-            "target": [
-              ".pointer-events-none"
-            ]
+            "target": [".pointer-events-none"]
           },
           {
             "any": [
@@ -4675,9 +4148,7 @@
             "none": [],
             "impact": null,
             "html": "<span aria-controls=\"\" aria-expanded=\"false\" aria-haspopup=\"true\" class=\"left-6 top-[23px] z-[var(--header-zindex)] inline-flex size-5 rounded-sm no-underline outline-offset-2 fixed\" id=\"\" role=\"button\" style=\"position:absolute;transform:none\">",
-            "target": [
-              ".left-6"
-            ]
+            "target": [".left-6"]
           },
           {
             "any": [
@@ -4695,9 +4166,7 @@
             "none": [],
             "impact": null,
             "html": "<svg aria-label=\"Vercel Logo\" fill=\"var(--geist-foreground)\" viewBox=\"0 0 75 65\" height=\"18\"><path d=\"M37.59.25l36.95 64H.64l36.95-64z\"></path></svg>",
-            "target": [
-              "svg[aria-label=\"Vercel Logo\"]"
-            ]
+            "target": ["svg[aria-label=\"Vercel Logo\"]"]
           },
           {
             "any": [
@@ -4715,9 +4184,7 @@
             "none": [],
             "impact": null,
             "html": "<path d=\"M37.59.25l36.95 64H.64l36.95-64z\"></path>",
-            "target": [
-              "svg[aria-label=\"Vercel Logo\"] > path"
-            ]
+            "target": ["svg[aria-label=\"Vercel Logo\"] > path"]
           },
           {
             "any": [
@@ -4735,9 +4202,7 @@
             "none": [],
             "impact": null,
             "html": "<nav class=\"stack-module__UbbKhW__stack stack w-full gap-3 stack-module__UbbKhW__padding\" data-version=\"v1\" style=\"--stack-flex:1;--stack-direction:row;--stack-align:center;--stack-justify:end;--sm-stack-padding:0px 0px 0px;--md-stack-padding:0px 0px 0px 32px;--lg-stack-padding:0px 0px 0px 32px;--xl-stack-padding:0px 0px 0px 32px;--stack-gap:24px\">",
-            "target": [
-              ".w-full"
-            ]
+            "target": [".w-full"]
           },
           {
             "any": [
@@ -4755,9 +4220,7 @@
             "none": [],
             "impact": null,
             "html": "<nav class=\"stack-module__UbbKhW__stack stack\" data-version=\"v1\" style=\"--stack-flex:initial;--stack-direction:row;--stack-align:center;--stack-justify:end;--stack-padding:0px;--stack-gap:12px\">",
-            "target": [
-              ".w-full > nav"
-            ]
+            "target": [".w-full > nav"]
           },
           {
             "any": [
@@ -4775,9 +4238,7 @@
             "none": [],
             "impact": null,
             "html": "<a role=\"link\" type=\"submit\" tabindex=\"0\" data-react-aria-pressable=\"true\" data-testid=\"header/sign-up\" data-zone=\"same\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__small button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"false\" data-suffix=\"false\" data-version=\"v1\" style=\"--geist-icon-size:16px\" href=\"/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Findigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app%252Flogin%26nonce%3D9dcc285dd1dee2d437cb67bca252934baa53b803edfe99ecfadba0ff695b9846\">",
-            "target": [
-              ".button-module__QyrFCa__small"
-            ]
+            "target": [".button-module__QyrFCa__small"]
           },
           {
             "any": [
@@ -4795,9 +4256,7 @@
             "none": [],
             "impact": null,
             "html": "<span class=\"button-module__QyrFCa__content\"><p class=\"text-module__eElGjq__wrapper\" data-version=\"v1\" style=\"--text-color:inherit;--text-size:0.875rem;--text-line-height:1.25rem;--text-letter-spacing:initial;--text-weight:500\">Sign Up</p></span>",
-            "target": [
-              ".button-module__QyrFCa__small > .button-module__QyrFCa__content"
-            ]
+            "target": [".button-module__QyrFCa__small > .button-module__QyrFCa__content"]
           },
           {
             "any": [
@@ -4815,9 +4274,7 @@
             "none": [],
             "impact": null,
             "html": "<p class=\"text-module__eElGjq__wrapper\" data-version=\"v1\" style=\"--text-color:inherit;--text-size:0.875rem;--text-line-height:1.25rem;--text-letter-spacing:initial;--text-weight:500\">Sign Up</p>",
-            "target": [
-              ".button-module__QyrFCa__content > p"
-            ]
+            "target": [".button-module__QyrFCa__content > p"]
           },
           {
             "any": [
@@ -4835,9 +4292,7 @@
             "none": [],
             "impact": null,
             "html": "<main class=\"stack-module__UbbKhW__stack stack min-h-[calc(100vh-var(--header-height))] text-[14px] leading-[24px] [&amp;:has([data-not-found])]:bg-background-100 bg-[var(--ds-background-200)]\" data-version=\"v1\" style=\"--stack-flex:initial;--stack-direction:column;--stack-align:stretch;--stack-justify:center;--stack-padding:0px;--stack-gap:0px\">",
-            "target": [
-              "main"
-            ]
+            "target": ["main"]
           },
           {
             "any": [
@@ -4855,9 +4310,7 @@
             "none": [],
             "impact": null,
             "html": "<div class=\"flex flex-1 flex-col items-center justify-center gap-6 pb-8\" data-testid=\"home/login\">",
-            "target": [
-              ".flex-1"
-            ]
+            "target": [".flex-1"]
           },
           {
             "any": [
@@ -4875,9 +4328,7 @@
             "none": [],
             "impact": null,
             "html": "<div class=\"flex flex-col items-center justify-center gap-4\">",
-            "target": [
-              ".gap-4.justify-center.items-center"
-            ]
+            "target": [".gap-4.justify-center.items-center"]
           },
           {
             "any": [
@@ -4895,9 +4346,7 @@
             "none": [],
             "impact": null,
             "html": "<div class=\"flex flex-col items-center justify-center gap-2\">",
-            "target": [
-              ".gap-2"
-            ]
+            "target": [".gap-2"]
           },
           {
             "any": [
@@ -4915,9 +4364,7 @@
             "none": [],
             "impact": null,
             "html": "<h1 class=\"text-module__eElGjq__wrapper\" data-version=\"v1\" style=\"--text-color:var(--ds-gray-1000);--text-size:2rem;--text-line-height:2.5rem;--text-letter-spacing:-0.049375rem;--text-weight:600;letter-spacing:-0.96px\">Log in to Vercel</h1>",
-            "target": [
-              "h1"
-            ]
+            "target": ["h1"]
           },
           {
             "any": [
@@ -4935,9 +4382,7 @@
             "none": [],
             "impact": null,
             "html": "<div class=\"w-80 flex flex-col gap-6\">",
-            "target": [
-              ".w-80"
-            ]
+            "target": [".w-80"]
           },
           {
             "any": [
@@ -4955,9 +4400,7 @@
             "none": [],
             "impact": null,
             "html": "<form data-testid=\"login/email-form\">",
-            "target": [
-              "form[data-testid=\"login/email-form\"]"
-            ]
+            "target": ["form[data-testid=\"login/email-form\"]"]
           },
           {
             "any": [
@@ -4975,9 +4418,7 @@
             "none": [],
             "impact": null,
             "html": "<div class=\"input-module__q7zwrG__container input-module__q7zwrG__large\" data-geist-input-wrapper=\"\" data-version=\"v1\" style=\"--geist-icon-size:24px\">",
-            "target": [
-              ".input-module__q7zwrG__container"
-            ]
+            "target": [".input-module__q7zwrG__container"]
           },
           {
             "any": [
@@ -4995,9 +4436,7 @@
             "none": [],
             "impact": null,
             "html": "<input aria-label=\"Email Address\" data-testid=\"login/email-input\" placeholder=\"Email Address\" required=\"\" aria-invalid=\"false\" autocapitalize=\"none\" autocomplete=\"email\" autocorrect=\"off\" class=\"input-module__q7zwrG__input\" data-geist-input=\"\" id=\"input-_R_aqltknpfknil76lb_\" spellcheck=\"false\" type=\"email\" name=\"email\" value=\"\">",
-            "target": [
-              "#input-_R_aqltknpfknil76lb_"
-            ]
+            "target": ["#input-_R_aqltknpfknil76lb_"]
           },
           {
             "any": [
@@ -5015,9 +4454,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"submit\" tabindex=\"0\" data-react-aria-pressable=\"true\" data-testid=\"login/email-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset geist-new-themed geist-new-default geist-new-default-fill button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"false\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              ".geist-new-default"
-            ]
+            "target": [".geist-new-default"]
           },
           {
             "any": [
@@ -5035,9 +4472,7 @@
             "none": [],
             "impact": null,
             "html": "<span class=\"button-module__QyrFCa__content\">Continue<!-- --> with Email</span>",
-            "target": [
-              ".geist-new-default > .button-module__QyrFCa__content"
-            ]
+            "target": [".geist-new-default > .button-module__QyrFCa__content"]
           },
           {
             "any": [
@@ -5055,9 +4490,7 @@
             "none": [],
             "impact": null,
             "html": "<div class=\"border-0 border-t border-solid border-t-gray-alpha-400\" role=\"presentation\"></div>",
-            "target": [
-              ".border-0"
-            ]
+            "target": [".border-0"]
           },
           {
             "any": [
@@ -5075,9 +4508,7 @@
             "none": [],
             "impact": null,
             "html": "<div class=\"flex flex-col gap-4\">",
-            "target": [
-              ".w-80 > .gap-4.flex-col.flex"
-            ]
+            "target": [".w-80 > .gap-4.flex-col.flex"]
           },
           {
             "any": [
@@ -5095,9 +4526,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with Google\" data-testid=\"login/google-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with Google\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with Google\"]"]
           },
           {
             "any": [
@@ -5155,9 +4584,7 @@
             "none": [],
             "impact": null,
             "html": "<path d=\"M8.15991 6.54543V9.64362H12.4654C12.2763 10.64 11.709 11.4837 10.8581 12.0509L13.4544 14.0655C14.9671 12.6692 15.8399 10.6182 15.8399 8.18188C15.8399 7.61461 15.789 7.06911 15.6944 6.54552L8.15991 6.54543Z\" fill=\"#4285F4\"></path>",
-            "target": [
-              "path[fill=\"#4285F4\"]"
-            ]
+            "target": ["path[fill=\"#4285F4\"]"]
           },
           {
             "any": [
@@ -5175,9 +4602,7 @@
             "none": [],
             "impact": null,
             "html": "<path d=\"M3.6764 9.52268L3.09083 9.97093L1.01807 11.5855C2.33443 14.1963 5.03241 16 8.15966 16C10.3196 16 12.1305 15.2873 13.4542 14.0655L10.8578 12.0509C10.1451 12.5309 9.23598 12.8219 8.15966 12.8219C6.07967 12.8219 4.31245 11.4182 3.67967 9.5273L3.6764 9.52268Z\" fill=\"#34A853\"></path>",
-            "target": [
-              "path[fill=\"#34A853\"]"
-            ]
+            "target": ["path[fill=\"#34A853\"]"]
           },
           {
             "any": [
@@ -5195,9 +4620,7 @@
             "none": [],
             "impact": null,
             "html": "<path d=\"M1.01803 4.41455C0.472607 5.49087 0.159912 6.70543 0.159912 7.99995C0.159912 9.29447 0.472607 10.509 1.01803 11.5854C1.01803 11.5926 3.6799 9.51991 3.6799 9.51991C3.5199 9.03991 3.42532 8.53085 3.42532 7.99987C3.42532 7.46889 3.5199 6.95983 3.6799 6.47983L1.01803 4.41455Z\" fill=\"#FBBC05\">",
-            "target": [
-              "path[fill=\"#FBBC05\"]"
-            ]
+            "target": ["path[fill=\"#FBBC05\"]"]
           },
           {
             "any": [
@@ -5215,9 +4638,7 @@
             "none": [],
             "impact": null,
             "html": "<path d=\"M8.15982 3.18545C9.33802 3.18545 10.3853 3.59271 11.2216 4.37818L13.5125 2.0873C12.1234 0.792777 10.3199 0 8.15982 0C5.03257 0 2.33443 1.79636 1.01807 4.41455L3.67985 6.48001C4.31254 4.58908 6.07983 3.18545 8.15982 3.18545Z\" fill=\"#EA4335\"></path>",
-            "target": [
-              "path[fill=\"#EA4335\"]"
-            ]
+            "target": ["path[fill=\"#EA4335\"]"]
           },
           {
             "any": [
@@ -5275,9 +4696,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with GitHub\" data-testid=\"login/github-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with GitHub\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with GitHub\"]"]
           },
           {
             "any": [
@@ -5335,9 +4754,7 @@
             "none": [],
             "impact": null,
             "html": "<g clip-path=\"url(#clip0_872_3147)\">",
-            "target": [
-              "g[clip-path=\"url(#clip0_872_3147)\"]"
-            ]
+            "target": ["g[clip-path=\"url(#clip0_872_3147)\"]"]
           },
           {
             "any": [
@@ -5395,9 +4812,7 @@
             "none": [],
             "impact": null,
             "html": "<clipPath id=\"clip0_872_3147\">\n  <rect width=\"16\" height=\"16\" fill=\"white\"></rect>\n  </clipPath>",
-            "target": [
-              "#clip0_872_3147"
-            ]
+            "target": ["#clip0_872_3147"]
           },
           {
             "any": [
@@ -5415,9 +4830,7 @@
             "none": [],
             "impact": null,
             "html": "<rect width=\"16\" height=\"16\" fill=\"white\"></rect>",
-            "target": [
-              "#clip0_872_3147 > rect"
-            ]
+            "target": ["#clip0_872_3147 > rect"]
           },
           {
             "any": [
@@ -5475,9 +4888,7 @@
             "none": [],
             "impact": null,
             "html": "<form data-testid=\"login/saml-button\">",
-            "target": [
-              "form[data-testid=\"login/saml-button\"]"
-            ]
+            "target": ["form[data-testid=\"login/saml-button\"]"]
           },
           {
             "any": [
@@ -5495,9 +4906,7 @@
             "none": [],
             "impact": null,
             "html": "<div style=\"overflow:visible;will-change:height;height:0\"><div style=\"overflow:visible\"></div></div>",
-            "target": [
-              "form[data-testid=\"login/saml-button\"] > div"
-            ]
+            "target": ["form[data-testid=\"login/saml-button\"] > div"]
           },
           {
             "any": [
@@ -5515,9 +4924,7 @@
             "none": [],
             "impact": null,
             "html": "<div style=\"overflow:visible\"></div>",
-            "target": [
-              "form[data-testid=\"login/saml-button\"] > div > div"
-            ]
+            "target": ["form[data-testid=\"login/saml-button\"] > div > div"]
           },
           {
             "any": [
@@ -5735,9 +5142,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"submit\" tabindex=\"0\" data-react-aria-pressable=\"true\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset geist-new-themed geist-new-tertiary geist-new-tertiary-fill button-module__QyrFCa__tertiary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"false\" data-suffix=\"false\" data-version=\"v1\" style=\"--geist-icon-size:16px\">",
-            "target": [
-              ".geist-new-tertiary"
-            ]
+            "target": [".geist-new-tertiary"]
           },
           {
             "any": [
@@ -5755,9 +5160,7 @@
             "none": [],
             "impact": null,
             "html": "<span class=\"button-module__QyrFCa__content\">Show other options</span>",
-            "target": [
-              ".geist-new-tertiary > .button-module__QyrFCa__content"
-            ]
+            "target": [".geist-new-tertiary > .button-module__QyrFCa__content"]
           },
           {
             "any": [
@@ -5775,9 +5178,7 @@
             "none": [],
             "impact": null,
             "html": "<p class=\"text-module__eElGjq__wrapper\" data-version=\"v1\" style=\"--text-color:var(--ds-gray-1000);--text-size:1rem;--text-line-height:1.5rem;--text-letter-spacing:initial;--text-weight:400\">",
-            "target": [
-              ".flex-1 > p"
-            ]
+            "target": [".flex-1 > p"]
           },
           {
             "any": [
@@ -5795,9 +5196,7 @@
             "none": [],
             "impact": null,
             "html": "<a data-zone=\"same\" class=\"link-module__Q1NRQq__link link-module__Q1NRQq__highlight\" href=\"/signup?next=%2Fsso-api%3Furl%3Dhttps%3A%2F%2Findigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app%2Flogin%26nonce%3D9dcc285dd1dee2d437cb67bca252934baa53b803edfe99ecfadba0ff695b9846\">",
-            "target": [
-              ".link-module__Q1NRQq__highlight"
-            ]
+            "target": [".link-module__Q1NRQq__highlight"]
           },
           {
             "any": [
@@ -5815,9 +5214,7 @@
             "none": [],
             "impact": null,
             "html": "<footer class=\"py-6\">",
-            "target": [
-              "footer"
-            ]
+            "target": ["footer"]
           },
           {
             "any": [
@@ -5835,9 +5232,7 @@
             "none": [],
             "impact": null,
             "html": "<div class=\"stack-module__UbbKhW__stack stack\" data-version=\"v1\" style=\"--stack-flex:initial;--stack-direction:column;--stack-align:center;--stack-justify:center;--stack-padding:0px;--stack-gap:16px\">",
-            "target": [
-              "footer > .stack-module__UbbKhW__stack.stack[data-version=\"v1\"]"
-            ]
+            "target": ["footer > .stack-module__UbbKhW__stack.stack[data-version=\"v1\"]"]
           },
           {
             "any": [
@@ -5875,9 +5270,7 @@
             "none": [],
             "impact": null,
             "html": "<a href=\"/legal/terms\" data-zone=\"6a379c\" class=\"link-module__Q1NRQq__link text-xs text-[var(--accents-4)] hover:text-[var(--accents-5)]\">Terms</a>",
-            "target": [
-              "a[href$=\"terms\"]"
-            ]
+            "target": ["a[href$=\"terms\"]"]
           },
           {
             "any": [
@@ -5895,9 +5288,7 @@
             "none": [],
             "impact": null,
             "html": "<a href=\"/legal/privacy-policy\" data-zone=\"6a379c\" class=\"link-module__Q1NRQq__link text-xs text-[var(--accents-4)] hover:text-[var(--accents-5)]\">Privacy Policy</a>",
-            "target": [
-              "a[href$=\"privacy-policy\"]"
-            ]
+            "target": ["a[href$=\"privacy-policy\"]"]
           },
           {
             "any": [
@@ -5915,9 +5306,7 @@
             "none": [],
             "impact": null,
             "html": "<next-route-announcer style=\"position: absolute;\"></next-route-announcer>",
-            "target": [
-              "next-route-announcer"
-            ]
+            "target": ["next-route-announcer"]
           },
           {
             "any": [
@@ -5935,12 +5324,7 @@
             "none": [],
             "impact": null,
             "html": "<div aria-live=\"assertive\" id=\"__next-route-announcer__\" role=\"alert\" style=\"position: absolute; border: 0px; height: 1px; margin: -1px; padding: 0px; width: 1px; clip: rect(0px, 0px, 0px, 0px); overflow: hidden; white-space: nowrap; overflow-wrap: normal;\"></div>",
-            "target": [
-              [
-                "next-route-announcer",
-                "#__next-route-announcer__"
-              ]
-            ]
+            "target": [["next-route-announcer", "#__next-route-announcer__"]]
           },
           {
             "any": [
@@ -5958,9 +5342,7 @@
             "none": [],
             "impact": null,
             "html": "<div class=\"context-card-module__MV3-Va__portal\">",
-            "target": [
-              ".context-card-module__MV3-Va__portal"
-            ]
+            "target": [".context-card-module__MV3-Va__portal"]
           },
           {
             "any": [
@@ -5978,9 +5360,7 @@
             "none": [],
             "impact": null,
             "html": "<div class=\"context-card-module__MV3-Va__contextCardRootVisibility\" style=\"opacity: 0;\">",
-            "target": [
-              ".context-card-module__MV3-Va__contextCardRootVisibility"
-            ]
+            "target": [".context-card-module__MV3-Va__contextCardRootVisibility"]
           },
           {
             "any": [
@@ -5998,9 +5378,7 @@
             "none": [],
             "impact": null,
             "html": "<div class=\"context-card-module__MV3-Va__contextCardRoot\" data-skip-transition=\"true\" style=\"transform: translate(0px, 0px); width: 0px; height: 0px;\">",
-            "target": [
-              ".context-card-module__MV3-Va__contextCardRoot"
-            ]
+            "target": [".context-card-module__MV3-Va__contextCardRoot"]
           },
           {
             "any": [
@@ -6018,9 +5396,7 @@
             "none": [],
             "impact": null,
             "html": "<div class=\"context-card-module__MV3-Va__contextCardTip\" data-skip-transition=\"true\" data-side=\"top\">",
-            "target": [
-              ".context-card-module__MV3-Va__contextCardTip"
-            ]
+            "target": [".context-card-module__MV3-Va__contextCardTip"]
           },
           {
             "any": [
@@ -6038,9 +5414,7 @@
             "none": [],
             "impact": null,
             "html": "<svg width=\"14\" height=\"7\" viewBox=\"0 0 14 7\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">",
-            "target": [
-              "svg[viewBox=\"0 0 14 7\"]"
-            ]
+            "target": ["svg[viewBox=\"0 0 14 7\"]"]
           },
           {
             "any": [
@@ -6058,9 +5432,7 @@
             "none": [],
             "impact": null,
             "html": "<g clip-path=\"url(#clip0_11069_2571)\">",
-            "target": [
-              "g[clip-path=\"url(#clip0_11069_2571)\"]"
-            ]
+            "target": ["g[clip-path=\"url(#clip0_11069_2571)\"]"]
           },
           {
             "any": [
@@ -6078,9 +5450,7 @@
             "none": [],
             "impact": null,
             "html": "<path d=\"M15 -0.5V0.5H12.9834L12.8184 0.508789C12.4377 0.550822 12.0853 0.738056 11.8359 1.03418L8.53027 4.95996C7.73114 5.90893 6.26886 5.90892 5.46973 4.95996L2.16406 1.03418C1.87905 0.695733 1.45907 0.5 1.0166 0.5H-1V-0.5H15Z\" fill=\"var(--ds-background-100)\" stroke=\"var(--ds-gray-500)\" style=\"fill: var(--ds-background-100); fill-opacity: 1; stroke: var(--ds-gray-400); stroke-opacity: 1;\">",
-            "target": [
-              "path[fill=\"var(--ds-background-100)\"]"
-            ]
+            "target": ["path[fill=\"var(--ds-background-100)\"]"]
           },
           {
             "any": [
@@ -6098,9 +5468,7 @@
             "none": [],
             "impact": null,
             "html": "<defs><clipPath id=\"clip0_11069_2571\"><rect width=\"14\" height=\"7\" fill=\"white\" style=\"fill: white; fill-opacity: 1;\"></rect></clipPath></defs>",
-            "target": [
-              "svg[viewBox=\"0 0 14 7\"] > defs"
-            ]
+            "target": ["svg[viewBox=\"0 0 14 7\"] > defs"]
           },
           {
             "any": [
@@ -6118,9 +5486,7 @@
             "none": [],
             "impact": null,
             "html": "<clipPath id=\"clip0_11069_2571\"><rect width=\"14\" height=\"7\" fill=\"white\" style=\"fill: white; fill-opacity: 1;\"></rect></clipPath>",
-            "target": [
-              "#clip0_11069_2571"
-            ]
+            "target": ["#clip0_11069_2571"]
           },
           {
             "any": [
@@ -6138,9 +5504,7 @@
             "none": [],
             "impact": null,
             "html": "<rect width=\"14\" height=\"7\" fill=\"white\" style=\"fill: white; fill-opacity: 1;\"></rect>",
-            "target": [
-              "#clip0_11069_2571 > rect"
-            ]
+            "target": ["#clip0_11069_2571 > rect"]
           },
           {
             "any": [
@@ -6158,9 +5522,7 @@
             "none": [],
             "impact": null,
             "html": "<div></div>",
-            "target": [
-              ".context-card-module__MV3-Va__contextCardRoot > div:nth-child(2)"
-            ]
+            "target": [".context-card-module__MV3-Va__contextCardRoot > div:nth-child(2)"]
           },
           {
             "any": [
@@ -6178,19 +5540,14 @@
             "none": [],
             "impact": null,
             "html": "<reach-portal></reach-portal>",
-            "target": [
-              "reach-portal"
-            ]
+            "target": ["reach-portal"]
           }
         ]
       },
       {
         "id": "tabindex",
         "impact": null,
-        "tags": [
-          "cat.keyboard",
-          "best-practice"
-        ],
+        "tags": ["cat.keyboard", "best-practice"],
         "description": "Ensure tabindex attribute values are not greater than 0",
         "help": "Elements should not have tabindex greater than zero",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/tabindex?application=webdriverjs",
@@ -6209,9 +5566,7 @@
             "none": [],
             "impact": null,
             "html": "<a class=\"skip-nav-link-module__uw4zXa__skipLink\" href=\"#geist-skip-nav\" tabindex=\"0\">Skip to content</a>",
-            "target": [
-              ".skip-nav-link-module__uw4zXa__skipLink"
-            ]
+            "target": [".skip-nav-link-module__uw4zXa__skipLink"]
           },
           {
             "any": [
@@ -6227,9 +5582,7 @@
             "none": [],
             "impact": null,
             "html": "<a role=\"link\" type=\"submit\" tabindex=\"0\" data-react-aria-pressable=\"true\" data-testid=\"header/sign-up\" data-zone=\"same\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__small button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"false\" data-suffix=\"false\" data-version=\"v1\" style=\"--geist-icon-size:16px\" href=\"/signup?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Findigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app%252Flogin%26nonce%3D9dcc285dd1dee2d437cb67bca252934baa53b803edfe99ecfadba0ff695b9846\">",
-            "target": [
-              ".button-module__QyrFCa__small"
-            ]
+            "target": [".button-module__QyrFCa__small"]
           },
           {
             "any": [
@@ -6245,9 +5598,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"submit\" tabindex=\"0\" data-react-aria-pressable=\"true\" data-testid=\"login/email-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset geist-new-themed geist-new-default geist-new-default-fill button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"false\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              ".geist-new-default"
-            ]
+            "target": [".geist-new-default"]
           },
           {
             "any": [
@@ -6263,9 +5614,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with Google\" data-testid=\"login/google-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with Google\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with Google\"]"]
           },
           {
             "any": [
@@ -6281,9 +5630,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"button\" tabindex=\"0\" data-react-aria-pressable=\"true\" aria-label=\"Continue with GitHub\" data-testid=\"login/github-button\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset button-module__QyrFCa__secondary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"true\" data-suffix=\"false\" data-version=\"v1\" style=\"min-width:100%;max-width:100%;--geist-icon-size:16px\">",
-            "target": [
-              "button[aria-label=\"Continue with GitHub\"]"
-            ]
+            "target": ["button[aria-label=\"Continue with GitHub\"]"]
           },
           {
             "any": [
@@ -6335,9 +5682,7 @@
             "none": [],
             "impact": null,
             "html": "<button type=\"submit\" tabindex=\"0\" data-react-aria-pressable=\"true\" class=\"button-module__QyrFCa__base reset-module__ylizOa__reset button-module__QyrFCa__button reset-module__ylizOa__reset geist-new-themed geist-new-tertiary geist-new-tertiary-fill button-module__QyrFCa__tertiary button-module__QyrFCa__large button-module__QyrFCa__invert\" data-geist-button=\"\" data-prefix=\"false\" data-suffix=\"false\" data-version=\"v1\" style=\"--geist-icon-size:16px\">",
-            "target": [
-              ".geist-new-tertiary"
-            ]
+            "target": [".geist-new-tertiary"]
           }
         ]
       }
@@ -6346,13 +5691,7 @@
       {
         "id": "aria-valid-attr-value",
         "impact": "critical",
-        "tags": [
-          "cat.aria",
-          "wcag2a",
-          "wcag412",
-          "EN-301-549",
-          "EN-9.4.1.2"
-        ],
+        "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
         "description": "Ensure all ARIA attributes have valid values",
         "help": "ARIA attributes must conform to valid values",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/aria-valid-attr-value?application=webdriverjs",
@@ -6374,9 +5713,7 @@
             "none": [],
             "impact": "critical",
             "html": "<span aria-controls=\"\" aria-expanded=\"false\" aria-haspopup=\"true\" class=\"left-6 top-[23px] z-[var(--header-zindex)] inline-flex size-5 rounded-sm no-underline outline-offset-2 fixed\" id=\"\" role=\"button\" style=\"position:absolute;transform:none\">",
-            "target": [
-              ".left-6"
-            ],
+            "target": [".left-6"],
             "failureSummary": "Fix all of the following:\n  Unable to determine if aria-controls referenced ID exists on the page while using aria-haspopup: aria-controls=\"\""
           }
         ]
@@ -6412,9 +5749,7 @@
                 "relatedNodes": [
                   {
                     "html": "<main class=\"stack-module__UbbKhW__stack stack min-h-[calc(100vh-var(--header-height))] text-[14px] leading-[24px] [&amp;:has([data-not-found])]:bg-background-100 bg-[var(--ds-background-200)]\" data-version=\"v1\" style=\"--stack-flex:initial;--stack-direction:column;--stack-align:stretch;--stack-justify:center;--stack-padding:0px;--stack-gap:0px\">",
-                    "target": [
-                      "main"
-                    ]
+                    "target": ["main"]
                   }
                 ],
                 "impact": "serious",
@@ -6425,9 +5760,7 @@
             "none": [],
             "impact": "serious",
             "html": "<h1 class=\"text-module__eElGjq__wrapper\" data-version=\"v1\" style=\"--text-color:var(--ds-gray-1000);--text-size:2rem;--text-line-height:2.5rem;--text-letter-spacing:-0.049375rem;--text-weight:600;letter-spacing:-0.96px\">Log in to Vercel</h1>",
-            "target": [
-              "h1"
-            ],
+            "target": ["h1"],
             "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
           }
         ]
@@ -6467,9 +5800,7 @@
                 "relatedNodes": [
                   {
                     "html": "<main class=\"stack-module__UbbKhW__stack stack min-h-[calc(100vh-var(--header-height))] text-[14px] leading-[24px] [&amp;:has([data-not-found])]:bg-background-100 bg-[var(--ds-background-200)]\" data-version=\"v1\" style=\"--stack-flex:initial;--stack-direction:column;--stack-align:stretch;--stack-justify:center;--stack-padding:0px;--stack-gap:0px\">",
-                    "target": [
-                      "main"
-                    ]
+                    "target": ["main"]
                   }
                 ],
                 "impact": "serious",
@@ -6480,9 +5811,7 @@
             "none": [],
             "impact": "serious",
             "html": "<a data-zone=\"same\" class=\"link-module__Q1NRQq__link link-module__Q1NRQq__highlight\" href=\"/signup?next=%2Fsso-api%3Furl%3Dhttps%3A%2F%2Findigo-yield-platform-v01-3jwtng7hy-hamstamgrams-projects.vercel.app%2Flogin%26nonce%3D9dcc285dd1dee2d437cb67bca252934baa53b803edfe99ecfadba0ff695b9846\">",
-            "target": [
-              ".link-module__Q1NRQq__highlight"
-            ],
+            "target": [".link-module__Q1NRQq__highlight"],
             "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 4.25 (foreground color: #0072f5, background color: #fafafa, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
           },
           {
@@ -6501,9 +5830,7 @@
                 "relatedNodes": [
                   {
                     "html": "<main class=\"stack-module__UbbKhW__stack stack min-h-[calc(100vh-var(--header-height))] text-[14px] leading-[24px] [&amp;:has([data-not-found])]:bg-background-100 bg-[var(--ds-background-200)]\" data-version=\"v1\" style=\"--stack-flex:initial;--stack-direction:column;--stack-align:stretch;--stack-justify:center;--stack-padding:0px;--stack-gap:0px\">",
-                    "target": [
-                      "main"
-                    ]
+                    "target": ["main"]
                   }
                 ],
                 "impact": "serious",
@@ -6514,9 +5841,7 @@
             "none": [],
             "impact": "serious",
             "html": "<a href=\"/legal/terms\" data-zone=\"6a379c\" class=\"link-module__Q1NRQq__link text-xs text-[var(--accents-4)] hover:text-[var(--accents-5)]\">Terms</a>",
-            "target": [
-              "a[href$=\"terms\"]"
-            ],
+            "target": ["a[href$=\"terms\"]"],
             "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 3.39 (foreground color: #888888, background color: #fafafa, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
           },
           {
@@ -6535,9 +5860,7 @@
                 "relatedNodes": [
                   {
                     "html": "<main class=\"stack-module__UbbKhW__stack stack min-h-[calc(100vh-var(--header-height))] text-[14px] leading-[24px] [&amp;:has([data-not-found])]:bg-background-100 bg-[var(--ds-background-200)]\" data-version=\"v1\" style=\"--stack-flex:initial;--stack-direction:column;--stack-align:stretch;--stack-justify:center;--stack-padding:0px;--stack-gap:0px\">",
-                    "target": [
-                      "main"
-                    ]
+                    "target": ["main"]
                   }
                 ],
                 "impact": "serious",
@@ -6548,9 +5871,7 @@
             "none": [],
             "impact": "serious",
             "html": "<a href=\"/legal/privacy-policy\" data-zone=\"6a379c\" class=\"link-module__Q1NRQq__link text-xs text-[var(--accents-4)] hover:text-[var(--accents-5)]\">Privacy Policy</a>",
-            "target": [
-              "a[href$=\"privacy-policy\"]"
-            ],
+            "target": ["a[href$=\"privacy-policy\"]"],
             "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 3.39 (foreground color: #888888, background color: #fafafa, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
           }
         ]
@@ -6558,10 +5879,7 @@
       {
         "id": "landmark-unique",
         "impact": "moderate",
-        "tags": [
-          "cat.semantics",
-          "best-practice"
-        ],
+        "tags": ["cat.semantics", "best-practice"],
         "description": "Ensure landmarks are unique",
         "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-unique?application=webdriverjs",
@@ -6577,9 +5895,7 @@
                 "relatedNodes": [
                   {
                     "html": "<nav class=\"stack-module__UbbKhW__stack stack\" data-version=\"v1\" style=\"--stack-flex:initial;--stack-direction:row;--stack-align:center;--stack-justify:end;--stack-padding:0px;--stack-gap:12px\">",
-                    "target": [
-                      ".w-full > nav"
-                    ]
+                    "target": [".w-full > nav"]
                   }
                 ],
                 "impact": "moderate",
@@ -6590,9 +5906,7 @@
             "none": [],
             "impact": "moderate",
             "html": "<nav class=\"stack-module__UbbKhW__stack stack w-full gap-3 stack-module__UbbKhW__padding\" data-version=\"v1\" style=\"--stack-flex:1;--stack-direction:row;--stack-align:center;--stack-justify:end;--sm-stack-padding:0px 0px 0px;--md-stack-padding:0px 0px 0px 32px;--lg-stack-padding:0px 0px 0px 32px;--xl-stack-padding:0px 0px 0px 32px;--stack-gap:24px\">",
-            "target": [
-              ".w-full"
-            ],
+            "target": [".w-full"],
             "failureSummary": "Fix any of the following:\n  The landmark must have a unique aria-label, aria-labelledby, or title to make landmarks distinguishable"
           }
         ]
@@ -6626,9 +5940,7 @@
             "none": [],
             "impact": "critical",
             "html": "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1\">",
-            "target": [
-              "meta[name=\"viewport\"]"
-            ],
+            "target": ["meta[name=\"viewport\"]"],
             "failureSummary": "Fix any of the following:\n  maximum-scale on <meta> tag disables zooming on mobile devices"
           }
         ]
@@ -6636,10 +5948,7 @@
       {
         "id": "region",
         "impact": "moderate",
-        "tags": [
-          "cat.keyboard",
-          "best-practice"
-        ],
+        "tags": ["cat.keyboard", "best-practice"],
         "description": "Ensure all page content is contained by landmarks",
         "help": "All page content should be contained by landmarks",
         "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/region?application=webdriverjs",
@@ -6660,9 +5969,7 @@
             "none": [],
             "impact": "moderate",
             "html": "<a class=\"skip-nav-link-module__uw4zXa__skipLink\" href=\"#geist-skip-nav\" tabindex=\"0\">Skip to content</a>",
-            "target": [
-              ".skip-nav-link-module__uw4zXa__skipLink"
-            ],
+            "target": [".skip-nav-link-module__uw4zXa__skipLink"],
             "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
           }
         ]

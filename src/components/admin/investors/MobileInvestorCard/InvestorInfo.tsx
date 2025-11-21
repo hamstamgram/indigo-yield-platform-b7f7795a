@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React from "react";
 
 interface InvestorInfoProps {
   firstName?: string;
@@ -10,10 +9,12 @@ interface InvestorInfoProps {
 
 const InvestorInfo: React.FC<InvestorInfoProps> = ({ firstName, lastName, name, email }) => {
   // Use provided name if available, otherwise construct from firstName and lastName
-  const displayName = name || 
-    (firstName && lastName ? `${firstName} ${lastName}` : 
-    (firstName || lastName || email.split('@')[0]));
-  
+  const displayName =
+    name ||
+    (firstName && lastName
+      ? `${firstName} ${lastName}`
+      : firstName || lastName || email.split("@")[0]);
+
   return (
     <div>
       <div className="font-medium text-lg mb-2">{displayName}</div>

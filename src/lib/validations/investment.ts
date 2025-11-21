@@ -15,10 +15,7 @@ export const investmentFormSchema = z.object({
     .string()
     .max(100, { message: "Reference number must be less than 100 characters" })
     .optional(),
-  notes: z
-    .string()
-    .max(1000, { message: "Notes must be less than 1000 characters" })
-    .optional(),
+  notes: z.string().max(1000, { message: "Notes must be less than 1000 characters" }).optional(),
 });
 
 export type InvestmentFormValues = z.infer<typeof investmentFormSchema>;

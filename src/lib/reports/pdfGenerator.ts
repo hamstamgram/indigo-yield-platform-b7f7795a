@@ -6,10 +6,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
-import {
-  ReportData,
-  ReportStyles,
-} from "@/types/reports";
+import { ReportData, ReportStyles } from "@/types/reports";
 
 // Extend jsPDF type to include autoTable
 declare module "jspdf" {

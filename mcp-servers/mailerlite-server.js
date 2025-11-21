@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-import MailerLite from '@mailerlite/mailerlite-nodejs';
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import MailerLite from "@mailerlite/mailerlite-nodejs";
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
 // Initialize MailerLite client
 const mailerLite = new MailerLite({
-  api_key: process.env.MAILERLITE_API_TOKEN
+  api_key: process.env.MAILERLITE_API_TOKEN,
 });
 
 const server = new Server(
@@ -34,15 +34,15 @@ server.setRequestHandler("tools/list", async () => {
             limit: {
               type: "number",
               description: "Number of subscribers to return (max 1000)",
-              default: 50
+              default: 50,
             },
             offset: {
-              type: "number", 
+              type: "number",
               description: "Number of subscribers to skip",
-              default: 0
-            }
-          }
-        }
+              default: 0,
+            },
+          },
+        },
       },
       {
         name: "create_subscriber",
@@ -52,19 +52,19 @@ server.setRequestHandler("tools/list", async () => {
           properties: {
             email: {
               type: "string",
-              description: "Subscriber email address"
+              description: "Subscriber email address",
             },
             name: {
               type: "string",
-              description: "Subscriber name (optional)"
+              description: "Subscriber name (optional)",
             },
             fields: {
               type: "object",
-              description: "Custom fields for subscriber"
-            }
+              description: "Custom fields for subscriber",
+            },
           },
-          required: ["email"]
-        }
+          required: ["email"],
+        },
       },
       {
         name: "get_campaigns",
@@ -75,19 +75,19 @@ server.setRequestHandler("tools/list", async () => {
             limit: {
               type: "number",
               description: "Number of campaigns to return",
-              default: 50
+              default: 50,
             },
             offset: {
               type: "number",
-              description: "Number of campaigns to skip", 
-              default: 0
+              description: "Number of campaigns to skip",
+              default: 0,
             },
             filter: {
               type: "string",
-              description: "Filter campaigns by status (sent, draft, outbox, etc.)"
-            }
-          }
-        }
+              description: "Filter campaigns by status (sent, draft, outbox, etc.)",
+            },
+          },
+        },
       },
       {
         name: "create_campaign",
@@ -97,33 +97,33 @@ server.setRequestHandler("tools/list", async () => {
           properties: {
             name: {
               type: "string",
-              description: "Campaign name"
+              description: "Campaign name",
             },
             subject: {
-              type: "string", 
-              description: "Email subject line"
+              type: "string",
+              description: "Email subject line",
             },
             from: {
               type: "object",
               properties: {
                 name: {
                   type: "string",
-                  description: "Sender name"
+                  description: "Sender name",
                 },
                 email: {
                   type: "string",
-                  description: "Sender email"
-                }
+                  description: "Sender email",
+                },
               },
-              required: ["email"]
+              required: ["email"],
             },
             content: {
               type: "string",
-              description: "Email HTML content"
-            }
+              description: "Email HTML content",
+            },
           },
-          required: ["name", "subject", "from", "content"]
-        }
+          required: ["name", "subject", "from", "content"],
+        },
       },
       {
         name: "send_campaign",
@@ -133,11 +133,11 @@ server.setRequestHandler("tools/list", async () => {
           properties: {
             campaign_id: {
               type: "string",
-              description: "Campaign ID to send"
-            }
+              description: "Campaign ID to send",
+            },
           },
-          required: ["campaign_id"]
-        }
+          required: ["campaign_id"],
+        },
       },
       {
         name: "get_campaign_stats",
@@ -147,13 +147,13 @@ server.setRequestHandler("tools/list", async () => {
           properties: {
             campaign_id: {
               type: "string",
-              description: "Campaign ID"
-            }
+              description: "Campaign ID",
+            },
           },
-          required: ["campaign_id"]
-        }
-      }
-    ]
+          required: ["campaign_id"],
+        },
+      },
+    ],
   };
 });
 
@@ -165,45 +165,45 @@ server.setRequestHandler("tools/call", async (request) => {
       case "get_subscribers":
         const subscribers = await mailerLite.subscribers.get({
           limit: args.limit || 50,
-          offset: args.offset || 0
+          offset: args.offset || 0,
         });
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(subscribers, null, 2)
-            }
-          ]
+              text: JSON.stringify(subscribers, null, 2),
+            },
+          ],
         };
 
       case "create_subscriber":
         const newSubscriber = await mailerLite.subscribers.create({
           email: args.email,
           name: args.name,
-          fields: args.fields || {}
+          fields: args.fields || {},
         });
         return {
           content: [
             {
-              type: "text", 
-              text: `Subscriber created successfully: ${JSON.stringify(newSubscriber, null, 2)}`
-            }
-          ]
+              type: "text",
+              text: `Subscriber created successfully: ${JSON.stringify(newSubscriber, null, 2)}`,
+            },
+          ],
         };
 
       case "get_campaigns":
         const campaigns = await mailerLite.campaigns.get({
           limit: args.limit || 50,
           offset: args.offset || 0,
-          filter: args.filter ? { status: args.filter } : undefined
+          filter: args.filter ? { status: args.filter } : undefined,
         });
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(campaigns, null, 2)
-            }
-          ]
+              text: JSON.stringify(campaigns, null, 2),
+            },
+          ],
         };
 
       case "create_campaign":
@@ -212,15 +212,15 @@ server.setRequestHandler("tools/call", async (request) => {
           subject: args.subject,
           from: args.from,
           content: args.content,
-          type: 'regular'
+          type: "regular",
         });
         return {
           content: [
             {
               type: "text",
-              text: `Campaign created successfully: ${JSON.stringify(campaign, null, 2)}`
-            }
-          ]
+              text: `Campaign created successfully: ${JSON.stringify(campaign, null, 2)}`,
+            },
+          ],
         };
 
       case "send_campaign":
@@ -229,9 +229,9 @@ server.setRequestHandler("tools/call", async (request) => {
           content: [
             {
               type: "text",
-              text: `Campaign sent successfully: ${JSON.stringify(sentCampaign, null, 2)}`
-            }
-          ]
+              text: `Campaign sent successfully: ${JSON.stringify(sentCampaign, null, 2)}`,
+            },
+          ],
         };
 
       case "get_campaign_stats":
@@ -240,9 +240,9 @@ server.setRequestHandler("tools/call", async (request) => {
           content: [
             {
               type: "text",
-              text: JSON.stringify(stats, null, 2)
-            }
-          ]
+              text: JSON.stringify(stats, null, 2),
+            },
+          ],
         };
 
       default:
@@ -253,10 +253,10 @@ server.setRequestHandler("tools/call", async (request) => {
       content: [
         {
           type: "text",
-          text: `Error: ${error.message}`
-        }
+          text: `Error: ${error.message}`,
+        },
       ],
-      isError: true
+      isError: true,
     };
   }
 });

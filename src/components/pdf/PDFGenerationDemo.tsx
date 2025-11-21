@@ -3,30 +3,30 @@
  * Demonstrates PDF generation capabilities with sample data
  */
 
-import { useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ChartContainer } from '@/components/ui/chart';
-import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, ResponsiveContainer } from 'recharts';
-import { usePDFGeneration } from '@/hooks/usePDFGeneration';
-import { StatementData } from '@/lib/pdf';
-import { Download, FileText, Eye } from 'lucide-react';
+import { useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ChartContainer } from "@/components/ui/chart";
+import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { usePDFGeneration } from "@/hooks/usePDFGeneration";
+import { StatementData } from "@/lib/pdf";
+import { Download, FileText, Eye } from "lucide-react";
 
 // Sample data for demonstration
 const sampleStatementData: StatementData = {
   investor: {
-    id: 'inv_001',
-    name: 'John Smith',
-    email: 'john.smith@example.com',
-    fund_code: 'INDIGO',
-    fund_name: 'Indigo Digital Assets Fund',
-    account_number: 'ACC-789123',
+    id: "inv_001",
+    name: "John Smith",
+    email: "john.smith@example.com",
+    fund_code: "INDIGO",
+    fund_name: "Indigo Digital Assets Fund",
+    account_number: "ACC-789123",
   },
   period: {
-    start: new Date('2024-01-01'),
-    end: new Date('2024-01-31'),
-    quarter: 'Q1',
+    start: new Date("2024-01-01"),
+    end: new Date("2024-01-31"),
+    quarter: "Q1",
     year: 2024,
   },
   summary: {
@@ -42,16 +42,16 @@ const sampleStatementData: StatementData = {
   },
   holdings: [
     {
-      asset: 'Bitcoin',
-      symbol: 'BTC',
+      asset: "Bitcoin",
+      symbol: "BTC",
       quantity: 2.5,
       price: 45000,
       value: 112500,
       percentOfPortfolio: 90.0,
     },
     {
-      asset: 'Ethereum',
-      symbol: 'ETH',
+      asset: "Ethereum",
+      symbol: "ETH",
       quantity: 5.0,
       price: 2500,
       value: 12500,
@@ -60,23 +60,23 @@ const sampleStatementData: StatementData = {
   ],
   transactions: [
     {
-      date: new Date('2024-01-05'),
-      type: 'deposit',
-      description: 'Initial deposit',
+      date: new Date("2024-01-05"),
+      type: "deposit",
+      description: "Initial deposit",
       amount: 10000,
       balance: 110000,
     },
     {
-      date: new Date('2024-01-15'),
-      type: 'yield',
-      description: 'Monthly yield distribution',
+      date: new Date("2024-01-15"),
+      type: "yield",
+      description: "Monthly yield distribution",
       amount: 1200,
       balance: 111200,
     },
     {
-      date: new Date('2024-01-31'),
-      type: 'fee',
-      description: 'Management fee',
+      date: new Date("2024-01-31"),
+      type: "fee",
+      description: "Management fee",
       amount: -250,
       balance: 124750,
     },
@@ -87,7 +87,7 @@ const sampleStatementData: StatementData = {
     ytd: 15.0,
     itd: 25.0,
     benchmark: {
-      name: 'Bitcoin',
+      name: "Bitcoin",
       mtd: 12.0,
       qtd: 12.0,
       ytd: 12.0,
@@ -95,61 +95,61 @@ const sampleStatementData: StatementData = {
     },
   },
   charts: {
-    allocationChart: '', // Will be generated from chart
-    performanceChart: '', // Will be generated from chart
+    allocationChart: "", // Will be generated from chart
+    performanceChart: "", // Will be generated from chart
   },
 };
 
 const chartConfig = {
   bitcoin: {
-    label: 'Bitcoin',
-    color: '#f7931a',
+    label: "Bitcoin",
+    color: "#f7931a",
   },
   ethereum: {
-    label: 'Ethereum',
-    color: '#627eea',
+    label: "Ethereum",
+    color: "#627eea",
   },
   portfolio: {
-    label: 'Portfolio',
-    color: '#1e40af',
+    label: "Portfolio",
+    color: "#1e40af",
   },
   benchmark: {
-    label: 'Bitcoin',
-    color: '#f7931a',
+    label: "Bitcoin",
+    color: "#f7931a",
   },
 };
 
 const performanceData = [
-  { month: 'Dec', portfolio: 100, benchmark: 100 },
-  { month: 'Jan', portfolio: 115, benchmark: 112 },
+  { month: "Dec", portfolio: 100, benchmark: 100 },
+  { month: "Jan", portfolio: 115, benchmark: 112 },
 ];
 
 const allocationData = [
-  { name: 'Bitcoin', value: 90, color: '#f7931a' },
-  { name: 'Ethereum', value: 10, color: '#627eea' },
+  { name: "Bitcoin", value: 90, color: "#f7931a" },
+  { name: "Ethereum", value: 10, color: "#627eea" },
 ];
 
 export function PDFGenerationDemo() {
   const allocationChartRef = useRef<HTMLDivElement>(null);
   const performanceChartRef = useRef<HTMLDivElement>(null);
-  
-  const { 
-    generatePDF, 
-    downloadPDF, 
-    previewPDF, 
-    exportChartAsImage, 
-    isGenerating, 
-    error, 
-    clearError 
+
+  const {
+    generatePDF,
+    downloadPDF,
+    previewPDF,
+    exportChartAsImage,
+    isGenerating,
+    error,
+    clearError,
   } = usePDFGeneration({
     branding: {
       colors: {
-        primary: '#1e40af',
-        secondary: '#64748b',
-        accent: '#f59e0b',
-        text: '#1f2937',
-        textSecondary: '#6b7280',
-        background: '#ffffff',
+        primary: "#1e40af",
+        secondary: "#64748b",
+        accent: "#f59e0b",
+        text: "#1f2937",
+        textSecondary: "#6b7280",
+        background: "#ffffff",
       },
     },
     defaultOptions: {
@@ -157,7 +157,7 @@ export function PDFGenerationDemo() {
       includePerformanceComparison: true,
       includeBenchmark: true,
       includeDisclosures: true,
-      pageSize: 'A4',
+      pageSize: "A4",
     },
   });
 
@@ -166,23 +166,25 @@ export function PDFGenerationDemo() {
       clearError();
 
       // First, export charts as images
-      let allocationChart = '';
-      let performanceChart = '';
+      let allocationChart = "";
+      let performanceChart = "";
 
       if (allocationChartRef.current) {
-        allocationChart = await exportChartAsImage(allocationChartRef.current, {
-          width: 400,
-          height: 300,
-          backgroundColor: '#ffffff',
-        }) || '';
+        allocationChart =
+          (await exportChartAsImage(allocationChartRef.current, {
+            width: 400,
+            height: 300,
+            backgroundColor: "#ffffff",
+          })) || "";
       }
 
       if (performanceChartRef.current) {
-        performanceChart = await exportChartAsImage(performanceChartRef.current, {
-          width: 600,
-          height: 400,
-          backgroundColor: '#ffffff',
-        }) || '';
+        performanceChart =
+          (await exportChartAsImage(performanceChartRef.current, {
+            width: 600,
+            height: 400,
+            backgroundColor: "#ffffff",
+          })) || "";
       }
 
       // Update statement data with chart images
@@ -205,7 +207,7 @@ export function PDFGenerationDemo() {
         }
       }
     } catch (err) {
-      console.error('PDF generation failed:', err);
+      console.error("PDF generation failed:", err);
     }
   };
 
@@ -234,16 +236,14 @@ export function PDFGenerationDemo() {
             className="flex items-center gap-2"
           >
             <Download className="w-4 h-4" />
-            {isGenerating ? 'Generating...' : 'Download PDF'}
+            {isGenerating ? "Generating..." : "Download PDF"}
           </Button>
         </div>
       </div>
 
       {error && (
         <Alert variant="destructive">
-          <AlertDescription>
-            PDF generation failed: {error}
-          </AlertDescription>
+          <AlertDescription>PDF generation failed: {error}</AlertDescription>
         </Alert>
       )}
 
@@ -297,17 +297,17 @@ export function PDFGenerationDemo() {
                   <LineChart data={performanceData}>
                     <XAxis dataKey="month" />
                     <YAxis />
-                    <Line 
-                      type="monotone" 
-                      dataKey="portfolio" 
-                      stroke="#1e40af" 
+                    <Line
+                      type="monotone"
+                      dataKey="portfolio"
+                      stroke="#1e40af"
                       strokeWidth={3}
                       name="Portfolio"
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="benchmark" 
-                      stroke="#f7931a" 
+                    <Line
+                      type="monotone"
+                      dataKey="benchmark"
+                      stroke="#f7931a"
                       strokeWidth={2}
                       strokeDasharray="5 5"
                       name="Bitcoin"

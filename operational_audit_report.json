@@ -23,7 +23,7 @@
       },
       {
         "name": "Login",
-        "status": "pass", 
+        "status": "pass",
         "issues": [],
         "connectedRoutes": ["/dashboard", "/admin"]
       },
@@ -63,7 +63,7 @@
           "issues": []
         },
         {
-          "name": "GET /rest/v1/portfolios", 
+          "name": "GET /rest/v1/portfolios",
           "status": "pass",
           "issues": []
         },
@@ -73,7 +73,7 @@
           "issues": [
             {
               "description": "Insert operations likely blocked by missing RLS policy for admin users",
-              "severity": "high", 
+              "severity": "high",
               "actionable": true
             }
           ]
@@ -106,7 +106,7 @@
         "issues": []
       },
       {
-        "path": "/dashboard", 
+        "path": "/dashboard",
         "connected": true,
         "missing": false,
         "issues": []
@@ -184,7 +184,7 @@
         },
         {
           "description": "No error handling or user feedback when mutation fails silently",
-          "severity": "medium", 
+          "severity": "medium",
           "actionable": true
         }
       ]
@@ -195,7 +195,13 @@
       {
         "name": "Supabase",
         "status": "pass",
-        "integrationPoints": ["client init in supabase/client.ts", "REST API endpoints", "Auth flows", "RLS policies", "Storage buckets"],
+        "integrationPoints": [
+          "client init in supabase/client.ts",
+          "REST API endpoints",
+          "Auth flows",
+          "RLS policies",
+          "Storage buckets"
+        ],
         "issues": [
           {
             "description": "Hardcoded fallback URL and anon key in client.ts - should use environment variables only",
@@ -207,7 +213,11 @@
       {
         "name": "Sentry",
         "status": "pass",
-        "integrationPoints": ["client init in utils/monitoring/sentry.ts", "error capturing", "session replay"],
+        "integrationPoints": [
+          "client init in utils/monitoring/sentry.ts",
+          "error capturing",
+          "session replay"
+        ],
         "issues": [
           {
             "description": "Two different Sentry init files exist (lib/sentry.ts and utils/monitoring/sentry.ts) - consolidate to avoid conflicts",
@@ -219,7 +229,11 @@
       {
         "name": "PostHog",
         "status": "pass",
-        "integrationPoints": ["client init in lib/posthog.ts", "event tracking", "session recording with masked inputs"],
+        "integrationPoints": [
+          "client init in lib/posthog.ts",
+          "event tracking",
+          "session recording with masked inputs"
+        ],
         "issues": [
           {
             "description": "Multiple PostHog init files exist - choose one implementation",
@@ -229,15 +243,22 @@
         ]
       },
       {
-        "name": "MailerLite", 
+        "name": "MailerLite",
         "status": "pass",
-        "integrationPoints": ["MCP server in mcp-servers/mailerlite-server.js", "API token via env"],
+        "integrationPoints": [
+          "MCP server in mcp-servers/mailerlite-server.js",
+          "API token via env"
+        ],
         "issues": []
       },
       {
         "name": "Vercel",
-        "status": "warning", 
-        "integrationPoints": ["deployment platform", "security headers via vercel.json", "environment variables"],
+        "status": "warning",
+        "integrationPoints": [
+          "deployment platform",
+          "security headers via vercel.json",
+          "environment variables"
+        ],
         "issues": [
           {
             "description": "Missing x-frame-options header in security configuration",
@@ -245,7 +266,7 @@
             "actionable": true
           },
           {
-            "description": "CSP allows unsafe-inline and unsafe-eval which reduces XSS protection", 
+            "description": "CSP allows unsafe-inline and unsafe-eval which reduces XSS protection",
             "severity": "medium",
             "actionable": true
           }

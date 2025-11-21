@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -26,23 +25,26 @@ export default function Login() {
     const checkAuthSession = async () => {
       try {
         setCheckingAuth(true);
-        const { data: { session } } = await supabase.auth.getSession();
-        
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
         if (!session) {
           setCheckingAuth(false);
           return;
         }
-        
+
         // User is already authenticated, redirect based on admin status
         console.log("User is authenticated, redirecting...");
-        
+
         try {
           // Check admin status using the secure function
-          const { data: adminStatus } = await supabase
-            .rpc('get_user_admin_status', { user_id: session.user.id });
-            
+          const { data: adminStatus } = await supabase.rpc("get_user_admin_status", {
+            user_id: session.user.id,
+          });
+
           const isAdmin = adminStatus === true;
-          
+
           // Redirect based on admin status
           if (isAdmin) {
             console.log("Admin user detected, redirecting to admin dashboard");
@@ -61,7 +63,7 @@ export default function Login() {
         setCheckingAuth(false);
       }
     };
-    
+
     checkAuthSession();
   }, [navigate]);
 
@@ -83,19 +85,19 @@ export default function Login() {
           setError(error.message);
           throw error;
         }
-        
+
         if (!data.user) {
           throw new Error("No user returned from login");
         }
-        
+
         console.log("Login successful, user:", data.user);
-        
+
         // Show success message
         toast({
           title: "Welcome back!",
           description: "You've successfully logged in.",
         });
-        
+
         // Redirect to dashboard - admin check will be done in the dashboard component
         navigate("/dashboard", { replace: true });
       } else {
@@ -151,14 +153,17 @@ export default function Login() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            
+
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-gray-700">
                   Email Address
                 </Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" aria-hidden="true" />
+                  <Mail
+                    className="absolute left-3 top-3 h-5 w-5 text-gray-400"
+                    aria-hidden="true"
+                  />
                   <Input
                     id="email"
                     type="email"
@@ -177,7 +182,10 @@ export default function Login() {
                   Password
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" aria-hidden="true" />
+                  <Lock
+                    className="absolute left-3 top-3 h-5 w-5 text-gray-400"
+                    aria-hidden="true"
+                  />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -205,7 +213,7 @@ export default function Login() {
                   </Button>
                 </div>
               </div>
-              
+
               <div className="pt-2">
                 <Button
                   type="submit"
@@ -214,9 +222,25 @@ export default function Login() {
                 >
                   {loading ? (
                     <span className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
                       </svg>
                       Processing...
                     </span>
@@ -228,10 +252,13 @@ export default function Login() {
                 </Button>
               </div>
             </form>
-            
+
             {isLogin && (
               <div className="mt-4 text-center text-sm">
-                <Link to="/forgot-password" className="text-indigo-600 hover:text-indigo-800 hover:underline">
+                <Link
+                  to="/forgot-password"
+                  className="text-indigo-600 hover:text-indigo-800 hover:underline"
+                >
                   Forgot password?
                 </Link>
               </div>
@@ -250,7 +277,7 @@ export default function Login() {
             </p>
           </CardFooter>
         </Card>
-        
+
         <div className="mt-8 text-center text-sm text-gray-600">
           <p>Investor Portal - Invitation Only Access</p>
         </div>

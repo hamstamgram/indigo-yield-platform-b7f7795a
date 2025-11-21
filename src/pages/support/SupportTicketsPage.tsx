@@ -1,65 +1,75 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useSupport } from '@/hooks/useSupport';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSupport } from "@/hooks/useSupport";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Ticket, Search, Plus, MessageSquare } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client';
-import { TicketStatus, TicketPriority } from '@/types/support';
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Ticket, Search, Plus, MessageSquare } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { TicketStatus, TicketPriority } from "@/types/support";
 
 const SupportTicketsPage: React.FC = () => {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const { tickets, loading } = useSupport(currentUser?.id, {
-    status: statusFilter !== 'all' ? (statusFilter as TicketStatus) : undefined,
+    status: statusFilter !== "all" ? (statusFilter as TicketStatus) : undefined,
   });
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setCurrentUser(user);
     };
     getUser();
   }, []);
 
-  const filteredTickets = tickets.filter(t =>
-    t.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.ticket_number.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTickets = tickets.filter(
+    (t) =>
+      t.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.ticket_number.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getPriorityBadge = (priority: TicketPriority) => {
     const variants: Record<TicketPriority, any> = {
-      urgent: 'destructive',
-      high: 'default',
-      medium: 'secondary',
-      low: 'outline',
+      urgent: "destructive",
+      high: "default",
+      medium: "secondary",
+      low: "outline",
     };
     return <Badge variant={variants[priority]}>{priority}</Badge>;
   };
 
   const getStatusBadge = (status: TicketStatus) => {
     const variants: Record<TicketStatus, any> = {
-      open: 'default',
-      in_progress: 'default',
-      waiting: 'secondary',
-      resolved: 'outline',
-      closed: 'outline',
+      open: "default",
+      in_progress: "default",
+      waiting: "secondary",
+      resolved: "outline",
+      closed: "outline",
     };
-    return <Badge variant={variants[status]}>{status.replace('_', ' ')}</Badge>;
+    return <Badge variant={variants[status]}>{status.replace("_", " ")}</Badge>;
   };
 
   return (
@@ -70,11 +80,9 @@ const SupportTicketsPage: React.FC = () => {
             <Ticket className="h-8 w-8" />
             Support Tickets
           </h1>
-          <p className="text-muted-foreground mt-1">
-            View and manage your support tickets
-          </p>
+          <p className="text-muted-foreground mt-1">View and manage your support tickets</p>
         </div>
-        <Button onClick={() => navigate('/support/tickets/new')} className="gap-2">
+        <Button onClick={() => navigate("/support/tickets/new")} className="gap-2">
           <Plus className="h-4 w-4" />
           New Ticket
         </Button>
@@ -116,11 +124,11 @@ const SupportTicketsPage: React.FC = () => {
               <Ticket className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No tickets found</h3>
               <p className="text-muted-foreground mb-4">
-                {searchQuery || statusFilter !== 'all'
-                  ? 'Try adjusting your filters'
-                  : 'Create your first support ticket to get help'}
+                {searchQuery || statusFilter !== "all"
+                  ? "Try adjusting your filters"
+                  : "Create your first support ticket to get help"}
               </p>
-              <Button onClick={() => navigate('/support/tickets/new')}>
+              <Button onClick={() => navigate("/support/tickets/new")}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Ticket
               </Button>

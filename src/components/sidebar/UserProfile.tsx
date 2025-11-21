@@ -1,4 +1,3 @@
-
 import { Crown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -10,9 +9,9 @@ type UserProfileProps = {
 
 const UserProfile = ({ userName, isAdmin = false, avatarUrl }: UserProfileProps) => {
   const initials = userName
-    .split(' ')
-    .map(name => name.charAt(0))
-    .join('')
+    .split(" ")
+    .map((name) => name.charAt(0))
+    .join("")
     .toUpperCase()
     .slice(0, 2);
 
@@ -29,18 +28,10 @@ const UserProfile = ({ userName, isAdmin = false, avatarUrl }: UserProfileProps)
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-medium text-sidebar-foreground truncate">
-              {userName}
-            </p>
-            {isAdmin && (
-              <Crown className="w-3 h-3 text-sidebar-primary shrink-0" />
-            )}
+            <p className="text-sm font-medium text-sidebar-foreground truncate">{userName}</p>
+            {isAdmin && <Crown className="w-3 h-3 text-sidebar-primary shrink-0" />}
           </div>
-          {isAdmin && (
-            <p className="text-xs text-sidebar-foreground/60">
-              Administrator
-            </p>
-          )}
+          {isAdmin && <p className="text-xs text-sidebar-foreground/60">Administrator</p>}
         </div>
       </div>
     </div>

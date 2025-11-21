@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Withdrawal, WithdrawalFilters, WithdrawalStatus } from '@/types/withdrawal';
+import { useState } from "react";
+import { Withdrawal, WithdrawalFilters, WithdrawalStatus } from "@/types/withdrawal";
 import {
   Table,
   TableBody,
@@ -7,21 +7,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Search, CheckCircle, XCircle, Clock, Loader2 } from 'lucide-react';
-import { format } from 'date-fns';
-import { ApproveWithdrawalDialog } from './ApproveWithdrawalDialog';
-import { RejectWithdrawalDialog } from './RejectWithdrawalDialog';
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Search, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
+import { format } from "date-fns";
+import { ApproveWithdrawalDialog } from "./ApproveWithdrawalDialog";
+import { RejectWithdrawalDialog } from "./RejectWithdrawalDialog";
 
 interface WithdrawalsTableProps {
   withdrawals: Withdrawal[];
@@ -32,12 +32,12 @@ interface WithdrawalsTableProps {
 }
 
 const statusColors: Record<WithdrawalStatus, string> = {
-  pending: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
-  approved: 'bg-green-500/10 text-green-600 border-green-500/20',
-  processing: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-  completed: 'bg-green-700/10 text-green-700 border-green-700/20',
-  rejected: 'bg-red-500/10 text-red-600 border-red-500/20',
-  cancelled: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
+  pending: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
+  approved: "bg-green-500/10 text-green-600 border-green-500/20",
+  processing: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  completed: "bg-green-700/10 text-green-700 border-green-700/20",
+  rejected: "bg-red-500/10 text-red-600 border-red-500/20",
+  cancelled: "bg-gray-500/10 text-gray-600 border-gray-500/20",
 };
 
 export function WithdrawalsTable({
@@ -68,15 +68,15 @@ export function WithdrawalsTable({
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search by investor name, email, or ID..."
-            value={filters.search || ''}
+            value={filters.search || ""}
             onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
             className="pl-9"
           />
         </div>
         <Select
-          value={filters.status || 'all'}
+          value={filters.status || "all"}
           onValueChange={(value) =>
-            onFiltersChange({ ...filters, status: value as WithdrawalStatus | 'all' })
+            onFiltersChange({ ...filters, status: value as WithdrawalStatus | "all" })
           }
         >
           <SelectTrigger className="w-full sm:w-[180px]">
@@ -142,15 +142,13 @@ export function WithdrawalsTable({
                       {withdrawal.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>
-                    {format(new Date(withdrawal.request_date), 'MMM dd, yyyy')}
-                  </TableCell>
+                  <TableCell>{format(new Date(withdrawal.request_date), "MMM dd, yyyy")}</TableCell>
                   <TableCell className="max-w-[200px] truncate">
-                    {withdrawal.notes || '-'}
+                    {withdrawal.notes || "-"}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      {withdrawal.status === 'pending' && (
+                      {withdrawal.status === "pending" && (
                         <>
                           <Button
                             variant="ghost"
@@ -170,7 +168,7 @@ export function WithdrawalsTable({
                           </Button>
                         </>
                       )}
-                      {withdrawal.status === 'approved' && (
+                      {withdrawal.status === "approved" && (
                         <Badge variant="outline" className="text-green-600">
                           <Clock className="h-3 w-3 mr-1" />
                           Awaiting Processing

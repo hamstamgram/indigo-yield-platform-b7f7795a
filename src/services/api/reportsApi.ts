@@ -5,12 +5,12 @@
  * that may not exist yet. Keeping type-safe by importing from generated types.
  */
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 import {
   ReportEngineLazy,
   generatePDFReportLazy,
-  generateExcelReportLazy
-} from './reportsApi.lazy';
+  generateExcelReportLazy,
+} from "./reportsApi.lazy";
 import {
   ReportType,
   ReportStatus,
@@ -22,7 +22,7 @@ import {
   ReportSchedule,
   ReportDefinition,
   ReportStatistics,
-} from '@/types/reports';
+} from "@/types/reports";
 
 export class ReportsApi {
   /**
@@ -33,13 +33,13 @@ export class ReportsApi {
   ): Promise<ReportDefinition[]> {
     try {
       let query = supabase
-        .from('report_definitions')
-        .select('*')
-        .eq('is_active', true)
-        .order('report_type');
+        .from("report_definitions")
+        .select("*")
+        .eq("is_active", true)
+        .order("report_type");
 
       if (!includeAdminOnly) {
-        query = query.eq('is_admin_only', false);
+        query = query.eq("is_admin_only", false);
       }
 
       const { data, error } = await query;
@@ -48,7 +48,7 @@ export class ReportsApi {
 
       return (data || []).map(this.mapReportDefinition);
     } catch (error) {
-      console.error('Failed to fetch report definitions:', error);
+      console.error("Failed to fetch report definitions:", error);
       return [];
     }
   }
@@ -56,22 +56,20 @@ export class ReportsApi {
   /**
    * Get single report definition
    */
-  static async getReportDefinition(
-    reportType: ReportType
-  ): Promise<ReportDefinition | null> {
+  static async getReportDefinition(reportType: ReportType): Promise<ReportDefinition | null> {
     try {
       const { data, error } = await supabase
-        .from('report_definitions')
-        .select('*')
-        .eq('report_type', reportType)
-        .eq('is_active', true)
+        .from("report_definitions")
+        .select("*")
+        .eq("report_type", reportType)
+        .eq("is_active", true)
         .maybeSingle();
 
       if (error) throw error;
 
       return data ? this.mapReportDefinition(data) : null;
     } catch (error) {
-      console.error('Failed to fetch report definition:', error);
+      console.error("Failed to fetch report definition:", error);
       return null;
     }
   }
@@ -79,17 +77,15 @@ export class ReportsApi {
   /**
    * Generate a report
    */
-  static async generateReport(
-    request: GenerateReportRequest
-  ): Promise<GenerateReportResponse> {
+  static async generateReport(request: GenerateReportRequest): Promise<GenerateReportResponse> {
     try {
       // Use lazy-loaded ReportEngine to handle generation
       return await ReportEngineLazy.generateReport(request);
     } catch (error) {
-      console.error('Report generation failed:', error);
+      console.error("Report generation failed:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -107,7 +103,7 @@ export class ReportsApi {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        return { success: false, error: 'User not authenticated' };
+        return { success: false, error: "User not authenticated" };
       }
 
       // Fetch report data (lazy loaded)
@@ -119,7 +115,7 @@ export class ReportsApi {
       );
 
       // Generate based on format (all lazy loaded)
-      if (request.format === 'pdf') {
+      if (request.format === "pdf") {
         const result = await generatePDFReportLazy(reportData, {
           includeCharts: request.parameters?.includeCharts,
           confidential: request.parameters?.confidential,
@@ -134,7 +130,7 @@ export class ReportsApi {
           data: result.data,
           filename: result.filename,
         };
-      } else if (request.format === 'excel') {
+      } else if (request.format === "excel") {
         const result = await generateExcelReportLazy(reportData, {
           includeCharts: request.parameters?.includeCharts,
         });
@@ -148,7 +144,7 @@ export class ReportsApi {
           data: result.data,
           filename: result.filename,
         };
-      } else if (request.format === 'json') {
+      } else if (request.format === "json") {
         // Return JSON data
         const jsonData = JSON.stringify(reportData, null, 2);
         const encoder = new TextEncoder();
@@ -157,7 +153,7 @@ export class ReportsApi {
           data: encoder.encode(jsonData),
           filename: `report_${Date.now()}.json`,
         };
-      } else if (request.format === 'csv') {
+      } else if (request.format === "csv") {
         // Generate CSV (simplified, transactions only)
         const csv = this.generateCSV(reportData);
         const encoder = new TextEncoder();
@@ -168,12 +164,12 @@ export class ReportsApi {
         };
       }
 
-      return { success: false, error: 'Unsupported format' };
+      return { success: false, error: "Unsupported format" };
     } catch (error) {
-      console.error('Immediate report generation failed:', error);
+      console.error("Immediate report generation failed:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -181,21 +177,19 @@ export class ReportsApi {
   /**
    * Get user's generated reports
    */
-  static async getUserReports(
-    filters?: {
-      reportType?: ReportType;
-      status?: ReportStatus;
-      limit?: number;
-      offset?: number;
-    }
-  ): Promise<GeneratedReport[]> {
+  static async getUserReports(filters?: {
+    reportType?: ReportType;
+    status?: ReportStatus;
+    limit?: number;
+    offset?: number;
+  }): Promise<GeneratedReport[]> {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const { data, error } = await supabase.rpc('get_user_reports', {
+      const { data, error } = await supabase.rpc("get_user_reports", {
         p_user_id: user.id,
         p_report_type: filters?.reportType ?? undefined,
         p_status: filters?.status ?? undefined,
@@ -207,7 +201,7 @@ export class ReportsApi {
 
       return (data || []).map(this.mapGeneratedReport);
     } catch (error) {
-      console.error('Failed to fetch user reports:', error);
+      console.error("Failed to fetch user reports:", error);
       return [];
     }
   }
@@ -218,16 +212,16 @@ export class ReportsApi {
   static async getReport(reportId: string): Promise<GeneratedReport | null> {
     try {
       const { data, error } = await supabase
-        .from('generated_reports')
-        .select('*')
-        .eq('id', reportId)
+        .from("generated_reports")
+        .select("*")
+        .eq("id", reportId)
         .maybeSingle();
 
       if (error) throw error;
 
       return data ? this.mapGeneratedReport(data) : null;
     } catch (error) {
-      console.error('Failed to fetch report:', error);
+      console.error("Failed to fetch report:", error);
       return null;
     }
   }
@@ -235,51 +229,49 @@ export class ReportsApi {
   /**
    * Download a generated report
    */
-  static async downloadReport(
-    request: DownloadReportRequest
-  ): Promise<DownloadReportResponse> {
+  static async downloadReport(request: DownloadReportRequest): Promise<DownloadReportResponse> {
     try {
       const report = await this.getReport(request.reportId);
       if (!report) {
-        return { success: false, error: 'Report not found' };
+        return { success: false, error: "Report not found" };
       }
 
-      if (report.status !== 'completed') {
-        return { success: false, error: 'Report not ready for download' };
+      if (report.status !== "completed") {
+        return { success: false, error: "Report not ready for download" };
       }
 
       if (!report.storagePath) {
-        return { success: false, error: 'Report file not available' };
+        return { success: false, error: "Report file not available" };
       }
 
       // Get download URL from Supabase Storage
       const { data, error } = await supabase.storage
-        .from('reports')
+        .from("reports")
         .createSignedUrl(report.storagePath, 3600); // 1 hour expiry
 
       if (error) throw error;
 
       // Update download count
       await supabase
-        .from('generated_reports')
+        .from("generated_reports")
         .update({ download_count: report.downloadCount + 1 })
-        .eq('id', request.reportId);
+        .eq("id", request.reportId);
 
       // Log access
-      await this.logReportAccess(request.reportId, 'download');
+      await this.logReportAccess(request.reportId, "download");
 
       return {
         success: true,
         downloadUrl: data.signedUrl,
         expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
-        fileName: report.storagePath.split('/').pop(),
+        fileName: report.storagePath.split("/").pop(),
         fileSizeBytes: report.fileSizeBytes || undefined,
       };
     } catch (error) {
-      console.error('Report download failed:', error);
+      console.error("Report download failed:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -291,31 +283,28 @@ export class ReportsApi {
     try {
       const report = await this.getReport(reportId);
       if (!report) {
-        return { success: false, error: 'Report not found' };
+        return { success: false, error: "Report not found" };
       }
 
       // Delete from storage if exists
       if (report.storagePath) {
-        await supabase.storage.from('reports').remove([report.storagePath]);
+        await supabase.storage.from("reports").remove([report.storagePath]);
       }
 
       // Delete record
-      const { error } = await supabase
-        .from('generated_reports')
-        .delete()
-        .eq('id', reportId);
+      const { error } = await supabase.from("generated_reports").delete().eq("id", reportId);
 
       if (error) throw error;
 
       // Log access
-      await this.logReportAccess(reportId, 'delete');
+      await this.logReportAccess(reportId, "delete");
 
       return { success: true };
     } catch (error) {
-      console.error('Report deletion failed:', error);
+      console.error("Report deletion failed:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -331,16 +320,16 @@ export class ReportsApi {
       if (!user) return [];
 
       const { data, error } = await supabase
-        .from('report_schedules')
-        .select('*')
-        .eq('created_by', user.id)
-        .order('created_at', { ascending: false });
+        .from("report_schedules")
+        .select("*")
+        .eq("created_by", user.id)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
       return (data || []).map(this.mapReportSchedule);
     } catch (error) {
-      console.error('Failed to fetch report schedules:', error);
+      console.error("Failed to fetch report schedules:", error);
       return [];
     }
   }
@@ -349,18 +338,18 @@ export class ReportsApi {
    * Create report schedule
    */
   static async createReportSchedule(
-    schedule: Omit<ReportSchedule, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>
+    schedule: Omit<ReportSchedule, "id" | "createdAt" | "updatedAt" | "createdBy">
   ): Promise<{ success: boolean; schedule?: ReportSchedule; error?: string }> {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        return { success: false, error: 'User not authenticated' };
+        return { success: false, error: "User not authenticated" };
       }
 
       const { data, error } = await supabase
-        .from('report_schedules')
+        .from("report_schedules")
         .insert({
           report_definition_id: schedule.reportDefinitionId,
           name: schedule.name,
@@ -389,10 +378,10 @@ export class ReportsApi {
         schedule: data ? this.mapReportSchedule(data) : undefined,
       };
     } catch (error) {
-      console.error('Failed to create report schedule:', error);
+      console.error("Failed to create report schedule:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -406,7 +395,7 @@ export class ReportsApi {
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase
-        .from('report_schedules')
+        .from("report_schedules")
         .update({
           name: updates.name,
           description: updates.description,
@@ -423,16 +412,16 @@ export class ReportsApi {
           formats: updates.formats,
           is_active: updates.isActive,
         })
-        .eq('id', scheduleId);
+        .eq("id", scheduleId);
 
       if (error) throw error;
 
       return { success: true };
     } catch (error) {
-      console.error('Failed to update report schedule:', error);
+      console.error("Failed to update report schedule:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -444,19 +433,16 @@ export class ReportsApi {
     scheduleId: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      const { error } = await supabase
-        .from('report_schedules')
-        .delete()
-        .eq('id', scheduleId);
+      const { error } = await supabase.from("report_schedules").delete().eq("id", scheduleId);
 
       if (error) throw error;
 
       return { success: true };
     } catch (error) {
-      console.error('Failed to delete report schedule:', error);
+      console.error("Failed to delete report schedule:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -464,16 +450,14 @@ export class ReportsApi {
   /**
    * Get report statistics
    */
-  static async getReportStatistics(
-    daysBack: number = 30
-  ): Promise<ReportStatistics[]> {
+  static async getReportStatistics(daysBack: number = 30): Promise<ReportStatistics[]> {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const { data, error } = await supabase.rpc('get_report_statistics', {
+      const { data, error } = await supabase.rpc("get_report_statistics", {
         p_user_id: user.id,
         p_days_back: daysBack,
       });
@@ -482,7 +466,7 @@ export class ReportsApi {
 
       return (data || []) as unknown as ReportStatistics[];
     } catch (error) {
-      console.error('Failed to fetch report statistics:', error);
+      console.error("Failed to fetch report statistics:", error);
       return [];
     }
   }
@@ -492,21 +476,21 @@ export class ReportsApi {
    */
   private static async logReportAccess(
     reportId: string,
-    action: 'view' | 'download' | 'delete' | 'share'
+    action: "view" | "download" | "delete" | "share"
   ): Promise<void> {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      await supabase.from('report_access_logs').insert({
+      await supabase.from("report_access_logs").insert({
         report_id: reportId,
         user_id: user?.id || null,
         action,
         metadata: {},
       });
     } catch (error) {
-      console.error('Failed to log report access:', error);
+      console.error("Failed to log report access:", error);
     }
   }
 
@@ -518,16 +502,14 @@ export class ReportsApi {
 
     // Add header
     if (data.transactions && Array.isArray(data.transactions) && data.transactions.length > 0) {
-      lines.push('Date,Type,Asset,Amount,Value,Status');
+      lines.push("Date,Type,Asset,Amount,Value,Status");
 
       data.transactions.forEach((tx: Record<string, unknown>) => {
-        lines.push(
-          `${tx.date},${tx.type},${tx.assetCode},${tx.amount},${tx.value},${tx.status}`
-        );
+        lines.push(`${tx.date},${tx.type},${tx.assetCode},${tx.amount},${tx.value},${tx.status}`);
       });
     }
 
-    return lines.join('\n');
+    return lines.join("\n");
   }
 
   /**

@@ -3,7 +3,7 @@
  * Separates transaction processing from CLI interaction
  */
 
-import { validateAmount, validateInvestorId, validateAssetCode } from './validation.js';
+import { validateAmount, validateInvestorId, validateAssetCode } from "./validation.js";
 
 /**
  * Get admin user for audit trail
@@ -12,15 +12,15 @@ import { validateAmount, validateInvestorId, validateAssetCode } from './validat
  */
 export async function getAdminUser(supabase) {
   const { data: admin, error } = await supabase
-    .from('profiles')
-    .select('id, email, first_name, last_name')
-    .eq('is_admin', true)
+    .from("profiles")
+    .select("id, email, first_name, last_name")
+    .eq("is_admin", true)
     .single();
-  
+
   if (error) {
     throw new Error(`Failed to get admin user: ${error.message}`);
   }
-  
+
   return admin;
 }
 
@@ -31,15 +31,15 @@ export async function getAdminUser(supabase) {
  */
 export async function fetchInvestors(supabase) {
   const { data: investors, error } = await supabase
-    .from('profiles')
-    .select('id, email, first_name, last_name')
-    .eq('is_admin', false)
-    .order('first_name');
-  
+    .from("profiles")
+    .select("id, email, first_name, last_name")
+    .eq("is_admin", false)
+    .order("first_name");
+
   if (error) {
     throw new Error(`Failed to fetch investors: ${error.message}`);
   }
-  
+
   return investors || [];
 }
 
@@ -49,15 +49,12 @@ export async function fetchInvestors(supabase) {
  * @returns {array} Array of asset records
  */
 export async function fetchAssets(supabase) {
-  const { data: assets, error } = await supabase
-    .from('assets')
-    .select('*')
-    .order('symbol');
-  
+  const { data: assets, error } = await supabase.from("assets").select("*").order("symbol");
+
   if (error) {
     throw new Error(`Failed to fetch assets: ${error.message}`);
   }
-  
+
   return assets || [];
 }
 
@@ -68,15 +65,15 @@ export async function fetchAssets(supabase) {
  */
 export async function fetchInvestorPositions(supabase) {
   const { data: positions, error } = await supabase
-    .from('positions')
-    .select('*, profiles!positions_investor_id_fkey(*)')
-    .gt('current_balance', 0)
-    .order('profiles(first_name)');
-  
+    .from("positions")
+    .select("*, profiles!positions_investor_id_fkey(*)")
+    .gt("current_balance", 0)
+    .order("profiles(first_name)");
+
   if (error) {
     throw new Error(`Failed to fetch positions: ${error.message}`);
   }
-  
+
   return positions || [];
 }
 
@@ -88,63 +85,60 @@ export async function fetchInvestorPositions(supabase) {
  */
 export async function processDeposit(supabase, depositData) {
   const { investorId, assetCode, amount, txHash, note, adminId } = depositData;
-  
+
   // Validate inputs
   const amountValidation = validateAmount(amount);
   if (!amountValidation.isValid) {
     throw new Error(`Invalid amount: ${amountValidation.error}`);
   }
-  
+
   const investorValidation = validateInvestorId(investorId);
   if (!investorValidation.isValid) {
     throw new Error(`Invalid investor ID: ${investorValidation.error}`);
   }
-  
+
   const assetValidation = validateAssetCode(assetCode);
   if (!assetValidation.isValid) {
     throw new Error(`Invalid asset code: ${assetValidation.error}`);
   }
-  
+
   const validAmount = amountValidation.value;
   const now = new Date().toISOString();
-  
+
   try {
     // Start transaction by recording it
-    const { error: txError } = await supabase
-      .from('transactions')
-      .insert({
-        investor_id: investorId,
-        asset_code: assetCode,
-        amount: validAmount,
-        type: 'DEPOSIT',
-        status: 'confirmed',
-        tx_hash: txHash,
-        note: note || `Deposit of ${validAmount} ${assetCode}`,
-        created_at: now,
-        confirmed_at: now,
-        created_by: adminId
-      });
-    
+    const { error: txError } = await supabase.from("transactions").insert({
+      investor_id: investorId,
+      asset_code: assetCode,
+      amount: validAmount,
+      type: "DEPOSIT",
+      status: "confirmed",
+      tx_hash: txHash,
+      note: note || `Deposit of ${validAmount} ${assetCode}`,
+      created_at: now,
+      confirmed_at: now,
+      created_by: adminId,
+    });
+
     if (txError) {
       throw new Error(`Failed to record transaction: ${txError.message}`);
     }
-    
+
     // Update or create position
     const positionResult = await updatePositionForDeposit(supabase, {
       investorId,
       assetCode,
       amount: validAmount,
-      timestamp: now
+      timestamp: now,
     });
-    
+
     return {
       success: true,
       transactionId: positionResult.transactionId,
       amount: validAmount,
       assetCode,
-      positionUpdated: positionResult.updated
+      positionUpdated: positionResult.updated,
     };
-    
   } catch (error) {
     throw new Error(`Deposit processing failed: ${error.message}`);
   }
@@ -157,59 +151,57 @@ export async function processDeposit(supabase, depositData) {
  * @returns {object} Processing result
  */
 export async function processWithdrawal(supabase, withdrawalData) {
-  const { investorId, assetCode, amount, txHash, note, adminId, positionId, currentBalance } = withdrawalData;
-  
+  const { investorId, assetCode, amount, txHash, note, adminId, positionId, currentBalance } =
+    withdrawalData;
+
   // Validate inputs
   const amountValidation = validateAmount(amount, 0, currentBalance);
   if (!amountValidation.isValid) {
     throw new Error(`Invalid amount: ${amountValidation.error}`);
   }
-  
+
   const validAmount = amountValidation.value;
-  
+
   if (validAmount > currentBalance) {
-    throw new Error('Insufficient balance for withdrawal');
+    throw new Error("Insufficient balance for withdrawal");
   }
-  
+
   const now = new Date().toISOString();
-  
+
   try {
     // Record transaction
-    const { error: txError } = await supabase
-      .from('transactions')
-      .insert({
-        investor_id: investorId,
-        asset_code: assetCode,
-        amount: validAmount,
-        type: 'WITHDRAWAL',
-        status: 'confirmed',
-        tx_hash: txHash,
-        note: note || `Withdrawal of ${validAmount} ${assetCode}`,
-        created_at: now,
-        confirmed_at: now,
-        created_by: adminId
-      });
-    
+    const { error: txError } = await supabase.from("transactions").insert({
+      investor_id: investorId,
+      asset_code: assetCode,
+      amount: validAmount,
+      type: "WITHDRAWAL",
+      status: "confirmed",
+      tx_hash: txHash,
+      note: note || `Withdrawal of ${validAmount} ${assetCode}`,
+      created_at: now,
+      confirmed_at: now,
+      created_by: adminId,
+    });
+
     if (txError) {
       throw new Error(`Failed to record transaction: ${txError.message}`);
     }
-    
+
     // Update position
     const positionResult = await updatePositionForWithdrawal(supabase, {
       positionId,
       amount: validAmount,
       currentBalance,
-      timestamp: now
+      timestamp: now,
     });
-    
+
     return {
       success: true,
       amount: validAmount,
       assetCode,
       remainingBalance: positionResult.remainingBalance,
-      positionUpdated: positionResult.updated
+      positionUpdated: positionResult.updated,
     };
-    
   } catch (error) {
     throw new Error(`Withdrawal processing failed: ${error.message}`);
   }
@@ -224,49 +216,47 @@ export async function processWithdrawal(supabase, withdrawalData) {
 async function updatePositionForDeposit(supabase, { investorId, assetCode, amount, timestamp }) {
   // Check if position exists
   const { data: position, error: fetchError } = await supabase
-    .from('positions')
-    .select('*')
-    .eq('investor_id', investorId)
-    .eq('asset_code', assetCode)
+    .from("positions")
+    .select("*")
+    .eq("investor_id", investorId)
+    .eq("asset_code", assetCode)
     .single();
-  
-  if (fetchError && fetchError.code !== 'PGRST116') {
+
+  if (fetchError && fetchError.code !== "PGRST116") {
     throw new Error(`Failed to fetch position: ${fetchError.message}`);
   }
-  
+
   if (position) {
     // Update existing position
     const { error: updateError } = await supabase
-      .from('positions')
+      .from("positions")
       .update({
         principal: position.principal + amount,
         current_balance: position.current_balance + amount,
-        updated_at: timestamp
+        updated_at: timestamp,
       })
-      .eq('id', position.id);
-    
+      .eq("id", position.id);
+
     if (updateError) {
       throw new Error(`Failed to update position: ${updateError.message}`);
     }
-    
+
     return { updated: true, created: false };
   } else {
     // Create new position
-    const { error: createError } = await supabase
-      .from('positions')
-      .insert({
-        investor_id: investorId,
-        asset_code: assetCode,
-        principal: amount,
-        total_earned: 0,
-        current_balance: amount,
-        updated_at: timestamp
-      });
-    
+    const { error: createError } = await supabase.from("positions").insert({
+      investor_id: investorId,
+      asset_code: assetCode,
+      principal: amount,
+      total_earned: 0,
+      current_balance: amount,
+      updated_at: timestamp,
+    });
+
     if (createError) {
       throw new Error(`Failed to create position: ${createError.message}`);
     }
-    
+
     return { updated: false, created: true };
   }
 }
@@ -277,35 +267,38 @@ async function updatePositionForDeposit(supabase, { investorId, assetCode, amoun
  * @param {object} data - Position update data
  * @returns {object} Update result
  */
-async function updatePositionForWithdrawal(supabase, { positionId, amount, currentBalance, timestamp }) {
+async function updatePositionForWithdrawal(
+  supabase,
+  { positionId, amount, currentBalance, timestamp }
+) {
   // Get current position to calculate principal reduction
   const { data: position, error: fetchError } = await supabase
-    .from('positions')
-    .select('principal, current_balance')
-    .eq('id', positionId)
+    .from("positions")
+    .select("principal, current_balance")
+    .eq("id", positionId)
     .single();
-  
+
   if (fetchError) {
     throw new Error(`Failed to fetch position: ${fetchError.message}`);
   }
-  
+
   // Calculate principal reduction (withdraw from principal first)
   const principalReduction = Math.min(amount, position.principal);
   const remainingBalance = currentBalance - amount;
-  
+
   const { error: updateError } = await supabase
-    .from('positions')
+    .from("positions")
     .update({
       principal: position.principal - principalReduction,
       current_balance: remainingBalance,
-      updated_at: timestamp
+      updated_at: timestamp,
     })
-    .eq('id', positionId);
-  
+    .eq("id", positionId);
+
   if (updateError) {
     throw new Error(`Failed to update position: ${updateError.message}`);
   }
-  
+
   return { updated: true, remainingBalance };
 }
 
@@ -318,17 +311,17 @@ async function updatePositionForWithdrawal(supabase, { positionId, amount, curre
 export async function fetchTransactionHistory(supabase, days = 30) {
   const date = new Date();
   date.setDate(date.getDate() - days);
-  
+
   const { data: transactions, error } = await supabase
-    .from('transactions')
-    .select('*, profiles!transactions_investor_id_fkey(*)')
-    .gte('created_at', date.toISOString())
-    .order('created_at', { ascending: false });
-  
+    .from("transactions")
+    .select("*, profiles!transactions_investor_id_fkey(*)")
+    .gte("created_at", date.toISOString())
+    .order("created_at", { ascending: false });
+
   if (error) {
     throw new Error(`Failed to fetch transaction history: ${error.message}`);
   }
-  
+
   return transactions || [];
 }
 
@@ -339,17 +332,17 @@ export async function fetchTransactionHistory(supabase, days = 30) {
  */
 export function groupPositionsByInvestor(positions) {
   const investorPositions = {};
-  
+
   for (const pos of positions) {
     const key = pos.investor_id;
     if (!investorPositions[key]) {
       investorPositions[key] = {
         investor: pos.profiles,
-        positions: []
+        positions: [],
       };
     }
     investorPositions[key].positions.push(pos);
   }
-  
+
   return Object.values(investorPositions);
 }

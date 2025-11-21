@@ -27,10 +27,7 @@ export default function AdminAssetsPage() {
 
       <AssetsTable />
 
-      <CreateAssetDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-      />
+      <CreateAssetDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
     </div>
   );
 }

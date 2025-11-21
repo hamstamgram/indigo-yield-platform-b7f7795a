@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { X, Cookie, Shield, BarChart } from 'lucide-react';
-import { initPostHog, shutdownPostHog } from '@/utils/analytics/posthog';
-import { initSentry } from '@/utils/monitoring/sentry';
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { X, Cookie, Shield, BarChart } from "lucide-react";
+import { initPostHog, shutdownPostHog } from "@/utils/analytics/posthog";
+import { initSentry } from "@/utils/monitoring/sentry";
 
 interface CookiePreferences {
   necessary: boolean;
@@ -15,7 +15,7 @@ interface CookiePreferences {
   timestamp: number;
 }
 
-const COOKIE_CONSENT_KEY = 'indigo-cookie-consent';
+const COOKIE_CONSENT_KEY = "indigo-cookie-consent";
 const COOKIE_CONSENT_EXPIRY = 365 * 24 * 60 * 60 * 1000; // 1 year
 
 export function CookieConsent() {
@@ -31,11 +31,11 @@ export function CookieConsent() {
   useEffect(() => {
     // Check for existing consent
     const savedConsent = localStorage.getItem(COOKIE_CONSENT_KEY);
-    
+
     if (savedConsent) {
       try {
         const parsed = JSON.parse(savedConsent) as CookiePreferences;
-        
+
         // Check if consent is expired
         if (Date.now() - parsed.timestamp > COOKIE_CONSENT_EXPIRY) {
           setShowBanner(true);
@@ -113,7 +113,7 @@ export function CookieConsent() {
               <div>
                 <h3 className="font-semibold mb-1">Cookie Preferences</h3>
                 <p className="text-sm text-muted-foreground">
-                  We use cookies to enhance your experience and analyze our platform's performance. 
+                  We use cookies to enhance your experience and analyze our platform's performance.
                   You can customize your preferences or accept all cookies.
                 </p>
               </div>
@@ -125,9 +125,7 @@ export function CookieConsent() {
               <Button variant="outline" onClick={rejectOptional}>
                 Reject Optional
               </Button>
-              <Button onClick={acceptAll}>
-                Accept All
-              </Button>
+              <Button onClick={acceptAll}>Accept All</Button>
             </div>
           </div>
         ) : (
@@ -161,12 +159,7 @@ export function CookieConsent() {
                     </p>
                   </div>
                 </div>
-                <Switch
-                  id="necessary"
-                  checked={true}
-                  disabled
-                  className="mt-1"
-                />
+                <Switch id="necessary" checked={true} disabled className="mt-1" />
               </div>
 
               {/* Analytics Cookies */}
@@ -223,19 +216,14 @@ export function CookieConsent() {
             </div>
 
             <div className="flex justify-between items-center mt-6 pt-6 border-t">
-              <Link
-                to="/privacy-policy"
-                className="text-sm text-primary hover:underline"
-              >
+              <Link to="/privacy-policy" className="text-sm text-primary hover:underline">
                 Privacy Policy
               </Link>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={rejectOptional}>
                   Reject Optional
                 </Button>
-                <Button onClick={savePreferences}>
-                  Save Preferences
-                </Button>
+                <Button onClick={savePreferences}>Save Preferences</Button>
               </div>
             </div>
           </Card>

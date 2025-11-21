@@ -3,9 +3,9 @@
  * Clean abstractions for document management
  */
 
-import { Database } from '@/integrations/supabase/types';
+import { Database } from "@/integrations/supabase/types";
 
-type DocumentType = Database['public']['Enums']['document_type'];
+type DocumentType = Database["public"]["Enums"]["document_type"];
 
 export interface Document {
   id: string;

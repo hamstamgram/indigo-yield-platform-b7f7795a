@@ -3,8 +3,8 @@
  * Handles all authentication operations
  */
 
-import { ApiClient } from './ApiClient';
-import type { User, Session } from '@supabase/supabase-js';
+import { ApiClient } from "./ApiClient";
+import type { User, Session } from "@supabase/supabase-js";
 
 export interface SignUpData {
   email: string;
@@ -24,7 +24,7 @@ export class AuthService extends ApiClient {
    */
   async signUp(data: SignUpData) {
     const redirectUrl = `${window.location.origin}/`;
-    
+
     const { data: authData, error } = await this.supabase.auth.signUp({
       email: data.email,
       password: data.password,
@@ -64,7 +64,9 @@ export class AuthService extends ApiClient {
    * Get the current user
    */
   async getUser(): Promise<User | null> {
-    const { data: { user } } = await this.supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await this.supabase.auth.getUser();
     return user;
   }
 
@@ -72,7 +74,9 @@ export class AuthService extends ApiClient {
    * Get the current session
    */
   async getCurrentSession(): Promise<Session | null> {
-    const { data: { session } } = await this.supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await this.supabase.auth.getSession();
     return session;
   }
 
@@ -91,11 +95,11 @@ export class AuthService extends ApiClient {
    * Subscribe to auth state changes
    */
   onAuthStateChange(callback: (user: User | null, session: Session | null) => void) {
-    const { data: { subscription } } = this.supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        callback(session?.user ?? null, session);
-      }
-    );
+    const {
+      data: { subscription },
+    } = this.supabase.auth.onAuthStateChange((_event, session) => {
+      callback(session?.user ?? null, session);
+    });
 
     return () => subscription.unsubscribe();
   }
@@ -105,7 +109,7 @@ export class AuthService extends ApiClient {
    */
   async resetPasswordForEmail(email: string) {
     const redirectUrl = `${window.location.origin}/reset-password`;
-    
+
     const { data, error } = await this.supabase.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,
     });

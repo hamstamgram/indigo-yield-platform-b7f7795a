@@ -1,21 +1,21 @@
 /**
  * Investor Domain Types
  * Clean abstractions over database types for investor-related entities
- * 
+ *
  * Database Schema Mapping:
  * - investors table: id, name, email, profile_id, status, created_at, updated_at, phone, etc.
  * - profiles table: id, first_name, last_name, is_admin, totp_enabled, totp_verified
  * - investor_positions table: investor_id, fund_id, shares, cost_basis, etc.
  */
 
-import { Database } from '@/integrations/supabase/types';
+import { Database } from "@/integrations/supabase/types";
 
 // Base types from database
-type DbInvestor = Database['public']['Tables']['investors']['Row'];
-type DbInvestorPosition = Database['public']['Tables']['investor_positions']['Row'];
+type DbInvestor = Database["public"]["Tables"]["investors"]["Row"];
+type DbInvestorPosition = Database["public"]["Tables"]["investor_positions"]["Row"];
 
 // Status mapping
-type InvestorStatus = 'active' | 'pending' | 'closed';
+type InvestorStatus = "active" | "pending" | "closed";
 
 /**
  * Application-level investor type
@@ -111,7 +111,7 @@ export function mapDbInvestorToInvestor(dbInvestor: DbInvestor): Investor {
     name: dbInvestor.name,
     email: dbInvestor.email,
     profile_id: dbInvestor.profile_id,
-    status: (dbInvestor.status || 'pending') as InvestorStatus,
+    status: (dbInvestor.status || "pending") as InvestorStatus,
     created_at: dbInvestor.created_at || new Date().toISOString(),
     updated_at: dbInvestor.updated_at || new Date().toISOString(),
     phone: dbInvestor.phone,
@@ -152,8 +152,10 @@ export function mapDbPositionToInvestorPosition(dbPosition: DbInvestorPosition):
 /**
  * Type guard to check if investor has profile data
  */
-export function isInvestorWithProfile(investor: Investor | InvestorWithProfile): investor is InvestorWithProfile {
-  return 'first_name' in investor && 'last_name' in investor;
+export function isInvestorWithProfile(
+  investor: Investor | InvestorWithProfile
+): investor is InvestorWithProfile {
+  return "first_name" in investor && "last_name" in investor;
 }
 
 /**

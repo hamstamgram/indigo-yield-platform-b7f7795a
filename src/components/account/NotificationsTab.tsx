@@ -1,10 +1,16 @@
-
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 
 const NotificationsTab = () => {
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -15,8 +21,8 @@ const NotificationsTab = () => {
 
   const handleSaveNotificationSettings = () => {
     toast({
-      title: 'Settings saved',
-      description: 'Your notification preferences have been updated',
+      title: "Settings saved",
+      description: "Your notification preferences have been updated",
     });
   };
 
@@ -34,14 +40,11 @@ const NotificationsTab = () => {
               Receive portfolio updates by email
             </p>
           </div>
-          <Switch 
-            checked={emailNotifications} 
-            onCheckedChange={setEmailNotifications}
-          />
+          <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications} />
         </div>
-        
+
         <Separator />
-        
+
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-medium">Security Alerts</h3>
@@ -49,14 +52,11 @@ const NotificationsTab = () => {
               Get notified about account security events
             </p>
           </div>
-          <Switch 
-            checked={securityAlerts}
-            onCheckedChange={setSecurityAlerts}
-          />
+          <Switch checked={securityAlerts} onCheckedChange={setSecurityAlerts} />
         </div>
-        
+
         <Separator />
-        
+
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-medium">Yield Updates</h3>
@@ -64,14 +64,11 @@ const NotificationsTab = () => {
               Be notified when yield rates change
             </p>
           </div>
-          <Switch 
-            checked={yieldUpdates}
-            onCheckedChange={setYieldUpdates}
-          />
+          <Switch checked={yieldUpdates} onCheckedChange={setYieldUpdates} />
         </div>
-        
+
         <Separator />
-        
+
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-medium">Marketing Communications</h3>
@@ -79,16 +76,11 @@ const NotificationsTab = () => {
               Receive news, updates, and promotions
             </p>
           </div>
-          <Switch 
-            checked={marketingComms}
-            onCheckedChange={setMarketingComms}
-          />
+          <Switch checked={marketingComms} onCheckedChange={setMarketingComms} />
         </div>
       </CardContent>
       <CardFooter className="flex justify-end">
-        <Button onClick={handleSaveNotificationSettings}>
-          Save Notification Settings
-        </Button>
+        <Button onClick={handleSaveNotificationSettings}>Save Notification Settings</Button>
       </CardFooter>
     </Card>
   );

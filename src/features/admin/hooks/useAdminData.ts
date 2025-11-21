@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/auth/context';
-import { adminServiceV2 } from '@/services/adminServiceV2';
+import { useState, useEffect } from "react";
+import { useAuth } from "@/lib/auth/context";
+import { adminServiceV2 } from "@/services/adminServiceV2";
 
 interface AdminMetrics {
   totalUsers: number;
@@ -8,7 +8,7 @@ interface AdminMetrics {
   totalPortfolioValue: number;
   totalTransactions: number;
   newUsersThisMonth: number;
-  systemHealth: 'good' | 'warning' | 'critical';
+  systemHealth: "good" | "warning" | "critical";
 }
 
 interface AdminState {
@@ -22,7 +22,7 @@ export function useAdminData() {
   const [state, setState] = useState<AdminState>({
     metrics: null,
     loading: true,
-    error: null
+    error: null,
   });
 
   const fetchAdminData = async () => {
@@ -30,16 +30,16 @@ export function useAdminData() {
       setState({
         metrics: null,
         loading: false,
-        error: 'Access denied'
+        error: "Access denied",
       });
       return;
     }
 
     try {
-      setState(prev => ({ ...prev, loading: true, error: null }));
-      
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+
       const result = await adminServiceV2.getDashboardStats();
-      
+
       // Transform the data to match our interface
       const metrics: AdminMetrics = {
         totalUsers: result.investorCount || 0,
@@ -47,19 +47,19 @@ export function useAdminData() {
         totalPortfolioValue: result.totalAum || 0,
         totalTransactions: 0,
         newUsersThisMonth: 0,
-        systemHealth: 'good'
+        systemHealth: "good",
       };
 
       setState({
         metrics,
         loading: false,
-        error: null
+        error: null,
       });
     } catch (error) {
       setState({
         metrics: null,
         loading: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch admin data'
+        error: error instanceof Error ? error.message : "Failed to fetch admin data",
       });
     }
   };
@@ -74,6 +74,6 @@ export function useAdminData() {
 
   return {
     ...state,
-    refresh
+    refresh,
   };
 }

@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { investmentFormSchema, type InvestmentFormValues } from "@/lib/validations/investment";
+import { type InvestmentFormData } from "@/types/investment";
 import { investmentService } from "@/services/investmentService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -79,7 +80,7 @@ export function CreateInvestmentDialog({
   const onSubmit = async (values: InvestmentFormValues) => {
     setLoading(true);
     try {
-      await investmentService.createInvestment(values);
+      await investmentService.createInvestment(values as InvestmentFormData);
       toast.success("Investment created successfully");
       form.reset();
       onOpenChange(false);
@@ -162,12 +163,7 @@ export function CreateInvestmentDialog({
                   <FormItem>
                     <FormLabel>Amount (USD)</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="10000.00"
-                        {...field}
-                      />
+                      <Input type="number" step="0.01" placeholder="10000.00" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

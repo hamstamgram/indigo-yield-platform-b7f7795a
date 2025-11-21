@@ -1,24 +1,22 @@
 /**
  * Investor Routes Module
  * All investor-protected routes organized by feature area
- * 
+ *
  * Module Structure:
  * - Core: Dashboard, statements, transactions, account (6 routes)
  * - Portfolio: Withdrawals, analytics, settings (13 routes)
  * - Notifications: Alerts and notification management (5 routes)
  * - Documents: Document vault and viewing (8 routes)
- * - Support: Help desk and tickets (7 routes)
  * - Profile: User profile and preferences (8 routes)
  * - Reports: Performance and custom reports (5 routes)
- * 
- * Total: 52 investor routes
+ *
+ * Total: 45 investor routes
  */
 
 import { CoreInvestorRoutes } from "./investor/core";
 import { PortfolioRoutes } from "./investor/portfolio";
 import { NotificationRoutes } from "./investor/notifications";
 import { DocumentRoutes } from "./investor/documents";
-import { SupportRoutes } from "./investor/support";
 import { ProfileRoutes } from "./investor/profile";
 import { ReportsRoutes } from "./investor/reports";
 
@@ -33,7 +31,6 @@ export function InvestorRoutes() {
       {PortfolioRoutes()}
       {NotificationRoutes()}
       {DocumentRoutes()}
-      {SupportRoutes()}
       {ProfileRoutes()}
       {ReportsRoutes()}
     </>

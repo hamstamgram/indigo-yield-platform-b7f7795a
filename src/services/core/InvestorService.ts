@@ -3,19 +3,12 @@
  * Handles all investor-related operations
  */
 
-import { ApiClient, ApiResponse } from './ApiClient';
-import type { 
-  Investor, 
-  InvestorProfile, 
-  InvestorPosition
-} from '@/types/domains/investor';
-import { 
-  mapDbInvestorToInvestor,
-  mapDbPositionToInvestorPosition
-} from '@/types/domains/investor';
+import { ApiClient, ApiResponse } from "./ApiClient";
+import type { Investor, InvestorProfile, InvestorPosition } from "@/types/domains/investor";
+import { mapDbInvestorToInvestor, mapDbPositionToInvestorPosition } from "@/types/domains/investor";
 
 export interface InvestorFilters {
-  status?: 'active' | 'pending' | 'closed';
+  status?: "active" | "pending" | "closed";
   search?: string;
 }
 
@@ -26,12 +19,12 @@ export class InvestorService extends ApiClient {
   async getInvestors(filters?: InvestorFilters): Promise<ApiResponse<Investor[]>> {
     return this.execute(async () => {
       let query = this.supabase
-        .from('investors')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("investors")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (filters?.status) {
-        query = query.eq('status', filters.status);
+        query = query.eq("status", filters.status);
       }
 
       if (filters?.search) {
@@ -56,9 +49,9 @@ export class InvestorService extends ApiClient {
   async getInvestorById(id: string): Promise<ApiResponse<Investor>> {
     return this.execute(async () => {
       const { data, error } = await this.supabase
-        .from('investors')
-        .select('*')
-        .eq('id', id)
+        .from("investors")
+        .select("*")
+        .eq("id", id)
         .maybeSingle();
 
       if (error) {
@@ -66,7 +59,7 @@ export class InvestorService extends ApiClient {
       }
 
       if (!data) {
-        return { data: null, error: { message: 'Investor not found', code: 'NOT_FOUND' } as any };
+        return { data: null, error: { message: "Investor not found", code: "NOT_FOUND" } as any };
       }
 
       return { data: mapDbInvestorToInvestor(data), error: null };
@@ -80,9 +73,9 @@ export class InvestorService extends ApiClient {
   async getInvestorProfile(userId: string): Promise<ApiResponse<InvestorProfile>> {
     return this.execute(async () => {
       const { data: investor, error: investorError } = await this.supabase
-        .from('investors')
-        .select('*')
-        .eq('id', userId)
+        .from("investors")
+        .select("*")
+        .eq("id", userId)
         .maybeSingle();
 
       if (investorError) {
@@ -90,18 +83,18 @@ export class InvestorService extends ApiClient {
       }
 
       if (!investor) {
-        return { data: null, error: { message: 'Investor not found', code: 'NOT_FOUND' } as any };
+        return { data: null, error: { message: "Investor not found", code: "NOT_FOUND" } as any };
       }
 
       // Get profile data if profile_id exists
       let profileData = null;
       if (investor.profile_id) {
         const { data, error } = await this.supabase
-          .from('profiles')
-          .select('first_name, last_name, is_admin, avatar_url, totp_enabled, totp_verified')
-          .eq('id', investor.profile_id)
+          .from("profiles")
+          .select("first_name, last_name, is_admin, avatar_url, totp_enabled, totp_verified")
+          .eq("id", investor.profile_id)
           .maybeSingle();
-        
+
         if (!error) {
           profileData = data;
         }
@@ -117,7 +110,7 @@ export class InvestorService extends ApiClient {
         avatar_url: profileData?.avatar_url || null,
         totp_enabled: profileData?.totp_enabled || false,
         totp_verified: profileData?.totp_verified || false,
-        status: (investor.status || 'pending') as 'active' | 'pending' | 'closed',
+        status: (investor.status || "pending") as "active" | "pending" | "closed",
         created_at: investor.created_at || new Date().toISOString(),
         updated_at: investor.updated_at || new Date().toISOString(),
       };
@@ -132,9 +125,9 @@ export class InvestorService extends ApiClient {
   async getInvestorPositions(investorId: string): Promise<ApiResponse<InvestorPosition[]>> {
     return this.execute(async () => {
       const { data, error } = await this.supabase
-        .from('investor_positions')
-        .select('*')
-        .eq('investor_id', investorId);
+        .from("investor_positions")
+        .select("*")
+        .eq("investor_id", investorId);
 
       if (error) {
         return { data: null, error };
@@ -153,23 +146,42 @@ export class InvestorService extends ApiClient {
     updates: Partial<InvestorProfile>
   ): Promise<ApiResponse<InvestorProfile>> {
     // Separate investor updates from profile updates
-    const { first_name, last_name, is_admin, avatar_url, totp_enabled, totp_verified, ...investorUpdates } = updates;
-    
+    const {
+      first_name,
+      last_name,
+      is_admin,
+      avatar_url,
+      totp_enabled,
+      totp_verified,
+      ...investorUpdates
+    } = updates;
+
     const updateResult = await this.execute(async () => {
       // Update investor table
       const { data: investor, error: investorError } = await this.supabase
-        .from('investors')
+        .from("investors")
         .update(investorUpdates)
-        .eq('id', userId)
+        .eq("id", userId)
         .select()
         .maybeSingle();
 
       if (investorError || !investor) {
-        return { data: null, error: investorError || { message: 'Investor not found', code: 'NOT_FOUND' } as any };
+        return {
+          data: null,
+          error: investorError || ({ message: "Investor not found", code: "NOT_FOUND" } as any),
+        };
       }
 
       // Update profile table if profile_id exists and there are profile updates
-      if (investor.profile_id && (first_name !== undefined || last_name !== undefined || is_admin !== undefined || avatar_url !== undefined || totp_enabled !== undefined || totp_verified !== undefined)) {
+      if (
+        investor.profile_id &&
+        (first_name !== undefined ||
+          last_name !== undefined ||
+          is_admin !== undefined ||
+          avatar_url !== undefined ||
+          totp_enabled !== undefined ||
+          totp_verified !== undefined)
+      ) {
         const profileUpdates: any = {};
         if (first_name !== undefined) profileUpdates.first_name = first_name;
         if (last_name !== undefined) profileUpdates.last_name = last_name;
@@ -178,17 +190,18 @@ export class InvestorService extends ApiClient {
         if (totp_enabled !== undefined) profileUpdates.totp_enabled = totp_enabled;
         if (totp_verified !== undefined) profileUpdates.totp_verified = totp_verified;
 
-        await this.supabase
-          .from('profiles')
-          .update(profileUpdates)
-          .eq('id', investor.profile_id);
+        await this.supabase.from("profiles").update(profileUpdates).eq("id", investor.profile_id);
       }
 
       return { data: investor, error: null };
     });
 
     if (updateResult.error || !updateResult.data) {
-      return { data: null, error: updateResult.error || { message: 'Update failed', code: 'UPDATE_FAILED' } as any, success: false };
+      return {
+        data: null,
+        error: updateResult.error || ({ message: "Update failed", code: "UPDATE_FAILED" } as any),
+        success: false,
+      };
     }
 
     // Fetch complete profile after update
@@ -198,15 +211,21 @@ export class InvestorService extends ApiClient {
   /**
    * Create new investor
    */
-  async createInvestor(investorData: { name: string; email: string; status?: string }): Promise<ApiResponse<Investor>> {
+  async createInvestor(investorData: {
+    name: string;
+    email: string;
+    status?: string;
+  }): Promise<ApiResponse<Investor>> {
     return this.execute(async () => {
       const { data, error } = await this.supabase
-        .from('investors')
-        .insert([{
-          name: investorData.name,
-          email: investorData.email,
-          status: investorData.status || 'pending',
-        }])
+        .from("investors")
+        .insert([
+          {
+            name: investorData.name,
+            email: investorData.email,
+            status: investorData.status || "pending",
+          },
+        ])
         .select()
         .maybeSingle();
 
@@ -215,7 +234,10 @@ export class InvestorService extends ApiClient {
       }
 
       if (!data) {
-        return { data: null, error: { message: 'Failed to create investor', code: 'CREATE_FAILED' } as any };
+        return {
+          data: null,
+          error: { message: "Failed to create investor", code: "CREATE_FAILED" } as any,
+        };
       }
 
       return { data: mapDbInvestorToInvestor(data), error: null };
@@ -227,13 +249,13 @@ export class InvestorService extends ApiClient {
    */
   async updateInvestorStatus(
     investorId: string,
-    status: 'active' | 'pending' | 'closed'
+    status: "active" | "pending" | "closed"
   ): Promise<ApiResponse<Investor>> {
     return this.execute(async () => {
       const { data, error } = await this.supabase
-        .from('investors')
+        .from("investors")
         .update({ status })
-        .eq('id', investorId)
+        .eq("id", investorId)
         .select()
         .maybeSingle();
 
@@ -242,7 +264,7 @@ export class InvestorService extends ApiClient {
       }
 
       if (!data) {
-        return { data: null, error: { message: 'Investor not found', code: 'NOT_FOUND' } as any };
+        return { data: null, error: { message: "Investor not found", code: "NOT_FOUND" } as any };
       }
 
       return { data: mapDbInvestorToInvestor(data), error: null };
@@ -254,10 +276,7 @@ export class InvestorService extends ApiClient {
    */
   async deleteInvestor(investorId: string): Promise<ApiResponse<void>> {
     return this.execute(async () => {
-      const { error } = await this.supabase
-        .from('investors')
-        .delete()
-        .eq('id', investorId);
+      const { error } = await this.supabase.from("investors").delete().eq("id", investorId);
 
       return { data: null, error };
     });

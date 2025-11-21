@@ -2,32 +2,33 @@
 
 /**
  * Indigo Fund Statement Generator from PDF
- * 
+ *
  * This script processes monthly PDF reports and generates individual HTML statements
  * following the exact Indigo Fund design system specifications.
- * 
+ *
  * Usage: node generate-statements-from-pdf.js [pdf-file]
  */
 
-import fs from 'fs/promises';
-import path from 'path';
-import { createServiceClient } from '../../utils/supabaseClient.js';
+import fs from "fs/promises";
+import path from "path";
+import { createServiceClient } from "../../utils/supabaseClient.js";
 
 // Initialize secure Supabase client
 const supabase = createServiceClient();
 
 // CDN URLs for logos as specified
 const LOGOS = {
-  company: 'https://storage.mlcdn.com/account_image/855106/T7spejaxgKvLqaFJArUJu6YSxacSpADGPyWIrbRq.png',
-  BTC: 'https://storage.mlcdn.com/account_image/855106/HqTafY3UXNLyQctbIqje0qAv7BYiDI4MRVUhOKiT.png',
-  ETH: 'https://storage.mlcdn.com/account_image/855106/1LGif7hOOerx0K9BWZh0vRgg2QfRBoxBibwrQGW5.png',
-  USDT: 'https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png',
-  SOL: 'https://storage.mlcdn.com/account_image/855106/9EenamIVtIm3Rqfh63IZCQBrVZaDE2YHwRPwwpIN.png',
-  EURO: null // No logo for EURO
+  company:
+    "https://storage.mlcdn.com/account_image/855106/T7spejaxgKvLqaFJArUJu6YSxacSpADGPyWIrbRq.png",
+  BTC: "https://storage.mlcdn.com/account_image/855106/HqTafY3UXNLyQctbIqje0qAv7BYiDI4MRVUhOKiT.png",
+  ETH: "https://storage.mlcdn.com/account_image/855106/1LGif7hOOerx0K9BWZh0vRgg2QfRBoxBibwrQGW5.png",
+  USDT: "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
+  SOL: "https://storage.mlcdn.com/account_image/855106/9EenamIVtIm3Rqfh63IZCQBrVZaDE2YHwRPwwpIN.png",
+  EURO: null, // No logo for EURO
 };
 
 // Fund display order as specified
-const FUND_ORDER = ['BTC', 'ETH', 'USDT', 'SOL', 'EURO'];
+const FUND_ORDER = ["BTC", "ETH", "USDT", "SOL", "EURO"];
 
 /**
  * Normalize numbers according to parsing rules:
@@ -36,21 +37,21 @@ const FUND_ORDER = ['BTC', 'ETH', 'USDT', 'SOL', 'EURO'];
  * - Add + prefix to positive Net Income
  */
 function normalizeNumber(value, isNetIncome = false) {
-  if (!value || value === '–' || value === '-' || value === '') {
-    return '-';
+  if (!value || value === "–" || value === "-" || value === "") {
+    return "-";
   }
-  
+
   // Handle parentheses for negative numbers
   let normalized = value.toString().trim();
-  if (normalized.startsWith('(') && normalized.endsWith(')')) {
-    normalized = '-' + normalized.slice(1, -1);
+  if (normalized.startsWith("(") && normalized.endsWith(")")) {
+    normalized = "-" + normalized.slice(1, -1);
   }
-  
+
   // Add + for positive net income
-  if (isNetIncome && !normalized.startsWith('-') && normalized !== '-') {
-    normalized = '+' + normalized;
+  if (isNetIncome && !normalized.startsWith("-") && normalized !== "-") {
+    normalized = "+" + normalized;
   }
-  
+
   return normalized;
 }
 
@@ -60,20 +61,20 @@ function normalizeNumber(value, isNetIncome = false) {
 function generateFundHTML(fundName, fundData) {
   const logo = LOGOS[fundName];
   const isFirstFund = fundData.isFirst;
-  const marginTop = isFirstFund ? '24px' : '16px';
-  
+  const marginTop = isFirstFund ? "24px" : "16px";
+
   let html = `
     <!-- ${fundName} Fund Section -->
     <div style="background:#f8fafc;border-radius:10px;padding:20px;margin:16px;margin-top:${marginTop};">
       <!-- Fund Header -->
       <div style="display:flex;align-items:center;">`;
-  
+
   // Add logo if exists
   if (logo) {
     html += `
         <img src="${logo}" height="32" style="margin-right:12px;" alt="${fundName}">`;
   }
-  
+
   html += `
         <span style="font-size:18px;font-weight:bold;color:#0f172a;">${fundName} Yield Fund</span>
       </div>
@@ -146,7 +147,7 @@ function generateFundHTML(fundName, fundData) {
         </tbody>
       </table>
     </div>`;
-  
+
   return html;
 }
 
@@ -207,7 +208,7 @@ function generateInvestorHTML(investorName, periodEnd, funds) {
                 Investor Statement for the Period Ended: ${periodEnd}
             </div>
         </div>`;
-  
+
   // Add fund sections in the specified order
   let isFirst = true;
   for (const fundName of FUND_ORDER) {
@@ -217,7 +218,7 @@ function generateInvestorHTML(investorName, periodEnd, funds) {
       isFirst = false;
     }
   }
-  
+
   // Footer
   html += `
         <!-- Footer -->
@@ -228,7 +229,7 @@ function generateInvestorHTML(investorName, periodEnd, funds) {
     </div>
 </body>
 </html>`;
-  
+
   return html;
 }
 
@@ -239,7 +240,7 @@ function generateInvestorHTML(investorName, periodEnd, funds) {
 function parsePDFData(pdfContent) {
   // In production, this would parse the actual PDF
   // For now, return sample data structure
-  
+
   // Sample data for demonstration
   return [
     {
@@ -252,9 +253,9 @@ function parsePDFData(pdfContent) {
           redemptions: { MTD: "-", QTD: "-", YTD: "-", ITD: "-" },
           netIncome: { MTD: "0.3200", QTD: "0.9600", YTD: "3.2000", ITD: "7.0000" },
           endingBalance: { MTD: "32.3200", QTD: "32.9600", YTD: "35.2000", ITD: "32.0000" },
-          rateOfReturn: { MTD: "1.00%", QTD: "3.00%", YTD: "10.67%", ITD: "28.00%" }
-        }
-      }
+          rateOfReturn: { MTD: "1.00%", QTD: "3.00%", YTD: "10.67%", ITD: "28.00%" },
+        },
+      },
     },
     {
       name: "Jose Molla",
@@ -266,7 +267,7 @@ function parsePDFData(pdfContent) {
           redemptions: { MTD: "-", QTD: "-", YTD: "-", ITD: "-" },
           netIncome: { MTD: "0.0347", QTD: "0.1041", YTD: "0.3468", ITD: "0.6936" },
           endingBalance: { MTD: "3.5027", QTD: "3.5721", YTD: "3.8148", ITD: "3.4680" },
-          rateOfReturn: { MTD: "1.00%", QTD: "3.00%", YTD: "10.84%", ITD: "34.68%" }
+          rateOfReturn: { MTD: "1.00%", QTD: "3.00%", YTD: "10.84%", ITD: "34.68%" },
         },
         ETH: {
           beginningBalance: { MTD: "61.5000", QTD: "61.5000", YTD: "60.0000", ITD: "50.0000" },
@@ -274,10 +275,10 @@ function parsePDFData(pdfContent) {
           redemptions: { MTD: "-", QTD: "-", YTD: "-", ITD: "-" },
           netIncome: { MTD: "0.6150", QTD: "1.8450", YTD: "6.1500", ITD: "12.3000" },
           endingBalance: { MTD: "62.1150", QTD: "63.3450", YTD: "67.6500", ITD: "61.5000" },
-          rateOfReturn: { MTD: "1.00%", QTD: "3.00%", YTD: "10.25%", ITD: "24.60%" }
-        }
-      }
-    }
+          rateOfReturn: { MTD: "1.00%", QTD: "3.00%", YTD: "10.25%", ITD: "24.60%" },
+        },
+      },
+    },
   ];
 }
 
@@ -285,9 +286,9 @@ function parsePDFData(pdfContent) {
  * Main function to generate statements
  */
 async function generateStatements(pdfFile = null) {
-  console.log('📊 Indigo Fund Statement Generator\n');
-  console.log('Design System: Following exact PDF parsing specifications\n');
-  
+  console.log("📊 Indigo Fund Statement Generator\n");
+  console.log("Design System: Following exact PDF parsing specifications\n");
+
   try {
     // Parse PDF or use sample data
     let investorData;
@@ -297,57 +298,60 @@ async function generateStatements(pdfFile = null) {
       const pdfContent = await fs.readFile(pdfFile);
       investorData = parsePDFData(pdfContent);
     } else {
-      console.log('📝 Using sample data (no PDF provided)');
+      console.log("📝 Using sample data (no PDF provided)");
       investorData = parsePDFData(null);
     }
-    
+
     console.log(`✅ Found ${investorData.length} investors\n`);
-    
+
     // Create output directory
     const date = new Date();
-    const outputDir = path.join(process.cwd(), 'statements', `${date.getFullYear()}_${String(date.getMonth() + 1).padStart(2, '0')}`);
+    const outputDir = path.join(
+      process.cwd(),
+      "statements",
+      `${date.getFullYear()}_${String(date.getMonth() + 1).padStart(2, "0")}`
+    );
     await fs.mkdir(outputDir, { recursive: true });
-    
+
     // Generate statements
     const generatedFiles = [];
-    
+
     for (let i = 0; i < investorData.length; i++) {
       const investor = investorData[i];
-      const fileNumber = String(i + 1).padStart(2, '0');
-      const fileName = `${fileNumber}_${investor.name.replace(/\s+/g, '_')}.html`;
+      const fileNumber = String(i + 1).padStart(2, "0");
+      const fileName = `${fileNumber}_${investor.name.replace(/\s+/g, "_")}.html`;
       const filePath = path.join(outputDir, fileName);
-      
+
       // Generate HTML
       const html = generateInvestorHTML(investor.name, investor.periodEnd, investor.funds);
-      
+
       // Save file
-      await fs.writeFile(filePath, html, 'utf-8');
+      await fs.writeFile(filePath, html, "utf-8");
       generatedFiles.push(fileName);
-      
+
       console.log(`✅ Generated: ${fileName}`);
     }
-    
-    console.log('\n========================================');
-    console.log('📊 Statement Generation Complete');
+
+    console.log("\n========================================");
+    console.log("📊 Statement Generation Complete");
     console.log(`✅ Generated ${generatedFiles.length} statements`);
     console.log(`📁 Output directory: ${outputDir}`);
-    console.log('========================================\n');
-    
-    console.log('📋 Generated Files:');
-    generatedFiles.forEach(file => console.log(`   - ${file}`));
-    
-    console.log('\n📝 Next Steps:');
-    console.log('1. Review generated statements');
-    console.log('2. Convert to PDF if needed');
-    console.log('3. Bundle into ZIP for distribution');
-    console.log('4. Send to investors\n');
-    
+    console.log("========================================\n");
+
+    console.log("📋 Generated Files:");
+    generatedFiles.forEach((file) => console.log(`   - ${file}`));
+
+    console.log("\n📝 Next Steps:");
+    console.log("1. Review generated statements");
+    console.log("2. Convert to PDF if needed");
+    console.log("3. Bundle into ZIP for distribution");
+    console.log("4. Send to investors\n");
+
     // Instructions for viewing
-    console.log('To view statements:');
+    console.log("To view statements:");
     console.log(`open ${outputDir}`);
-    
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error("❌ Error:", error.message);
     process.exit(1);
   }
 }

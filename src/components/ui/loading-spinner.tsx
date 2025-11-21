@@ -1,6 +1,6 @@
-import React from 'react';
+import React from "react";
 
-export const LoadingSpinner: React.FC<{ message?: string }> = ({ message = 'Loading...' }) => {
+export const LoadingSpinner: React.FC<{ message?: string }> = ({ message = "Loading..." }) => {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
       <div className="relative">

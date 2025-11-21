@@ -41,9 +41,7 @@ export function MonthlyFeeSummaryChart({ summaries }: MonthlyFeeSummaryChartProp
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
-            <Tooltip
-              formatter={(value: number) => `$${value.toLocaleString()}`}
-            />
+            <Tooltip formatter={(value: number) => `$${value.toLocaleString()}`} />
             <Legend />
             <Bar dataKey="gross" fill="hsl(var(--primary))" name="Gross Yield" />
             <Bar dataKey="fees" fill="hsl(var(--destructive))" name="Fees Collected" />

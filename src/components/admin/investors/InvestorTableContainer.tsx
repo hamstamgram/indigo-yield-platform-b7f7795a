@@ -1,12 +1,5 @@
-
 import React from "react";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SearchBar from "./SearchBar";
 import InvestorsTable from "./InvestorsTable";
 import { Asset } from "@/types/investorTypes";
@@ -29,24 +22,19 @@ const InvestorTableContainer: React.FC<InvestorTableContainerProps> = ({
   searchTerm,
   setSearchTerm,
   onSendEmail,
-  onRefresh
+  onRefresh,
 }) => {
   return (
     <Card className="border-0 shadow-md">
       <CardHeader>
         <CardTitle>All Investors</CardTitle>
-        <CardDescription>
-          Manage investors and send platform invites
-        </CardDescription>
+        <CardDescription>Manage investors and send platform invites</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex mb-4">
-          <SearchBar 
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-          />
+          <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </div>
-        
+
         <InvestorsTable
           investors={investors}
           assets={assets}

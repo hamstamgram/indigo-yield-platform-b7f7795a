@@ -11,12 +11,12 @@
  * - Maximum email limit
  */
 
-import React, { useState } from 'react';
-import { Plus, X, Star, Mail, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import React, { useState } from "react";
+import { Plus, X, Star, Mail, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // =====================================================
 // TYPES & INTERFACES
@@ -55,11 +55,11 @@ export function MultiEmailInput({
   emails,
   onChange,
   maxEmails = 5,
-  placeholder = 'Enter email address',
+  placeholder = "Enter email address",
   disabled = false,
   showValidation = true,
 }: MultiEmailInputProps) {
-  const [newEmail, setNewEmail] = useState('');
+  const [newEmail, setNewEmail] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
 
   /**
@@ -74,19 +74,19 @@ export function MultiEmailInput({
 
     // Validation: Empty check
     if (!trimmedEmail) {
-      setValidationError('Email address cannot be empty');
+      setValidationError("Email address cannot be empty");
       return;
     }
 
     // Validation: Format check
     if (!validateEmail(trimmedEmail)) {
-      setValidationError('Invalid email format');
+      setValidationError("Invalid email format");
       return;
     }
 
     // Validation: Duplicate check
     if (emails.some((e) => e.email === trimmedEmail)) {
-      setValidationError('Email already added');
+      setValidationError("Email already added");
       return;
     }
 
@@ -104,7 +104,7 @@ export function MultiEmailInput({
     };
 
     onChange([...emails, newEmailObj]);
-    setNewEmail(''); // Clear input
+    setNewEmail(""); // Clear input
   };
 
   /**
@@ -115,7 +115,7 @@ export function MultiEmailInput({
 
     // Prevent removing if it's the only email
     if (emails.length === 1) {
-      setValidationError('At least one email is required');
+      setValidationError("At least one email is required");
       return;
     }
 
@@ -146,7 +146,7 @@ export function MultiEmailInput({
    * Handle Enter key press in input
    */
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleAddEmail();
     }
@@ -164,7 +164,7 @@ export function MultiEmailInput({
             onKeyPress={handleKeyPress}
             placeholder={placeholder}
             disabled={disabled || emails.length >= maxEmails}
-            className={validationError ? 'border-red-500' : ''}
+            className={validationError ? "border-red-500" : ""}
           />
         </div>
         <Button
@@ -202,17 +202,21 @@ export function MultiEmailInput({
                   flex items-center gap-2 p-3 rounded-lg border transition-all
                   ${
                     emailObj.isPrimary
-                      ? 'bg-indigo-50 border-indigo-300 shadow-sm'
-                      : 'bg-white border-gray-200 hover:border-gray-300'
+                      ? "bg-indigo-50 border-indigo-300 shadow-sm"
+                      : "bg-white border-gray-200 hover:border-gray-300"
                   }
-                  ${disabled ? 'opacity-50' : ''}
+                  ${disabled ? "opacity-50" : ""}
                 `}
               >
                 {/* Email Icon */}
-                <Mail className={`h-4 w-4 shrink-0 ${emailObj.isPrimary ? 'text-indigo-600' : 'text-gray-400'}`} />
+                <Mail
+                  className={`h-4 w-4 shrink-0 ${emailObj.isPrimary ? "text-indigo-600" : "text-gray-400"}`}
+                />
 
                 {/* Email Address */}
-                <span className={`flex-1 text-sm ${emailObj.isPrimary ? 'font-medium text-indigo-900' : 'text-gray-700'}`}>
+                <span
+                  className={`flex-1 text-sm ${emailObj.isPrimary ? "font-medium text-indigo-900" : "text-gray-700"}`}
+                >
                   {emailObj.email}
                 </span>
 
@@ -263,14 +267,13 @@ export function MultiEmailInput({
 
       {emails.length > 0 && emails.length < maxEmails && (
         <p className="text-sm text-gray-500">
-          You can add up to {maxEmails - emails.length} more email{maxEmails - emails.length !== 1 ? 's' : ''}.
+          You can add up to {maxEmails - emails.length} more email
+          {maxEmails - emails.length !== 1 ? "s" : ""}.
         </p>
       )}
 
       {emails.length >= maxEmails && (
-        <p className="text-sm text-orange-600">
-          Maximum email limit reached ({maxEmails} emails).
-        </p>
+        <p className="text-sm text-orange-600">Maximum email limit reached ({maxEmails} emails).</p>
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page, expect } from "@playwright/test";
 
 export class TestHelpers {
   constructor(private page: Page) {}
@@ -7,18 +7,18 @@ export class TestHelpers {
    * Wait for page to be fully loaded including network idle
    */
   async waitForPageLoad() {
-    await this.page.waitForLoadState('networkidle');
-    await this.page.waitForLoadState('domcontentloaded');
+    await this.page.waitForLoadState("networkidle");
+    await this.page.waitForLoadState("domcontentloaded");
   }
 
   /**
    * Take a screenshot with a descriptive name
    */
   async takeScreenshot(name: string, fullPage: boolean = true) {
-    const screenshotPath = `test-reports/screenshots/${name.replace(/\s+/g, '-').toLowerCase()}.png`;
+    const screenshotPath = `test-reports/screenshots/${name.replace(/\s+/g, "-").toLowerCase()}.png`;
     await this.page.screenshot({
       path: screenshotPath,
-      fullPage
+      fullPage,
     });
     return screenshotPath;
   }
@@ -28,8 +28,8 @@ export class TestHelpers {
    */
   async waitForElement(selector: string, timeout: number = 10000) {
     await this.page.waitForSelector(selector, {
-      state: 'visible',
-      timeout
+      state: "visible",
+      timeout,
     });
   }
 
@@ -48,7 +48,7 @@ export class TestHelpers {
   /**
    * Verify table renders correctly
    */
-  async verifyTableRenders(tableSelector: string = 'table') {
+  async verifyTableRenders(tableSelector: string = "table") {
     await this.waitForElement(tableSelector);
     const tableExists = await this.elementExists(tableSelector);
     expect(tableExists).toBeTruthy();
@@ -90,7 +90,7 @@ export class TestHelpers {
   /**
    * Verify chart renders (Recharts)
    */
-  async verifyChartRenders(chartContainerSelector: string = '.recharts-wrapper') {
+  async verifyChartRenders(chartContainerSelector: string = ".recharts-wrapper") {
     await this.waitForElement(chartContainerSelector);
 
     // Check for SVG element
@@ -98,7 +98,9 @@ export class TestHelpers {
     expect(svg).toBeTruthy();
 
     // Check for chart data elements
-    const hasDataElements = await this.elementExists(`${chartContainerSelector} path, ${chartContainerSelector} rect, ${chartContainerSelector} circle`);
+    const hasDataElements = await this.elementExists(
+      `${chartContainerSelector} path, ${chartContainerSelector} rect, ${chartContainerSelector} circle`
+    );
     expect(hasDataElements).toBeTruthy();
 
     return true;
@@ -110,7 +112,7 @@ export class TestHelpers {
   async testPagination(nextButtonSelector: string = '[aria-label="Next page"]') {
     const hasNextButton = await this.elementExists(nextButtonSelector);
     if (hasNextButton) {
-      const isDisabled = await this.page.getAttribute(nextButtonSelector, 'disabled');
+      const isDisabled = await this.page.getAttribute(nextButtonSelector, "disabled");
       if (!isDisabled) {
         await this.page.click(nextButtonSelector);
         await this.page.waitForTimeout(500);
@@ -148,8 +150,8 @@ export class TestHelpers {
 
       // Wait for loading to disappear
       await this.page.waitForSelector(loadingSelector, {
-        state: 'hidden',
-        timeout: 10000
+        state: "hidden",
+        timeout: 10000,
       });
       return true;
     } catch {
@@ -167,7 +169,7 @@ export class TestHelpers {
     for (const viewport of viewports) {
       await this.page.setViewportSize({
         width: viewport.width,
-        height: viewport.height
+        height: viewport.height,
       });
       await this.page.waitForTimeout(500);
 
@@ -176,7 +178,7 @@ export class TestHelpers {
         viewport: viewport.name,
         screenshot,
         width: viewport.width,
-        height: viewport.height
+        height: viewport.height,
       });
     }
 
@@ -197,9 +199,9 @@ export class TestHelpers {
   async getTextContent(selector: string): Promise<string> {
     const element = await this.page.$(selector);
     if (element) {
-      return await element.textContent() || '';
+      return (await element.textContent()) || "";
     }
-    return '';
+    return "";
   }
 
   /**
@@ -213,7 +215,7 @@ export class TestHelpers {
   /**
    * Verify card renders with content
    */
-  async verifyCardRenders(cardSelector: string = '.card, [data-card]') {
+  async verifyCardRenders(cardSelector: string = ".card, [data-card]") {
     await this.waitForElement(cardSelector);
     const cards = await this.page.$$(cardSelector);
     expect(cards.length).toBeGreaterThan(0);
@@ -227,14 +229,14 @@ export class TestHelpers {
     // Set mock auth tokens in localStorage
     await this.page.evaluate(() => {
       const mockAuth = {
-        access_token: 'mock-access-token',
-        refresh_token: 'mock-refresh-token',
+        access_token: "mock-access-token",
+        refresh_token: "mock-refresh-token",
         user: {
-          id: 'test-user-id',
-          email: 'test@example.com',
-        }
+          id: "test-user-id",
+          email: "test@example.com",
+        },
       };
-      localStorage.setItem('supabase.auth.token', JSON.stringify(mockAuth));
+      localStorage.setItem("supabase.auth.token", JSON.stringify(mockAuth));
     });
   }
 
@@ -244,9 +246,9 @@ export class TestHelpers {
   async waitForAPIResponse(urlPattern: string | RegExp, timeout: number = 10000) {
     try {
       const response = await this.page.waitForResponse(
-        response => {
+        (response) => {
           const url = response.url();
-          if (typeof urlPattern === 'string') {
+          if (typeof urlPattern === "string") {
             return url.includes(urlPattern);
           }
           return urlPattern.test(url);
@@ -265,40 +267,40 @@ export class TestHelpers {
   async checkAccessibility() {
     // Check for basic accessibility attributes
     const hasMainLandmark = await this.elementExists('main, [role="main"]');
-    const hasHeadings = await this.elementExists('h1, h2, h3');
-    const hasProperButtonRoles = await this.page.$$eval('button', buttons =>
-      buttons.every(btn => btn.hasAttribute('type') || btn.hasAttribute('role'))
+    const hasHeadings = await this.elementExists("h1, h2, h3");
+    const hasProperButtonRoles = await this.page.$$eval("button", (buttons) =>
+      buttons.every((btn) => btn.hasAttribute("type") || btn.hasAttribute("role"))
     );
 
     return {
       hasMainLandmark,
       hasHeadings,
-      hasProperButtonRoles
+      hasProperButtonRoles,
     };
   }
 }
 
 export const viewportSizes = {
-  desktop: { width: 1920, height: 1080, name: 'desktop' },
-  laptop: { width: 1366, height: 768, name: 'laptop' },
-  tablet: { width: 768, height: 1024, name: 'tablet' },
-  mobile: { width: 375, height: 667, name: 'mobile' },
+  desktop: { width: 1920, height: 1080, name: "desktop" },
+  laptop: { width: 1366, height: 768, name: "laptop" },
+  tablet: { width: 768, height: 1024, name: "tablet" },
+  mobile: { width: 375, height: 667, name: "mobile" },
 };
 
 export const mockTransactionData = {
-  id: 'txn-123456',
+  id: "txn-123456",
   amount: 5000,
-  type: 'deposit',
-  status: 'completed',
-  date: '2025-01-15T10:30:00Z',
+  type: "deposit",
+  status: "completed",
+  date: "2025-01-15T10:30:00Z",
 };
 
 export const mockPortfolioData = {
   totalValue: 150000,
   totalGain: 15000,
   positions: [
-    { id: 'pos-1', name: 'Fund A', value: 50000, allocation: 33.3 },
-    { id: 'pos-2', name: 'Fund B', value: 60000, allocation: 40 },
-    { id: 'pos-3', name: 'Fund C', value: 40000, allocation: 26.7 },
-  ]
+    { id: "pos-1", name: "Fund A", value: 50000, allocation: 33.3 },
+    { id: "pos-2", name: "Fund B", value: 60000, allocation: 40 },
+    { id: "pos-3", name: "Fund C", value: 40000, allocation: 26.7 },
+  ],
 };

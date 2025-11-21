@@ -72,9 +72,7 @@ export function CreateAssetDialog({ open, onOpenChange }: CreateAssetDialogProps
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Asset</DialogTitle>
-          <DialogDescription>
-            Add a new asset to the platform
-          </DialogDescription>
+          <DialogDescription>Add a new asset to the platform</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -84,9 +82,7 @@ export function CreateAssetDialog({ open, onOpenChange }: CreateAssetDialogProps
               <Input
                 id="asset_id"
                 value={formData.asset_id}
-                onChange={(e) =>
-                  setFormData({ ...formData, asset_id: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, asset_id: e.target.value })}
                 placeholder="e.g., BTC, ETH"
                 required
               />
@@ -97,9 +93,7 @@ export function CreateAssetDialog({ open, onOpenChange }: CreateAssetDialogProps
               <Input
                 id="symbol"
                 value={formData.symbol}
-                onChange={(e) =>
-                  setFormData({ ...formData, symbol: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, symbol: e.target.value })}
                 placeholder="e.g., BTC"
                 required
               />
@@ -111,9 +105,7 @@ export function CreateAssetDialog({ open, onOpenChange }: CreateAssetDialogProps
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="e.g., Bitcoin"
               required
             />
@@ -124,9 +116,7 @@ export function CreateAssetDialog({ open, onOpenChange }: CreateAssetDialogProps
               <Label htmlFor="kind">Kind *</Label>
               <Select
                 value={formData.kind}
-                onValueChange={(value: AssetKind) =>
-                  setFormData({ ...formData, kind: value })
-                }
+                onValueChange={(value: AssetKind) => setFormData({ ...formData, kind: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -149,9 +139,7 @@ export function CreateAssetDialog({ open, onOpenChange }: CreateAssetDialogProps
                 min="0"
                 max="18"
                 value={formData.decimals}
-                onChange={(e) =>
-                  setFormData({ ...formData, decimals: parseInt(e.target.value) })
-                }
+                onChange={(e) => setFormData({ ...formData, decimals: parseInt(e.target.value) })}
                 required
               />
             </div>
@@ -163,9 +151,7 @@ export function CreateAssetDialog({ open, onOpenChange }: CreateAssetDialogProps
               <Input
                 id="chain"
                 value={formData.chain || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, chain: e.target.value || undefined })
-                }
+                onChange={(e) => setFormData({ ...formData, chain: e.target.value || undefined })}
                 placeholder="e.g., Ethereum"
               />
             </div>
@@ -190,19 +176,13 @@ export function CreateAssetDialog({ open, onOpenChange }: CreateAssetDialogProps
             <Switch
               id="is_active"
               checked={formData.is_active}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, is_active: checked })
-              }
+              onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
             />
             <Label htmlFor="is_active">Active</Label>
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={createMutation.isPending}>

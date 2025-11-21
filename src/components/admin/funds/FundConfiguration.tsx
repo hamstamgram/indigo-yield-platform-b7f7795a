@@ -1,17 +1,30 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Settings, Percent, Calendar, Save, Plus } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { listFunds, getFund, updateFund, createFund, type Fund } from '@/server/admin.funds';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Settings, Percent, Calendar, Save, Plus } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { listFunds, getFund, updateFund, createFund, type Fund } from "@/server/admin.funds";
 
 interface FeeHistory {
   id: string;
@@ -24,23 +37,23 @@ interface FeeHistory {
 
 const FundConfiguration = () => {
   const [funds, setFunds] = useState<Fund[]>([]);
-  const [selectedFund, setSelectedFund] = useState<string>('');
+  const [selectedFund, setSelectedFund] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [fundData, setFundData] = useState<Partial<Fund>>({
-    name: '',
-    code: '',
-    asset: 'BTC',
-    fund_class: 'default',
-    strategy: '',
-    status: 'active',
+    name: "",
+    code: "",
+    asset: "BTC",
+    fund_class: "default",
+    strategy: "",
+    status: "active",
     mgmt_fee_bps: 200,
     perf_fee_bps: 2000,
     min_investment: 1000,
     lock_period_days: 0,
     high_water_mark: 0,
-    inception_date: new Date().toISOString().split('T')[0]
+    inception_date: new Date().toISOString().split("T")[0],
   });
   const [feeHistory] = useState<FeeHistory[]>([]);
   const { toast } = useToast();
@@ -64,9 +77,9 @@ const FundConfiguration = () => {
       }
     } catch (error: any) {
       toast({
-        title: 'Error loading funds',
+        title: "Error loading funds",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -79,9 +92,9 @@ const FundConfiguration = () => {
       setFundData(fund);
     } catch (error: any) {
       toast({
-        title: 'Error loading fund data',
+        title: "Error loading fund data",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     }
   };
@@ -89,39 +102,40 @@ const FundConfiguration = () => {
   const handleSave = async () => {
     if (!fundData.name || !fundData.code) {
       toast({
-        title: 'Validation Error',
-        description: 'Fund name and code are required',
-        variant: 'destructive',
+        title: "Validation Error",
+        description: "Fund name and code are required",
+        variant: "destructive",
       });
       return;
     }
 
     try {
       setSaving(true);
-      
+
       if (isCreating) {
-        const newFund = await createFund(fundData as Omit<Fund, 'id' | 'created_at' | 'updated_at'>);
+        const newFund = await createFund(
+          fundData as Omit<Fund, "id" | "created_at" | "updated_at">
+        );
         setFunds([newFund, ...funds]);
         setSelectedFund(newFund.id);
         setIsCreating(false);
         toast({
-          title: 'Success',
-          description: 'Fund created successfully',
+          title: "Success",
+          description: "Fund created successfully",
         });
       } else {
         const updatedFund = await updateFund(selectedFund, fundData);
-        setFunds(funds.map(f => f.id === selectedFund ? updatedFund : f));
+        setFunds(funds.map((f) => (f.id === selectedFund ? updatedFund : f)));
         toast({
-          title: 'Success',
-          description: 'Fund configuration updated successfully',
+          title: "Success",
+          description: "Fund configuration updated successfully",
         });
       }
-      
     } catch (error: any) {
       toast({
-        title: 'Error saving fund',
+        title: "Error saving fund",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setSaving(false);
@@ -131,18 +145,18 @@ const FundConfiguration = () => {
   const handleCreateNew = () => {
     setIsCreating(true);
     setFundData({
-      name: '',
-      code: '',
-      asset: 'BTC',
-      fund_class: 'default',
-      strategy: '',
-      status: 'active',
+      name: "",
+      code: "",
+      asset: "BTC",
+      fund_class: "default",
+      strategy: "",
+      status: "active",
       mgmt_fee_bps: 200,
       perf_fee_bps: 2000,
       min_investment: 1000,
       lock_period_days: 0,
       high_water_mark: 0,
-      inception_date: new Date().toISOString().split('T')[0]
+      inception_date: new Date().toISOString().split("T")[0],
     });
   };
 
@@ -155,7 +169,7 @@ const FundConfiguration = () => {
   };
 
   const updateField = (field: keyof Fund, value: any) => {
-    setFundData(prev => ({ ...prev, [field]: value }));
+    setFundData((prev) => ({ ...prev, [field]: value }));
   };
 
   if (loading) {
@@ -216,11 +230,13 @@ const FundConfiguration = () => {
                 <SelectValue placeholder="Select a fund to configure" />
               </SelectTrigger>
               <SelectContent>
-                {funds.map(fund => (
+                {funds.map((fund) => (
                   <SelectItem key={fund.id} value={fund.id}>
                     <div className="flex items-center gap-2">
-                      <span>{fund.code} - {fund.name}</span>
-                      <Badge variant={fund.status === 'active' ? 'default' : 'secondary'}>
+                      <span>
+                        {fund.code} - {fund.name}
+                      </span>
+                      <Badge variant={fund.status === "active" ? "default" : "secondary"}>
                         {fund.status}
                       </Badge>
                     </div>
@@ -251,8 +267,8 @@ const FundConfiguration = () => {
                   <Label htmlFor="name">Fund Name *</Label>
                   <Input
                     id="name"
-                    value={fundData.name || ''}
-                    onChange={(e) => updateField('name', e.target.value)}
+                    value={fundData.name || ""}
+                    onChange={(e) => updateField("name", e.target.value)}
                     placeholder="e.g., Indigo Bitcoin Fund"
                   />
                 </div>
@@ -260,8 +276,8 @@ const FundConfiguration = () => {
                   <Label htmlFor="code">Fund Code *</Label>
                   <Input
                     id="code"
-                    value={fundData.code || ''}
-                    onChange={(e) => updateField('code', e.target.value.toUpperCase())}
+                    value={fundData.code || ""}
+                    onChange={(e) => updateField("code", e.target.value.toUpperCase())}
                     placeholder="e.g., IBF"
                   />
                 </div>
@@ -270,7 +286,10 @@ const FundConfiguration = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="asset">Primary Asset</Label>
-                  <Select value={fundData.asset || 'BTC'} onValueChange={(value) => updateField('asset', value)}>
+                  <Select
+                    value={fundData.asset || "BTC"}
+                    onValueChange={(value) => updateField("asset", value)}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -285,7 +304,10 @@ const FundConfiguration = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="fund_class">Fund Class</Label>
-                  <Select value={fundData.fund_class || 'default'} onValueChange={(value) => updateField('fund_class', value)}>
+                  <Select
+                    value={fundData.fund_class || "default"}
+                    onValueChange={(value) => updateField("fund_class", value)}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -303,8 +325,8 @@ const FundConfiguration = () => {
                 <Label htmlFor="strategy">Investment Strategy</Label>
                 <Textarea
                   id="strategy"
-                  value={fundData.strategy || ''}
-                  onChange={(e) => updateField('strategy', e.target.value)}
+                  value={fundData.strategy || ""}
+                  onChange={(e) => updateField("strategy", e.target.value)}
                   placeholder="Describe the fund's investment strategy and approach"
                   rows={3}
                 />
@@ -316,13 +338,16 @@ const FundConfiguration = () => {
                   <Input
                     id="inception_date"
                     type="date"
-                    value={fundData.inception_date || ''}
-                    onChange={(e) => updateField('inception_date', e.target.value)}
+                    value={fundData.inception_date || ""}
+                    onChange={(e) => updateField("inception_date", e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="status">Fund Status</Label>
-                  <Select value={fundData.status || 'active'} onValueChange={(value) => updateField('status', value)}>
+                  <Select
+                    value={fundData.status || "active"}
+                    onValueChange={(value) => updateField("status", value)}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -353,7 +378,8 @@ const FundConfiguration = () => {
                   ℹ️ Fee Management Update
                 </h4>
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  Fee management has been moved to individual investor profiles. Each investor can now have personalized fee structures managed from their individual detail pages.
+                  Fee management has been moved to individual investor profiles. Each investor can
+                  now have personalized fee structures managed from their individual detail pages.
                 </p>
               </div>
 
@@ -364,7 +390,7 @@ const FundConfiguration = () => {
                     id="min_investment"
                     type="number"
                     value={fundData.min_investment || 1000}
-                    onChange={(e) => updateField('min_investment', parseFloat(e.target.value) || 0)}
+                    onChange={(e) => updateField("min_investment", parseFloat(e.target.value) || 0)}
                     min="0"
                     step="100"
                   />
@@ -375,7 +401,7 @@ const FundConfiguration = () => {
                     id="lock_period"
                     type="number"
                     value={fundData.lock_period_days || 0}
-                    onChange={(e) => updateField('lock_period_days', parseInt(e.target.value) || 0)}
+                    onChange={(e) => updateField("lock_period_days", parseInt(e.target.value) || 0)}
                     min="0"
                   />
                 </div>
@@ -387,7 +413,7 @@ const FundConfiguration = () => {
                   id="high_water_mark"
                   type="number"
                   value={fundData.high_water_mark || 0}
-                  onChange={(e) => updateField('high_water_mark', parseFloat(e.target.value) || 0)}
+                  onChange={(e) => updateField("high_water_mark", parseFloat(e.target.value) || 0)}
                   step="0.01"
                   placeholder="0.00"
                 />
@@ -420,7 +446,9 @@ const FundConfiguration = () => {
                   <TableBody>
                     {feeHistory.map((record) => (
                       <TableRow key={record.id}>
-                        <TableCell>{new Date(record.effective_from).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          {new Date(record.effective_from).toLocaleDateString()}
+                        </TableCell>
                         <TableCell>{(record.mgmt_fee_bps / 100).toFixed(2)}%</TableCell>
                         <TableCell>{(record.perf_fee_bps / 100).toFixed(2)}%</TableCell>
                         <TableCell>{record.created_by}</TableCell>

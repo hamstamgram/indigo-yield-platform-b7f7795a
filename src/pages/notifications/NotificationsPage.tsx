@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useNotifications } from '@/hooks/useNotifications';
-import type { User } from '@supabase/supabase-js';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useNotifications } from "@/hooks/useNotifications";
+import type { User } from "@supabase/supabase-js";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Bell,
   CheckCheck,
@@ -20,17 +20,17 @@ import {
   Settings,
   TrendingUp,
   MessageSquare,
-  Filter
-} from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client';
-import type { Notification } from '@/lib/typeAdapters/notificationAdapter';
+  Filter,
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import type { Notification } from "@/lib/typeAdapters/notificationAdapter";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 
 const NotificationsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -45,11 +45,13 @@ const NotificationsPage: React.FC = () => {
     deleteNotification,
   } = useNotifications(currentUser?.id);
 
-  const [filter, setFilter] = useState<'all' | string>('all');
+  const [filter, setFilter] = useState<"all" | string>("all");
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setCurrentUser(user);
     };
     getUser();
@@ -57,19 +59,19 @@ const NotificationsPage: React.FC = () => {
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'transaction':
+      case "transaction":
         return <DollarSign className="h-5 w-5" />;
-      case 'alert':
+      case "alert":
         return <AlertCircle className="h-5 w-5" />;
-      case 'document':
+      case "document":
         return <FileText className="h-5 w-5" />;
-      case 'security':
+      case "security":
         return <Shield className="h-5 w-5" />;
-      case 'system':
+      case "system":
         return <Settings className="h-5 w-5" />;
-      case 'yield':
+      case "yield":
         return <TrendingUp className="h-5 w-5" />;
-      case 'support':
+      case "support":
         return <MessageSquare className="h-5 w-5" />;
       default:
         return <Bell className="h-5 w-5" />;
@@ -78,20 +80,19 @@ const NotificationsPage: React.FC = () => {
 
   const getPriorityColor = (priority: string | null) => {
     switch (priority) {
-      case 'high':
-        return 'destructive';
-      case 'medium':
-        return 'secondary';
-      case 'low':
-        return 'outline';
+      case "high":
+        return "destructive";
+      case "medium":
+        return "secondary";
+      case "low":
+        return "outline";
       default:
-        return 'secondary';
+        return "secondary";
     }
   };
 
-  const filteredNotifications = filter === 'all'
-    ? notifications
-    : notifications.filter(n => n.type === filter);
+  const filteredNotifications =
+    filter === "all" ? notifications : notifications.filter((n) => n.type === filter);
 
   const handleNotificationClick = (notification: Notification) => {
     if (!notification.read_at) {
@@ -109,7 +110,7 @@ const NotificationsPage: React.FC = () => {
           <Skeleton className="h-10 w-32" />
         </div>
         <div className="space-y-4">
-          {[1, 2, 3, 4, 5].map(i => (
+          {[1, 2, 3, 4, 5].map((i) => (
             <Skeleton key={i} className="h-24 w-full" />
           ))}
         </div>
@@ -126,32 +127,31 @@ const NotificationsPage: React.FC = () => {
             Notifications
           </h1>
           <p className="text-muted-foreground mt-1">
-            {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}` : 'All caught up!'}
+            {unreadCount > 0
+              ? `${unreadCount} unread notification${unreadCount !== 1 ? "s" : ""}`
+              : "All caught up!"}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           {unreadCount > 0 && (
-            <Button
-              variant="outline"
-              onClick={markAllAsRead}
-              className="gap-2"
-            >
+            <Button variant="outline" onClick={markAllAsRead} className="gap-2">
               <CheckCheck className="h-4 w-4" />
               Mark all read
             </Button>
           )}
-          <Button
-            variant="outline"
-            onClick={() => navigate('/notifications/settings')}
-          >
+          <Button variant="outline" onClick={() => navigate("/notifications/settings")}>
             <Settings className="h-4 w-4 mr-2" />
             Settings
           </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="all" className="w-full" onValueChange={(v) => setFilter(v as 'all' | string)}>
+      <Tabs
+        defaultValue="all"
+        className="w-full"
+        onValueChange={(v) => setFilter(v as "all" | string)}
+      >
         <TabsList className="w-full justify-start">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="deposit">Deposits</TabsTrigger>
@@ -179,15 +179,17 @@ const NotificationsPage: React.FC = () => {
                   <Card
                     key={notification.id}
                     className={`cursor-pointer transition-all hover:shadow-md ${
-                      !notification.read_at ? 'border-l-4 border-l-blue-500' : ''
+                      !notification.read_at ? "border-l-4 border-l-blue-500" : ""
                     }`}
                     onClick={() => handleNotificationClick(notification)}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start gap-4">
-                        <div className={`p-2 rounded-full ${
-                          !notification.read_at ? 'bg-blue-100' : 'bg-gray-100'
-                        }`}>
+                        <div
+                          className={`p-2 rounded-full ${
+                            !notification.read_at ? "bg-blue-100" : "bg-gray-100"
+                          }`}
+                        >
                           {getNotificationIcon(notification.type)}
                         </div>
 
@@ -197,7 +199,9 @@ const NotificationsPage: React.FC = () => {
                               <h3 className="font-semibold flex items-center gap-2">
                                 {notification.title}
                                 {!notification.read_at && (
-                                  <Badge variant="default" className="text-xs">New</Badge>
+                                  <Badge variant="default" className="text-xs">
+                                    New
+                                  </Badge>
                                 )}
                                 {notification.priority && (
                                   <Badge variant={getPriorityColor(notification.priority)}>
@@ -218,18 +222,22 @@ const NotificationsPage: React.FC = () => {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 {!notification.read_at && (
-                                  <DropdownMenuItem onClick={(e) => {
-                                    e.stopPropagation();
-                                    markAsRead(notification.id);
-                                  }}>
+                                  <DropdownMenuItem
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      markAsRead(notification.id);
+                                    }}
+                                  >
                                     <CheckCheck className="h-4 w-4 mr-2" />
                                     Mark as read
                                   </DropdownMenuItem>
                                 )}
-                                <DropdownMenuItem onClick={(e) => {
-                                  e.stopPropagation();
-                                  archiveNotification(notification.id);
-                                }}>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    archiveNotification(notification.id);
+                                  }}
+                                >
                                   <Archive className="h-4 w-4 mr-2" />
                                   Archive
                                 </DropdownMenuItem>
@@ -248,7 +256,11 @@ const NotificationsPage: React.FC = () => {
                           </div>
 
                           <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <span>{formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}</span>
+                            <span>
+                              {formatDistanceToNow(new Date(notification.created_at), {
+                                addSuffix: true,
+                              })}
+                            </span>
                             <Badge variant="outline" className="text-xs">
                               {notification.type}
                             </Badge>

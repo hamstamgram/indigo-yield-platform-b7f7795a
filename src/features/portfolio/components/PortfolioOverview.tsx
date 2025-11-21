@@ -29,7 +29,7 @@ export function PortfolioOverview({
   dayChange,
   dayChangePercent,
   positions,
-  className
+  className,
 }: PortfolioOverviewProps) {
   const isGainPositive = totalGain >= 0;
   const isDayChangePositive = dayChange >= 0;
@@ -45,7 +45,7 @@ export function PortfolioOverview({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              ${totalValue.toLocaleString("en-US", { minimumFractionDigits: 2 })}
             </div>
           </CardContent>
         </Card>
@@ -60,16 +60,20 @@ export function PortfolioOverview({
             )}
           </CardHeader>
           <CardContent>
-            <div className={cn(
-              "text-2xl font-bold",
-              isGainPositive ? "text-green-600" : "text-red-600"
-            )}>
-              ${Math.abs(totalGain).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            <div
+              className={cn(
+                "text-2xl font-bold",
+                isGainPositive ? "text-green-600" : "text-red-600"
+              )}
+            >
+              ${Math.abs(totalGain).toLocaleString("en-US", { minimumFractionDigits: 2 })}
             </div>
-            <div className={cn(
-              "text-xs flex items-center",
-              isGainPositive ? "text-green-600" : "text-red-600"
-            )}>
+            <div
+              className={cn(
+                "text-xs flex items-center",
+                isGainPositive ? "text-green-600" : "text-red-600"
+              )}
+            >
               <Percent className="h-3 w-3 mr-1" />
               {Math.abs(totalGainPercent).toFixed(2)}%
             </div>
@@ -86,16 +90,20 @@ export function PortfolioOverview({
             )}
           </CardHeader>
           <CardContent>
-            <div className={cn(
-              "text-2xl font-bold",
-              isDayChangePositive ? "text-green-600" : "text-red-600"
-            )}>
-              ${Math.abs(dayChange).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            <div
+              className={cn(
+                "text-2xl font-bold",
+                isDayChangePositive ? "text-green-600" : "text-red-600"
+              )}
+            >
+              ${Math.abs(dayChange).toLocaleString("en-US", { minimumFractionDigits: 2 })}
             </div>
-            <div className={cn(
-              "text-xs flex items-center",
-              isDayChangePositive ? "text-green-600" : "text-red-600"
-            )}>
+            <div
+              className={cn(
+                "text-xs flex items-center",
+                isDayChangePositive ? "text-green-600" : "text-red-600"
+              )}
+            >
               <Percent className="h-3 w-3 mr-1" />
               {Math.abs(dayChangePercent).toFixed(2)}%
             </div>
@@ -108,9 +116,7 @@ export function PortfolioOverview({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{positions.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Active investments
-            </p>
+            <p className="text-xs text-muted-foreground">Active investments</p>
           </CardContent>
         </Card>
       </div>
@@ -127,19 +133,19 @@ export function PortfolioOverview({
                 <div className="flex items-center space-x-3">
                   <div>
                     <div className="font-medium">{position.symbol}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {position.quantity} shares
-                    </div>
+                    <div className="text-sm text-muted-foreground">{position.quantity} shares</div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="font-medium">
-                    ${position.market_value.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    ${position.market_value.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </div>
-                  <div className={cn(
-                    "text-sm flex items-center justify-end",
-                    position.gain_percent >= 0 ? "text-green-600" : "text-red-600"
-                  )}>
+                  <div
+                    className={cn(
+                      "text-sm flex items-center justify-end",
+                      position.gain_percent >= 0 ? "text-green-600" : "text-red-600"
+                    )}
+                  >
                     {position.gain_percent >= 0 ? "+" : ""}
                     {position.gain_percent.toFixed(2)}%
                   </div>

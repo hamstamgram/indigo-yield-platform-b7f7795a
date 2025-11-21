@@ -3,23 +3,23 @@
  * Upload and manage fund documents with bulk upload capabilities
  */
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
+import React, { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -27,7 +27,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -36,24 +36,24 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { 
+} from "@/components/ui/dialog";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
   Document,
-  DocumentType, 
+  DocumentType,
   DocumentUploadRequest,
   DOCUMENT_TYPE_CONFIG,
   formatFileSize,
   validateDocumentUpload,
-  getDocumentTypeConfig
-} from '@/lib/documents/types';
-import { documentService } from '@/services/documentService';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { 
-  Upload, 
-  FileText, 
+  getDocumentTypeConfig,
+} from "@/lib/documents/types";
+import { documentService } from "@/services/documentService";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import {
+  Upload,
+  FileText,
   Trash2,
   Download,
   Eye,
@@ -64,13 +64,12 @@ import {
   FileUp,
   X,
   Plus,
-  Users
-} from 'lucide-react';
-
+  Users,
+} from "lucide-react";
 
 interface PendingUpload extends DocumentUploadRequest {
   id: string;
-  status: 'pending' | 'uploading' | 'success' | 'error';
+  status: "pending" | "uploading" | "success" | "error";
   progress: number;
   error?: string;
 }
@@ -82,13 +81,13 @@ export default function AdminDocumentsPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
-  
+
   // Single upload form state
   const [uploadForm, setUploadForm] = useState<Partial<DocumentUploadRequest>>({
-    type: 'statement',
-    title: '',
-    description: '',
-    user_id: '',
+    type: "statement",
+    title: "",
+    description: "",
+    user_id: "",
   });
   const [periodStart, setPeriodStart] = useState<Date>();
   const [periodEnd, setPeriodEnd] = useState<Date>();
@@ -105,7 +104,7 @@ export default function AdminDocumentsPage() {
         const docs = await documentService.listDocuments();
         setDocuments(docs as any);
       } catch (error) {
-        console.error('Failed to load documents:', error);
+        console.error("Failed to load documents:", error);
       } finally {
         setIsLoadingDocuments(false);
       }
@@ -119,7 +118,7 @@ export default function AdminDocumentsPage() {
     if (!files || files.length === 0) return;
 
     const file = files[0];
-    setUploadForm(prev => ({ ...prev, file }));
+    setUploadForm((prev) => ({ ...prev, file }));
   };
 
   const handleSingleUpload = async () => {
@@ -139,7 +138,7 @@ export default function AdminDocumentsPage() {
 
     const validationErrors = validateDocumentUpload(uploadRequest);
     if (validationErrors.length > 0) {
-      console.error('Validation errors:', validationErrors);
+      console.error("Validation errors:", validationErrors);
       return;
     }
 
@@ -147,32 +146,32 @@ export default function AdminDocumentsPage() {
     try {
       // Simulate upload
       await simulateUpload(uploadRequest);
-      
+
       // Add to documents list (in real app, this would come from API response)
       const newDocument: Document = {
         id: `doc_${Date.now()}`,
         user_id: uploadRequest.user_id,
-        fund_id: 'fund_001',
+        fund_id: "fund_001",
         type: uploadRequest.type,
         title: uploadRequest.title,
         description: uploadRequest.description,
-        storage_path: `documents/${uploadRequest.user_id || 'fund'}/${new Date().getFullYear()}`,
+        storage_path: `documents/${uploadRequest.user_id || "fund"}/${new Date().getFullYear()}`,
         filename: uploadRequest.file.name,
         file_size: uploadRequest.file.size,
         mime_type: uploadRequest.file.type,
         period_start: uploadRequest.period_start,
         period_end: uploadRequest.period_end,
-        status: 'ready',
+        status: "ready",
         created_at: new Date(),
-        created_by: 'admin',
-        checksum: 'new_checksum',
+        created_by: "admin",
+        checksum: "new_checksum",
       };
 
-      setDocuments(prev => [newDocument, ...prev]);
+      setDocuments((prev) => [newDocument, ...prev]);
       setShowUploadDialog(false);
       resetUploadForm();
     } catch (error) {
-      console.error('Upload failed:', error);
+      console.error("Upload failed:", error);
     } finally {
       setIsUploading(false);
     }
@@ -185,78 +184,78 @@ export default function AdminDocumentsPage() {
     const newPendingUploads: PendingUpload[] = Array.from(files).map((file, index) => ({
       id: `pending_${Date.now()}_${index}`,
       file,
-      type: 'other' as DocumentType,
-      title: file.name.replace(/\.[^/.]+$/, ''), // Remove extension
-      status: 'pending',
+      type: "other" as DocumentType,
+      title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
+      status: "pending",
       progress: 0,
     }));
 
-    setPendingUploads(prev => [...prev, ...newPendingUploads]);
+    setPendingUploads((prev) => [...prev, ...newPendingUploads]);
   };
 
   const updatePendingUpload = (id: string, updates: Partial<PendingUpload>) => {
-    setPendingUploads(prev => 
-      prev.map(upload => upload.id === id ? { ...upload, ...updates } : upload)
+    setPendingUploads((prev) =>
+      prev.map((upload) => (upload.id === id ? { ...upload, ...updates } : upload))
     );
   };
 
   const removePendingUpload = (id: string) => {
-    setPendingUploads(prev => prev.filter(upload => upload.id !== id));
+    setPendingUploads((prev) => prev.filter((upload) => upload.id !== id));
   };
 
   const handleBulkUpload = async () => {
-    const uploadsToProcess = pendingUploads.filter(upload => upload.status === 'pending');
+    const uploadsToProcess = pendingUploads.filter((upload) => upload.status === "pending");
     if (uploadsToProcess.length === 0) return;
 
     setIsUploading(true);
-    
+
     for (const upload of uploadsToProcess) {
-      updatePendingUpload(upload.id, { status: 'uploading', progress: 0 });
-      
+      updatePendingUpload(upload.id, { status: "uploading", progress: 0 });
+
       try {
         // Simulate upload with progress
         for (let progress = 0; progress <= 100; progress += 20) {
           updatePendingUpload(upload.id, { progress });
-          await new Promise(resolve => setTimeout(resolve, 200));
+          await new Promise((resolve) => setTimeout(resolve, 200));
         }
 
         // Validation
         const validationErrors = validateDocumentUpload(upload);
         if (validationErrors.length > 0) {
-          updatePendingUpload(upload.id, { 
-            status: 'error', 
-            error: validationErrors.join(', ')
+          updatePendingUpload(upload.id, {
+            status: "error",
+            error: validationErrors.join(", "),
           });
           continue;
         }
 
-        updatePendingUpload(upload.id, { status: 'success', progress: 100 });
+        updatePendingUpload(upload.id, { status: "success", progress: 100 });
 
         // Add to documents list
         const newDocument: Document = {
           id: `doc_${Date.now()}_${upload.id}`,
           user_id: upload.user_id,
-          fund_id: 'fund_001',
+          fund_id: "fund_001",
           type: upload.type,
           title: upload.title,
           description: upload.description,
-          storage_path: `documents/${upload.user_id || 'fund'}/${new Date().getFullYear()}`,
+          storage_path: `documents/${upload.user_id || "fund"}/${new Date().getFullYear()}`,
           filename: upload.file.name,
           file_size: upload.file.size,
           mime_type: upload.file.type,
           period_start: upload.period_start,
           period_end: upload.period_end,
-          status: 'ready',
+          status: "ready",
           created_at: new Date(),
-          created_by: 'admin',
-          checksum: 'new_checksum',
+          created_by: "admin",
+          checksum: "new_checksum",
         };
 
-        setDocuments(prev => [newDocument, ...prev]);
+        setDocuments((prev) => [newDocument, ...prev]);
       } catch (error) {
-        updatePendingUpload(upload.id, { 
-          status: 'error', 
-          error: 'Upload failed'
+        updatePendingUpload(upload.id, {
+          status: "error",
+          error: "Upload failed",
         });
       }
     }
@@ -268,33 +267,37 @@ export default function AdminDocumentsPage() {
     // Simulate upload progress
     for (let i = 0; i <= 100; i += 10) {
       setUploadProgress(i);
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   };
 
   const resetUploadForm = () => {
     setUploadForm({
-      type: 'statement',
-      title: '',
-      description: '',
-      user_id: '',
+      type: "statement",
+      title: "",
+      description: "",
+      user_id: "",
     });
     setPeriodStart(undefined);
     setPeriodEnd(undefined);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'success':
-      case 'ready': return 'default';
-      case 'uploading':
-      case 'pending':
-      case 'processing': return 'secondary';
-      case 'error': return 'destructive';
-      default: return 'secondary';
+      case "success":
+      case "ready":
+        return "default";
+      case "uploading":
+      case "pending":
+      case "processing":
+        return "secondary";
+      case "error":
+        return "destructive";
+      default:
+        return "secondary";
     }
   };
 
@@ -336,7 +339,7 @@ export default function AdminDocumentsPage() {
                 <Button variant="outline" onClick={() => setShowUploadDialog(false)}>
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   onClick={handleSingleUpload}
                   disabled={!uploadForm.file || !uploadForm.title || isUploading}
                   className="flex items-center gap-2"
@@ -354,9 +357,7 @@ export default function AdminDocumentsPage() {
                   )}
                 </Button>
               </DialogFooter>
-              {isUploading && (
-                <Progress value={uploadProgress} className="w-full" />
-              )}
+              {isUploading && <Progress value={uploadProgress} className="w-full" />}
             </DialogContent>
           </Dialog>
         </div>
@@ -423,75 +424,76 @@ export default function AdminDocumentsPage() {
                   </TableHeader>
                   <TableBody>
                     {documents.map((document) => (
-                    <TableRow key={document.id}>
-                      <TableCell>
-                        <div className="flex items-start gap-3">
-                          <FileText className="w-4 h-4 mt-0.5" />
-                          <div>
-                            <div className="font-medium">{document.title}</div>
-                            {document.description && (
-                              <div className="text-sm text-gray-500 mt-1">
-                                {document.description}
-                              </div>
-                            )}
+                      <TableRow key={document.id}>
+                        <TableCell>
+                          <div className="flex items-start gap-3">
+                            <FileText className="w-4 h-4 mt-0.5" />
+                            <div>
+                              <div className="font-medium">{document.title}</div>
+                              {document.description && (
+                                <div className="text-sm text-gray-500 mt-1">
+                                  {document.description}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {DOCUMENT_TYPE_CONFIG[document.type].label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {document.user_id ? (
-                          <div className="flex items-center gap-1 text-sm">
-                            <Users className="w-3 h-3" />
-                            Investor
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {DOCUMENT_TYPE_CONFIG[document.type].label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {document.user_id ? (
+                            <div className="flex items-center gap-1 text-sm">
+                              <Users className="w-3 h-3" />
+                              Investor
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1 text-sm">
+                              <FileText className="w-3 h-3" />
+                              Fund-wide
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {document.period_start && document.period_end ? (
+                            <div className="text-sm">
+                              {format(document.period_start, "MMM yyyy")} -{" "}
+                              {format(document.period_end, "MMM yyyy")}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {formatFileSize(document.file_size)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={getStatusBadgeVariant(document.status)}>
+                            {document.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-600">
+                          {format(document.created_at, "MMM d, yyyy")}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button variant="ghost" size="sm">
+                              <Eye className="w-3 h-3" />
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              <Download className="w-3 h-3" />
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
                           </div>
-                        ) : (
-                          <div className="flex items-center gap-1 text-sm">
-                            <FileText className="w-3 h-3" />
-                            Fund-wide
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {document.period_start && document.period_end ? (
-                          <div className="text-sm">
-                            {format(document.period_start, 'MMM yyyy')} - {format(document.period_end, 'MMM yyyy')}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {formatFileSize(document.file_size)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusBadgeVariant(document.status)}>
-                          {document.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-sm text-gray-600">
-                        {format(document.created_at, 'MMM d, yyyy')}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="w-3 h-3" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Download className="w-3 h-3" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               )}
             </CardContent>
           </Card>
@@ -505,14 +507,17 @@ export default function AdminDocumentsPage() {
                 Bulk Document Upload
               </CardTitle>
               <p className="text-sm text-gray-600">
-                Select multiple files to upload. You can configure each file individually before uploading.
+                Select multiple files to upload. You can configure each file individually before
+                uploading.
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
                 <FileUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">Drop files here or click to browse</h3>
-                <p className="text-gray-600 mb-4">Support for PDF, Excel, and image files up to 15MB each</p>
+                <p className="text-gray-600 mb-4">
+                  Support for PDF, Excel, and image files up to 15MB each
+                </p>
                 <input
                   ref={bulkFileInputRef}
                   type="file"
@@ -521,7 +526,7 @@ export default function AdminDocumentsPage() {
                   onChange={handleBulkFileSelect}
                   className="hidden"
                 />
-                <Button 
+                <Button
                   onClick={() => bulkFileInputRef.current?.click()}
                   variant="outline"
                   className="flex items-center gap-2"
@@ -538,20 +543,18 @@ export default function AdminDocumentsPage() {
                       Pending Uploads ({pendingUploads.length})
                     </h3>
                     <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setPendingUploads([])}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => setPendingUploads([])}>
                         Clear All
                       </Button>
-                      <Button 
+                      <Button
                         onClick={handleBulkUpload}
-                        disabled={isUploading || pendingUploads.every(u => u.status !== 'pending')}
+                        disabled={
+                          isUploading || pendingUploads.every((u) => u.status !== "pending")
+                        }
                         className="flex items-center gap-2"
                       >
                         <UploadIcon className="w-4 h-4" />
-                        Upload All ({pendingUploads.filter(u => u.status === 'pending').length})
+                        Upload All ({pendingUploads.filter((u) => u.status === "pending").length})
                       </Button>
                     </div>
                   </div>
@@ -577,15 +580,15 @@ export default function AdminDocumentsPage() {
 }
 
 // Single Upload Form Component
-function SingleUploadForm({ 
-  form, 
-  onFormChange, 
+function SingleUploadForm({
+  form,
+  onFormChange,
   periodStart,
   periodEnd,
   onPeriodStartChange,
   onPeriodEndChange,
   onFileSelect,
-  fileInputRef 
+  fileInputRef,
 }: {
   form: Partial<DocumentUploadRequest>;
   onFormChange: (form: Partial<DocumentUploadRequest>) => void;
@@ -597,7 +600,7 @@ function SingleUploadForm({
   fileInputRef: React.RefObject<HTMLInputElement>;
 }) {
   const config = form.type ? getDocumentTypeConfig(form.type) : null;
-  
+
   return (
     <div className="grid gap-4">
       <div className="grid grid-cols-2 gap-4">
@@ -606,7 +609,7 @@ function SingleUploadForm({
           <input
             ref={fileInputRef}
             type="file"
-            accept={config?.allowedMimeTypes.join(',') || '*/*'}
+            accept={config?.allowedMimeTypes.join(",") || "*/*"}
             onChange={onFileSelect}
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           />
@@ -620,9 +623,7 @@ function SingleUploadForm({
           <Label htmlFor="type">Document Type *</Label>
           <Select
             value={form.type}
-            onValueChange={(value: DocumentType) => 
-              onFormChange({ ...form, type: value })
-            }
+            onValueChange={(value: DocumentType) => onFormChange({ ...form, type: value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select type" />
@@ -668,9 +669,7 @@ function SingleUploadForm({
             onChange={(e) => onFormChange({ ...form, user_id: e.target.value })}
             placeholder="Leave empty for fund-wide"
           />
-          <p className="text-xs text-gray-500">
-            Leave empty for fund-wide documents
-          </p>
+          <p className="text-xs text-gray-500">Leave empty for fund-wide documents</p>
         </div>
         <div className="space-y-2">
           <Label>Fund</Label>
@@ -699,7 +698,7 @@ function SingleUploadForm({
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {periodStart ? format(periodStart, 'PPP') : "Pick a date"}
+                  {periodStart ? format(periodStart, "PPP") : "Pick a date"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
@@ -724,7 +723,7 @@ function SingleUploadForm({
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {periodEnd ? format(periodEnd, 'PPP') : "Pick a date"}
+                  {periodEnd ? format(periodEnd, "PPP") : "Pick a date"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
@@ -744,23 +743,25 @@ function SingleUploadForm({
 }
 
 // Bulk Upload Item Component
-function BulkUploadItem({ 
-  upload, 
-  onUpdate, 
-  onRemove 
+function BulkUploadItem({
+  upload,
+  onUpdate,
+  onRemove,
 }: {
   upload: PendingUpload;
   onUpdate: (updates: Partial<PendingUpload>) => void;
   onRemove: () => void;
 }) {
   return (
-    <Card className={cn(
-      "border-l-4",
-      upload.status === 'success' && "border-l-green-500",
-      upload.status === 'error' && "border-l-red-500",
-      upload.status === 'uploading' && "border-l-blue-500",
-      upload.status === 'pending' && "border-l-gray-300"
-    )}>
+    <Card
+      className={cn(
+        "border-l-4",
+        upload.status === "success" && "border-l-green-500",
+        upload.status === "error" && "border-l-red-500",
+        upload.status === "uploading" && "border-l-blue-500",
+        upload.status === "pending" && "border-l-gray-300"
+      )}
+    >
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex-1 space-y-3">
@@ -772,18 +773,24 @@ function BulkUploadItem({
                   {formatFileSize(upload.file.size)} • {upload.file.type}
                 </div>
               </div>
-              <Badge variant={
-                upload.status === 'success' ? 'default' :
-                upload.status === 'error' ? 'destructive' :
-                upload.status === 'uploading' ? 'secondary' : 'outline'
-              }>
-                {upload.status === 'success' && <CheckCircle2 className="w-3 h-3 mr-1" />}
-                {upload.status === 'error' && <AlertCircle className="w-3 h-3 mr-1" />}
+              <Badge
+                variant={
+                  upload.status === "success"
+                    ? "default"
+                    : upload.status === "error"
+                      ? "destructive"
+                      : upload.status === "uploading"
+                        ? "secondary"
+                        : "outline"
+                }
+              >
+                {upload.status === "success" && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                {upload.status === "error" && <AlertCircle className="w-3 h-3 mr-1" />}
                 {upload.status}
               </Badge>
             </div>
 
-            {upload.status === 'pending' && (
+            {upload.status === "pending" && (
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <Label className="text-xs">Type</Label>
@@ -815,7 +822,7 @@ function BulkUploadItem({
                 <div>
                   <Label className="text-xs">Target</Label>
                   <Input
-                    value={upload.user_id || ''}
+                    value={upload.user_id || ""}
                     onChange={(e) => onUpdate({ user_id: e.target.value || undefined })}
                     className="h-8"
                     placeholder="User ID (optional)"
@@ -824,11 +831,11 @@ function BulkUploadItem({
               </div>
             )}
 
-            {upload.status === 'uploading' && (
+            {upload.status === "uploading" && (
               <Progress value={upload.progress} className="w-full" />
             )}
 
-            {upload.status === 'error' && upload.error && (
+            {upload.status === "error" && upload.error && (
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{upload.error}</AlertDescription>

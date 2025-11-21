@@ -1,7 +1,7 @@
-import React, { Suspense } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/loading-skeletons';
-import { cn } from '@/lib/utils';
+import React, { Suspense } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/loading-skeletons";
+import { cn } from "@/lib/utils";
 
 // Route Loading Component
 export function RouteLoading({ className }: { className?: string }) {
@@ -98,7 +98,7 @@ export function PortfolioLoading() {
           </Card>
         ))}
       </div>
-      
+
       <Card>
         <CardHeader>
           <Skeleton className="h-6 w-24" />
@@ -143,7 +143,10 @@ export function TransactionLoading() {
       <CardContent>
         <div className="space-y-4">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="flex items-center justify-between py-2 border-b last:border-b-0">
+            <div
+              key={i}
+              className="flex items-center justify-between py-2 border-b last:border-b-0"
+            >
               <div className="flex items-center space-x-3">
                 <Skeleton className="h-8 w-8 rounded-full" />
                 <div className="space-y-1">
@@ -223,16 +226,12 @@ export function PageLoading({ message = "Loading..." }: { message?: string }) {
 }
 
 // Suspense Wrapper with Error Boundary
-export function SuspenseWrapper({ 
-  children, 
-  fallback
-}: { 
+export function SuspenseWrapper({
+  children,
+  fallback,
+}: {
   children: React.ReactNode;
   fallback?: React.ReactNode;
 }) {
-  return (
-    <Suspense fallback={fallback || <RouteLoading />}>
-      {children}
-    </Suspense>
-  );
+  return <Suspense fallback={fallback || <RouteLoading />}>{children}</Suspense>;
 }

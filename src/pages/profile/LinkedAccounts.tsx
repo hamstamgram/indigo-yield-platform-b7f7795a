@@ -3,8 +3,8 @@
  * Manage bank accounts and crypto wallets
  */
 
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Plus,
@@ -15,20 +15,20 @@ import {
   Loader2,
   MoreVertical,
   Trash2,
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/lib/auth/context';
-import { supabase } from '@/integrations/supabase/client';
+} from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth/context";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BankAccount {
   id: string;
@@ -70,15 +70,15 @@ export default function LinkedAccounts() {
     try {
       const [banksRes, walletsRes] = await Promise.all([
         supabase
-          .from('bank_accounts')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('is_primary', { ascending: false }),
+          .from("bank_accounts")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("is_primary", { ascending: false }),
         supabase
-          .from('crypto_wallets')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false }),
+          .from("crypto_wallets")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
       ]);
 
       if (banksRes.data) {
@@ -109,11 +109,11 @@ export default function LinkedAccounts() {
         );
       }
     } catch (error) {
-      console.error('Failed to load linked accounts:', error);
+      console.error("Failed to load linked accounts:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load your linked accounts',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load your linked accounts",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -122,50 +122,44 @@ export default function LinkedAccounts() {
 
   const handleRemoveBankAccount = async (accountId: string) => {
     try {
-      const { error } = await supabase
-        .from('bank_accounts')
-        .delete()
-        .eq('id', accountId);
+      const { error } = await supabase.from("bank_accounts").delete().eq("id", accountId);
 
       if (error) throw error;
 
       toast({
-        title: 'Success',
-        description: 'Bank account removed successfully',
+        title: "Success",
+        description: "Bank account removed successfully",
       });
 
       loadLinkedAccounts();
     } catch (error) {
-      console.error('Failed to remove bank account:', error);
+      console.error("Failed to remove bank account:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to remove bank account',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to remove bank account",
+        variant: "destructive",
       });
     }
   };
 
   const handleRemoveWallet = async (walletId: string) => {
     try {
-      const { error } = await supabase
-        .from('crypto_wallets')
-        .delete()
-        .eq('id', walletId);
+      const { error } = await supabase.from("crypto_wallets").delete().eq("id", walletId);
 
       if (error) throw error;
 
       toast({
-        title: 'Success',
-        description: 'Wallet removed successfully',
+        title: "Success",
+        description: "Wallet removed successfully",
       });
 
       loadLinkedAccounts();
     } catch (error) {
-      console.error('Failed to remove wallet:', error);
+      console.error("Failed to remove wallet:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to remove wallet',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to remove wallet",
+        variant: "destructive",
       });
     }
   };
@@ -190,7 +184,7 @@ export default function LinkedAccounts() {
     <div className="container max-w-4xl mx-auto px-4 py-8 space-y-8">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">
@@ -265,12 +259,8 @@ export default function LinkedAccounts() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {!account.isPrimary && (
-                          <DropdownMenuItem>Set as Primary</DropdownMenuItem>
-                        )}
-                        {!account.isVerified && (
-                          <DropdownMenuItem>Verify Account</DropdownMenuItem>
-                        )}
+                        {!account.isPrimary && <DropdownMenuItem>Set as Primary</DropdownMenuItem>}
+                        {!account.isVerified && <DropdownMenuItem>Verify Account</DropdownMenuItem>}
                         <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => handleRemoveBankAccount(account.id)}
@@ -297,9 +287,7 @@ export default function LinkedAccounts() {
                 <Wallet className="h-5 w-5" />
                 <CardTitle>Crypto Wallets</CardTitle>
               </div>
-              <CardDescription className="mt-2">
-                Connected cryptocurrency wallets
-              </CardDescription>
+              <CardDescription className="mt-2">Connected cryptocurrency wallets</CardDescription>
             </div>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -332,9 +320,7 @@ export default function LinkedAccounts() {
                             <AlertCircle className="h-4 w-4 text-amber-600" />
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {wallet.network}
-                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">{wallet.network}</p>
                         <p className="text-sm font-mono text-muted-foreground">
                           {shortenAddress(wallet.walletAddress)}
                         </p>
@@ -348,9 +334,7 @@ export default function LinkedAccounts() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem>Copy Address</DropdownMenuItem>
-                        {!wallet.isVerified && (
-                          <DropdownMenuItem>Verify Wallet</DropdownMenuItem>
-                        )}
+                        {!wallet.isVerified && <DropdownMenuItem>Verify Wallet</DropdownMenuItem>}
                         <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => handleRemoveWallet(wallet.id)}

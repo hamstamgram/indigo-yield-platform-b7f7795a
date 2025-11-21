@@ -4,7 +4,7 @@ export interface Investor {
   name?: string;
   totalPrincipal: string;
   totalEarned: string;
-  status: 'active' | 'inactive' | 'suspended';
+  status: "active" | "inactive" | "suspended";
   createdAt: string;
   lastActivity?: string;
 }
@@ -33,13 +33,13 @@ export interface PositionAdjustment {
 export interface Transaction {
   id: string;
   investorId: string;
-  type: 'DEPOSIT' | 'WITHDRAWAL' | 'INTEREST' | 'FEE';
+  type: "DEPOSIT" | "WITHDRAWAL" | "INTEREST" | "FEE";
   asset: string;
   amount: string;
   memo?: string;
   adminId?: string;
   createdAt: string;
-  status: 'pending' | 'completed' | 'failed';
+  status: "pending" | "completed" | "failed";
 }
 
 export interface YieldSetting {
@@ -55,7 +55,7 @@ export interface Statement {
   investorId: string;
   investorEmail: string;
   period: string; // YYYY-MM format
-  status: 'queued' | 'generated' | 'failed';
+  status: "queued" | "generated" | "failed";
   pdfUrl?: string;
   createdAt: string;
   generatedAt?: string;
@@ -67,10 +67,10 @@ export interface SupportTicket {
   investorEmail: string;
   subject: string;
   category?: string;
-  status: 'open' | 'pending' | 'resolved';
+  status: "open" | "pending" | "resolved";
   assigneeId?: string;
   assigneeName?: string;
   createdAt: string;
   updatedAt: string;
-  priority: 'low' | 'medium' | 'high';
+  priority: "low" | "medium" | "high";
 }

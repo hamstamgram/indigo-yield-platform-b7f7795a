@@ -2,19 +2,20 @@
  * HTML template generator for investor statements
  */
 
-import { formatNumber } from '../utils/formatting.js';
+import { formatNumber } from "../utils/formatting.js";
 
 // Asset configuration
 const ASSET_LOGOS = {
-  BTC: 'https://storage.mlcdn.com/account_image/855106/HqTafY3UXNLyQctbIqje0qAv7BYiDI4MRVUhOKiT.png',
-  ETH: 'https://storage.mlcdn.com/account_image/855106/1LGif7hOOerx0K9BWZh0vRgg2QfRBoxBibwrQGW5.png',
-  USDT: 'https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png',
-  SOL: 'https://storage.mlcdn.com/account_image/855106/9EenamIVtIm3Rqfh63IZCQBrVZaDE2YHwRPwwpIN.png',
-  USDC: 'https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png',
-  EURC: null // Text only, no logo
+  BTC: "https://storage.mlcdn.com/account_image/855106/HqTafY3UXNLyQctbIqje0qAv7BYiDI4MRVUhOKiT.png",
+  ETH: "https://storage.mlcdn.com/account_image/855106/1LGif7hOOerx0K9BWZh0vRgg2QfRBoxBibwrQGW5.png",
+  USDT: "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
+  SOL: "https://storage.mlcdn.com/account_image/855106/9EenamIVtIm3Rqfh63IZCQBrVZaDE2YHwRPwwpIN.png",
+  USDC: "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
+  EURC: null, // Text only, no logo
 };
 
-const COMPANY_LOGO = 'https://storage.mlcdn.com/account_image/855106/T7spejaxgKvLqaFJArUJu6YSxacSpADGPyWIrbRq.png';
+const COMPANY_LOGO =
+  "https://storage.mlcdn.com/account_image/855106/T7spejaxgKvLqaFJArUJu6YSxacSpADGPyWIrbRq.png";
 
 /**
  * Generate HTML for a single fund section
@@ -26,13 +27,13 @@ const COMPANY_LOGO = 'https://storage.mlcdn.com/account_image/855106/T7spejaxgKv
 export function generateFundSection(assetCode, data, isFirst = false) {
   const fundName = `${assetCode} Yield Fund`;
   const logo = ASSET_LOGOS[assetCode];
-  const marginTop = isFirst ? '24px' : '16px';
-  
+  const marginTop = isFirst ? "24px" : "16px";
+
   // If no data for this fund, return empty string
   if (!data || data.current_balance === 0) {
-    return '';
+    return "";
   }
-  
+
   // Calculate financial metrics
   const endingBalance = data.current_balance;
   const beginningBalance = data.principal;
@@ -40,17 +41,17 @@ export function generateFundSection(assetCode, data, isFirst = false) {
   const additions = 0; // Would come from transactions
   const redemptions = 0; // Would come from transactions
   const rateOfReturn = netIncome > 0 ? ((netIncome / beginningBalance) * 100).toFixed(2) : 0;
-  
+
   let html = `
     <!-- ${assetCode} Fund Section -->
     <div style="background:#f8fafc;border-radius:10px;padding:20px;margin:16px;margin-top:${marginTop};">
       <div style="display:flex;align-items:center;margin-bottom:20px;">`;
-  
+
   if (logo) {
     html += `
         <img src="${logo}" height="32" style="margin-right:12px;" alt="${assetCode}">`;
   }
-  
+
   html += `
         <span style="font-size:18px;font-weight:bold;color:#0f172a;">${fundName}</span>
       </div>
@@ -111,7 +112,7 @@ export function generateFundSection(assetCode, data, isFirst = false) {
         </tbody>
       </table>
     </div>`;
-  
+
   return html;
 }
 
@@ -123,16 +124,16 @@ export function generateFundSection(assetCode, data, isFirst = false) {
  * @returns {string} Complete HTML document
  */
 export function generateStatementHTML(investor, positions, periodEnd) {
-  const fundOrder = ['BTC', 'ETH', 'USDT', 'SOL', 'USDC', 'EURC'];
-  
+  const fundOrder = ["BTC", "ETH", "USDT", "SOL", "USDC", "EURC"];
+
   // Group positions by asset code
   const positionsByAsset = {};
   for (const position of positions) {
     positionsByAsset[position.asset_code] = position;
   }
-  
+
   let html = generateDocumentHeader(investor, periodEnd);
-  
+
   // Add fund sections in the correct order
   let isFirst = true;
   for (const assetCode of fundOrder) {
@@ -141,10 +142,10 @@ export function generateStatementHTML(investor, positions, periodEnd) {
       isFirst = false;
     }
   }
-  
+
   // Add footer
   html += generateDocumentFooter();
-  
+
   return html;
 }
 

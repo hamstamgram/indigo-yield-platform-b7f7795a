@@ -24,27 +24,27 @@ export async function dynamicImport<T>(
   options: ImportOptions = {}
 ): Promise<T> {
   const { retries, retryDelay, onError } = { ...DEFAULT_OPTIONS, ...options };
-  
+
   let lastError: Error | null = null;
-  
+
   for (let i = 0; i <= (retries || 0); i++) {
     try {
       return await importFn();
     } catch (error) {
       lastError = error as Error;
-      
+
       if (i < (retries || 0)) {
         // Wait before retrying
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
       }
     }
   }
-  
+
   // All retries failed
   if (onError && lastError) {
     onError(lastError);
   }
-  
+
   throw lastError;
 }
 
@@ -69,4 +69,4 @@ export function lazyWithRetry<T extends React.ComponentType<any>>(
 }
 
 // Export React for convenience
-import React from 'react';
+import React from "react";

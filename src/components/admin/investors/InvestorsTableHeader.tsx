@@ -1,4 +1,3 @@
-
 import React from "react";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -13,7 +12,7 @@ const InvestorsTableHeader: React.FC<InvestorsTableHeaderProps> = ({ assets }) =
     <TableHeader>
       <TableRow>
         <TableHead>Investor</TableHead>
-        {assets.map(asset => (
+        {assets.map((asset) => (
           <TableHead key={asset.id}>
             <div className="flex items-center">
               <CryptoIcon symbol={asset.symbol} className="h-5 w-5 mr-2" />

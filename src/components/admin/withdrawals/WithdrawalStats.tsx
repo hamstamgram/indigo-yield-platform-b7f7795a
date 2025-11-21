@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { WithdrawalStats } from '@/types/withdrawal';
-import { AlertCircle, CheckCircle2, Clock, DollarSign, XCircle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { WithdrawalStats } from "@/types/withdrawal";
+import { AlertCircle, CheckCircle2, Clock, DollarSign, XCircle } from "lucide-react";
 
 interface WithdrawalStatsProps {
   stats: WithdrawalStats;
@@ -10,40 +10,40 @@ interface WithdrawalStatsProps {
 export function WithdrawalStatsComponent({ stats, isLoading }: WithdrawalStatsProps) {
   const statCards = [
     {
-      title: 'Pending',
+      title: "Pending",
       value: stats.pending,
       icon: Clock,
-      color: 'text-yellow-600',
+      color: "text-yellow-600",
     },
     {
-      title: 'Approved',
+      title: "Approved",
       value: stats.approved,
       icon: CheckCircle2,
-      color: 'text-green-600',
+      color: "text-green-600",
     },
     {
-      title: 'Processing',
+      title: "Processing",
       value: stats.processing,
       icon: AlertCircle,
-      color: 'text-blue-600',
+      color: "text-blue-600",
     },
     {
-      title: 'Completed',
+      title: "Completed",
       value: stats.completed,
       icon: CheckCircle2,
-      color: 'text-green-700',
+      color: "text-green-700",
     },
     {
-      title: 'Rejected',
+      title: "Rejected",
       value: stats.rejected,
       icon: XCircle,
-      color: 'text-red-600',
+      color: "text-red-600",
     },
     {
-      title: 'Pending Amount',
+      title: "Pending Amount",
       value: `$${stats.total_pending_amount.toLocaleString()}`,
       icon: DollarSign,
-      color: 'text-primary',
+      color: "text-primary",
     },
   ];
 

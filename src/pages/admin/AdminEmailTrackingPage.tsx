@@ -11,8 +11,8 @@
  * - Statistics dashboard
  */
 
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Mail,
   Send,
@@ -27,11 +27,11 @@ import {
   BarChart3,
   AlertCircle,
   ExternalLink,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -39,22 +39,22 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
+} from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 
 // =====================================================
 // TYPES & INTERFACES
@@ -77,8 +77,13 @@ interface EmailLog {
 
 interface EmailFilters {
   search: string;
-  emailType: 'all' | 'investor_report' | 'onboarding_welcome' | 'password_reset' | 'withdrawal_confirmation';
-  status: 'all' | 'sent' | 'delivered' | 'failed' | 'bounced';
+  emailType:
+    | "all"
+    | "investor_report"
+    | "onboarding_welcome"
+    | "password_reset"
+    | "withdrawal_confirmation";
+  status: "all" | "sent" | "delivered" | "failed" | "bounced";
   dateFrom?: string;
   dateTo?: string;
 }
@@ -103,9 +108,9 @@ interface EmailPreviewDialog {
 
 export default function AdminEmailTrackingPage() {
   const [filters, setFilters] = useState<EmailFilters>({
-    search: '',
-    emailType: 'all',
-    status: 'all',
+    search: "",
+    emailType: "all",
+    status: "all",
   });
 
   const [previewDialog, setPreviewDialog] = useState<EmailPreviewDialog>({
@@ -119,15 +124,13 @@ export default function AdminEmailTrackingPage() {
 
   // Fetch email statistics
   const { data: stats, isLoading: statsLoading } = useQuery<EmailStats>({
-    queryKey: ['email-stats'],
+    queryKey: ["email-stats"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('email_logs')
-        .select('status, sent_at');
+      const { data, error } = await supabase.from("email_logs").select("status, sent_at");
 
       if (error) throw error;
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString().split("T")[0];
 
       const stats: EmailStats = {
         totalSent: data?.length || 0,
@@ -139,15 +142,14 @@ export default function AdminEmailTrackingPage() {
       };
 
       data?.forEach((log) => {
-        if (log.status === 'sent' || log.status === 'delivered') stats.delivered++;
-        if (log.status === 'failed') stats.failed++;
-        if (log.status === 'bounced') stats.bounced++;
+        if (log.status === "sent" || log.status === "delivered") stats.delivered++;
+        if (log.status === "failed") stats.failed++;
+        if (log.status === "bounced") stats.bounced++;
         if (log.sent_at.startsWith(today)) stats.todayCount++;
       });
 
-      stats.successRate = stats.totalSent > 0
-        ? Math.round((stats.delivered / stats.totalSent) * 100)
-        : 0;
+      stats.successRate =
+        stats.totalSent > 0 ? Math.round((stats.delivered / stats.totalSent) * 100) : 0;
 
       return stats;
     },
@@ -156,21 +158,21 @@ export default function AdminEmailTrackingPage() {
 
   // Fetch email logs
   const { data: emailLogs, isLoading: logsLoading } = useQuery<EmailLog[]>({
-    queryKey: ['email-logs', filters],
+    queryKey: ["email-logs", filters],
     queryFn: async () => {
       let query = supabase
-        .from('email_logs')
-        .select('*')
-        .order('sent_at', { ascending: false })
+        .from("email_logs")
+        .select("*")
+        .order("sent_at", { ascending: false })
         .limit(100);
 
       // Apply filters
-      if (filters.emailType !== 'all') {
-        query = query.eq('email_type', filters.emailType);
+      if (filters.emailType !== "all") {
+        query = query.eq("email_type", filters.emailType);
       }
 
-      if (filters.status !== 'all') {
-        query = query.eq('status', filters.status);
+      if (filters.status !== "all") {
+        query = query.eq("status", filters.status);
       }
 
       if (filters.search) {
@@ -180,11 +182,11 @@ export default function AdminEmailTrackingPage() {
       }
 
       if (filters.dateFrom) {
-        query = query.gte('sent_at', filters.dateFrom);
+        query = query.gte("sent_at", filters.dateFrom);
       }
 
       if (filters.dateTo) {
-        query = query.lte('sent_at', filters.dateTo);
+        query = query.lte("sent_at", filters.dateTo);
       }
 
       const { data, error } = await query;
@@ -203,27 +205,27 @@ export default function AdminEmailTrackingPage() {
     if (!emailLogs || emailLogs.length === 0) return;
 
     // Create CSV content
-    const headers = ['Date', 'Recipient', 'Subject', 'Type', 'Status', 'Error'];
+    const headers = ["Date", "Recipient", "Subject", "Type", "Status", "Error"];
     const rows = emailLogs.map((log) => [
       new Date(log.sent_at).toLocaleString(),
       log.recipient_email,
       log.subject,
-      log.email_type || 'N/A',
+      log.email_type || "N/A",
       log.status,
-      log.error_message || '',
+      log.error_message || "",
     ]);
 
     const csvContent = [
-      headers.join(','),
-      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
-    ].join('\n');
+      headers.join(","),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+    ].join("\n");
 
     // Download CSV
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `email-logs-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `email-logs-${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -238,10 +240,10 @@ export default function AdminEmailTrackingPage() {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: any; icon: any; label: string }> = {
-      sent: { variant: 'secondary', icon: Send, label: 'Sent' },
-      delivered: { variant: 'default', icon: CheckCircle2, label: 'Delivered' },
-      failed: { variant: 'destructive', icon: XCircle, label: 'Failed' },
-      bounced: { variant: 'destructive', icon: AlertCircle, label: 'Bounced' },
+      sent: { variant: "secondary", icon: Send, label: "Sent" },
+      delivered: { variant: "default", icon: CheckCircle2, label: "Delivered" },
+      failed: { variant: "destructive", icon: XCircle, label: "Failed" },
+      bounced: { variant: "destructive", icon: AlertCircle, label: "Bounced" },
     };
 
     const config = variants[status] || variants.sent;
@@ -256,24 +258,24 @@ export default function AdminEmailTrackingPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const getEmailTypeLabel = (type: string | null) => {
     const types: Record<string, string> = {
-      investor_report: 'Investor Report',
-      onboarding_welcome: 'Welcome Email',
-      password_reset: 'Password Reset',
-      withdrawal_confirmation: 'Withdrawal',
-      security_alert: 'Security Alert',
+      investor_report: "Investor Report",
+      onboarding_welcome: "Welcome Email",
+      password_reset: "Password Reset",
+      withdrawal_confirmation: "Withdrawal",
+      security_alert: "Security Alert",
     };
-    return types[type || ''] || type || 'Unknown';
+    return types[type || ""] || type || "Unknown";
   };
 
   // =====================================================
@@ -432,7 +434,9 @@ export default function AdminEmailTrackingPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="font-medium text-sm">{log.recipient_name || 'Unknown'}</span>
+                        <span className="font-medium text-sm">
+                          {log.recipient_name || "Unknown"}
+                        </span>
                         <span className="text-xs text-muted-foreground">{log.recipient_email}</span>
                       </div>
                     </TableCell>
@@ -443,18 +447,14 @@ export default function AdminEmailTrackingPage() {
                     <TableCell>{getStatusBadge(log.status)}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handlePreview(log)}
-                        >
+                        <Button size="sm" variant="ghost" onClick={() => handlePreview(log)}>
                           <Eye className="h-4 w-4" />
                         </Button>
                         {log.external_id && (
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => window.open(`https://mailerlite.com`, '_blank')}
+                            onClick={() => window.open(`https://mailerlite.com`, "_blank")}
                           >
                             <ExternalLink className="h-4 w-4" />
                           </Button>
@@ -502,7 +502,9 @@ export default function AdminEmailTrackingPage() {
                 </div>
                 <div>
                   <span className="text-sm font-medium text-gray-700">Type:</span>
-                  <p className="text-sm mt-1">{getEmailTypeLabel(previewDialog.emailLog.email_type)}</p>
+                  <p className="text-sm mt-1">
+                    {getEmailTypeLabel(previewDialog.emailLog.email_type)}
+                  </p>
                 </div>
                 <div>
                   <span className="text-sm font-medium text-gray-700">Sent At:</span>
@@ -519,14 +521,18 @@ export default function AdminEmailTrackingPage() {
               {previewDialog.emailLog.error_message && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                   <span className="text-sm font-medium text-red-700">Error:</span>
-                  <p className="text-sm text-red-600 mt-1">{previewDialog.emailLog.error_message}</p>
+                  <p className="text-sm text-red-600 mt-1">
+                    {previewDialog.emailLog.error_message}
+                  </p>
                 </div>
               )}
 
               {previewDialog.emailLog.external_id && (
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <span className="text-sm font-medium text-blue-700">External ID:</span>
-                  <p className="text-sm text-blue-600 mt-1 font-mono">{previewDialog.emailLog.external_id}</p>
+                  <p className="text-sm text-blue-600 mt-1 font-mono">
+                    {previewDialog.emailLog.external_id}
+                  </p>
                 </div>
               )}
             </div>

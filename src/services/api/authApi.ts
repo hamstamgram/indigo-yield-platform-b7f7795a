@@ -1,7 +1,7 @@
-import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
+type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 export interface AuthUser {
   id: string;
@@ -32,13 +32,13 @@ export async function signIn({ email, password }: LoginCredentials): Promise<Aut
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
-      password
+      password,
     });
 
     if (error) throw error;
 
     if (!data.user) {
-      throw new Error('No user data returned');
+      throw new Error("No user data returned");
     }
 
     // Fetch user profile
@@ -46,12 +46,12 @@ export async function signIn({ email, password }: LoginCredentials): Promise<Aut
 
     return {
       id: data.user.id,
-      email: data.user.email || '',
-      profile
+      email: data.user.email || "",
+      profile,
     };
   } catch (error) {
-    console.error('Error signing in:', error);
-    throw new Error('Authentication failed');
+    console.error("Error signing in:", error);
+    throw new Error("Authentication failed");
   }
 }
 
@@ -67,14 +67,14 @@ export async function signUp({ email, password, firstName, lastName }: SignUpDat
         data: {
           first_name: firstName,
           last_name: lastName,
-        }
-      }
+        },
+      },
     });
 
     if (error) throw error;
   } catch (error) {
-    console.error('Error signing up:', error);
-    throw new Error('Sign up failed');
+    console.error("Error signing up:", error);
+    throw new Error("Sign up failed");
   }
 }
 
@@ -86,8 +86,8 @@ export async function signOut(): Promise<void> {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   } catch (error) {
-    console.error('Error signing out:', error);
-    throw new Error('Sign out failed');
+    console.error("Error signing out:", error);
+    throw new Error("Sign out failed");
   }
 }
 
@@ -97,13 +97,13 @@ export async function signOut(): Promise<void> {
 export async function sendPasswordReset({ email }: PasswordResetData): Promise<void> {
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`
+      redirectTo: `${window.location.origin}/reset-password`,
     });
 
     if (error) throw error;
   } catch (error) {
-    console.error('Error sending password reset:', error);
-    throw new Error('Failed to send password reset email');
+    console.error("Error sending password reset:", error);
+    throw new Error("Failed to send password reset email");
   }
 }
 
@@ -113,13 +113,13 @@ export async function sendPasswordReset({ email }: PasswordResetData): Promise<v
 export async function updatePassword(newPassword: string): Promise<void> {
   try {
     const { error } = await supabase.auth.updateUser({
-      password: newPassword
+      password: newPassword,
     });
 
     if (error) throw error;
   } catch (error) {
-    console.error('Error updating password:', error);
-    throw new Error('Failed to update password');
+    console.error("Error updating password:", error);
+    throw new Error("Failed to update password");
   }
 }
 
@@ -129,9 +129,9 @@ export async function updatePassword(newPassword: string): Promise<void> {
 export async function fetchUserProfile(userId: string): Promise<Profile | null> {
   try {
     const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
       .maybeSingle();
 
     if (error) {
@@ -140,7 +140,7 @@ export async function fetchUserProfile(userId: string): Promise<Profile | null> 
 
     return data as Profile | null;
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    console.error("Error fetching user profile:", error);
     return null;
   }
 }
@@ -149,26 +149,26 @@ export async function fetchUserProfile(userId: string): Promise<Profile | null> 
  * Update user profile
  */
 export async function updateUserProfile(
-  userId: string, 
-  updates: Partial<Omit<Profile, 'id' | 'created_at'>>
+  userId: string,
+  updates: Partial<Omit<Profile, "id" | "created_at">>
 ): Promise<Profile> {
   try {
     const { data, error } = await supabase
-      .from('profiles')
+      .from("profiles")
       .update({
         ...updates,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
-      .eq('id', userId)
+      .eq("id", userId)
       .select()
       .maybeSingle();
 
     if (error) throw error;
-    if (!data) throw new Error('Profile not found');
+    if (!data) throw new Error("Profile not found");
     return data as Profile;
   } catch (error) {
-    console.error('Error updating user profile:', error);
-    throw new Error('Failed to update profile');
+    console.error("Error updating user profile:", error);
+    throw new Error("Failed to update profile");
   }
 }
 
@@ -178,16 +178,16 @@ export async function updateUserProfile(
 export async function checkIsAdmin(userId: string): Promise<boolean> {
   try {
     const { data, error } = await supabase
-      .from('admin_users')
-      .select('user_id')
-      .eq('user_id', userId)
-      .is('revoked_at', null)
+      .from("admin_users")
+      .select("user_id")
+      .eq("user_id", userId)
+      .is("revoked_at", null)
       .maybeSingle();
 
     if (error) throw error;
     return !!data;
   } catch (error) {
-    console.error('Error checking admin status:', error);
+    console.error("Error checking admin status:", error);
     return false;
   }
 }
@@ -197,11 +197,14 @@ export async function checkIsAdmin(userId: string): Promise<boolean> {
  */
 export async function getCurrentSession() {
   try {
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
     if (error) throw error;
     return session;
   } catch (error) {
-    console.error('Error getting current session:', error);
+    console.error("Error getting current session:", error);
     return null;
   }
 }
@@ -209,14 +212,12 @@ export async function getCurrentSession() {
 /**
  * Error handling wrapper for auth API calls
  */
-export function withAuthErrorHandling<T extends any[], R>(
-  fn: (...args: T) => Promise<R>
-) {
+export function withAuthErrorHandling<T extends any[], R>(fn: (...args: T) => Promise<R>) {
   return async (...args: T): Promise<R> => {
     try {
       return await fn(...args);
     } catch (error) {
-      console.error('Auth API Error:', error);
+      console.error("Auth API Error:", error);
       throw error;
     }
   };

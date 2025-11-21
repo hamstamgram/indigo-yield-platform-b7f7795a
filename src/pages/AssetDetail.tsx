@@ -103,7 +103,9 @@ const AssetDetail = () => {
         const monthlyYields: MonthlyYield[] =
           monthlyReports?.map((report: any) => {
             const rateOfReturn =
-              (report.opening_balance || 0) > 0 ? ((report.yield_earned || 0) / (report.opening_balance || 1)) * 100 : 0;
+              (report.opening_balance || 0) > 0
+                ? ((report.yield_earned || 0) / (report.opening_balance || 1)) * 100
+                : 0;
             return {
               id: report.id,
               report_month: report.report_month,

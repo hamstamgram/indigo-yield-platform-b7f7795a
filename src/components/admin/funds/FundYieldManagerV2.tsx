@@ -1,13 +1,19 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getAllFundsWithAUM, getFundAUMHistory } from '@/services/aumService';
-import { feeService } from '@/services/feeService';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { TrendingUp } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { getAllFundsWithAUM, getFundAUMHistory } from "@/services/aumService";
+import { feeService } from "@/services/feeService";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { TrendingUp } from "lucide-react";
 
 interface FundWithAUM {
   id: string;
@@ -20,10 +26,10 @@ interface FundWithAUM {
 
 const FundYieldManagerV2 = () => {
   const [funds, setFunds] = useState<FundWithAUM[]>([]);
-  const [selectedFund, setSelectedFund] = useState<string>('');
-  const [yieldPercentage, setYieldPercentage] = useState<string>('');
+  const [selectedFund, setSelectedFund] = useState<string>("");
+  const [yieldPercentage, setYieldPercentage] = useState<string>("");
   const [applicationDate, setApplicationDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
+    new Date().toISOString().split("T")[0]
   );
   const [loading, setLoading] = useState(false);
   const [yieldHistory, setYieldHistory] = useState<any[]>([]);
@@ -42,21 +48,21 @@ const FundYieldManagerV2 = () => {
     try {
       const data = await getAllFundsWithAUM();
       // Map to match FundWithAUM interface
-      const mappedData = data.map(fund => ({
+      const mappedData = data.map((fund) => ({
         id: fund.id,
         code: fund.code,
         name: fund.name,
         asset: fund.asset,
         aum_amount: fund.latest_aum,
-        investor_count: fund.investor_count
+        investor_count: fund.investor_count,
       }));
       setFunds(mappedData);
       if (data.length > 0 && !selectedFund) {
         setSelectedFund(data[0].id);
       }
     } catch (error) {
-      console.error('Error fetching funds:', error);
-      toast.error('Failed to load funds');
+      console.error("Error fetching funds:", error);
+      toast.error("Failed to load funds");
     }
   };
 
@@ -64,15 +70,15 @@ const FundYieldManagerV2 = () => {
     try {
       // Fetch recent yield applications from the database
       const { data, error } = await supabase
-        .from('daily_yield_applications')
-        .select('*')
-        .order('application_date', { ascending: false })
+        .from("daily_yield_applications")
+        .select("*")
+        .order("application_date", { ascending: false })
         .limit(10);
 
       if (error) throw error;
       setYieldHistory(data || []);
     } catch (error) {
-      console.error('Error fetching yield history:', error);
+      console.error("Error fetching yield history:", error);
     }
   };
 
@@ -89,7 +95,7 @@ const FundYieldManagerV2 = () => {
 
       const latestAUM = fundData[0].total_aum;
       const grossYield = latestAUM * (yieldValue / 100);
-      
+
       // Estimate average fee rate (2% default)
       const avgFeeRate = 0.02;
       const estimatedFees = grossYield * avgFeeRate;
@@ -98,22 +104,22 @@ const FundYieldManagerV2 = () => {
       setFeePreview({
         grossYield,
         totalFees: estimatedFees,
-        netYield
+        netYield,
       });
     } catch (error) {
-      console.error('Error previewing fees:', error);
+      console.error("Error previewing fees:", error);
     }
   };
 
   const applyYield = async () => {
     if (!selectedFund || !yieldPercentage) {
-      toast.error('Please select a fund and enter yield percentage');
+      toast.error("Please select a fund and enter yield percentage");
       return;
     }
 
     const yieldValue = parseFloat(yieldPercentage);
     if (isNaN(yieldValue) || yieldValue <= 0) {
-      toast.error('Please enter a valid yield percentage');
+      toast.error("Please enter a valid yield percentage");
       return;
     }
 
@@ -131,21 +137,21 @@ const FundYieldManagerV2 = () => {
           `Yield applied successfully! ${result.investors_affected} investors affected.
           Gross: ${result.total_gross_yield?.toFixed(6)} | Fees: ${result.total_platform_fees?.toFixed(6)} | Net: ${result.total_net_yield?.toFixed(6)} ${result.asset_code}`
         );
-        setYieldPercentage('');
+        setYieldPercentage("");
         setFeePreview(null);
         fetchYieldHistory();
       } else {
-        toast.error(result.error || 'Failed to apply yield');
+        toast.error(result.error || "Failed to apply yield");
       }
     } catch (error) {
-      console.error('Error applying yield:', error);
-      toast.error('Failed to apply yield');
+      console.error("Error applying yield:", error);
+      toast.error("Failed to apply yield");
     } finally {
       setLoading(false);
     }
   };
 
-  const selectedFundData = funds.find(f => f.id === selectedFund);
+  const selectedFundData = funds.find((f) => f.id === selectedFund);
 
   return (
     <div className="space-y-6">
@@ -165,7 +171,7 @@ const FundYieldManagerV2 = () => {
                   <SelectValue placeholder="Select fund" />
                 </SelectTrigger>
                 <SelectContent>
-                  {funds.map(fund => (
+                  {funds.map((fund) => (
                     <SelectItem key={fund.id} value={fund.id}>
                       {fund.code} - {fund.name}
                     </SelectItem>
@@ -205,7 +211,9 @@ const FundYieldManagerV2 = () => {
             <div className="grid grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg">
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">Fund AUM</p>
-                <p className="text-lg font-semibold">{selectedFundData.aum_amount.toFixed(6)} {selectedFundData.asset}</p>
+                <p className="text-lg font-semibold">
+                  {selectedFundData.aum_amount.toFixed(6)} {selectedFundData.asset}
+                </p>
               </div>
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">Investors</p>
@@ -227,18 +235,22 @@ const FundYieldManagerV2 = () => {
               </div>
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">Platform Fees</p>
-                <p className="text-lg font-semibold text-red-600">-{feePreview.totalFees.toFixed(6)}</p>
+                <p className="text-lg font-semibold text-red-600">
+                  -{feePreview.totalFees.toFixed(6)}
+                </p>
               </div>
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">Net to Investors</p>
-                <p className="text-lg font-semibold text-green-600">{feePreview.netYield.toFixed(6)}</p>
+                <p className="text-lg font-semibold text-green-600">
+                  {feePreview.netYield.toFixed(6)}
+                </p>
               </div>
             </div>
           )}
 
           <div className="flex justify-end">
             <Button onClick={applyYield} disabled={loading || !selectedFund || !yieldPercentage}>
-              {loading ? 'Applying...' : 'Apply Yield with Fee Collection'}
+              {loading ? "Applying..." : "Apply Yield with Fee Collection"}
             </Button>
           </div>
         </CardContent>
@@ -266,11 +278,15 @@ const FundYieldManagerV2 = () => {
                 <tbody>
                   {yieldHistory.map((entry) => (
                     <tr key={entry.id} className="border-b hover:bg-muted/50">
-                      <td className="p-2">{new Date(entry.application_date).toLocaleDateString()}</td>
+                      <td className="p-2">
+                        {new Date(entry.application_date).toLocaleDateString()}
+                      </td>
                       <td className="p-2">{entry.asset_code}</td>
                       <td className="p-2 text-right">{entry.daily_yield_percentage}%</td>
                       <td className="p-2 text-right">{parseFloat(entry.total_aum).toFixed(6)}</td>
-                      <td className="p-2 text-right">{parseFloat(entry.total_yield_generated).toFixed(6)}</td>
+                      <td className="p-2 text-right">
+                        {parseFloat(entry.total_yield_generated).toFixed(6)}
+                      </td>
                       <td className="p-2 text-right">{entry.investors_affected}</td>
                     </tr>
                   ))}

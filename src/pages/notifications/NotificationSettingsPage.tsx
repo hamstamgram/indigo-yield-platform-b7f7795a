@@ -1,76 +1,82 @@
-import { useState, useEffect } from 'react';
-import { useNotifications } from '@/hooks/useNotifications';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Bell, Mail, Smartphone, Clock } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { NotificationPreference } from '@/types/notifications';
+import { useState, useEffect } from "react";
+import { useNotifications } from "@/hooks/useNotifications";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Bell, Mail, Smartphone, Clock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { NotificationPreference } from "@/types/notifications";
 
 const notificationTypes: NotificationPreference[] = [
   {
-    type: 'transaction',
-    label: 'Transactions',
-    description: 'Deposits, withdrawals, and transfers',
+    type: "transaction",
+    label: "Transactions",
+    description: "Deposits, withdrawals, and transfers",
     email: true,
     push: true,
     inApp: true,
   },
   {
-    type: 'alert',
-    label: 'Price Alerts',
-    description: 'When your price alerts are triggered',
+    type: "alert",
+    label: "Price Alerts",
+    description: "When your price alerts are triggered",
     email: true,
     push: true,
     inApp: true,
   },
   {
-    type: 'yield',
-    label: 'Yield Updates',
-    description: 'Interest credits and yield distributions',
+    type: "yield",
+    label: "Yield Updates",
+    description: "Interest credits and yield distributions",
     email: true,
     push: false,
     inApp: true,
   },
   {
-    type: 'security',
-    label: 'Security',
-    description: 'Login attempts, password changes, and security alerts',
+    type: "security",
+    label: "Security",
+    description: "Login attempts, password changes, and security alerts",
     email: true,
     push: true,
     inApp: true,
   },
   {
-    type: 'document',
-    label: 'Documents',
-    description: 'New statements, tax forms, and documents',
+    type: "document",
+    label: "Documents",
+    description: "New statements, tax forms, and documents",
     email: true,
     push: false,
     inApp: true,
   },
   {
-    type: 'support',
-    label: 'Support',
-    description: 'Support ticket updates and responses',
+    type: "support",
+    label: "Support",
+    description: "Support ticket updates and responses",
     email: true,
     push: true,
     inApp: true,
   },
   {
-    type: 'portfolio',
-    label: 'Portfolio',
-    description: 'Portfolio performance and rebalancing notifications',
+    type: "portfolio",
+    label: "Portfolio",
+    description: "Portfolio performance and rebalancing notifications",
     email: false,
     push: false,
     inApp: true,
   },
   {
-    type: 'system',
-    label: 'System',
-    description: 'Platform updates and maintenance notifications',
+    type: "system",
+    label: "System",
+    description: "Platform updates and maintenance notifications",
     email: true,
     push: false,
     inApp: true,
@@ -81,13 +87,15 @@ const NotificationSettingsPage: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const { settings, updateSettings } = useNotifications(currentUser?.id);
   const [preferences, setPreferences] = useState<NotificationPreference[]>(notificationTypes);
-  const [emailFrequency, setEmailFrequency] = useState<'realtime' | 'daily' | 'weekly'>('realtime');
-  const [quietHoursStart, setQuietHoursStart] = useState('22:00');
-  const [quietHoursEnd, setQuietHoursEnd] = useState('08:00');
+  const [emailFrequency, setEmailFrequency] = useState<"realtime" | "daily" | "weekly">("realtime");
+  const [quietHoursStart, setQuietHoursStart] = useState("22:00");
+  const [quietHoursEnd, setQuietHoursEnd] = useState("08:00");
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setCurrentUser(user);
     };
     getUser();
@@ -96,17 +104,13 @@ const NotificationSettingsPage: React.FC = () => {
   useEffect(() => {
     if (settings) {
       setEmailFrequency(settings.email_frequency);
-      setQuietHoursStart(settings.quiet_hours_start || '22:00');
-      setQuietHoursEnd(settings.quiet_hours_end || '08:00');
+      setQuietHoursStart(settings.quiet_hours_start || "22:00");
+      setQuietHoursEnd(settings.quiet_hours_end || "08:00");
     }
   }, [settings]);
 
-  const handleToggle = (type: string, channel: 'email' | 'push' | 'inApp', value: boolean) => {
-    setPreferences(prev =>
-      prev.map(p =>
-        p.type === type ? { ...p, [channel]: value } : p
-      )
-    );
+  const handleToggle = (type: string, channel: "email" | "push" | "inApp", value: boolean) => {
+    setPreferences((prev) => prev.map((p) => (p.type === type ? { ...p, [channel]: value } : p)));
   };
 
   const handleSave = async () => {
@@ -116,7 +120,7 @@ const NotificationSettingsPage: React.FC = () => {
       quiet_hours_end: quietHoursEnd,
     };
 
-    preferences.forEach(pref => {
+    preferences.forEach((pref) => {
       updates[`${pref.type}_notifications`] = pref.inApp;
     });
 
@@ -170,19 +174,19 @@ const NotificationSettingsPage: React.FC = () => {
                   <div className="flex justify-center">
                     <Switch
                       checked={pref.email}
-                      onCheckedChange={(checked) => handleToggle(pref.type, 'email', checked)}
+                      onCheckedChange={(checked) => handleToggle(pref.type, "email", checked)}
                     />
                   </div>
                   <div className="flex justify-center">
                     <Switch
                       checked={pref.push}
-                      onCheckedChange={(checked) => handleToggle(pref.type, 'push', checked)}
+                      onCheckedChange={(checked) => handleToggle(pref.type, "push", checked)}
                     />
                   </div>
                   <div className="flex justify-center">
                     <Switch
                       checked={pref.inApp}
-                      onCheckedChange={(checked) => handleToggle(pref.type, 'inApp', checked)}
+                      onCheckedChange={(checked) => handleToggle(pref.type, "inApp", checked)}
                     />
                   </div>
                 </div>
@@ -196,9 +200,7 @@ const NotificationSettingsPage: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle>Email Preferences</CardTitle>
-          <CardDescription>
-            Control how often you receive email notifications
-          </CardDescription>
+          <CardDescription>Control how often you receive email notifications</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -214,9 +216,9 @@ const NotificationSettingsPage: React.FC = () => {
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              {emailFrequency === 'realtime' && 'Receive emails immediately as notifications occur'}
-              {emailFrequency === 'daily' && 'Receive a daily summary of notifications'}
-              {emailFrequency === 'weekly' && 'Receive a weekly summary of notifications'}
+              {emailFrequency === "realtime" && "Receive emails immediately as notifications occur"}
+              {emailFrequency === "daily" && "Receive a daily summary of notifications"}
+              {emailFrequency === "weekly" && "Receive a weekly summary of notifications"}
             </p>
           </div>
         </CardContent>
@@ -256,7 +258,8 @@ const NotificationSettingsPage: React.FC = () => {
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Push notifications will be silenced during these hours. Email and in-app notifications will still be available.
+            Push notifications will be silenced during these hours. Email and in-app notifications
+            will still be available.
           </p>
         </CardContent>
       </Card>
@@ -265,9 +268,7 @@ const NotificationSettingsPage: React.FC = () => {
         <Button variant="outline" onClick={() => window.history.back()}>
           Cancel
         </Button>
-        <Button onClick={handleSave}>
-          Save Preferences
-        </Button>
+        <Button onClick={handleSave}>Save Preferences</Button>
       </div>
     </div>
   );

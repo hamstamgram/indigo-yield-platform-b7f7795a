@@ -10,9 +10,9 @@
  * - Webhook signature verification
  */
 
-import axios, { AxiosInstance, AxiosError } from 'axios';
-import pLimit from 'p-limit';
-import crypto from 'crypto';
+import axios, { AxiosInstance, AxiosError } from "axios";
+import pLimit from "p-limit";
+import crypto from "crypto";
 
 // =====================================================
 // TYPES & INTERFACES
@@ -22,15 +22,15 @@ export interface AirtableOnboardingRecord {
   id: string; // Airtable record ID
   createdTime: string;
   fields: {
-    'Full Name': string;
-    'Email': string;
-    'Phone'?: string;
-    'Company Name'?: string;
-    'Additional Emails'?: string; // Comma-separated
-    'Jotform Submission ID'?: string;
-    'Status'?: 'Pending' | 'Processing' | 'Completed' | 'Rejected';
-    'Created Investor ID'?: string;
-    'Notes'?: string;
+    "Full Name": string;
+    Email: string;
+    Phone?: string;
+    "Company Name"?: string;
+    "Additional Emails"?: string; // Comma-separated
+    "Jotform Submission ID"?: string;
+    Status?: "Pending" | "Processing" | "Completed" | "Rejected";
+    "Created Investor ID"?: string;
+    Notes?: string;
   };
 }
 
@@ -40,7 +40,7 @@ export interface AirtableListResponse {
 }
 
 export interface AirtableUpdateFields {
-  fields: Partial<AirtableOnboardingRecord['fields']>;
+  fields: Partial<AirtableOnboardingRecord["fields"]>;
 }
 
 export interface AirtableWebhookPayload {
@@ -93,10 +93,10 @@ export class AirtableService {
 
     // Initialize Axios client
     this.client = axios.create({
-      baseURL: 'https://api.airtable.com/v0',
+      baseURL: "https://api.airtable.com/v0",
       headers: {
-        'Authorization': `Bearer ${config.apiKey}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${config.apiKey}`,
+        "Content-Type": "application/json",
       },
       timeout: 10000, // 10 second timeout
     });
@@ -113,7 +113,7 @@ export class AirtableService {
           throw new Error(`Airtable API Error (${status}): ${message}`);
         } else if (error.request) {
           // Request made but no response
-          throw new Error('No response from Airtable API');
+          throw new Error("No response from Airtable API");
         } else {
           // Error in request setup
           throw new Error(`Airtable request error: ${error.message}`);
@@ -171,14 +171,12 @@ export class AirtableService {
         if (maxRecords && fetchedCount >= maxRecords) {
           break;
         }
-
       } while (offset); // Continue while there are more pages
 
       console.log(`✅ Fetched ${allRecords.length} records from Airtable`);
       return allRecords;
-
     } catch (error) {
-      console.error('❌ Failed to fetch Airtable submissions:', error);
+      console.error("❌ Failed to fetch Airtable submissions:", error);
       throw error;
     }
   }
@@ -197,7 +195,6 @@ export class AirtableService {
       );
 
       return response.data;
-
     } catch (error) {
       console.error(`❌ Failed to fetch Airtable record ${recordId}:`, error);
       throw error;
@@ -208,9 +205,7 @@ export class AirtableService {
    * Fetch pending submissions (not yet processed)
    */
   async fetchPendingSubmissions(): Promise<AirtableOnboardingRecord[]> {
-    return this.fetchOnboardingSubmissions(
-      "AND({Status} = 'Pending', {Created Investor ID} = '')"
-    );
+    return this.fetchOnboardingSubmissions("AND({Status} = 'Pending', {Created Investor ID} = '')");
   }
 
   // =====================================================
@@ -236,7 +231,6 @@ export class AirtableService {
 
       console.log(`✅ Updated Airtable record ${recordId}`);
       return response.data;
-
     } catch (error) {
       console.error(`❌ Failed to update Airtable record ${recordId}:`, error);
       throw error;
@@ -249,12 +243,12 @@ export class AirtableService {
   async markSubmissionAsProcessed(
     recordId: string,
     investorId: string,
-    status: 'Completed' | 'Rejected' = 'Completed'
+    status: "Completed" | "Rejected" = "Completed"
   ): Promise<void> {
     await this.updateRecord(recordId, {
       fields: {
-        'Status': status,
-        'Created Investor ID': investorId,
+        Status: status,
+        "Created Investor ID": investorId,
       },
     });
   }
@@ -264,10 +258,10 @@ export class AirtableService {
    */
   async updateSubmissionStatus(
     recordId: string,
-    status: 'Pending' | 'Processing' | 'Completed' | 'Rejected',
+    status: "Pending" | "Processing" | "Completed" | "Rejected",
     notes?: string
   ): Promise<void> {
-    const fields: Partial<AirtableOnboardingRecord['fields']> = { Status: status };
+    const fields: Partial<AirtableOnboardingRecord["fields"]> = { Status: status };
     if (notes) {
       fields.Notes = notes;
     }
@@ -280,7 +274,7 @@ export class AirtableService {
    * Airtable allows up to 10 records per request
    */
   async bulkUpdateRecords(
-    updates: Array<{ id: string; fields: Partial<AirtableOnboardingRecord['fields']> }>
+    updates: Array<{ id: string; fields: Partial<AirtableOnboardingRecord["fields"]> }>
   ): Promise<AirtableOnboardingRecord[]> {
     const BATCH_SIZE = 10; // Airtable limit
     const results: AirtableOnboardingRecord[] = [];
@@ -301,7 +295,6 @@ export class AirtableService {
 
         results.push(...response.data.records);
         console.log(`✅ Updated batch of ${batch.length} records`);
-
       } catch (error) {
         console.error(`❌ Failed to update batch:`, error);
         throw error;
@@ -319,13 +312,9 @@ export class AirtableService {
    * Verify webhook signature from Airtable
    * Uses HMAC-SHA256 with webhook secret
    */
-  verifyWebhookSignature(
-    payload: string,
-    signature: string,
-    timestamp: string
-  ): boolean {
+  verifyWebhookSignature(payload: string, signature: string, timestamp: string): boolean {
     if (!this.webhookSecret) {
-      console.warn('⚠️ Webhook secret not configured');
+      console.warn("⚠️ Webhook secret not configured");
       return false;
     }
 
@@ -334,19 +323,12 @@ export class AirtableService {
       const message = `${timestamp}.${payload}`;
 
       // Compute HMAC-SHA256
-      const hmac = crypto
-        .createHmac('sha256', this.webhookSecret)
-        .update(message)
-        .digest('hex');
+      const hmac = crypto.createHmac("sha256", this.webhookSecret).update(message).digest("hex");
 
       // Compare signatures (constant-time comparison)
-      return crypto.timingSafeEqual(
-        Buffer.from(signature),
-        Buffer.from(hmac)
-      );
-
+      return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(hmac));
     } catch (error) {
-      console.error('❌ Webhook signature verification failed:', error);
+      console.error("❌ Webhook signature verification failed:", error);
       return false;
     }
   }
@@ -388,10 +370,7 @@ export class AirtableService {
   /**
    * Retry a function with exponential backoff
    */
-  private async retryWithBackoff<T>(
-    fn: () => Promise<T>,
-    attempt: number = 1
-  ): Promise<T> {
+  private async retryWithBackoff<T>(fn: () => Promise<T>, attempt: number = 1): Promise<T> {
     try {
       return await fn();
     } catch (error) {
@@ -414,10 +393,10 @@ export class AirtableService {
   async testConnection(): Promise<boolean> {
     try {
       await this.fetchOnboardingSubmissions(undefined, 1);
-      console.log('✅ Airtable connection successful');
+      console.log("✅ Airtable connection successful");
       return true;
     } catch (error) {
-      console.error('❌ Airtable connection failed:', error);
+      console.error("❌ Airtable connection failed:", error);
       return false;
     }
   }
@@ -444,14 +423,13 @@ export class AirtableService {
       };
 
       allRecords.forEach((record) => {
-        const status = record.fields.Status || 'Pending';
+        const status = record.fields.Status || "Pending";
         stats[status.toLowerCase() as keyof typeof stats]++;
       });
 
       return stats;
-
     } catch (error) {
-      console.error('❌ Failed to get submission stats:', error);
+      console.error("❌ Failed to get submission stats:", error);
       throw error;
     }
   }
@@ -467,11 +445,17 @@ export class AirtableService {
 export function createAirtableService(): AirtableService {
   const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY || process.env.AIRTABLE_API_KEY;
   const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID || process.env.AIRTABLE_BASE_ID;
-  const tableName = import.meta.env.VITE_AIRTABLE_TABLE_NAME || process.env.AIRTABLE_TABLE_NAME || 'Investor Onboarding';
-  const webhookSecret = import.meta.env.VITE_AIRTABLE_WEBHOOK_SECRET || process.env.AIRTABLE_WEBHOOK_SECRET;
+  const tableName =
+    import.meta.env.VITE_AIRTABLE_TABLE_NAME ||
+    process.env.AIRTABLE_TABLE_NAME ||
+    "Investor Onboarding";
+  const webhookSecret =
+    import.meta.env.VITE_AIRTABLE_WEBHOOK_SECRET || process.env.AIRTABLE_WEBHOOK_SECRET;
 
   if (!apiKey || !baseId) {
-    throw new Error('Missing required Airtable configuration. Set AIRTABLE_API_KEY and AIRTABLE_BASE_ID in environment variables.');
+    throw new Error(
+      "Missing required Airtable configuration. Set AIRTABLE_API_KEY and AIRTABLE_BASE_ID in environment variables."
+    );
   }
 
   return new AirtableService({

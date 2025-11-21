@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { cn } from '@/lib/utils';
-import { ChevronUp, ChevronDown, ArrowUpDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { TableSkeleton } from './loading-skeletons';
+import React, { useState, useMemo } from "react";
+import { cn } from "@/lib/utils";
+import { ChevronUp, ChevronDown, ArrowUpDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TableSkeleton } from "./loading-skeletons";
 
 export interface Column<T> {
   key: string;
@@ -10,9 +10,9 @@ export interface Column<T> {
   accessor: (row: T) => React.ReactNode;
   sortable?: boolean;
   width?: string;
-  align?: 'left' | 'center' | 'right';
+  align?: "left" | "center" | "right";
   mobileLabel?: string;
-  priority?: 'high' | 'medium' | 'low'; // For mobile visibility
+  priority?: "high" | "medium" | "low"; // For mobile visibility
 }
 
 export interface ResponsiveTableProps<T> {
@@ -45,45 +45,45 @@ export function ResponsiveTable<T>({
   onRowClick,
   keyExtractor,
   className,
-  containerClassName
+  containerClassName,
 }: ResponsiveTableProps<T>) {
   const [sortConfig, setSortConfig] = useState<{
     key: string;
-    direction: 'asc' | 'desc';
+    direction: "asc" | "desc";
   } | null>(null);
-  
+
   const [expandedCards, setExpandedCards] = useState<Set<string | number>>(new Set());
 
   // Sort data
   const sortedData = useMemo(() => {
     if (!sortConfig) return data;
-    
+
     return [...data].sort((a, b) => {
-      const column = columns.find(col => col.key === sortConfig.key);
+      const column = columns.find((col) => col.key === sortConfig.key);
       if (!column) return 0;
-      
+
       const aVal = column.accessor(a);
       const bVal = column.accessor(b);
-      
+
       if (aVal === null || aVal === undefined) return 1;
       if (bVal === null || bVal === undefined) return -1;
-      
+
       let comparison = 0;
       if (aVal > bVal) comparison = 1;
       if (aVal < bVal) comparison = -1;
-      
-      return sortConfig.direction === 'asc' ? comparison : -comparison;
+
+      return sortConfig.direction === "asc" ? comparison : -comparison;
     });
   }, [data, sortConfig, columns]);
 
   // Handle sort
   const handleSort = (key: string) => {
-    setSortConfig(current => {
+    setSortConfig((current) => {
       if (!current || current.key !== key) {
-        return { key, direction: 'asc' };
+        return { key, direction: "asc" };
       }
-      if (current.direction === 'asc') {
-        return { key, direction: 'desc' };
+      if (current.direction === "asc") {
+        return { key, direction: "desc" };
       }
       return null;
     });
@@ -91,7 +91,7 @@ export function ResponsiveTable<T>({
 
   // Toggle card expansion on mobile
   const toggleCardExpansion = (id: string | number) => {
-    setExpandedCards(current => {
+    setExpandedCards((current) => {
       const newSet = new Set(current);
       if (newSet.has(id)) {
         newSet.delete(id);
@@ -112,49 +112,49 @@ export function ResponsiveTable<T>({
     if (emptyState) {
       return <>{emptyState}</>;
     }
-    return (
-      <div className="text-center py-12 text-gray-500">
-        No data available
-      </div>
-    );
+    return <div className="text-center py-12 text-gray-500">No data available</div>;
   }
 
   // Get high priority columns for mobile
-  const highPriorityColumns = columns.filter(col => col.priority === 'high');
-  const otherColumns = columns.filter(col => col.priority !== 'high');
+  const highPriorityColumns = columns.filter((col) => col.priority === "high");
+  const otherColumns = columns.filter((col) => col.priority !== "high");
 
   return (
     <div className={cn("w-full", containerClassName)}>
       {/* Desktop Table View */}
       <div className="hidden lg:block overflow-x-auto">
         <table className={cn("w-full", className)}>
-          <thead className={cn(
-            "bg-gray-50 border-b border-gray-200",
-            stickyHeader && "sticky top-0 z-10"
-          )}>
+          <thead
+            className={cn(
+              "bg-gray-50 border-b border-gray-200",
+              stickyHeader && "sticky top-0 z-10"
+            )}
+          >
             <tr>
-              {columns.map(column => (
+              {columns.map((column) => (
                 <th
                   key={column.key}
                   className={cn(
                     "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider",
-                    column.align === 'center' && "text-center",
-                    column.align === 'right' && "text-right",
+                    column.align === "center" && "text-center",
+                    column.align === "right" && "text-right",
                     column.sortable && "cursor-pointer select-none hover:bg-gray-100"
                   )}
                   style={{ width: column.width }}
                   onClick={() => column.sortable && handleSort(column.key)}
                 >
-                  <div className={cn(
-                    "flex items-center",
-                    column.align === 'center' && "justify-center",
-                    column.align === 'right' && "justify-end"
-                  )}>
+                  <div
+                    className={cn(
+                      "flex items-center",
+                      column.align === "center" && "justify-center",
+                      column.align === "right" && "justify-end"
+                    )}
+                  >
                     <span>{column.header}</span>
                     {column.sortable && (
                       <span className="ml-2">
                         {sortConfig?.key === column.key ? (
-                          sortConfig.direction === 'asc' ? (
+                          sortConfig.direction === "asc" ? (
                             <ChevronUp className="h-4 w-4" />
                           ) : (
                             <ChevronDown className="h-4 w-4" />
@@ -182,13 +182,13 @@ export function ResponsiveTable<T>({
                   )}
                   onClick={() => onRowClick?.(row)}
                 >
-                  {columns.map(column => (
+                  {columns.map((column) => (
                     <td
                       key={`${key}-${column.key}`}
                       className={cn(
                         "px-6 py-4 whitespace-nowrap text-sm text-gray-900",
-                        column.align === 'center' && "text-center",
-                        column.align === 'right' && "text-right"
+                        column.align === "center" && "text-center",
+                        column.align === "right" && "text-right"
                       )}
                     >
                       {column.accessor(row)}
@@ -204,10 +204,10 @@ export function ResponsiveTable<T>({
       {/* Mobile Card View */}
       {mobileCardView && (
         <div className="lg:hidden space-y-4">
-          {sortedData.map(row => {
+          {sortedData.map((row) => {
             const key = keyExtractor(row);
             const isExpanded = expandedCards.has(key);
-            
+
             return (
               <div
                 key={key}
@@ -217,24 +217,19 @@ export function ResponsiveTable<T>({
                 )}
               >
                 {/* Card Header - Always visible */}
-                <div
-                  className="p-4"
-                  onClick={() => onRowClick?.(row)}
-                >
+                <div className="p-4" onClick={() => onRowClick?.(row)}>
                   {/* High priority items */}
                   <div className="space-y-2">
-                    {highPriorityColumns.map(column => (
+                    {highPriorityColumns.map((column) => (
                       <div key={column.key} className="flex justify-between">
                         <span className="text-sm font-medium text-gray-500">
                           {column.mobileLabel || column.header}
                         </span>
-                        <span className="text-sm text-gray-900">
-                          {column.accessor(row)}
-                        </span>
+                        <span className="text-sm text-gray-900">{column.accessor(row)}</span>
                       </div>
                     ))}
                   </div>
-                  
+
                   {otherColumns.length > 0 && (
                     <Button
                       variant="ghost"
@@ -245,7 +240,7 @@ export function ResponsiveTable<T>({
                         toggleCardExpansion(key);
                       }}
                     >
-                      {isExpanded ? 'Show Less' : 'Show More'}
+                      {isExpanded ? "Show Less" : "Show More"}
                       {isExpanded ? (
                         <ChevronUp className="ml-2 h-4 w-4" />
                       ) : (
@@ -254,19 +249,17 @@ export function ResponsiveTable<T>({
                     </Button>
                   )}
                 </div>
-                
+
                 {/* Expandable content */}
                 {isExpanded && otherColumns.length > 0 && (
                   <div className="px-4 pb-4 pt-0 border-t border-gray-100">
                     <div className="space-y-2 mt-3">
-                      {otherColumns.map(column => (
+                      {otherColumns.map((column) => (
                         <div key={column.key} className="flex justify-between">
                           <span className="text-sm font-medium text-gray-500">
                             {column.mobileLabel || column.header}
                           </span>
-                          <span className="text-sm text-gray-900">
-                            {column.accessor(row)}
-                          </span>
+                          <span className="text-sm text-gray-900">{column.accessor(row)}</span>
                         </div>
                       ))}
                     </div>
@@ -300,17 +293,17 @@ export function PaginatedResponsiveTable<T>({
   ...tableProps
 }: PaginatedTableProps<T>) {
   const totalPages = Math.ceil((totalItems || data.length) / pageSize);
-  
+
   const paginatedData = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     const end = start + pageSize;
     return data.slice(start, end);
   }, [data, currentPage, pageSize]);
-  
+
   return (
     <div>
       <ResponsiveTable {...tableProps} data={paginatedData} />
-      
+
       {/* Pagination Controls */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
@@ -330,24 +323,18 @@ export function PaginatedResponsiveTable<T>({
               Next
             </Button>
           </div>
-          
+
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-gray-700">
-                Showing{' '}
-                <span className="font-medium">
-                  {(currentPage - 1) * pageSize + 1}
-                </span>{' '}
-                to{' '}
+                Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to{" "}
                 <span className="font-medium">
                   {Math.min(currentPage * pageSize, totalItems || data.length)}
-                </span>{' '}
-                of{' '}
-                <span className="font-medium">{totalItems || data.length}</span>{' '}
-                results
+                </span>{" "}
+                of <span className="font-medium">{totalItems || data.length}</span> results
               </p>
             </div>
-            
+
             <div>
               <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
                 <Button
@@ -359,13 +346,13 @@ export function PaginatedResponsiveTable<T>({
                 >
                   Previous
                 </Button>
-                
+
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   const page = i + 1;
                   return (
                     <Button
                       key={page}
-                      variant={currentPage === page ? 'default' : 'outline'}
+                      variant={currentPage === page ? "default" : "outline"}
                       size="sm"
                       onClick={() => onPageChange?.(page)}
                       className="rounded-none"
@@ -374,7 +361,7 @@ export function PaginatedResponsiveTable<T>({
                     </Button>
                   );
                 })}
-                
+
                 <Button
                   variant="outline"
                   size="sm"

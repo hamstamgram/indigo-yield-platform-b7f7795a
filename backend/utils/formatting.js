@@ -12,19 +12,19 @@
  */
 export function formatNumber(value, isIncome = false, isPercentage = false, decimals = 4) {
   if (value === null || value === undefined || value === 0) {
-    return '-';
+    return "-";
   }
-  
+
   let formatted = parseFloat(value).toFixed(decimals);
-  
+
   if (isIncome && value > 0) {
-    formatted = '+' + formatted;
+    formatted = "+" + formatted;
   }
-  
+
   if (isPercentage) {
-    formatted = parseFloat(value).toFixed(2) + '%';
+    formatted = parseFloat(value).toFixed(2) + "%";
   }
-  
+
   return formatted;
 }
 
@@ -35,20 +35,20 @@ export function formatNumber(value, isIncome = false, isPercentage = false, deci
  * @param {number} decimals - Number of decimal places
  * @returns {string} Formatted currency
  */
-export function formatCurrency(value, currency = 'USD', decimals = 2) {
+export function formatCurrency(value, currency = "USD", decimals = 2) {
   if (value === null || value === undefined || value === 0) {
-    return '-';
+    return "-";
   }
-  
+
   const symbols = {
-    USD: '$',
-    EUR: '€',
-    GBP: '£',
-    BTC: '₿',
-    ETH: 'Ξ'
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+    BTC: "₿",
+    ETH: "Ξ",
   };
-  
-  const symbol = symbols[currency] || currency + ' ';
+
+  const symbol = symbols[currency] || currency + " ";
   return symbol + parseFloat(value).toFixed(decimals);
 }
 
@@ -60,11 +60,11 @@ export function formatCurrency(value, currency = 'USD', decimals = 2) {
  */
 export function formatPercentage(value, showSign = true) {
   if (value === null || value === undefined || value === 0) {
-    return '0.00%';
+    return "0.00%";
   }
-  
-  const formatted = parseFloat(value).toFixed(2) + '%';
-  return showSign && value > 0 ? '+' + formatted : formatted;
+
+  const formatted = parseFloat(value).toFixed(2) + "%";
+  return showSign && value > 0 ? "+" + formatted : formatted;
 }
 
 /**
@@ -73,5 +73,5 @@ export function formatPercentage(value, showSign = true) {
  * @returns {string} Normalized name
  */
 export function normalizeName(name) {
-  return name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+  return name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, "");
 }

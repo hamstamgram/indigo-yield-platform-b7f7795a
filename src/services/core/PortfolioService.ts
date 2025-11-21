@@ -3,8 +3,8 @@
  * Handles all portfolio-related operations
  */
 
-import { ApiClient, ApiResponse } from './ApiClient';
-import type { PortfolioPosition, PortfolioSummary, PortfolioData } from '@/types/domains/portfolio';
+import { ApiClient, ApiResponse } from "./ApiClient";
+import type { PortfolioPosition, PortfolioSummary, PortfolioData } from "@/types/domains/portfolio";
 
 export class PortfolioService extends ApiClient {
   /**
@@ -12,15 +12,16 @@ export class PortfolioService extends ApiClient {
    */
   async getPortfolioSummary(investorId: string): Promise<ApiResponse<PortfolioSummary>> {
     return this.execute(async () => {
-      const { data, error } = await this.supabase
-        .rpc('get_investor_portfolio_summary', { p_investor_id: investorId });
+      const { data, error } = await this.supabase.rpc("get_investor_portfolio_summary", {
+        p_investor_id: investorId,
+      });
 
       if (error) {
         return { data: null, error };
       }
 
       // Ensure proper structure even if RPC returns null or unexpected format
-      if (data && typeof data === 'object' && !Array.isArray(data) && 'total_value' in data) {
+      if (data && typeof data === "object" && !Array.isArray(data) && "total_value" in data) {
         return { data: data as unknown as PortfolioSummary, error: null };
       }
 
@@ -45,8 +46,9 @@ export class PortfolioService extends ApiClient {
   async getPortfolioPositions(investorId: string): Promise<ApiResponse<PortfolioPosition[]>> {
     return this.execute(async () => {
       const { data, error } = await this.supabase
-        .from('investor_positions')
-        .select(`
+        .from("investor_positions")
+        .select(
+          `
           *,
           funds:fund_id (
             name,
@@ -54,8 +56,9 @@ export class PortfolioService extends ApiClient {
             asset,
             fund_class
           )
-        `)
-        .eq('investor_id', investorId);
+        `
+        )
+        .eq("investor_id", investorId);
 
       if (error) {
         return { data: null, error };
@@ -64,17 +67,18 @@ export class PortfolioService extends ApiClient {
       // Transform to PortfolioPosition format
       const positions: PortfolioPosition[] = (data || []).map((pos: any) => ({
         fund_id: pos.fund_id,
-        fund_name: pos.funds?.name || 'Unknown Fund',
-        fund_class: pos.fund_class || pos.funds?.fund_class || 'Standard',
-        asset_code: pos.funds?.asset || 'UNKNOWN',
-        asset_name: pos.funds?.name || 'Unknown',
+        fund_name: pos.funds?.name || "Unknown Fund",
+        fund_class: pos.fund_class || pos.funds?.fund_class || "Standard",
+        asset_code: pos.funds?.asset || "UNKNOWN",
+        asset_name: pos.funds?.name || "Unknown",
         shares_held: Number(pos.shares) || 0,
         cost_basis: Number(pos.cost_basis) || 0,
         current_value: Number(pos.current_value) || 0,
         unrealized_gain: Number(pos.unrealized_pnl) || 0,
-        unrealized_gain_percent: Number(pos.cost_basis) > 0 
-          ? ((Number(pos.unrealized_pnl) || 0) / Number(pos.cost_basis)) * 100 
-          : 0,
+        unrealized_gain_percent:
+          Number(pos.cost_basis) > 0
+            ? ((Number(pos.unrealized_pnl) || 0) / Number(pos.cost_basis)) * 100
+            : 0,
         percentage_of_portfolio: Number(pos.aum_percentage) || 0,
       }));
 
@@ -88,8 +92,10 @@ export class PortfolioService extends ApiClient {
   async getCompletePortfolio(investorId: string): Promise<ApiResponse<PortfolioData>> {
     return this.execute(async () => {
       // Get summary
-      const { data: summaryData, error: summaryError } = await this.supabase
-        .rpc('get_investor_portfolio_summary', { p_investor_id: investorId });
+      const { data: summaryData, error: summaryError } = await this.supabase.rpc(
+        "get_investor_portfolio_summary",
+        { p_investor_id: investorId }
+      );
 
       if (summaryError) {
         return { data: null, error: summaryError };
@@ -97,8 +103,9 @@ export class PortfolioService extends ApiClient {
 
       // Get positions
       const { data: positionsData, error: positionsError } = await this.supabase
-        .from('investor_positions')
-        .select(`
+        .from("investor_positions")
+        .select(
+          `
           *,
           funds:fund_id (
             name,
@@ -106,8 +113,9 @@ export class PortfolioService extends ApiClient {
             asset,
             fund_class
           )
-        `)
-        .eq('investor_id', investorId);
+        `
+        )
+        .eq("investor_id", investorId);
 
       if (positionsError) {
         return { data: null, error: positionsError };
@@ -116,23 +124,29 @@ export class PortfolioService extends ApiClient {
       // Transform positions
       const positions: PortfolioPosition[] = (positionsData || []).map((pos: any) => ({
         fund_id: pos.fund_id,
-        fund_name: pos.funds?.name || 'Unknown Fund',
-        fund_class: pos.fund_class || pos.funds?.fund_class || 'Standard',
-        asset_code: pos.funds?.asset || 'UNKNOWN',
-        asset_name: pos.funds?.name || 'Unknown',
+        fund_name: pos.funds?.name || "Unknown Fund",
+        fund_class: pos.fund_class || pos.funds?.fund_class || "Standard",
+        asset_code: pos.funds?.asset || "UNKNOWN",
+        asset_name: pos.funds?.name || "Unknown",
         shares_held: Number(pos.shares) || 0,
         cost_basis: Number(pos.cost_basis) || 0,
         current_value: Number(pos.current_value) || 0,
         unrealized_gain: Number(pos.unrealized_pnl) || 0,
-        unrealized_gain_percent: Number(pos.cost_basis) > 0 
-          ? ((Number(pos.unrealized_pnl) || 0) / Number(pos.cost_basis)) * 100 
-          : 0,
+        unrealized_gain_percent:
+          Number(pos.cost_basis) > 0
+            ? ((Number(pos.unrealized_pnl) || 0) / Number(pos.cost_basis)) * 100
+            : 0,
         percentage_of_portfolio: Number(pos.aum_percentage) || 0,
       }));
 
       // Determine summary structure
       let summary: PortfolioSummary;
-      if (summaryData && typeof summaryData === 'object' && !Array.isArray(summaryData) && 'total_value' in summaryData) {
+      if (
+        summaryData &&
+        typeof summaryData === "object" &&
+        !Array.isArray(summaryData) &&
+        "total_value" in summaryData
+      ) {
         summary = summaryData as unknown as PortfolioSummary;
       } else {
         summary = {
@@ -177,11 +191,12 @@ export class PortfolioService extends ApiClient {
       };
 
       const { data, error } = await this.supabase
-        .from('investor_positions')
+        .from("investor_positions")
         .update(dbUpdates)
-        .eq('investor_id', investorId)
-        .eq('fund_id', fundId)
-        .select(`
+        .eq("investor_id", investorId)
+        .eq("fund_id", fundId)
+        .select(
+          `
           *,
           funds:fund_id (
             name,
@@ -189,7 +204,8 @@ export class PortfolioService extends ApiClient {
             asset,
             fund_class
           )
-        `)
+        `
+        )
         .maybeSingle();
 
       if (error) {
@@ -197,23 +213,24 @@ export class PortfolioService extends ApiClient {
       }
 
       if (!data) {
-        return { data: null, error: { message: 'Position not found', code: 'NOT_FOUND' } as any };
+        return { data: null, error: { message: "Position not found", code: "NOT_FOUND" } as any };
       }
 
       // Transform to PortfolioPosition format
       const position: PortfolioPosition = {
         fund_id: data.fund_id,
-        fund_name: data.funds?.name || 'Unknown Fund',
-        fund_class: data.fund_class || data.funds?.fund_class || 'Standard',
-        asset_code: data.funds?.asset || 'UNKNOWN',
-        asset_name: data.funds?.name || 'Unknown',
+        fund_name: data.funds?.name || "Unknown Fund",
+        fund_class: data.fund_class || data.funds?.fund_class || "Standard",
+        asset_code: data.funds?.asset || "UNKNOWN",
+        asset_name: data.funds?.name || "Unknown",
         shares_held: Number(data.shares) || 0,
         cost_basis: Number(data.cost_basis) || 0,
         current_value: Number(data.current_value) || 0,
         unrealized_gain: Number(data.unrealized_pnl) || 0,
-        unrealized_gain_percent: Number(data.cost_basis) > 0 
-          ? ((Number(data.unrealized_pnl) || 0) / Number(data.cost_basis)) * 100 
-          : 0,
+        unrealized_gain_percent:
+          Number(data.cost_basis) > 0
+            ? ((Number(data.unrealized_pnl) || 0) / Number(data.cost_basis)) * 100
+            : 0,
         percentage_of_portfolio: Number(data.aum_percentage) || 0,
       };
 

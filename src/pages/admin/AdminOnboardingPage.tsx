@@ -10,8 +10,8 @@
  * - Bulk actions for efficiency
  */
 
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Users,
   Clock,
@@ -26,11 +26,11 @@ import {
   Building2,
   Calendar,
   AlertCircle,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -38,7 +38,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -46,27 +46,27 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
-import { MultiEmailInput, InvestorEmailAddress } from '@/components/admin/MultiEmailInput';
-import { getOnboardingService, OnboardingSubmission } from '@/services/onboardingService';
-import { getOnboardingSyncService } from '@/services/onboardingSyncService';
+} from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { MultiEmailInput, InvestorEmailAddress } from "@/components/admin/MultiEmailInput";
+import { getOnboardingService, OnboardingSubmission } from "@/services/onboardingService";
+import { getOnboardingSyncService } from "@/services/onboardingSyncService";
 
 // =====================================================
 // TYPES & INTERFACES
 // =====================================================
 
 interface OnboardingFilters {
-  status: 'all' | 'pending' | 'processing' | 'approved' | 'rejected' | 'duplicate';
+  status: "all" | "pending" | "processing" | "approved" | "rejected" | "duplicate";
   search: string;
 }
 
@@ -98,15 +98,15 @@ export default function AdminOnboardingPage() {
   const syncService = getOnboardingSyncService();
 
   const [filters, setFilters] = useState<OnboardingFilters>({
-    status: 'all',
-    search: '',
+    status: "all",
+    search: "",
   });
 
   const [createInvestorDialog, setCreateInvestorDialog] = useState<CreateInvestorDialogState>({
     open: false,
     submission: null,
     emails: [],
-    notes: '',
+    notes: "",
   });
 
   // =====================================================
@@ -115,7 +115,7 @@ export default function AdminOnboardingPage() {
 
   // Fetch onboarding statistics
   const { data: stats, isLoading: statsLoading } = useQuery<OnboardingStats>({
-    queryKey: ['onboarding-stats'],
+    queryKey: ["onboarding-stats"],
     queryFn: async () => {
       return await onboardingService.getOnboardingStats();
     },
@@ -128,10 +128,10 @@ export default function AdminOnboardingPage() {
     isLoading: submissionsLoading,
     refetch: refetchSubmissions,
   } = useQuery<OnboardingSubmission[]>({
-    queryKey: ['onboarding-submissions', filters],
+    queryKey: ["onboarding-submissions", filters],
     queryFn: async () => {
       return await onboardingService.getSubmissions({
-        status: filters.status === 'all' ? undefined : filters.status,
+        status: filters.status === "all" ? undefined : filters.status,
         search: filters.search || undefined,
       });
     },
@@ -148,17 +148,17 @@ export default function AdminOnboardingPage() {
     },
     onSuccess: (result) => {
       toast({
-        title: 'Sync Complete',
+        title: "Sync Complete",
         description: `Synced ${result.recordsSynced} submissions from Airtable. ${result.recordsSkipped} skipped.`,
       });
-      queryClient.invalidateQueries({ queryKey: ['onboarding-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['onboarding-submissions'] });
+      queryClient.invalidateQueries({ queryKey: ["onboarding-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["onboarding-submissions"] });
     },
     onError: (error) => {
       toast({
-        variant: 'destructive',
-        title: 'Sync Failed',
-        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: "destructive",
+        title: "Sync Failed",
+        description: error instanceof Error ? error.message : "Unknown error",
       });
     },
   });
@@ -166,13 +166,13 @@ export default function AdminOnboardingPage() {
   // Create investor mutation
   const createInvestorMutation = useMutation({
     mutationFn: async () => {
-      if (!createInvestorDialog.submission) throw new Error('No submission selected');
+      if (!createInvestorDialog.submission) throw new Error("No submission selected");
 
       // Get current admin user ID (from auth context)
-      const user = JSON.parse(localStorage.getItem('sb-user') || '{}');
+      const user = JSON.parse(localStorage.getItem("sb-user") || "{}");
       const adminUserId = user?.id;
 
-      if (!adminUserId) throw new Error('Admin user not found');
+      if (!adminUserId) throw new Error("Admin user not found");
 
       return await onboardingService.createInvestorFromSubmission({
         submissionId: createInvestorDialog.submission.id,
@@ -184,25 +184,25 @@ export default function AdminOnboardingPage() {
     onSuccess: (result) => {
       if (result.success) {
         toast({
-          title: 'Investor Created',
+          title: "Investor Created",
           description: `Successfully created investor with ID: ${result.investorId}`,
         });
-        setCreateInvestorDialog({ open: false, submission: null, emails: [], notes: '' });
-        queryClient.invalidateQueries({ queryKey: ['onboarding-stats'] });
-        queryClient.invalidateQueries({ queryKey: ['onboarding-submissions'] });
+        setCreateInvestorDialog({ open: false, submission: null, emails: [], notes: "" });
+        queryClient.invalidateQueries({ queryKey: ["onboarding-stats"] });
+        queryClient.invalidateQueries({ queryKey: ["onboarding-submissions"] });
       } else {
         toast({
-          variant: 'destructive',
-          title: 'Failed to Create Investor',
+          variant: "destructive",
+          title: "Failed to Create Investor",
           description: result.error,
         });
       }
     },
     onError: (error) => {
       toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Unknown error",
       });
     },
   });
@@ -230,16 +230,16 @@ export default function AdminOnboardingPage() {
       open: true,
       submission,
       emails: initialEmails,
-      notes: '',
+      notes: "",
     });
   };
 
   const handleCreateInvestor = () => {
     if (createInvestorDialog.emails.length === 0) {
       toast({
-        variant: 'destructive',
-        title: 'Validation Error',
-        description: 'At least one email is required',
+        variant: "destructive",
+        title: "Validation Error",
+        description: "At least one email is required",
       });
       return;
     }
@@ -255,13 +255,16 @@ export default function AdminOnboardingPage() {
   // RENDER HELPERS
   // =====================================================
 
-  const getStatusBadge = (status: OnboardingSubmission['status']) => {
-    const variants: Record<OnboardingSubmission['status'], { variant: any; icon: any; label: string }> = {
-      pending: { variant: 'secondary', icon: Clock, label: 'Pending' },
-      processing: { variant: 'default', icon: RefreshCw, label: 'Processing' },
-      approved: { variant: 'default', icon: CheckCircle2, label: 'Approved' },
-      rejected: { variant: 'destructive', icon: XCircle, label: 'Rejected' },
-      duplicate: { variant: 'secondary', icon: Copy, label: 'Duplicate' },
+  const getStatusBadge = (status: OnboardingSubmission["status"]) => {
+    const variants: Record<
+      OnboardingSubmission["status"],
+      { variant: any; icon: any; label: string }
+    > = {
+      pending: { variant: "secondary", icon: Clock, label: "Pending" },
+      processing: { variant: "default", icon: RefreshCw, label: "Processing" },
+      approved: { variant: "default", icon: CheckCircle2, label: "Approved" },
+      rejected: { variant: "destructive", icon: XCircle, label: "Rejected" },
+      duplicate: { variant: "secondary", icon: Copy, label: "Duplicate" },
     };
 
     const config = variants[status];
@@ -276,12 +279,12 @@ export default function AdminOnboardingPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -300,8 +303,8 @@ export default function AdminOnboardingPage() {
           </p>
         </div>
         <Button onClick={handleSync} disabled={syncMutation.isPending}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
-          {syncMutation.isPending ? 'Syncing...' : 'Sync from Airtable'}
+          <RefreshCw className={`h-4 w-4 mr-2 ${syncMutation.isPending ? "animate-spin" : ""}`} />
+          {syncMutation.isPending ? "Syncing..." : "Sync from Airtable"}
         </Button>
       </div>
 
@@ -459,7 +462,7 @@ export default function AdminOnboardingPage() {
                     </TableCell>
                     <TableCell>{getStatusBadge(submission.status)}</TableCell>
                     <TableCell>
-                      {submission.status === 'pending' && (
+                      {submission.status === "pending" && (
                         <Button
                           size="sm"
                           onClick={() => handleOpenCreateInvestor(submission)}
@@ -469,7 +472,7 @@ export default function AdminOnboardingPage() {
                           Create Investor
                         </Button>
                       )}
-                      {submission.status === 'approved' && submission.created_investor_id && (
+                      {submission.status === "approved" && submission.created_investor_id && (
                         <span className="text-sm text-muted-foreground">
                           Created: {submission.created_investor_id.slice(0, 8)}...
                         </span>
@@ -496,7 +499,7 @@ export default function AdminOnboardingPage() {
         open={createInvestorDialog.open}
         onOpenChange={(open) =>
           !createInvestorMutation.isPending &&
-          setCreateInvestorDialog({ open, submission: null, emails: [], notes: '' })
+          setCreateInvestorDialog({ open, submission: null, emails: [], notes: "" })
         }
       >
         <DialogContent className="max-w-2xl">
@@ -518,7 +521,9 @@ export default function AdminOnboardingPage() {
                 {createInvestorDialog.submission.company_name && (
                   <div>
                     <span className="text-sm font-medium text-gray-700">Company:</span>
-                    <span className="ml-2 text-sm">{createInvestorDialog.submission.company_name}</span>
+                    <span className="ml-2 text-sm">
+                      {createInvestorDialog.submission.company_name}
+                    </span>
                   </div>
                 )}
                 {createInvestorDialog.submission.phone && (
@@ -565,7 +570,7 @@ export default function AdminOnboardingPage() {
             <Button
               variant="outline"
               onClick={() =>
-                setCreateInvestorDialog({ open: false, submission: null, emails: [], notes: '' })
+                setCreateInvestorDialog({ open: false, submission: null, emails: [], notes: "" })
               }
               disabled={createInvestorMutation.isPending}
             >

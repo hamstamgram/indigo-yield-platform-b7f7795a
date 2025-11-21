@@ -19,11 +19,7 @@ interface ApproveDepositDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function ApproveDepositDialog({
-  deposit,
-  open,
-  onOpenChange,
-}: ApproveDepositDialogProps) {
+export function ApproveDepositDialog({ deposit, open, onOpenChange }: ApproveDepositDialogProps) {
   const queryClient = useQueryClient();
 
   const approveMutation = useMutation({
@@ -45,8 +41,8 @@ export function ApproveDepositDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Verify Deposit</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to verify this deposit? This action will mark the
-            deposit as verified and cannot be undone.
+            Are you sure you want to verify this deposit? This action will mark the deposit as
+            verified and cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -61,9 +57,7 @@ export function ApproveDepositDialog({
           </div>
           <div className="flex justify-between">
             <span className="text-sm text-muted-foreground">Amount:</span>
-            <span className="text-sm font-medium">
-              {deposit.amount.toLocaleString()}
-            </span>
+            <span className="text-sm font-medium">{deposit.amount.toLocaleString()}</span>
           </div>
           {deposit.transaction_hash && (
             <div className="flex justify-between">

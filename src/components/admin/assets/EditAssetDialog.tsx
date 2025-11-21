@@ -49,8 +49,7 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
   }, [asset]);
 
   const updateMutation = useMutation({
-    mutationFn: (data: Partial<AssetFormData>) =>
-      assetService.updateAsset(asset.asset_id, data),
+    mutationFn: (data: Partial<AssetFormData>) => assetService.updateAsset(asset.asset_id, data),
     onSuccess: () => {
       toast.success("Asset updated successfully");
       queryClient.invalidateQueries({ queryKey: ["assets"] });
@@ -72,9 +71,7 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Asset: {asset.symbol}</DialogTitle>
-          <DialogDescription>
-            Update asset information and metadata
-          </DialogDescription>
+          <DialogDescription>Update asset information and metadata</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -89,9 +86,7 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
               <Input
                 id="symbol"
                 value={formData.symbol || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, symbol: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, symbol: e.target.value })}
                 required
               />
             </div>
@@ -102,9 +97,7 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
             <Input
               id="name"
               value={formData.name || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
             />
           </div>
@@ -114,9 +107,7 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
               <Label htmlFor="kind">Kind *</Label>
               <Select
                 value={formData.kind}
-                onValueChange={(value: AssetKind) =>
-                  setFormData({ ...formData, kind: value })
-                }
+                onValueChange={(value: AssetKind) => setFormData({ ...formData, kind: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -139,9 +130,7 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
                 min="0"
                 max="18"
                 value={formData.decimals || 0}
-                onChange={(e) =>
-                  setFormData({ ...formData, decimals: parseInt(e.target.value) })
-                }
+                onChange={(e) => setFormData({ ...formData, decimals: parseInt(e.target.value) })}
                 required
               />
             </div>
@@ -153,9 +142,7 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
               <Input
                 id="chain"
                 value={formData.chain || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, chain: e.target.value || undefined })
-                }
+                onChange={(e) => setFormData({ ...formData, chain: e.target.value || undefined })}
               />
             </div>
 
@@ -178,19 +165,13 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
             <Switch
               id="is_active"
               checked={formData.is_active}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, is_active: checked })
-              }
+              onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
             />
             <Label htmlFor="is_active">Active</Label>
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={updateMutation.isPending}>

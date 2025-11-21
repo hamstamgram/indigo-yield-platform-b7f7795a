@@ -1,5 +1,5 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { cn } from "@/lib/utils";
 
 interface SkeletonProps {
   className?: string;
@@ -22,9 +22,9 @@ export const Skeleton: React.FC<SkeletonProps> = ({ className }) => {
 /**
  * Text skeleton for loading text content
  */
-export const TextSkeleton: React.FC<{ lines?: number; className?: string }> = ({ 
-  lines = 3, 
-  className 
+export const TextSkeleton: React.FC<{ lines?: number; className?: string }> = ({
+  lines = 3,
+  className,
 }) => {
   return (
     <div className={cn("space-y-2", className)}>
@@ -66,9 +66,9 @@ export const CardSkeleton: React.FC<{ className?: string }> = ({ className }) =>
 /**
  * Table skeleton for loading table data
  */
-export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({ 
-  rows = 5, 
-  columns = 4 
+export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({
+  rows = 5,
+  columns = 4,
 }) => {
   return (
     <div className="w-full">
@@ -80,20 +80,17 @@ export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({
           ))}
         </div>
       </div>
-      
+
       {/* Rows */}
       <div className="space-y-3">
         {Array.from({ length: rows }).map((_, rowIndex) => (
-          <div 
-            key={rowIndex} 
-            className="grid gap-4" 
+          <div
+            key={rowIndex}
+            className="grid gap-4"
             style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
           >
             {Array.from({ length: columns }).map((_, colIndex) => (
-              <Skeleton 
-                key={colIndex} 
-                className={`h-6 ${colIndex === 0 ? 'w-full' : 'w-4/5'}`}
-              />
+              <Skeleton key={colIndex} className={`h-6 ${colIndex === 0 ? "w-full" : "w-4/5"}`} />
             ))}
           </div>
         ))}
@@ -116,18 +113,15 @@ export const ChartSkeleton: React.FC<{ className?: string }> = ({ className }) =
           <Skeleton className="h-8 w-16" />
         </div>
       </div>
-      
+
       <div className="relative h-64">
         <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between h-full">
           {Array.from({ length: 12 }).map((_, i) => (
-            <Skeleton
-              key={i}
-              className={`w-8 h-${Math.floor(Math.random() * 8) + 5}`}
-            />
+            <Skeleton key={i} className={`w-8 h-${Math.floor(Math.random() * 8) + 5}`} />
           ))}
         </div>
       </div>
-      
+
       <div className="flex justify-center mt-4 space-x-4">
         <div className="flex items-center space-x-2">
           <Skeleton className="h-3 w-3 rounded-full" />
@@ -161,10 +155,10 @@ export const DashboardSkeleton: React.FC = () => {
           </div>
         ))}
       </div>
-      
+
       {/* Chart */}
       <ChartSkeleton />
-      
+
       {/* Table */}
       <div className="bg-white rounded-lg shadow-sm p-6">
         <Skeleton className="h-6 w-40 mb-4" />
@@ -239,5 +233,5 @@ export default {
   DashboardSkeleton,
   FormSkeleton,
   ProfileSkeleton,
-  ListSkeleton
+  ListSkeleton,
 };

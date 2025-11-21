@@ -93,9 +93,7 @@ export function AssetPriceDialog({ asset, open, onOpenChange }: AssetPriceDialog
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">
-                  ${latestPrice.price_usd.toLocaleString()}
-                </div>
+                <div className="text-3xl font-bold">${latestPrice.price_usd.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground mt-1">
                   As of {format(new Date(latestPrice.as_of), "MMM d, yyyy h:mm a")}
                 </p>
@@ -148,9 +146,7 @@ export function AssetPriceDialog({ asset, open, onOpenChange }: AssetPriceDialog
                       <Input
                         id="source"
                         value={priceData.source}
-                        onChange={(e) =>
-                          setPriceData({ ...priceData, source: e.target.value })
-                        }
+                        onChange={(e) => setPriceData({ ...priceData, source: e.target.value })}
                       />
                     </div>
                   </div>
@@ -166,9 +162,7 @@ export function AssetPriceDialog({ asset, open, onOpenChange }: AssetPriceDialog
                         onChange={(e) =>
                           setPriceData({
                             ...priceData,
-                            high_24h: e.target.value
-                              ? parseFloat(e.target.value)
-                              : undefined,
+                            high_24h: e.target.value ? parseFloat(e.target.value) : undefined,
                           })
                         }
                       />
@@ -184,9 +178,7 @@ export function AssetPriceDialog({ asset, open, onOpenChange }: AssetPriceDialog
                         onChange={(e) =>
                           setPriceData({
                             ...priceData,
-                            low_24h: e.target.value
-                              ? parseFloat(e.target.value)
-                              : undefined,
+                            low_24h: e.target.value ? parseFloat(e.target.value) : undefined,
                           })
                         }
                       />
@@ -202,11 +194,7 @@ export function AssetPriceDialog({ asset, open, onOpenChange }: AssetPriceDialog
                     >
                       Cancel
                     </Button>
-                    <Button
-                      type="submit"
-                      disabled={addPriceMutation.isPending}
-                      className="flex-1"
-                    >
+                    <Button type="submit" disabled={addPriceMutation.isPending} className="flex-1">
                       {addPriceMutation.isPending ? "Adding..." : "Add Price"}
                     </Button>
                   </div>
@@ -248,14 +236,10 @@ export function AssetPriceDialog({ asset, open, onOpenChange }: AssetPriceDialog
                             ${price.price_usd.toLocaleString()}
                           </TableCell>
                           <TableCell>
-                            {price.high_24h
-                              ? `$${price.high_24h.toLocaleString()}`
-                              : "—"}
+                            {price.high_24h ? `$${price.high_24h.toLocaleString()}` : "—"}
                           </TableCell>
                           <TableCell>
-                            {price.low_24h
-                              ? `$${price.low_24h.toLocaleString()}`
-                              : "—"}
+                            {price.low_24h ? `$${price.low_24h.toLocaleString()}` : "—"}
                           </TableCell>
                           <TableCell>{price.source}</TableCell>
                         </TableRow>

@@ -2,11 +2,13 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // Secure CORS configuration
-const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [];
+const allowedOrigins = Deno.env.get("ALLOWED_ORIGINS")?.split(",") || [];
 const corsHeaders = (origin: string | null) => ({
-  'Access-Control-Allow-Origin': origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  "Access-Control-Allow-Origin":
+    origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-csrf-token",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 });
 
 interface YieldCalculation {
@@ -36,9 +38,9 @@ interface YieldSummary {
 }
 
 serve(async (req) => {
-  const origin = req.headers.get('origin');
+  const origin = req.headers.get("origin");
   const headers = corsHeaders(origin);
-  
+
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers });
@@ -46,12 +48,12 @@ serve(async (req) => {
 
   try {
     // CSRF validation for state-changing operations
-    const csrfToken = req.headers.get('x-csrf-token');
+    const csrfToken = req.headers.get("x-csrf-token");
     if (!csrfToken || csrfToken.length < 32) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Invalid CSRF token' }),
-        { headers: { ...headers, 'Content-Type': 'application/json' }, status: 403 }
-      );
+      return new Response(JSON.stringify({ success: false, error: "Invalid CSRF token" }), {
+        headers: { ...headers, "Content-Type": "application/json" },
+        status: 403,
+      });
     }
     // Validate environment variables
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -60,29 +62,25 @@ serve(async (req) => {
     if (!supabaseUrl || !supabaseAnonKey) {
       console.error("Missing required environment variables", {
         has_url: !!supabaseUrl,
-        has_key: !!supabaseAnonKey
+        has_key: !!supabaseAnonKey,
       });
 
       return new Response(
         JSON.stringify({
-          error: "Server configuration error. Please contact support."
+          error: "Server configuration error. Please contact support.",
         }),
         {
           status: 500,
-          headers: { ...headers, "Content-Type": "application/json" }
+          headers: { ...headers, "Content-Type": "application/json" },
         }
       );
     }
 
-    const supabaseClient = createClient(
-      supabaseUrl,
-      supabaseAnonKey,
-      {
-        global: {
-          headers: { Authorization: req.headers.get("Authorization")! },
-        },
-      }
-    );
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: { Authorization: req.headers.get("Authorization")! },
+      },
+    });
 
     // Get authenticated user
     const {
@@ -91,13 +89,10 @@ serve(async (req) => {
     } = await supabaseClient.auth.getUser();
 
     if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        {
-          status: 401,
-          headers: { ...headers, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...headers, "Content-Type": "application/json" },
+      });
     }
 
     const url = new URL(req.url);
@@ -113,27 +108,26 @@ serve(async (req) => {
         .single();
 
       if (!adminData) {
-        return new Response(
-          JSON.stringify({ error: "Forbidden: Admin access required" }),
-          {
-            status: 403,
-            headers: { ...headers, "Content-Type": "application/json" },
-          }
-        );
+        return new Response(JSON.stringify({ error: "Forbidden: Admin access required" }), {
+          status: 403,
+          headers: { ...headers, "Content-Type": "application/json" },
+        });
       }
     }
 
     // Fetch all yield-generating positions
     const { data: yieldPositions, error: positionsError } = await supabaseClient
       .from("yield_positions")
-      .select(`
+      .select(
+        `
         *,
         crypto_assets (
           id,
           symbol,
           current_price
         )
-      `)
+      `
+      )
       .eq("user_id", userId)
       .eq("is_active", true);
 
@@ -154,7 +148,7 @@ serve(async (req) => {
       const accruedYield = principal * (Math.pow(1 + apy / 365, daysSinceLastCalc) - 1);
 
       // Determine next payout date based on payout frequency
-      let nextPayoutDate = new Date(lastCalc);
+      const nextPayoutDate = new Date(lastCalc);
       switch (position.payout_frequency) {
         case "daily":
           nextPayoutDate.setDate(nextPayoutDate.getDate() + 1);
@@ -200,17 +194,15 @@ serve(async (req) => {
         }
 
         // Create yield transaction record
-        const { error: txnError } = await supabaseClient
-          .from("yield_transactions")
-          .insert({
-            user_id: userId,
-            position_id: position.id,
-            asset_id: position.asset_id,
-            yield_amount: accruedYield,
-            yield_type: position.yield_type,
-            apy: position.current_apy,
-            calculation_date: now.toISOString(),
-          });
+        const { error: txnError } = await supabaseClient.from("yield_transactions").insert({
+          user_id: userId,
+          position_id: position.id,
+          asset_id: position.asset_id,
+          yield_amount: accruedYield,
+          yield_type: position.yield_type,
+          apy: position.current_apy,
+          calculation_date: now.toISOString(),
+        });
 
         if (txnError) {
           console.error(`Failed to create yield transaction:`, txnError);

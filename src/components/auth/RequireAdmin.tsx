@@ -19,9 +19,9 @@ export default function RequireAdmin({ children, redirectTo = "/dashboard" }: Re
     if (loading) return; // Wait for auth to load
 
     // If not authenticated and no preview mode, redirect to login
-    if (!session && !import.meta.env.VITE_PREVIEW_ADMIN && !localStorage.getItem('app.role')) {
+    if (!session && !import.meta.env.VITE_PREVIEW_ADMIN && !localStorage.getItem("app.role")) {
       console.log("No session found and not in preview mode, redirecting to login");
-      navigate('/login', { replace: true });
+      navigate("/login", { replace: true });
       return;
     }
 

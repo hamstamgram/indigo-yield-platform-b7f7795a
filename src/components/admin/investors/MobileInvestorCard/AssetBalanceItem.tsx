@@ -1,7 +1,6 @@
-
-import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Asset } from '@/types/investorTypes';
+import React from "react";
+import { Input } from "@/components/ui/input";
+import { Asset } from "@/types/investorTypes";
 
 interface AssetBalanceItemProps {
   asset: Asset;
@@ -18,15 +17,15 @@ const AssetBalanceItem: React.FC<AssetBalanceItemProps> = ({
   balance,
   portfolioSummary,
   isEditing,
-  onChange
+  onChange,
 }) => {
   const normalizedSymbol = asset.symbol.toUpperCase();
-  
+
   return (
     <div className="flex justify-between items-center">
       <div className="font-medium">{asset.symbol}</div>
       {isEditing ? (
-        <Input 
+        <Input
           type="number"
           step="0.00000001"
           value={balance}
@@ -35,9 +34,9 @@ const AssetBalanceItem: React.FC<AssetBalanceItemProps> = ({
         />
       ) : (
         <div>
-          {portfolioSummary && portfolioSummary[normalizedSymbol] 
+          {portfolioSummary && portfolioSummary[normalizedSymbol]
             ? `${portfolioSummary[normalizedSymbol].balance.toFixed(4)}`
-            : '-'}
+            : "-"}
         </div>
       )}
     </div>

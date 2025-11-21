@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 export interface OperationsMetrics {
   pendingApprovals: number;
@@ -33,46 +33,41 @@ export const operationsService = {
       ] = await Promise.all([
         // Pending withdrawals
         supabase
-          .from('withdrawal_requests')
-          .select('id', { count: 'exact', head: true })
-          .in('status', ['pending', 'approved']),
+          .from("withdrawal_requests")
+          .select("id", { count: "exact", head: true })
+          .in("status", ["pending", "approved"]),
 
         // Pending deposits
         supabase
-          .from('deposits')
-          .select('id', { count: 'exact', head: true })
-          .eq('status', 'pending'),
+          .from("deposits")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pending"),
 
         // Pending investments
         supabase
-          .from('investments')
-          .select('id', { count: 'exact', head: true })
-          .eq('status', 'pending'),
+          .from("investments")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pending"),
 
         // Today's transactions
         supabase
-          .from('transactions_v2')
-          .select('id', { count: 'exact', head: true })
-          .gte('txn_date', new Date().toISOString().split('T')[0]),
+          .from("transactions_v2")
+          .select("id", { count: "exact", head: true })
+          .gte("txn_date", new Date().toISOString().split("T")[0]),
 
         // Active investors
         supabase
-          .from('investors')
-          .select('id', { count: 'exact', head: true })
-          .eq('status', 'active'),
+          .from("investors")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "active"),
 
         // Total AUM from investor positions
-        supabase
-          .from('investor_positions')
-          .select('current_value')
-          .gt('current_value', 0),
+        supabase.from("investor_positions").select("current_value").gt("current_value", 0),
       ]);
 
       // Calculate total AUM
-      const totalAUM = aumResult.data?.reduce(
-        (sum, position) => sum + (position.current_value || 0),
-        0
-      ) || 0;
+      const totalAUM =
+        aumResult.data?.reduce((sum, position) => sum + (position.current_value || 0), 0) || 0;
 
       const pendingWithdrawals = withdrawalsResult.count || 0;
       const pendingDeposits = depositsResult.count || 0;
@@ -88,7 +83,7 @@ export const operationsService = {
         pendingInvestments,
       };
     } catch (error) {
-      console.error('Error fetching operations metrics:', error);
+      console.error("Error fetching operations metrics:", error);
       throw error;
     }
   },
@@ -100,20 +95,20 @@ export const operationsService = {
     try {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayDate = yesterday.toISOString().split('T')[0];
+      const yesterdayDate = yesterday.toISOString().split("T")[0];
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString().split("T")[0];
 
       const { count, error } = await supabase
-        .from('transactions_v2')
-        .select('id', { count: 'exact', head: true })
-        .gte('txn_date', yesterdayDate)
-        .lt('txn_date', today);
+        .from("transactions_v2")
+        .select("id", { count: "exact", head: true })
+        .gte("txn_date", yesterdayDate)
+        .lt("txn_date", today);
 
       if (error) throw error;
       return count || 0;
     } catch (error) {
-      console.error('Error fetching yesterday transactions:', error);
+      console.error("Error fetching yesterday transactions:", error);
       return 0;
     }
   },
@@ -133,9 +128,9 @@ export const operationsService = {
    * Calculate trend percentage
    */
   calculateTrend(current: number, previous: number): string {
-    if (previous === 0) return current > 0 ? '+100%' : '0%';
+    if (previous === 0) return current > 0 ? "+100%" : "0%";
     const change = ((current - previous) / previous) * 100;
-    const sign = change >= 0 ? '+' : '';
+    const sign = change >= 0 ? "+" : "";
     return `${sign}${change.toFixed(1)}%`;
   },
 };

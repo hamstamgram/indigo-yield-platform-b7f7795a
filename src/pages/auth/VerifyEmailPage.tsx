@@ -1,42 +1,42 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, CheckCircle2, Loader2, XCircle } from 'lucide-react';
-import AppLogo from '@/components/AppLogo';
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Mail, CheckCircle2, Loader2, XCircle } from "lucide-react";
+import AppLogo from "@/components/AppLogo";
 
 export default function VerifyEmailPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
+  const [status, setStatus] = useState<"verifying" | "success" | "error">("verifying");
   const [isResending, setIsResending] = useState(false);
 
   useEffect(() => {
     const verifyEmail = async () => {
-      const token = searchParams.get('token');
-      const type = searchParams.get('type');
+      const token = searchParams.get("token");
+      const type = searchParams.get("type");
 
-      if (token && type === 'email') {
+      if (token && type === "email") {
         try {
           const { error } = await supabase.auth.verifyOtp({
             token_hash: token,
-            type: 'email',
+            type: "email",
           });
 
           if (error) throw error;
 
-          setStatus('success');
-          toast.success('Email verified successfully!');
+          setStatus("success");
+          toast.success("Email verified successfully!");
 
           setTimeout(() => {
-            navigate('/dashboard');
+            navigate("/dashboard");
           }, 2000);
         } catch (error: any) {
-          console.error('Verification error:', error);
-          setStatus('error');
-          toast.error('Failed to verify email');
+          console.error("Verification error:", error);
+          setStatus("error");
+          toast.error("Failed to verify email");
         }
       }
     };
@@ -47,21 +47,23 @@ export default function VerifyEmailPage() {
   const handleResendEmail = async () => {
     setIsResending(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (user?.email) {
         const { error } = await supabase.auth.resend({
-          type: 'signup',
+          type: "signup",
           email: user.email,
         });
 
         if (error) throw error;
 
-        toast.success('Verification email sent! Please check your inbox.');
+        toast.success("Verification email sent! Please check your inbox.");
       }
     } catch (error: any) {
-      console.error('Resend error:', error);
-      toast.error('Failed to resend verification email');
+      console.error("Resend error:", error);
+      toast.error("Failed to resend verification email");
     } finally {
       setIsResending(false);
     }
@@ -75,17 +77,15 @@ export default function VerifyEmailPage() {
             <AppLogo className="h-12" />
           </div>
 
-          {status === 'verifying' && (
+          {status === "verifying" && (
             <>
               <Loader2 className="h-16 w-16 animate-spin text-primary mx-auto" />
               <CardTitle className="text-2xl font-bold">Verifying Email</CardTitle>
-              <CardDescription>
-                Please wait while we verify your email address...
-              </CardDescription>
+              <CardDescription>Please wait while we verify your email address...</CardDescription>
             </>
           )}
 
-          {status === 'success' && (
+          {status === "success" && (
             <>
               <CheckCircle2 className="h-16 w-16 text-green-600 mx-auto" />
               <CardTitle className="text-2xl font-bold">Email Verified!</CardTitle>
@@ -95,7 +95,7 @@ export default function VerifyEmailPage() {
             </>
           )}
 
-          {status === 'error' && (
+          {status === "error" && (
             <>
               <XCircle className="h-16 w-16 text-destructive mx-auto" />
               <CardTitle className="text-2xl font-bold">Verification Failed</CardTitle>
@@ -106,13 +106,9 @@ export default function VerifyEmailPage() {
           )}
         </CardHeader>
 
-        {status === 'error' && (
+        {status === "error" && (
           <CardContent className="space-y-4">
-            <Button
-              className="w-full"
-              onClick={handleResendEmail}
-              disabled={isResending}
-            >
+            <Button className="w-full" onClick={handleResendEmail} disabled={isResending}>
               {isResending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -126,20 +122,16 @@ export default function VerifyEmailPage() {
               )}
             </Button>
 
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => navigate('/login')}
-            >
+            <Button variant="outline" className="w-full" onClick={() => navigate("/login")}>
               Return to Login
             </Button>
           </CardContent>
         )}
 
-        {status === 'verifying' && (
+        {status === "verifying" && (
           <CardContent className="text-center">
             <p className="text-sm text-muted-foreground">
-              Haven't received the email?{' '}
+              Haven't received the email?{" "}
               <button
                 onClick={handleResendEmail}
                 disabled={isResending}

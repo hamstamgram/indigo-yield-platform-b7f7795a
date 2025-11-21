@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
-import { AuditEvent } from '@/types/common';
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { AuditEvent } from "@/types/common";
 
 const AuditDrilldown = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,11 +19,11 @@ const AuditDrilldown = () => {
   const fetchAuditEvent = async (eventId: string) => {
     try {
       setLoading(true);
-      
+
       const { data, error } = await supabase
-        .from('audit_log')
-        .select('*')
-        .eq('id', eventId)
+        .from("audit_log")
+        .select("*")
+        .eq("id", eventId)
         .single();
 
       if (error) throw error;
@@ -31,21 +31,30 @@ const AuditDrilldown = () => {
       if (data) {
         const transformedEvent: AuditEvent = {
           event_id: data.id,
-          user_id: data.actor_user || '',
-          actor_user: data.actor_user || '',
-          entity: data.entity || '',
-          entity_id: data.entity_id || '',
-          operation: data.action || '',
-          source_table: data.entity || '',
-          old_values: (typeof data.old_values === 'object' && data.old_values !== null) ? data.old_values as Record<string, any> : {},
-          new_values: (typeof data.new_values === 'object' && data.new_values !== null) ? data.new_values as Record<string, any> : {},
-          meta: (typeof data.meta === 'object' && data.meta !== null) ? data.meta as Record<string, any> : {},
-          created_at: data.created_at
+          user_id: data.actor_user || "",
+          actor_user: data.actor_user || "",
+          entity: data.entity || "",
+          entity_id: data.entity_id || "",
+          operation: data.action || "",
+          source_table: data.entity || "",
+          old_values:
+            typeof data.old_values === "object" && data.old_values !== null
+              ? (data.old_values as Record<string, any>)
+              : {},
+          new_values:
+            typeof data.new_values === "object" && data.new_values !== null
+              ? (data.new_values as Record<string, any>)
+              : {},
+          meta:
+            typeof data.meta === "object" && data.meta !== null
+              ? (data.meta as Record<string, any>)
+              : {},
+          created_at: data.created_at,
         };
         setAuditEvent(transformedEvent);
       }
     } catch (error) {
-      console.error('Error fetching audit event:', error);
+      console.error("Error fetching audit event:", error);
     } finally {
       setLoading(false);
     }
@@ -62,7 +71,7 @@ const AuditDrilldown = () => {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold">Audit Event Details</h1>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Event Information</CardTitle>

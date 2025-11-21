@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient } from "@tanstack/react-query";
 
 // Query client configuration with optimized caching
 export const queryClient = new QueryClient({
@@ -27,61 +27,67 @@ export const queryClient = new QueryClient({
 // Cache keys for consistent query invalidation
 export const CACHE_KEYS = {
   // User data
-  USER_PROFILE: 'userProfile',
-  USER_SETTINGS: 'userSettings',
-  
+  USER_PROFILE: "userProfile",
+  USER_SETTINGS: "userSettings",
+
   // Portfolio data
-  PORTFOLIO_SUMMARY: 'portfolioSummary',
-  PORTFOLIO_POSITIONS: 'portfolioPositions',
-  PORTFOLIO_PERFORMANCE: 'portfolioPerformance',
-  
+  PORTFOLIO_SUMMARY: "portfolioSummary",
+  PORTFOLIO_POSITIONS: "portfolioPositions",
+  PORTFOLIO_PERFORMANCE: "portfolioPerformance",
+
   // Transaction data
-  TRANSACTIONS: 'transactions',
-  TRANSACTION_HISTORY: 'transactionHistory',
-  RECENT_TRANSACTIONS: 'recentTransactions',
-  
+  TRANSACTIONS: "transactions",
+  TRANSACTION_HISTORY: "transactionHistory",
+  RECENT_TRANSACTIONS: "recentTransactions",
+
   // Admin data
-  ADMIN_METRICS: 'adminMetrics',
-  ADMIN_USERS: 'adminUsers',
-  ADMIN_SYSTEM_HEALTH: 'adminSystemHealth',
-  
+  ADMIN_METRICS: "adminMetrics",
+  ADMIN_USERS: "adminUsers",
+  ADMIN_SYSTEM_HEALTH: "adminSystemHealth",
+
   // Real-time data (shorter cache times)
-  LIVE_PRICES: 'livePrices',
-  MARKET_DATA: 'marketData',
+  LIVE_PRICES: "livePrices",
+  MARKET_DATA: "marketData",
 } as const;
 
 // Utility functions for cache management
 export const cacheUtils = {
   // Invalidate user-specific caches
   invalidateUserCache: (userId: string) => {
-    queryClient.invalidateQueries({ 
+    queryClient.invalidateQueries({
       predicate: (query) => {
-        return query.queryKey.includes(userId) || 
-               query.queryKey.includes(CACHE_KEYS.USER_PROFILE) ||
-               query.queryKey.includes(CACHE_KEYS.PORTFOLIO_SUMMARY);
-      }
+        return (
+          query.queryKey.includes(userId) ||
+          query.queryKey.includes(CACHE_KEYS.USER_PROFILE) ||
+          query.queryKey.includes(CACHE_KEYS.PORTFOLIO_SUMMARY)
+        );
+      },
     });
   },
 
   // Invalidate portfolio caches
   invalidatePortfolioCache: () => {
-    queryClient.invalidateQueries({ 
+    queryClient.invalidateQueries({
       predicate: (query) => {
-        return query.queryKey.includes(CACHE_KEYS.PORTFOLIO_SUMMARY) ||
-               query.queryKey.includes(CACHE_KEYS.PORTFOLIO_POSITIONS) ||
-               query.queryKey.includes(CACHE_KEYS.PORTFOLIO_PERFORMANCE);
-      }
+        return (
+          query.queryKey.includes(CACHE_KEYS.PORTFOLIO_SUMMARY) ||
+          query.queryKey.includes(CACHE_KEYS.PORTFOLIO_POSITIONS) ||
+          query.queryKey.includes(CACHE_KEYS.PORTFOLIO_PERFORMANCE)
+        );
+      },
     });
   },
 
   // Invalidate transaction caches
   invalidateTransactionCache: () => {
-    queryClient.invalidateQueries({ 
+    queryClient.invalidateQueries({
       predicate: (query) => {
-        return query.queryKey.includes(CACHE_KEYS.TRANSACTIONS) ||
-               query.queryKey.includes(CACHE_KEYS.TRANSACTION_HISTORY) ||
-               query.queryKey.includes(CACHE_KEYS.RECENT_TRANSACTIONS);
-      }
+        return (
+          query.queryKey.includes(CACHE_KEYS.TRANSACTIONS) ||
+          query.queryKey.includes(CACHE_KEYS.TRANSACTION_HISTORY) ||
+          query.queryKey.includes(CACHE_KEYS.RECENT_TRANSACTIONS)
+        );
+      },
     });
   },
 
@@ -155,6 +161,9 @@ class MemoryCache {
 export const memoryCache = new MemoryCache();
 
 // Auto cleanup every 5 minutes
-setInterval(() => {
-  memoryCache.cleanup();
-}, 5 * 60 * 1000);
+setInterval(
+  () => {
+    memoryCache.cleanup();
+  },
+  5 * 60 * 1000
+);

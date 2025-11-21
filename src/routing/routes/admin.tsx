@@ -1,14 +1,14 @@
 /**
  * Admin Routes Module
  * All admin-protected routes organized by functional area
- * 
+ *
  * Module Structure:
  * - Core: Main dashboard and portfolio overview (3 routes)
  * - Investors: Investor management and tracking (14 routes)
  * - Operations: Day-to-day operations and data entry (18 routes)
  * - Reports: Reporting and analytics (5 routes)
  * - System: Settings, audit, users, compliance (9 routes)
- * 
+ *
  * Total: 49 admin routes
  */
 

@@ -3,7 +3,7 @@
  * Client-side functions for fund operations
  */
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Fund {
   id: string;
@@ -13,7 +13,7 @@ export interface Fund {
   fund_class?: string;
   strategy?: string;
   inception_date: string;
-  status: 'active' | 'inactive' | 'suspended';
+  status: "active" | "inactive" | "suspended";
   mgmt_fee_bps: number;
   perf_fee_bps: number;
   high_water_mark: number;
@@ -58,9 +58,9 @@ export interface FundKPI {
  */
 export async function listFunds() {
   const { data, error } = await supabase
-    .from('funds')
-    .select('*')
-    .order('created_at', { ascending: false });
+    .from("funds")
+    .select("*")
+    .order("created_at", { ascending: false });
 
   if (error) throw error;
   return data as Fund[];
@@ -70,11 +70,7 @@ export async function listFunds() {
  * Get fund by ID
  */
 export async function getFund(fundId: string) {
-  const { data, error } = await supabase
-    .from('funds')
-    .select('*')
-    .eq('id', fundId)
-    .maybeSingle();
+  const { data, error } = await supabase.from("funds").select("*").eq("id", fundId).maybeSingle();
 
   if (error) throw error;
   if (!data) throw new Error(`Fund not found: ${fundId}`);
@@ -84,21 +80,21 @@ export async function getFund(fundId: string) {
 /**
  * Create new fund
  */
-export async function createFund(fund: Omit<Fund, 'id' | 'created_at' | 'updated_at'>) {
+export async function createFund(fund: Omit<Fund, "id" | "created_at" | "updated_at">) {
   const fundWithDefaults = {
     ...fund,
-    fund_class: fund.fund_class || 'default',
-    asset: fund.asset || 'BTC'
+    fund_class: fund.fund_class || "default",
+    asset: fund.asset || "BTC",
   };
-  
+
   const { data, error } = await supabase
-    .from('funds')
+    .from("funds")
     .insert(fundWithDefaults)
     .select()
     .maybeSingle();
 
   if (error) throw error;
-  if (!data) throw new Error('Failed to create fund');
+  if (!data) throw new Error("Failed to create fund");
   return data as Fund;
 }
 
@@ -107,9 +103,9 @@ export async function createFund(fund: Omit<Fund, 'id' | 'created_at' | 'updated
  */
 export async function updateFund(fundId: string, updates: Partial<Fund>) {
   const { data, error } = await supabase
-    .from('funds')
+    .from("funds")
     .update(updates)
-    .eq('id', fundId)
+    .eq("id", fundId)
     .select()
     .maybeSingle();
 
@@ -123,16 +119,16 @@ export async function updateFund(fundId: string, updates: Partial<Fund>) {
  */
 export async function listDailyNav(fundId: string, startDate?: string, endDate?: string) {
   let query = supabase
-    .from('daily_nav')
-    .select('*')
-    .eq('fund_id', fundId)
-    .order('nav_date', { ascending: false });
+    .from("daily_nav")
+    .select("*")
+    .eq("fund_id", fundId)
+    .order("nav_date", { ascending: false });
 
   if (startDate) {
-    query = query.gte('nav_date', startDate);
+    query = query.gte("nav_date", startDate);
   }
   if (endDate) {
-    query = query.lte('nav_date', endDate);
+    query = query.lte("nav_date", endDate);
   }
 
   const { data, error } = await query;
@@ -146,8 +142,8 @@ export async function listDailyNav(fundId: string, startDate?: string, endDate?:
  */
 export async function upsertDailyNav(rows: DailyNav[]) {
   const { data, error } = await supabase
-    .from('daily_nav')
-    .upsert(rows, { onConflict: 'fund_id,nav_date' })
+    .from("daily_nav")
+    .upsert(rows, { onConflict: "fund_id,nav_date" })
     .select();
 
   if (error) throw error;
@@ -158,9 +154,7 @@ export async function upsertDailyNav(rows: DailyNav[]) {
  * Get fund KPIs
  */
 export async function getFundKPIs() {
-  const { data, error } = await supabase
-    .from('v_fund_kpis')
-    .select('*');
+  const { data, error } = await supabase.from("v_fund_kpis").select("*");
 
   if (error) throw error;
   return data as FundKPI[];
@@ -170,18 +164,17 @@ export async function getFundKPIs() {
  * Calculate fund returns for a period
  */
 export async function calculateFundReturns(
-  fundId: string, 
-  startDate: string, 
-  endDate: string, 
+  fundId: string,
+  startDate: string,
+  endDate: string,
   net: boolean = true
 ) {
-  const { data, error } = await supabase
-    .rpc('fund_period_return', {
-      f: fundId,
-      d1: startDate,
-      d2: endDate,
-      net
-    });
+  const { data, error } = await supabase.rpc("fund_period_return", {
+    f: fundId,
+    d1: startDate,
+    d2: endDate,
+    net,
+  });
 
   if (error) throw error;
   return data as number;
@@ -192,10 +185,10 @@ export async function calculateFundReturns(
  */
 export async function getLatestNav(fundId: string) {
   const { data, error } = await supabase
-    .from('daily_nav')
-    .select('*')
-    .eq('fund_id', fundId)
-    .order('nav_date', { ascending: false })
+    .from("daily_nav")
+    .select("*")
+    .eq("fund_id", fundId)
+    .order("nav_date", { ascending: false })
     .limit(1)
     .maybeSingle();
 
@@ -208,19 +201,19 @@ export async function getLatestNav(fundId: string) {
  */
 export async function getFundPerformance(fundId: string) {
   const { data: kpi, error: kpiError } = await supabase
-    .from('v_fund_kpis')
-    .select('*')
-    .eq('fund_id', fundId)
+    .from("v_fund_kpis")
+    .select("*")
+    .eq("fund_id", fundId)
     .maybeSingle();
 
   if (kpiError) throw kpiError;
   if (!kpi) throw new Error(`Fund KPIs not found: ${fundId}`);
 
   const { data: navHistory, error: navError } = await supabase
-    .from('daily_nav')
-    .select('nav_date, aum, net_return_pct')
-    .eq('fund_id', fundId)
-    .order('nav_date', { ascending: true })
+    .from("daily_nav")
+    .select("nav_date, aum, net_return_pct")
+    .eq("fund_id", fundId)
+    .order("nav_date", { ascending: true })
     .limit(365); // Last year
 
   if (navError) throw navError;
@@ -231,7 +224,6 @@ export async function getFundPerformance(fundId: string) {
       nav_date: string;
       aum: number;
       net_return_pct: number | null;
-    }>
+    }>,
   };
 }
-

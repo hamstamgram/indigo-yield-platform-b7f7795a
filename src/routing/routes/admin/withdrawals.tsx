@@ -1,6 +1,6 @@
-import { Route } from 'react-router-dom';
-import { AdminRoute } from '@/routing/AdminRoute';
-import AdminWithdrawalsPage from '@/pages/admin/AdminWithdrawalsPage';
+import { Route } from "react-router-dom";
+import { AdminRoute } from "@/routing/AdminRoute";
+import AdminWithdrawalsPage from "@/pages/admin/AdminWithdrawalsPage";
 
 export function WithdrawalRoutes() {
   return (

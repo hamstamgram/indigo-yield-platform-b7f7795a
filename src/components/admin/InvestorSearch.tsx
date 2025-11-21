@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 interface InvestorSearchProps {
   onSearch: (query: string) => void;
@@ -11,11 +11,11 @@ interface InvestorSearchProps {
 
 export default function InvestorSearch({
   onSearch,
-  placeholder = 'Search investors...',
+  placeholder = "Search investors...",
   debounceMs = 300,
-  className = '',
+  className = "",
 }: InvestorSearchProps) {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const handler = setTimeout(() => {

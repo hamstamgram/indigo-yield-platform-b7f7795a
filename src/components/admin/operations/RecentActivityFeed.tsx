@@ -44,9 +44,7 @@ export function RecentActivityFeed({ activities, maxHeight = "400px" }: RecentAc
         <ScrollArea className="pr-4" style={{ maxHeight }}>
           <div className="space-y-4">
             {activities.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                No recent activity
-              </p>
+              <p className="text-sm text-muted-foreground text-center py-8">No recent activity</p>
             ) : (
               activities.map((activity) => {
                 const Icon = activity.icon;

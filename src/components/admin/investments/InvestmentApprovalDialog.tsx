@@ -83,7 +83,8 @@ export function InvestmentApprovalDialog({
             {mode === "approve" ? "Approve Investment" : "Reject Investment"}
           </DialogTitle>
           <DialogDescription>
-            Investment from {investment.investor_name} for ${Number(investment.amount).toLocaleString()}
+            Investment from {investment.investor_name} for $
+            {Number(investment.amount).toLocaleString()}
           </DialogDescription>
         </DialogHeader>
 
@@ -94,7 +95,9 @@ export function InvestmentApprovalDialog({
             <div className="text-muted-foreground">Amount:</div>
             <div className="font-medium">${Number(investment.amount).toLocaleString()}</div>
             <div className="text-muted-foreground">Date:</div>
-            <div className="font-medium">{new Date(investment.investment_date).toLocaleDateString()}</div>
+            <div className="font-medium">
+              {new Date(investment.investment_date).toLocaleDateString()}
+            </div>
             <div className="text-muted-foreground">Type:</div>
             <div className="font-medium capitalize">{investment.transaction_type}</div>
           </div>

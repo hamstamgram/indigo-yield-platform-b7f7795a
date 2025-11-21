@@ -3,22 +3,22 @@
  * Notifications, language, timezone settings
  */
 
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bell, Globe, Mail, Save, Loader2 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Bell, Globe, Mail, Save, Loader2 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/hooks/use-toast';
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 
 interface PreferencesData {
   // Notifications
@@ -52,11 +52,11 @@ export default function Preferences() {
     pushNotifications: true,
     pushTransactions: true,
     pushPriceAlerts: false,
-    language: 'en',
-    timezone: 'America/New_York',
-    dateFormat: 'MM/DD/YYYY',
-    currencyDisplay: 'USD',
-    theme: 'system',
+    language: "en",
+    timezone: "America/New_York",
+    dateFormat: "MM/DD/YYYY",
+    currencyDisplay: "USD",
+    theme: "system",
   });
 
   const [loading, setLoading] = useState(true);
@@ -72,25 +72,22 @@ export default function Preferences() {
     try {
       // TODO: Implement local storage for preferences when backend is ready
       toast({
-        title: 'Success',
-        description: 'Your preferences have been saved locally',
+        title: "Success",
+        description: "Your preferences have been saved locally",
       });
     } catch (error) {
-      console.error('Failed to save preferences:', error);
+      console.error("Failed to save preferences:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to save your preferences',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to save your preferences",
+        variant: "destructive",
       });
     } finally {
       setSaving(false);
     }
   };
 
-  const updatePreference = <K extends keyof PreferencesData>(
-    key: K,
-    value: PreferencesData[K]
-  ) => {
+  const updatePreference = <K extends keyof PreferencesData>(key: K, value: PreferencesData[K]) => {
     setPreferences((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -106,7 +103,7 @@ export default function Preferences() {
     <div className="container max-w-4xl mx-auto px-4 py-8 space-y-8">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
@@ -139,7 +136,7 @@ export default function Preferences() {
             <Switch
               id="emailNotifications"
               checked={preferences.emailNotifications}
-              onCheckedChange={(checked) => updatePreference('emailNotifications', checked)}
+              onCheckedChange={(checked) => updatePreference("emailNotifications", checked)}
             />
           </div>
 
@@ -156,7 +153,7 @@ export default function Preferences() {
               <Switch
                 id="emailTransactions"
                 checked={preferences.emailTransactions}
-                onCheckedChange={(checked) => updatePreference('emailTransactions', checked)}
+                onCheckedChange={(checked) => updatePreference("emailTransactions", checked)}
                 disabled={!preferences.emailNotifications}
               />
             </div>
@@ -164,14 +161,12 @@ export default function Preferences() {
             <div className="flex items-center justify-between">
               <div>
                 <Label htmlFor="emailStatements">Monthly Statements</Label>
-                <p className="text-sm text-muted-foreground">
-                  Receive monthly account statements
-                </p>
+                <p className="text-sm text-muted-foreground">Receive monthly account statements</p>
               </div>
               <Switch
                 id="emailStatements"
                 checked={preferences.emailStatements}
-                onCheckedChange={(checked) => updatePreference('emailStatements', checked)}
+                onCheckedChange={(checked) => updatePreference("emailStatements", checked)}
                 disabled={!preferences.emailNotifications}
               />
             </div>
@@ -186,7 +181,7 @@ export default function Preferences() {
               <Switch
                 id="emailMarketing"
                 checked={preferences.emailMarketing}
-                onCheckedChange={(checked) => updatePreference('emailMarketing', checked)}
+                onCheckedChange={(checked) => updatePreference("emailMarketing", checked)}
                 disabled={!preferences.emailNotifications}
               />
             </div>
@@ -209,14 +204,12 @@ export default function Preferences() {
               <Label htmlFor="pushNotifications" className="text-base">
                 Enable Push Notifications
               </Label>
-              <p className="text-sm text-muted-foreground">
-                Receive notifications on your devices
-              </p>
+              <p className="text-sm text-muted-foreground">Receive notifications on your devices</p>
             </div>
             <Switch
               id="pushNotifications"
               checked={preferences.pushNotifications}
-              onCheckedChange={(checked) => updatePreference('pushNotifications', checked)}
+              onCheckedChange={(checked) => updatePreference("pushNotifications", checked)}
             />
           </div>
 
@@ -233,7 +226,7 @@ export default function Preferences() {
               <Switch
                 id="pushTransactions"
                 checked={preferences.pushTransactions}
-                onCheckedChange={(checked) => updatePreference('pushTransactions', checked)}
+                onCheckedChange={(checked) => updatePreference("pushTransactions", checked)}
                 disabled={!preferences.pushNotifications}
               />
             </div>
@@ -248,7 +241,7 @@ export default function Preferences() {
               <Switch
                 id="pushPriceAlerts"
                 checked={preferences.pushPriceAlerts}
-                onCheckedChange={(checked) => updatePreference('pushPriceAlerts', checked)}
+                onCheckedChange={(checked) => updatePreference("pushPriceAlerts", checked)}
                 disabled={!preferences.pushNotifications}
               />
             </div>
@@ -270,7 +263,7 @@ export default function Preferences() {
             <Label htmlFor="language">Language</Label>
             <Select
               value={preferences.language}
-              onValueChange={(val) => updatePreference('language', val)}
+              onValueChange={(val) => updatePreference("language", val)}
             >
               <SelectTrigger id="language">
                 <SelectValue />
@@ -289,7 +282,7 @@ export default function Preferences() {
             <Label htmlFor="timezone">Timezone</Label>
             <Select
               value={preferences.timezone}
-              onValueChange={(val) => updatePreference('timezone', val)}
+              onValueChange={(val) => updatePreference("timezone", val)}
             >
               <SelectTrigger id="timezone">
                 <SelectValue />
@@ -312,7 +305,7 @@ export default function Preferences() {
               <Label htmlFor="dateFormat">Date Format</Label>
               <Select
                 value={preferences.dateFormat}
-                onValueChange={(val) => updatePreference('dateFormat', val)}
+                onValueChange={(val) => updatePreference("dateFormat", val)}
               >
                 <SelectTrigger id="dateFormat">
                   <SelectValue />
@@ -329,7 +322,7 @@ export default function Preferences() {
               <Label htmlFor="currency">Currency Display</Label>
               <Select
                 value={preferences.currencyDisplay}
-                onValueChange={(val) => updatePreference('currencyDisplay', val)}
+                onValueChange={(val) => updatePreference("currencyDisplay", val)}
               >
                 <SelectTrigger id="currency">
                   <SelectValue />
@@ -348,7 +341,7 @@ export default function Preferences() {
 
       {/* Save Button */}
       <div className="flex justify-end gap-3">
-        <Button variant="outline" onClick={() => navigate('/profile')} disabled={saving}>
+        <Button variant="outline" onClick={() => navigate("/profile")} disabled={saving}>
           Cancel
         </Button>
         <Button onClick={handleSave} disabled={saving}>

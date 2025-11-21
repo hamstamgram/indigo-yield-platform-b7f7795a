@@ -5,11 +5,11 @@ import {
   generateYield,
   calculateCompoundInterest,
   calculateSimpleInterest,
-} from '../fixtures/test-data.js';
+} from "../fixtures/test-data.js";
 
-describe('Yield Calculations', () => {
-  describe('Daily Yield Calculations', () => {
-    test('should calculate daily yield correctly for USDC at 8.5% APR', () => {
+describe("Yield Calculations", () => {
+  describe("Daily Yield Calculations", () => {
+    test("should calculate daily yield correctly for USDC at 8.5% APR", () => {
       const position = samplePositions[0]; // 10,000 USDC
       const apr = 8.5;
       const expectedDailyRate = apr / 365 / 100;
@@ -19,7 +19,7 @@ describe('Yield Calculations', () => {
       expect(expectedDailyYield).toBeCloseTo(2.33, 2);
     });
 
-    test('should calculate daily yield correctly for USDT at 7.2% APR', () => {
+    test("should calculate daily yield correctly for USDT at 7.2% APR", () => {
       const position = samplePositions[1]; // 5,000 USDT
       const apr = 7.2;
       const expectedDailyRate = apr / 365 / 100;
@@ -29,7 +29,7 @@ describe('Yield Calculations', () => {
       expect(expectedDailyYield).toBeCloseTo(0.99, 2);
     });
 
-    test('should handle leap year calculations correctly', () => {
+    test("should handle leap year calculations correctly", () => {
       const position = generatePosition({ quantity: 10000 });
       const apr = 10;
       const daysInLeapYear = 366;
@@ -40,7 +40,7 @@ describe('Yield Calculations', () => {
       expect(expectedDailyYield).toBeCloseTo(2.73, 2);
     });
 
-    test('should handle zero balance positions', () => {
+    test("should handle zero balance positions", () => {
       const position = generatePosition({ quantity: 0 });
       const apr = 8.5;
       const yieldData = generateYield(position, apr);
@@ -48,7 +48,7 @@ describe('Yield Calculations', () => {
       expect(yieldData.interest_earned).toBe(0);
     });
 
-    test('should handle negative APR gracefully', () => {
+    test("should handle negative APR gracefully", () => {
       const position = generatePosition({ quantity: 10000 });
       const apr = -5; // Negative rate scenario
       const dailyRate = apr / 365 / 100;
@@ -59,8 +59,8 @@ describe('Yield Calculations', () => {
     });
   });
 
-  describe('Monthly Yield Calculations', () => {
-    test('should calculate monthly yield for 30-day month', () => {
+  describe("Monthly Yield Calculations", () => {
+    test("should calculate monthly yield for 30-day month", () => {
       const principal = 10000;
       const apr = 8.5;
       const days = 30;
@@ -69,7 +69,7 @@ describe('Yield Calculations', () => {
       expect(monthlyYield).toBeCloseTo(69.86, 2);
     });
 
-    test('should calculate monthly yield for 31-day month', () => {
+    test("should calculate monthly yield for 31-day month", () => {
       const principal = 10000;
       const apr = 8.5;
       const days = 31;
@@ -78,7 +78,7 @@ describe('Yield Calculations', () => {
       expect(monthlyYield).toBeCloseTo(72.19, 2);
     });
 
-    test('should calculate monthly yield for February (28 days)', () => {
+    test("should calculate monthly yield for February (28 days)", () => {
       const principal = 10000;
       const apr = 8.5;
       const days = 28;
@@ -87,7 +87,7 @@ describe('Yield Calculations', () => {
       expect(monthlyYield).toBeCloseTo(65.21, 2);
     });
 
-    test('should calculate monthly yield for February in leap year (29 days)', () => {
+    test("should calculate monthly yield for February in leap year (29 days)", () => {
       const principal = 10000;
       const apr = 8.5;
       const days = 29;
@@ -96,11 +96,11 @@ describe('Yield Calculations', () => {
       expect(monthlyYield).toBeCloseTo(67.53, 2);
     });
 
-    test('should accumulate daily yields to match monthly total', () => {
+    test("should accumulate daily yields to match monthly total", () => {
       const principal = 10000;
       const apr = 8.5;
       const days = 30;
-      
+
       let totalDaily = 0;
       for (let i = 0; i < days; i++) {
         totalDaily += calculateSimpleInterest(principal, apr / 100, 1);
@@ -111,8 +111,8 @@ describe('Yield Calculations', () => {
     });
   });
 
-  describe('Annual Yield Calculations', () => {
-    test('should calculate simple annual yield correctly', () => {
+  describe("Annual Yield Calculations", () => {
+    test("should calculate simple annual yield correctly", () => {
       const principal = 10000;
       const apr = 8.5;
       const annualYield = calculateSimpleInterest(principal, apr / 100, 365);
@@ -120,7 +120,7 @@ describe('Yield Calculations', () => {
       expect(annualYield).toBeCloseTo(850, 2);
     });
 
-    test('should calculate compound annual yield correctly', () => {
+    test("should calculate compound annual yield correctly", () => {
       const principal = 10000;
       const apr = 8.5;
       const compoundedAmount = calculateCompoundInterest(principal, apr / 100, 1);
@@ -129,23 +129,23 @@ describe('Yield Calculations', () => {
       expect(compoundYield).toBeCloseTo(887.06, 2); // Actual: 887.0629
     });
 
-    test('should show difference between simple and compound interest', () => {
+    test("should show difference between simple and compound interest", () => {
       const principal = 10000;
       const apr = 8.5;
-      
+
       const simpleYield = calculateSimpleInterest(principal, apr / 100, 365);
       const compoundedAmount = calculateCompoundInterest(principal, apr / 100, 1);
       const compoundYield = compoundedAmount - principal;
-      
+
       const difference = compoundYield - simpleYield;
       expect(difference).toBeCloseTo(37.06, 2); // Compound interest advantage
     });
 
-    test('should calculate multi-year compound interest correctly', () => {
+    test("should calculate multi-year compound interest correctly", () => {
       const principal = 10000;
       const apr = 8.5;
       const years = 3;
-      
+
       const compoundedAmount = calculateCompoundInterest(principal, apr / 100, years);
       const totalYield = compoundedAmount - principal;
 
@@ -154,8 +154,8 @@ describe('Yield Calculations', () => {
     });
   });
 
-  describe('APR to APY Conversion', () => {
-    test('should convert 8.5% APR to APY with daily compounding', () => {
+  describe("APR to APY Conversion", () => {
+    test("should convert 8.5% APR to APY with daily compounding", () => {
       const apr = 8.5;
       const n = 365; // Daily compounding
       const apy = (Math.pow(1 + apr / 100 / n, n) - 1) * 100;
@@ -163,7 +163,7 @@ describe('Yield Calculations', () => {
       expect(apy).toBeCloseTo(8.871, 3); // Actual: 8.8706
     });
 
-    test('should convert 7.2% APR to APY with daily compounding', () => {
+    test("should convert 7.2% APR to APY with daily compounding", () => {
       const apr = 7.2;
       const n = 365;
       const apy = (Math.pow(1 + apr / 100 / n, n) - 1) * 100;
@@ -171,9 +171,9 @@ describe('Yield Calculations', () => {
       expect(apy).toBeCloseTo(7.465, 3); // Actual: 7.4648
     });
 
-    test('should show APY increases with more frequent compounding', () => {
+    test("should show APY increases with more frequent compounding", () => {
       const apr = 10;
-      
+
       const apyAnnual = (Math.pow(1 + apr / 100 / 1, 1) - 1) * 100;
       const apyMonthly = (Math.pow(1 + apr / 100 / 12, 12) - 1) * 100;
       const apyDaily = (Math.pow(1 + apr / 100 / 365, 365) - 1) * 100;
@@ -181,14 +181,14 @@ describe('Yield Calculations', () => {
       expect(apyAnnual).toBeCloseTo(10.0, 3);
       expect(apyMonthly).toBeCloseTo(10.471, 3);
       expect(apyDaily).toBeCloseTo(10.516, 3);
-      
+
       expect(apyDaily).toBeGreaterThan(apyMonthly);
       expect(apyMonthly).toBeGreaterThan(apyAnnual);
     });
   });
 
-  describe('Edge Cases and Error Handling', () => {
-    test('should handle very large balances', () => {
+  describe("Edge Cases and Error Handling", () => {
+    test("should handle very large balances", () => {
       const principal = 1000000000; // 1 billion
       const apr = 8.5;
       const dailyYield = calculateSimpleInterest(principal, apr / 100, 1);
@@ -196,7 +196,7 @@ describe('Yield Calculations', () => {
       expect(dailyYield).toBeCloseTo(232876.71, 2);
     });
 
-    test('should handle very small balances with precision', () => {
+    test("should handle very small balances with precision", () => {
       const principal = 0.01; // 1 cent
       const apr = 8.5;
       const dailyYield = calculateSimpleInterest(principal, apr / 100, 1);
@@ -204,7 +204,7 @@ describe('Yield Calculations', () => {
       expect(dailyYield).toBeCloseTo(0.00000233, 6); // Actual: 0.00000233
     });
 
-    test('should handle zero APR', () => {
+    test("should handle zero APR", () => {
       const principal = 10000;
       const apr = 0;
       const yieldData = calculateSimpleInterest(principal, apr / 100, 365);
@@ -212,15 +212,15 @@ describe('Yield Calculations', () => {
       expect(yieldData).toBe(0);
     });
 
-    test('should handle maximum APR boundary', () => {
+    test("should handle maximum APR boundary", () => {
       const principal = 10000;
       const maxApr = 100; // 100% APR
       const dailyYield = calculateSimpleInterest(principal, maxApr / 100, 1);
 
-      expect(dailyYield).toBeCloseTo(27.40, 2);
+      expect(dailyYield).toBeCloseTo(27.4, 2);
     });
 
-    test('should maintain precision for long calculation chains', () => {
+    test("should maintain precision for long calculation chains", () => {
       const principal = 10000;
       const apr = 8.5;
       let balance = principal;
@@ -236,8 +236,8 @@ describe('Yield Calculations', () => {
     });
   });
 
-  describe('Rate Changes Over Time', () => {
-    test('should handle mid-month rate changes', () => {
+  describe("Rate Changes Over Time", () => {
+    test("should handle mid-month rate changes", () => {
       const principal = 10000;
       const days1 = 15;
       const apr1 = 8.5;
@@ -253,7 +253,7 @@ describe('Yield Calculations', () => {
       expect(totalYield).toBeCloseTo(71.92, 2);
     });
 
-    test('should calculate blended rate correctly', () => {
+    test("should calculate blended rate correctly", () => {
       const yields = [
         { days: 10, apr: 8.0 },
         { days: 10, apr: 8.5 },
@@ -261,14 +261,14 @@ describe('Yield Calculations', () => {
       ];
 
       const totalDays = yields.reduce((sum, y) => sum + y.days, 0);
-      const weightedApr = yields.reduce((sum, y) => sum + (y.apr * y.days), 0) / totalDays;
+      const weightedApr = yields.reduce((sum, y) => sum + y.apr * y.days, 0) / totalDays;
 
       expect(weightedApr).toBeCloseTo(8.5, 2);
     });
   });
 
-  describe('Yield Validation', () => {
-    test('should validate yield is within acceptable range', () => {
+  describe("Yield Validation", () => {
+    test("should validate yield is within acceptable range", () => {
       const yieldData1 = generateYield(samplePositions[0], 8.5);
       const yieldData2 = generateYield(samplePositions[0], 150); // Unrealistic APR
 
@@ -276,7 +276,7 @@ describe('Yield Calculations', () => {
       expect(yieldData2.apr).not.toBeWithinRange(0, 20);
     });
 
-    test('should validate daily rate matches APR', () => {
+    test("should validate daily rate matches APR", () => {
       const apr = 8.5;
       const yieldData = generateYield(samplePositions[0], apr);
       const expectedDailyRate = apr / 365 / 100;
@@ -284,7 +284,7 @@ describe('Yield Calculations', () => {
       expect(yieldData.daily_rate).toBeCloseTo(expectedDailyRate, 6);
     });
 
-    test('should ensure interest earned is non-negative for positive APR', () => {
+    test("should ensure interest earned is non-negative for positive APR", () => {
       const position = generatePosition({ quantity: 10000 });
       const yieldData = generateYield(position, 8.5);
 

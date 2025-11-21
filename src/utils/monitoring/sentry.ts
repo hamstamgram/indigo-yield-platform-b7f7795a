@@ -1,25 +1,27 @@
-import * as Sentry from '@sentry/react';
+import * as Sentry from "@sentry/react";
 
 let sentryInitialized = false;
 
 export function initSentry() {
   // Prevent multiple initializations
   if (sentryInitialized) {
-    console.warn('[Sentry] Already initialized, skipping');
+    console.warn("[Sentry] Already initialized, skipping");
     return;
   }
 
   // Skip in development to avoid double initialization issues
   if (!import.meta.env.PROD) {
-    console.log('[Sentry] Skipping initialization in development');
+    console.log("[Sentry] Skipping initialization in development");
     return;
   }
 
   // Use the actual Sentry DSN
-  const sentryDsn = import.meta.env.VITE_SENTRY_DSN || "https://d9c2a485401aa221a88caa3c007eee4a@o4509944393629696.ingest.de.sentry.io/4509949718233168";
+  const sentryDsn =
+    import.meta.env.VITE_SENTRY_DSN ||
+    "https://d9c2a485401aa221a88caa3c007eee4a@o4509944393629696.ingest.de.sentry.io/4509949718233168";
 
-  if (!sentryDsn || sentryDsn === 'your_sentry_dsn_here') {
-    console.warn('[Sentry] No DSN configured, skipping initialization');
+  if (!sentryDsn || sentryDsn === "your_sentry_dsn_here") {
+    console.warn("[Sentry] No DSN configured, skipping initialization");
     return;
   }
 
@@ -45,18 +47,21 @@ export function initSentry() {
       replaysOnErrorSampleRate: 1.0, // 100% of sessions with errors
 
       // Release tracking
-      release: import.meta.env.VITE_APP_VERSION || 'unknown',
-      environment: import.meta.env.MODE || 'production',
+      release: import.meta.env.VITE_APP_VERSION || "unknown",
+      environment: import.meta.env.MODE || "production",
 
       // Filter out common non-errors
       beforeSend(event, hint) {
         // Filter out cancelled requests
-        if ((hint.originalException as any)?.message?.includes('cancelled')) {
+        if ((hint.originalException as any)?.message?.includes("cancelled")) {
           return null;
         }
 
         // Filter out network errors in development
-        if (!import.meta.env.PROD && (hint.originalException as any)?.message?.includes('NetworkError')) {
+        if (
+          !import.meta.env.PROD &&
+          (hint.originalException as any)?.message?.includes("NetworkError")
+        ) {
           return null;
         }
 
@@ -75,20 +80,20 @@ export function initSentry() {
       // Ignore certain errors
       ignoreErrors: [
         // Browser extensions
-        'top.GLOBALS',
-        'ResizeObserver loop limit exceeded',
-        'Non-Error promise rejection captured',
+        "top.GLOBALS",
+        "ResizeObserver loop limit exceeded",
+        "Non-Error promise rejection captured",
         // Common network errors
-        'Network request failed',
-        'NetworkError',
-        'Failed to fetch',
+        "Network request failed",
+        "NetworkError",
+        "Failed to fetch",
       ],
     });
 
     sentryInitialized = true;
-    console.log('[Sentry] Initialized successfully');
+    console.log("[Sentry] Initialized successfully");
   } catch (error) {
-    console.error('[Sentry] Failed to initialize', error);
+    console.error("[Sentry] Failed to initialize", error);
   }
 }
 
@@ -103,7 +108,7 @@ export function captureException(error: Error, context?: Record<string, any>) {
   });
 }
 
-export function captureMessage(message: string, level: Sentry.SeverityLevel = 'info') {
+export function captureMessage(message: string, level: Sentry.SeverityLevel = "info") {
   if (!sentryInitialized) return;
   Sentry.captureMessage(message, level);
 }
@@ -127,7 +132,7 @@ export function addBreadcrumb(message: string, category: string, data?: any) {
   Sentry.addBreadcrumb({
     message,
     category,
-    level: 'info',
+    level: "info",
     data,
     timestamp: Date.now() / 1000,
   });
@@ -136,7 +141,7 @@ export function addBreadcrumb(message: string, category: string, data?: any) {
 // Helper to get current user from Supabase
 function getCurrentUser() {
   try {
-    const userStr = localStorage.getItem('supabase.auth.token');
+    const userStr = localStorage.getItem("supabase.auth.token");
     if (userStr) {
       const userData = JSON.parse(userStr);
       return userData?.currentSession?.user || null;

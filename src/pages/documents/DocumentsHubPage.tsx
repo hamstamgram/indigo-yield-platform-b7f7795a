@@ -1,31 +1,30 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Plus, Search, Filter } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, Search, Filter } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useState } from "react";
 
 export default function DocumentsHubPage() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ['documents', searchTerm],
+    queryKey: ["documents", searchTerm],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user");
 
-      let query = supabase
-        .from('documents')
-        .select('*')
-        .eq('user_id', user.id);
+      let query = supabase.from("documents").select("*").eq("user_id", user.id);
 
       if (searchTerm) {
-        query = query.ilike('title', `%${searchTerm}%`);
+        query = query.ilike("title", `%${searchTerm}%`);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -65,9 +64,7 @@ export default function DocumentsHubPage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="py-12 text-center text-muted-foreground">
-              Loading...
-            </div>
+            <div className="py-12 text-center text-muted-foreground">Loading...</div>
           ) : items && items.length > 0 ? (
             <div className="space-y-4">
               {items.map((item) => (
@@ -81,9 +78,7 @@ export default function DocumentsHubPage() {
                         </p>
                       </div>
                       <Button variant="outline" size="sm" asChild>
-                        <Link to={`/documents/${item.id}`}>
-                          View Details
-                        </Link>
+                        <Link to={`/documents/${item.id}`}>View Details</Link>
                       </Button>
                     </div>
                   </CardContent>

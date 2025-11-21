@@ -1,5 +1,5 @@
-export type InvestmentStatus = 'pending' | 'active' | 'cancelled' | 'rejected';
-export type TransactionType = 'initial' | 'additional' | 'redemption';
+export type InvestmentStatus = "pending" | "active" | "cancelled" | "rejected";
+export type TransactionType = "initial" | "additional" | "redemption";
 
 export interface Investment {
   id: string;

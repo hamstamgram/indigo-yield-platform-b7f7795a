@@ -1,21 +1,21 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Smartphone, Mail, Loader2, CheckCircle2 } from 'lucide-react';
-import QRCode from 'qrcode';
-import { useEffect } from 'react';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Shield, Smartphone, Mail, Loader2, CheckCircle2 } from "lucide-react";
+import QRCode from "qrcode";
+import { useEffect } from "react";
 
 export default function MfaSetupPage() {
   const navigate = useNavigate();
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
-  const [secret, setSecret] = useState<string>('');
-  const [verificationCode, setVerificationCode] = useState('');
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
+  const [secret, setSecret] = useState<string>("");
+  const [verificationCode, setVerificationCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [setupComplete, setSetupComplete] = useState(false);
 
@@ -26,7 +26,7 @@ export default function MfaSetupPage() {
   const enrollMFA = async () => {
     try {
       const { data, error } = await supabase.auth.mfa.enroll({
-        factorType: 'totp',
+        factorType: "totp",
       });
 
       if (error) throw error;
@@ -38,14 +38,14 @@ export default function MfaSetupPage() {
         setQrCodeUrl(qrCode);
       }
     } catch (error: any) {
-      console.error('MFA enrollment error:', error);
-      toast.error('Failed to initialize MFA setup');
+      console.error("MFA enrollment error:", error);
+      toast.error("Failed to initialize MFA setup");
     }
   };
 
   const handleVerifyTotp = async () => {
     if (!verificationCode || verificationCode.length !== 6) {
-      toast.error('Please enter a valid 6-digit code');
+      toast.error("Please enter a valid 6-digit code");
       return;
     }
 
@@ -63,15 +63,15 @@ export default function MfaSetupPage() {
         if (error) throw error;
 
         setSetupComplete(true);
-        toast.success('MFA setup complete!');
+        toast.success("MFA setup complete!");
 
         setTimeout(() => {
-          navigate('/dashboard');
+          navigate("/dashboard");
         }, 2000);
       }
     } catch (error: any) {
-      console.error('MFA verification error:', error);
-      toast.error('Invalid verification code');
+      console.error("MFA verification error:", error);
+      toast.error("Invalid verification code");
     } finally {
       setIsLoading(false);
     }
@@ -102,12 +102,8 @@ export default function MfaSetupPage() {
               <Shield className="h-8 w-8 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">
-            Set Up Multi-Factor Authentication
-          </CardTitle>
-          <CardDescription>
-            Add an extra layer of security to your account
-          </CardDescription>
+          <CardTitle className="text-2xl font-bold">Set Up Multi-Factor Authentication</CardTitle>
+          <CardDescription>Add an extra layer of security to your account</CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -168,9 +164,7 @@ export default function MfaSetupPage() {
                         placeholder="000000"
                         maxLength={6}
                         value={verificationCode}
-                        onChange={(e) =>
-                          setVerificationCode(e.target.value.replace(/\D/g, ''))
-                        }
+                        onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ""))}
                         disabled={isLoading}
                       />
                     </div>
@@ -186,7 +180,7 @@ export default function MfaSetupPage() {
                           Verifying...
                         </>
                       ) : (
-                        'Verify and Enable MFA'
+                        "Verify and Enable MFA"
                       )}
                     </Button>
                   </div>
@@ -194,10 +188,7 @@ export default function MfaSetupPage() {
               </div>
 
               <div className="flex justify-center">
-                <Button
-                  variant="ghost"
-                  onClick={() => navigate('/dashboard')}
-                >
+                <Button variant="ghost" onClick={() => navigate("/dashboard")}>
                   Skip for now
                 </Button>
               </div>

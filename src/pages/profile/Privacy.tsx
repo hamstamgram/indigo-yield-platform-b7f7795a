@@ -3,22 +3,14 @@
  * Data privacy controls and data export
  */
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  ArrowLeft,
-  Lock,
-  Download,
-  Trash2,
-  AlertTriangle,
-  Loader2,
-  FileText,
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Lock, Download, Trash2, AlertTriangle, Loader2, FileText } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,10 +21,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/lib/auth/context';
-import { supabase } from '@/integrations/supabase/client';
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth/context";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Privacy() {
   const { user } = useAuth();
@@ -52,10 +44,16 @@ export default function Privacy() {
     try {
       // Gather all user data
       const [profile, investments, transactions, documents] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
-        supabase.from('investments' as any).select('*').eq('investor_id', user.id),
-        supabase.from('transactions' as any).select('*').eq('user_id', user.id),
-        supabase.from('documents').select('*').eq('user_id', user.id),
+        supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+        supabase
+          .from("investments" as any)
+          .select("*")
+          .eq("investor_id", user.id),
+        supabase
+          .from("transactions" as any)
+          .select("*")
+          .eq("user_id", user.id),
+        supabase.from("documents").select("*").eq("user_id", user.id),
       ]);
 
       const exportData = {
@@ -73,10 +71,10 @@ export default function Privacy() {
 
       // Create download
       const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-        type: 'application/json',
+        type: "application/json",
       });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
       link.download = `indigo-data-export-${Date.now()}.json`;
       document.body.appendChild(link);
@@ -85,15 +83,15 @@ export default function Privacy() {
       URL.revokeObjectURL(url);
 
       toast({
-        title: 'Success',
-        description: 'Your data has been exported successfully',
+        title: "Success",
+        description: "Your data has been exported successfully",
       });
     } catch (error) {
-      console.error('Failed to export data:', error);
+      console.error("Failed to export data:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to export your data',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to export your data",
+        variant: "destructive",
       });
     } finally {
       setExporting(false);
@@ -109,20 +107,20 @@ export default function Privacy() {
       // that handles data retention policies, compliance, etc.
 
       toast({
-        title: 'Account Deletion Requested',
-        description: 'Your request has been submitted. You will receive a confirmation email.',
+        title: "Account Deletion Requested",
+        description: "Your request has been submitted. You will receive a confirmation email.",
       });
 
       // Sign out user
       setTimeout(() => {
-        navigate('/');
+        navigate("/");
       }, 2000);
     } catch (error) {
-      console.error('Failed to delete account:', error);
+      console.error("Failed to delete account:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to process account deletion request',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to process account deletion request",
+        variant: "destructive",
       });
     } finally {
       setDeleting(false);
@@ -133,7 +131,7 @@ export default function Privacy() {
     <div className="container max-w-4xl mx-auto px-4 py-8 space-y-8">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
@@ -181,11 +179,7 @@ export default function Privacy() {
                 Display your portfolio value and balances
               </p>
             </div>
-            <Switch
-              id="showBalances"
-              checked={showBalances}
-              onCheckedChange={setShowBalances}
-            />
+            <Switch id="showBalances" checked={showBalances} onCheckedChange={setShowBalances} />
           </div>
 
           <Separator />
@@ -215,9 +209,7 @@ export default function Privacy() {
             <Download className="h-5 w-5" />
             <CardTitle>Export Your Data</CardTitle>
           </div>
-          <CardDescription>
-            Download a copy of all your data stored on our platform
-          </CardDescription>
+          <CardDescription>Download a copy of all your data stored on our platform</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="bg-muted p-4 rounded-lg">
@@ -324,9 +316,7 @@ export default function Privacy() {
                       This action cannot be undone. This will permanently delete your account and
                       remove your data from our servers.
                     </p>
-                    <p className="font-medium">
-                      Before proceeding, please ensure you have:
-                    </p>
+                    <p className="font-medium">Before proceeding, please ensure you have:</p>
                     <ul className="list-disc list-inside text-sm space-y-1">
                       <li>Withdrawn all your funds</li>
                       <li>Exported your data if needed</li>
@@ -346,7 +336,7 @@ export default function Privacy() {
                         Deleting...
                       </>
                     ) : (
-                      'Yes, Delete My Account'
+                      "Yes, Delete My Account"
                     )}
                   </AlertDialogAction>
                 </AlertDialogFooter>

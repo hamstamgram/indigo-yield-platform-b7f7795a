@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useSupport, useFAQ } from '@/hooks/useSupport';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSupport, useFAQ } from "@/hooks/useSupport";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   MessageSquare,
   Search,
@@ -14,31 +14,36 @@ import {
   Phone,
   HelpCircle,
   Ticket,
-  Book
-} from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+  Book,
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const SupportHubPage: React.FC = () => {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const { tickets, stats } = useSupport(currentUser?.id);
   const { articles } = useFAQ();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setCurrentUser(user);
     };
     getUser();
   }, []);
 
-  const filteredArticles = articles.filter(a =>
-    a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    a.content.toLowerCase().includes(searchQuery.toLowerCase())
-  ).slice(0, 5);
+  const filteredArticles = articles
+    .filter(
+      (a) =>
+        a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.content.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .slice(0, 5);
 
-  const openTickets = tickets.filter(t => t.status === 'open' || t.status === 'in_progress');
+  const openTickets = tickets.filter((t) => t.status === "open" || t.status === "in_progress");
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -68,7 +73,7 @@ const SupportHubPage: React.FC = () => {
             <CardTitle>Search Results</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {filteredArticles.map(article => (
+            {filteredArticles.map((article) => (
               <div
                 key={article.id}
                 className="p-3 hover:bg-muted rounded-lg cursor-pointer transition-colors"
@@ -83,7 +88,10 @@ const SupportHubPage: React.FC = () => {
       )}
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/support/faq')}>
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate("/support/faq")}
+        >
           <CardContent className="p-6">
             <HelpCircle className="h-12 w-12 mb-4 text-primary" />
             <h3 className="font-semibold text-lg mb-2">FAQ</h3>
@@ -91,23 +99,33 @@ const SupportHubPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/support/tickets')}>
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate("/support/tickets")}
+        >
           <CardContent className="p-6">
             <Ticket className="h-12 w-12 mb-4 text-primary" />
             <h3 className="font-semibold text-lg mb-2">My Tickets</h3>
             <p className="text-sm text-muted-foreground">View and manage support tickets</p>
             {openTickets.length > 0 && (
-              <Badge variant="default" className="mt-2">{openTickets.length} open</Badge>
+              <Badge variant="default" className="mt-2">
+                {openTickets.length} open
+              </Badge>
             )}
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/support/live-chat')}>
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate("/support/live-chat")}
+        >
           <CardContent className="p-6">
             <MessageCircle className="h-12 w-12 mb-4 text-primary" />
             <h3 className="font-semibold text-lg mb-2">Live Chat</h3>
             <p className="text-sm text-muted-foreground">Chat with our support team</p>
-            <Badge variant="outline" className="mt-2">Available 24/7</Badge>
+            <Badge variant="outline" className="mt-2">
+              Available 24/7
+            </Badge>
           </CardContent>
         </Card>
       </div>
@@ -122,7 +140,7 @@ const SupportHubPage: React.FC = () => {
             <Button
               variant="outline"
               className="w-full justify-start gap-2"
-              onClick={() => navigate('/support/tickets/new')}
+              onClick={() => navigate("/support/tickets/new")}
             >
               <MessageSquare className="h-4 w-4" />
               Create New Ticket
@@ -130,7 +148,7 @@ const SupportHubPage: React.FC = () => {
             <Button
               variant="outline"
               className="w-full justify-start gap-2"
-              onClick={() => navigate('/support/knowledge-base')}
+              onClick={() => navigate("/support/knowledge-base")}
             >
               <Book className="h-4 w-4" />
               Browse Knowledge Base
@@ -138,7 +156,7 @@ const SupportHubPage: React.FC = () => {
             <Button
               variant="outline"
               className="w-full justify-start gap-2"
-              onClick={() => navigate('/support/tickets')}
+              onClick={() => navigate("/support/tickets")}
             >
               <FileText className="h-4 w-4" />
               View My Tickets
@@ -176,7 +194,7 @@ const SupportHubPage: React.FC = () => {
                 <Button
                   variant="link"
                   className="px-0 h-auto"
-                  onClick={() => navigate('/support/live-chat')}
+                  onClick={() => navigate("/support/live-chat")}
                 >
                   Start Chat
                 </Button>

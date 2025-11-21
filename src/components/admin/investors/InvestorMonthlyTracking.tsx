@@ -1,15 +1,28 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Percent, TrendingUp, Edit2, Save, X } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { formatAssetValue } from '@/utils/kpiCalculations';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Percent, TrendingUp, Edit2, Save, X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { formatAssetValue } from "@/utils/kpiCalculations";
 
 interface MonthlyReport {
   id: string;
@@ -43,14 +56,14 @@ interface InvestorMonthlyTrackingProps {
 const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ investorId }) => {
   const [investor, setInvestor] = useState<InvestorData | null>(null);
   const [monthlyReports, setMonthlyReports] = useState<MonthlyReport[]>([]);
-  const [selectedAsset, setSelectedAsset] = useState<string>('SOL');
+  const [selectedAsset, setSelectedAsset] = useState<string>("SOL");
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7));
   const [editingReport, setEditingReport] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<MonthlyReport>>({});
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const assets = ['SOL', 'BTC', 'ETH', 'USDC', 'USDT', 'EURC'];
+  const assets = ["SOL", "BTC", "ETH", "USDC", "USDT", "EURC"];
 
   useEffect(() => {
     loadInvestorData();
@@ -60,8 +73,9 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
   const loadInvestorData = async () => {
     try {
       const { data, error } = await supabase
-        .from('investors')
-        .select(`
+        .from("investors")
+        .select(
+          `
           id,
           name,
           email,
@@ -70,23 +84,24 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
             last_name,
             fee_percentage
           )
-        `)
-        .eq('id', investorId)
+        `
+        )
+        .eq("id", investorId)
         .maybeSingle();
 
       if (!data) {
-        console.error('Investor not found');
+        console.error("Investor not found");
         return;
       }
 
       if (error) throw error;
       setInvestor(data);
     } catch (error) {
-      console.error('Error loading investor data:', error);
+      console.error("Error loading investor data:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load investor data',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load investor data",
+        variant: "destructive",
       });
     }
   };
@@ -95,20 +110,20 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('investor_monthly_reports')
-        .select('*')
-        .eq('investor_id', investorId)
-        .eq('asset_code', selectedAsset)
-        .order('report_month', { ascending: false });
+        .from("investor_monthly_reports")
+        .select("*")
+        .eq("investor_id", investorId)
+        .eq("asset_code", selectedAsset)
+        .order("report_month", { ascending: false });
 
       if (error) throw error;
       setMonthlyReports(data || []);
     } catch (error) {
-      console.error('Error loading monthly reports:', error);
+      console.error("Error loading monthly reports:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load monthly reports',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load monthly reports",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -125,33 +140,33 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
 
     try {
       const { error } = await supabase
-        .from('investor_monthly_reports')
+        .from("investor_monthly_reports")
         .update({
           opening_balance: editData.opening_balance,
           closing_balance: editData.closing_balance,
           additions: editData.additions,
           withdrawals: editData.withdrawals,
           yield_earned: editData.yield_earned,
-          edited_by: (await supabase.auth.getUser()).data.user?.id
+          edited_by: (await supabase.auth.getUser()).data.user?.id,
         })
-        .eq('id', editingReport);
+        .eq("id", editingReport);
 
       if (error) throw error;
 
       toast({
-        title: 'Success',
-        description: 'Monthly report updated successfully',
+        title: "Success",
+        description: "Monthly report updated successfully",
       });
 
       setEditingReport(null);
       setEditData({});
       loadMonthlyReports();
     } catch (error) {
-      console.error('Error updating report:', error);
+      console.error("Error updating report:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to update monthly report',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update monthly report",
+        variant: "destructive",
       });
     }
   };
@@ -166,46 +181,45 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
 
     try {
       // Check if report already exists for this month
-      const existingReport = monthlyReports.find(r => r.report_month === selectedMonth + '-01');
-      
+      const existingReport = monthlyReports.find((r) => r.report_month === selectedMonth + "-01");
+
       if (existingReport) {
         toast({
-          title: 'Report Exists',
-          description: 'A report for this month already exists. Use the edit function to modify it.',
-          variant: 'destructive',
+          title: "Report Exists",
+          description:
+            "A report for this month already exists. Use the edit function to modify it.",
+          variant: "destructive",
         });
         return;
       }
 
       // Create new monthly report template
-      const { error } = await supabase
-        .from('investor_monthly_reports')
-        .insert({
-          investor_id: investorId,
-          report_month: selectedMonth + '-01',
-          asset_code: selectedAsset,
-          opening_balance: 0,
-          closing_balance: 0,
-          additions: 0,
-          withdrawals: 0,
-          yield_earned: 0,
-          edited_by: (await supabase.auth.getUser()).data.user?.id
-        });
+      const { error } = await supabase.from("investor_monthly_reports").insert({
+        investor_id: investorId,
+        report_month: selectedMonth + "-01",
+        asset_code: selectedAsset,
+        opening_balance: 0,
+        closing_balance: 0,
+        additions: 0,
+        withdrawals: 0,
+        yield_earned: 0,
+        edited_by: (await supabase.auth.getUser()).data.user?.id,
+      });
 
       if (error) throw error;
 
       toast({
-        title: 'Success',
-        description: 'Monthly report template created',
+        title: "Success",
+        description: "Monthly report template created",
       });
 
       loadMonthlyReports();
     } catch (error) {
-      console.error('Error creating monthly report:', error);
+      console.error("Error creating monthly report:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to create monthly report',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to create monthly report",
+        variant: "destructive",
       });
     }
   };
@@ -215,24 +229,24 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
 
     try {
       const { error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({ fee_percentage: newFeePercentage / 100 })
-        .eq('id', investor.id);
+        .eq("id", investor.id);
 
       if (error) throw error;
 
       toast({
-        title: 'Success',
-        description: 'Fee percentage updated successfully',
+        title: "Success",
+        description: "Fee percentage updated successfully",
       });
 
       loadInvestorData();
     } catch (error) {
-      console.error('Error updating fee percentage:', error);
+      console.error("Error updating fee percentage:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to update fee percentage',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update fee percentage",
+        variant: "destructive",
       });
     }
   };
@@ -280,11 +294,11 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
                 placeholder="New fee %"
                 className="w-24"
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === "Enter") {
                     const value = parseFloat((e.target as HTMLInputElement).value);
                     if (!isNaN(value)) {
                       updateFeePercentage(value);
-                      (e.target as HTMLInputElement).value = '';
+                      (e.target as HTMLInputElement).value = "";
                     }
                   }
                 }}
@@ -312,8 +326,10 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {assets.map(asset => (
-                    <SelectItem key={asset} value={asset}>{asset}</SelectItem>
+                  {assets.map((asset) => (
+                    <SelectItem key={asset} value={asset}>
+                      {asset}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -326,9 +342,7 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
                 onChange={(e) => setSelectedMonth(e.target.value)}
               />
             </div>
-            <Button onClick={addYieldToMonth}>
-              Add Month Template
-            </Button>
+            <Button onClick={addYieldToMonth}>Add Month Template</Button>
           </div>
         </CardContent>
       </Card>
@@ -360,9 +374,9 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
                   <TableRow key={report.id}>
                     <TableCell>
                       <Badge variant="outline">
-                        {new Date(report.report_month).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short'
+                        {new Date(report.report_month).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
                         })}
                       </Badge>
                     </TableCell>
@@ -372,10 +386,12 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
                           type="number"
                           step="0.00000001"
                           value={editData.opening_balance || 0}
-                          onChange={(e) => setEditData({
-                            ...editData,
-                            opening_balance: parseFloat(e.target.value) || 0
-                          })}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              opening_balance: parseFloat(e.target.value) || 0,
+                            })
+                          }
                         />
                       ) : (
                         <span>{formatAssetValue(report.opening_balance || 0, selectedAsset)}</span>
@@ -387,10 +403,12 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
                           type="number"
                           step="0.00000001"
                           value={editData.additions || 0}
-                          onChange={(e) => setEditData({
-                            ...editData,
-                            additions: parseFloat(e.target.value) || 0
-                          })}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              additions: parseFloat(e.target.value) || 0,
+                            })
+                          }
                         />
                       ) : (
                         <span className="text-green-600">
@@ -404,10 +422,12 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
                           type="number"
                           step="0.00000001"
                           value={editData.withdrawals || 0}
-                          onChange={(e) => setEditData({
-                            ...editData,
-                            withdrawals: parseFloat(e.target.value) || 0
-                          })}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              withdrawals: parseFloat(e.target.value) || 0,
+                            })
+                          }
                         />
                       ) : (
                         <span className="text-red-600">
@@ -421,10 +441,12 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
                           type="number"
                           step="0.00000001"
                           value={editData.yield_earned || 0}
-                          onChange={(e) => setEditData({
-                            ...editData,
-                            yield_earned: parseFloat(e.target.value) || 0
-                          })}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              yield_earned: parseFloat(e.target.value) || 0,
+                            })
+                          }
                         />
                       ) : (
                         <span className="text-blue-600 font-medium">
@@ -438,10 +460,12 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
                           type="number"
                           step="0.00000001"
                           value={editData.closing_balance || 0}
-                          onChange={(e) => setEditData({
-                            ...editData,
-                            closing_balance: parseFloat(e.target.value) || 0
-                          })}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              closing_balance: parseFloat(e.target.value) || 0,
+                            })
+                          }
                         />
                       ) : (
                         <span className="font-medium">

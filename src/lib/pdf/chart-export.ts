@@ -3,8 +3,8 @@
  * Captures React charts as base64 images for PDF embedding
  */
 
-import html2canvas from 'html2canvas';
-import { ChartExportOptions } from './types';
+import html2canvas from "html2canvas";
+import { ChartExportOptions } from "./types";
 
 export class ChartExporter {
   /**
@@ -17,16 +17,16 @@ export class ChartExporter {
     const defaultOptions: ChartExportOptions = {
       width: 800,
       height: 400,
-      format: 'png',
+      format: "png",
       quality: 0.9,
-      backgroundColor: '#ffffff',
+      backgroundColor: "#ffffff",
       scale: 2,
       ...options,
     };
 
     try {
       // Wait for any animations to complete
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       const canvas = await html2canvas(element, {
         width: defaultOptions.width,
@@ -44,8 +44,10 @@ export class ChartExporter {
       const base64 = canvas.toDataURL(`image/${defaultOptions.format}`, defaultOptions.quality);
       return base64;
     } catch (error) {
-      console.error('Chart export failed:', error);
-      throw new Error(`Failed to export chart: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("Chart export failed:", error);
+      throw new Error(
+        `Failed to export chart: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
@@ -74,27 +76,27 @@ export class ChartExporter {
    * Create a placeholder image when chart export fails
    */
   private static createPlaceholderImage(width: number, height: number): string {
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return '';
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return "";
 
     // Draw placeholder
-    ctx.fillStyle = '#f8f9fa';
+    ctx.fillStyle = "#f8f9fa";
     ctx.fillRect(0, 0, width, height);
-    
-    ctx.strokeStyle = '#dee2e6';
+
+    ctx.strokeStyle = "#dee2e6";
     ctx.setLineDash([5, 5]);
     ctx.strokeRect(20, 20, width - 40, height - 40);
-    
-    ctx.fillStyle = '#6c757d';
-    ctx.font = '16px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Chart Unavailable', width / 2, height / 2);
 
-    return canvas.toDataURL('image/png');
+    ctx.fillStyle = "#6c757d";
+    ctx.font = "16px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Chart Unavailable", width / 2, height / 2);
+
+    return canvas.toDataURL("image/png");
   }
 
   /**
@@ -115,8 +117,8 @@ export class ChartExporter {
     // Temporarily adjust styles for export
     element.style.width = `${width}px`;
     element.style.height = `${height}px`;
-    element.style.position = 'absolute';
-    element.style.visibility = 'hidden';
+    element.style.position = "absolute";
+    element.style.visibility = "hidden";
 
     // Return cleanup function
     return () => {

@@ -33,9 +33,7 @@ const Dashboard = () => {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="p-6">
-            <div className="text-center text-red-600">
-              Error loading dashboard: {error}
-            </div>
+            <div className="text-center text-red-600">Error loading dashboard: {error}</div>
           </CardContent>
         </Card>
       </div>
@@ -50,7 +48,7 @@ const Dashboard = () => {
     <div className="container mx-auto px-4 py-8 space-y-6">
       {/* Welcome Header */}
       <div>
-        <h1 className="text-3xl font-bold">Welcome back{userName ? `, ${userName}` : ''}!</h1>
+        <h1 className="text-3xl font-bold">Welcome back{userName ? `, ${userName}` : ""}!</h1>
         <p className="text-muted-foreground">Here's an overview of your portfolio</p>
       </div>
 
@@ -63,12 +61,10 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{assetSummaries.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Different cryptocurrencies
-            </p>
+            <p className="text-xs text-muted-foreground">Different cryptocurrencies</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Portfolio Status</CardTitle>
@@ -76,9 +72,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">Active</div>
-            <p className="text-xs text-muted-foreground">
-              All positions tracked
-            </p>
+            <p className="text-xs text-muted-foreground">All positions tracked</p>
           </CardContent>
         </Card>
       </div>
@@ -87,9 +81,7 @@ const Dashboard = () => {
       <Card>
         <CardHeader>
           <CardTitle>Your Portfolio</CardTitle>
-          <CardDescription>
-            Your cryptocurrency holdings in native token amounts
-          </CardDescription>
+          <CardDescription>Your cryptocurrency holdings in native token amounts</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -99,7 +91,7 @@ const Dashboard = () => {
                 className="p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 onClick={() => handleAssetClick(asset.symbol)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
+                  if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
                     handleAssetClick(asset.symbol);
                   }
@@ -129,7 +121,7 @@ const Dashboard = () => {
               </div>
             ))}
           </div>
-          
+
           {assetSummaries.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               <Coins className="h-12 w-12 mx-auto mb-4 opacity-50" />

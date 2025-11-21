@@ -1,16 +1,16 @@
-export type TicketStatus = 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed';
+export type TicketStatus = "open" | "in_progress" | "waiting" | "resolved" | "closed";
 
-export type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type TicketPriority = "low" | "medium" | "high" | "urgent";
 
 export type TicketCategory =
-  | 'account'
-  | 'transaction'
-  | 'technical'
-  | 'documents'
-  | 'security'
-  | 'billing'
-  | 'general'
-  | 'other';
+  | "account"
+  | "transaction"
+  | "technical"
+  | "documents"
+  | "security"
+  | "billing"
+  | "general"
+  | "other";
 
 export interface SupportTicket {
   id: string;
@@ -93,7 +93,7 @@ export interface LiveChatSession {
   id: string;
   user_id: string;
   agent_id?: string;
-  status: 'waiting' | 'active' | 'ended';
+  status: "waiting" | "active" | "ended";
   started_at: string;
   ended_at?: string;
   metadata?: Record<string, any>;
@@ -103,7 +103,7 @@ export interface LiveChatMessage {
   id: string;
   session_id: string;
   sender_id: string;
-  sender_type: 'user' | 'agent' | 'system';
+  sender_type: "user" | "agent" | "system";
   message: string;
   metadata?: Record<string, any>;
   created_at: string;

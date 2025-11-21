@@ -1,15 +1,28 @@
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { toast } from 'sonner';
-import { Calendar, Save, Download, Upload, AlertCircle, Info } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { toast } from "sonner";
+import { Calendar, Save, Download, Upload, AlertCircle, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface MonthlyDataEntry {
   id?: string;
@@ -31,23 +44,25 @@ export default function MonthlyDataEntry() {
   const [selectedMonth, setSelectedMonth] = useState<string>(
     new Date().toISOString().slice(0, 7) // YYYY-MM format
   );
-  const [selectedAsset, setSelectedAsset] = useState<string>('BTC');
+  const [selectedAsset, setSelectedAsset] = useState<string>("BTC");
   const [editingData, setEditingData] = useState<Record<string, MonthlyDataEntry>>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  const assets = ['BTC', 'ETH', 'SOL', 'USDT', 'USDC', 'EURC'];
+  const assets = ["BTC", "ETH", "SOL", "USDT", "USDC", "EURC"];
 
   // Fetch all investors
   const { data: investors } = useQuery({
-    queryKey: ['all-investors'],
+    queryKey: ["all-investors"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('investors')
-        .select(`
+        .from("investors")
+        .select(
+          `
           id,
           profiles:profile_id(full_name, email)
-        `)
-        .order('created_at');
+        `
+        )
+        .order("created_at");
 
       if (error) throw error;
       return data || [];
@@ -55,29 +70,36 @@ export default function MonthlyDataEntry() {
   });
 
   // Fetch existing monthly data for selected month/asset
-  const { data: monthlyData, isLoading, refetch } = useQuery({
-    queryKey: ['monthly-data', selectedMonth, selectedAsset],
+  const {
+    data: monthlyData,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["monthly-data", selectedMonth, selectedAsset],
     queryFn: async () => {
       const reportMonth = `${selectedMonth}-01`; // Convert YYYY-MM to YYYY-MM-01
 
       const { data, error } = await supabase
-        .from('investor_monthly_reports')
-        .select(`
+        .from("investor_monthly_reports")
+        .select(
+          `
           *,
           investors!inner(
             id,
             profiles:profile_id(full_name, email)
           )
-        `)
-        .eq('report_month', reportMonth)
-        .eq('asset_code', selectedAsset);
+        `
+        )
+        .eq("report_month", reportMonth)
+        .eq("asset_code", selectedAsset);
 
       if (error) throw error;
 
       // Transform data to include investor names
-      return (data || []).map(record => ({
+      return (data || []).map((record) => ({
         ...record,
-        investor_name: record.investors?.profiles?.full_name || record.investors?.profiles?.email || 'Unknown'
+        investor_name:
+          record.investors?.profiles?.full_name || record.investors?.profiles?.email || "Unknown",
       }));
     },
   });
@@ -86,18 +108,18 @@ export default function MonthlyDataEntry() {
   useEffect(() => {
     if (monthlyData) {
       const dataMap: Record<string, MonthlyDataEntry> = {};
-      monthlyData.forEach(record => {
+      monthlyData.forEach((record) => {
         dataMap[record.investor_id] = {
           id: record.id,
           investor_id: record.investor_id,
           investor_name: record.investor_name,
           report_month: record.report_month,
           asset_code: record.asset_code,
-          opening_balance: record.opening_balance?.toString() || '0',
-          additions: record.additions?.toString() || '0',
-          withdrawals: record.withdrawals?.toString() || '0',
-          yield_earned: record.yield_earned?.toString() || '0',
-          closing_balance: record.closing_balance?.toString() || '0',
+          opening_balance: record.opening_balance?.toString() || "0",
+          additions: record.additions?.toString() || "0",
+          withdrawals: record.withdrawals?.toString() || "0",
+          yield_earned: record.yield_earned?.toString() || "0",
+          closing_balance: record.closing_balance?.toString() || "0",
           entry_date: record.entry_date || undefined,
           exit_date: record.exit_date || undefined,
         };
@@ -107,17 +129,17 @@ export default function MonthlyDataEntry() {
     } else if (investors) {
       // Initialize empty records for all investors
       const dataMap: Record<string, MonthlyDataEntry> = {};
-      investors.forEach(investor => {
+      investors.forEach((investor) => {
         dataMap[investor.id] = {
           investor_id: investor.id,
-          investor_name: investor.profiles?.full_name || investor.profiles?.email || 'Unknown',
+          investor_name: investor.profiles?.full_name || investor.profiles?.email || "Unknown",
           report_month: `${selectedMonth}-01`,
           asset_code: selectedAsset,
-          opening_balance: '0',
-          additions: '0',
-          withdrawals: '0',
-          yield_earned: '0',
-          closing_balance: '0',
+          opening_balance: "0",
+          additions: "0",
+          withdrawals: "0",
+          yield_earned: "0",
+          closing_balance: "0",
         };
       });
       setEditingData(dataMap);
@@ -126,7 +148,12 @@ export default function MonthlyDataEntry() {
   }, [monthlyData, investors, selectedMonth, selectedAsset]);
 
   // Auto-calculate closing balance
-  const calculateClosingBalance = (opening: string, additions: string, withdrawals: string, yield_earned: string) => {
+  const calculateClosingBalance = (
+    opening: string,
+    additions: string,
+    withdrawals: string,
+    yield_earned: string
+  ) => {
     const openingNum = parseFloat(opening) || 0;
     const additionsNum = parseFloat(additions) || 0;
     const withdrawalsNum = parseFloat(withdrawals) || 0;
@@ -136,13 +163,13 @@ export default function MonthlyDataEntry() {
 
   // Handle field changes
   const handleFieldChange = (investorId: string, field: keyof MonthlyDataEntry, value: string) => {
-    setEditingData(prev => {
+    setEditingData((prev) => {
       const updated = { ...prev };
       const record = { ...updated[investorId] };
       record[field] = value as any;
 
       // Auto-calculate closing balance when relevant fields change
-      if (['opening_balance', 'additions', 'withdrawals', 'yield_earned'].includes(field)) {
+      if (["opening_balance", "additions", "withdrawals", "yield_earned"].includes(field)) {
         record.closing_balance = calculateClosingBalance(
           record.opening_balance,
           record.additions,
@@ -160,10 +187,12 @@ export default function MonthlyDataEntry() {
   // Save mutation
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No authenticated user');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user");
 
-      const recordsToUpsert = Object.values(editingData).map(record => ({
+      const recordsToUpsert = Object.values(editingData).map((record) => ({
         id: record.id,
         investor_id: record.investor_id,
         report_month: record.report_month,
@@ -179,23 +208,21 @@ export default function MonthlyDataEntry() {
         updated_at: new Date().toISOString(),
       }));
 
-      const { error } = await supabase
-        .from('investor_monthly_reports')
-        .upsert(recordsToUpsert, {
-          onConflict: 'investor_id,report_month,asset_code',
-        });
+      const { error } = await supabase.from("investor_monthly_reports").upsert(recordsToUpsert, {
+        onConflict: "investor_id,report_month,asset_code",
+      });
 
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Monthly data saved successfully');
+      toast.success("Monthly data saved successfully");
       setHasUnsavedChanges(false);
-      queryClient.invalidateQueries({ queryKey: ['monthly-data'] });
+      queryClient.invalidateQueries({ queryKey: ["monthly-data"] });
       refetch();
     },
     onError: (error: any) => {
-      console.error('Error saving monthly data:', error);
-      toast.error(error.message || 'Failed to save monthly data');
+      console.error("Error saving monthly data:", error);
+      toast.error(error.message || "Failed to save monthly data");
     },
   });
 
@@ -219,17 +246,15 @@ export default function MonthlyDataEntry() {
           <Calendar className="h-8 w-8 text-primary" />
           Monthly Data Entry
         </h1>
-        <p className="text-muted-foreground">
-          Enter monthly investor data for report generation
-        </p>
+        <p className="text-muted-foreground">Enter monthly investor data for report generation</p>
       </div>
 
       {/* Info Alert */}
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          This interface replaces daily AUM management. Enter monthly data manually from your records.
-          Closing Balance is auto-calculated: Opening + Additions - Withdrawals + Yield.
+          This interface replaces daily AUM management. Enter monthly data manually from your
+          records. Closing Balance is auto-calculated: Opening + Additions - Withdrawals + Yield.
         </AlertDescription>
       </Alert>
 
@@ -263,7 +288,14 @@ export default function MonthlyDataEntry() {
                 <SelectContent>
                   {assets.map((asset) => (
                     <SelectItem key={asset} value={asset}>
-                      {asset} {asset === 'BTC' ? 'YIELD FUND' : asset === 'ETH' ? 'YIELD FUND' : asset === 'SOL' ? 'YIELD FUND' : 'FUND'}
+                      {asset}{" "}
+                      {asset === "BTC"
+                        ? "YIELD FUND"
+                        : asset === "ETH"
+                          ? "YIELD FUND"
+                          : asset === "SOL"
+                            ? "YIELD FUND"
+                            : "FUND"}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -272,19 +304,11 @@ export default function MonthlyDataEntry() {
 
             {/* Actions */}
             <div className="flex items-end gap-2">
-              <Button
-                variant="outline"
-                className="flex-1"
-                disabled
-              >
+              <Button variant="outline" className="flex-1" disabled>
                 <Upload className="h-4 w-4 mr-2" />
                 Import CSV
               </Button>
-              <Button
-                variant="outline"
-                className="flex-1"
-                disabled
-              >
+              <Button variant="outline" className="flex-1" disabled>
                 <Download className="h-4 w-4 mr-2" />
                 Export CSV
               </Button>
@@ -298,7 +322,9 @@ export default function MonthlyDataEntry() {
         <Card>
           <CardContent className="p-4">
             <div className="text-sm text-muted-foreground">Opening Balance</div>
-            <div className="text-xl font-bold">{totals.opening.toFixed(8)} {selectedAsset}</div>
+            <div className="text-xl font-bold">
+              {totals.opening.toFixed(8)} {selectedAsset}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -322,7 +348,9 @@ export default function MonthlyDataEntry() {
         <Card>
           <CardContent className="p-4">
             <div className="text-sm text-muted-foreground">Closing Balance</div>
-            <div className="text-xl font-bold">{totals.closing.toFixed(8)} {selectedAsset}</div>
+            <div className="text-xl font-bold">
+              {totals.closing.toFixed(8)} {selectedAsset}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -332,9 +360,12 @@ export default function MonthlyDataEntry() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Investor Data - {selectedMonth} - {selectedAsset}</CardTitle>
+              <CardTitle>
+                Investor Data - {selectedMonth} - {selectedAsset}
+              </CardTitle>
               <CardDescription>
-                {Object.keys(editingData).length} investors • {hasUnsavedChanges ? 'Unsaved changes' : 'All changes saved'}
+                {Object.keys(editingData).length} investors •{" "}
+                {hasUnsavedChanges ? "Unsaved changes" : "All changes saved"}
               </CardDescription>
             </div>
             <Button
@@ -342,7 +373,7 @@ export default function MonthlyDataEntry() {
               disabled={!hasUnsavedChanges || saveMutation.isPending}
             >
               <Save className="h-4 w-4 mr-2" />
-              {saveMutation.isPending ? 'Saving...' : 'Save All Changes'}
+              {saveMutation.isPending ? "Saving..." : "Save All Changes"}
             </Button>
           </div>
         </CardHeader>
@@ -373,7 +404,9 @@ export default function MonthlyDataEntry() {
                           type="number"
                           step="0.00000001"
                           value={record.opening_balance}
-                          onChange={(e) => handleFieldChange(record.investor_id, 'opening_balance', e.target.value)}
+                          onChange={(e) =>
+                            handleFieldChange(record.investor_id, "opening_balance", e.target.value)
+                          }
                           className="text-right"
                         />
                       </TableCell>
@@ -382,7 +415,9 @@ export default function MonthlyDataEntry() {
                           type="number"
                           step="0.00000001"
                           value={record.additions}
-                          onChange={(e) => handleFieldChange(record.investor_id, 'additions', e.target.value)}
+                          onChange={(e) =>
+                            handleFieldChange(record.investor_id, "additions", e.target.value)
+                          }
                           className="text-right text-green-600"
                         />
                       </TableCell>
@@ -391,7 +426,9 @@ export default function MonthlyDataEntry() {
                           type="number"
                           step="0.00000001"
                           value={record.withdrawals}
-                          onChange={(e) => handleFieldChange(record.investor_id, 'withdrawals', e.target.value)}
+                          onChange={(e) =>
+                            handleFieldChange(record.investor_id, "withdrawals", e.target.value)
+                          }
                           className="text-right text-red-600"
                         />
                       </TableCell>
@@ -400,7 +437,9 @@ export default function MonthlyDataEntry() {
                           type="number"
                           step="0.00000001"
                           value={record.yield_earned}
-                          onChange={(e) => handleFieldChange(record.investor_id, 'yield_earned', e.target.value)}
+                          onChange={(e) =>
+                            handleFieldChange(record.investor_id, "yield_earned", e.target.value)
+                          }
                           className="text-right text-blue-600"
                         />
                       </TableCell>
@@ -416,16 +455,20 @@ export default function MonthlyDataEntry() {
                       <TableCell>
                         <Input
                           type="date"
-                          value={record.entry_date || ''}
-                          onChange={(e) => handleFieldChange(record.investor_id, 'entry_date', e.target.value)}
+                          value={record.entry_date || ""}
+                          onChange={(e) =>
+                            handleFieldChange(record.investor_id, "entry_date", e.target.value)
+                          }
                           className="text-center text-sm"
                         />
                       </TableCell>
                       <TableCell>
                         <Input
                           type="date"
-                          value={record.exit_date || ''}
-                          onChange={(e) => handleFieldChange(record.investor_id, 'exit_date', e.target.value)}
+                          value={record.exit_date || ""}
+                          onChange={(e) =>
+                            handleFieldChange(record.investor_id, "exit_date", e.target.value)
+                          }
                           className="text-center text-sm"
                         />
                       </TableCell>

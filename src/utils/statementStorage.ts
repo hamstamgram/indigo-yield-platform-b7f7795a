@@ -1,5 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
-import { generateStatementFilename } from './statementPdfGenerator';
+import { supabase } from "@/integrations/supabase/client";
+import { generateStatementFilename } from "./statementPdfGenerator";
 
 // IMPORTANT: Statement operations must be done server-side with service role key
 // This file should only be used for client-side operations with signed URLs
@@ -18,38 +18,38 @@ export async function uploadStatementToStorage(
     // SECURITY: This should be called from a backend/Edge Function only
     // For now, using client with proper RLS policies
     const { error: uploadError } = await supabase.storage
-      .from('statements')
+      .from("statements")
       .upload(storagePath, pdfBlob, {
-        contentType: 'application/pdf',
-        upsert: true // Overwrite if exists
+        contentType: "application/pdf",
+        upsert: true, // Overwrite if exists
       });
 
     if (uploadError) {
-      console.error('Upload error:', uploadError);
-      
+      console.error("Upload error:", uploadError);
+
       // If bucket doesn't exist, create it
-      if (uploadError.message?.includes('Bucket not found')) {
-        const { error: createError } = await supabase.storage.createBucket('statements', {
+      if (uploadError.message?.includes("Bucket not found")) {
+        const { error: createError } = await supabase.storage.createBucket("statements", {
           public: false, // Private bucket
           fileSizeLimit: 10485760, // 10MB limit
-          allowedMimeTypes: ['application/pdf']
+          allowedMimeTypes: ["application/pdf"],
         });
 
         if (createError) {
-          console.error('Bucket creation error:', createError);
+          console.error("Bucket creation error:", createError);
           return null;
         }
 
         // Retry upload
         const { error: retryError } = await supabase.storage
-          .from('statements')
+          .from("statements")
           .upload(storagePath, pdfBlob, {
-            contentType: 'application/pdf',
-            upsert: true
+            contentType: "application/pdf",
+            upsert: true,
           });
 
         if (retryError) {
-          console.error('Retry upload error:', retryError);
+          console.error("Retry upload error:", retryError);
           return null;
         }
       } else {
@@ -59,20 +59,20 @@ export async function uploadStatementToStorage(
 
     // Generate a signed URL (valid for 5 minutes)
     const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-      .from('statements')
+      .from("statements")
       .createSignedUrl(storagePath, 300); // 5 minutes expiry
 
     if (signedUrlError) {
-      console.error('Signed URL error:', signedUrlError);
+      console.error("Signed URL error:", signedUrlError);
       return null;
     }
 
     return {
       storage_path: storagePath,
-      signed_url: signedUrlData.signedUrl
+      signed_url: signedUrlData.signedUrl,
     };
   } catch (error) {
-    console.error('Storage error:', error);
+    console.error("Storage error:", error);
     return null;
   }
 }
@@ -80,35 +80,33 @@ export async function uploadStatementToStorage(
 export async function getStatementSignedUrl(storage_path: string): Promise<string | null> {
   try {
     const { data, error } = await supabase.storage
-      .from('statements')
+      .from("statements")
       .createSignedUrl(storage_path, 300); // 5 minutes expiry
 
     if (error) {
-      console.error('Error creating signed URL:', error);
+      console.error("Error creating signed URL:", error);
       return null;
     }
 
     return data.signedUrl;
   } catch (error) {
-    console.error('Error:', error);
+    console.error("Error:", error);
     return null;
   }
 }
 
 export async function deleteStatement(storage_path: string): Promise<boolean> {
   try {
-    const { error } = await supabase.storage
-      .from('statements')
-      .remove([storage_path]);
+    const { error } = await supabase.storage.from("statements").remove([storage_path]);
 
     if (error) {
-      console.error('Delete error:', error);
+      console.error("Delete error:", error);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Error:', error);
+    console.error("Error:", error);
     return false;
   }
 }

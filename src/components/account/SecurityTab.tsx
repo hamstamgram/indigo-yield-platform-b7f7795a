@@ -1,63 +1,69 @@
-
-import { useState } from 'react';
-import { Key } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from "react";
+import { Key } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const SecurityTab = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const { toast } = useToast();
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (newPassword !== confirmPassword) {
       toast({
-        title: 'Password mismatch',
-        description: 'New password and confirmation do not match',
-        variant: 'destructive',
+        title: "Password mismatch",
+        description: "New password and confirmation do not match",
+        variant: "destructive",
       });
       return;
     }
-    
+
     if (newPassword.length < 8) {
       toast({
-        title: 'Password too short',
-        description: 'Password must be at least 8 characters long',
-        variant: 'destructive',
+        title: "Password too short",
+        description: "Password must be at least 8 characters long",
+        variant: "destructive",
       });
       return;
     }
-    
+
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
-      
+
       if (error) throw error;
-      
+
       setDialogOpen(false);
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+
       toast({
-        title: 'Password updated',
-        description: 'Your password has been changed successfully.',
+        title: "Password updated",
+        description: "Your password has been changed successfully.",
       });
-      
     } catch (error: any) {
-      console.error('Error changing password:', error);
+      console.error("Error changing password:", error);
       toast({
-        title: 'Password change failed',
-        description: error.message || 'Failed to update your password',
-        variant: 'destructive',
+        title: "Password change failed",
+        description: error.message || "Failed to update your password",
+        variant: "destructive",
       });
     }
   };

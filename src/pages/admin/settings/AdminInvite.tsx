@@ -2,7 +2,14 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -13,7 +20,7 @@ const AdminInvite = () => {
   const inviteCode = searchParams.get("code");
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [validInvite, setValidInvite] = useState(false);
@@ -127,7 +134,7 @@ const AdminInvite = () => {
       const { error: updateError } = await supabase
         .from("admin_invites")
         .update({ used: true })
-        .eq("invite_code", inviteCode || '');
+        .eq("invite_code", inviteCode || "");
 
       if (updateError) throw updateError;
 
@@ -135,7 +142,7 @@ const AdminInvite = () => {
       const { error: profileError } = await supabase
         .from("profiles")
         .update({ is_admin: true })
-        .eq("id", signUpData.user?.id || '');
+        .eq("id", signUpData.user?.id || "");
 
       if (profileError) throw profileError;
 
@@ -193,15 +200,9 @@ const AdminInvite = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  value={inviteEmail}
-                  disabled
-                  readOnly
-                  className="bg-muted"
-                />
+                <Input id="email" value={inviteEmail} disabled readOnly className="bg-muted" />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
@@ -222,7 +223,7 @@ const AdminInvite = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
@@ -234,7 +235,7 @@ const AdminInvite = () => {
                   minLength={6}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <Input
@@ -247,9 +248,7 @@ const AdminInvite = () => {
               </div>
 
               <Button type="submit" className="w-full" disabled={submitting}>
-                {submitting ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : null}
+                {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
                 Create Admin Account
               </Button>
             </form>

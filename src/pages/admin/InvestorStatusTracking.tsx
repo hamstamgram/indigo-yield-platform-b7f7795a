@@ -1,39 +1,59 @@
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { toast } from 'sonner';
-import { AdminOnly } from '@/components/ui/RoleGate';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { supabase } from '@/integrations/supabase/client';
-import { redactForAdmin } from '@/lib/security/redact-pii';
-import { 
-  Users, 
-  Filter, 
-  Search, 
-  UserCheck, 
-  UserX, 
-  Clock, 
-  AlertTriangle, 
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import { AdminOnly } from "@/components/ui/RoleGate";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { supabase } from "@/integrations/supabase/client";
+import { redactForAdmin } from "@/lib/security/redact-pii";
+import {
+  Users,
+  Filter,
+  Search,
+  UserCheck,
+  UserX,
+  Clock,
+  AlertTriangle,
   CheckCircle,
   Mail,
   Download,
-  RefreshCw
-} from 'lucide-react';
+  RefreshCw,
+} from "lucide-react";
 
 const statusUpdateSchema = z.object({
-  selectedUsers: z.array(z.string().uuid()).min(1, 'At least one investor must be selected'),
-  newStatus: z.enum(['Active', 'Pending', 'Closed']),
-  reason: z.string().min(10, 'Reason must be at least 10 characters'),
+  selectedUsers: z.array(z.string().uuid()).min(1, "At least one investor must be selected"),
+  newStatus: z.enum(["Active", "Pending", "Closed"]),
+  reason: z.string().min(10, "Reason must be at least 10 characters"),
   notifyInvestors: z.boolean().default(true),
 });
 
@@ -44,7 +64,7 @@ interface Investor {
   email: string;
   first_name: string | null;
   last_name: string | null;
-  status: 'Active' | 'Pending' | 'Closed';
+  status: "Active" | "Pending" | "Closed";
   created_at: string;
   updated_at: string;
   is_admin: boolean;
@@ -57,14 +77,14 @@ interface StatusStats {
   total: number;
 }
 
-type StatusFilter = 'all' | 'Active' | 'Pending' | 'Closed';
+type StatusFilter = "all" | "Active" | "Pending" | "Closed";
 
 export function InvestorStatusTracking() {
   const [investors, setInvestors] = useState<Investor[]>([]);
   const [filteredInvestors, setFilteredInvestors] = useState<Investor[]>([]);
   const [stats, setStats] = useState<StatusStats>({ active: 0, pending: 0, closed: 0, total: 0 });
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedInvestors, setSelectedInvestors] = useState<string[]>([]);
   const [showBulkUpdateDialog, setShowBulkUpdateDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,13 +96,13 @@ export function InvestorStatusTracking() {
     formState: { errors },
     setValue,
     watch,
-    reset
+    reset,
   } = useForm<StatusUpdateForm>({
     resolver: zodResolver(statusUpdateSchema),
     defaultValues: {
       selectedUsers: [],
       notifyInvestors: true,
-    }
+    },
   });
 
   useEffect(() => {
@@ -94,13 +114,13 @@ export function InvestorStatusTracking() {
   }, [investors, statusFilter, searchQuery]);
 
   useEffect(() => {
-    setValue('selectedUsers', selectedInvestors);
+    setValue("selectedUsers", selectedInvestors);
   }, [selectedInvestors, setValue]);
 
   const loadInvestors = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase.rpc('get_all_investors_with_details');
+      const { data, error } = await supabase.rpc("get_all_investors_with_details");
 
       if (error) throw error;
 
@@ -109,27 +129,26 @@ export function InvestorStatusTracking() {
         email: investor.email,
         first_name: investor.first_name,
         last_name: investor.last_name,
-        status: investor.status || 'Active',
+        status: investor.status || "Active",
         created_at: investor.created_at,
         updated_at: investor.created_at, // Use created_at as fallback
         is_admin: false,
       }));
       setInvestors(transformedInvestors);
-      
+
       // Calculate stats
       const stats = investors.reduce(
         (acc, inv) => {
           acc.total += 1;
-          acc[inv.status?.toLowerCase() as keyof Omit<StatusStats, 'total'>] += 1;
+          acc[inv.status?.toLowerCase() as keyof Omit<StatusStats, "total">] += 1;
           return acc;
         },
         { active: 0, pending: 0, closed: 0, total: 0 }
       );
       setStats(stats);
-
     } catch (error) {
-      console.error('Error loading investors:', error);
-      toast.error('Failed to load investors');
+      console.error("Error loading investors:", error);
+      toast.error("Failed to load investors");
     } finally {
       setIsLoading(false);
     }
@@ -139,17 +158,18 @@ export function InvestorStatusTracking() {
     let filtered = investors;
 
     // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(inv => inv.status === statusFilter);
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((inv) => inv.status === statusFilter);
     }
 
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(inv => 
-        inv.email.toLowerCase().includes(query) ||
-        (inv.first_name?.toLowerCase().includes(query)) ||
-        (inv.last_name?.toLowerCase().includes(query))
+      filtered = filtered.filter(
+        (inv) =>
+          inv.email.toLowerCase().includes(query) ||
+          inv.first_name?.toLowerCase().includes(query) ||
+          inv.last_name?.toLowerCase().includes(query)
       );
     }
 
@@ -158,19 +178,27 @@ export function InvestorStatusTracking() {
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'Active': return 'default';
-      case 'Pending': return 'secondary';
-      case 'Closed': return 'destructive';
-      default: return 'outline';
+      case "Active":
+        return "default";
+      case "Pending":
+        return "secondary";
+      case "Closed":
+        return "destructive";
+      default:
+        return "outline";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'Active': return <UserCheck className="h-4 w-4" />;
-      case 'Pending': return <Clock className="h-4 w-4" />;
-      case 'Closed': return <UserX className="h-4 w-4" />;
-      default: return <Users className="h-4 w-4" />;
+      case "Active":
+        return <UserCheck className="h-4 w-4" />;
+      case "Pending":
+        return <Clock className="h-4 w-4" />;
+      case "Closed":
+        return <UserX className="h-4 w-4" />;
+      default:
+        return <Users className="h-4 w-4" />;
     }
   };
 
@@ -178,21 +206,19 @@ export function InvestorStatusTracking() {
     if (selectedInvestors.length === filteredInvestors.length) {
       setSelectedInvestors([]);
     } else {
-      setSelectedInvestors(filteredInvestors.map(inv => inv.id));
+      setSelectedInvestors(filteredInvestors.map((inv) => inv.id));
     }
   };
 
   const handleSelectInvestor = (investorId: string) => {
-    setSelectedInvestors(prev => 
-      prev.includes(investorId)
-        ? prev.filter(id => id !== investorId)
-        : [...prev, investorId]
+    setSelectedInvestors((prev) =>
+      prev.includes(investorId) ? prev.filter((id) => id !== investorId) : [...prev, investorId]
     );
   };
 
   const openBulkUpdateDialog = () => {
     if (selectedInvestors.length === 0) {
-      toast.error('Please select at least one investor');
+      toast.error("Please select at least one investor");
       return;
     }
     setShowBulkUpdateDialog(true);
@@ -203,43 +229,41 @@ export function InvestorStatusTracking() {
 
     try {
       const currentUser = await supabase.auth.getUser();
-      if (!currentUser.data.user) throw new Error('Not authenticated');
+      if (!currentUser.data.user) throw new Error("Not authenticated");
 
       // Update investor statuses using secure RPC function
       const updatePromises = data.selectedUsers.map(async (userId) => {
-        return supabase.rpc('update_user_profile_secure', {
+        return supabase.rpc("update_user_profile_secure", {
           p_user_id: userId,
-          p_status: data.newStatus
+          p_status: data.newStatus,
         });
       });
 
       const updateResults = await Promise.allSettled(updatePromises);
-      const failedUpdates = updateResults.filter(result => result.status === 'rejected');
-      
+      const failedUpdates = updateResults.filter((result) => result.status === "rejected");
+
       if (failedUpdates.length > 0) {
         throw new Error(`Failed to update ${failedUpdates.length} investor(s)`);
       }
 
       // Log audit events for each investor
       const auditPromises = data.selectedUsers.map(async (userId) => {
-        const investor = investors.find(inv => inv.id === userId);
+        const investor = investors.find((inv) => inv.id === userId);
         if (!investor) return;
 
-        return supabase
-          .from('audit_log')
-          .insert({
-            actor_user: currentUser.data.user?.id || '',
-            action: 'UPDATE_INVESTOR_STATUS',
-            entity: 'profiles',
-            entity_id: userId,
-            old_values: { status: investor.status },
-            new_values: { status: data.newStatus },
-            meta: {
-              reason: data.reason,
-              investor_email: redactForAdmin(investor.email),
-              bulk_operation: data.selectedUsers.length > 1,
-            }
-          });
+        return supabase.from("audit_log").insert({
+          actor_user: currentUser.data.user?.id || "",
+          action: "UPDATE_INVESTOR_STATUS",
+          entity: "profiles",
+          entity_id: userId,
+          old_values: { status: investor.status },
+          new_values: { status: data.newStatus },
+          meta: {
+            reason: data.reason,
+            investor_email: redactForAdmin(investor.email),
+            bulk_operation: data.selectedUsers.length > 1,
+          },
+        });
       });
 
       await Promise.all(auditPromises);
@@ -248,70 +272,71 @@ export function InvestorStatusTracking() {
       if (data.notifyInvestors) {
         const notificationPromises = data.selectedUsers.map(async (userId) => {
           try {
-            return supabase.functions.invoke('ef_send_notification', {
+            return supabase.functions.invoke("ef_send_notification", {
               body: {
                 user_id: userId,
-                type: 'system',
-                title: 'Account Status Updated',
+                type: "system",
+                title: "Account Status Updated",
                 body: `Your account status has been updated to ${data.newStatus}. ${data.reason}`,
                 data: {
-                  old_status: investors.find(inv => inv.id === userId)?.status,
+                  old_status: investors.find((inv) => inv.id === userId)?.status,
                   new_status: data.newStatus,
                   reason: data.reason,
                 },
-                priority: 'medium',
+                priority: "medium",
                 send_email: true,
-              }
+              },
             });
           } catch (notificationError) {
-            console.warn('Failed to send notification to user:', userId, notificationError);
+            console.warn("Failed to send notification to user:", userId, notificationError);
           }
         });
 
         await Promise.allSettled(notificationPromises);
       }
 
-      toast.success(`Successfully updated status for ${data.selectedUsers.length} investor(s) to ${data.newStatus}`);
+      toast.success(
+        `Successfully updated status for ${data.selectedUsers.length} investor(s) to ${data.newStatus}`
+      );
 
       // Refresh data and reset form
       await loadInvestors();
       setSelectedInvestors([]);
       setShowBulkUpdateDialog(false);
       reset();
-
     } catch (error: any) {
-      console.error('Error updating investor status:', error);
-      toast.error(error.message || 'Failed to update investor status');
+      console.error("Error updating investor status:", error);
+      toast.error(error.message || "Failed to update investor status");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const exportToCSV = () => {
-    const headers = ['Email', 'Name', 'Status', 'Created At', 'Updated At'];
-    const rows = filteredInvestors.map(inv => [
+    const headers = ["Email", "Name", "Status", "Created At", "Updated At"];
+    const rows = filteredInvestors.map((inv) => [
       redactForAdmin(inv.email),
-      `${inv.first_name || ''} ${inv.last_name || ''}`.trim() || 'N/A',
+      `${inv.first_name || ""} ${inv.last_name || ""}`.trim() || "N/A",
       inv.status,
       new Date(inv.created_at).toLocaleDateString(),
       new Date(inv.updated_at).toLocaleDateString(),
     ]);
 
     const csvContent = [headers, ...rows]
-      .map(row => row.map(field => `"${field}"`).join(','))
-      .join('\n');
+      .map((row) => row.map((field) => `"${field}"`).join(","))
+      .join("\n");
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.download = `investor-status-${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `investor-status-${new Date().toISOString().split("T")[0]}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
-    toast.success('Investor status data exported successfully');
+    toast.success("Investor status data exported successfully");
   };
 
   return (
@@ -388,13 +413,8 @@ export function InvestorStatusTracking() {
                 </CardDescription>
               </div>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={loadInvestors}
-                  disabled={isLoading}
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                <Button variant="outline" size="sm" onClick={loadInvestors} disabled={isLoading}>
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
                   Refresh
                 </Button>
                 <Button
@@ -415,7 +435,10 @@ export function InvestorStatusTracking() {
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4" />
                 <Label>Status:</Label>
-                <Select value={statusFilter} onValueChange={(value: StatusFilter) => setStatusFilter(value)}>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(value: StatusFilter) => setStatusFilter(value)}
+                >
                   <SelectTrigger className="w-[140px]">
                     <SelectValue />
                   </SelectTrigger>
@@ -453,7 +476,9 @@ export function InvestorStatusTracking() {
               </div>
             ) : filteredInvestors.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                {investors.length === 0 ? 'No investors found' : 'No investors match the current filters'}
+                {investors.length === 0
+                  ? "No investors found"
+                  : "No investors match the current filters"}
               </div>
             ) : (
               <div className="rounded-md border">
@@ -462,7 +487,10 @@ export function InvestorStatusTracking() {
                     <TableRow>
                       <TableHead className="w-12">
                         <Checkbox
-                          checked={selectedInvestors.length === filteredInvestors.length && filteredInvestors.length > 0}
+                          checked={
+                            selectedInvestors.length === filteredInvestors.length &&
+                            filteredInvestors.length > 0
+                          }
                           onCheckedChange={handleSelectAll}
                         />
                       </TableHead>
@@ -486,8 +514,7 @@ export function InvestorStatusTracking() {
                             <span className="font-medium">
                               {investor.first_name && investor.last_name
                                 ? `${investor.first_name} ${investor.last_name}`
-                                : 'No name provided'
-                              }
+                                : "No name provided"}
                             </span>
                             <span className="text-sm text-muted-foreground">
                               {redactForAdmin(investor.email)}
@@ -495,17 +522,16 @@ export function InvestorStatusTracking() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={getStatusBadgeVariant(investor.status)} className="flex items-center gap-1 w-fit">
+                          <Badge
+                            variant={getStatusBadgeVariant(investor.status)}
+                            className="flex items-center gap-1 w-fit"
+                          >
                             {getStatusIcon(investor.status)}
                             {investor.status}
                           </Badge>
                         </TableCell>
-                        <TableCell>
-                          {new Date(investor.created_at).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(investor.updated_at).toLocaleDateString()}
-                        </TableCell>
+                        <TableCell>{new Date(investor.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell>{new Date(investor.updated_at).toLocaleDateString()}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -530,8 +556,8 @@ export function InvestorStatusTracking() {
                 Update Investor Status
               </DialogTitle>
               <DialogDescription>
-                Update the status for {selectedInvestors.length} selected investor(s). 
-                This action will be logged for audit purposes.
+                Update the status for {selectedInvestors.length} selected investor(s). This action
+                will be logged for audit purposes.
               </DialogDescription>
             </DialogHeader>
 
@@ -539,8 +565,10 @@ export function InvestorStatusTracking() {
               <div className="space-y-2">
                 <Label htmlFor="newStatus">New Status *</Label>
                 <Select
-                  value={watch('newStatus')}
-                  onValueChange={(value: 'Active' | 'Pending' | 'Closed') => setValue('newStatus', value)}
+                  value={watch("newStatus")}
+                  onValueChange={(value: "Active" | "Pending" | "Closed") =>
+                    setValue("newStatus", value)
+                  }
                   disabled={isSubmitting}
                 >
                   <SelectTrigger>
@@ -577,20 +605,18 @@ export function InvestorStatusTracking() {
                 <textarea
                   id="reason"
                   placeholder="Provide a detailed reason for this status change..."
-                  {...register('reason')}
+                  {...register("reason")}
                   disabled={isSubmitting}
                   className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
-                {errors.reason && (
-                  <p className="text-sm text-red-600">{errors.reason.message}</p>
-                )}
+                {errors.reason && <p className="text-sm text-red-600">{errors.reason.message}</p>}
               </div>
 
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="notifyInvestors"
-                  checked={watch('notifyInvestors')}
-                  onCheckedChange={(checked) => setValue('notifyInvestors', checked as boolean)}
+                  checked={watch("notifyInvestors")}
+                  onCheckedChange={(checked) => setValue("notifyInvestors", checked as boolean)}
                   disabled={isSubmitting}
                 />
                 <Label htmlFor="notifyInvestors" className="flex items-center gap-2">
@@ -599,12 +625,13 @@ export function InvestorStatusTracking() {
                 </Label>
               </div>
 
-              {watch('newStatus') === 'Closed' && (
+              {watch("newStatus") === "Closed" && (
                 <Alert>
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>Warning:</strong> Setting status to "Closed" may restrict access to the platform. 
-                    Ensure this is intentional and properly communicated to affected investors.
+                    <strong>Warning:</strong> Setting status to "Closed" may restrict access to the
+                    platform. Ensure this is intentional and properly communicated to affected
+                    investors.
                   </AlertDescription>
                 </Alert>
               )}
@@ -620,7 +647,7 @@ export function InvestorStatusTracking() {
               </Button>
               <Button
                 onClick={handleSubmit(onSubmitStatusUpdate)}
-                disabled={isSubmitting || !watch('newStatus') || !watch('reason')}
+                disabled={isSubmitting || !watch("newStatus") || !watch("reason")}
               >
                 {isSubmitting ? (
                   <>

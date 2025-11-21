@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ArrowUpRight, ArrowDownLeft, CreditCard, Calendar } from 'lucide-react';
-import { transactionService, Transaction } from '@/services/transactionService';
-import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
-import { toast } from 'sonner';
+import { useState, useEffect, useCallback } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowUpRight, ArrowDownLeft, CreditCard, Calendar } from "lucide-react";
+import { transactionService, Transaction } from "@/services/transactionService";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
+import { toast } from "sonner";
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -13,7 +13,7 @@ export default function TransactionsPage() {
     totalCount: 0,
     totalDeposits: 0,
     totalWithdrawals: 0,
-    pendingCount: 0
+    pendingCount: 0,
   });
 
   const loadTransactions = useCallback(async () => {
@@ -21,13 +21,13 @@ export default function TransactionsPage() {
       setLoading(true);
       const [txData, summaryData] = await Promise.all([
         transactionService.fetchUserTransactions(),
-        transactionService.calculateTransactionSummary()
+        transactionService.calculateTransactionSummary(),
       ]);
       setTransactions(txData);
       setSummary(summaryData);
     } catch (error) {
-      console.error('Error loading transactions:', error);
-      toast.error('Failed to load transactions');
+      console.error("Error loading transactions:", error);
+      toast.error("Failed to load transactions");
     } finally {
       setLoading(false);
     }
@@ -39,21 +39,24 @@ export default function TransactionsPage() {
 
   // Real-time subscription for live updates
   useRealtimeSubscription({
-    table: 'transactions_v2',
-    event: '*',
-    onUpdate: loadTransactions
+    table: "transactions_v2",
+    event: "*",
+    onUpdate: loadTransactions,
   });
 
   const getTransactionIcon = (type: string) => {
-    const typeUpper = (type || '').toUpperCase();
+    const typeUpper = (type || "").toUpperCase();
     switch (typeUpper) {
-      case 'DEPOSIT': return <ArrowDownLeft className="h-4 w-4 text-green-500" />;
-      case 'WITHDRAWAL': return <ArrowUpRight className="h-4 w-4 text-red-500" />;
-      case 'FEE':
-      case 'INTEREST':
-      case 'YIELD':
+      case "DEPOSIT":
+        return <ArrowDownLeft className="h-4 w-4 text-green-500" />;
+      case "WITHDRAWAL":
+        return <ArrowUpRight className="h-4 w-4 text-red-500" />;
+      case "FEE":
+      case "INTEREST":
+      case "YIELD":
         return <CreditCard className="h-4 w-4 text-blue-500" />;
-      default: return <CreditCard className="h-4 w-4 text-muted-foreground" />;
+      default:
+        return <CreditCard className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -78,9 +81,7 @@ export default function TransactionsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{summary.totalCount}</div>
-            <p className="text-xs text-muted-foreground">
-              All time
-            </p>
+            <p className="text-xs text-muted-foreground">All time</p>
           </CardContent>
         </Card>
 
@@ -90,12 +91,8 @@ export default function TransactionsPage() {
             <ArrowDownLeft className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              ${summary.totalDeposits.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Total deposits
-            </p>
+            <div className="text-2xl font-bold">${summary.totalDeposits.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">Total deposits</p>
           </CardContent>
         </Card>
 
@@ -105,12 +102,8 @@ export default function TransactionsPage() {
             <ArrowUpRight className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              ${summary.totalWithdrawals.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Total withdrawals
-            </p>
+            <div className="text-2xl font-bold">${summary.totalWithdrawals.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">Total withdrawals</p>
           </CardContent>
         </Card>
 
@@ -120,12 +113,8 @@ export default function TransactionsPage() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {summary.pendingCount}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting confirmation
-            </p>
+            <div className="text-2xl font-bold">{summary.pendingCount}</div>
+            <p className="text-xs text-muted-foreground">Awaiting confirmation</p>
           </CardContent>
         </Card>
       </div>
@@ -136,14 +125,12 @@ export default function TransactionsPage() {
             <CreditCard className="h-5 w-5" />
             Recent Transactions
           </CardTitle>
-          <CardDescription>
-            Latest transaction activity across all assets
-          </CardDescription>
+          <CardDescription>Latest transaction activity across all assets</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {transactions.map((transaction) => {
-              const txType = (transaction.txn_type || transaction.type || 'UNKNOWN').toUpperCase();
+              const txType = (transaction.txn_type || transaction.type || "UNKNOWN").toUpperCase();
               return (
                 <div
                   key={transaction.id}
@@ -169,7 +156,8 @@ export default function TransactionsPage() {
                   </div>
                   <div className="text-right">
                     <div className="font-medium">
-                      {txType === 'WITHDRAWAL' ? '-' : '+'}{Number(transaction.amount).toLocaleString()} {transaction.asset}
+                      {txType === "WITHDRAWAL" ? "-" : "+"}
+                      {Number(transaction.amount).toLocaleString()} {transaction.asset}
                     </div>
                   </div>
                 </div>
@@ -178,9 +166,7 @@ export default function TransactionsPage() {
           </div>
 
           {transactions.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              No transactions found
-            </div>
+            <div className="text-center py-8 text-muted-foreground">No transactions found</div>
           )}
         </CardContent>
       </Card>

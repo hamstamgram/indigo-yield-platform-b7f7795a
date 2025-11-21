@@ -3,23 +3,23 @@
  * Update user's personal details
  */
 
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Loader2, CheckCircle } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Save, Loader2, CheckCircle } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/lib/auth/context';
-import { supabase } from '@/integrations/supabase/client';
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth/context";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PersonalInfoForm {
   firstName: string;
@@ -39,15 +39,15 @@ export default function PersonalInfo() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<PersonalInfoForm>({
-    firstName: '',
-    lastName: '',
-    phone: '',
-    dateOfBirth: '',
-    address: '',
-    city: '',
-    state: '',
-    postalCode: '',
-    country: 'US',
+    firstName: "",
+    lastName: "",
+    phone: "",
+    dateOfBirth: "",
+    address: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "US",
   });
 
   const [loading, setLoading] = useState(true);
@@ -63,32 +63,32 @@ export default function PersonalInfo() {
 
     try {
       const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
         .maybeSingle();
 
       if (error) throw error;
 
       if (data) {
         setFormData({
-          firstName: data.first_name || '',
-          lastName: data.last_name || '',
-          phone: data.phone || '',
-          dateOfBirth: data.date_of_birth || '',
-          address: data.address || '',
-          city: data.city || '',
-          state: data.state || '',
-          postalCode: data.postal_code || '',
-          country: data.country || 'US',
+          firstName: data.first_name || "",
+          lastName: data.last_name || "",
+          phone: data.phone || "",
+          dateOfBirth: data.date_of_birth || "",
+          address: data.address || "",
+          city: data.city || "",
+          state: data.state || "",
+          postalCode: data.postal_code || "",
+          country: data.country || "US",
         });
       }
     } catch (error) {
-      console.error('Failed to load profile:', error);
+      console.error("Failed to load profile:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load your profile information',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load your profile information",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -104,7 +104,7 @@ export default function PersonalInfo() {
 
     try {
       const { error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({
           first_name: formData.firstName,
           last_name: formData.lastName,
@@ -117,23 +117,23 @@ export default function PersonalInfo() {
           country: formData.country,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', user.id);
+        .eq("id", user.id);
 
       if (error) throw error;
 
       toast({
-        title: 'Success',
-        description: 'Your personal information has been updated',
+        title: "Success",
+        description: "Your personal information has been updated",
       });
 
       // Optionally navigate back
       // navigate('/profile');
     } catch (error) {
-      console.error('Failed to update profile:', error);
+      console.error("Failed to update profile:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to update your personal information',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update your personal information",
+        variant: "destructive",
       });
     } finally {
       setSaving(false);
@@ -156,7 +156,7 @@ export default function PersonalInfo() {
     <div className="container max-w-4xl mx-auto px-4 py-8 space-y-8">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
@@ -184,7 +184,7 @@ export default function PersonalInfo() {
                 <Input
                   id="firstName"
                   value={formData.firstName}
-                  onChange={(e) => handleChange('firstName', e.target.value)}
+                  onChange={(e) => handleChange("firstName", e.target.value)}
                   placeholder="John"
                   required
                 />
@@ -195,7 +195,7 @@ export default function PersonalInfo() {
                 <Input
                   id="lastName"
                   value={formData.lastName}
-                  onChange={(e) => handleChange('lastName', e.target.value)}
+                  onChange={(e) => handleChange("lastName", e.target.value)}
                   placeholder="Doe"
                   required
                 />
@@ -210,7 +210,7 @@ export default function PersonalInfo() {
                   id="phone"
                   type="tel"
                   value={formData.phone}
-                  onChange={(e) => handleChange('phone', e.target.value)}
+                  onChange={(e) => handleChange("phone", e.target.value)}
                   placeholder="+1 (555) 123-4567"
                 />
               </div>
@@ -221,7 +221,7 @@ export default function PersonalInfo() {
                   id="dateOfBirth"
                   type="date"
                   value={formData.dateOfBirth}
-                  onChange={(e) => handleChange('dateOfBirth', e.target.value)}
+                  onChange={(e) => handleChange("dateOfBirth", e.target.value)}
                 />
               </div>
             </div>
@@ -232,7 +232,7 @@ export default function PersonalInfo() {
               <Input
                 id="address"
                 value={formData.address}
-                onChange={(e) => handleChange('address', e.target.value)}
+                onChange={(e) => handleChange("address", e.target.value)}
                 placeholder="123 Main Street, Apt 4B"
               />
             </div>
@@ -243,7 +243,7 @@ export default function PersonalInfo() {
                 <Input
                   id="city"
                   value={formData.city}
-                  onChange={(e) => handleChange('city', e.target.value)}
+                  onChange={(e) => handleChange("city", e.target.value)}
                   placeholder="New York"
                 />
               </div>
@@ -253,7 +253,7 @@ export default function PersonalInfo() {
                 <Input
                   id="state"
                   value={formData.state}
-                  onChange={(e) => handleChange('state', e.target.value)}
+                  onChange={(e) => handleChange("state", e.target.value)}
                   placeholder="NY"
                 />
               </div>
@@ -263,7 +263,7 @@ export default function PersonalInfo() {
                 <Input
                   id="postalCode"
                   value={formData.postalCode}
-                  onChange={(e) => handleChange('postalCode', e.target.value)}
+                  onChange={(e) => handleChange("postalCode", e.target.value)}
                   placeholder="10001"
                 />
               </div>
@@ -271,7 +271,10 @@ export default function PersonalInfo() {
 
             <div className="space-y-2">
               <Label htmlFor="country">Country</Label>
-              <Select value={formData.country} onValueChange={(val) => handleChange('country', val)}>
+              <Select
+                value={formData.country}
+                onValueChange={(val) => handleChange("country", val)}
+              >
                 <SelectTrigger id="country">
                   <SelectValue />
                 </SelectTrigger>
@@ -293,7 +296,7 @@ export default function PersonalInfo() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate('/profile')}
+                onClick={() => navigate("/profile")}
                 disabled={saving}
               >
                 Cancel

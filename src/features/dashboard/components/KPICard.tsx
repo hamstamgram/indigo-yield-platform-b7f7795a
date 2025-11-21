@@ -13,14 +13,7 @@ interface KPICardProps {
   className?: string;
 }
 
-export function KPICard({
-  title,
-  value,
-  description,
-  icon,
-  trend,
-  className
-}: KPICardProps) {
+export function KPICard({ title, value, description, icon, trend, className }: KPICardProps) {
   return (
     <Card className={cn("", className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -29,17 +22,15 @@ export function KPICard({
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
-        {description && (
-          <p className="text-xs text-muted-foreground">{description}</p>
-        )}
+        {description && <p className="text-xs text-muted-foreground">{description}</p>}
         {trend && (
-          <div className={cn(
-            "flex items-center text-xs",
-            trend.isPositive ? "text-green-600" : "text-red-600"
-          )}>
-            <span className="mr-1">
-              {trend.isPositive ? "↗" : "↘"}
-            </span>
+          <div
+            className={cn(
+              "flex items-center text-xs",
+              trend.isPositive ? "text-green-600" : "text-red-600"
+            )}
+          >
+            <span className="mr-1">{trend.isPositive ? "↗" : "↘"}</span>
             {Math.abs(trend.value)}%
           </div>
         )}

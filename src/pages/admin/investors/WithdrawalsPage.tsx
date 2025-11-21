@@ -1,15 +1,28 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ArrowDownCircle, Clock, CheckCircle, XCircle, AlertCircle, Plus } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ArrowDownCircle, Clock, CheckCircle, XCircle, AlertCircle, Plus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface WithdrawalRequest {
   id: string;
@@ -53,10 +66,10 @@ const WithdrawalsPage = () => {
   const { toast } = useToast();
 
   // Form state
-  const [selectedFund, setSelectedFund] = useState<string>('');
-  const [withdrawalAmount, setWithdrawalAmount] = useState<string>('');
-  const [withdrawalType, setWithdrawalType] = useState<string>('partial');
-  const [withdrawalNotes, setWithdrawalNotes] = useState<string>('');
+  const [selectedFund, setSelectedFund] = useState<string>("");
+  const [withdrawalAmount, setWithdrawalAmount] = useState<string>("");
+  const [withdrawalType, setWithdrawalType] = useState<string>("partial");
+  const [withdrawalNotes, setWithdrawalNotes] = useState<string>("");
 
   useEffect(() => {
     fetchWithdrawals();
@@ -65,32 +78,37 @@ const WithdrawalsPage = () => {
 
   const fetchWithdrawals = async () => {
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error('Not authenticated');
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Not authenticated");
 
       // Get investor record
       const { data: investorData, error: investorError } = await supabase
-        .from('investors')
-        .select('id')
-        .eq('profile_id', user.id)
+        .from("investors")
+        .select("id")
+        .eq("profile_id", user.id)
         .maybeSingle();
 
-      if (!investorData) throw new Error('Investor profile not found');
+      if (!investorData) throw new Error("Investor profile not found");
 
-      if (investorError || !investorData) throw new Error('Investor profile not found');
+      if (investorError || !investorData) throw new Error("Investor profile not found");
 
       const { data: withdrawalsData, error: withdrawalsError } = await supabase
-        .from('withdrawal_requests')
-        .select(`
+        .from("withdrawal_requests")
+        .select(
+          `
           *,
           funds:fund_id (
             name,
             code,
             fund_class
           )
-        `)
-        .eq('investor_id', investorData.id)
-        .order('created_at', { ascending: false });
+        `
+        )
+        .eq("investor_id", investorData.id)
+        .order("created_at", { ascending: false });
 
       if (withdrawalsError) throw withdrawalsError;
 
@@ -98,39 +116,43 @@ const WithdrawalsPage = () => {
       const mappedData = (withdrawalsData || []).map((item: any) => ({
         ...item,
         created_at: item.created_at || new Date().toISOString(),
-        funds: item.funds || { name: 'Unknown Fund', code: 'N/A', fund_class: 'N/A' }
+        funds: item.funds || { name: "Unknown Fund", code: "N/A", fund_class: "N/A" },
       }));
 
       setWithdrawals(mappedData);
     } catch (error: any) {
-      console.error('Error fetching withdrawals:', error);
+      console.error("Error fetching withdrawals:", error);
       toast({
-        title: 'Error loading withdrawals',
-        description: error.message || 'Failed to load withdrawal history',
-        variant: 'destructive',
+        title: "Error loading withdrawals",
+        description: error.message || "Failed to load withdrawal history",
+        variant: "destructive",
       });
     }
   };
 
   const fetchPositions = async () => {
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error('Not authenticated');
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Not authenticated");
 
       // Get investor record
       const { data: investorData, error: investorError } = await supabase
-        .from('investors')
-        .select('id')
-        .eq('profile_id', user.id)
+        .from("investors")
+        .select("id")
+        .eq("profile_id", user.id)
         .maybeSingle();
 
-      if (!investorData) throw new Error('Investor profile not found');
+      if (!investorData) throw new Error("Investor profile not found");
 
-      if (investorError || !investorData) throw new Error('Investor profile not found');
+      if (investorError || !investorData) throw new Error("Investor profile not found");
 
       const { data: positionsData, error: positionsError } = await supabase
-        .from('investor_positions')
-        .select(`
+        .from("investor_positions")
+        .select(
+          `
           fund_id,
           current_value,
           shares,
@@ -139,19 +161,20 @@ const WithdrawalsPage = () => {
             name,
             code
           )
-        `)
-        .eq('investor_id', investorData.id)
-        .gt('current_value', 0);
+        `
+        )
+        .eq("investor_id", investorData.id)
+        .gt("current_value", 0);
 
       if (positionsError) throw positionsError;
 
       setPositions(positionsData || []);
     } catch (error: any) {
-      console.error('Error fetching positions:', error);
+      console.error("Error fetching positions:", error);
       toast({
-        title: 'Error loading positions',
-        description: error.message || 'Failed to load your positions',
-        variant: 'destructive',
+        title: "Error loading positions",
+        description: error.message || "Failed to load your positions",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -161,9 +184,9 @@ const WithdrawalsPage = () => {
   const handleCreateWithdrawal = async () => {
     if (!selectedFund || !withdrawalAmount) {
       toast({
-        title: 'Missing information',
-        description: 'Please select a fund and enter withdrawal amount',
-        variant: 'destructive',
+        title: "Missing information",
+        description: "Please select a fund and enter withdrawal amount",
+        variant: "destructive",
       });
       return;
     }
@@ -171,9 +194,9 @@ const WithdrawalsPage = () => {
     const amount = parseFloat(withdrawalAmount);
     if (isNaN(amount) || amount <= 0) {
       toast({
-        title: 'Invalid amount',
-        description: 'Please enter a valid withdrawal amount',
-        variant: 'destructive',
+        title: "Invalid amount",
+        description: "Please enter a valid withdrawal amount",
+        variant: "destructive",
       });
       return;
     }
@@ -181,64 +204,67 @@ const WithdrawalsPage = () => {
     try {
       setSubmitting(true);
 
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error('Not authenticated');
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Not authenticated");
 
       // Get investor record
       const { data: investorData, error: investorError } = await supabase
-        .from('investors')
-        .select('id')
-        .eq('profile_id', user.id)
+        .from("investors")
+        .select("id")
+        .eq("profile_id", user.id)
         .maybeSingle();
 
-      if (!investorData) throw new Error('Investor profile not found');
+      if (!investorData) throw new Error("Investor profile not found");
 
-      if (investorError || !investorData) throw new Error('Investor profile not found');
+      if (investorError || !investorData) throw new Error("Investor profile not found");
 
       // Check if amount is valid for the selected position
-      const selectedPosition = positions.find(p => p.fund_id === selectedFund);
-      if (!selectedPosition) throw new Error('Position not found');
+      const selectedPosition = positions.find((p) => p.fund_id === selectedFund);
+      if (!selectedPosition) throw new Error("Position not found");
 
       if (amount > selectedPosition.current_value) {
         toast({
-          title: 'Amount too high',
+          title: "Amount too high",
           description: `Maximum withdrawal amount is $${selectedPosition.current_value.toLocaleString()}`,
-          variant: 'destructive',
+          variant: "destructive",
         });
         return;
       }
 
       // Create withdrawal request using the database function
-      const { data: _data, error } = await supabase.rpc('create_withdrawal_request', {
+      const { data: _data, error } = await supabase.rpc("create_withdrawal_request", {
         p_investor_id: investorData.id,
         p_fund_id: selectedFund,
         p_amount: amount,
         p_type: withdrawalType,
-        p_notes: withdrawalNotes || undefined
+        p_notes: withdrawalNotes || undefined,
       });
 
       if (error) throw error;
 
       toast({
-        title: 'Withdrawal request submitted',
-        description: 'Your withdrawal request has been submitted for review',
+        title: "Withdrawal request submitted",
+        description: "Your withdrawal request has been submitted for review",
       });
 
       // Reset form and close dialog
-      setSelectedFund('');
-      setWithdrawalAmount('');
-      setWithdrawalType('partial');
-      setWithdrawalNotes('');
+      setSelectedFund("");
+      setWithdrawalAmount("");
+      setWithdrawalType("partial");
+      setWithdrawalNotes("");
       setIsCreateDialogOpen(false);
 
       // Refresh data
       fetchWithdrawals();
     } catch (error: any) {
-      console.error('Error creating withdrawal:', error);
+      console.error("Error creating withdrawal:", error);
       toast({
-        title: 'Error creating withdrawal',
-        description: error.message || 'Failed to create withdrawal request',
-        variant: 'destructive',
+        title: "Error creating withdrawal",
+        description: error.message || "Failed to create withdrawal request",
+        variant: "destructive",
       });
     } finally {
       setSubmitting(false);
@@ -247,16 +273,16 @@ const WithdrawalsPage = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed':
+      case "completed":
         return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'processing':
+      case "processing":
         return <Clock className="h-4 w-4 text-blue-600" />;
-      case 'approved':
+      case "approved":
         return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'pending':
+      case "pending":
         return <Clock className="h-4 w-4 text-yellow-600" />;
-      case 'rejected':
-      case 'cancelled':
+      case "rejected":
+      case "cancelled":
         return <XCircle className="h-4 w-4 text-red-600" />;
       default:
         return <Clock className="h-4 w-4 text-gray-600" />;
@@ -265,19 +291,19 @@ const WithdrawalsPage = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'default';
-      case 'processing':
-        return 'default';
-      case 'approved':
-        return 'default';
-      case 'pending':
-        return 'secondary';
-      case 'rejected':
-      case 'cancelled':
-        return 'destructive';
+      case "completed":
+        return "default";
+      case "processing":
+        return "default";
+      case "approved":
+        return "default";
+      case "pending":
+        return "secondary";
+      case "rejected":
+      case "cancelled":
+        return "destructive";
       default:
-        return 'secondary';
+        return "secondary";
     }
   };
 
@@ -302,7 +328,7 @@ const WithdrawalsPage = () => {
           </h1>
           <p className="text-muted-foreground">Request withdrawals from your portfolio</p>
         </div>
-        
+
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button className="flex items-center gap-2">
@@ -317,7 +343,7 @@ const WithdrawalsPage = () => {
                 Request a withdrawal from one of your fund positions
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-4 pt-4">
               <div className="space-y-2">
                 <Label htmlFor="fund">Select Fund</Label>
@@ -335,7 +361,10 @@ const WithdrawalsPage = () => {
                 </Select>
                 {selectedFund && (
                   <p className="text-sm text-muted-foreground">
-                    Maximum withdrawal: ${positions.find(p => p.fund_id === selectedFund)?.current_value.toLocaleString()}
+                    Maximum withdrawal: $
+                    {positions
+                      .find((p) => p.fund_id === selectedFund)
+                      ?.current_value.toLocaleString()}
                   </p>
                 )}
               </div>
@@ -384,11 +413,8 @@ const WithdrawalsPage = () => {
                 >
                   Cancel
                 </Button>
-                <Button
-                  onClick={handleCreateWithdrawal}
-                  disabled={submitting}
-                >
-                  {submitting ? 'Submitting...' : 'Submit Request'}
+                <Button onClick={handleCreateWithdrawal} disabled={submitting}>
+                  {submitting ? "Submitting..." : "Submit Request"}
                 </Button>
               </div>
             </div>
@@ -399,9 +425,7 @@ const WithdrawalsPage = () => {
       <Card>
         <CardHeader>
           <CardTitle>Your Withdrawal Requests</CardTitle>
-          <CardDescription>
-            Track the status of your withdrawal requests
-          </CardDescription>
+          <CardDescription>Track the status of your withdrawal requests</CardDescription>
         </CardHeader>
         <CardContent>
           {withdrawals.length === 0 ? (
@@ -419,24 +443,25 @@ const WithdrawalsPage = () => {
                       {getStatusIcon(withdrawal.status)}
                       <div>
                         <div className="font-semibold">
-                          ${withdrawal.requested_amount.toLocaleString()} from {withdrawal.funds?.name}
+                          ${withdrawal.requested_amount.toLocaleString()} from{" "}
+                          {withdrawal.funds?.name}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {withdrawal.withdrawal_type} • {new Date(withdrawal.created_at).toLocaleDateString()}
+                          {withdrawal.withdrawal_type} •{" "}
+                          {new Date(withdrawal.created_at).toLocaleDateString()}
                         </div>
                       </div>
                     </div>
-                    <Badge variant={getStatusColor(withdrawal.status)}>
-                      {withdrawal.status}
-                    </Badge>
+                    <Badge variant={getStatusColor(withdrawal.status)}>{withdrawal.status}</Badge>
                   </div>
-                  
-                  {withdrawal.approved_amount && withdrawal.approved_amount !== withdrawal.requested_amount && (
-                    <div className="text-sm text-muted-foreground mb-2">
-                      Approved amount: ${withdrawal.approved_amount.toLocaleString()}
-                    </div>
-                  )}
-                  
+
+                  {withdrawal.approved_amount &&
+                    withdrawal.approved_amount !== withdrawal.requested_amount && (
+                      <div className="text-sm text-muted-foreground mb-2">
+                        Approved amount: ${withdrawal.approved_amount.toLocaleString()}
+                      </div>
+                    )}
+
                   {withdrawal.rejection_reason && (
                     <div className="flex items-start gap-2 mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm">
                       <AlertCircle className="h-4 w-4 text-red-600 mt-0.5" />
@@ -446,13 +471,13 @@ const WithdrawalsPage = () => {
                       </div>
                     </div>
                   )}
-                  
+
                   {withdrawal.notes && (
                     <div className="text-sm text-muted-foreground mt-2">
                       <strong>Your notes:</strong> {withdrawal.notes}
                     </div>
                   )}
-                  
+
                   {withdrawal.admin_notes && (
                     <div className="text-sm text-muted-foreground mt-2 p-2 bg-gray-50 rounded">
                       <strong>Admin notes:</strong> {withdrawal.admin_notes}

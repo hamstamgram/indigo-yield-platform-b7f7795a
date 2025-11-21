@@ -1,17 +1,17 @@
-import { useState, useEffect } from 'react';
-import { useNotifications } from '@/hooks/useNotifications';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Input } from '@/components/ui/input';
+import { useState, useEffect } from "react";
+import { useNotifications } from "@/hooks/useNotifications";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Bell,
   Search,
@@ -22,22 +22,24 @@ import {
   DollarSign,
   Shield,
   AlertCircle,
-  TrendingUp
-} from 'lucide-react';
-import { format, formatDistanceToNow, startOfMonth, subMonths } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client';
-import { NotificationType } from '@/types/notifications';
+  TrendingUp,
+} from "lucide-react";
+import { format, formatDistanceToNow, startOfMonth, subMonths } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { NotificationType } from "@/types/notifications";
 
 const NotificationHistoryPage: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const { notifications, loading } = useNotifications(currentUser?.id);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [dateRange, setDateRange] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<string>("all");
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setCurrentUser(user);
     };
     getUser();
@@ -45,15 +47,15 @@ const NotificationHistoryPage: React.FC = () => {
 
   const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
-      case 'transaction':
+      case "transaction":
         return <DollarSign className="h-5 w-5" />;
-      case 'alert':
+      case "alert":
         return <AlertCircle className="h-5 w-5" />;
-      case 'document':
+      case "document":
         return <FileText className="h-5 w-5" />;
-      case 'security':
+      case "security":
         return <Shield className="h-5 w-5" />;
-      case 'yield':
+      case "yield":
         return <TrendingUp className="h-5 w-5" />;
       default:
         return <Bell className="h-5 w-5" />;
@@ -65,40 +67,41 @@ const NotificationHistoryPage: React.FC = () => {
 
     // Search filter
     if (searchQuery) {
-      filtered = filtered.filter(n =>
-        n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        ((n as any).content || '').toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(
+        (n) =>
+          n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          ((n as any).content || "").toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     // Type filter
-    if (typeFilter !== 'all') {
-      filtered = filtered.filter(n => n.type === typeFilter);
+    if (typeFilter !== "all") {
+      filtered = filtered.filter((n) => n.type === typeFilter);
     }
 
     // Date range filter
-    if (dateRange !== 'all') {
+    if (dateRange !== "all") {
       const now = new Date();
       let startDate: Date;
 
       switch (dateRange) {
-        case 'today':
+        case "today":
           startDate = new Date(now.setHours(0, 0, 0, 0));
           break;
-        case 'week':
+        case "week":
           startDate = new Date(now.setDate(now.getDate() - 7));
           break;
-        case 'month':
+        case "month":
           startDate = startOfMonth(now);
           break;
-        case 'lastMonth':
+        case "lastMonth":
           startDate = startOfMonth(subMonths(now, 1));
           break;
         default:
           startDate = new Date(0);
       }
 
-      filtered = filtered.filter(n => new Date(n.created_at) >= startDate);
+      filtered = filtered.filter((n) => new Date(n.created_at) >= startDate);
     }
 
     return filtered;
@@ -109,8 +112,8 @@ const NotificationHistoryPage: React.FC = () => {
   const groupByDate = () => {
     const grouped: Record<string, typeof filteredNotifications> = {};
 
-    filteredNotifications.forEach(notification => {
-      const date = format(new Date(notification.created_at), 'yyyy-MM-dd');
+    filteredNotifications.forEach((notification) => {
+      const date = format(new Date(notification.created_at), "yyyy-MM-dd");
       if (!grouped[date]) {
         grouped[date] = [];
       }
@@ -124,22 +127,24 @@ const NotificationHistoryPage: React.FC = () => {
 
   const handleExport = () => {
     const csvContent = [
-      ['Date', 'Type', 'Priority', 'Title', 'Content', 'Read'],
-      ...filteredNotifications.map(n => [
-        format(new Date(n.created_at), 'yyyy-MM-dd HH:mm:ss'),
+      ["Date", "Type", "Priority", "Title", "Content", "Read"],
+      ...filteredNotifications.map((n) => [
+        format(new Date(n.created_at), "yyyy-MM-dd HH:mm:ss"),
         n.type,
-        n.priority || 'medium',
+        n.priority || "medium",
         n.title,
-        (n as any).content || '',
-        (n as any).read ? 'read' : 'unread'
-      ])
-    ].map(row => row.join(',')).join('\n');
+        (n as any).content || "",
+        (n as any).read ? "read" : "unread",
+      ]),
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `notification-history-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.download = `notification-history-${format(new Date(), "yyyy-MM-dd")}.csv`;
     a.click();
   };
 
@@ -217,9 +222,9 @@ const NotificationHistoryPage: React.FC = () => {
               <Bell className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No notifications found</h3>
               <p className="text-muted-foreground">
-                {searchQuery || typeFilter !== 'all' || dateRange !== 'all'
-                  ? 'Try adjusting your filters'
-                  : 'You have no notification history yet'}
+                {searchQuery || typeFilter !== "all" || dateRange !== "all"
+                  ? "Try adjusting your filters"
+                  : "You have no notification history yet"}
               </p>
             </div>
           ) : (
@@ -228,7 +233,7 @@ const NotificationHistoryPage: React.FC = () => {
                 {groupedNotifications.map(([date, notifs]) => (
                   <div key={date} className="space-y-3">
                     <h3 className="text-sm font-semibold text-muted-foreground sticky top-0 bg-background py-2">
-                      {format(new Date(date), 'EEEE, MMMM d, yyyy')}
+                      {format(new Date(date), "EEEE, MMMM d, yyyy")}
                     </h3>
 
                     {notifs.map((notification) => (
@@ -254,22 +259,27 @@ const NotificationHistoryPage: React.FC = () => {
                                 </div>
                                 <Badge
                                   variant={
-                                    notification.priority === 'high'
-                                      ? 'default'
-                                      : 'secondary'
+                                    notification.priority === "high" ? "default" : "secondary"
                                   }
                                 >
-                                  {notification.priority || 'medium'}
+                                  {notification.priority || "medium"}
                                 </Badge>
                               </div>
 
                               <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                <span>{format(new Date(notification.created_at), 'h:mm a')}</span>
+                                <span>{format(new Date(notification.created_at), "h:mm a")}</span>
                                 <span>•</span>
-                                <span>{formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}</span>
+                                <span>
+                                  {formatDistanceToNow(new Date(notification.created_at), {
+                                    addSuffix: true,
+                                  })}
+                                </span>
                                 <span>•</span>
-                                <Badge variant={(notification as any).read ? 'outline' : 'default'} className="text-xs">
-                                  {(notification as any).read ? 'read' : 'unread'}
+                                <Badge
+                                  variant={(notification as any).read ? "outline" : "default"}
+                                  className="text-xs"
+                                >
+                                  {(notification as any).read ? "read" : "unread"}
                                 </Badge>
                               </div>
                             </div>
@@ -286,7 +296,8 @@ const NotificationHistoryPage: React.FC = () => {
           {filteredNotifications.length > 0 && (
             <div className="mt-6 pt-4 border-t">
               <p className="text-sm text-muted-foreground text-center">
-                Showing {filteredNotifications.length} notification{filteredNotifications.length !== 1 ? 's' : ''}
+                Showing {filteredNotifications.length} notification
+                {filteredNotifications.length !== 1 ? "s" : ""}
               </p>
             </div>
           )}

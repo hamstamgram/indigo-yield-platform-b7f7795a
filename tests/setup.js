@@ -2,10 +2,10 @@
 // Configure test environment and global mocks
 
 // Set test environment
-process.env.NODE_ENV = 'test';
-process.env.SUPABASE_URL = 'https://test.supabase.co';
-process.env.SUPABASE_ANON_KEY = 'test-anon-key';
-process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key';
+process.env.NODE_ENV = "test";
+process.env.SUPABASE_URL = "https://test.supabase.co";
+process.env.SUPABASE_ANON_KEY = "test-anon-key";
+process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
 
 // Mock console methods to reduce noise in tests
 global.console = {
@@ -35,7 +35,7 @@ expect.extend({
     }
   },
   toBeValidPercentage(received) {
-    const pass = typeof received === 'number' && received >= 0 && received <= 100;
+    const pass = typeof received === "number" && received >= 0 && received <= 100;
     if (pass) {
       return {
         message: () => `expected ${received} not to be a valid percentage`,

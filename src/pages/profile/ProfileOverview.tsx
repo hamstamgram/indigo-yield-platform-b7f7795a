@@ -1,13 +1,13 @@
 /**
  * Profile Overview Page
  * Main profile page with account summary
- * 
+ *
  * TODO: Schema mismatches - profiles table missing: address, city, state, postal_code, country, date_of_birth
  * TODO: Non-existent tables: investments, investor_strategies
  */
 
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   User,
   Shield,
@@ -18,15 +18,15 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
-import { useAuth } from '@/lib/auth/context';
-import { supabase } from '@/integrations/supabase/client';
+} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/lib/auth/context";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProfileData {
   firstName?: string;
@@ -73,9 +73,9 @@ export default function ProfileOverview() {
 
     try {
       const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
         .maybeSingle();
 
       if (error) throw error;
@@ -84,7 +84,7 @@ export default function ProfileOverview() {
         setProfileData({
           firstName: data.first_name ?? undefined,
           lastName: data.last_name ?? undefined,
-          email: user.email || '',
+          email: user.email || "",
           phone: data.phone ?? undefined,
           address: data.address ?? undefined,
           city: data.city ?? undefined,
@@ -101,7 +101,7 @@ export default function ProfileOverview() {
         });
       }
     } catch (error) {
-      console.error('Failed to load profile data:', error);
+      console.error("Failed to load profile data:", error);
     } finally {
       setLoading(false);
     }
@@ -112,10 +112,7 @@ export default function ProfileOverview() {
 
     try {
       // Load aggregated stats from documents only (other tables don't exist yet)
-      const documentsRes = await supabase
-        .from('documents')
-        .select('id')
-        .eq('user_id', user.id);
+      const documentsRes = await supabase.from("documents").select("id").eq("user_id", user.id);
 
       setStats({
         totalInvested: 0,
@@ -126,7 +123,7 @@ export default function ProfileOverview() {
         referralsCount: 0,
       });
     } catch (error) {
-      console.error('Failed to load account stats:', error);
+      console.error("Failed to load account stats:", error);
     }
   };
 
@@ -139,7 +136,7 @@ export default function ProfileOverview() {
       profileData.phone,
       profileData.address,
       profileData.dateOfBirth,
-      profileData.kycStatus === 'verified',
+      profileData.kycStatus === "verified",
       profileData.twoFactorEnabled,
       profileData.emailVerified,
     ];
@@ -149,10 +146,10 @@ export default function ProfileOverview() {
   };
 
   const getInitials = () => {
-    if (!profileData) return 'U';
-    const first = profileData.firstName?.[0] || '';
-    const last = profileData.lastName?.[0] || '';
-    return `${first}${last}`.toUpperCase() || 'U';
+    if (!profileData) return "U";
+    const first = profileData.firstName?.[0] || "";
+    const last = profileData.lastName?.[0] || "";
+    return `${first}${last}`.toUpperCase() || "U";
   };
 
   if (loading) {
@@ -194,15 +191,13 @@ export default function ProfileOverview() {
                 </div>
 
                 <div className="flex gap-2">
-                  {profileData?.kycStatus === 'verified' && (
+                  {profileData?.kycStatus === "verified" && (
                     <Badge variant="outline" className="gap-1">
                       <CheckCircle className="h-3 w-3" />
                       Verified
                     </Badge>
                   )}
-                  {profile?.is_admin && (
-                    <Badge variant="secondary">Admin</Badge>
-                  )}
+                  {profile?.is_admin && <Badge variant="secondary">Admin</Badge>}
                 </div>
               </div>
 
@@ -243,7 +238,9 @@ export default function ProfileOverview() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Total Return</span>
-                  <span className={`font-semibold ${stats.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <span
+                    className={`font-semibold ${stats.totalReturn >= 0 ? "text-green-600" : "text-red-600"}`}
+                  >
                     ${Math.abs(stats.totalReturn).toLocaleString()}
                   </span>
                 </div>
@@ -342,9 +339,7 @@ export default function ProfileOverview() {
                       </div>
                       <div>
                         <h3 className="font-semibold mb-1">Linked Accounts</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Bank accounts and wallets
-                        </p>
+                        <p className="text-sm text-muted-foreground">Bank accounts and wallets</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -363,7 +358,7 @@ export default function ProfileOverview() {
                             Identity verification and documents
                           </p>
                         </div>
-                        {profileData?.kycStatus === 'verified' ? (
+                        {profileData?.kycStatus === "verified" ? (
                           <CheckCircle className="h-5 w-5 text-green-600" />
                         ) : (
                           <AlertCircle className="h-5 w-5 text-amber-600" />

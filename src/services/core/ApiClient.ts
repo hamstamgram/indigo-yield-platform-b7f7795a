@@ -3,8 +3,8 @@
  * Base class for all service operations with error handling and logging
  */
 
-import { supabase } from '@/integrations/supabase/client';
-import type { PostgrestError } from '@supabase/supabase-js';
+import { supabase } from "@/integrations/supabase/client";
+import type { PostgrestError } from "@supabase/supabase-js";
 
 export interface ApiResponse<T> {
   data: T | null;
@@ -23,15 +23,15 @@ export class ApiClient {
   ): Promise<ApiResponse<T>> {
     try {
       const { data, error } = await operation();
-      
+
       if (error) {
-        console.error('API Error:', error);
+        console.error("API Error:", error);
         return { data: null, error, success: false };
       }
-      
+
       return { data, error: null, success: true };
     } catch (error) {
-      console.error('Unexpected Error:', error);
+      console.error("Unexpected Error:", error);
       return {
         data: null,
         error: error as Error,
@@ -44,7 +44,10 @@ export class ApiClient {
    * Gets the current authenticated user
    */
   protected async getCurrentUser() {
-    const { data: { user }, error } = await this.supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await this.supabase.auth.getUser();
     if (error) throw error;
     return user;
   }
@@ -53,7 +56,10 @@ export class ApiClient {
    * Gets the current session
    */
   protected async getSession() {
-    const { data: { session }, error } = await this.supabase.auth.getSession();
+    const {
+      data: { session },
+      error,
+    } = await this.supabase.auth.getSession();
     if (error) throw error;
     return session;
   }

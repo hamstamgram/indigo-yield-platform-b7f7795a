@@ -1,13 +1,13 @@
-import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 interface HealthStatus {
@@ -44,16 +44,16 @@ const startTime = Date.now();
 
 serve(async (req) => {
   // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   const status: HealthStatus = {
     ok: true,
     timestamp: new Date().toISOString(),
-    version: Deno.env.get('APP_VERSION') || '1.0.0',
-    environment: Deno.env.get('APP_ENV') || 'production',
-    commit: Deno.env.get('VERCEL_GIT_COMMIT_SHA') || null,
+    version: Deno.env.get("APP_VERSION") || "1.0.0",
+    environment: Deno.env.get("APP_ENV") || "production",
+    commit: Deno.env.get("VERCEL_GIT_COMMIT_SHA") || null,
     uptime: Date.now() - startTime,
     database: {
       connected: false,
@@ -62,31 +62,31 @@ serve(async (req) => {
         funds: 0,
         investors: 0,
         transactions: 0,
-        daily_nav: 0
-      }
+        daily_nav: 0,
+      },
     },
     services: {
       auth: false,
       storage: false,
-      functions: true // We're running, so functions work
+      functions: true, // We're running, so functions work
     },
     metrics: {
       totalUsers: 0,
       activeUsers: 0,
       totalAUM: 0,
-      dailyTransactions: 0
-    }
+      dailyTransactions: 0,
+    },
   };
 
   try {
     // Test database connectivity and measure latency
     const dbStart = Date.now();
-    
+
     // Check funds table
     const { count: fundsCount, error: fundsError } = await supabase
-      .from('funds')
-      .select('*', { count: 'exact', head: true });
-    
+      .from("funds")
+      .select("*", { count: "exact", head: true });
+
     if (!fundsError) {
       status.database.connected = true;
       status.database.tables.funds = fundsCount || 0;
@@ -94,20 +94,20 @@ serve(async (req) => {
 
     // Check investors table
     const { count: investorsCount } = await supabase
-      .from('investors')
-      .select('*', { count: 'exact', head: true });
+      .from("investors")
+      .select("*", { count: "exact", head: true });
     status.database.tables.investors = investorsCount || 0;
 
     // Check transactions table
     const { count: transactionsCount } = await supabase
-      .from('transactions_v2')
-      .select('*', { count: 'exact', head: true });
+      .from("transactions_v2")
+      .select("*", { count: "exact", head: true });
     status.database.tables.transactions = transactionsCount || 0;
 
     // Check daily_nav table
     const { count: navCount } = await supabase
-      .from('daily_nav')
-      .select('*', { count: 'exact', head: true });
+      .from("daily_nav")
+      .select("*", { count: "exact", head: true });
     status.database.tables.daily_nav = navCount || 0;
 
     status.database.latency = Date.now() - dbStart;
@@ -122,9 +122,7 @@ serve(async (req) => {
 
     // Check storage service
     try {
-      const { data: buckets, error: storageError } = await supabase
-        .storage
-        .listBuckets();
+      const { data: buckets, error: storageError } = await supabase.storage.listBuckets();
       status.services.storage = !storageError && buckets !== null;
     } catch {
       status.services.storage = false;
@@ -133,25 +131,25 @@ serve(async (req) => {
     // Get metrics
     // Total users
     const { count: totalUsers } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true });
+      .from("profiles")
+      .select("*", { count: "exact", head: true });
     status.metrics.totalUsers = totalUsers || 0;
 
     // Active users (logged in within last 30 days)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
+
     const { count: activeUsers } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-      .gte('updated_at', thirtyDaysAgo.toISOString());
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .gte("updated_at", thirtyDaysAgo.toISOString());
     status.metrics.activeUsers = activeUsers || 0;
 
     // Total AUM (sum of latest NAV for all funds)
     const { data: latestNavs } = await supabase
-      .from('daily_nav')
-      .select('fund_id, aum, nav_date')
-      .order('nav_date', { ascending: false });
+      .from("daily_nav")
+      .select("fund_id, aum, nav_date")
+      .order("nav_date", { ascending: false });
 
     if (latestNavs) {
       // Get latest NAV for each fund
@@ -161,43 +159,42 @@ serve(async (req) => {
           fundLatestNavs.set(nav.fund_id, Number(nav.aum));
         }
       }
-      status.metrics.totalAUM = Array.from(fundLatestNavs.values())
-        .reduce((sum, aum) => sum + aum, 0);
+      status.metrics.totalAUM = Array.from(fundLatestNavs.values()).reduce(
+        (sum, aum) => sum + aum,
+        0
+      );
     }
 
     // Daily transactions (last 24 hours)
     const oneDayAgo = new Date();
     oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-    
+
     const { count: dailyTx } = await supabase
-      .from('transactions_v2')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', oneDayAgo.toISOString());
+      .from("transactions_v2")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", oneDayAgo.toISOString());
     status.metrics.dailyTransactions = dailyTx || 0;
 
     // Determine overall health
-    status.ok = status.database.connected && 
-                status.services.auth && 
-                status.services.functions &&
-                status.database.latency < 5000; // Less than 5 seconds
-
+    status.ok =
+      status.database.connected &&
+      status.services.auth &&
+      status.services.functions &&
+      status.database.latency < 5000; // Less than 5 seconds
   } catch (error) {
-    console.error('Health check error:', error);
+    console.error("Health check error:", error);
     status.ok = false;
   }
 
   // Return appropriate status code based on health
   const statusCode = status.ok ? 200 : 503;
 
-  return new Response(
-    JSON.stringify(status, null, 2), 
-    { 
-      status: statusCode,
-      headers: { 
-        ...corsHeaders,
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate'
-      } 
-    }
-  );
+  return new Response(JSON.stringify(status, null, 2), {
+    status: statusCode,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+    },
+  });
 });

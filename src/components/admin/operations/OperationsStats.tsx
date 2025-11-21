@@ -40,9 +40,7 @@ export function OperationsStats({ stats }: OperationsStatsProps) {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stat.description}
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
               {stat.trend && (
                 <div className="flex items-center mt-2 text-xs">
                   <TrendingUp className="h-3 w-3 mr-1 text-green-600" />

@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 
@@ -16,18 +15,18 @@ interface RequestBody {
 
 serve(async (req) => {
   // Handle CORS
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     // Make sure the request is authorized
-    const authHeader = req.headers.get('Authorization');
+    const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ message: 'Missing authorization header' }),
-        { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
+      return new Response(JSON.stringify({ message: "Missing authorization header" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     // Get the invite data from the request body
@@ -35,10 +34,10 @@ serve(async (req) => {
     const { invite } = data;
 
     if (!invite || !invite.email || !invite.invite_code) {
-      return new Response(
-        JSON.stringify({ message: 'Missing required invite data' }),
-        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
+      return new Response(JSON.stringify({ message: "Missing required invite data" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     // Generate the invite URL
@@ -62,22 +61,22 @@ serve(async (req) => {
 
     // Return success
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: 'Invitation email would be sent in production' 
+      JSON.stringify({
+        success: true,
+        message: "Invitation email would be sent in production",
       }),
-      { 
-        status: 200, 
-        headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
   } catch (error) {
     console.error("Error in send-admin-invite function:", error.message);
     return new Response(
-      JSON.stringify({ message: 'Internal server error', error: error.message }),
-      { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+      JSON.stringify({ message: "Internal server error", error: error.message }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
   }

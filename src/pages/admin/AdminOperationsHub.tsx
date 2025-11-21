@@ -54,68 +54,68 @@ function AdminOperationsHubContent() {
 
     // Set up real-time subscriptions for automatic updates
     const channel = supabase
-      .channel('operations-updates')
+      .channel("operations-updates")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'withdrawal_requests',
+          event: "*",
+          schema: "public",
+          table: "withdrawal_requests",
         },
         () => {
           loadMetrics();
         }
       )
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'deposits',
+          event: "*",
+          schema: "public",
+          table: "deposits",
         },
         () => {
           loadMetrics();
         }
       )
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'investments',
+          event: "*",
+          schema: "public",
+          table: "investments",
         },
         () => {
           loadMetrics();
         }
       )
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'transactions_v2',
+          event: "INSERT",
+          schema: "public",
+          table: "transactions_v2",
         },
         () => {
           loadMetrics();
         }
       )
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'investors',
+          event: "*",
+          schema: "public",
+          table: "investors",
         },
         () => {
           loadMetrics();
         }
       )
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'investor_positions',
+          event: "*",
+          schema: "public",
+          table: "investor_positions",
         },
         () => {
           loadMetrics();
@@ -155,7 +155,7 @@ function AdminOperationsHubContent() {
       console.error("Error loading metrics:", error);
       toast.error("Failed to load operations metrics");
     } finally {
-    setIsLoadingMetrics(false);
+      setIsLoadingMetrics(false);
     }
   };
 
@@ -164,7 +164,7 @@ function AdminOperationsHubContent() {
       const health = await getSystemHealth();
       setSystemStatus(health);
     } catch (error) {
-      console.error('Failed to load system health:', error);
+      console.error("Failed to load system health:", error);
     }
   };
 
@@ -198,8 +198,7 @@ function AdminOperationsHubContent() {
   };
 
   const getActivityIcon = (action: string) => {
-    if (action.includes("create") || action.includes("insert"))
-      return Upload;
+    if (action.includes("create") || action.includes("insert")) return Upload;
     if (action.includes("update")) return FileCheck;
     if (action.includes("delete")) return AlertCircle;
     if (action.includes("approve")) return CheckCircle;
@@ -231,9 +230,7 @@ function AdminOperationsHubContent() {
     },
     {
       title: "Total AUM",
-      value: isLoadingMetrics
-        ? "..."
-        : `$${(metrics.totalAUM / 1_000_000).toFixed(1)}M`,
+      value: isLoadingMetrics ? "..." : `$${(metrics.totalAUM / 1_000_000).toFixed(1)}M`,
       description: "Across all positions",
       icon: DollarSign,
       status: "success" as const,
@@ -286,12 +283,12 @@ function AdminOperationsHubContent() {
       href: "/admin/withdrawals",
       icon: ArrowDownToLine,
       category: "Request Management",
-      badge: 
+      badge:
         isLoadingMetrics || metrics.pendingApprovals === 0
           ? undefined
-          : { 
-              text: `${metrics.pendingApprovals} pending`, 
-              variant: "secondary" as const 
+          : {
+              text: `${metrics.pendingApprovals} pending`,
+              variant: "secondary" as const,
             },
     },
     {
@@ -355,7 +352,6 @@ function AdminOperationsHubContent() {
       category: "Advanced Operations",
     },
   ];
-
 
   return (
     <div className="container max-w-7xl mx-auto px-4 py-8 space-y-8">

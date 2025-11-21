@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 
 type AppLogoProps = {
@@ -10,10 +9,10 @@ type AppLogoProps = {
 const AppLogo = ({ className = "h-8 w-auto", linkTo }: AppLogoProps) => {
   const LogoContent = () => (
     <>
-      <img 
-        src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png" 
-        alt="Indigo Digital Assets Yield" 
-        className={className} 
+      <img
+        src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
+        alt="Indigo Digital Assets Yield"
+        className={className}
       />
     </>
   );

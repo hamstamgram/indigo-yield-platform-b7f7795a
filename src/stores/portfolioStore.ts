@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { immer } from 'zustand/middleware/immer';
+import { create } from "zustand";
+import { immer } from "zustand/middleware/immer";
 
 interface Position {
   id: string;
@@ -56,74 +56,87 @@ export const usePortfolioStore = create<PortfolioState & PortfolioActions>()(
     lastUpdated: null,
 
     // Actions
-    setSummary: (summary) => set((state) => {
-      state.summary = summary;
-      state.positions = summary.positions || [];
-      state.lastUpdated = new Date();
-    }),
+    setSummary: (summary) =>
+      set((state) => {
+        state.summary = summary;
+        state.positions = summary.positions || [];
+        state.lastUpdated = new Date();
+      }),
 
-    setPositions: (positions) => set((state) => {
-      state.positions = positions;
-      if (state.summary) {
-        state.summary.positions = positions;
-      }
-    }),
-
-    setSelectedPosition: (position) => set((state) => {
-      state.selectedPosition = position;
-    }),
-
-    setLoading: (loading) => set((state) => {
-      state.loading = loading;
-    }),
-
-    setError: (error) => set((state) => {
-      state.error = error;
-    }),
-
-    updatePosition: (positionId, updates) => set((state) => {
-      const index = state.positions.findIndex(p => p.id === positionId);
-      if (index !== -1) {
-        state.positions[index] = { ...state.positions[index], ...updates };
-      }
-      
-      // Update in summary as well
-      if (state.summary) {
-        const summaryIndex = state.summary.positions.findIndex(p => p.id === positionId);
-        if (summaryIndex !== -1) {
-          state.summary.positions[summaryIndex] = { ...state.summary.positions[summaryIndex], ...updates };
+    setPositions: (positions) =>
+      set((state) => {
+        state.positions = positions;
+        if (state.summary) {
+          state.summary.positions = positions;
         }
-      }
-    }),
+      }),
 
-    addPosition: (position) => set((state) => {
-      state.positions.push(position);
-      if (state.summary) {
-        state.summary.positions.push(position);
-      }
-    }),
+    setSelectedPosition: (position) =>
+      set((state) => {
+        state.selectedPosition = position;
+      }),
 
-    removePosition: (positionId) => set((state) => {
-      state.positions = state.positions.filter(p => p.id !== positionId);
-      if (state.summary) {
-        state.summary.positions = state.summary.positions.filter(p => p.id !== positionId);
-      }
-      if (state.selectedPosition?.id === positionId) {
+    setLoading: (loading) =>
+      set((state) => {
+        state.loading = loading;
+      }),
+
+    setError: (error) =>
+      set((state) => {
+        state.error = error;
+      }),
+
+    updatePosition: (positionId, updates) =>
+      set((state) => {
+        const index = state.positions.findIndex((p) => p.id === positionId);
+        if (index !== -1) {
+          state.positions[index] = { ...state.positions[index], ...updates };
+        }
+
+        // Update in summary as well
+        if (state.summary) {
+          const summaryIndex = state.summary.positions.findIndex((p) => p.id === positionId);
+          if (summaryIndex !== -1) {
+            state.summary.positions[summaryIndex] = {
+              ...state.summary.positions[summaryIndex],
+              ...updates,
+            };
+          }
+        }
+      }),
+
+    addPosition: (position) =>
+      set((state) => {
+        state.positions.push(position);
+        if (state.summary) {
+          state.summary.positions.push(position);
+        }
+      }),
+
+    removePosition: (positionId) =>
+      set((state) => {
+        state.positions = state.positions.filter((p) => p.id !== positionId);
+        if (state.summary) {
+          state.summary.positions = state.summary.positions.filter((p) => p.id !== positionId);
+        }
+        if (state.selectedPosition?.id === positionId) {
+          state.selectedPosition = null;
+        }
+      }),
+
+    clearPortfolio: () =>
+      set((state) => {
+        state.summary = null;
+        state.positions = [];
         state.selectedPosition = null;
-      }
-    }),
+        state.error = null;
+        state.lastUpdated = null;
+      }),
 
-    clearPortfolio: () => set((state) => {
-      state.summary = null;
-      state.positions = [];
-      state.selectedPosition = null;
-      state.error = null;
-      state.lastUpdated = null;
-    }),
-
-    setLastUpdated: (date) => set((state) => {
-      state.lastUpdated = date;
-    }),
+    setLastUpdated: (date) =>
+      set((state) => {
+        state.lastUpdated = date;
+      }),
   }))
 );
 
@@ -136,16 +149,12 @@ export const usePortfolioError = () => usePortfolioStore((state) => state.error)
 export const usePortfolioLastUpdated = () => usePortfolioStore((state) => state.lastUpdated);
 
 // Computed selectors
-export const useTopPositions = (limit: number = 5) => 
-  usePortfolioStore((state) => 
-    state.positions
-      .sort((a, b) => b.market_value - a.market_value)
-      .slice(0, limit)
+export const useTopPositions = (limit: number = 5) =>
+  usePortfolioStore((state) =>
+    state.positions.sort((a, b) => b.market_value - a.market_value).slice(0, limit)
   );
 
-export const usePositionsByType = (assetType?: string) => 
-  usePortfolioStore((state) => 
-    assetType 
-      ? state.positions.filter(p => p.asset_type === assetType)
-      : state.positions
+export const usePositionsByType = (assetType?: string) =>
+  usePortfolioStore((state) =>
+    assetType ? state.positions.filter((p) => p.asset_type === assetType) : state.positions
   );

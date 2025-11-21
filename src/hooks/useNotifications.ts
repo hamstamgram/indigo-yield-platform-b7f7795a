@@ -58,11 +58,7 @@ export function useNotifications(userId?: string) {
       if (error) throw error;
 
       setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === notificationId
-            ? { ...n, read_at: new Date().toISOString() }
-            : n
-        )
+        prev.map((n) => (n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n))
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
@@ -85,9 +81,7 @@ export function useNotifications(userId?: string) {
 
       if (error) throw error;
 
-      setNotifications((prev) =>
-        prev.map((n) => ({ ...n, read_at: new Date().toISOString() }))
-      );
+      setNotifications((prev) => prev.map((n) => ({ ...n, read_at: new Date().toISOString() })));
       setUnreadCount(0);
     } catch (error) {
       console.error("Error marking all as read:", error);
@@ -95,21 +89,24 @@ export function useNotifications(userId?: string) {
   }, [userId]);
 
   // Delete archive/notification functionality (notifications table doesn't have archived_at)
-  const deleteNotification = useCallback(async (notificationId: string) => {
-    try {
-      const { error } = await supabase.from("notifications").delete().eq("id", notificationId);
+  const deleteNotification = useCallback(
+    async (notificationId: string) => {
+      try {
+        const { error } = await supabase.from("notifications").delete().eq("id", notificationId);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
-      setUnreadCount((prev) => {
-        const notification = notifications.find(n => n.id === notificationId);
-        return notification && !notification.read_at ? Math.max(0, prev - 1) : prev;
-      });
-    } catch (error) {
-      console.error("Error deleting notification:", error);
-    }
-  }, [notifications]);
+        setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+        setUnreadCount((prev) => {
+          const notification = notifications.find((n) => n.id === notificationId);
+          return notification && !notification.read_at ? Math.max(0, prev - 1) : prev;
+        });
+      } catch (error) {
+        console.error("Error deleting notification:", error);
+      }
+    },
+    [notifications]
+  );
 
   // Update settings - not implemented (no notification_settings table)
   const updateSettings = useCallback(

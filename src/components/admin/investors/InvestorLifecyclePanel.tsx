@@ -1,36 +1,36 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Calendar, Clock, User, UserX, AlertTriangle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar, Clock, User, UserX, AlertTriangle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const InvestorLifecyclePanel = () => {
-  const [selectedInvestor] = useState<string>('');
-  const [entryDate, setEntryDate] = useState<string>('');
-  const [exitDate, setExitDate] = useState<string>('');
-  const [lockUntilDate, setLockUntilDate] = useState<string>('');
-  const [reason, setReason] = useState<string>('');
+  const [selectedInvestor] = useState<string>("");
+  const [entryDate, setEntryDate] = useState<string>("");
+  const [exitDate, setExitDate] = useState<string>("");
+  const [lockUntilDate, setLockUntilDate] = useState<string>("");
+  const [reason, setReason] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
   const handleUpdateInvestorStatus = async (
-    investorId: string, 
-    status: 'active' | 'inactive' | 'suspended' | 'exited'
+    investorId: string,
+    status: "active" | "inactive" | "suspended" | "exited"
   ) => {
     try {
       setIsProcessing(true);
-      
+
       const { error } = await supabase
-        .from('investors')
-        .update({ 
+        .from("investors")
+        .update({
           status,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
-        .eq('id', investorId);
+        .eq("id", investorId);
 
       if (error) throw error;
 
@@ -39,7 +39,7 @@ const InvestorLifecyclePanel = () => {
         description: `Investor status changed to ${status}`,
       });
     } catch (error) {
-      console.error('Error updating investor status:', error);
+      console.error("Error updating investor status:", error);
       toast({
         title: "Update Failed",
         description: "Failed to update investor status",
@@ -53,11 +53,11 @@ const InvestorLifecyclePanel = () => {
   const handleLockPositions = async (investorId: string, lockUntil: string) => {
     try {
       setIsProcessing(true);
-      
+
       const { error } = await supabase
-        .from('investor_positions')
+        .from("investor_positions")
         .update({ lock_until_date: lockUntil })
-        .eq('investor_id', investorId);
+        .eq("investor_id", investorId);
 
       if (error) throw error;
 
@@ -66,7 +66,7 @@ const InvestorLifecyclePanel = () => {
         description: `Positions locked until ${lockUntil}`,
       });
     } catch (error) {
-      console.error('Error locking positions:', error);
+      console.error("Error locking positions:", error);
       toast({
         title: "Lock Failed",
         description: "Failed to lock investor positions",
@@ -80,11 +80,12 @@ const InvestorLifecyclePanel = () => {
   const handleCleanupInactiveInvestors = async () => {
     try {
       setIsProcessing(true);
-      
+
       // Get investors with zero balance and inactive for 90+ days
       const { data: inactiveInvestors, error: fetchError } = await supabase
-        .from('investors')
-        .select(`
+        .from("investors")
+        .select(
+          `
           id,
           name,
           email,
@@ -92,15 +93,17 @@ const InvestorLifecyclePanel = () => {
           investor_positions!inner (
             current_value
           )
-        `)
-        .eq('status', 'inactive')
-        .lt('updated_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString());
+        `
+        )
+        .eq("status", "inactive")
+        .lt("updated_at", new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString());
 
       if (fetchError) throw fetchError;
 
-      const investorsToCleanup = inactiveInvestors?.filter(investor => 
-        investor.investor_positions.every((pos: any) => pos.current_value <= 0)
-      ) || [];
+      const investorsToCleanup =
+        inactiveInvestors?.filter((investor) =>
+          investor.investor_positions.every((pos: any) => pos.current_value <= 0)
+        ) || [];
 
       if (investorsToCleanup.length === 0) {
         toast({
@@ -113,12 +116,12 @@ const InvestorLifecyclePanel = () => {
       // Archive positions instead of deleting
       for (const investor of investorsToCleanup) {
         const { error } = await supabase
-          .from('investors')
-          .update({ 
-            status: 'archived',
-            updated_at: new Date().toISOString()
+          .from("investors")
+          .update({
+            status: "archived",
+            updated_at: new Date().toISOString(),
           })
-          .eq('id', investor.id);
+          .eq("id", investor.id);
 
         if (error) {
           console.error(`Failed to archive investor ${investor.id}:`, error);
@@ -130,7 +133,7 @@ const InvestorLifecyclePanel = () => {
         description: `Archived ${investorsToCleanup.length} inactive investors`,
       });
     } catch (error) {
-      console.error('Error during cleanup:', error);
+      console.error("Error during cleanup:", error);
       toast({
         title: "Cleanup Failed",
         description: "Failed to cleanup inactive investors",
@@ -150,9 +153,7 @@ const InvestorLifecyclePanel = () => {
             <User className="h-5 w-5" />
             Investor Status Management
           </CardTitle>
-          <CardDescription>
-            Manage investor lifecycle status and access controls
-          </CardDescription>
+          <CardDescription>Manage investor lifecycle status and access controls</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -175,11 +176,13 @@ const InvestorLifecyclePanel = () => {
               />
             </div>
           </div>
-          
+
           <div className="flex gap-2 flex-wrap">
             <Button
               variant="outline"
-              onClick={() => selectedInvestor && handleUpdateInvestorStatus(selectedInvestor, 'active')}
+              onClick={() =>
+                selectedInvestor && handleUpdateInvestorStatus(selectedInvestor, "active")
+              }
               disabled={!selectedInvestor || isProcessing}
               className="flex items-center gap-2"
             >
@@ -188,7 +191,9 @@ const InvestorLifecyclePanel = () => {
             </Button>
             <Button
               variant="outline"
-              onClick={() => selectedInvestor && handleUpdateInvestorStatus(selectedInvestor, 'inactive')}
+              onClick={() =>
+                selectedInvestor && handleUpdateInvestorStatus(selectedInvestor, "inactive")
+              }
               disabled={!selectedInvestor || isProcessing}
               className="flex items-center gap-2"
             >
@@ -197,7 +202,9 @@ const InvestorLifecyclePanel = () => {
             </Button>
             <Button
               variant="destructive"
-              onClick={() => selectedInvestor && handleUpdateInvestorStatus(selectedInvestor, 'suspended')}
+              onClick={() =>
+                selectedInvestor && handleUpdateInvestorStatus(selectedInvestor, "suspended")
+              }
               disabled={!selectedInvestor || isProcessing}
               className="flex items-center gap-2"
             >
@@ -228,7 +235,7 @@ const InvestorLifecyclePanel = () => {
               onChange={(e) => setLockUntilDate(e.target.value)}
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label>Reason for Lock</Label>
             <Textarea
@@ -238,9 +245,13 @@ const InvestorLifecyclePanel = () => {
               rows={3}
             />
           </div>
-          
+
           <Button
-            onClick={() => selectedInvestor && lockUntilDate && handleLockPositions(selectedInvestor, lockUntilDate)}
+            onClick={() =>
+              selectedInvestor &&
+              lockUntilDate &&
+              handleLockPositions(selectedInvestor, lockUntilDate)
+            }
             disabled={!selectedInvestor || !lockUntilDate || isProcessing}
           >
             Apply Position Lock
@@ -255,9 +266,7 @@ const InvestorLifecyclePanel = () => {
             <Calendar className="h-5 w-5" />
             Automated Cleanup
           </CardTitle>
-          <CardDescription>
-            Clean up inactive investors and maintain data hygiene
-          </CardDescription>
+          <CardDescription>Clean up inactive investors and maintain data hygiene</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="p-4 bg-muted rounded-lg">
@@ -269,7 +278,7 @@ const InvestorLifecyclePanel = () => {
               <li>• Status will be changed to "archived"</li>
             </ul>
           </div>
-          
+
           <Button
             variant="outline"
             onClick={handleCleanupInactiveInvestors}

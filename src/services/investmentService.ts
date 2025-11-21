@@ -5,11 +5,13 @@ class InvestmentService {
   async getInvestments(filters?: InvestmentFilters): Promise<Investment[]> {
     let query = supabase
       .from("investments")
-      .select(`
+      .select(
+        `
         *,
         investor:investors!inner(id, name, email),
         fund:funds!inner(id, name, code)
-      `)
+      `
+      )
       .order("created_at", { ascending: false });
 
     if (filters?.status) {
@@ -44,8 +46,8 @@ class InvestmentService {
 
     return (data || []).map((inv: any) => ({
       ...inv,
-      status: inv.status as Investment['status'],
-      transaction_type: inv.transaction_type as Investment['transaction_type'],
+      status: inv.status as Investment["status"],
+      transaction_type: inv.transaction_type as Investment["transaction_type"],
       reference_number: inv.reference_number ?? undefined,
       notes: inv.notes ?? undefined,
       created_by: inv.created_by ?? undefined,
@@ -62,11 +64,13 @@ class InvestmentService {
   async getInvestmentById(id: string): Promise<Investment> {
     const { data, error } = await supabase
       .from("investments")
-      .select(`
+      .select(
+        `
         *,
         investor:investors!inner(id, name, email),
         fund:funds!inner(id, name, code)
-      `)
+      `
+      )
       .eq("id", id)
       .single();
 
@@ -75,8 +79,8 @@ class InvestmentService {
 
     return {
       ...data,
-      status: data.status as Investment['status'],
-      transaction_type: data.transaction_type as Investment['transaction_type'],
+      status: data.status as Investment["status"],
+      transaction_type: data.transaction_type as Investment["transaction_type"],
       reference_number: data.reference_number ?? undefined,
       notes: data.notes ?? undefined,
       created_by: data.created_by ?? undefined,
@@ -102,10 +106,10 @@ class InvestmentService {
       .single();
 
     if (error) throw error;
-    return { 
-      ...data, 
-      status: data.status as Investment['status'],
-      transaction_type: data.transaction_type as Investment['transaction_type'],
+    return {
+      ...data,
+      status: data.status as Investment["status"],
+      transaction_type: data.transaction_type as Investment["transaction_type"],
       reference_number: data.reference_number ?? undefined,
       notes: data.notes ?? undefined,
       created_by: data.created_by ?? undefined,
@@ -129,10 +133,10 @@ class InvestmentService {
       .single();
 
     if (error) throw error;
-    return { 
-      ...data, 
-      status: data.status as Investment['status'],
-      transaction_type: data.transaction_type as Investment['transaction_type'],
+    return {
+      ...data,
+      status: data.status as Investment["status"],
+      transaction_type: data.transaction_type as Investment["transaction_type"],
       reference_number: data.reference_number ?? undefined,
       notes: data.notes ?? undefined,
       created_by: data.created_by ?? undefined,
@@ -156,10 +160,10 @@ class InvestmentService {
       .single();
 
     if (error) throw error;
-    return { 
-      ...data, 
-      status: data.status as Investment['status'],
-      transaction_type: data.transaction_type as Investment['transaction_type'],
+    return {
+      ...data,
+      status: data.status as Investment["status"],
+      transaction_type: data.transaction_type as Investment["transaction_type"],
       reference_number: data.reference_number ?? undefined,
       notes: data.notes ?? undefined,
       created_by: data.created_by ?? undefined,
@@ -181,10 +185,10 @@ class InvestmentService {
       .single();
 
     if (error) throw error;
-    return { 
-      ...data, 
-      status: data.status as Investment['status'],
-      transaction_type: data.transaction_type as Investment['transaction_type'],
+    return {
+      ...data,
+      status: data.status as Investment["status"],
+      transaction_type: data.transaction_type as Investment["transaction_type"],
       reference_number: data.reference_number ?? undefined,
       notes: data.notes ?? undefined,
       created_by: data.created_by ?? undefined,
@@ -194,10 +198,7 @@ class InvestmentService {
     };
   }
 
-  async updateInvestment(
-    id: string,
-    updates: Partial<InvestmentFormData>
-  ): Promise<Investment> {
+  async updateInvestment(id: string, updates: Partial<InvestmentFormData>): Promise<Investment> {
     const { data, error } = await supabase
       .from("investments")
       .update(updates)
@@ -206,10 +207,10 @@ class InvestmentService {
       .single();
 
     if (error) throw error;
-    return { 
-      ...data, 
-      status: data.status as Investment['status'],
-      transaction_type: data.transaction_type as Investment['transaction_type'],
+    return {
+      ...data,
+      status: data.status as Investment["status"],
+      transaction_type: data.transaction_type as Investment["transaction_type"],
       reference_number: data.reference_number ?? undefined,
       notes: data.notes ?? undefined,
       created_by: data.created_by ?? undefined,

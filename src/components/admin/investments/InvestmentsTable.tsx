@@ -83,9 +83,7 @@ export function InvestmentsTable({ investments, onRefresh }: InvestmentsTablePro
                   <TableCell>
                     <div>
                       <div className="font-medium">{investment.fund_name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {investment.fund_code}
-                      </div>
+                      <div className="text-xs text-muted-foreground">{investment.fund_code}</div>
                     </div>
                   </TableCell>
                   <TableCell className="font-mono">
@@ -94,19 +92,12 @@ export function InvestmentsTable({ investments, onRefresh }: InvestmentsTablePro
                   <TableCell className="font-mono">
                     {Number(investment.shares).toFixed(4)}
                   </TableCell>
-                  <TableCell className="capitalize">
-                    {investment.transaction_type}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(investment.investment_date).toLocaleDateString()}
-                  </TableCell>
+                  <TableCell className="capitalize">{investment.transaction_type}</TableCell>
+                  <TableCell>{new Date(investment.investment_date).toLocaleDateString()}</TableCell>
                   <TableCell>{getStatusBadge(investment.status)}</TableCell>
                   <TableCell className="text-right">
                     {investment.status === "pending" ? (
-                      <Button
-                        size="sm"
-                        onClick={() => handleApprove(investment)}
-                      >
+                      <Button size="sm" onClick={() => handleApprove(investment)}>
                         Review
                       </Button>
                     ) : (

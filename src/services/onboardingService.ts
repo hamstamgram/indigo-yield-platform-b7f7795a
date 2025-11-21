@@ -10,8 +10,8 @@
  * - Audit trail
  */
 
-import { supabase } from '@/integrations/supabase/client';
-import { getAirtableService } from './airtableService';
+import { supabase } from "@/integrations/supabase/client";
+import { getAirtableService } from "./airtableService";
 
 // =====================================================
 // TYPES & INTERFACES
@@ -39,7 +39,7 @@ export interface OnboardingSubmission {
   additional_emails: string[] | null;
   airtable_record_id: string | null;
   jotform_submission_id: string | null;
-  status: 'pending' | 'processing' | 'approved' | 'rejected' | 'duplicate';
+  status: "pending" | "processing" | "approved" | "rejected" | "duplicate";
   submitted_at: string;
   processed_at: string | null;
   processed_by: string | null;
@@ -74,11 +74,11 @@ export class OnboardingService {
 
       // Validate inputs
       if (!emails || emails.length === 0) {
-        throw new Error('At least one email is required');
+        throw new Error("At least one email is required");
       }
 
       if (!processedBy) {
-        throw new Error('Processed by admin user ID is required');
+        throw new Error("Processed by admin user ID is required");
       }
 
       // =====================================================
@@ -86,9 +86,9 @@ export class OnboardingService {
       // =====================================================
 
       const { data: submission, error: fetchError } = await supabase
-        .from('onboarding_submissions')
-        .select('*')
-        .eq('id', submissionId)
+        .from("onboarding_submissions")
+        .select("*")
+        .eq("id", submissionId)
         .single();
 
       if (fetchError || !submission) {
@@ -104,10 +104,10 @@ export class OnboardingService {
       }
 
       // Check if submission is in valid state
-      if (submission.status === 'rejected') {
+      if (submission.status === "rejected") {
         return {
           success: false,
-          error: 'Cannot create investor from rejected submission',
+          error: "Cannot create investor from rejected submission",
         };
       }
 
@@ -118,22 +118,24 @@ export class OnboardingService {
       const primaryEmail = emails[0].trim().toLowerCase();
 
       const { data: existingByEmail } = await supabase
-        .from('investor_emails')
-        .select('investor_id, email')
-        .eq('email', primaryEmail)
+        .from("investor_emails")
+        .select("investor_id, email")
+        .eq("email", primaryEmail)
         .single();
 
       if (existingByEmail) {
         // Update submission as duplicate
         await supabase
-          .from('onboarding_submissions')
+          .from("onboarding_submissions")
           .update({
-            status: 'duplicate',
+            status: "duplicate",
             processed_by: processedBy,
             processed_at: new Date().toISOString(),
-            notes: notes || `Duplicate email: ${primaryEmail} already exists for investor ${existingByEmail.investor_id}`,
+            notes:
+              notes ||
+              `Duplicate email: ${primaryEmail} already exists for investor ${existingByEmail.investor_id}`,
           })
-          .eq('id', submissionId);
+          .eq("id", submissionId);
 
         return {
           success: false,
@@ -146,12 +148,12 @@ export class OnboardingService {
       // =====================================================
 
       const { error: updateProcessingError } = await supabase
-        .from('onboarding_submissions')
+        .from("onboarding_submissions")
         .update({
-          status: 'processing',
+          status: "processing",
           processed_by: processedBy,
         })
-        .eq('id', submissionId);
+        .eq("id", submissionId);
 
       if (updateProcessingError) {
         throw new Error(`Failed to update submission status: ${updateProcessingError.message}`);
@@ -162,26 +164,26 @@ export class OnboardingService {
       // =====================================================
 
       const { data: investor, error: createError } = await supabase
-        .from('investors')
+        .from("investors")
         .insert({
           name: submission.full_name,
           phone: submission.phone,
           company: submission.company_name,
           email: primaryEmail, // Legacy column for backward compatibility
-          source: 'airtable',
+          source: "airtable",
           created_at: new Date().toISOString(),
         })
-        .select('id')
+        .select("id")
         .single();
 
       if (createError || !investor) {
         // Rollback submission status
         await supabase
-          .from('onboarding_submissions')
-          .update({ status: 'pending', processed_by: null })
-          .eq('id', submissionId);
+          .from("onboarding_submissions")
+          .update({ status: "pending", processed_by: null })
+          .eq("id", submissionId);
 
-        throw new Error(`Failed to create investor: ${createError?.message || 'Unknown error'}`);
+        throw new Error(`Failed to create investor: ${createError?.message || "Unknown error"}`);
       }
 
       console.log(`✅ Created investor ${investor.id}`);
@@ -198,12 +200,10 @@ export class OnboardingService {
         created_at: new Date().toISOString(),
       }));
 
-      const { error: emailsError } = await supabase
-        .from('investor_emails')
-        .insert(emailInserts);
+      const { error: emailsError } = await supabase.from("investor_emails").insert(emailInserts);
 
       if (emailsError) {
-        console.error('❌ Failed to create investor emails:', emailsError);
+        console.error("❌ Failed to create investor emails:", emailsError);
         // Continue anyway - investor is created, emails can be added later
       } else {
         console.log(`✅ Created ${emails.length} email(s) for investor ${investor.id}`);
@@ -214,17 +214,17 @@ export class OnboardingService {
       // =====================================================
 
       const { error: updateApprovedError } = await supabase
-        .from('onboarding_submissions')
+        .from("onboarding_submissions")
         .update({
-          status: 'approved',
+          status: "approved",
           created_investor_id: investor.id,
           processed_at: new Date().toISOString(),
           notes: notes || null,
         })
-        .eq('id', submissionId);
+        .eq("id", submissionId);
 
       if (updateApprovedError) {
-        console.error('❌ Failed to update submission as approved:', updateApprovedError);
+        console.error("❌ Failed to update submission as approved:", updateApprovedError);
         // Continue anyway - investor is created
       }
 
@@ -237,11 +237,11 @@ export class OnboardingService {
           await this.airtableService.markSubmissionAsProcessed(
             submission.airtable_record_id,
             investor.id,
-            'Completed'
+            "Completed"
           );
           console.log(`✅ Updated Airtable record ${submission.airtable_record_id}`);
         } catch (airtableError) {
-          console.error('❌ Failed to update Airtable:', airtableError);
+          console.error("❌ Failed to update Airtable:", airtableError);
           // Continue anyway - investor is created in our DB
         }
       }
@@ -252,12 +252,11 @@ export class OnboardingService {
         success: true,
         investorId: investor.id,
       };
-
     } catch (error) {
-      console.error('❌ Failed to create investor:', error);
+      console.error("❌ Failed to create investor:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -272,25 +271,25 @@ export class OnboardingService {
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const { data: submission } = await supabase
-        .from('onboarding_submissions')
-        .select('airtable_record_id')
-        .eq('id', submissionId)
+        .from("onboarding_submissions")
+        .select("airtable_record_id")
+        .eq("id", submissionId)
         .single();
 
       if (!submission) {
-        throw new Error('Submission not found');
+        throw new Error("Submission not found");
       }
 
       // Update local DB
       const { error: updateError } = await supabase
-        .from('onboarding_submissions')
+        .from("onboarding_submissions")
         .update({
-          status: 'rejected',
+          status: "rejected",
           processed_by: rejectedBy,
           processed_at: new Date().toISOString(),
           notes: reason,
         })
-        .eq('id', submissionId);
+        .eq("id", submissionId);
 
       if (updateError) {
         throw updateError;
@@ -301,23 +300,22 @@ export class OnboardingService {
         try {
           await this.airtableService.updateSubmissionStatus(
             submission.airtable_record_id,
-            'Rejected',
+            "Rejected",
             reason
           );
         } catch (airtableError) {
-          console.error('❌ Failed to update Airtable:', airtableError);
+          console.error("❌ Failed to update Airtable:", airtableError);
           // Continue - local DB is updated
         }
       }
 
       console.log(`✅ Rejected submission ${submissionId}`);
       return { success: true };
-
     } catch (error) {
-      console.error('❌ Failed to reject submission:', error);
+      console.error("❌ Failed to reject submission:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -337,8 +335,8 @@ export class OnboardingService {
     try {
       // Get all submissions
       const { data: allSubmissions } = await supabase
-        .from('onboarding_submissions')
-        .select('status, created_at');
+        .from("onboarding_submissions")
+        .select("status, created_at");
 
       if (!allSubmissions) {
         return {
@@ -362,15 +360,15 @@ export class OnboardingService {
         todayCount: 0,
       };
 
-      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
 
       allSubmissions.forEach((submission) => {
         // Count by status
-        if (submission.status === 'pending') stats.pending++;
-        else if (submission.status === 'processing') stats.processing++;
-        else if (submission.status === 'approved') stats.approved++;
-        else if (submission.status === 'rejected') stats.rejected++;
-        else if (submission.status === 'duplicate') stats.duplicate++;
+        if (submission.status === "pending") stats.pending++;
+        else if (submission.status === "processing") stats.processing++;
+        else if (submission.status === "approved") stats.approved++;
+        else if (submission.status === "rejected") stats.rejected++;
+        else if (submission.status === "duplicate") stats.duplicate++;
 
         // Count today's submissions
         if (submission.created_at.startsWith(today)) {
@@ -379,9 +377,8 @@ export class OnboardingService {
       });
 
       return stats;
-
     } catch (error) {
-      console.error('❌ Failed to get onboarding stats:', error);
+      console.error("❌ Failed to get onboarding stats:", error);
       throw error;
     }
   }
@@ -391,13 +388,13 @@ export class OnboardingService {
    */
   async getPendingSubmissions(): Promise<OnboardingSubmission[]> {
     const { data, error } = await supabase
-      .from('onboarding_submissions')
-      .select('*')
-      .eq('status', 'pending')
-      .order('submitted_at', { ascending: false });
+      .from("onboarding_submissions")
+      .select("*")
+      .eq("status", "pending")
+      .order("submitted_at", { ascending: false });
 
     if (error) {
-      console.error('❌ Failed to fetch pending submissions:', error);
+      console.error("❌ Failed to fetch pending submissions:", error);
       throw error;
     }
 
@@ -413,12 +410,12 @@ export class OnboardingService {
     limit?: number;
   }): Promise<OnboardingSubmission[]> {
     let query = supabase
-      .from('onboarding_submissions')
-      .select('*')
-      .order('submitted_at', { ascending: false });
+      .from("onboarding_submissions")
+      .select("*")
+      .order("submitted_at", { ascending: false });
 
-    if (filters?.status && filters.status !== 'all') {
-      query = query.eq('status', filters.status);
+    if (filters?.status && filters.status !== "all") {
+      query = query.eq("status", filters.status);
     }
 
     if (filters?.search) {
@@ -434,7 +431,7 @@ export class OnboardingService {
     const { data, error } = await query;
 
     if (error) {
-      console.error('❌ Failed to fetch submissions:', error);
+      console.error("❌ Failed to fetch submissions:", error);
       throw error;
     }
 

@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string[] }>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string[] }>;
 };
 
-const DISMISS_KEY = 'pwaInstallDismissedUntil';
+const DISMISS_KEY = "pwaInstallDismissedUntil";
 const DISMISS_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export function InstallPrompt() {
@@ -21,8 +21,8 @@ export function InstallPrompt() {
       setDeferred(e as BeforeInstallPromptEvent);
       setVisible(true);
     };
-    window.addEventListener('beforeinstallprompt', onBeforeInstall as any);
-    return () => window.removeEventListener('beforeinstallprompt', onBeforeInstall as any);
+    window.addEventListener("beforeinstallprompt", onBeforeInstall as any);
+    return () => window.removeEventListener("beforeinstallprompt", onBeforeInstall as any);
   }, []);
 
   if (!visible || !deferred) return null;
@@ -43,11 +43,56 @@ export function InstallPrompt() {
   };
 
   return (
-    <div style={{position:'fixed',bottom:16,left:0,right:0,display:'flex',justifyContent:'center',zIndex:50}}>
-      <div style={{display:'flex',gap:8,alignItems:'center',padding:'10px 12px',borderRadius:12,boxShadow:'0 4px 16px rgba(0,0,0,0.12)',background:'#0f172a',color:'#fff'}}>
+    <div
+      style={{
+        position: "fixed",
+        bottom: 16,
+        left: 0,
+        right: 0,
+        display: "flex",
+        justifyContent: "center",
+        zIndex: 50,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          alignItems: "center",
+          padding: "10px 12px",
+          borderRadius: 12,
+          boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+          background: "#0f172a",
+          color: "#fff",
+        }}
+      >
         <span>Install Indigo for a faster, app-like experience?</span>
-        <button onClick={onInstall} style={{padding:'6px 10px',borderRadius:8,background:'#22c55e',color:'#0b0f1a',border:'none',cursor:'pointer'}}>Install</button>
-        <button onClick={hideForAWhile} style={{padding:'6px 10px',borderRadius:8,background:'transparent',color:'#fff',border:'1px solid rgba(255,255,255,0.2)',cursor:'pointer'}}>Not now</button>
+        <button
+          onClick={onInstall}
+          style={{
+            padding: "6px 10px",
+            borderRadius: 8,
+            background: "#22c55e",
+            color: "#0b0f1a",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          Install
+        </button>
+        <button
+          onClick={hideForAWhile}
+          style={{
+            padding: "6px 10px",
+            borderRadius: 8,
+            background: "transparent",
+            color: "#fff",
+            border: "1px solid rgba(255,255,255,0.2)",
+            cursor: "pointer",
+          }}
+        >
+          Not now
+        </button>
       </div>
     </div>
   );

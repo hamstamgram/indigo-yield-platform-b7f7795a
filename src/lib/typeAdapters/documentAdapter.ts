@@ -3,10 +3,10 @@
  * Transform between Supabase document types and application Document types
  */
 
-import { Database } from '@/integrations/supabase/types';
-import type { Document as DomainDocument, DocumentWithMetadata } from '@/types/domains/document';
+import { Database } from "@/integrations/supabase/types";
+import type { Document as DomainDocument, DocumentWithMetadata } from "@/types/domains/document";
 
-type SupabaseDocument = Database['public']['Tables']['documents']['Row'];
+type SupabaseDocument = Database["public"]["Tables"]["documents"]["Row"];
 
 /**
  * Transform Supabase document row to application Document type
@@ -59,8 +59,8 @@ export function toDocumentWithMetadata(
  * Prepare document data for Supabase insert
  */
 export function toSupabaseInsert(
-  doc: Omit<DomainDocument, 'id' | 'created_at'>
-): Database['public']['Tables']['documents']['Insert'] {
+  doc: Omit<DomainDocument, "id" | "created_at">
+): Database["public"]["Tables"]["documents"]["Insert"] {
   return {
     user_id: doc.user_id,
     fund_id: doc.fund_id,

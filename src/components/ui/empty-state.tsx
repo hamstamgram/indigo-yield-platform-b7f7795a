@@ -1,18 +1,18 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { 
-  FileX, 
-  Search, 
-  Inbox, 
-  Users, 
-  FileText, 
+import React from "react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  FileX,
+  Search,
+  Inbox,
+  Users,
+  FileText,
   DollarSign,
   TrendingUp,
   Bell,
   FolderOpen,
-  MessageSquare
-} from 'lucide-react';
+  MessageSquare,
+} from "lucide-react";
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -30,27 +30,16 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   title,
   description,
   action,
-  className
+  className,
 }) => {
   return (
-    <div className={cn(
-      "flex flex-col items-center justify-center py-12 px-4 text-center",
-      className
-    )}>
-      {icon && (
-        <div className="mb-4 text-gray-400">
-          {icon}
-        </div>
-      )}
+    <div
+      className={cn("flex flex-col items-center justify-center py-12 px-4 text-center", className)}
+    >
+      {icon && <div className="mb-4 text-gray-400">{icon}</div>}
       <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-      {description && (
-        <p className="text-sm text-gray-500 mb-6 max-w-sm">{description}</p>
-      )}
-      {action && (
-        <div className="mt-4">
-          {action}
-        </div>
-      )}
+      {description && <p className="text-sm text-gray-500 mb-6 max-w-sm">{description}</p>}
+      {action && <div className="mt-4">{action}</div>}
     </div>
   );
 };
@@ -58,15 +47,19 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 /**
  * Empty state for no search results
  */
-export const NoSearchResults: React.FC<{ searchTerm?: string; onClear?: () => void }> = ({ 
-  searchTerm, 
-  onClear 
+export const NoSearchResults: React.FC<{ searchTerm?: string; onClear?: () => void }> = ({
+  searchTerm,
+  onClear,
 }) => {
   return (
     <EmptyState
       icon={<Search className="h-12 w-12" />}
       title="No results found"
-      description={searchTerm ? `No results for "${searchTerm}". Try adjusting your search.` : "Try adjusting your search criteria."}
+      description={
+        searchTerm
+          ? `No results for "${searchTerm}". Try adjusting your search.`
+          : "Try adjusting your search criteria."
+      }
       action={
         onClear && (
           <Button variant="outline" onClick={onClear}>
@@ -87,13 +80,7 @@ export const NoTransactions: React.FC<{ onAction?: () => void }> = ({ onAction }
       icon={<DollarSign className="h-12 w-12" />}
       title="No transactions yet"
       description="Your transaction history will appear here once you make your first investment."
-      action={
-        onAction && (
-          <Button onClick={onAction}>
-            Learn about investing
-          </Button>
-        )
-      }
+      action={onAction && <Button onClick={onAction}>Learn about investing</Button>}
     />
   );
 };
@@ -140,13 +127,7 @@ export const EmptyPortfolio: React.FC<{ onGetStarted?: () => void }> = ({ onGetS
       icon={<TrendingUp className="h-12 w-12" />}
       title="Start building your portfolio"
       description="Begin your investment journey with Indigo Yield Platform."
-      action={
-        onGetStarted && (
-          <Button onClick={onGetStarted}>
-            Get started
-          </Button>
-        )
-      }
+      action={onGetStarted && <Button onClick={onGetStarted}>Get started</Button>}
     />
   );
 };
@@ -160,13 +141,7 @@ export const NoUsers: React.FC<{ onInvite?: () => void }> = ({ onInvite }) => {
       icon={<Users className="h-12 w-12" />}
       title="No investors yet"
       description="Invite your first investor to get started."
-      action={
-        onInvite && (
-          <Button onClick={onInvite}>
-            Invite investor
-          </Button>
-        )
-      }
+      action={onInvite && <Button onClick={onInvite}>Invite investor</Button>}
     />
   );
 };
@@ -193,13 +168,7 @@ export const NoMessages: React.FC<{ onCompose?: () => void }> = ({ onCompose }) 
       icon={<MessageSquare className="h-12 w-12" />}
       title="No messages"
       description="Start a conversation with our support team."
-      action={
-        onCompose && (
-          <Button onClick={onCompose}>
-            Send message
-          </Button>
-        )
-      }
+      action={onCompose && <Button onClick={onCompose}>Send message</Button>}
     />
   );
 };
@@ -207,14 +176,14 @@ export const NoMessages: React.FC<{ onCompose?: () => void }> = ({ onCompose }) 
 /**
  * Generic error empty state
  */
-export const ErrorState: React.FC<{ 
-  title?: string; 
-  description?: string; 
-  onRetry?: () => void 
-}> = ({ 
+export const ErrorState: React.FC<{
+  title?: string;
+  description?: string;
+  onRetry?: () => void;
+}> = ({
   title = "Something went wrong",
   description = "We couldn't load this content. Please try again.",
-  onRetry 
+  onRetry,
 }) => {
   return (
     <EmptyState
@@ -246,7 +215,7 @@ export const NoData: React.FC<{
   title = "No data",
   description = "There's nothing to show here yet.",
   actionLabel,
-  onAction
+  onAction,
 }) => {
   return (
     <EmptyState
@@ -254,7 +223,8 @@ export const NoData: React.FC<{
       title={title}
       description={description}
       action={
-        onAction && actionLabel && (
+        onAction &&
+        actionLabel && (
           <Button variant="outline" onClick={onAction}>
             {actionLabel}
           </Button>
@@ -275,5 +245,5 @@ export default {
   EmptyFolder,
   NoMessages,
   ErrorState,
-  NoData
+  NoData,
 };

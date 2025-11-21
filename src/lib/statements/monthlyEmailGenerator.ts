@@ -12,27 +12,33 @@
  * - Professional branding
  */
 
-import { toDecimal } from '@/utils/financial';
-import Decimal from 'decimal.js';
+import { toDecimal } from "@/utils/financial";
+import Decimal from "decimal.js";
 
 // Fund icon CDN URLs
 const FUND_ICONS: Record<string, string> = {
-  'BTC YIELD FUND': 'https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png',
-  'ETH YIELD FUND': 'https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png',
-  'SOL YIELD FUND': 'https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFSQ.png',
-  'USDT YIELD FUND': 'https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png',
-  'USDC YIELD FUND': 'https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png',
-  'EURC YIELD FUND': 'https://storage.mlcdn.com/account_image/855106/kwV87oiC7c4dnG6zkl95MnV5yafAxWlFbQgjmaIm.png',
+  "BTC YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
+  "ETH YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
+  "SOL YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFSQ.png",
+  "USDT YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
+  "USDC YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png",
+  "EURC YIELD FUND":
+    "https://storage.mlcdn.com/account_image/855106/kwV87oiC7c4dnG6zkl95MnV5yafAxWlFbQgjmaIm.png",
 };
 
 // Currency mapping
 const FUND_CURRENCY: Record<string, string> = {
-  'BTC YIELD FUND': 'BTC',
-  'ETH YIELD FUND': 'ETH',
-  'SOL YIELD FUND': 'SOL',
-  'USDT YIELD FUND': 'USDT',
-  'USDC YIELD FUND': 'USDC',
-  'EURC YIELD FUND': 'EURC',
+  "BTC YIELD FUND": "BTC",
+  "ETH YIELD FUND": "ETH",
+  "SOL YIELD FUND": "SOL",
+  "USDT YIELD FUND": "USDT",
+  "USDC YIELD FUND": "USDC",
+  "EURC YIELD FUND": "EURC",
 };
 
 export interface FundPerformance {
@@ -88,11 +94,11 @@ function formatStatementNumber(value: string | number | Decimal): string {
   const decimal = toDecimal(value);
 
   if (decimal.isZero()) {
-    return '-';
+    return "-";
   }
 
   // Format with commas and appropriate decimals
-  const formatted = decimal.toNumber().toLocaleString('en-US', {
+  const formatted = decimal.toNumber().toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 8,
   });
@@ -107,11 +113,11 @@ function getValueColor(value: string | number | Decimal): string {
   const decimal = toDecimal(value);
 
   if (decimal.lessThan(0)) {
-    return '#dc2626'; // Red
+    return "#dc2626"; // Red
   } else if (decimal.greaterThan(0)) {
-    return '#16a34a'; // Green
+    return "#16a34a"; // Green
   }
-  return '#1e293b'; // Default dark
+  return "#1e293b"; // Default dark
 }
 
 /**
@@ -121,7 +127,7 @@ function formatPercentage(value: string | number | Decimal): string {
   const decimal = toDecimal(value);
 
   if (decimal.isZero()) {
-    return '-';
+    return "-";
   }
 
   return `${decimal.toFixed(2)}%`;
@@ -131,8 +137,8 @@ function formatPercentage(value: string | number | Decimal): string {
  * Generate fund section HTML
  */
 function generateFundSection(fund: FundPerformance): string {
-  const currency = FUND_CURRENCY[fund.fund_name] || 'USD';
-  const iconUrl = FUND_ICONS[fund.fund_name] || '';
+  const currency = FUND_CURRENCY[fund.fund_name] || "USD";
+  const iconUrl = FUND_ICONS[fund.fund_name] || "";
 
   // Get colors for Net Income and Rate of Return
   const mtdIncomeColor = getValueColor(fund.mtd_net_income);
@@ -222,15 +228,17 @@ function generateFundSection(fund: FundPerformance): string {
  */
 export function generateMonthlyStatementHTML(data: MonthlyStatementData): string {
   // Generate all fund sections
-  const fundSections = data.funds.map((fund, index) => {
-    const section = generateFundSection(fund);
+  const fundSections = data.funds
+    .map((fund, index) => {
+      const section = generateFundSection(fund);
 
-    // Add spacing between funds (except after last one)
-    if (index < data.funds.length - 1) {
-      return section + '\n  <tr><td style="height:16px;"></td></tr>\n';
-    }
-    return section;
-  }).join('\n');
+      // Add spacing between funds (except after last one)
+      if (index < data.funds.length - 1) {
+        return section + '\n  <tr><td style="height:16px;"></td></tr>\n';
+      }
+      return section;
+    })
+    .join("\n");
 
   return `<!DOCTYPE html>
 <html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -374,5 +382,5 @@ export function generateStatementPreview(data: MonthlyStatementData): string {
   </div>
   `;
 
-  return html.replace('<body', '<body' + '>' + previewNotice);
+  return html.replace("<body", "<body" + ">" + previewNotice);
 }

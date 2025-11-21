@@ -14,6 +14,7 @@ const TransactionsPage = lazy(() => import("@/pages/investor/portfolio/Transacti
 const AssetDetail = lazy(() => import("@/pages/AssetDetail"));
 const AccountPage = lazy(() => import("@/pages/investor/account/AccountPage"));
 const SettingsPage = lazy(() => import("@/pages/investor/account/SettingsPage"));
+const ActivityPage = lazy(() => import("@/pages/activity/ActivityPage"));
 
 export function CoreInvestorRoutes() {
   return (
@@ -23,6 +24,14 @@ export function CoreInvestorRoutes() {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/activity"
+        element={
+          <ProtectedRoute>
+            <ActivityPage />
           </ProtectedRoute>
         }
       />

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart3, Calendar, Database, TrendingUp } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import BulkDataGenerator from './BulkDataGenerator';
-import { getHistoricalDataSummary } from '@/services/historicalDataService';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BarChart3, Calendar, Database, TrendingUp } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import BulkDataGenerator from "./BulkDataGenerator";
+import { getHistoricalDataSummary } from "@/services/historicalDataService";
 
 const HistoricalReportsDashboard: React.FC = () => {
   const [, setLoading] = useState(false);
@@ -13,7 +13,7 @@ const HistoricalReportsDashboard: React.FC = () => {
     latestMonth: null as string | null,
     earliestMonth: null as string | null,
     investorCount: 0,
-    assetCount: 0
+    assetCount: 0,
   });
   const { toast } = useToast();
 
@@ -24,11 +24,11 @@ const HistoricalReportsDashboard: React.FC = () => {
       const data = await getHistoricalDataSummary();
       setSummary(data);
     } catch (error) {
-      console.error('Error fetching summary:', error);
+      console.error("Error fetching summary:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load historical data summary',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to load historical data summary",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -57,9 +57,7 @@ const HistoricalReportsDashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{summary.totalReports.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              Historical data points
-            </p>
+            <p className="text-xs text-muted-foreground">Historical data points</p>
           </CardContent>
         </Card>
 
@@ -72,15 +70,21 @@ const HistoricalReportsDashboard: React.FC = () => {
             <div className="text-lg font-bold">
               {summary.earliestMonth && summary.latestMonth ? (
                 <>
-                  {new Date(summary.earliestMonth).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })} - {new Date(summary.latestMonth).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}
+                  {new Date(summary.earliestMonth).toLocaleDateString("en-US", {
+                    month: "short",
+                    year: "2-digit",
+                  })}{" "}
+                  -{" "}
+                  {new Date(summary.latestMonth).toLocaleDateString("en-US", {
+                    month: "short",
+                    year: "2-digit",
+                  })}
                 </>
               ) : (
-                'No data'
+                "No data"
               )}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Coverage period
-            </p>
+            <p className="text-xs text-muted-foreground">Coverage period</p>
           </CardContent>
         </Card>
 
@@ -91,9 +95,7 @@ const HistoricalReportsDashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{summary.investorCount}</div>
-            <p className="text-xs text-muted-foreground">
-              With historical data
-            </p>
+            <p className="text-xs text-muted-foreground">With historical data</p>
           </CardContent>
         </Card>
 
@@ -104,9 +106,7 @@ const HistoricalReportsDashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{summary.assetCount}</div>
-            <p className="text-xs text-muted-foreground">
-              Tracked assets
-            </p>
+            <p className="text-xs text-muted-foreground">Tracked assets</p>
           </CardContent>
         </Card>
       </div>
@@ -117,11 +117,11 @@ const HistoricalReportsDashboard: React.FC = () => {
           <TabsTrigger value="generator">Data Generator</TabsTrigger>
           <TabsTrigger value="reports">View Reports</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="generator">
           <BulkDataGenerator />
         </TabsContent>
-        
+
         <TabsContent value="reports">
           <Card>
             <CardHeader>
@@ -129,8 +129,8 @@ const HistoricalReportsDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Advanced reporting view will be implemented in the next phase.
-                For now, use the individual investor detail pages to view historical data.
+                Advanced reporting view will be implemented in the next phase. For now, use the
+                individual investor detail pages to view historical data.
               </p>
             </CardContent>
           </Card>

@@ -18,10 +18,7 @@ interface FeeCalculationsTableProps {
   onRefresh: () => void;
 }
 
-export function FeeCalculationsTable({
-  calculations,
-  onRefresh,
-}: FeeCalculationsTableProps) {
+export function FeeCalculationsTable({ calculations, onRefresh }: FeeCalculationsTableProps) {
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: any; icon: any }> = {
       pending: { variant: "secondary", icon: Clock },
@@ -90,27 +87,21 @@ export function FeeCalculationsTable({
           ) : (
             calculations.map((calc) => (
               <TableRow key={calc.id}>
-                <TableCell>
-                  {new Date(calc.calculation_date).toLocaleDateString()}
-                </TableCell>
+                <TableCell>{new Date(calc.calculation_date).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <div className="font-medium">{calc.investor_name}</div>
                 </TableCell>
                 <TableCell>
                   <div>
                     <div className="font-medium">{calc.fund_name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {calc.fund_code}
-                    </div>
+                    <div className="text-xs text-muted-foreground">{calc.fund_code}</div>
                   </div>
                 </TableCell>
                 <TableCell className="capitalize">{calc.fee_type}</TableCell>
                 <TableCell className="text-right font-mono">
                   ${Number(calc.calculation_basis).toLocaleString()}
                 </TableCell>
-                <TableCell className="text-right font-mono">
-                  {calc.rate_bps}
-                </TableCell>
+                <TableCell className="text-right font-mono">{calc.rate_bps}</TableCell>
                 <TableCell className="text-right font-mono font-medium">
                   ${Number(calc.fee_amount).toLocaleString()}
                 </TableCell>
@@ -118,18 +109,10 @@ export function FeeCalculationsTable({
                 <TableCell className="text-right">
                   {calc.status === "pending" && (
                     <div className="flex gap-2 justify-end">
-                      <Button
-                        size="sm"
-                        variant="default"
-                        onClick={() => handlePost(calc.id)}
-                      >
+                      <Button size="sm" variant="default" onClick={() => handlePost(calc.id)}>
                         Post
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleCancel(calc.id)}
-                      >
+                      <Button size="sm" variant="ghost" onClick={() => handleCancel(calc.id)}>
                         Cancel
                       </Button>
                     </div>

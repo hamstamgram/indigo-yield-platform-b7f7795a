@@ -3,9 +3,9 @@
  * Transform between Supabase profile types and application Investor types
  */
 
-import { Database } from '@/integrations/supabase/types';
+import { Database } from "@/integrations/supabase/types";
 
-type SupabaseProfile = Database['public']['Tables']['profiles']['Row'];
+type SupabaseProfile = Database["public"]["Tables"]["profiles"]["Row"];
 
 export interface InvestorProfile {
   id: string;
@@ -18,7 +18,7 @@ export interface InvestorProfile {
   avatar_url: string | null;
   totp_enabled: boolean;
   totp_verified: boolean;
-  status: 'Active' | 'Pending' | 'Closed';
+  status: "Active" | "Pending" | "Closed";
   created_at: string;
   updated_at: string;
 }
@@ -38,7 +38,7 @@ export function toInvestorProfile(row: SupabaseProfile): InvestorProfile {
     avatar_url: row.avatar_url,
     totp_enabled: row.totp_enabled ?? false,
     totp_verified: row.totp_verified ?? false,
-    status: (row.status as 'Active' | 'Pending' | 'Closed') ?? 'Pending',
+    status: (row.status as "Active" | "Pending" | "Closed") ?? "Pending",
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
@@ -55,8 +55,8 @@ export function toInvestorProfiles(rows: SupabaseProfile[]): InvestorProfile[] {
  * Get display name from investor profile
  */
 export function getInvestorDisplayName(profile: InvestorProfile | SupabaseProfile): string {
-  const firstName = profile.first_name || '';
-  const lastName = profile.last_name || '';
+  const firstName = profile.first_name || "";
+  const lastName = profile.last_name || "";
   const fullName = `${firstName} ${lastName}`.trim();
   return fullName || profile.email;
 }

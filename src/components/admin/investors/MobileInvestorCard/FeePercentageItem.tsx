@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { Input } from '@/components/ui/input';
+import React from "react";
+import { Input } from "@/components/ui/input";
 
 interface FeePercentageItemProps {
   fee: string;
@@ -13,13 +12,13 @@ const FeePercentageItem: React.FC<FeePercentageItemProps> = ({
   fee,
   feePercentage,
   isEditing,
-  onChange
+  onChange,
 }) => {
   return (
     <div className="flex justify-between items-center border-t pt-3 mt-3">
       <div className="font-medium">Fee (%)</div>
       {isEditing ? (
-        <Input 
+        <Input
           type="number"
           step="0.1"
           min="0"
@@ -32,7 +31,7 @@ const FeePercentageItem: React.FC<FeePercentageItemProps> = ({
         <div>
           {feePercentage !== null && feePercentage !== undefined
             ? `${feePercentage.toFixed(1)}%`
-            : '2.0%'}
+            : "2.0%"}
         </div>
       )}
     </div>

@@ -10,7 +10,7 @@ export interface Ticket {
   subject: string;
   category?: string;
   message: string;
-  status: 'open' | 'pending' | 'resolved';
+  status: "open" | "pending" | "resolved";
   createdAt: string;
   updatedAt?: string;
 }
@@ -22,11 +22,11 @@ export interface NotificationPrefs {
 
 export interface Request {
   id: string;
-  type: 'deposit' | 'withdrawal';
+  type: "deposit" | "withdrawal";
   asset: string;
   amount: string;
   memo?: string;
-  status: 'pending' | 'approved' | 'denied';
+  status: "pending" | "approved" | "denied";
   createdAt: string;
   updatedAt?: string;
   adminNotes?: string;

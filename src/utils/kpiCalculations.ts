@@ -80,7 +80,10 @@ export const calculateAllKPIs = async (userId: string): Promise<AssetKPI[]> => {
   try {
     // For now, return mock data that matches the expected structure
     // In a real implementation, this would calculate actual KPIs from positions data
-    const { data: positions } = await supabase.from("positions" as any).select("*").eq("user_id", userId);
+    const { data: positions } = await supabase
+      .from("positions" as any)
+      .select("*")
+      .eq("user_id", userId);
 
     if (!positions || positions.length === 0) {
       return [];

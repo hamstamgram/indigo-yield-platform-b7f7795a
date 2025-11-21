@@ -9,47 +9,47 @@
  *   import { runAllReportTests } from './test-reports/automated-test-runner';
  */
 
-import { ReportsApi } from '../src/services/api/reportsApi';
-import { ReportType, ReportFormat } from '../src/types/reports';
-import { writeFileSync } from 'fs';
-import { format } from 'date-fns';
+import { ReportsApi } from "../src/services/api/reportsApi";
+import { ReportType, ReportFormat } from "../src/types/reports";
+import { writeFileSync } from "fs";
+import { format } from "date-fns";
 
 // Test configuration
 const TEST_CONFIG = {
-  dateRangeStart: '2024-01-01',
-  dateRangeEnd: '2024-12-31',
+  dateRangeStart: "2024-01-01",
+  dateRangeEnd: "2024-12-31",
   timeout: 30000, // 30 seconds per test
   saveReports: true, // Save generated reports to disk
-  outputDir: './test-reports/generated',
+  outputDir: "./test-reports/generated",
 };
 
 // All report types to test
 const REPORT_TYPES: ReportType[] = [
   // Investor Reports
-  'portfolio_performance',
-  'transaction_history',
-  'tax_report',
-  'monthly_statement',
-  'annual_summary',
-  'custom_date_range',
+  "portfolio_performance",
+  "transaction_history",
+  "tax_report",
+  "monthly_statement",
+  "annual_summary",
+  "custom_date_range",
 
   // Admin Reports
-  'aum_report',
-  'investor_activity',
-  'transaction_volume',
-  'compliance_report',
-  'fund_performance',
-  'fee_analysis',
-  'audit_trail',
+  "aum_report",
+  "investor_activity",
+  "transaction_volume",
+  "compliance_report",
+  "fund_performance",
+  "fee_analysis",
+  "audit_trail",
 ];
 
 // All formats to test
-const FORMATS: ReportFormat[] = ['pdf', 'excel', 'csv', 'json'];
+const FORMATS: ReportFormat[] = ["pdf", "excel", "csv", "json"];
 
 interface TestResult {
   reportType: ReportType;
   format: ReportFormat;
-  status: 'pass' | 'fail' | 'skip';
+  status: "pass" | "fail" | "skip";
   duration: number;
   fileSize?: number;
   error?: string;
@@ -77,7 +77,7 @@ async function testReportGeneration(
   const result: TestResult = {
     reportType,
     format,
-    status: 'fail',
+    status: "fail",
     duration: 0,
     timestamp: new Date().toISOString(),
   };
@@ -101,7 +101,7 @@ async function testReportGeneration(
         },
       }),
       new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), TEST_CONFIG.timeout)
+        setTimeout(() => reject(new Error("Timeout")), TEST_CONFIG.timeout)
       ),
     ]);
 
@@ -109,21 +109,21 @@ async function testReportGeneration(
 
     // Verify success
     if (!response.success) {
-      result.error = response.error || 'Unknown error';
-      result.status = 'fail';
+      result.error = response.error || "Unknown error";
+      result.status = "fail";
     } else if (!response.data) {
-      result.error = 'No data returned';
-      result.status = 'fail';
+      result.error = "No data returned";
+      result.status = "fail";
     } else {
       // Success - verify file
       result.fileSize = response.data.length;
 
       // Basic validation
       if (result.fileSize === 0) {
-        result.error = 'Empty file generated';
-        result.status = 'fail';
+        result.error = "Empty file generated";
+        result.status = "fail";
       } else {
-        result.status = 'pass';
+        result.status = "pass";
 
         // Save report if configured
         if (TEST_CONFIG.saveReports && response.filename) {
@@ -143,8 +143,8 @@ async function testReportGeneration(
     console.log(`  Result: ${result.status} (${duration}ms, ${result.fileSize || 0} bytes)`);
   } catch (error) {
     result.duration = Date.now() - startTime;
-    result.error = error instanceof Error ? error.message : 'Unknown error';
-    result.status = 'fail';
+    result.error = error instanceof Error ? error.message : "Unknown error";
+    result.status = "fail";
     console.error(`  Error: ${result.error}`);
   }
 
@@ -155,8 +155,10 @@ async function testReportGeneration(
  * Test all combinations
  */
 export async function runAllReportTests(): Promise<TestSummary> {
-  console.log('Starting comprehensive report generation tests...\n');
-  console.log(`Testing ${REPORT_TYPES.length} report types × ${FORMATS.length} formats = ${REPORT_TYPES.length * FORMATS.length} combinations\n`);
+  console.log("Starting comprehensive report generation tests...\n");
+  console.log(
+    `Testing ${REPORT_TYPES.length} report types × ${FORMATS.length} formats = ${REPORT_TYPES.length * FORMATS.length} combinations\n`
+  );
 
   const results: TestResult[] = [];
   let passed = 0;
@@ -171,12 +173,12 @@ export async function runAllReportTests(): Promise<TestSummary> {
       const result = await testReportGeneration(reportType, format);
       results.push(result);
 
-      if (result.status === 'pass') passed++;
-      else if (result.status === 'fail') failed++;
-      else if (result.status === 'skip') skipped++;
+      if (result.status === "pass") passed++;
+      else if (result.status === "fail") failed++;
+      else if (result.status === "skip") skipped++;
 
       // Small delay between tests to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
 
@@ -193,9 +195,9 @@ export async function runAllReportTests(): Promise<TestSummary> {
   };
 
   // Print summary
-  console.log('\n' + '='.repeat(80));
-  console.log('TEST SUMMARY');
-  console.log('='.repeat(80));
+  console.log("\n" + "=".repeat(80));
+  console.log("TEST SUMMARY");
+  console.log("=".repeat(80));
   console.log(`Total Tests: ${summary.totalTests}`);
   console.log(`Passed: ${summary.passed} ✅`);
   console.log(`Failed: ${summary.failed} ❌`);
@@ -203,20 +205,20 @@ export async function runAllReportTests(): Promise<TestSummary> {
   console.log(`Pass Rate: ${summary.passRate.toFixed(2)}%`);
   console.log(`Total Duration: ${(summary.totalDuration / 1000).toFixed(2)}s`);
   console.log(`Average Duration: ${(summary.totalDuration / summary.totalTests).toFixed(0)}ms`);
-  console.log('='.repeat(80));
+  console.log("=".repeat(80));
 
   // Print failures
   if (failed > 0) {
-    console.log('\nFailed Tests:');
+    console.log("\nFailed Tests:");
     results
-      .filter(r => r.status === 'fail')
-      .forEach(r => {
+      .filter((r) => r.status === "fail")
+      .forEach((r) => {
         console.log(`  ❌ ${r.reportType} - ${r.format}: ${r.error}`);
       });
   }
 
   // Save results to file
-  const reportPath = `${TEST_CONFIG.outputDir}/test-results-${format(new Date(), 'yyyyMMdd-HHmmss')}.json`;
+  const reportPath = `${TEST_CONFIG.outputDir}/test-results-${format(new Date(), "yyyyMMdd-HHmmss")}.json`;
   writeFileSync(reportPath, JSON.stringify(summary, null, 2));
   console.log(`\nDetailed results saved to: ${reportPath}`);
 
@@ -237,10 +239,10 @@ export async function testReportType(reportType: ReportType): Promise<TestSummar
     const result = await testReportGeneration(reportType, format);
     results.push(result);
 
-    if (result.status === 'pass') passed++;
-    else if (result.status === 'fail') failed++;
+    if (result.status === "pass") passed++;
+    else if (result.status === "fail") failed++;
 
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
   const totalDuration = results.reduce((sum, r) => sum + r.duration, 0);
@@ -270,10 +272,10 @@ export async function testFormat(format: ReportFormat): Promise<TestSummary> {
     const result = await testReportGeneration(reportType, format);
     results.push(result);
 
-    if (result.status === 'pass') passed++;
-    else if (result.status === 'fail') failed++;
+    if (result.status === "pass") passed++;
+    else if (result.status === "fail") failed++;
 
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
   const totalDuration = results.reduce((sum, r) => sum + r.duration, 0);
@@ -293,22 +295,22 @@ export async function testFormat(format: ReportFormat): Promise<TestSummary> {
  * Performance benchmark test
  */
 export async function runPerformanceBenchmark(): Promise<void> {
-  console.log('Running performance benchmark...\n');
+  console.log("Running performance benchmark...\n");
 
   const benchmarks = [
     {
-      name: 'Small Report (Portfolio Performance)',
-      reportType: 'portfolio_performance' as ReportType,
+      name: "Small Report (Portfolio Performance)",
+      reportType: "portfolio_performance" as ReportType,
       expected: { pdf: 2000, excel: 2000, csv: 1000, json: 1000 },
     },
     {
-      name: 'Medium Report (Transaction History)',
-      reportType: 'transaction_history' as ReportType,
+      name: "Medium Report (Transaction History)",
+      reportType: "transaction_history" as ReportType,
       expected: { pdf: 5000, excel: 5000, csv: 2000, json: 2000 },
     },
     {
-      name: 'Large Report (Annual Summary)',
-      reportType: 'annual_summary' as ReportType,
+      name: "Large Report (Annual Summary)",
+      reportType: "annual_summary" as ReportType,
       expected: { pdf: 10000, excel: 10000, csv: 5000, json: 5000 },
     },
   ];
@@ -319,11 +321,9 @@ export async function runPerformanceBenchmark(): Promise<void> {
     for (const format of FORMATS) {
       const result = await testReportGeneration(benchmark.reportType, format);
       const expected = benchmark.expected[format];
-      const status = result.duration <= expected ? '✅' : '⚠️';
+      const status = result.duration <= expected ? "✅" : "⚠️";
 
-      console.log(
-        `  ${format.toUpperCase()}: ${result.duration}ms / ${expected}ms ${status}`
-      );
+      console.log(`  ${format.toUpperCase()}: ${result.duration}ms / ${expected}ms ${status}`);
     }
   }
 }
@@ -334,20 +334,20 @@ if (require.main === module) {
   const command = args[0];
 
   (async () => {
-    if (command === 'all') {
+    if (command === "all") {
       await runAllReportTests();
-    } else if (command === 'type' && args[1]) {
+    } else if (command === "type" && args[1]) {
       await testReportType(args[1] as ReportType);
-    } else if (command === 'format' && args[1]) {
+    } else if (command === "format" && args[1]) {
       await testFormat(args[1] as ReportFormat);
-    } else if (command === 'benchmark') {
+    } else if (command === "benchmark") {
       await runPerformanceBenchmark();
     } else {
-      console.log('Usage:');
-      console.log('  ts-node automated-test-runner.ts all');
-      console.log('  ts-node automated-test-runner.ts type <report_type>');
-      console.log('  ts-node automated-test-runner.ts format <pdf|excel|csv|json>');
-      console.log('  ts-node automated-test-runner.ts benchmark');
+      console.log("Usage:");
+      console.log("  ts-node automated-test-runner.ts all");
+      console.log("  ts-node automated-test-runner.ts type <report_type>");
+      console.log("  ts-node automated-test-runner.ts format <pdf|excel|csv|json>");
+      console.log("  ts-node automated-test-runner.ts benchmark");
     }
   })();
 }

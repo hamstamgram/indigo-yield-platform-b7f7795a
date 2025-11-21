@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/auth/context';
-import { portfolioApi, type PortfolioSummary } from '@/services/api/portfolioApi';
-
+import { useState, useEffect } from "react";
+import { useAuth } from "@/lib/auth/context";
+import { portfolioApi, type PortfolioSummary } from "@/services/api/portfolioApi";
 
 interface PortfolioState {
   data: PortfolioSummary | null;
@@ -14,17 +13,17 @@ export function usePortfolioData() {
   const [state, setState] = useState<PortfolioState>({
     data: null,
     loading: true,
-    error: null
+    error: null,
   });
 
   const fetchPortfolio = async () => {
     if (!user) return;
 
     try {
-      setState(prev => ({ ...prev, loading: true, error: null }));
-      
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+
       const result = await portfolioApi.getPortfolioSummary(user.id);
-      
+
       if (result.error) {
         throw new Error(result.error);
       }
@@ -32,13 +31,13 @@ export function usePortfolioData() {
       setState({
         data: result.data,
         loading: false,
-        error: null
+        error: null,
       });
     } catch (error) {
       setState({
         data: null,
         loading: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch portfolio data'
+        error: error instanceof Error ? error.message : "Failed to fetch portfolio data",
       });
     }
   };
@@ -54,6 +53,6 @@ export function usePortfolioData() {
 
   return {
     ...state,
-    refresh: refreshPortfolio
+    refresh: refreshPortfolio,
   };
 }

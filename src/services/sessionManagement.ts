@@ -2,10 +2,10 @@
  * Simplified Session Management Service
  */
 
-import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
-type AccessEvent = Database['public']['Enums']['access_event'];
+type AccessEvent = Database["public"]["Enums"]["access_event"];
 
 export interface SessionInfo {
   id: string;
@@ -35,19 +35,21 @@ export interface SecurityEvent {
 export async function getUserSessions(_userId: string): Promise<SessionInfo[]> {
   try {
     // Use a simplified approach since the complex table doesn't exist
-    return [{
-      id: 'current-session',
-      device_name: 'Current Device',
-      device_type: 'Web',
-      browser: 'Browser',
-      os: 'Unknown',
-      ip_address: 'Hidden',
-      last_active: new Date().toISOString(),
-      current: true,
-      user_agent: navigator.userAgent || 'Unknown'
-    }];
+    return [
+      {
+        id: "current-session",
+        device_name: "Current Device",
+        device_type: "Web",
+        browser: "Browser",
+        os: "Unknown",
+        ip_address: "Hidden",
+        last_active: new Date().toISOString(),
+        current: true,
+        user_agent: navigator.userAgent || "Unknown",
+      },
+    ];
   } catch (error) {
-    console.error('Error getting user sessions:', error);
+    console.error("Error getting user sessions:", error);
     return [];
   }
 }
@@ -58,10 +60,10 @@ export async function getUserSessions(_userId: string): Promise<SessionInfo[]> {
 export async function revokeSession(sessionId: string): Promise<boolean> {
   try {
     // Simplified implementation
-    console.log('Revoking session:', sessionId);
+    console.log("Revoking session:", sessionId);
     return true;
   } catch (error) {
-    console.error('Error revoking session:', error);
+    console.error("Error revoking session:", error);
     return false;
   }
 }
@@ -72,25 +74,25 @@ export async function revokeSession(sessionId: string): Promise<boolean> {
 export async function getSecurityEvents(userId: string, limit = 50): Promise<SecurityEvent[]> {
   try {
     const { data, error } = await supabase
-      .from('access_logs')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
+      .from("access_logs")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
       .limit(limit);
 
     if (error) throw error;
 
-    return (data || []).map(log => ({
+    return (data || []).map((log) => ({
       id: log.id,
-      event_type: log.event || 'unknown',
-      ip_address: String(log.ip || 'unknown'),
-      user_agent: log.user_agent || 'unknown',
+      event_type: log.event || "unknown",
+      ip_address: String(log.ip || "unknown"),
+      user_agent: log.user_agent || "unknown",
       timestamp: log.created_at,
       success: log.success || false,
-      details: {}
+      details: {},
     }));
   } catch (error) {
-    console.error('Error getting security events:', error);
+    console.error("Error getting security events:", error);
     return [];
   }
 }
@@ -107,19 +109,17 @@ export async function logSecurityEvent(
   _details: Record<string, any> = {}
 ): Promise<boolean> {
   try {
-    const { error } = await supabase
-      .from('access_logs')
-      .insert({
-        user_id: userId,
-        event: eventType as AccessEvent,
-        ip: ipAddress,
-        user_agent: userAgent,
-        success: success
-      });
+    const { error } = await supabase.from("access_logs").insert({
+      user_id: userId,
+      event: eventType as AccessEvent,
+      ip: ipAddress,
+      user_agent: userAgent,
+      success: success,
+    });
 
     return !error;
   } catch (error) {
-    console.error('Error logging security event:', error);
+    console.error("Error logging security event:", error);
     return false;
   }
 }

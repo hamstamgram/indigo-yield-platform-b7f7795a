@@ -1,10 +1,10 @@
-import * as speakeasy from 'speakeasy';
-import * as QRCode from 'qrcode';
+import * as speakeasy from "speakeasy";
+import * as QRCode from "qrcode";
 
 /**
  * Generate a new TOTP secret for a user
  */
-export function generateTOTPSecret(userEmail: string, issuer: string = 'Indigo Yield Platform') {
+export function generateTOTPSecret(userEmail: string, issuer: string = "Indigo Yield Platform") {
   const secret = speakeasy.generateSecret({
     name: `${issuer} (${userEmail})`,
     issuer: issuer,
@@ -25,8 +25,8 @@ export async function generateQRCode(otpauth_url: string): Promise<string> {
     const qrCodeDataUrl = await QRCode.toDataURL(otpauth_url);
     return qrCodeDataUrl;
   } catch (error) {
-    console.error('Error generating QR code:', error);
-    throw new Error('Failed to generate QR code');
+    console.error("Error generating QR code:", error);
+    throw new Error("Failed to generate QR code");
   }
 }
 
@@ -37,14 +37,14 @@ export function verifyTOTPToken(token: string, secret: string): boolean {
   try {
     const verified = speakeasy.totp.verify({
       secret: secret,
-      encoding: 'base32',
+      encoding: "base32",
       token: token,
       window: 2, // Allow 2 time steps before/after for clock skew
     });
-    
+
     return verified;
   } catch (error) {
-    console.error('Error verifying TOTP token:', error);
+    console.error("Error verifying TOTP token:", error);
     return false;
   }
 }
@@ -54,13 +54,13 @@ export function verifyTOTPToken(token: string, secret: string): boolean {
  */
 export function generateBackupCodes(count: number = 10): string[] {
   const codes: string[] = [];
-  
+
   for (let i = 0; i < count; i++) {
     // Generate 8-character alphanumeric codes
     const code = Math.random().toString(36).substring(2, 10).toUpperCase();
     codes.push(code);
   }
-  
+
   return codes;
 }
 
@@ -68,9 +68,9 @@ export function generateBackupCodes(count: number = 10): string[] {
  * Format backup codes for display
  */
 export function formatBackupCodes(codes: string[]): string {
-  return codes.map((code, index) => 
-    `${(index + 1).toString().padStart(2, '0')}. ${code}`
-  ).join('\n');
+  return codes
+    .map((code, index) => `${(index + 1).toString().padStart(2, "0")}. ${code}`)
+    .join("\n");
 }
 
 /**

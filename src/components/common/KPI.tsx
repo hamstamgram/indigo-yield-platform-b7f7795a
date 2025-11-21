@@ -1,17 +1,16 @@
-
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LucideIcon } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LucideIcon } from "lucide-react";
 
 interface KPIProps {
   title: string;
   value: string | number;
   change?: {
     value: string | number;
-    type: 'increase' | 'decrease' | 'neutral';
+    type: "increase" | "decrease" | "neutral";
   };
   icon?: LucideIcon;
   subtitle?: string;
-  format?: 'currency' | 'percentage' | 'number';
+  format?: "currency" | "percentage" | "number";
   loading?: boolean;
   className?: string;
 }
@@ -22,38 +21,38 @@ export default function KPI({
   change,
   icon: Icon,
   subtitle,
-  format = 'number',
+  format = "number",
   loading = false,
-  className = '',
+  className = "",
 }: KPIProps) {
   const formatValue = (val: string | number): string => {
-    if (loading) return '...';
-    
-    const numVal = typeof val === 'string' ? parseFloat(val) : val;
-    
+    if (loading) return "...";
+
+    const numVal = typeof val === "string" ? parseFloat(val) : val;
+
     switch (format) {
-      case 'currency':
-        return new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
+      case "currency":
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
           minimumFractionDigits: 0,
           maximumFractionDigits: 0,
         }).format(numVal);
-      case 'percentage':
+      case "percentage":
         return `${numVal.toFixed(2)}%`;
       default:
-        return new Intl.NumberFormat('en-US').format(numVal);
+        return new Intl.NumberFormat("en-US").format(numVal);
     }
   };
 
-  const getChangeColor = (type: 'increase' | 'decrease' | 'neutral'): string => {
+  const getChangeColor = (type: "increase" | "decrease" | "neutral"): string => {
     switch (type) {
-      case 'increase':
-        return 'text-green-600';
-      case 'decrease':
-        return 'text-red-600';
+      case "increase":
+        return "text-green-600";
+      case "decrease":
+        return "text-red-600";
       default:
-        return 'text-gray-600';
+        return "text-gray-600";
     }
   };
 
@@ -73,14 +72,12 @@ export default function KPI({
             )}
           </div>
           <div className="flex items-center justify-between">
-            {subtitle && (
-              <p className="text-xs text-muted-foreground">{subtitle}</p>
-            )}
+            {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
             {change && (
               <p className={`text-xs ${getChangeColor(change.type)}`}>
-                {change.type === 'increase' ? '+' : change.type === 'decrease' ? '-' : ''}
-                {typeof change.value === 'number' ? change.value.toFixed(2) : change.value}
-                {format === 'percentage' ? 'pp' : ''}
+                {change.type === "increase" ? "+" : change.type === "decrease" ? "-" : ""}
+                {typeof change.value === "number" ? change.value.toFixed(2) : change.value}
+                {format === "percentage" ? "pp" : ""}
               </p>
             )}
           </div>

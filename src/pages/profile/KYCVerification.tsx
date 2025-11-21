@@ -3,8 +3,8 @@
  * Identity verification and document upload
  */
 
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   FileText,
@@ -15,19 +15,19 @@ import {
   AlertCircle,
   Loader2,
   Download,
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/lib/auth/context';
-import { supabase } from '@/integrations/supabase/client';
-import { format } from 'date-fns';
+} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth/context";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 interface KYCStatus {
-  status: 'not_started' | 'pending' | 'under_review' | 'verified' | 'rejected';
+  status: "not_started" | "pending" | "under_review" | "verified" | "rejected";
   verifiedAt?: string;
   rejectionReason?: string;
   lastUpdated?: string;
@@ -37,17 +37,29 @@ interface Document {
   id: string;
   type: string;
   fileName: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   uploadedAt: string;
   reviewedAt?: string;
   rejectionReason?: string;
 }
 
 const REQUIRED_DOCUMENTS = [
-  { type: 'id_front', label: 'Government ID (Front)', description: 'Driver license, passport, or national ID' },
-  { type: 'id_back', label: 'Government ID (Back)', description: 'Required if using driver license' },
-  { type: 'proof_of_address', label: 'Proof of Address', description: 'Utility bill or bank statement (max 3 months old)' },
-  { type: 'selfie', label: 'Selfie with ID', description: 'Hold your ID next to your face' },
+  {
+    type: "id_front",
+    label: "Government ID (Front)",
+    description: "Driver license, passport, or national ID",
+  },
+  {
+    type: "id_back",
+    label: "Government ID (Back)",
+    description: "Required if using driver license",
+  },
+  {
+    type: "proof_of_address",
+    label: "Proof of Address",
+    description: "Utility bill or bank statement (max 3 months old)",
+  },
+  { type: "selfie", label: "Selfie with ID", description: "Hold your ID next to your face" },
 ];
 
 export default function KYCVerification() {
@@ -55,7 +67,7 @@ export default function KYCVerification() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const [kycStatus, setKycStatus] = useState<KYCStatus>({ status: 'not_started' });
+  const [kycStatus, setKycStatus] = useState<KYCStatus>({ status: "not_started" });
   const [documents, setDocuments] = useState<Document[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -70,14 +82,14 @@ export default function KYCVerification() {
 
     try {
       const { data: profileData } = await supabase
-        .from('profiles')
-        .select('kyc_status, kyc_verified_at, kyc_rejection_reason, updated_at')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("kyc_status, kyc_verified_at, kyc_rejection_reason, updated_at")
+        .eq("id", user.id)
         .maybeSingle();
 
       if (profileData) {
         setKycStatus({
-          status: (profileData.kyc_status as any) || 'not_started',
+          status: (profileData.kyc_status as any) || "not_started",
           verifiedAt: profileData.kyc_verified_at || undefined,
           rejectionReason: profileData.kyc_rejection_reason || undefined,
           lastUpdated: profileData.updated_at,
@@ -85,18 +97,18 @@ export default function KYCVerification() {
       }
 
       const { data: documentsData } = await supabase
-        .from('documents')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .from("documents")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
       if (documentsData) {
         setDocuments(
           documentsData.map((doc: any) => ({
             id: doc.id,
             type: doc.document_type || doc.type,
-            fileName: doc.file_name || 'document',
-            status: doc.status || 'pending',
+            fileName: doc.file_name || "document",
+            status: doc.status || "pending",
             uploadedAt: doc.created_at,
             reviewedAt: doc.reviewed_at,
             rejectionReason: doc.rejection_reason,
@@ -104,7 +116,7 @@ export default function KYCVerification() {
         );
       }
     } catch (error) {
-      console.error('Failed to load KYC data:', error);
+      console.error("Failed to load KYC data:", error);
     } finally {
       setLoading(false);
     }
@@ -115,37 +127,37 @@ export default function KYCVerification() {
 
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}/${documentType}_${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('kyc-documents')
+        .from("kyc-documents")
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
-      const { error: insertError } = await supabase.from('documents').insert({
+      const { error: insertError } = await supabase.from("documents").insert({
         user_id: user.id,
         document_type: documentType,
         file_name: file.name,
         file_path: fileName,
-        status: 'pending',
+        status: "pending",
       } as any);
 
       if (insertError) throw insertError;
 
       toast({
-        title: 'Success',
-        description: 'Document uploaded successfully',
+        title: "Success",
+        description: "Document uploaded successfully",
       });
 
       loadKYCData();
     } catch (error) {
-      console.error('Failed to upload document:', error);
+      console.error("Failed to upload document:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to upload document',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to upload document",
+        variant: "destructive",
       });
     } finally {
       setUploading(false);
@@ -154,22 +166,22 @@ export default function KYCVerification() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'verified':
+      case "verified":
         return (
           <Badge className="gap-1 bg-green-600">
             <CheckCircle className="h-3 w-3" />
             Verified
           </Badge>
         );
-      case 'under_review':
-      case 'pending':
+      case "under_review":
+      case "pending":
         return (
           <Badge variant="secondary" className="gap-1">
             <Clock className="h-3 w-3" />
             Under Review
           </Badge>
         );
-      case 'rejected':
+      case "rejected":
         return (
           <Badge variant="destructive" className="gap-1">
             <XCircle className="h-3 w-3" />
@@ -187,7 +199,7 @@ export default function KYCVerification() {
   };
 
   const getCompletionPercentage = () => {
-    if (kycStatus.status === 'verified') return 100;
+    if (kycStatus.status === "verified") return 100;
     const uploadedDocs = REQUIRED_DOCUMENTS.filter((req) =>
       documents.some((doc) => doc.type === req.type)
     ).length;
@@ -206,7 +218,7 @@ export default function KYCVerification() {
     <div className="container max-w-4xl mx-auto px-4 py-8 space-y-8">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">
@@ -222,9 +234,7 @@ export default function KYCVerification() {
       <Card>
         <CardHeader>
           <CardTitle>Verification Status</CardTitle>
-          <CardDescription>
-            Your current verification status and progress
-          </CardDescription>
+          <CardDescription>Your current verification status and progress</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
@@ -235,7 +245,7 @@ export default function KYCVerification() {
             <Progress value={getCompletionPercentage()} className="h-2" />
           </div>
 
-          {kycStatus.status === 'verified' && kycStatus.verifiedAt && (
+          {kycStatus.status === "verified" && kycStatus.verifiedAt && (
             <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg p-4">
               <div className="flex items-start gap-3">
                 <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
@@ -244,24 +254,20 @@ export default function KYCVerification() {
                     Your identity is verified
                   </p>
                   <p className="text-sm text-green-800 dark:text-green-200 mt-1">
-                    Verified on {format(new Date(kycStatus.verifiedAt), 'PPP')}
+                    Verified on {format(new Date(kycStatus.verifiedAt), "PPP")}
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {kycStatus.status === 'rejected' && kycStatus.rejectionReason && (
+          {kycStatus.status === "rejected" && kycStatus.rejectionReason && (
             <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
               <div className="flex items-start gap-3">
                 <XCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-destructive">
-                    Verification was rejected
-                  </p>
-                  <p className="text-sm mt-1">
-                    {kycStatus.rejectionReason}
-                  </p>
+                  <p className="font-medium text-destructive">Verification was rejected</p>
+                  <p className="text-sm mt-1">{kycStatus.rejectionReason}</p>
                   <Button variant="outline" size="sm" className="mt-3">
                     Resubmit Documents
                   </Button>
@@ -270,7 +276,7 @@ export default function KYCVerification() {
             </div>
           )}
 
-          {kycStatus.status === 'under_review' && (
+          {kycStatus.status === "under_review" && (
             <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <div className="flex items-start gap-3">
                 <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
@@ -317,11 +323,13 @@ export default function KYCVerification() {
                         <p className="text-sm text-muted-foreground mt-1">
                           {requiredDoc.description}
                         </p>
-                        {uploadedDoc && uploadedDoc.status === 'rejected' && uploadedDoc.rejectionReason && (
-                          <p className="text-sm text-destructive mt-1">
-                            {uploadedDoc.rejectionReason}
-                          </p>
-                        )}
+                        {uploadedDoc &&
+                          uploadedDoc.status === "rejected" &&
+                          uploadedDoc.rejectionReason && (
+                            <p className="text-sm text-destructive mt-1">
+                              {uploadedDoc.rejectionReason}
+                            </p>
+                          )}
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -330,7 +338,7 @@ export default function KYCVerification() {
                           <Button variant="ghost" size="sm">
                             <Download className="h-4 w-4" />
                           </Button>
-                          {uploadedDoc.status === 'rejected' && (
+                          {uploadedDoc.status === "rejected" && (
                             <Button size="sm">
                               <Upload className="mr-2 h-4 w-4" />
                               Reupload
@@ -342,9 +350,9 @@ export default function KYCVerification() {
                           size="sm"
                           disabled={uploading}
                           onClick={() => {
-                            const input = document.createElement('input');
-                            input.type = 'file';
-                            input.accept = 'image/*,.pdf';
+                            const input = document.createElement("input");
+                            input.type = "file";
+                            input.accept = "image/*,.pdf";
                             input.onchange = (e: any) => {
                               const file = e.target?.files?.[0];
                               if (file) handleFileUpload(requiredDoc.type, file);

@@ -1,7 +1,7 @@
-import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
-type DbPosition = Database['public']['Tables']['positions']['Row'];
+type DbPosition = Database["public"]["Tables"]["positions"]["Row"];
 
 export interface InvestorPositionDetail {
   fundId: string;
@@ -37,7 +37,6 @@ export interface InvestorSummary {
  * Consolidates positions and investor_positions tables
  */
 export class InvestorDataService {
-  
   /**
    * Get consolidated investor positions from both tables
    */
@@ -45,27 +44,30 @@ export class InvestorDataService {
     try {
       // Get positions from the main positions table
       const { data: positions, error: positionsError } = await supabase
-        .from('positions')
-        .select(`
+        .from("positions")
+        .select(
+          `
           asset_code,
           current_balance,
           total_earned,
           principal,
           updated_at,
           last_modified_at
-        `)
-        .eq('user_id', investorId)
-        .gt('current_balance', 0);
+        `
+        )
+        .eq("user_id", investorId)
+        .gt("current_balance", 0);
 
       if (positionsError) {
-        console.error('Error fetching positions:', positionsError);
+        console.error("Error fetching positions:", positionsError);
         throw positionsError;
       }
 
       // Get fund-specific positions
       const { data: fundPositions, error: fundError } = await supabase
-        .from('investor_positions')
-        .select(`
+        .from("investor_positions")
+        .select(
+          `
           *,
           funds (
             name,
@@ -73,11 +75,12 @@ export class InvestorDataService {
             asset,
             fund_class
           )
-        `)
-        .eq('investor_id', investorId);
+        `
+        )
+        .eq("investor_id", investorId);
 
       if (fundError) {
-        console.warn('Error fetching fund positions (may not exist):', fundError);
+        console.warn("Error fetching fund positions (may not exist):", fundError);
       }
 
       // Combine and deduplicate positions
@@ -87,20 +90,20 @@ export class InvestorDataService {
       // Process main positions first (primary source)
       positions?.forEach((pos) => {
         const fundPosition = fundPositions?.find((fp: any) => fp.funds?.asset === pos.asset_code);
-        
+
         combinedPositions.push({
           fundId: fundPosition?.fund_id || crypto.randomUUID(),
           fundName: fundPosition?.funds?.name || `${pos.asset_code} Holdings`,
           fundCode: fundPosition?.funds?.code || pos.asset_code,
           asset: pos.asset_code,
-          fundClass: fundPosition?.fund_class || 'Standard',
+          fundClass: fundPosition?.fund_class || "Standard",
           shares: Number(pos.current_balance),
           currentValue: Number(pos.current_balance),
           costBasis: Number(pos.principal) || 0,
           unrealizedPnl: Number(pos.total_earned) || 0,
           realizedPnl: 0,
           lastTransactionDate: pos.updated_at || pos.last_modified_at,
-          lockUntilDate: fundPosition?.lock_until_date
+          lockUntilDate: fundPosition?.lock_until_date,
         });
 
         processedAssets.add(pos.asset_code);
@@ -111,24 +114,24 @@ export class InvestorDataService {
         if (!processedAssets.has((fp as any).funds?.asset)) {
           combinedPositions.push({
             fundId: fp.fund_id,
-            fundName: (fp as any).funds?.name || 'Unknown Fund',
-            fundCode: (fp as any).funds?.code || 'N/A',
-            asset: (fp as any).funds?.asset || 'Unknown',
-            fundClass: fp.fund_class || (fp as any).funds?.fund_class || 'Standard',
+            fundName: (fp as any).funds?.name || "Unknown Fund",
+            fundCode: (fp as any).funds?.code || "N/A",
+            asset: (fp as any).funds?.asset || "Unknown",
+            fundClass: fp.fund_class || (fp as any).funds?.fund_class || "Standard",
             shares: Number(fp.shares) || 0,
             currentValue: Number(fp.current_value) || 0,
             costBasis: Number(fp.cost_basis) || 0,
             unrealizedPnl: Number(fp.unrealized_pnl) || 0,
             realizedPnl: Number(fp.realized_pnl) || 0,
             lastTransactionDate: fp.last_transaction_date,
-            lockUntilDate: fp.lock_until_date
+            lockUntilDate: fp.lock_until_date,
           });
         }
       });
 
       return combinedPositions;
     } catch (error) {
-      console.error('Error in getInvestorPositions:', error);
+      console.error("Error in getInvestorPositions:", error);
       throw error;
     }
   }
@@ -140,13 +143,13 @@ export class InvestorDataService {
     try {
       // Get investor profile
       const { data: investor, error: investorError } = await supabase
-        .from('investors')
-        .select('*')
-        .eq('id', investorId)
+        .from("investors")
+        .select("*")
+        .eq("id", investorId)
         .single();
 
       if (investorError) {
-        console.error('Error fetching investor:', investorError);
+        console.error("Error fetching investor:", investorError);
         throw investorError;
       }
 
@@ -170,10 +173,10 @@ export class InvestorDataService {
         positionCount: positions.length,
         kycStatus: investor.kyc_status,
         amlStatus: investor.aml_status,
-        onboardingDate: investor.onboarding_date
+        onboardingDate: investor.onboarding_date,
       };
     } catch (error) {
-      console.error('Error in getInvestorSummary:', error);
+      console.error("Error in getInvestorSummary:", error);
       throw error;
     }
   }
@@ -183,13 +186,10 @@ export class InvestorDataService {
    */
   async getAllInvestorsWithSummary(): Promise<InvestorSummary[]> {
     try {
-      const { data: investors, error } = await supabase
-        .from('investors')
-        .select('*')
-        .order('name');
+      const { data: investors, error } = await supabase.from("investors").select("*").order("name");
 
       if (error) {
-        console.error('Error fetching investors:', error);
+        console.error("Error fetching investors:", error);
         throw error;
       }
 
@@ -215,7 +215,7 @@ export class InvestorDataService {
               positionCount: 0,
               kycStatus: investor.kyc_status,
               amlStatus: investor.aml_status,
-              onboardingDate: investor.onboarding_date
+              onboardingDate: investor.onboarding_date,
             };
           }
         })
@@ -223,7 +223,7 @@ export class InvestorDataService {
 
       return summaries.filter(Boolean) as InvestorSummary[];
     } catch (error) {
-      console.error('Error in getAllInvestorsWithSummary:', error);
+      console.error("Error in getAllInvestorsWithSummary:", error);
       throw error;
     }
   }
@@ -234,15 +234,15 @@ export class InvestorDataService {
   async getUserPositions(userId: string): Promise<DbPosition[]> {
     try {
       const { data, error } = await supabase
-        .from('positions')
-        .select('*')
-        .eq('user_id', userId)
-        .gt('current_balance', 0);
+        .from("positions")
+        .select("*")
+        .eq("user_id", userId)
+        .gt("current_balance", 0);
 
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error fetching user positions:', error);
+      console.error("Error fetching user positions:", error);
       throw error;
     }
   }
@@ -253,15 +253,15 @@ export class InvestorDataService {
   async getTotalAUM(): Promise<number> {
     try {
       const { data, error } = await supabase
-        .from('positions')
-        .select('current_balance')
-        .gt('current_balance', 0);
+        .from("positions")
+        .select("current_balance")
+        .gt("current_balance", 0);
 
       if (error) throw error;
 
       return data?.reduce((sum, pos) => sum + Number(pos.current_balance), 0) || 0;
     } catch (error) {
-      console.error('Error calculating total AUM:', error);
+      console.error("Error calculating total AUM:", error);
       return 0;
     }
   }
@@ -272,17 +272,17 @@ export class InvestorDataService {
   async getActiveInvestorCount(): Promise<number> {
     try {
       const { data, error } = await supabase
-        .from('positions')
-        .select('user_id')
-        .gt('current_balance', 0);
+        .from("positions")
+        .select("user_id")
+        .gt("current_balance", 0);
 
       if (error) throw error;
 
       // Count unique users
-      const uniqueUsers = new Set(data?.map(pos => pos.user_id));
+      const uniqueUsers = new Set(data?.map((pos) => pos.user_id));
       return uniqueUsers.size;
     } catch (error) {
-      console.error('Error getting active investor count:', error);
+      console.error("Error getting active investor count:", error);
       return 0;
     }
   }

@@ -1,14 +1,27 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { formatTokenBalance } from '@/utils/tokenFormatting';
-import { Save, Calendar } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { formatTokenBalance } from "@/utils/tokenFormatting";
+import { Save, Calendar } from "lucide-react";
 
 interface MonthlyReport {
   id: string;
@@ -32,14 +45,11 @@ interface MonthlyReportsTableProps {
   investorName: string;
 }
 
-const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({
-  investorId,
-  investorName
-}) => {
+const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, investorName }) => {
   const [reports, setReports] = useState<MonthlyReport[]>([]);
   const [editingCell, setEditingCell] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState<string>('');
-  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [editValue, setEditValue] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -50,17 +60,17 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('investor_monthly_reports')
-        .select('*')
-        .eq('investor_id', investorId)
-        .order('report_month', { ascending: false })
-        .order('asset_code', { ascending: true });
+        .from("investor_monthly_reports")
+        .select("*")
+        .eq("investor_id", investorId)
+        .order("report_month", { ascending: false })
+        .order("asset_code", { ascending: true });
 
       if (error) throw error;
       setReports(data || []);
     } catch (error) {
-      console.error('Error fetching monthly reports:', error);
-      toast.error('Failed to fetch monthly reports');
+      console.error("Error fetching monthly reports:", error);
+      toast.error("Failed to fetch monthly reports");
     } finally {
       setLoading(false);
     }
@@ -68,22 +78,22 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({
 
   const generateMonthlyTemplate = async () => {
     if (!selectedMonth) {
-      toast.error('Please select a month');
+      toast.error("Please select a month");
       return;
     }
 
     try {
-      const { error } = await supabase.rpc('generate_monthly_report_template', {
+      const { error } = await supabase.rpc("generate_monthly_report_template", {
         p_month: selectedMonth,
-        p_investor_id: investorId
+        p_investor_id: investorId,
       });
 
       if (error) throw error;
-      toast.success('Monthly template generated successfully');
+      toast.success("Monthly template generated successfully");
       fetchReports();
     } catch (error) {
-      console.error('Error generating template:', error);
-      toast.error('Failed to generate monthly template');
+      console.error("Error generating template:", error);
+      toast.error("Failed to generate monthly template");
     }
   };
 
@@ -95,57 +105,61 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({
   const saveCellEdit = async (reportId: string, field: string) => {
     const numericValue = parseFloat(editValue);
     if (isNaN(numericValue)) {
-      toast.error('Please enter a valid number');
+      toast.error("Please enter a valid number");
       return;
     }
 
     try {
       const { error } = await supabase
-        .from('investor_monthly_reports')
-        .update({ 
+        .from("investor_monthly_reports")
+        .update({
           [field]: numericValue,
-          edited_by: (await supabase.auth.getUser()).data.user?.id
+          edited_by: (await supabase.auth.getUser()).data.user?.id,
         })
-        .eq('id', reportId);
+        .eq("id", reportId);
 
       if (error) throw error;
-      
-      setReports(prev => prev.map(report => 
-        report.id === reportId 
-          ? { ...report, [field]: numericValue }
-          : report
-      ));
-      
+
+      setReports((prev) =>
+        prev.map((report) =>
+          report.id === reportId ? { ...report, [field]: numericValue } : report
+        )
+      );
+
       setEditingCell(null);
-      toast.success('Value updated successfully');
+      toast.success("Value updated successfully");
     } catch (error) {
-      console.error('Error updating report:', error);
-      toast.error('Failed to update value');
+      console.error("Error updating report:", error);
+      toast.error("Failed to update value");
     }
   };
 
   const cancelEdit = () => {
     setEditingCell(null);
-    setEditValue('');
+    setEditValue("");
   };
 
   const getMonthOptions = () => {
     const months = [];
-    const start = new Date('2024-06-01');
+    const start = new Date("2024-06-01");
     const end = new Date();
-    
+
     for (let d = new Date(start); d <= end; d.setMonth(d.getMonth() + 1)) {
       const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, "0");
       const value = `${year}-${month}-01`;
-      const label = `${d.toLocaleString('default', { month: 'long' })} ${year}`;
+      const label = `${d.toLocaleString("default", { month: "long" })} ${year}`;
       months.push({ value, label });
     }
-    
+
     return months.reverse();
   };
 
-  const renderEditableCell = (report: MonthlyReport, field: keyof MonthlyReport, value: number | null) => {
+  const renderEditableCell = (
+    report: MonthlyReport,
+    field: keyof MonthlyReport,
+    value: number | null
+  ) => {
     const cellKey = `${report.id}-${field}`;
     const isEditing = editingCell === cellKey;
 
@@ -157,8 +171,8 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({
             onChange={(e) => setEditValue(e.target.value)}
             className="h-8 w-20"
             onKeyDown={(e) => {
-              if (e.key === 'Enter') saveCellEdit(report.id, field as string);
-              if (e.key === 'Escape') cancelEdit();
+              if (e.key === "Enter") saveCellEdit(report.id, field as string);
+              if (e.key === "Escape") cancelEdit();
             }}
             autoFocus
           />
@@ -170,7 +184,7 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({
     }
 
     return (
-      <div 
+      <div
         className="cursor-pointer hover:bg-muted p-1 rounded"
         onClick={() => handleCellEdit(report.id, field as string, value || 0)}
       >
@@ -180,12 +194,15 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({
   };
 
   // Group reports by month for display
-  const reportsByMonth = reports.reduce((acc, report) => {
-    const month = report.report_month;
-    if (!acc[month]) acc[month] = [];
-    acc[month].push(report);
-    return acc;
-  }, {} as Record<string, MonthlyReport[]>);
+  const reportsByMonth = reports.reduce(
+    (acc, report) => {
+      const month = report.report_month;
+      if (!acc[month]) acc[month] = [];
+      acc[month].push(report);
+      return acc;
+    },
+    {} as Record<string, MonthlyReport[]>
+  );
 
   return (
     <Card>
@@ -198,7 +215,7 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({
                 <SelectValue placeholder="Select month to generate" />
               </SelectTrigger>
               <SelectContent>
-                {getMonthOptions().map(month => (
+                {getMonthOptions().map((month) => (
                   <SelectItem key={month.value} value={month.value}>
                     {month.label}
                   </SelectItem>
@@ -220,7 +237,7 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({
             {Object.entries(reportsByMonth).map(([month, monthReports]) => (
               <div key={month} className="space-y-2">
                 <h3 className="font-semibold text-lg">
-                  {new Date(month).toLocaleString('default', { month: 'long', year: 'numeric' })}
+                  {new Date(month).toLocaleString("default", { month: "long", year: "numeric" })}
                 </h3>
                 <div className="rounded-md border overflow-x-auto">
                   <Table>
@@ -242,25 +259,30 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({
                             <Badge variant="outline">{report.asset_code}</Badge>
                           </TableCell>
                           <TableCell>
-                            {renderEditableCell(report, 'opening_balance', report.opening_balance)}
+                            {renderEditableCell(report, "opening_balance", report.opening_balance)}
                           </TableCell>
                           <TableCell>
-                            {renderEditableCell(report, 'additions', report.additions)}
+                            {renderEditableCell(report, "additions", report.additions)}
                           </TableCell>
                           <TableCell>
-                            {renderEditableCell(report, 'withdrawals', report.withdrawals)}
+                            {renderEditableCell(report, "withdrawals", report.withdrawals)}
                           </TableCell>
                           <TableCell>
-                            {renderEditableCell(report, 'yield_earned', report.yield_earned)}
+                            {renderEditableCell(report, "yield_earned", report.yield_earned)}
                           </TableCell>
                           <TableCell>
-                            {renderEditableCell(report, 'closing_balance', report.closing_balance)}
+                            {renderEditableCell(report, "closing_balance", report.closing_balance)}
                           </TableCell>
                           <TableCell>
-                            {report.aum_manual_override ? 
-                              renderEditableCell(report, 'aum_manual_override', report.aum_manual_override) :
+                            {report.aum_manual_override ? (
+                              renderEditableCell(
+                                report,
+                                "aum_manual_override",
+                                report.aum_manual_override
+                              )
+                            ) : (
                               <span className="text-muted-foreground">-</span>
-                            }
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -269,7 +291,7 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({
                 </div>
               </div>
             ))}
-            
+
             {Object.keys(reportsByMonth).length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 No monthly reports found. Generate templates to get started.
