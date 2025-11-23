@@ -154,7 +154,7 @@ export default function DocumentRow({
           )}
 
           <Button
-            variant="default"
+            variant="primary"
             size="sm"
             onClick={handleDownload}
             disabled={downloading}

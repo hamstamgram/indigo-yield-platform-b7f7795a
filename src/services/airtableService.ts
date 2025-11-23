@@ -443,19 +443,36 @@ export class AirtableService {
  * Create AirtableService instance from environment variables
  */
 export function createAirtableService(): AirtableService {
-  const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY || process.env.AIRTABLE_API_KEY;
-  const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID || process.env.AIRTABLE_BASE_ID;
+  const apiKey = process.env.VITE_AIRTABLE_API_KEY || process.env.AIRTABLE_API_KEY;
+  const baseId = process.env.VITE_AIRTABLE_BASE_ID || process.env.AIRTABLE_BASE_ID;
   const tableName =
-    import.meta.env.VITE_AIRTABLE_TABLE_NAME ||
+    process.env.VITE_AIRTABLE_TABLE_NAME ||
     process.env.AIRTABLE_TABLE_NAME ||
     "Investor Onboarding";
   const webhookSecret =
-    import.meta.env.VITE_AIRTABLE_WEBHOOK_SECRET || process.env.AIRTABLE_WEBHOOK_SECRET;
+    process.env.VITE_AIRTABLE_WEBHOOK_SECRET || process.env.AIRTABLE_WEBHOOK_SECRET;
+
+  // Only throw error at runtime, not during build
+  // During Next.js build, process.env.NEXT_PHASE will be set
+  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' ||
+                      process.env.NEXT_PHASE === 'phase-export';
 
   if (!apiKey || !baseId) {
-    throw new Error(
-      "Missing required Airtable configuration. Set AIRTABLE_API_KEY and AIRTABLE_BASE_ID in environment variables."
-    );
+    if (isBuildTime) {
+      // During build, return a stub service to allow static analysis
+      console.warn('⚠️ Airtable credentials not configured - service will not be functional');
+      // Return stub service with placeholder values
+      return new AirtableService({
+        apiKey: 'build-time-placeholder',
+        baseId: 'build-time-placeholder',
+        tableName,
+        webhookSecret,
+      });
+    } else {
+      throw new Error(
+        "Missing required Airtable configuration. Set AIRTABLE_API_KEY and AIRTABLE_BASE_ID in environment variables."
+      );
+    }
   }
 
   return new AirtableService({

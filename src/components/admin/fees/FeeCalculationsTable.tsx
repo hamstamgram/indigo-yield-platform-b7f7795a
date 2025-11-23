@@ -109,7 +109,7 @@ export function FeeCalculationsTable({ calculations, onRefresh }: FeeCalculation
                 <TableCell className="text-right">
                   {calc.status === "pending" && (
                     <div className="flex gap-2 justify-end">
-                      <Button size="sm" variant="default" onClick={() => handlePost(calc.id)}>
+                      <Button size="sm" variant="primary" onClick={() => handlePost(calc.id)}>
                         Post
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => handleCancel(calc.id)}>

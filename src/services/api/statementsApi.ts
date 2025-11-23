@@ -551,12 +551,14 @@ export async function fetchInvestorFundPerformance(
   userId: string
 ): Promise<InvestorFundPerformance[]> {
   try {
-    const { data, error } = await supabase
+    // Cast supabase to any to avoid excessive type depth inference in query builder
+    const result = await (supabase as any)
       .from("investor_fund_performance")
       .select("*")
       .eq("period_id", periodId)
       .eq("user_id", userId);
 
+    const { data, error } = result as { data: InvestorFundPerformance[] | null; error: any };
     if (error) throw error;
     return data || [];
   } catch (error) {

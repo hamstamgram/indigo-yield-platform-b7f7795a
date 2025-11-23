@@ -78,25 +78,24 @@
 
 ---
 
-## Section 4: Transactions & Payments (13 screens)
+## Section 4: Transactions & Payments (12 screens)
 
 | # | Screen Name | Status | Features | Notes |
 |---|-------------|--------|----------|-------|
 | 35 | TransactionsView | ✅ ♿ 🌙 | Container view | Tab navigation |
 | 36 | TransactionHistoryView | ✅ ♿ 🌙 📊 | Infinite scroll | Pull-to-refresh |
 | 37 | TransactionSearchView | ✅ ♿ 🌙 📊 | Multi-criteria | Date range picker |
-| 38 | DepositMethodSelectionView | ✅ 📱 ♿ 🌙 | Apple Pay detect | Plaid integration |
-| 39 | ApplePayIntegrationView | ✅ 📱 ♿ 🌙 🔒 | PassKit | Biometric auth |
-| 40 | DepositConfirmationView | ✅ ♿ 🌙 | Success animation | Transaction ref |
-| 41 | WithdrawalAmountView | ✅ ♿ 🌙 📊 🔒 | Amount validation | Fee calculation |
-| 42 | WithdrawalConfirmationView | ✅ ♿ 🌙 🔒 | Security verify | Biometric confirm |
-| 43 | WithdrawalStatusView | ✅ ♿ 🌙 📊 | Status timeline | Real-time updates |
-| 44 | WithdrawalsView | ✅ ♿ 🌙 📊 | Withdrawal list | Filter/sort |
-| 45 | WithdrawalRequestView | ✅ ♿ 🌙 📊 | New withdrawal | Bank selection |
-| 46 | TransactionFiltersView | ✅ ♿ 🌙 | Save presets | Advanced filtering |
-| 47 | TransactionExportView | ✅ ♿ 🌙 📊 | PDF/CSV/Excel | Email/download |
+| 38 | ApplePayIntegrationView | ✅ 📱 ♿ 🌙 🔒 | PassKit | Biometric auth |
+| 39 | DepositConfirmationView | ✅ ♿ 🌙 | Success animation | Transaction ref |
+| 40 | WithdrawalAmountView | ✅ ♿ 🌙 📊 🔒 | Amount validation | Fee calculation |
+| 41 | WithdrawalConfirmationView | ✅ ♿ 🌙 🔒 | Security verify | Biometric confirm |
+| 42 | WithdrawalStatusView | ✅ ♿ 🌙 📊 | Status timeline | Real-time updates |
+| 43 | WithdrawalsView | ✅ ♿ 🌙 📊 | Withdrawal list | Filter/sort |
+| 44 | WithdrawalRequestView | ✅ ♿ 🌙 📊 | New withdrawal | Bank selection |
+| 45 | TransactionFiltersView | ✅ ♿ 🌙 | Save presets | Advanced filtering |
+| 46 | TransactionExportView | ✅ ♿ 🌙 📊 | PDF/CSV/Excel | Email/download |
 
-**Section Status:** 13/13 Complete ✅
+**Section Status:** 12/12 Complete ✅
 
 ---
 

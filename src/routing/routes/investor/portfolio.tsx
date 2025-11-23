@@ -8,13 +8,13 @@ import { lazy } from "react";
 import { ProtectedRoute } from "../../ProtectedRoute";
 
 // Portfolio pages
-const WithdrawalsPage = lazy(() => import("@/pages/admin/investors/WithdrawalsPage"));
+const WithdrawalsPage = lazy(() => import("@/routes/admin/investors/WithdrawalsPage"));
 const PortfolioAnalyticsPage = lazy(
-  () => import("@/pages/investor/portfolio/PortfolioAnalyticsPage")
+  () => import("@/routes/investor/portfolio/PortfolioAnalyticsPage")
 );
-const SessionManagementPage = lazy(() => import("@/pages/investor/account/SessionManagementPage"));
-const ProfileSettingsPage = lazy(() => import("@/pages/settings/ProfileSettingsPage"));
-const SecuritySettings = lazy(() => import("@/pages/settings/SecuritySettings"));
+const SessionManagementPage = lazy(() => import("@/routes/investor/account/SessionManagementPage"));
+const ProfileSettingsPage = lazy(() => import("@/routes/settings/ProfileSettingsPage"));
+const SecuritySettings = lazy(() => import("@/routes/settings/SecuritySettings"));
 
 export function PortfolioRoutes() {
   return (

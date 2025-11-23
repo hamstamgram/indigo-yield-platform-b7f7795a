@@ -1,7 +1,7 @@
 // Email service configuration for transactional emails
 // Production implementation uses Supabase Edge Functions for secure server-side SMTP
 
-import { supabase } from './supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface EmailTemplate {
   to: string;

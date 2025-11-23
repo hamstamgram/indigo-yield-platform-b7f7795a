@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,11 +39,6 @@ const FundYieldManagerV2 = () => {
     netYield: number;
   } | null>(null);
 
-  useEffect(() => {
-    fetchFunds();
-    fetchYieldHistory();
-  }, [fetchFunds, fetchYieldHistory]);
-
   const fetchFunds = useCallback(async () => {
     try {
       const data = await getAllFundsWithAUM();
@@ -81,6 +76,11 @@ const FundYieldManagerV2 = () => {
       console.error("Error fetching yield history:", error);
     }
   }, []);
+
+  useEffect(() => {
+    fetchFunds();
+    fetchYieldHistory();
+  }, [fetchFunds, fetchYieldHistory]);
 
   const previewFees = async () => {
     if (!selectedFund || !yieldPercentage) return;

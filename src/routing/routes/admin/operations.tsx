@@ -7,22 +7,22 @@ import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const AdminRequestsQueuePage = lazy(() => import("@/pages/admin/AdminRequestsQueuePage"));
-const AdminStatementsPage = lazy(() => import("@/pages/admin/AdminStatementsPage"));
-const AdminSupportQueue = lazy(() => import("@/pages/admin/AdminSupportQueue"));
-const AdminDocumentsPage = lazy(() => import("@/pages/admin/AdminDocumentsPage"));
-const AdminWithdrawalsPage = lazy(() => import("@/pages/admin/AdminWithdrawalsPage"));
-const MonthlyDataEntry = lazy(() => import("@/pages/admin/MonthlyDataEntry"));
-const DailyRatesManagement = lazy(() => import("@/pages/admin/DailyRatesManagement"));
-const InvestorReports = lazy(() => import("@/pages/admin/InvestorReports"));
-const InvestorReportGenerator = lazy(() => import("@/pages/admin/InvestorReportGenerator"));
-const AdminTransactions = lazy(() => import("@/pages/admin/AdminTransactions"));
+const AdminRequestsQueuePage = lazy(() => import("@/routes/admin/AdminRequestsQueuePage"));
+const AdminStatementsPage = lazy(() => import("@/routes/admin/AdminStatementsPage"));
+const AdminSupportQueue = lazy(() => import("@/routes/admin/AdminSupportQueue"));
+const AdminDocumentsPage = lazy(() => import("@/routes/admin/AdminDocumentsPage"));
+const AdminWithdrawalsPage = lazy(() => import("@/routes/admin/AdminWithdrawalsPage"));
+const MonthlyDataEntry = lazy(() => import("@/routes/admin/MonthlyDataEntry"));
+const DailyRatesManagement = lazy(() => import("@/routes/admin/DailyRatesManagement"));
+const InvestorReports = lazy(() => import("@/routes/admin/InvestorReports"));
+const InvestorReportGenerator = lazy(() => import("@/routes/admin/InvestorReportGenerator"));
+const AdminTransactions = lazy(() => import("@/routes/admin/AdminTransactions"));
 const BalanceAdjustments = lazy(() =>
-  import("@/pages/admin/BalanceAdjustments").then((m) => ({ default: m.BalanceAdjustments }))
+  import("@/routes/admin/BalanceAdjustments").then((m) => ({ default: m.BalanceAdjustments }))
 );
-const AdminOperationsHub = lazy(() => import("@/pages/admin/AdminOperationsHub"));
-const FundManagement = lazy(() => import("@/pages/admin/funds/FundManagement"));
-const TestYieldPage = lazy(() => import("@/pages/admin/TestYieldPage"));
+const AdminOperationsHub = lazy(() => import("@/routes/admin/AdminOperationsHub"));
+const FundManagement = lazy(() => import("@/routes/admin/funds/FundManagement"));
+const TestYieldPage = lazy(() => import("@/routes/admin/TestYieldPage"));
 
 export function OperationsRoutes() {
   return (

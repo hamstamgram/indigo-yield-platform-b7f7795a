@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,10 +45,6 @@ export default function FundAUMManager() {
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchFunds();
-  }, []);
-
   const fetchFunds = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -68,6 +64,10 @@ export default function FundAUMManager() {
       setIsLoading(false);
     }
   }, [selectedFund, toast]);
+
+  useEffect(() => {
+    fetchFunds();
+  }, [fetchFunds]);
 
   const handlePreviewYield = async () => {
     if (!selectedFund || !aumAmount) return;

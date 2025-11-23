@@ -2,13 +2,13 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 
 // Use a single, unified Supabase project (nkfimvovosdehmyyjubn)
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 // Validate required environment variables
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   throw new Error(
-    "Missing required environment variables: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set in .env file. " +
+    "Missing required environment variables: VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY must be set in .env file. " +
     "Never hardcode credentials in source code."
   );
 }
@@ -23,12 +23,12 @@ if (!SUPABASE_URL.startsWith("https://") || !SUPABASE_URL.includes(".supabase.co
 // Validate key format (basic JWT structure check)
 if (!SUPABASE_ANON_KEY.startsWith("eyJ") || SUPABASE_ANON_KEY.split(".").length !== 3) {
   throw new Error(
-    "Invalid VITE_SUPABASE_ANON_KEY format. Must be a valid JWT token."
+    "Invalid VITE_SUPABASE_PUBLISHABLE_KEY format. Must be a valid JWT token."
   );
 }
 
 // Log configuration in development (without exposing sensitive data)
-if (import.meta.env.DEV) {
+if (process.env.NODE_ENV === 'development') {
   console.log("✅ Supabase Configuration:", {
     url: SUPABASE_URL,
     keyPrefix: SUPABASE_ANON_KEY.substring(0, 20) + "...",

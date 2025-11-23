@@ -85,11 +85,14 @@ export class OnboardingService {
       // STEP 1: Fetch and validate submission
       // =====================================================
 
-      const { data: submission, error: fetchError } = await supabase
+      // Cast supabase to any to avoid excessive type depth inference in query builder
+      const result = await (supabase as any)
         .from("onboarding_submissions")
         .select("*")
         .eq("id", submissionId)
         .single();
+
+      const { data: submission, error: fetchError } = result as { data: any; error: any };
 
       if (fetchError || !submission) {
         throw new Error(`Submission not found: ${submissionId}`);
@@ -117,15 +120,19 @@ export class OnboardingService {
 
       const primaryEmail = emails[0].trim().toLowerCase();
 
-      const { data: existingByEmail } = await supabase
+      // Cast supabase to any to avoid excessive type depth inference in query builder
+      const emailCheckResult = await (supabase as any)
         .from("investor_emails")
         .select("investor_id, email")
         .eq("email", primaryEmail)
         .single();
 
+      const { data: existingByEmail } = emailCheckResult as { data: any; error: any };
+
       if (existingByEmail) {
         // Update submission as duplicate
-        await supabase
+        // Cast supabase to any to avoid excessive type depth inference in query builder
+        await (supabase as any)
           .from("onboarding_submissions")
           .update({
             status: "duplicate",
@@ -147,13 +154,16 @@ export class OnboardingService {
       // STEP 3: Mark submission as processing
       // =====================================================
 
-      const { error: updateProcessingError } = await supabase
+      // Cast supabase to any to avoid excessive type depth inference in query builder
+      const processingUpdateResult = await (supabase as any)
         .from("onboarding_submissions")
         .update({
           status: "processing",
           processed_by: processedBy,
         })
         .eq("id", submissionId);
+
+      const { error: updateProcessingError } = processingUpdateResult as { data: any; error: any };
 
       if (updateProcessingError) {
         throw new Error(`Failed to update submission status: ${updateProcessingError.message}`);
@@ -178,7 +188,8 @@ export class OnboardingService {
 
       if (createError || !investor) {
         // Rollback submission status
-        await supabase
+        // Cast supabase to any to avoid excessive type depth inference in query builder
+        await (supabase as any)
           .from("onboarding_submissions")
           .update({ status: "pending", processed_by: null })
           .eq("id", submissionId);
@@ -200,7 +211,8 @@ export class OnboardingService {
         created_at: new Date().toISOString(),
       }));
 
-      const { error: emailsError } = await supabase.from("investor_emails").insert(emailInserts);
+      // Cast supabase to any - investor_emails table not in generated types
+      const { error: emailsError } = await (supabase as any).from("investor_emails").insert(emailInserts);
 
       if (emailsError) {
         console.error("❌ Failed to create investor emails:", emailsError);
@@ -213,7 +225,8 @@ export class OnboardingService {
       // STEP 6: Update submission as approved
       // =====================================================
 
-      const { error: updateApprovedError } = await supabase
+      // Cast supabase to any to avoid excessive type depth inference in query builder
+      const approvedUpdateResult = await (supabase as any)
         .from("onboarding_submissions")
         .update({
           status: "approved",
@@ -222,6 +235,8 @@ export class OnboardingService {
           notes: notes || null,
         })
         .eq("id", submissionId);
+
+      const { error: updateApprovedError } = approvedUpdateResult as { data: any; error: any };
 
       if (updateApprovedError) {
         console.error("❌ Failed to update submission as approved:", updateApprovedError);
@@ -270,18 +285,22 @@ export class OnboardingService {
     reason: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      const { data: submission } = await supabase
+      // Cast supabase to any to avoid excessive type depth inference in query builder
+      const submissionResult = await (supabase as any)
         .from("onboarding_submissions")
         .select("airtable_record_id")
         .eq("id", submissionId)
         .single();
+
+      const { data: submission } = submissionResult as { data: any; error: any };
 
       if (!submission) {
         throw new Error("Submission not found");
       }
 
       // Update local DB
-      const { error: updateError } = await supabase
+      // Cast supabase to any to avoid excessive type depth inference in query builder
+      const rejectUpdateResult = await (supabase as any)
         .from("onboarding_submissions")
         .update({
           status: "rejected",
@@ -290,6 +309,8 @@ export class OnboardingService {
           notes: reason,
         })
         .eq("id", submissionId);
+
+      const { error: updateError } = rejectUpdateResult as { data: any; error: any };
 
       if (updateError) {
         throw updateError;
@@ -334,7 +355,8 @@ export class OnboardingService {
   }> {
     try {
       // Get all submissions
-      const { data: allSubmissions } = await supabase
+      // Cast supabase to any - onboarding_submissions table not in generated types
+      const { data: allSubmissions } = await (supabase as any)
         .from("onboarding_submissions")
         .select("status, created_at");
 
@@ -387,11 +409,14 @@ export class OnboardingService {
    * Get pending submissions (for admin dashboard)
    */
   async getPendingSubmissions(): Promise<OnboardingSubmission[]> {
-    const { data, error } = await supabase
+    // Cast supabase to any to avoid excessive type depth inference in query builder
+    const result = await (supabase as any)
       .from("onboarding_submissions")
       .select("*")
       .eq("status", "pending")
       .order("submitted_at", { ascending: false });
+
+    const { data, error } = result as { data: OnboardingSubmission[] | null; error: any };
 
     if (error) {
       console.error("❌ Failed to fetch pending submissions:", error);
@@ -409,7 +434,8 @@ export class OnboardingService {
     search?: string;
     limit?: number;
   }): Promise<OnboardingSubmission[]> {
-    let query = supabase
+    // Cast supabase to any - onboarding_submissions table not in generated types
+    let query = (supabase as any)
       .from("onboarding_submissions")
       .select("*")
       .order("submitted_at", { ascending: false });
@@ -428,7 +454,8 @@ export class OnboardingService {
       query = query.limit(filters.limit);
     }
 
-    const { data, error } = await query;
+    const result = await query;
+    const { data, error } = result as { data: OnboardingSubmission[] | null; error: any };
 
     if (error) {
       console.error("❌ Failed to fetch submissions:", error);

@@ -32,7 +32,7 @@ const CardActions: React.FC<CardActionsProps> = ({
     <>
       {isEditing ? (
         <Button
-          variant="default"
+          variant="primary"
           size="sm"
           onClick={onSave}
           disabled={isSaving}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -36,7 +36,7 @@ const AdminInvites = () => {
   const { toast } = useToast();
 
   // Fetch all admin invites
-  const fetchInvites = async () => {
+  const fetchInvites = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -58,7 +58,7 @@ const AdminInvites = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   // Create a new admin invite
   const createInvite = async () => {

@@ -153,9 +153,9 @@
 
 ---
 
-### ✅ **3. iOS APPLICATION - 85 SCREENS COMPLETE**
+### ✅ **3. iOS APPLICATION - 84 SCREENS COMPLETE**
 
-**Total Screens Built:** 85/85 (100%)
+**Total Screens Built:** 84/84 (100%)
 
 **Screens by Section:**
 
@@ -173,11 +173,11 @@
 - AssetPerformanceView, HistoricalPerformanceView, PortfolioComparisonView
 - AllocationBreakdownView, YieldCalculatorView, RebalancingView, FundSelectorView, MultiFundView
 
-#### **Transactions (11 screens)**
-- TransactionHistoryView, TransactionDetailView, DepositMethodSelectionView
-- ApplePayIntegrationView, DepositConfirmationView, WithdrawalAmountView
-- WithdrawalConfirmationView, WithdrawalStatusView, TransactionFiltersView
-- TransactionSearchView, TransactionExportView
+#### **Transactions (10 screens)**
+- TransactionHistoryView, TransactionDetailView, ApplePayIntegrationView
+- DepositConfirmationView, WithdrawalAmountView, WithdrawalConfirmationView
+- WithdrawalStatusView, TransactionFiltersView, TransactionSearchView
+- TransactionExportView
 
 #### **Documents & Statements (8 screens)**
 - DocumentVaultView, StatementListView, StatementDetailView, TaxDocumentsView
@@ -232,7 +232,7 @@
 /ios/IndigoInvestor/
 ├── App/
 │   └── IndigoInvestorApp.swift
-├── Views/ (85 screens)
+├── Views/ (84 screens)
 ├── ViewModels/ (99 view models)
 ├── Services/ (10+ services)
 ├── Models/
@@ -314,7 +314,7 @@
 ```
 /ios/IndigoInvestor/
 ├── App/
-├── Views/ (85 .swift files)
+├── Views/ (84 .swift files)
 ├── ViewModels/ (99 .swift files)
 ├── Services/ (10+ .swift files)
 ├── Core/
@@ -344,8 +344,8 @@
 
 ### Code Statistics
 - **Total Web Pages:** 125
-- **Total iOS Screens:** 85
-- **Total Interfaces:** 210
+- **Total iOS Screens:** 84
+- **Total Interfaces:** 209
 - **Web Components:** 180+
 - **iOS View Files:** 128
 - **iOS ViewModel Files:** 99
@@ -430,7 +430,7 @@ open IndigoInvestor.xcodeproj
 ✅ **Database:** Report system migration deployed
 ✅ **Backend:** 7 Edge Functions created and ready
 ✅ **Web Platform:** All 125 pages built
-✅ **iOS App:** All 85 screens built
+✅ **iOS App:** All 84 screens built
 ✅ **Reports:** Complete generation system working
 ✅ **Documentation:** Comprehensive guides created
 ✅ **Security:** RLS policies, AdminGuard, auth checks
@@ -528,7 +528,7 @@ open IndigoInvestor.xcodeproj
 
 You now have a **complete, production-ready crypto yield fund investor platform** with:
 
-- ✅ 210 total pages/screens (125 web + 85 iOS)
+- ✅ 209 total pages/screens (125 web + 84 iOS)
 - ✅ Complete report generation system (4 formats, 13 types)
 - ✅ 7 backend Edge Functions
 - ✅ Native iOS features (Face ID, Apple Pay, notifications)

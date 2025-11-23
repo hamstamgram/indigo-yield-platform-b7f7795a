@@ -2,7 +2,7 @@
 //  PasswordChangeView.swift
 //  IndigoInvestor
 //
-//  Screen 52/85: Change password
+//  Screen for changing user password with comprehensive validation and security
 //
 
 import SwiftUI
@@ -12,144 +12,395 @@ struct PasswordChangeView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                // Background
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color(hex: "1A1F3A"),
-                        Color(hex: "2D3561")
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+        ZStack {
+            // Background
+            IndigoTheme.Colors.background
                 .ignoresSafeArea()
 
-                ScrollView {
-                    VStack(spacing: 24) {
-                        // Header
-                        VStack(spacing: 12) {
-                            Text("Change password")
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundColor(.white)
-                                .multilineTextAlignment(.center)
+            ScrollView {
+                VStack(spacing: IndigoTheme.Spacing.xl) {
+                    // Header Info
+                    HeaderSection()
 
-                            Text("Section: Settings")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.white.opacity(0.7))
-                        }
-                        .padding(.top, 40)
+                    // Current Password Field
+                    CurrentPasswordSection(viewModel: viewModel)
 
-                        // Content
-                        if viewModel.isLoading {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                .scaleEffect(1.5)
-                        } else if let error = viewModel.errorMessage {
-                            ErrorStateView(message: error, onRetry: {
-                                Task { await viewModel.loadData() }
-                            })
-                        } else {
-                            // Main content goes here
-                            ContentView(viewModel: viewModel)
-                        }
+                    // New Password Field
+                    NewPasswordSection(viewModel: viewModel)
+
+                    // Confirm Password Field
+                    ConfirmPasswordSection(viewModel: viewModel)
+
+                    // Password Strength Indicator
+                    if !viewModel.newPassword.isEmpty {
+                        PasswordStrengthSection(viewModel: viewModel)
                     }
-                    .padding()
+
+                    // Validation Requirements
+                    if !viewModel.newPassword.isEmpty {
+                        ValidationRequirementsSection(viewModel: viewModel)
+                    }
+
+                    // Action Buttons
+                    ActionButtonsSection(viewModel: viewModel, dismiss: dismiss)
                 }
+                .padding(IndigoTheme.Spacing.lg)
             }
-            .navigationTitle("Change password")
-            .navigationBarTitleDisplayMode(.inline)
-            .task {
-                await viewModel.loadData()
+
+            // Loading Overlay
+            if viewModel.isLoading {
+                LoadingOverlay()
             }
+        }
+        .navigationTitle("Change Password")
+        .navigationBarTitleDisplayMode(.large)
+        .alert("Error", isPresented: $viewModel.showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(viewModel.errorMessage)
+        }
+        .alert("Success", isPresented: $viewModel.showSuccess) {
+            Button("OK", role: .cancel) {
+                dismiss()
+            }
+        } message: {
+            Text(viewModel.successMessage)
         }
     }
 }
 
-// MARK: - Content View
-private struct ContentView: View {
+// MARK: - Header Section
+private struct HeaderSection: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: IndigoTheme.Spacing.sm) {
+            HStack(spacing: IndigoTheme.Spacing.md) {
+                Image(systemName: "lock.shield.fill")
+                    .font(.system(size: 28))
+                    .foregroundColor(IndigoTheme.Colors.primary)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Update Your Password")
+                        .font(IndigoTheme.Typography.h3)
+                        .foregroundColor(IndigoTheme.Colors.textPrimary)
+
+                    Text("Choose a strong password to protect your account")
+                        .font(IndigoTheme.Typography.caption)
+                        .foregroundColor(IndigoTheme.Colors.textSecondary)
+                }
+            }
+        }
+        .padding(IndigoTheme.Spacing.md)
+        .background(IndigoTheme.Colors.surface)
+        .cornerRadius(IndigoTheme.Layout.cornerRadius)
+    }
+}
+
+// MARK: - Current Password Section
+private struct CurrentPasswordSection: View {
     @ObservedObject var viewModel: PasswordChangeViewModel
 
     var body: some View {
-        VStack(spacing: 20) {
-            // TODO: Implement screen-specific content
-            Text("Content for PasswordChangeView")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.white)
+        VStack(alignment: .leading, spacing: IndigoTheme.Spacing.sm) {
+            Text("Current Password")
+                .font(IndigoTheme.Typography.body)
+                .foregroundColor(IndigoTheme.Colors.textPrimary)
 
-            // Placeholder cards
-            ForEach(0..<3) { index in
-                PlaceholderCard(index: index)
-            }
+            PasswordField(
+                text: $viewModel.currentPassword,
+                placeholder: "Enter current password",
+                showPassword: $viewModel.showCurrentPassword,
+                onToggleVisibility: viewModel.toggleCurrentPasswordVisibility
+            )
         }
-        .padding()
     }
 }
 
-// MARK: - Placeholder Card
-private struct PlaceholderCard: View {
-    let index: Int
+// MARK: - New Password Section
+private struct NewPasswordSection: View {
+    @ObservedObject var viewModel: PasswordChangeViewModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Circle()
-                    .fill(Color(hex: "4F46E5"))
-                    .frame(width: 40, height: 40)
+        VStack(alignment: .leading, spacing: IndigoTheme.Spacing.sm) {
+            Text("New Password")
+                .font(IndigoTheme.Typography.body)
+                .foregroundColor(IndigoTheme.Colors.textPrimary)
 
-                VStack(alignment: .leading) {
-                    Text("Item \(index + 1)")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
-                    Text("Description")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white.opacity(0.7))
-                }
+            PasswordField(
+                text: $viewModel.newPassword,
+                placeholder: "Enter new password",
+                showPassword: $viewModel.showNewPassword,
+                onToggleVisibility: viewModel.toggleNewPasswordVisibility
+            )
+        }
+    }
+}
+
+// MARK: - Confirm Password Section
+private struct ConfirmPasswordSection: View {
+    @ObservedObject var viewModel: PasswordChangeViewModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: IndigoTheme.Spacing.sm) {
+            Text("Confirm New Password")
+                .font(IndigoTheme.Typography.body)
+                .foregroundColor(IndigoTheme.Colors.textPrimary)
+
+            PasswordField(
+                text: $viewModel.confirmPassword,
+                placeholder: "Re-enter new password",
+                showPassword: $viewModel.showConfirmPassword,
+                onToggleVisibility: viewModel.toggleConfirmPasswordVisibility
+            )
+        }
+    }
+}
+
+// MARK: - Password Field Component
+private struct PasswordField: View {
+    @Binding var text: String
+    let placeholder: String
+    @Binding var showPassword: Bool
+    let onToggleVisibility: () -> Void
+
+    var body: some View {
+        HStack(spacing: IndigoTheme.Spacing.md) {
+            // Password Input
+            if showPassword {
+                TextField(placeholder, text: $text)
+                    .font(IndigoTheme.Typography.body)
+                    .foregroundColor(IndigoTheme.Colors.textPrimary)
+                    .autocapitalization(.none)
+                    .autocorrectionDisabled()
+                    .textContentType(.password)
+            } else {
+                SecureField(placeholder, text: $text)
+                    .font(IndigoTheme.Typography.body)
+                    .foregroundColor(IndigoTheme.Colors.textPrimary)
+                    .autocapitalization(.none)
+                    .autocorrectionDisabled()
+                    .textContentType(.password)
+            }
+
+            // Visibility Toggle
+            Button(action: onToggleVisibility) {
+                Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
+                    .font(.system(size: 18))
+                    .foregroundColor(IndigoTheme.Colors.textSecondary)
+            }
+        }
+        .padding(IndigoTheme.Spacing.md)
+        .background(IndigoTheme.Colors.surface)
+        .cornerRadius(IndigoTheme.Layout.cornerRadius)
+        .overlay(
+            RoundedRectangle(cornerRadius: IndigoTheme.Layout.cornerRadius)
+                .stroke(IndigoTheme.Colors.border, lineWidth: 1)
+        )
+    }
+}
+
+// MARK: - Password Strength Section
+private struct PasswordStrengthSection: View {
+    @ObservedObject var viewModel: PasswordChangeViewModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: IndigoTheme.Spacing.md) {
+            // Label
+            HStack {
+                Text("Password Strength")
+                    .font(IndigoTheme.Typography.body)
+                    .foregroundColor(IndigoTheme.Colors.textPrimary)
 
                 Spacer()
 
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.white.opacity(0.5))
+                Text(viewModel.passwordStrength.displayName)
+                    .font(IndigoTheme.Typography.caption)
+                    .foregroundColor(viewModel.passwordStrength.color)
+                    .fontWeight(.semibold)
             }
+
+            // Strength Bar
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    // Background
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(IndigoTheme.Colors.border)
+                        .frame(height: 8)
+
+                    // Progress
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(viewModel.passwordStrength.color)
+                        .frame(
+                            width: geometry.size.width * viewModel.passwordStrength.progress,
+                            height: 8
+                        )
+                        .animation(.easeInOut(duration: 0.3), value: viewModel.passwordStrength)
+                }
+            }
+            .frame(height: 8)
         }
-        .padding()
-        .background(Color.white.opacity(0.1))
-        .cornerRadius(12)
+        .padding(IndigoTheme.Spacing.md)
+        .background(IndigoTheme.Colors.surface)
+        .cornerRadius(IndigoTheme.Layout.cornerRadius)
     }
 }
 
-// MARK: - Error State View
-private struct ErrorStateView: View {
-    let message: String
-    let onRetry: () -> Void
+// MARK: - Validation Requirements Section
+private struct ValidationRequirementsSection: View {
+    @ObservedObject var viewModel: PasswordChangeViewModel
 
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 50))
-                .foregroundColor(.red)
+        VStack(alignment: .leading, spacing: IndigoTheme.Spacing.md) {
+            Text("Password Requirements")
+                .font(IndigoTheme.Typography.body)
+                .foregroundColor(IndigoTheme.Colors.textPrimary)
 
-            Text(message)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.white.opacity(0.8))
-                .multilineTextAlignment(.center)
+            VStack(spacing: IndigoTheme.Spacing.sm) {
+                RequirementRow(
+                    text: "At least 8 characters",
+                    isMet: viewModel.hasMinLength
+                )
 
-            Button(action: onRetry) {
-                Text("Retry")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white)
-                    .frame(width: 120, height: 44)
-                    .background(Color(hex: "4F46E5"))
-                    .cornerRadius(10)
+                RequirementRow(
+                    text: "Contains uppercase letter (A-Z)",
+                    isMet: viewModel.hasUppercase
+                )
+
+                RequirementRow(
+                    text: "Contains lowercase letter (a-z)",
+                    isMet: viewModel.hasLowercase
+                )
+
+                RequirementRow(
+                    text: "Contains number (0-9)",
+                    isMet: viewModel.hasNumber
+                )
+
+                RequirementRow(
+                    text: "Contains special character (!@#$...)",
+                    isMet: viewModel.hasSpecialCharacter
+                )
+
+                RequirementRow(
+                    text: "Different from current password",
+                    isMet: viewModel.isDifferentFromCurrent
+                )
+
+                if !viewModel.confirmPassword.isEmpty {
+                    RequirementRow(
+                        text: "Passwords match",
+                        isMet: viewModel.passwordsMatch
+                    )
+                }
             }
         }
-        .padding()
+        .padding(IndigoTheme.Spacing.md)
+        .background(IndigoTheme.Colors.surface)
+        .cornerRadius(IndigoTheme.Layout.cornerRadius)
+    }
+}
+
+// MARK: - Requirement Row Component
+private struct RequirementRow: View {
+    let text: String
+    let isMet: Bool
+
+    var body: some View {
+        HStack(spacing: IndigoTheme.Spacing.sm) {
+            Image(systemName: isMet ? "checkmark.circle.fill" : "circle")
+                .font(.system(size: 16))
+                .foregroundColor(isMet ? Color.green : IndigoTheme.Colors.textSecondary)
+
+            Text(text)
+                .font(IndigoTheme.Typography.caption)
+                .foregroundColor(isMet ? IndigoTheme.Colors.textPrimary : IndigoTheme.Colors.textSecondary)
+
+            Spacer()
+        }
+    }
+}
+
+// MARK: - Action Buttons Section
+private struct ActionButtonsSection: View {
+    @ObservedObject var viewModel: PasswordChangeViewModel
+    let dismiss: DismissAction
+
+    var body: some View {
+        VStack(spacing: IndigoTheme.Spacing.md) {
+            // Save Button
+            Button {
+                Task {
+                    await viewModel.updatePassword()
+                }
+            } label: {
+                HStack(spacing: IndigoTheme.Spacing.sm) {
+                    Image(systemName: "lock.shield.fill")
+                        .font(.system(size: 18))
+
+                    Text("Update Password")
+                        .font(IndigoTheme.Typography.body)
+                        .fontWeight(.semibold)
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 54)
+                .background(
+                    viewModel.canSubmit ?
+                    IndigoTheme.Colors.primary :
+                    IndigoTheme.Colors.border
+                )
+                .cornerRadius(IndigoTheme.Layout.cornerRadius)
+            }
+            .disabled(!viewModel.canSubmit)
+
+            // Cancel Button
+            Button {
+                dismiss()
+            } label: {
+                Text("Cancel")
+                    .font(IndigoTheme.Typography.body)
+                    .fontWeight(.semibold)
+                    .foregroundColor(IndigoTheme.Colors.textSecondary)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 54)
+                    .background(IndigoTheme.Colors.surface)
+                    .cornerRadius(IndigoTheme.Layout.cornerRadius)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: IndigoTheme.Layout.cornerRadius)
+                            .stroke(IndigoTheme.Colors.border, lineWidth: 1)
+                    )
+            }
+        }
+    }
+}
+
+// MARK: - Loading Overlay
+private struct LoadingOverlay: View {
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.3)
+                .ignoresSafeArea()
+
+            VStack(spacing: IndigoTheme.Spacing.md) {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(1.5)
+
+                Text("Updating password...")
+                    .font(IndigoTheme.Typography.body)
+                    .foregroundColor(.white)
+            }
+            .padding(IndigoTheme.Spacing.xl)
+            .background(IndigoTheme.Colors.surface)
+            .cornerRadius(IndigoTheme.Layout.cornerRadius)
+        }
     }
 }
 
 // MARK: - Preview
 struct PasswordChangeView_Previews: PreviewProvider {
     static var previews: some View {
-        PasswordChangeView()
+        NavigationStack {
+            PasswordChangeView()
+        }
     }
 }

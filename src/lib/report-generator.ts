@@ -5,7 +5,7 @@ interface FundData {
   fundName: string;
   currencyName: string;
   data: {
-    [key: string]: string;
+    [key: string]: string | number;
   };
 }
 
@@ -105,9 +105,9 @@ export async function generateReportForInvestor(investorId: string, reportMonth:
     fundBlock = fundBlock.replace(/\[CURRENCY_NAME\]/g, fund.currencyName);
 
     for (const key in fund.data) {
-      fundBlock = fundBlock.replace(`[${key.toUpperCase()}]`, fund.data[key]);
+      fundBlock = fundBlock.replace(`[${key.toUpperCase()}]`, String(fund.data[key]));
       if (key.includes("net_income") || key.includes("return_rate")) {
-        fundBlock = fundBlock.replace(`[${key.toUpperCase()}_COLOR]`, getColor(fund.data[key]));
+        fundBlock = fundBlock.replace(`[${key.toUpperCase()}_COLOR]`, getColor(String(fund.data[key])));
       }
     }
     finalFundBlocks += fundBlock;

@@ -47,7 +47,7 @@ export const useUserAssets = () => {
       }
 
       // Get unique asset codes
-      const uniqueAssetCodes = [...new Set(reports.map((r) => r.asset_code))];
+      const uniqueAssetCodes = Array.from(new Set(reports.map((r) => r.asset_code)));
 
       // Map asset codes to user-friendly names
       const assetNames: Record<string, string> = {

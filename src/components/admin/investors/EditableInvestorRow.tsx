@@ -181,7 +181,7 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
       <TableCell className="text-right">
         <div className="flex justify-end gap-2">
           {isEditing ? (
-            <Button variant="default" size="sm" onClick={handleSave} disabled={isSaving}>
+            <Button variant="primary" size="sm" onClick={handleSave} disabled={isSaving}>
               <Save className="h-4 w-4 mr-1" />
               {isSaving ? "Saving..." : "Save"}
             </Button>

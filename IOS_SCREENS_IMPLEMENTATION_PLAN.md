@@ -1822,77 +1822,9 @@ final class TransactionHistoryViewModel: ObservableObject {
 
 ---
 
-#### Screen 33-35: Deposit Flow
+#### Screen 33: Apple Pay Integration (Deposit Flow)
 
-**Screen 33: Deposit Method Selection**
-```swift
-struct DepositMethodSelectionView: View {
-    @StateObject private var viewModel: DepositViewModel
-
-    var body: some View {
-        NavigationStack {
-            List {
-                Section("Payment Methods") {
-                    Button(action: { viewModel.selectApplePay() }) {
-                        HStack {
-                            Image(systemName: "apple.logo")
-                                .font(.title2)
-                            Text("Apple Pay")
-                                .font(.headline)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .foregroundColor(.primary)
-
-                    Button(action: { viewModel.selectBankTransfer() }) {
-                        HStack {
-                            Image(systemName: "building.columns")
-                                .font(.title2)
-                            Text("Bank Transfer")
-                                .font(.headline)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .foregroundColor(.primary)
-
-                    Button(action: { viewModel.selectCrypto() }) {
-                        HStack {
-                            Image(systemName: "bitcoinsign.circle")
-                                .font(.title2)
-                            Text("Crypto Transfer")
-                                .font(.headline)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .foregroundColor(.primary)
-                }
-
-                Section {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Processing Times")
-                            .font(.headline)
-                        Text("Apple Pay: Instant")
-                        Text("Bank Transfer: 1-3 business days")
-                        Text("Crypto: 10-30 minutes")
-                    }
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                }
-            }
-            .navigationTitle("Add Funds")
-            .navigationBarTitleDisplayMode(.inline)
-        }
-    }
-}
-```
-
-**Screen 34: Apple Pay Integration**
+**Implementation:**
 ```swift
 struct ApplePayDepositView: View {
     @StateObject private var viewModel: ApplePayViewModel
@@ -2048,7 +1980,7 @@ extension ApplePayViewModel: PKPaymentAuthorizationViewControllerDelegate {
 
 ### Section 5: Documents & Statements
 
-#### Screen 37: Document Vault
+#### Screen 36: Document Vault
 **File:** `DocumentVaultView.swift`
 **Purpose:** Manage and view all documents
 **Navigation:** Tab bar or profile menu
@@ -2199,7 +2131,7 @@ struct DocumentScannerView: UIViewControllerRepresentable {
 
 ### Section 6: Profile & Settings
 
-#### Screen 45: Profile Overview
+#### Screen 44: Profile Overview
 **File:** `ProfileView.swift`
 **Purpose:** User profile and settings hub
 **Navigation:** Tab bar root
@@ -2338,7 +2270,7 @@ final class ProfileViewModel: ObservableObject {
 
 ### Section 7: Reports & Analytics
 
-#### Screen 59: Reports Dashboard
+#### Screen 58: Reports Dashboard
 **File:** `ReportsDashboardView.swift`
 **Purpose:** Access all reports
 **Navigation:** From dashboard or menu
@@ -2423,7 +2355,7 @@ struct QuickReportActionsView: View {
 
 ### Section 8: Notifications
 
-#### Screen 67: Notifications Center
+#### Screen 66: Notifications Center
 **File:** `NotificationsCenterView.swift`
 **Purpose:** View all notifications
 **Navigation:** From toolbar icon
@@ -2589,7 +2521,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
 
 ### Section 9: Support & Help
 
-#### Screen 72: Support Hub
+#### Screen 71: Support Hub
 **File:** `SupportHubView.swift`
 **Purpose:** Access help and support resources
 **Navigation:** From profile or menu
@@ -2646,7 +2578,7 @@ struct SupportHubView: View {
 }
 ```
 
-#### Screen 75: Ticket Creation
+#### Screen 74: Ticket Creation
 **File:** `CreateTicketView.swift`
 **Purpose:** Submit support ticket
 
@@ -2732,7 +2664,7 @@ struct CreateTicketView: View {
 
 ### Section 10: Admin Panel
 
-#### Screen 78: Admin Dashboard
+#### Screen 77: Admin Dashboard
 **File:** `AdminDashboardView.swift`
 **Purpose:** Admin overview and operations
 **Navigation:** Tab bar for admin users

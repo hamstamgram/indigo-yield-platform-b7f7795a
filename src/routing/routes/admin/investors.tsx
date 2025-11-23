@@ -7,27 +7,27 @@ import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const AdminInvestorNewPage = lazy(() => import("@/pages/admin/investors/AdminInvestorNewPage"));
+const AdminInvestorNewPage = lazy(() => import("@/routes/admin/investors/AdminInvestorNewPage"));
 const AdminInvestorDetailPage = lazy(
-  () => import("@/pages/admin/investors/AdminInvestorDetailPage")
+  () => import("@/routes/admin/investors/AdminInvestorDetailPage")
 );
 const AdminInvestorPositionsPage = lazy(
-  () => import("@/pages/admin/investors/AdminInvestorPositionsPage")
+  () => import("@/routes/admin/investors/AdminInvestorPositionsPage")
 );
 const AdminInvestorTransactionsPage = lazy(
-  () => import("@/pages/admin/investors/AdminInvestorTransactionsPage")
+  () => import("@/routes/admin/investors/AdminInvestorTransactionsPage")
 );
-const ExpertInvestorMasterView = lazy(() => import("@/pages/admin/ExpertInvestorMasterView"));
+const ExpertInvestorMasterView = lazy(() => import("@/routes/admin/ExpertInvestorMasterView"));
 const ExpertInvestorDashboard = lazy(
   () => import("@/components/admin/expert/ExpertInvestorDashboard")
 );
 const InvestorAccountCreation = lazy(() =>
-  import("@/pages/admin/InvestorAccountCreation").then((m) => ({
+  import("@/routes/admin/InvestorAccountCreation").then((m) => ({
     default: m.InvestorAccountCreation,
   }))
 );
 const InvestorStatusTracking = lazy(() =>
-  import("@/pages/admin/InvestorStatusTracking").then((m) => ({
+  import("@/routes/admin/InvestorStatusTracking").then((m) => ({
     default: m.InvestorStatusTracking,
   }))
 );

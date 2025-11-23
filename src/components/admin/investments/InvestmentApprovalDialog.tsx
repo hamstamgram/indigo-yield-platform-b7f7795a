@@ -104,7 +104,7 @@ export function InvestmentApprovalDialog({
 
           <div className="flex gap-2">
             <Button
-              variant={mode === "approve" ? "default" : "outline"}
+              variant={mode === "approve" ? "primary" : "outline"}
               onClick={() => setMode("approve")}
               className="flex-1"
             >

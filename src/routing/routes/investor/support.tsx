@@ -8,11 +8,11 @@ import { lazy } from "react";
 import { ProtectedRoute } from "../../ProtectedRoute";
 
 // Support pages
-const SupportHubPage = lazy(() => import("@/pages/support/SupportHubPage"));
-const SupportTickets = lazy(() => import("@/pages/support/SupportTicketsPage"));
-const NewTicketPage = lazy(() => import("@/pages/support/NewTicketPage"));
-const TicketDetailPage = lazy(() => import("@/pages/support/TicketDetailPage"));
-const LiveChatPage = lazy(() => import("@/pages/support/LiveChatPage"));
+const SupportHubPage = lazy(() => import("@/routes/support/SupportHubPage"));
+const SupportTickets = lazy(() => import("@/routes/support/SupportTicketsPage"));
+const NewTicketPage = lazy(() => import("@/routes/support/NewTicketPage"));
+const TicketDetailPage = lazy(() => import("@/routes/support/TicketDetailPage"));
+const LiveChatPage = lazy(() => import("@/routes/support/LiveChatPage"));
 
 export function SupportRoutes() {
   return (

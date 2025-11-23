@@ -311,11 +311,14 @@ export async function fetchInvestorReportData(
 ): Promise<InvestorReportData | null> {
   try {
     // Fetch investor details
-    const { data: investor, error: investorError } = await supabase
+    // Cast supabase to any - investors table schema doesn't match generated types
+    const investorResult = await (supabase as any)
       .from("investors")
-      .select("id, first_name, last_name, email")
+      .select("id, name, email")
       .eq("id", investorId)
       .single();
+
+    const { data: investor, error: investorError } = investorResult as { data: any; error: any };
 
     if (investorError || !investor) {
       console.error("Error fetching investor:", investorError);
@@ -323,11 +326,14 @@ export async function fetchInvestorReportData(
     }
 
     // Fetch all emails for the investor
-    const { data: emailRecords, error: emailsError } = await supabase
+    // Cast supabase to any to avoid excessive type depth inference in query builder
+    const result = await (supabase as any)
       .from("investor_emails")
       .select("email, is_primary, verified")
       .eq("investor_id", investorId)
       .order("is_primary", { ascending: false }); // Primary email first
+
+    const { data: emailRecords, error: emailsError } = result as { data: any; error: any };
 
     // Fallback to legacy email if no emails found
     const emails = (emailRecords || []).map((e) => ({
@@ -376,7 +382,7 @@ export async function fetchInvestorReportData(
     // Transform data for report
     const reportData: InvestorReportData = {
       investorId: investor.id,
-      investorName: `${investor.first_name} ${investor.last_name}`,
+      investorName: investor.name || "Unknown Investor",
       email: primaryEmail, // Legacy field: primary email only
       emails: emails, // All emails for multi-recipient sending
       reportMonth,

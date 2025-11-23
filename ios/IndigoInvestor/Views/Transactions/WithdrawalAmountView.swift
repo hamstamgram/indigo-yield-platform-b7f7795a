@@ -69,20 +69,199 @@ struct WithdrawalAmountView: View {
 // MARK: - Content View
 private struct ContentView: View {
     @ObservedObject var viewModel: WithdrawalAmountViewModel
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        VStack(spacing: 20) {
-            // TODO: Implement screen-specific content
-            Text("Content for WithdrawalAmountView")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.white)
+        VStack(spacing: 24) {
+            // Available Balance Card
+            AvailableBalanceCard(balance: viewModel.availableBalance)
 
-            // Placeholder cards
-            ForEach(0..<3) { index in
-                PlaceholderCard(index: index)
+            // Amount Input Section
+            AmountInputSection(
+                amount: $viewModel.withdrawalAmount,
+                isValid: viewModel.isAmountValid
+            )
+
+            // Quick Amount Buttons
+            QuickAmountButtons(onSelect: { amount in
+                viewModel.withdrawalAmount = "\(amount)"
+            })
+
+            Spacer()
+
+            // Error Message
+            if let error = viewModel.validationError {
+                ErrorBanner(message: error)
             }
+
+            // Continue Button
+            ContinueButton(
+                isEnabled: viewModel.canProceed,
+                action: {
+                    Task {
+                        await viewModel.proceedToConfirmation()
+                        dismiss()
+                    }
+                }
+            )
         }
         .padding()
+    }
+}
+
+// MARK: - Available Balance Card
+private struct AvailableBalanceCard: View {
+    let balance: Decimal
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Text("Available Balance")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.white.opacity(0.7))
+
+            Text(balance.formatted(.currency(code: "USD")))
+                .font(.system(size: 36, weight: .bold))
+                .foregroundColor(.white)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white.opacity(0.05))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
+    }
+}
+
+// MARK: - Amount Input Section
+private struct AmountInputSection: View {
+    @Binding var amount: String
+    let isValid: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Withdrawal Amount")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.white)
+
+            HStack {
+                Text("$")
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundColor(.white)
+
+                TextField("0.00", text: $amount)
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundColor(.white)
+                    .keyboardType(.decimalPad)
+                    .accentColor(.white)
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.1))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isValid ? Color.white.opacity(0.2) : Color.red, lineWidth: 1)
+            )
+        }
+    }
+}
+
+// MARK: - Quick Amount Buttons
+private struct QuickAmountButtons: View {
+    let onSelect: (Int) -> Void
+    let amounts = [1000, 5000, 10000, 25000]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Quick Select")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.white.opacity(0.7))
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                ForEach(amounts, id: \.self) { amount in
+                    QuickAmountButton(amount: amount, action: {
+                        onSelect(amount)
+                    })
+                }
+            }
+        }
+    }
+}
+
+private struct QuickAmountButton: View {
+    let amount: Int
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text("$\(amount)")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.white.opacity(0.1))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                )
+        }
+    }
+}
+
+// MARK: - Error Banner
+private struct ErrorBanner: View {
+    let message: String
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundColor(.red)
+
+            Text(message)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.leading)
+
+            Spacer()
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.red.opacity(0.2))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.red.opacity(0.4), lineWidth: 1)
+        )
+    }
+}
+
+// MARK: - Continue Button
+private struct ContinueButton: View {
+    let isEnabled: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text("Continue")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(isEnabled ? Color(hex: "1A1F3A") : .white.opacity(0.5))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(isEnabled ? Color.white : Color.white.opacity(0.2))
+                )
+        }
+        .disabled(!isEnabled)
     }
 }
 

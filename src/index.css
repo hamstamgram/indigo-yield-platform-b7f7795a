@@ -1,4 +1,16 @@
+/* ============================================
+   INDIGO YIELD PLATFORM - FONT SYSTEM
+   Multi-font strategy for optimal UX
+   ============================================ */
+
+/* Primary UI Font - Inter (body text, forms, navigation) */
+@import './fonts/inter.css';
+
+/* Display/Marketing Font - Montserrat (headers, branding) */
 @import './fonts/montserrat.css';
+
+/* Financial Data Font - JetBrains Mono (numbers, values, data) */
+@import './fonts/jetbrains-mono.css';
 
 @tailwind base;
 @tailwind components;
@@ -6,89 +18,162 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* ============================================
+       INDIGO YIELD PLATFORM - INDIGO SPECTRUM
+       Design System v2.0 - "Sophisticated Simplicity"
+       ============================================ */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Brand Core - Indigo Spectrum */
+    --indigo-primary: 231 48% 48%;     /* #3F51B5 - Deep Indigo */
+    --indigo-light: 231 44% 56%;       /* #5C6BC0 - Soft Indigo */
+    --indigo-dark: 231 53% 35%;        /* #283593 - Night Indigo */
+    --indigo-surface: 231 15% 97%;     /* #F5F6FA - Indigo Tint */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    /* Success & Growth - Mint Spectrum */
+    --mint-success: 150 100% 39%;      /* #00C853 - Mint Teal */
+    --mint-light: 150 70% 45%;         /* #26D07C - Soft Mint */
+    --mint-surface: 150 40% 96%;       /* #E8F8F0 - Mint Wash */
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Caution & Risk - Coral/Amber Spectrum */
+    --coral-warning: 14 100% 70%;      /* #FF8A65 - Coral */
+    --amber-caution: 38 92% 58%;       /* #FDB94E - Warm Amber */
+    --coral-surface: 14 70% 97%;       /* #FFF5F2 - Coral Wash */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Neutral Foundation - Slate Spectrum */
+    --slate-900: 222 47% 11%;          /* #0F172A - Deep Slate */
+    --slate-700: 222 41% 20%;          /* #1E293B - Dark Slate */
+    --slate-500: 222 20% 50%;          /* #64748B - Mid Slate */
+    --slate-300: 222 14% 70%;          /* #CBD5E1 - Light Slate */
+    --slate-100: 222 10% 95%;          /* #F1F5F9 - Soft Slate */
+    --white: 0 0% 100%;                /* #FFFFFF - Pure White */
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 40%; /* Updated for WCAG AA contrast compliance */
+    /* ============================================
+       TAILWIND INTEGRATION LAYER
+       Maps Tailwind variables to Indigo palette
+       ============================================ */
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Layout Foundation */
+    --background: var(--white);
+    --foreground: var(--slate-900);
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Cards & Surfaces */
+    --card: var(--white);
+    --card-foreground: var(--slate-900);
 
-    --border: 214.3 31.8% 85%; /* Increased visibility for better contrast */
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Popovers & Modals */
+    --popover: var(--white);
+    --popover-foreground: var(--slate-900);
 
+    /* Primary Brand Actions */
+    --primary: var(--indigo-primary);
+    --primary-foreground: var(--white);
+
+    /* Secondary Actions */
+    --secondary: var(--slate-100);
+    --secondary-foreground: var(--slate-900);
+
+    /* Muted States */
+    --muted: var(--slate-100);
+    --muted-foreground: var(--slate-500); /* WCAG AA compliant */
+
+    /* Accent Highlights */
+    --accent: var(--indigo-surface);
+    --accent-foreground: var(--indigo-primary);
+
+    /* Destructive/Warning Actions */
+    --destructive: var(--coral-warning);
+    --destructive-foreground: var(--slate-900);
+
+    /* Success States */
+    --success: var(--mint-success);
+    --success-foreground: var(--white);
+
+    /* Caution States */
+    --caution: var(--amber-caution);
+    --caution-foreground: var(--slate-900);
+
+    /* Borders & Inputs */
+    --border: var(--slate-300);
+    --input: var(--slate-100);
+    --ring: var(--indigo-primary);
+
+    /* Border Radius */
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar (Indigo-themed) */
+    --sidebar-background: var(--indigo-surface);
+    --sidebar-foreground: var(--slate-700);
+    --sidebar-primary: var(--indigo-primary);
+    --sidebar-primary-foreground: var(--white);
+    --sidebar-accent: var(--slate-100);
+    --sidebar-accent-foreground: var(--slate-900);
+    --sidebar-border: var(--slate-300);
+    --sidebar-ring: var(--indigo-light);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* ============================================
+       DARK MODE - INDIGO SPECTRUM
+       Deep slate foundation with indigo accents
+       ============================================ */
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    /* Layout Foundation (inverted) */
+    --background: var(--slate-900);
+    --foreground: var(--slate-100);
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    /* Cards & Surfaces (darker slate) */
+    --card: var(--slate-800);
+    --card-foreground: var(--slate-100);
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Popovers & Modals */
+    --popover: var(--slate-800);
+    --popover-foreground: var(--slate-100);
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    /* Primary Brand Actions (brighter in dark mode) */
+    --primary: var(--indigo-light);
+    --primary-foreground: var(--slate-900);
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    /* Secondary Actions */
+    --secondary: var(--slate-700);
+    --secondary-foreground: var(--slate-100);
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    /* Muted States */
+    --muted: var(--slate-700);
+    --muted-foreground: var(--slate-300);
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    /* Accent Highlights */
+    --accent: var(--slate-700);
+    --accent-foreground: var(--indigo-light);
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Destructive/Warning Actions */
+    --destructive: var(--coral-warning);
+    --destructive-foreground: var(--slate-900);
+
+    /* Success States */
+    --success: var(--mint-success);
+    --success-foreground: var(--slate-900);
+
+    /* Caution States */
+    --caution: var(--amber-caution);
+    --caution-foreground: var(--slate-900);
+
+    /* Borders & Inputs */
+    --border: var(--slate-700);
+    --input: var(--slate-700);
+    --ring: var(--indigo-light);
+
+    /* Sidebar (dark indigo theme) */
+    --sidebar-background: var(--slate-900);
+    --sidebar-foreground: var(--slate-100);
+    --sidebar-primary: var(--indigo-light);
+    --sidebar-primary-foreground: var(--slate-900);
+    --sidebar-accent: var(--slate-800);
+    --sidebar-accent-foreground: var(--slate-100);
+    --sidebar-border: var(--slate-700);
+    --sidebar-ring: var(--indigo-light);
+
+    /* Dark mode specific slate shades */
+    --slate-800: 222 45% 15%;          /* #1A202C - Card Slate */
   }
 }
 
@@ -99,6 +184,36 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    font-feature-settings: 'cv05' 1, 'cv11' 1; /* Inter alternate glyphs for better readability */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Typography Scale - Following design system */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', 'Inter', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* Financial data - JetBrains Mono with tabular numbers */
+  .text-value,
+  .financial-value,
+  [data-financial="true"] {
+    font-family: 'JetBrains Mono', ui-monospace, 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  /* Display text - Montserrat for marketing/headers */
+  .text-display {
+    font-family: 'Montserrat', 'Inter', sans-serif;
+  }
+
+  /* UI text - Inter for interface elements */
+  .text-ui {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 }
 

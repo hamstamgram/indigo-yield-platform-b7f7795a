@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,11 +41,7 @@ const PlatformFeeManager = () => {
   const [newFeeRate, setNewFeeRate] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchInvestorFees();
-    fetchFeeStats();
-  }, [selectedAsset, selectedMonth, fetchInvestorFees, fetchFeeStats]);
-
+  // Declare callback functions before useEffect
   const fetchInvestorFees = useCallback(async () => {
     try {
       const { data, error } = await supabase
@@ -145,6 +141,11 @@ const PlatformFeeManager = () => {
       toast.error("Failed to load fee statistics");
     }
   }, [selectedAsset, selectedMonth, toast]);
+
+  useEffect(() => {
+    fetchInvestorFees();
+    fetchFeeStats();
+  }, [selectedAsset, selectedMonth, fetchInvestorFees, fetchFeeStats]);
 
   const updateInvestorFeeRate = async (investorId: string, newRate: number) => {
     if (newRate < 0 || newRate > 1) {

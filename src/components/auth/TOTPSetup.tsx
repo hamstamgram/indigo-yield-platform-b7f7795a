@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -88,13 +88,13 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
     { name: "1Password", icon: "🔑" },
   ];
 
-  useEffect(() => {
-    if (open && currentStep === 0) {
-      initializeSetup();
-    }
-  }, [open, currentStep, initializeSetup]);
+  const updateStepCompletion = (stepIndex: number, completed: boolean) => {
+    setSteps((prev) =>
+      prev.map((step, index) => (index === stepIndex ? { ...step, completed } : step))
+    );
+  };
 
-  const initializeSetup = async () => {
+  const initializeSetup = useCallback(async () => {
     if (!user?.id) return;
 
     setIsLoading(true);
@@ -123,13 +123,13 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, generateQRCode]);
 
-  const updateStepCompletion = (stepIndex: number, completed: boolean) => {
-    setSteps((prev) =>
-      prev.map((step, index) => (index === stepIndex ? { ...step, completed } : step))
-    );
-  };
+  useEffect(() => {
+    if (open && currentStep === 0) {
+      initializeSetup();
+    }
+  }, [open, currentStep, initializeSetup]);
 
   const verifyCode = async () => {
     if (!user?.id || !verificationCode) {

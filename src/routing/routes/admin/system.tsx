@@ -7,17 +7,17 @@ import { Route } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const AdminTools = lazy(() => import("@/pages/admin/settings/AdminTools"));
-const AdminInvite = lazy(() => import("@/pages/admin/settings/AdminInvite"));
-const AdminSettingsNew = lazy(() => import("@/pages/admin/AdminSettings"));
-const AdminAuditLogs = lazy(() => import("@/pages/admin/AdminAuditLogs"));
-const AdminAudit = lazy(() => import("@/pages/admin/settings/AdminAudit"));
-const AuditDrilldown = lazy(() => import("@/pages/admin/AuditDrilldown"));
-const AdminUserManagement = lazy(() => import("@/pages/admin/AdminUserManagement"));
-const AdminCompliance = lazy(() => import("@/pages/admin/AdminCompliance"));
-const DataIntegrityDashboard = lazy(() => import("@/pages/admin/DataIntegrityDashboard"));
+const AdminTools = lazy(() => import("@/routes/admin/settings/AdminTools"));
+const AdminInvite = lazy(() => import("@/routes/admin/settings/AdminInvite"));
+const AdminSettingsNew = lazy(() => import("@/routes/admin/AdminSettings"));
+const AdminAuditLogs = lazy(() => import("@/routes/admin/AdminAuditLogs"));
+const AdminAudit = lazy(() => import("@/routes/admin/settings/AdminAudit"));
+const AuditDrilldown = lazy(() => import("@/routes/admin/AuditDrilldown"));
+const AdminUserManagement = lazy(() => import("@/routes/admin/AdminUserManagement"));
+const AdminCompliance = lazy(() => import("@/routes/admin/AdminCompliance"));
+const DataIntegrityDashboard = lazy(() => import("@/routes/admin/DataIntegrityDashboard"));
 const SystemHealthPage = lazy(
-  () => import("@/pages/admin/system-health/SystemHealthPage")
+  () => import("@/routes/admin/system-health/SystemHealthPage")
 );
 
 export function SystemRoutes() {

@@ -8,13 +8,13 @@ import { lazy } from "react";
 import { ProtectedRoute } from "../../ProtectedRoute";
 
 // Notifications pages
-const NotificationsPage = lazy(() => import("@/pages/notifications/NotificationsPage"));
+const NotificationsPage = lazy(() => import("@/routes/notifications/NotificationsPage"));
 const NotificationSettingsPage = lazy(
-  () => import("@/pages/notifications/NotificationSettingsPage")
+  () => import("@/routes/notifications/NotificationSettingsPage")
 );
-const PriceAlertsPage = lazy(() => import("@/pages/notifications/PriceAlertsPage"));
-const NotificationHistoryPage = lazy(() => import("@/pages/notifications/NotificationHistoryPage"));
-const NotificationDetailPage = lazy(() => import("@/pages/notifications/NotificationDetailPage"));
+const PriceAlertsPage = lazy(() => import("@/routes/notifications/PriceAlertsPage"));
+const NotificationHistoryPage = lazy(() => import("@/routes/notifications/NotificationHistoryPage"));
+const NotificationDetailPage = lazy(() => import("@/routes/notifications/NotificationDetailPage"));
 
 export function NotificationRoutes() {
   return (

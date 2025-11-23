@@ -14,7 +14,10 @@
  * - Professional branding
  */
 
-import PDFDocument from "pdfkit";
+// TODO: Install pdfkit when Phase 2 is activated
+// import PDFDocument from "pdfkit";
+// Temporary stub to allow compilation
+type PDFDocument = any;
 import { PassThrough } from "stream";
 import { toDecimal, formatMoney, formatCrypto, formatPercentage } from "@/utils/financial";
 
@@ -69,11 +72,14 @@ export interface StatementData {
 }
 
 export class StatementGenerator {
-  private doc: PDFKit.PDFDocument;
+  private doc: any; // PDFKit.PDFDocument - stubbed until Phase 2
   private data: StatementData;
 
   constructor(data: StatementData) {
     this.data = data;
+    // Stubbed until pdfkit is installed in Phase 2
+    this.doc = {} as any;
+    /* Original code - restore in Phase 2:
     this.doc = new PDFDocument({
       size: "A4",
       margins: {
@@ -89,6 +95,7 @@ export class StatementGenerator {
         Keywords: "investment, statement, portfolio",
       },
     });
+    */
   }
 
   /**

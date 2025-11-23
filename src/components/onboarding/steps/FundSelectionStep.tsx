@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -57,11 +57,7 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
   const [selectedFunds, setSelectedFunds] = useState<string[]>(data.selected_funds || []);
   const [isValid, setIsValid] = useState(false);
 
-  useEffect(() => {
-    validateStep();
-  }, [selectedFunds, validateStep]);
-
-  const validateStep = () => {
+  const validateStep = useCallback(() => {
     // At least one fund must be selected
     const valid = selectedFunds.length > 0;
     setIsValid(valid);
@@ -75,7 +71,11 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
     if (valid) {
       onComplete();
     }
-  };
+  }, [selectedFunds, onUpdate, onComplete]);
+
+  useEffect(() => {
+    validateStep();
+  }, [selectedFunds, validateStep]);
 
   const handleFundSelection = (fundCode: string, selected: boolean) => {
     if (selected) {

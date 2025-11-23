@@ -7,13 +7,13 @@ import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
-const PortfolioDashboard = lazy(() => import("@/pages/admin/PortfolioDashboard"));
+const AdminDashboard = lazy(() => import("@/routes/admin/AdminDashboard"));
+const PortfolioDashboard = lazy(() => import("@/routes/admin/PortfolioDashboard"));
 const AdminTransactionsPage = lazy(
-  () => import("@/pages/admin/transactions/AdminTransactionsPage")
+  () => import("@/routes/admin/transactions/AdminTransactionsPage")
 );
 const MonthlyReportsPage = lazy(
-  () => import("@/pages/admin/reports/MonthlyReportsPage")
+  () => import("@/routes/admin/reports/MonthlyReportsPage")
 );
 
 export function CoreAdminRoutes() {

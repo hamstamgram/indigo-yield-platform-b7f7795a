@@ -32,9 +32,9 @@ export class DepositService {
     if (error) throw error;
 
     // Fetch user profiles for all deposits
-    const userIds = [
-      ...new Set(deposits?.map((d) => d.user_id).filter((id): id is string => id !== null)),
-    ];
+    const userIds = Array.from(
+      new Set(deposits?.map((d) => d.user_id).filter((id): id is string => id !== null))
+    );
 
     if (userIds.length === 0) {
       return (deposits || []) as Deposit[];

@@ -7,11 +7,11 @@ import { Route } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const AdminReports = lazy(() => import("@/pages/admin/AdminReports"));
+const AdminReports = lazy(() => import("@/routes/admin/AdminReports"));
 const HistoricalReportsDashboard = lazy(
   () => import("@/components/admin/investors/HistoricalReportsDashboard")
 );
-const AdminBatchReportsPage = lazy(() => import("@/pages/admin/AdminBatchReportsPage"));
+const AdminBatchReportsPage = lazy(() => import("@/routes/admin/AdminBatchReportsPage"));
 const PDFGenerationDemo = lazy(() =>
   import("@/components/pdf/PDFGenerationDemo").then((m) => ({ default: m.PDFGenerationDemo }))
 );

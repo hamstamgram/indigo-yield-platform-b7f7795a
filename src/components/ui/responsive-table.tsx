@@ -352,7 +352,7 @@ export function PaginatedResponsiveTable<T>({
                   return (
                     <Button
                       key={page}
-                      variant={currentPage === page ? "default" : "outline"}
+                      variant={currentPage === page ? "primary" : "outline"}
                       size="sm"
                       onClick={() => onPageChange?.(page)}
                       className="rounded-none"

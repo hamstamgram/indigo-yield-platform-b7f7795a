@@ -208,7 +208,11 @@ export function InvestorDataInput({
         description: `Performance data saved for ${selectedFund}`,
       });
 
-      setAvailableFunds((prev) => new Set([...prev, selectedFund]));
+      setAvailableFunds((prev) => {
+        const newSet = new Set(prev);
+        newSet.add(selectedFund);
+        return newSet;
+      });
 
       if (onSave) {
         onSave();

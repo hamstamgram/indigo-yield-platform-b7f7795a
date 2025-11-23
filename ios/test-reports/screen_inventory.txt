@@ -69,7 +69,6 @@ Count: 14 screens
 
 ApplePayIntegrationView.swift
 DepositConfirmationView.swift
-DepositMethodSelectionView.swift
 TransactionExportView.swift
 TransactionFiltersView.swift
 TransactionHistoryView.swift
@@ -79,7 +78,7 @@ WithdrawalAmountView.swift
 WithdrawalConfirmationView.swift
 WithdrawalStatusView.swift
 
-Count: 11 screens
+Count: 10 screens
 ---
 
 ## Withdrawals
@@ -230,4 +229,4 @@ LoadingView.swift
 Count: 4 screens
 ---
 
-=== TOTAL SCREENS: 115 ===
+=== TOTAL SCREENS: 114 ===

@@ -87,7 +87,7 @@ export function PendingItemsBreakdown({ breakdown, isLoading }: PendingItemsBrea
                     </div>
                   </div>
                   <Button
-                    variant={hasPending ? "default" : "outline"}
+                    variant={hasPending ? "primary" : "outline"}
                     size="sm"
                     onClick={() => navigate(item.href)}
                     className="gap-2"

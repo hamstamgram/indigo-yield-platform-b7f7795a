@@ -3,6 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Asset } from "@/types/investorTypes";
 import { adminServiceV2, InvestorSummaryV2 } from "@/services/adminServiceV2";
 import { useInvestorSearch } from "./useInvestorSearch";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useInvestors = () => {
   const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);
@@ -20,12 +21,19 @@ export const useInvestors = () => {
       setLoading(true);
       console.log("Fetching investor data...");
 
-      // Fetch assets - use mock data for now
-      const mockAssets = [
-        { id: 1, symbol: "USDC", name: "USD Coin", is_active: true },
-        { id: 2, symbol: "ETH", name: "Ethereum", is_active: true },
-      ];
-      setAssets(mockAssets);
+      // Fetch real assets from Supabase database
+      const { data: assetsData, error: assetsError } = await supabase
+        .from("assets")
+        .select("*")
+        .eq("is_active", true)
+        .order("symbol");
+
+      if (assetsError) {
+        console.error("Error fetching assets:", assetsError);
+        setAssets([]);
+      } else {
+        setAssets(assetsData || []);
+      }
 
       // Fetch investors with summary using adminServiceV2
       const investorsWithSummary = await adminServiceV2.getAllInvestorsWithSummary();

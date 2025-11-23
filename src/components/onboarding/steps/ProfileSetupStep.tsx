@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,10 +27,6 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({ data, onUpdate, onC
     loadUserEmail();
   }, []);
 
-  useEffect(() => {
-    validateForm();
-  }, [formData, validateForm]);
-
   const loadUserEmail = async () => {
     const {
       data: { user },
@@ -40,7 +36,7 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({ data, onUpdate, onC
     }
   };
 
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     const newErrors: Record<string, string> = {};
 
     // First name validation
@@ -76,7 +72,11 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({ data, onUpdate, onC
       });
       onComplete();
     }
-  };
+  }, [formData, data.profile, onUpdate, onComplete]);
+
+  useEffect(() => {
+    validateForm();
+  }, [formData, validateForm]);
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

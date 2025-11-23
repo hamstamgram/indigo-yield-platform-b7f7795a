@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -60,11 +60,7 @@ const DocumentsStep: React.FC<DocumentsStepProps> = ({ data, onUpdate, onComplet
   );
   const [isValid, setIsValid] = useState(false);
 
-  useEffect(() => {
-    validateStep();
-  }, [acknowledgedDocuments, finalAcknowledgment, validateStep]);
-
-  const validateStep = () => {
+  const validateStep = useCallback(() => {
     // Check if all required documents are acknowledged
     const requiredDocs = REQUIRED_DOCUMENTS.filter((doc) => doc.required);
     const allRequiredAcknowledged = requiredDocs.every((doc) => acknowledgedDocuments.has(doc.id));
@@ -81,7 +77,11 @@ const DocumentsStep: React.FC<DocumentsStepProps> = ({ data, onUpdate, onComplet
     if (valid) {
       onComplete();
     }
-  };
+  }, [acknowledgedDocuments, finalAcknowledgment, onUpdate, onComplete]);
+
+  useEffect(() => {
+    validateStep();
+  }, [acknowledgedDocuments, finalAcknowledgment, validateStep]);
 
   const handleDocumentAcknowledge = (docId: string, acknowledged: boolean) => {
     const newAcknowledged = new Set(acknowledgedDocuments);

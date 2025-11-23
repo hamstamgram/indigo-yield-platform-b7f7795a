@@ -8,13 +8,13 @@ import { lazy } from "react";
 import { ProtectedRoute } from "../../ProtectedRoute";
 
 // Core pages
-const Dashboard = lazy(() => import("@/pages/investor/dashboard/Dashboard"));
-const StatementsPage = lazy(() => import("@/pages/investor/statements/StatementsPage"));
-const TransactionsPage = lazy(() => import("@/pages/investor/portfolio/TransactionsPage"));
-const AssetDetail = lazy(() => import("@/pages/AssetDetail"));
-const AccountPage = lazy(() => import("@/pages/investor/account/AccountPage"));
-const SettingsPage = lazy(() => import("@/pages/investor/account/SettingsPage"));
-const ActivityPage = lazy(() => import("@/pages/activity/ActivityPage"));
+const Dashboard = lazy(() => import("@/routes/investor/dashboard/Dashboard"));
+const StatementsPage = lazy(() => import("@/routes/investor/statements/StatementsPage"));
+const TransactionsPage = lazy(() => import("@/routes/investor/portfolio/TransactionsPage"));
+const AssetDetail = lazy(() => import("@/routes/AssetDetail"));
+const AccountPage = lazy(() => import("@/routes/investor/account/AccountPage"));
+const SettingsPage = lazy(() => import("@/routes/investor/account/SettingsPage"));
+const ActivityPage = lazy(() => import("@/routes/activity/ActivityPage"));
 
 export function CoreInvestorRoutes() {
   return (

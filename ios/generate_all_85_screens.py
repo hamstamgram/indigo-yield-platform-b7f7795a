@@ -42,76 +42,75 @@ SCREENS: List[Tuple[str, int, str, str]] = [
     ("FundSelectorView", 28, "Fund selection interface", "Portfolio"),
     ("MultiFundView", 29, "Multi-fund management", "Portfolio"),
 
-    # Transactions (11 screens) - 2 already exist
-    ("DepositMethodSelectionView", 30, "Payment method chooser", "Transactions"),
-    ("ApplePayIntegrationView", 31, "Apple Pay flow", "Transactions"),
-    ("DepositConfirmationView", 32, "Deposit success screen", "Transactions"),
-    ("WithdrawalAmountView", 33, "Withdrawal request form", "Transactions"),
-    ("WithdrawalConfirmationView", 34, "Confirm withdrawal", "Transactions"),
-    ("WithdrawalStatusView", 35, "Withdrawal tracking", "Transactions"),
-    ("TransactionFiltersView", 36, "Advanced filtering", "Transactions"),
-    ("TransactionSearchView", 37, "Search transactions", "Transactions"),
-    ("TransactionExportView", 38, "Export to CSV/PDF", "Transactions"),
+    # Transactions (10 screens) - 2 already exist
+    ("ApplePayIntegrationView", 30, "Apple Pay flow", "Transactions"),
+    ("DepositConfirmationView", 31, "Deposit success screen", "Transactions"),
+    ("WithdrawalAmountView", 32, "Withdrawal request form", "Transactions"),
+    ("WithdrawalConfirmationView", 33, "Confirm withdrawal", "Transactions"),
+    ("WithdrawalStatusView", 34, "Withdrawal tracking", "Transactions"),
+    ("TransactionFiltersView", 35, "Advanced filtering", "Transactions"),
+    ("TransactionSearchView", 36, "Search transactions", "Transactions"),
+    ("TransactionExportView", 37, "Export to CSV/PDF", "Transactions"),
 
     # Documents & Statements (8 screens)
-    ("DocumentVaultView", 39, "Central document repository", "Documents"),
-    ("StatementListView", 40, "List of all statements", "Documents"),
-    ("StatementDetailView", 41, "PDF viewer with annotations", "Documents"),
-    ("TaxDocumentsView", 42, "Tax-related documents", "Documents"),
-    ("AccountStatementsView", 43, "Account statements by period", "Documents"),
-    ("TradeConfirmationsView", 44, "Trade confirmation docs", "Documents"),
-    ("DocumentUploadView", 45, "Upload documents with scanner", "Documents"),
-    ("DocumentCategoriesView", 46, "Browse by category", "Documents"),
+    ("DocumentVaultView", 38, "Central document repository", "Documents"),
+    ("StatementListView", 39, "List of all statements", "Documents"),
+    ("StatementDetailView", 40, "PDF viewer with annotations", "Documents"),
+    ("TaxDocumentsView", 41, "Tax-related documents", "Documents"),
+    ("AccountStatementsView", 42, "Account statements by period", "Documents"),
+    ("TradeConfirmationsView", 43, "Trade confirmation docs", "Documents"),
+    ("DocumentUploadView", 44, "Upload documents with scanner", "Documents"),
+    ("DocumentCategoriesView", 45, "Browse by category", "Documents"),
 
     # Profile & Settings (14 screens)
-    ("ProfileOverviewView", 47, "User profile summary", "Profile"),
-    ("PersonalInformationView", 48, "Edit personal details", "Profile"),
-    ("SecuritySettingsView", 49, "Security preferences", "Settings"),
-    ("BiometricSettingsView", 50, "Manage biometric auth", "Settings"),
-    ("TOTPManagementView", 51, "Setup/disable TOTP", "Settings"),
-    ("PasswordChangeView", 52, "Change password", "Settings"),
-    ("SessionManagementView", 53, "Active sessions list", "Settings"),
-    ("DeviceManagementView", 54, "Trusted devices", "Settings"),
-    ("NotificationPreferencesView", 55, "Notification settings", "Settings"),
-    ("LanguageRegionView", 56, "Language and region", "Settings"),
-    ("AppearanceSettingsView", 57, "Theme and display", "Settings"),
-    ("PrivacySettingsView", 58, "Privacy controls", "Settings"),
-    ("TermsConditionsView", 59, "Terms display", "Settings"),
-    ("AboutAppView", 60, "App info and version", "Settings"),
+    ("ProfileOverviewView", 46, "User profile summary", "Profile"),
+    ("PersonalInformationView", 47, "Edit personal details", "Profile"),
+    ("SecuritySettingsView", 48, "Security preferences", "Settings"),
+    ("BiometricSettingsView", 49, "Manage biometric auth", "Settings"),
+    ("TOTPManagementView", 50, "Setup/disable TOTP", "Settings"),
+    ("PasswordChangeView", 51, "Change password", "Settings"),
+    ("SessionManagementView", 52, "Active sessions list", "Settings"),
+    ("DeviceManagementView", 53, "Trusted devices", "Settings"),
+    ("NotificationPreferencesView", 54, "Notification settings", "Settings"),
+    ("LanguageRegionView", 55, "Language and region", "Settings"),
+    ("AppearanceSettingsView", 56, "Theme and display", "Settings"),
+    ("PrivacySettingsView", 57, "Privacy controls", "Settings"),
+    ("TermsConditionsView", 58, "Terms display", "Settings"),
+    ("AboutAppView", 59, "App info and version", "Settings"),
 
     # Reports & Analytics (8 screens)
-    ("ReportsDashboardView", 61, "Reports hub", "Reports"),
-    ("PerformanceReportView", 62, "Performance analysis", "Reports"),
-    ("TaxReportView", 63, "Tax reporting", "Reports"),
-    ("AccountActivityReportView", 64, "Activity summary", "Reports"),
-    ("CustomReportBuilderView", 65, "Build custom reports", "Reports"),
-    ("ReportHistoryView", 66, "Previous reports", "Reports"),
-    ("ReportExportView", 67, "Export reports", "Reports"),
-    ("ReportSharingView", 68, "Share reports securely", "Reports"),
+    ("ReportsDashboardView", 60, "Reports hub", "Reports"),
+    ("PerformanceReportView", 61, "Performance analysis", "Reports"),
+    ("TaxReportView", 62, "Tax reporting", "Reports"),
+    ("AccountActivityReportView", 63, "Activity summary", "Reports"),
+    ("CustomReportBuilderView", 64, "Build custom reports", "Reports"),
+    ("ReportHistoryView", 65, "Previous reports", "Reports"),
+    ("ReportExportView", 66, "Export reports", "Reports"),
+    ("ReportSharingView", 67, "Share reports securely", "Reports"),
 
     # Notifications (5 screens)
-    ("NotificationsCenterView", 69, "Notification inbox", "Notifications"),
-    ("NotificationDetailView", 70, "Single notification detail", "Notifications"),
-    ("NotificationSettingsView", 71, "Configure notifications", "Notifications"),
-    ("AlertConfigurationView", 72, "Set up alerts", "Notifications"),
-    ("NotificationHistoryView", 73, "Archive of notifications", "Notifications"),
+    ("NotificationsCenterView", 68, "Notification inbox", "Notifications"),
+    ("NotificationDetailView", 69, "Single notification detail", "Notifications"),
+    ("NotificationSettingsView", 70, "Configure notifications", "Notifications"),
+    ("AlertConfigurationView", 71, "Set up alerts", "Notifications"),
+    ("NotificationHistoryView", 72, "Archive of notifications", "Notifications"),
 
     # Support & Help (6 screens)
-    ("SupportHubView", 74, "Support center home", "Support"),
-    ("FAQView", 75, "Frequently asked questions", "Support"),
-    ("ContactSupportView", 76, "Contact form", "Support"),
-    ("TicketCreationView", 77, "Create support ticket", "Support"),
-    ("TicketListView", 78, "User's tickets", "Support"),
-    ("TicketDetailView", 79, "Ticket conversation", "Support"),
+    ("SupportHubView", 73, "Support center home", "Support"),
+    ("FAQView", 74, "Frequently asked questions", "Support"),
+    ("ContactSupportView", 75, "Contact form", "Support"),
+    ("TicketCreationView", 76, "Create support ticket", "Support"),
+    ("TicketListView", 77, "User's tickets", "Support"),
+    ("TicketDetailView", 78, "Ticket conversation", "Support"),
 
     # Admin Panel (9 screens) - 1 already exists
-    ("InvestorManagementView", 80, "Manage all investors", "Admin"),
-    ("InvestorDetailView", 81, "Individual investor admin", "Admin"),
-    ("TransactionQueueView", 82, "Pending transactions", "Admin"),
-    ("WithdrawalApprovalsView", 83, "Approve/reject withdrawals", "Admin"),
-    ("DocumentReviewView", 84, "Review submitted documents", "Admin"),
-    ("SystemSettingsView", 85, "System configuration", "Admin"),
-    ("AuditLogsView", 86, "System audit trail", "Admin"),
+    ("InvestorManagementView", 79, "Manage all investors", "Admin"),
+    ("InvestorDetailView", 80, "Individual investor admin", "Admin"),
+    ("TransactionQueueView", 81, "Pending transactions", "Admin"),
+    ("WithdrawalApprovalsView", 82, "Approve/reject withdrawals", "Admin"),
+    ("DocumentReviewView", 83, "Review submitted documents", "Admin"),
+    ("SystemSettingsView", 84, "System configuration", "Admin"),
+    ("AuditLogsView", 85, "System audit trail", "Admin"),
 ]
 
 def create_view_template(name: str, number: int, description: str, section: str) -> str:
@@ -329,7 +328,7 @@ final class {vm_name}: ObservableObject {{
 
 def main():
     """Generate all screens and ViewModels"""
-    print("🚀 Generating all 85 screens for Indigo Yield Platform iOS app...")
+    print("🚀 Generating all 84 screens for Indigo Yield Platform iOS app...")
     print(f"📁 Base path: {BASE_PATH}")
 
     # Create directories
@@ -368,7 +367,7 @@ def main():
     print(f"📊 Summary:")
     print(f"  • Generated {generated_views} new views")
     print(f"  • Generated {generated_viewmodels} new ViewModels")
-    print(f"  • Total screens: 85")
+    print(f"  • Total screens: 84")
     print(f"\\n✅ All screens are now ready for implementation!")
 
 if __name__ == "__main__":

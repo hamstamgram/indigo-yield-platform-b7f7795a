@@ -8,13 +8,13 @@ import { lazy } from "react";
 import { ProtectedRoute } from "../../ProtectedRoute";
 
 // Profile pages
-const ProfileOverview = lazy(() => import("@/pages/profile/ProfileOverview"));
-const PersonalInfo = lazy(() => import("@/pages/profile/PersonalInfo"));
-const ProfileSecurity = lazy(() => import("@/pages/profile/Security"));
-const Preferences = lazy(() => import("@/pages/profile/Preferences"));
-const ProfilePrivacy = lazy(() => import("@/pages/profile/Privacy"));
-const LinkedAccounts = lazy(() => import("@/pages/profile/LinkedAccounts"));
-const KYCVerification = lazy(() => import("@/pages/profile/KYCVerification"));
+const ProfileOverview = lazy(() => import("@/routes/profile/ProfileOverview"));
+const PersonalInfo = lazy(() => import("@/routes/profile/PersonalInfo"));
+const ProfileSecurity = lazy(() => import("@/routes/profile/Security"));
+const Preferences = lazy(() => import("@/routes/profile/Preferences"));
+const ProfilePrivacy = lazy(() => import("@/routes/profile/Privacy"));
+const LinkedAccounts = lazy(() => import("@/routes/profile/LinkedAccounts"));
+const KYCVerification = lazy(() => import("@/routes/profile/KYCVerification"));
 
 export function ProfileRoutes() {
   return (

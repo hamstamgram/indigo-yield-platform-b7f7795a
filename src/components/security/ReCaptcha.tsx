@@ -5,6 +5,7 @@
 
 import React, { useCallback, useRef } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
+import type { ReCAPTCHA as ReCAPTCHAType } from "react-google-recaptcha";
 import { useToast } from "@/hooks/use-toast";
 
 interface ReCaptchaProps {
@@ -27,7 +28,7 @@ export const ReCaptchaWrapper: React.FC<ReCaptchaProps> = ({
   theme = "light",
   className = "",
 }) => {
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
+  const recaptchaRef = useRef<ReCAPTCHAType>(null);
   const { toast } = useToast();
 
   const handleChange = useCallback(
@@ -67,9 +68,11 @@ export const ReCaptchaWrapper: React.FC<ReCaptchaProps> = ({
     return null;
   }
 
+  const ReCAPTCHAComponent = ReCAPTCHA as any;
+
   return (
     <div className={className}>
-      <ReCAPTCHA
+      <ReCAPTCHAComponent
         ref={recaptchaRef}
         sitekey={RECAPTCHA_SITE_KEY}
         onChange={handleChange}

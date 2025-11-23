@@ -602,28 +602,9 @@ Given the Xcode project configuration issue (Typography.swift file reference mis
   - Search results count
 - **Implementation Status:** ✅ COMPLETE
 
-### 4.2 Deposits (3 screens)
+### 4.2 Deposits (2 screens)
 
-#### 38. DepositMethodSelectionView
-- **Path:** `/Views/Transactions/DepositMethodSelectionView.swift`
-- **Purpose:** Payment method selection
-- **Key Features:**
-  - Apple Pay option (if available)
-  - Bank transfer (ACH)
-  - Wire transfer
-  - Check deposit
-  - Saved payment methods list
-  - Add new payment method
-- **Implementation Status:** ✅ COMPLETE
-- **Native Features:**
-  - PassKit for Apple Pay
-  - Plaid integration for bank linking
-- **Testing Notes:**
-  - Apple Pay availability detection
-  - Saved payment methods loaded correctly
-  - Secure payment method storage
-
-#### 39. ApplePayIntegrationView
+#### 38. ApplePayIntegrationView
 - **Path:** `/Views/Transactions/ApplePayIntegrationView.swift`
 - **Purpose:** Apple Pay payment flow
 - **Key Features:**
@@ -643,7 +624,7 @@ Given the Xcode project configuration issue (Typography.swift file reference mis
   - Payment success/failure handled
   - Receipt generation after payment
 
-#### 40. DepositConfirmationView
+#### 39. DepositConfirmationView
 - **Path:** `/Views/Transactions/DepositConfirmationView.swift`
 - **Purpose:** Deposit success confirmation
 - **Key Features:**

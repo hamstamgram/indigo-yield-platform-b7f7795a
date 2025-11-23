@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,17 +58,7 @@ const FundConfiguration = () => {
   const [feeHistory] = useState<FeeHistory[]>([]);
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadFunds();
-  }, [loadFunds]);
-
-  useEffect(() => {
-    if (selectedFund && !isCreating) {
-      loadFundData(selectedFund);
-    }
-  }, [selectedFund, isCreating, loadFundData]);
-
-  const loadFunds = async () => {
+  const loadFunds = useCallback(async () => {
     try {
       const fundsData = await listFunds();
       setFunds(fundsData);
@@ -84,9 +74,9 @@ const FundConfiguration = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedFund, toast]);
 
-  const loadFundData = async (fundId: string) => {
+  const loadFundData = useCallback(async (fundId: string) => {
     try {
       const fund = await getFund(fundId);
       setFundData(fund);
@@ -97,7 +87,17 @@ const FundConfiguration = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadFunds();
+  }, [loadFunds]);
+
+  useEffect(() => {
+    if (selectedFund && !isCreating) {
+      loadFundData(selectedFund);
+    }
+  }, [selectedFund, isCreating, loadFundData]);
 
   const handleSave = async () => {
     if (!fundData.name || !fundData.code) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -52,10 +52,6 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, i
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchReports();
-  }, [investorId, fetchReports]);
-
   const fetchReports = useCallback(async () => {
     try {
       setLoading(true);
@@ -75,6 +71,10 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, i
       setLoading(false);
     }
   }, [investorId, toast]);
+
+  useEffect(() => {
+    fetchReports();
+  }, [investorId, fetchReports]);
 
   const generateMonthlyTemplate = async () => {
     if (!selectedMonth) {

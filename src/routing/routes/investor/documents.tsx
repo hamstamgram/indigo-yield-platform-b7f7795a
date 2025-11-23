@@ -8,9 +8,8 @@ import { lazy } from "react";
 import { ProtectedRoute } from "../../ProtectedRoute";
 
 // Documents pages
-const DocumentsVaultPage = lazy(() => import("@/pages/documents/DocumentsVaultPage"));
-const DocumentViewerPage = lazy(() => import("@/pages/documents/DocumentViewerPage"));
-const DocumentUploadPage = lazy(() => import("@/pages/documents/DocumentUploadPage"));
+const DocumentsHubPage = lazy(() => import("@/routes/documents/DocumentsHubPage"));
+const DocumentViewerPage = lazy(() => import("@/routes/documents/DocumentViewerPage"));
 
 export function DocumentRoutes() {
   return (
@@ -19,7 +18,7 @@ export function DocumentRoutes() {
         path="/documents"
         element={
           <ProtectedRoute>
-            <DocumentsVaultPage />
+            <DocumentsHubPage />
           </ProtectedRoute>
         }
       />
@@ -27,7 +26,7 @@ export function DocumentRoutes() {
         path="/documents/upload"
         element={
           <ProtectedRoute>
-            <DocumentUploadPage />
+            <DocumentsHubPage />
           </ProtectedRoute>
         }
       />
@@ -35,7 +34,7 @@ export function DocumentRoutes() {
         path="/documents/statements"
         element={
           <ProtectedRoute>
-            <DocumentsVaultPage />
+            <DocumentsHubPage />
           </ProtectedRoute>
         }
       />
@@ -51,7 +50,7 @@ export function DocumentRoutes() {
         path="/documents/trade-confirmations"
         element={
           <ProtectedRoute>
-            <DocumentsVaultPage />
+            <DocumentsHubPage />
           </ProtectedRoute>
         }
       />
@@ -59,7 +58,7 @@ export function DocumentRoutes() {
         path="/documents/agreements"
         element={
           <ProtectedRoute>
-            <DocumentsVaultPage />
+            <DocumentsHubPage />
           </ProtectedRoute>
         }
       />
@@ -67,7 +66,7 @@ export function DocumentRoutes() {
         path="/documents/categories"
         element={
           <ProtectedRoute>
-            <DocumentsVaultPage />
+            <DocumentsHubPage />
           </ProtectedRoute>
         }
       />

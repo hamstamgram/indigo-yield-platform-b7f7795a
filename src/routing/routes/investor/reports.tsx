@@ -8,11 +8,10 @@ import { lazy } from "react";
 import { ProtectedRoute } from "../../ProtectedRoute";
 
 // Reports pages
-const ReportsDashboard = lazy(() => import("@/pages/reports/ReportsDashboard"));
-const PortfolioPerformance = lazy(() => import("@/pages/reports/PortfolioPerformance"));
-const MonthlyStatement = lazy(() => import("@/pages/reports/MonthlyStatement"));
-const CustomReport = lazy(() => import("@/pages/reports/CustomReport"));
-const ReportHistory = lazy(() => import("@/pages/reports/ReportHistory"));
+const ReportsPage = lazy(() => import("@/routes/reports/ReportsPage"));
+const PortfolioPerformance = lazy(() => import("@/routes/reports/PortfolioPerformance"));
+const MonthlyStatement = lazy(() => import("@/routes/reports/MonthlyStatement"));
+const CustomReport = lazy(() => import("@/routes/reports/CustomReport"));
 
 export function ReportsRoutes() {
   return (
@@ -21,7 +20,7 @@ export function ReportsRoutes() {
         path="/reports"
         element={
           <ProtectedRoute>
-            <ReportsDashboard />
+            <ReportsPage />
           </ProtectedRoute>
         }
       />
@@ -46,14 +45,6 @@ export function ReportsRoutes() {
         element={
           <ProtectedRoute>
             <CustomReport />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/reports/history"
-        element={
-          <ProtectedRoute>
-            <ReportHistory />
           </ProtectedRoute>
         }
       />

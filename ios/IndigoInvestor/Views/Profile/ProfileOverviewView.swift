@@ -2,154 +2,515 @@
 //  ProfileOverviewView.swift
 //  IndigoInvestor
 //
-//  Screen 47/85: User profile summary
+//  Complete user profile display with edit capabilities
 //
 
 import SwiftUI
 
 struct ProfileOverviewView: View {
     @StateObject private var viewModel = ProfileOverviewViewModel()
+    @State private var showingEdit = false
+    @State private var showingImagePicker = false
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                // Background
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color(hex: "1A1F3A"),
-                        Color(hex: "2D3561")
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+        ZStack {
+            // Background
+            IndigoTheme.Colors.background
                 .ignoresSafeArea()
 
-                ScrollView {
-                    VStack(spacing: 24) {
-                        // Header
-                        VStack(spacing: 12) {
-                            Text("User profile summary")
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundColor(.white)
-                                .multilineTextAlignment(.center)
+            ScrollView {
+                VStack(spacing: IndigoTheme.Spacing.xl3) {
+                    // Profile Header
+                    ProfileHeaderSection(
+                        viewModel: viewModel,
+                        showingImagePicker: $showingImagePicker
+                    )
 
-                            Text("Section: Profile")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.white.opacity(0.7))
-                        }
-                        .padding(.top, 40)
+                    // Account Statistics
+                    AccountStatsSection(viewModel: viewModel)
 
-                        // Content
-                        if viewModel.isLoading {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                .scaleEffect(1.5)
-                        } else if let error = viewModel.errorMessage {
-                            ErrorStateView(message: error, onRetry: {
-                                Task { await viewModel.loadData() }
-                            })
-                        } else {
-                            // Main content goes here
-                            ContentView(viewModel: viewModel)
-                        }
-                    }
-                    .padding()
+                    // Personal Information
+                    PersonalInfoSection(viewModel: viewModel)
+
+                    // Account Status
+                    AccountStatusSection(viewModel: viewModel)
+
+                    // Quick Actions
+                    QuickActionsSection(
+                        viewModel: viewModel,
+                        showingEdit: $showingEdit
+                    )
+                }
+                .padding(IndigoTheme.Spacing.xl)
+            }
+
+            // Loading Overlay
+            if viewModel.isLoading {
+                LoadingOverlay()
+            }
+        }
+        .navigationTitle("Profile")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showingEdit = true
+                } label: {
+                    Image(systemName: "pencil.circle.fill")
+                        .font(.title3)
+                        .foregroundColor(IndigoTheme.Colors.primary)
                 }
             }
-            .navigationTitle("User profile summary")
-            .navigationBarTitleDisplayMode(.inline)
-            .task {
-                await viewModel.loadData()
+        }
+        .sheet(isPresented: $showingEdit) {
+            NavigationStack {
+                PersonalInformationView()
+            }
+        }
+        .sheet(isPresented: $showingImagePicker) {
+            ImagePicker(image: $viewModel.profileImage)
+        }
+        .task {
+            await viewModel.loadProfile()
+        }
+    }
+}
+
+// MARK: - Profile Header Section
+private struct ProfileHeaderSection: View {
+    @ObservedObject var viewModel: ProfileOverviewViewModel
+    @Binding var showingImagePicker: Bool
+
+    var body: some View {
+        VStack(spacing: IndigoTheme.Spacing.xl) {
+            // Profile Picture
+            ZStack(alignment: .bottomTrailing) {
+                Group {
+                    if let image = viewModel.profileImage {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        Image(systemName: "person.circle.fill")
+                            .resizable()
+                            .foregroundColor(IndigoTheme.Colors.gray300)
+                    }
+                }
+                .frame(width: 120, height: 120)
+                .clipShape(Circle())
+                .overlay(
+                    Circle()
+                        .stroke(IndigoTheme.Colors.primary, lineWidth: 3)
+                )
+
+                // Edit Button
+                Button {
+                    showingImagePicker = true
+                } label: {
+                    Image(systemName: "camera.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(width: 32, height: 32)
+                        .background(IndigoTheme.Colors.primary)
+                        .clipShape(Circle())
+                        .overlay(
+                            Circle()
+                                .stroke(IndigoTheme.Colors.background, lineWidth: 2)
+                        )
+                }
+            }
+
+            // Name and Email
+            VStack(spacing: IndigoTheme.Spacing.sm) {
+                Text(viewModel.profile?.fullName ?? "Loading...")
+                    .font(IndigoTheme.Typography.title2)
+                    .foregroundColor(IndigoTheme.Colors.primaryText)
+
+                Text(viewModel.profile?.email ?? "")
+                    .font(IndigoTheme.Typography.callout)
+                    .foregroundColor(IndigoTheme.Colors.secondaryText)
+
+                // Verification Badge
+                if viewModel.profile?.emailVerified == true {
+                    HStack(spacing: IndigoTheme.Spacing.sm) {
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.caption)
+                            .foregroundColor(IndigoTheme.Colors.success)
+                        Text("Verified Account")
+                            .font(IndigoTheme.Typography.caption1)
+                            .foregroundColor(IndigoTheme.Colors.success)
+                    }
+                    .padding(.horizontal, IndigoTheme.Spacing.lg)
+                    .padding(.vertical, IndigoTheme.Spacing.sm)
+                    .background(IndigoTheme.Colors.success.opacity(IndigoTheme.Opacity.level10))
+                    .cornerRadius(IndigoTheme.CornerRadius.full)
+                }
             }
         }
     }
 }
 
-// MARK: - Content View
-private struct ContentView: View {
+// MARK: - Account Stats Section
+private struct AccountStatsSection: View {
     @ObservedObject var viewModel: ProfileOverviewViewModel
 
     var body: some View {
-        VStack(spacing: 20) {
-            // TODO: Implement screen-specific content
-            Text("Content for ProfileOverviewView")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.white)
+        VStack(alignment: .leading, spacing: IndigoTheme.Spacing.lg) {
+            Text("Account Statistics")
+                .font(IndigoTheme.Typography.headline)
+                .foregroundColor(IndigoTheme.Colors.primaryText)
 
-            // Placeholder cards
-            ForEach(0..<3) { index in
-                PlaceholderCard(index: index)
+            HStack(spacing: IndigoTheme.Spacing.lg) {
+                StatCard(
+                    icon: "calendar",
+                    title: "Member Since",
+                    value: viewModel.formattedJoinDate
+                )
+
+                StatCard(
+                    icon: "dollarsign.circle",
+                    title: "Total Invested",
+                    value: viewModel.formattedTotalInvested
+                )
+            }
+
+            HStack(spacing: IndigoTheme.Spacing.lg) {
+                StatCard(
+                    icon: "arrow.up.right.circle",
+                    title: "Active Positions",
+                    value: "\(viewModel.profile?.activePositions ?? 0)"
+                )
+
+                StatCard(
+                    icon: "chart.line.uptrend.xyaxis",
+                    title: "Total Returns",
+                    value: viewModel.formattedTotalReturns,
+                    valueColor: (viewModel.profile?.totalReturns ?? 0) >= 0 ?
+                        IndigoTheme.Colors.success : IndigoTheme.Colors.error
+                )
             }
         }
-        .padding()
+        .cardStyle()
     }
 }
 
-// MARK: - Placeholder Card
-private struct PlaceholderCard: View {
-    let index: Int
+// MARK: - Personal Info Section
+private struct PersonalInfoSection: View {
+    @ObservedObject var viewModel: ProfileOverviewViewModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Circle()
-                    .fill(Color(hex: "4F46E5"))
-                    .frame(width: 40, height: 40)
+        VStack(alignment: .leading, spacing: IndigoTheme.Spacing.lg) {
+            Text("Personal Information")
+                .font(IndigoTheme.Typography.headline)
+                .foregroundColor(IndigoTheme.Colors.primaryText)
 
-                VStack(alignment: .leading) {
-                    Text("Item \(index + 1)")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
-                    Text("Description")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white.opacity(0.7))
-                }
+            VStack(spacing: IndigoTheme.Spacing.lg) {
+                InfoRow(
+                    icon: "phone.fill",
+                    label: "Phone",
+                    value: viewModel.profile?.phone ?? "Not provided"
+                )
 
-                Spacer()
+                InfoRow(
+                    icon: "location.fill",
+                    label: "Address",
+                    value: viewModel.formattedAddress
+                )
 
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.white.opacity(0.5))
+                InfoRow(
+                    icon: "flag.fill",
+                    label: "Country",
+                    value: viewModel.profile?.country ?? "Not specified"
+                )
+
+                InfoRow(
+                    icon: "calendar.badge.clock",
+                    label: "Date of Birth",
+                    value: viewModel.formattedDateOfBirth
+                )
             }
         }
-        .padding()
-        .background(Color.white.opacity(0.1))
-        .cornerRadius(12)
+        .cardStyle()
     }
 }
 
-// MARK: - Error State View
-private struct ErrorStateView: View {
-    let message: String
-    let onRetry: () -> Void
+// MARK: - Account Status Section
+private struct AccountStatusSection: View {
+    @ObservedObject var viewModel: ProfileOverviewViewModel
 
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 50))
-                .foregroundColor(.red)
+        VStack(alignment: .leading, spacing: IndigoTheme.Spacing.lg) {
+            Text("Account Status")
+                .font(IndigoTheme.Typography.headline)
+                .foregroundColor(IndigoTheme.Colors.primaryText)
 
-            Text(message)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.white.opacity(0.8))
-                .multilineTextAlignment(.center)
+            VStack(spacing: IndigoTheme.Spacing.md) {
+                StatusBadge(
+                    icon: "checkmark.shield.fill",
+                    title: "KYC Verification",
+                    status: viewModel.profile?.kycVerified == true ? "Verified" : "Pending",
+                    isPositive: viewModel.profile?.kycVerified == true
+                )
 
-            Button(action: onRetry) {
-                Text("Retry")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white)
-                    .frame(width: 120, height: 44)
-                    .background(Color(hex: "4F46E5"))
-                    .cornerRadius(10)
+                StatusBadge(
+                    icon: "lock.shield.fill",
+                    title: "Two-Factor Authentication",
+                    status: viewModel.profile?.has2FA == true ? "Enabled" : "Disabled",
+                    isPositive: viewModel.profile?.has2FA == true
+                )
+
+                StatusBadge(
+                    icon: "faceid",
+                    title: "Biometric Login",
+                    status: viewModel.profile?.hasBiometric == true ? "Enabled" : "Disabled",
+                    isPositive: viewModel.profile?.hasBiometric == true
+                )
             }
         }
-        .padding()
+        .cardStyle()
+    }
+}
+
+// MARK: - Quick Actions Section
+private struct QuickActionsSection: View {
+    @ObservedObject var viewModel: ProfileOverviewViewModel
+    @Binding var showingEdit: Bool
+
+    var body: some View {
+        VStack(spacing: IndigoTheme.Spacing.lg) {
+            ActionButton(
+                icon: "person.fill",
+                title: "Edit Profile",
+                subtitle: "Update your personal information",
+                action: { showingEdit = true }
+            )
+
+            NavigationLink {
+                SecuritySettingsView()
+            } label: {
+                ActionButtonLabel(
+                    icon: "lock.shield.fill",
+                    title: "Security Settings",
+                    subtitle: "Manage your account security"
+                )
+            }
+
+            NavigationLink {
+                NotificationPreferencesView()
+            } label: {
+                ActionButtonLabel(
+                    icon: "bell.fill",
+                    title: "Notification Preferences",
+                    subtitle: "Configure your alerts and notifications"
+                )
+            }
+        }
+    }
+}
+
+// MARK: - Reusable Components
+private struct StatCard: View {
+    let icon: String
+    let title: String
+    let value: String
+    var valueColor: Color = IndigoTheme.Colors.primaryText
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: IndigoTheme.Spacing.md) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundColor(IndigoTheme.Colors.primary)
+
+            VStack(alignment: .leading, spacing: IndigoTheme.Spacing.xs) {
+                Text(title)
+                    .font(IndigoTheme.Typography.caption1)
+                    .foregroundColor(IndigoTheme.Colors.secondaryText)
+
+                Text(value)
+                    .font(IndigoTheme.Typography.headline)
+                    .foregroundColor(valueColor)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(IndigoTheme.Spacing.lg)
+        .background(IndigoTheme.Colors.secondaryBackground)
+        .cornerRadius(IndigoTheme.CornerRadius.lg)
+    }
+}
+
+private struct InfoRow: View {
+    let icon: String
+    let label: String
+    let value: String
+
+    var body: some View {
+        HStack(spacing: IndigoTheme.Spacing.lg) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundColor(IndigoTheme.Colors.primary)
+                .frame(width: 24)
+
+            VStack(alignment: .leading, spacing: IndigoTheme.Spacing.xs) {
+                Text(label)
+                    .font(IndigoTheme.Typography.caption1)
+                    .foregroundColor(IndigoTheme.Colors.secondaryText)
+
+                Text(value)
+                    .font(IndigoTheme.Typography.callout)
+                    .foregroundColor(IndigoTheme.Colors.primaryText)
+            }
+
+            Spacer()
+        }
+    }
+}
+
+private struct StatusBadge: View {
+    let icon: String
+    let title: String
+    let status: String
+    let isPositive: Bool
+
+    var body: some View {
+        HStack(spacing: IndigoTheme.Spacing.lg) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundColor(isPositive ? IndigoTheme.Colors.success : IndigoTheme.Colors.warning)
+
+            VStack(alignment: .leading, spacing: IndigoTheme.Spacing.xs) {
+                Text(title)
+                    .font(IndigoTheme.Typography.callout)
+                    .foregroundColor(IndigoTheme.Colors.primaryText)
+
+                Text(status)
+                    .font(IndigoTheme.Typography.caption1)
+                    .foregroundColor(isPositive ? IndigoTheme.Colors.success : IndigoTheme.Colors.warning)
+            }
+
+            Spacer()
+
+            Image(systemName: isPositive ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
+                .font(.title3)
+                .foregroundColor(isPositive ? IndigoTheme.Colors.success : IndigoTheme.Colors.warning)
+        }
+        .padding(IndigoTheme.Spacing.lg)
+        .background(
+            (isPositive ? IndigoTheme.Colors.success : IndigoTheme.Colors.warning)
+                .opacity(IndigoTheme.Opacity.level5)
+        )
+        .cornerRadius(IndigoTheme.CornerRadius.lg)
+    }
+}
+
+private struct ActionButton: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            ActionButtonLabel(icon: icon, title: title, subtitle: subtitle)
+        }
+    }
+}
+
+private struct ActionButtonLabel: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+
+    var body: some View {
+        HStack(spacing: IndigoTheme.Spacing.lg) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundColor(IndigoTheme.Colors.primary)
+                .frame(width: 44, height: 44)
+                .background(IndigoTheme.Colors.primary.opacity(IndigoTheme.Opacity.level10))
+                .cornerRadius(IndigoTheme.CornerRadius.lg)
+
+            VStack(alignment: .leading, spacing: IndigoTheme.Spacing.xs) {
+                Text(title)
+                    .font(IndigoTheme.Typography.callout.weight(.semibold))
+                    .foregroundColor(IndigoTheme.Colors.primaryText)
+
+                Text(subtitle)
+                    .font(IndigoTheme.Typography.caption1)
+                    .foregroundColor(IndigoTheme.Colors.secondaryText)
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundColor(IndigoTheme.Colors.tertiaryText)
+        }
+        .padding(IndigoTheme.Spacing.lg)
+        .background(IndigoTheme.Colors.cardBackground)
+        .cornerRadius(IndigoTheme.CornerRadius.xl)
+        .shadow(
+            color: IndigoTheme.Shadow.sm.color,
+            radius: IndigoTheme.Shadow.sm.radius,
+            x: IndigoTheme.Shadow.sm.x,
+            y: IndigoTheme.Shadow.sm.y
+        )
+    }
+}
+
+private struct LoadingOverlay: View {
+    var body: some View {
+        ZStack {
+            Color.black.opacity(IndigoTheme.Opacity.level30)
+                .ignoresSafeArea()
+
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                .scaleEffect(1.5)
+                .padding(IndigoTheme.Spacing.xl3)
+                .background(IndigoTheme.Colors.primary)
+                .cornerRadius(IndigoTheme.CornerRadius.xl)
+        }
+    }
+}
+
+// MARK: - Image Picker
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var image: UIImage?
+    @Environment(\.dismiss) private var dismiss
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        picker.allowsEditing = true
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePicker
+
+        init(_ parent: ImagePicker) {
+            self.parent = parent
+        }
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let image = info[.editedImage] as? UIImage {
+                parent.image = image
+            }
+            parent.dismiss()
+        }
     }
 }
 
 // MARK: - Preview
-struct ProfileOverviewView_Previews: PreviewProvider {
-    static var previews: some View {
+#Preview {
+    NavigationStack {
         ProfileOverviewView()
     }
 }

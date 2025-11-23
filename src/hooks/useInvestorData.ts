@@ -1,9 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ExpertInvestorService } from "@/services/expertInvestorService";
+import { expertInvestorService } from "@/services/expertInvestorService";
 import { CACHE_KEYS } from "@/utils/performance/caching";
 import type { UnifiedInvestorData, ExpertInvestorSummary } from "@/services/expertInvestorService";
-
-const expertInvestorService = new ExpertInvestorService();
 
 // Cache keys for investor data
 export const INVESTOR_CACHE_KEYS = {
@@ -21,7 +19,6 @@ export const INVESTOR_CACHE_KEYS = {
  * - Automatic retry with exponential backoff
  * - No refetch on window focus
  *
- * @param filters - Optional filters for investors
  * @returns Query result with all investors data
  *
  * @example
@@ -36,10 +33,10 @@ export const INVESTOR_CACHE_KEYS = {
  * };
  * ```
  */
-export function useAllInvestors(filters?: any) {
+export function useAllInvestors() {
   return useQuery({
-    queryKey: [INVESTOR_CACHE_KEYS.ALL_INVESTORS, filters],
-    queryFn: () => expertInvestorService.getAllInvestorsExpertSummary(filters),
+    queryKey: [INVESTOR_CACHE_KEYS.ALL_INVESTORS],
+    queryFn: () => expertInvestorService.getAllInvestorsExpertSummary(),
     // Cache for 5 minutes - investor list doesn't change frequently
     staleTime: 5 * 60 * 1000,
     // Keep in cache for 10 minutes even if component unmounts

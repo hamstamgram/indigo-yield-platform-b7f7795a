@@ -1,0 +1,75 @@
+# Claude Code Authorizations for Indigo Yield Platform
+# Generated: 2025-11-23
+# ULTRATHINK Mode: ENABLED
+
+## Authorized Operations (No Approval Needed)
+
+### 1. CODE MODIFICATIONS
+AUTHORIZED: All code changes in src/, ios/, components/
+AUTHORIZED: Design token updates in src/styles/
+AUTHORIZED: Component implementations and refactoring
+AUTHORIZED: Test file creation and updates
+
+### 2. DATABASE OPERATIONS
+AUTHORIZED: Read Supabase migrations
+AUTHORIZED: Apply migrations via ./apply_security_fixes.sh
+AUTHORIZED: Run verification queries
+PROJECT_ID: nkfimvovosdehmyyjubn
+PROJECT_URL: https://nkfimvovosdehmyyjubn.supabase.co
+
+### 3. BUILD & TEST COMMANDS
+AUTHORIZED: npm run build
+AUTHORIZED: npm run test
+AUTHORIZED: npm run test:unit
+AUTHORIZED: npm run test:e2e
+AUTHORIZED: npm run lint
+AUTHORIZED: npm run type-check
+AUTHORIZED: npm run test:coverage
+
+### 4. GIT OPERATIONS
+AUTHORIZED: git status
+AUTHORIZED: git diff
+AUTHORIZED: git add
+AUTHORIZED: git commit (with descriptive messages)
+AUTHORIZED: git push (after user review)
+
+### 5. FILE OPERATIONS
+AUTHORIZED: Read all project files
+AUTHORIZED: Write to src/, ios/, tests/, docs/
+AUTHORIZED: Create new components, tests, documentation
+AUTHORIZED: Update package.json dependencies
+
+### 6. PERFORMANCE OPERATIONS
+AUTHORIZED: Bundle analysis
+AUTHORIZED: Performance benchmarking
+AUTHORIZED: Lighthouse audits
+AUTHORIZED: Memory profiling
+
+### 7. DEPLOYMENT PREPARATION
+AUTHORIZED: Build verification
+AUTHORIZED: Test suite execution
+AUTHORIZED: Documentation updates
+AUTHORIZED: Pre-deployment checklists
+
+## Project Paths
+PROJECT_ROOT: /Users/mama/indigo-yield-platform-v01/
+IOS_ROOT: /Users/mama/indigo-yield-platform-v01/ios/
+SRC_ROOT: /Users/mama/indigo-yield-platform-v01/src/
+
+## Quality Targets
+LIGHTHOUSE_MIN: 95
+TEST_COVERAGE_MIN: 85%
+BUNDLE_SIZE_MAX: 200KB
+WCAG_LEVEL: AA (AAA where feasible)
+
+## Work Mode
+MODE: ULTRATHINK
+PARALLEL_AGENTS: ENABLED
+EXTENDED_THINKING: ENABLED
+AUTO_TESTING: ENABLED
+
+## Notes
+- All database migrations require manual execution via script
+- Environment variables configured separately (.env.local)
+- User review required before git push
+- Production deployment requires explicit approval

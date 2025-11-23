@@ -23,24 +23,17 @@ const TEST_CONFIG = {
   outputDir: "./test-reports/generated",
 };
 
-// All report types to test
+// All report types to test (using valid ReportType values)
 const REPORT_TYPES: ReportType[] = [
-  // Investor Reports
-  "portfolio_performance",
+  "portfolio_summary",
   "transaction_history",
-  "tax_report",
+  "tax_summary",
+  "performance_analysis",
+  "holdings_detail",
   "monthly_statement",
-  "annual_summary",
-  "custom_date_range",
-
-  // Admin Reports
-  "aum_report",
-  "investor_activity",
-  "transaction_volume",
-  "compliance_report",
-  "fund_performance",
-  "fee_analysis",
-  "audit_trail",
+  "capital_gains",
+  "income_statement",
+  "custom",
 ];
 
 // All formats to test

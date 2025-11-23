@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import "./index.css";
 import { initSentry } from "./utils/monitoring/sentry";
 import { initPostHog } from "./utils/analytics/posthog";
 import "./utils/cleanup/debugCleanup"; // Initialize cleanup on app start

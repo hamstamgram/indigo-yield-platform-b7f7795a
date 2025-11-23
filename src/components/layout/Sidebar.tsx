@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import NavSection from "@/components/sidebar/NavSection";
 import UserProfile from "@/components/sidebar/UserProfile";
 import LogoutButton from "@/components/sidebar/LogoutButton";
-import { adminNavGroups, mainNav, accountNav, settingsNav } from "@/config/navigation";
+import { adminNavGroups, mainNav } from "@/config/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,10 @@ type SidebarProps = {
   isAdmin?: boolean;
 };
 const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps) => {
+  // Temporary empty arrays for removed nav items
+  const accountNav: NavItem[] = [];
+  const settingsNav: NavItem[] = [];
+
   const [userName, setUserName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedGroups, setExpandedGroups] = useState<string[]>(["Main"]);

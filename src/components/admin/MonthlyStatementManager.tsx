@@ -16,7 +16,7 @@
  * - Error handling
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -107,17 +107,6 @@ export function MonthlyStatementManager() {
   });
 
   // Load periods on mount
-  useEffect(() => {
-    loadPeriods();
-  }, [loadPeriods]);
-
-  // Load investors when period selected
-  useEffect(() => {
-    if (selectedPeriod) {
-      loadInvestors(selectedPeriod.id);
-    }
-  }, [loadInvestors, selectedPeriod]);
-
   const loadPeriods = useCallback(async () => {
     try {
       const { data, error } = await statementsApi.getPeriods();
@@ -134,6 +123,7 @@ export function MonthlyStatementManager() {
     }
   }, [toast]);
 
+  // Load investors when period selected
   const loadInvestors = useCallback(
     async (periodId: string) => {
       setIsLoading(true);
@@ -156,9 +146,24 @@ export function MonthlyStatementManager() {
     [toast]
   );
 
+  useEffect(() => {
+    loadPeriods();
+  }, [loadPeriods]);
+
+  useEffect(() => {
+    if (selectedPeriod) {
+      loadInvestors(selectedPeriod.id);
+    }
+  }, [loadInvestors, selectedPeriod]);
+
   const handleCreatePeriod = async (data: z.infer<typeof createPeriodSchema>) => {
     try {
-      const { error } = await statementsApi.createPeriod(data);
+      const { error } = await statementsApi.createPeriod(data as {
+        year: number;
+        month: number;
+        period_name: string;
+        period_end_date: string;
+      });
       if (error) throw new Error(error);
 
       toast({
@@ -347,7 +352,7 @@ export function MonthlyStatementManager() {
                   <CardFooter>
                     <Button
                       onClick={() => setSelectedPeriod(period)}
-                      variant={selectedPeriod?.id === period.id ? "default" : "outline"}
+                      variant={selectedPeriod?.id === period.id ? "primary" : "outline"}
                     >
                       {selectedPeriod?.id === period.id ? "Selected" : "Select Period"}
                     </Button>
@@ -408,7 +413,7 @@ export function MonthlyStatementManager() {
                     <Button
                       onClick={handleSendAll}
                       disabled={isLoading || pendingStatementsCount === 0}
-                      variant="default"
+                      variant="primary"
                     >
                       {isLoading ? (
                         <>

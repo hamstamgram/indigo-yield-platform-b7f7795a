@@ -126,11 +126,14 @@ export class OnboardingSyncService {
       const airtableRecord = await this.airtableService.fetchRecordById(airtableRecordId);
 
       // Check if already exists
-      const { data: existing } = await supabase
+      // Cast supabase to any to avoid excessive type depth inference in query builder
+      const result = await (supabase as any)
         .from("onboarding_submissions")
         .select("id")
         .eq("airtable_record_id", airtableRecordId)
         .single();
+
+      const { data: existing } = result as { data: any; error: any };
 
       if (existing) {
         // Update existing record
@@ -217,7 +220,8 @@ export class OnboardingSyncService {
    * Get set of existing Airtable record IDs from local DB
    */
   private async getExistingAirtableRecordIds(): Promise<Set<string>> {
-    const { data, error } = await supabase
+    // Cast supabase to any - onboarding_submissions table not in generated types
+    const { data, error } = await (supabase as any)
       .from("onboarding_submissions")
       .select("airtable_record_id");
 
@@ -235,7 +239,8 @@ export class OnboardingSyncService {
   private async insertSubmission(airtableRecord: AirtableOnboardingRecord): Promise<void> {
     const row = this.mapAirtableRecordToRow(airtableRecord);
 
-    const { error } = await supabase.from("onboarding_submissions").insert(row);
+    // Cast supabase to any - onboarding_submissions table not in generated types
+    const { error } = await (supabase as any).from("onboarding_submissions").insert(row);
 
     if (error) {
       console.error(`❌ Failed to insert submission:`, error);
@@ -255,10 +260,13 @@ export class OnboardingSyncService {
     // Remove fields that shouldn't be updated
     const { airtable_record_id, submitted_at, ...updateFields } = row;
 
-    const { error } = await supabase
+    // Cast supabase to any to avoid excessive type depth inference in query builder
+    const result = await (supabase as any)
       .from("onboarding_submissions")
       .update(updateFields)
       .eq("airtable_record_id", airtableRecordId);
+
+    const { error } = result as { data: any; error: any };
 
     if (error) {
       console.error(`❌ Failed to update submission:`, error);

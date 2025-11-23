@@ -45,7 +45,7 @@ export async function exportInvestorPositions(): Promise<Blob> {
     if (error) throw error;
 
     // Get user emails separately to avoid relation issues
-    const userIds = [...new Set(data?.map((p) => p.user_id) || [])];
+    const userIds = Array.from(new Set(data?.map((p) => p.user_id) || []));
     const { data: profiles } = await supabase
       .from("profiles")
       .select("id, email, first_name, last_name")

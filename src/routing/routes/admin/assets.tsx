@@ -7,7 +7,7 @@ import { Route } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const AdminAssetsPage = lazy(() => import("@/pages/admin/AdminAssetsPage"));
+const AdminAssetsPage = lazy(() => import("@/routes/admin/AdminAssetsPage"));
 
 export function AssetRoutes() {
   return (

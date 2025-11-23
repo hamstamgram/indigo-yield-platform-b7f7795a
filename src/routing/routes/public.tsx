@@ -7,26 +7,26 @@ import { Route } from "react-router-dom";
 import { lazy } from "react";
 
 // Core pages loaded immediately
-import Index from "@/pages/Index";
-import Login from "@/pages/Login";
-import NotFound from "@/pages/NotFound";
+import Index from "@/routes/Index";
+import Login from "@/routes/Login";
+import NotFound from "@/routes/NotFound";
 
 // Password reset pages
-const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
-const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
+const ForgotPassword = lazy(() => import("@/routes/ForgotPassword"));
+const ResetPassword = lazy(() => import("@/routes/ResetPassword"));
 
 // Admin invite (public access for new admin setup)
-const AdminInvite = lazy(() => import("@/pages/admin/settings/AdminInvite"));
+const AdminInvite = lazy(() => import("@/routes/admin/settings/AdminInvite"));
 
 // Public info pages
-const Terms = lazy(() => import("@/pages/Terms"));
-const Privacy = lazy(() => import("@/pages/Privacy"));
-const Contact = lazy(() => import("@/pages/Contact"));
-const About = lazy(() => import("@/pages/About"));
-const Strategies = lazy(() => import("@/pages/Strategies"));
-const FAQ = lazy(() => import("@/pages/FAQ"));
-const Health = lazy(() => import("@/pages/Health"));
-const Status = lazy(() => import("@/pages/Status"));
+const Terms = lazy(() => import("@/routes/Terms"));
+const Privacy = lazy(() => import("@/routes/Privacy"));
+const Contact = lazy(() => import("@/routes/Contact"));
+const About = lazy(() => import("@/routes/About"));
+const Strategies = lazy(() => import("@/routes/Strategies"));
+const FAQ = lazy(() => import("@/routes/FAQ"));
+const Health = lazy(() => import("@/routes/Health"));
+const Status = lazy(() => import("@/routes/Status"));
 
 /**
  * Public Routes Component
