@@ -143,7 +143,7 @@ export default function AdminInvestorsPage() {
                       <TableCell>
                         <Badge variant="outline">{investor.kyc_status}</Badge>
                       </TableCell>
-                      <TableCell>{new Date(investor.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>{investor.created_at ? new Date(investor.created_at).toLocaleDateString() : 'N/A'}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
