@@ -444,66 +444,6 @@ struct InvestorProfile: Codable, Identifiable {
     let updatedAt: Date
 }
 
-struct Portfolio: Codable, Identifiable {
-    let id: UUID
-    let investorId: UUID
-    let totalInvested: Decimal
-    let currentValue: Decimal
-    let totalReturn: Decimal
-    var positions: [Position]
-    let lastUpdated: Date
-}
-
-struct Position: Codable, Identifiable {
-    let id: UUID
-    let investorId: UUID
-    let assetName: String
-    let assetType: String
-    let quantity: Decimal
-    let averagePrice: Decimal
-    let currentPrice: Decimal
-    let currentValue: Decimal
-    let unrealizedGainLoss: Decimal
-    let allocationPercentage: Decimal
-}
-
-struct Transaction: Codable, Identifiable {
-    let id: UUID
-    let investorId: UUID
-    let type: String
-    let amount: Decimal
-    let status: String
-    let description: String?
-    let createdAt: Date
-    let processedAt: Date?
-}
-
-struct Statement: Codable, Identifiable {
-    let id: UUID
-    let investorId: UUID
-    let statementDate: Date
-    let startingBalance: Decimal
-    let endingBalance: Decimal
-    let totalDeposits: Decimal
-    let totalWithdrawals: Decimal
-    let totalGainLoss: Decimal
-    let statementUrl: String?
-    let createdAt: Date
-}
-
-struct WithdrawalRequest: Codable {
-    let investorId: UUID
-    let amount: Decimal
-    let reason: String?
-    let status: RequestStatus
-    let requestedAt: Date
-    
-    enum RequestStatus: String, Codable {
-        case pending, approved, rejected, processed
-    }
-}
-
-struct ApprovalRequest: Codable, Identifiable {
     let id: UUID
     let type: String
     let investorId: UUID

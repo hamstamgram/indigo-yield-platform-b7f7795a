@@ -304,22 +304,6 @@ struct QuickActionsCard: View {
 }
 
 // Helper Models (Stubbed for View - Implementation in ViewModel)
-struct AssetPosition: Identifiable {
-    let id: String
-    let fundName: String
-    let assetCode: String
-    let balance: Decimal
-    let openingBalance: Decimal
-    let additions: Decimal
-    let withdrawals: Decimal
-    let mtdYield: Decimal
-    
-    var balanceFormatted: String { balance.formatted() }
-    var mtdYieldFormatted: String { "+\(mtdYield.formatted())" }
-    var openingBalanceFormatted: String { openingBalance.formatted() }
-    var additionsFormatted: String { "+\(additions.formatted())" }
-    var withdrawalsFormatted: String { withdrawals > 0 ? "-\(withdrawals.formatted())" : "0.0000" }
-}
 
 struct EmptyStateView: View {
     let iconName: String
