@@ -41,7 +41,7 @@ export default function DocumentsHubPage() {
 
   const filteredDocuments = documents?.filter((doc) => {
     const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === "all" || doc.category === categoryFilter;
+    const matchesCategory = categoryFilter === "all" || doc.type === categoryFilter;
     return matchesSearch && matchesCategory;
   });
 
@@ -128,11 +128,11 @@ export default function DocumentsHubPage() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary" className="capitalize">
-                          {doc.category}
+                          {doc.type}
                         </Badge>
                       </TableCell>
                       <TableCell>{new Date(doc.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell>{(doc.size / 1024 / 1024).toFixed(2)} MB</TableCell>
+                      <TableCell>N/A</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button variant="ghost" size="icon">

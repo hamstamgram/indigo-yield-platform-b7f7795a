@@ -407,28 +407,3 @@ struct ChartDataPoint: Identifiable {
     let date: Date
     let value: Double
 }
-
-// MARK: - View Model
-class DashboardViewModel: ObservableObject {
-    @Published var portfolioValue: Double = 1375123.45
-    @Published var dayChange: Double = 12.5
-    @Published var assets: [Asset] = []
-    @Published var recentActivities: [Activity] = []
-
-    struct Asset {
-        let id = UUID()
-        let symbol: String
-        let name: String
-        let amount: Double
-        let value: Double
-        let change: Double
-    }
-
-    struct Activity {
-        let id = UUID()
-        let type: String
-        let description: String
-        let amount: Double
-        let date: Date
-    }
-}

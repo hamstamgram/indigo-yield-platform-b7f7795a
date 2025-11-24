@@ -30,9 +30,6 @@ class ServiceLocator: ObservableObject {
     
     // MARK: - Repositories
     private(set) var portfolioRepository: PortfolioRepository!
-    private(set) var transactionRepository: TransactionRepository!
-    private(set) var statementRepository: StatementRepository!
-    private(set) var withdrawalRepository: WithdrawalRepository!
     
     // MARK: - Core Data
     private(set) var coreDataStack: CoreDataStack!
@@ -63,7 +60,7 @@ class ServiceLocator: ObservableObject {
         }
 
         // Use KeychainLocalStorage for secure token storage
-        let storage = KeychainLocalStorage(service: "com.indigo.investor")
+        let storage = KeychainLocalStorage()
 
         // Create URLSession with proper timeout and retry configuration
         let sessionConfig = URLSessionConfiguration.default
@@ -116,15 +113,16 @@ class ServiceLocator: ObservableObject {
         networkMonitor = NetworkMonitor()
     }
     
+    @MainActor
     private func initializeServices() {
         guard let client = supabaseClient else { return }
 
         // Initialize offline manager
-        offlineManager = OfflineManager(coreDataStack: coreDataStack, networkMonitor: networkMonitor)
+        offlineManager = OfflineManager(coreDataStack: coreDataStack)
 
         // Initialize core services first
-        realtimeService = RealtimeService(supabase: client)
-        storageService = StorageService(supabase: client)
+        realtimeService = RealtimeService(client: client)
+        storageService = StorageService(client: client)
 
         // Initialize repositories with proper dependencies
         portfolioRepository = PortfolioRepository(
@@ -132,9 +130,6 @@ class ServiceLocator: ObservableObject {
             coreData: coreDataStack,
             offlineManager: offlineManager
         )
-        transactionRepository = TransactionRepository(coreDataStack: coreDataStack)
-        statementRepository = StatementRepository(coreDataStack: coreDataStack)
-        withdrawalRepository = WithdrawalRepository(coreDataStack: coreDataStack)
 
         // Initialize auth service first (as other services depend on it)
         authService = AuthService(
@@ -150,19 +145,19 @@ class ServiceLocator: ObservableObject {
         )
 
         transactionService = TransactionService(
-            repository: transactionRepository
+            client: client
         )
 
         documentService = DocumentService(
-            repository: statementRepository,
+            client: client,
             storageService: storageService
         )
 
         withdrawalService = WithdrawalService(
-            repository: withdrawalRepository
+            client: client
         )
 
-        adminService = AdminService(supabase: client)
+        adminService = AdminService(supabaseClient: client)
 
         print("✅ All services initialized successfully")
 

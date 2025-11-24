@@ -51,40 +51,6 @@ class StorageService {
     }
 }
 
-// MARK: - Offline Manager
-
-class OfflineManager {
-    private let coreDataStack: CoreDataStack
-    private var syncQueue: [SyncOperation] = []
-    
-    init(coreDataStack: CoreDataStack) {
-        self.coreDataStack = coreDataStack
-    }
-    
-    func saveForOffline<T: Codable>(_ data: T, type: String, id: String) {
-        // Save to Core Data for offline access
-        let context = coreDataStack.context
-        // Implementation would save to Core Data
-    }
-    
-    func loadOfflineData<T: Codable>(type: String, as: T.Type) -> [T] {
-        // Load from Core Data
-        return []
-    }
-    
-    func syncPendingOperations() async throws {
-        // Sync pending operations when online
-        for operation in syncQueue {
-            try await operation.execute()
-        }
-        syncQueue.removeAll()
-    }
-    
-    func addSyncOperation(_ operation: SyncOperation) {
-        syncQueue.append(operation)
-    }
-}
-
 struct SyncOperation {
     let id: UUID = UUID()
     let type: String

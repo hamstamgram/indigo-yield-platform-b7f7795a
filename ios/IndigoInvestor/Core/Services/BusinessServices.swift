@@ -135,16 +135,27 @@ class DocumentService {
 // MARK: - Withdrawal Service
 
 class WithdrawalService {
-    private let repository: WithdrawalRepository
+    private let client: SupabaseClient
     @Published var withdrawals: [Withdrawal] = []
     @Published var pendingWithdrawal: Withdrawal?
     
-    init(repository: WithdrawalRepository) {
-        self.repository = repository
+    init(client: SupabaseClient) {
+        self.client = client
     }
     
     func loadWithdrawals(for userId: String) async throws {
-        withdrawals = try await repository.fetchWithdrawals(for: userId)
+        let response = try await client.database
+            .from("withdrawal_requests")
+            .select()
+            .eq("investor_id", value: userId)
+            .order("created_at", ascending: false)
+            .execute()
+        
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .iso8601
+        
+        withdrawals = try decoder.decode([Withdrawal].self, from: response.data)
         pendingWithdrawal = withdrawals.first { $0.status == "pending" }
     }
     
@@ -157,70 +168,19 @@ class WithdrawalService {
             created_at: Date()
         )
         
-        try await repository.createWithdrawal(withdrawal)
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        encoder.dateEncodingStrategy = .iso8601
+        
+        let data = try encoder.encode(withdrawal)
+        
+        _ = try await client.database
+            .from("withdrawal_requests")
+            .insert(data)
+            .execute()
+        
         // Reload withdrawals
         try await loadWithdrawals(for: userId)
-    }
-}
-
-// MARK: - Admin Service
-
-class AdminService {
-    private let client: SupabaseClient
-    
-    init(client: SupabaseClient) {
-        self.client = client
-    }
-    
-    func fetchAllInvestors() async throws -> [InvestorQueryResult] {
-        let response = try await client.database
-            .from("profiles")
-            .select()
-            .eq("role", value: "investor")
-            .execute()
-        
-        return try JSONDecoder().decode([InvestorQueryResult].self, from: response.data)
-    }
-    
-    func approveWithdrawal(withdrawalId: String) async throws {
-        try await client.database
-            .from("withdrawal_requests")
-            .update(["status": "approved", "approved_at": Date().ISO8601Format()])
-            .eq("id", value: withdrawalId)
-            .execute()
-    }
-    
-    func rejectWithdrawal(withdrawalId: String, reason: String) async throws {
-        try await client.database
-            .from("withdrawal_requests")
-            .update([
-                "status": "rejected",
-                "rejection_reason": reason,
-                "rejected_at": Date().ISO8601Format()
-            ])
-            .eq("id", value: withdrawalId)
-            .execute()
-    }
-    
-    func uploadStatement(for userId: String, data: Data, period: DateInterval) async throws {
-        // Upload PDF to storage
-        let path = "statements/\(userId)/\(UUID().uuidString).pdf"
-        let storageService = StorageService(client: client)
-        let storagePath = try await storageService.uploadDocument(data: data, path: path)
-        
-        // Create statement record
-        let statement = [
-            "investor_id": userId,
-            "period_start": period.start.ISO8601Format(),
-            "period_end": period.end.ISO8601Format(),
-            "file_path": storagePath,
-            "created_at": Date().ISO8601Format()
-        ]
-        
-        try await client.database
-            .from("statements")
-            .insert(statement)
-            .execute()
     }
 }
 
