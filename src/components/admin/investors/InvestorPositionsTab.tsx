@@ -1,319 +1,335 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
 import {
-  getInvestorPositions,
-  updateInvestorPosition,
-  type InvestorPosition,
-} from "@/services/fundService";
-import FundAssetDropdown from "@/components/admin/investors/FundAssetDropdown";
-import { TrendingUp, Percent, Users, Save } from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "sonner";
+import { Plus, Pencil, Trash2, Loader2, AlertCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
-interface InvestorPositionsTabProps {
-  investorId: string;
-}
+export default function InvestorPositionsTab({ investorId }: { investorId: string }) {
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState<any>(null);
+  const queryClient = useQueryClient();
 
-export default function InvestorPositionsTab({ investorId }: InvestorPositionsTabProps) {
-  const { toast } = useToast();
-  const [positions, setPositions] = useState<InvestorPosition[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [editingPosition, setEditingPosition] = useState<string | null>(null);
-  const [editValues, setEditValues] = useState<Record<string, Partial<InvestorPosition>>>({});
+  // Fetch Positions
+  const { data: positions, isLoading } = useQuery({
+    queryKey: ["investor-positions", investorId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("investor_positions")
+        .select(
+          `
+          *,
+          funds ( id, name, asset_symbol )
+        `
+        )
+        .eq("investor_id", investorId);
 
-  useEffect(() => {
-    if (investorId) {
-      fetchPositions();
-    }
-  }, [investorId]);
+      if (error) throw error;
+      return data;
+    },
+  });
 
-  const fetchPositions = async () => {
-    if (!investorId) return;
+  // Add Position Mutation
+  const addPositionMutation = useMutation({
+    mutationFn: async (newPosition: any) => {
+      const { error } = await supabase.from("investor_positions").insert([
+        {
+          investor_id: investorId,
+          fund_id: newPosition.fundId,
+          shares: parseFloat(newPosition.shares),
+          status: "active",
+          total_yield_earned: 0,
+        },
+      ]);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["investor-positions", investorId] });
+      setIsAddOpen(false);
+      toast.success("Position added successfully");
+    },
+    onError: (error: any) => {
+      toast.error(`Error adding position: ${error.message}`);
+    },
+  });
 
-    try {
-      setIsLoading(true);
-      const data = await getInvestorPositions(investorId);
-      setPositions(data);
-    } catch (error) {
-      console.error("Error fetching positions:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load investor positions",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Update Position Mutation
+  const updatePositionMutation = useMutation({
+    mutationFn: async (position: any) => {
+      const { error } = await supabase
+        .from("investor_positions")
+        .update({
+          shares: parseFloat(position.shares),
+          status: position.status,
+        })
+        .eq("id", position.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["investor-positions", investorId] });
+      setIsEditOpen(false);
+      toast.success("Position updated successfully");
+    },
+    onError: (error: any) => {
+      toast.error(`Error updating position: ${error.message}`);
+    },
+  });
 
-  const handleEditPosition = (fundId: string, position: InvestorPosition) => {
-    setEditingPosition(fundId);
-    setEditValues({
-      [fundId]: {
-        shares: position.shares,
-        current_value: position.current_value,
-        cost_basis: position.cost_basis,
-      },
-    });
-  };
+  // Delete Position Mutation
+  const deletePositionMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("investor_positions").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["investor-positions", investorId] });
+      toast.success("Position deleted successfully");
+    },
+    onError: (error: any) => {
+      toast.error(`Error deleting position: ${error.message}`);
+    },
+  });
 
-  const handleSavePosition = async (fundId: string) => {
-    if (!investorId || !editValues[fundId]) return;
+  // Fetch Funds for Dropdown
+  const { data: funds } = useQuery({
+    queryKey: ["active-funds"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("funds").select("id, name, asset_symbol");
+      if (error) throw error;
+      return data;
+    },
+  });
 
-    try {
-      const updates = editValues[fundId];
-      const result = await updateInvestorPosition(investorId, fundId, updates);
-
-      if (!result.success) {
-        throw new Error(result.error);
-      }
-
-      toast({
-        title: "Success",
-        description: "Position updated successfully",
-      });
-
-      await fetchPositions();
-      setEditingPosition(null);
-      setEditValues({});
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update position",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditingPosition(null);
-    setEditValues({});
-  };
-
-  const updateEditValue = (fundId: string, field: string, value: string) => {
-    setEditValues((prev) => ({
-      ...prev,
-      [fundId]: {
-        ...prev[fundId],
-        [field]: parseFloat(value) || 0,
-      },
-    }));
+  const handleEdit = (position: any) => {
+    setSelectedPosition(position);
+    setIsEditOpen(true);
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading positions...</p>
-        </div>
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Portfolio Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Fund Count</p>
-                <p className="text-lg font-semibold">{positions.length}</p>
-              </div>
-              <Users className="h-8 w-8 text-indigo-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Shares</p>
-                <p className="text-lg font-semibold">
-                  {positions.reduce((sum, pos) => sum + pos.shares, 0).toFixed(8)}
-                </p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Active Positions</p>
-                <p className="text-lg font-semibold">
-                  {positions.filter((pos) => pos.shares > 0).length}
-                </p>
-              </div>
-              <Percent className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold">Asset Positions</h2>
+        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" /> Add Position
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Position</DialogTitle>
+            </DialogHeader>
+            <AddPositionForm
+              funds={funds || []}
+              onSubmit={(data) => addPositionMutation.mutate(data)}
+              isLoading={addPositionMutation.isPending}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {/* Fund Positions */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Fund Positions
-              </CardTitle>
-              <CardDescription>View and manage positions across different funds</CardDescription>
-            </div>
-            {investorId && (
-              <FundAssetDropdown investorId={investorId} onFundAdded={fetchPositions} />
-            )}
-          </div>
+          <CardTitle>Current Holdings</CardTitle>
         </CardHeader>
         <CardContent>
-          {positions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>No fund positions found for this investor.</p>
-              <p className="text-sm mt-2">Use the "Add Fund" button to create a new position.</p>
-            </div>
+          {positions && positions.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Fund</TableHead>
+                  <TableHead>Shares/Balance</TableHead>
+                  <TableHead>Asset</TableHead>
+                  <TableHead>Total Yield</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {positions.map((pos) => (
+                  <TableRow key={pos.id}>
+                    <TableCell className="font-medium">{pos.funds?.name}</TableCell>
+                    <TableCell className="font-mono">{Number(pos.shares).toFixed(4)}</TableCell>
+                    <TableCell>{pos.funds?.asset_symbol}</TableCell>
+                    <TableCell className="text-green-600 font-mono">
+                      +{Number(pos.total_yield_earned).toFixed(4)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={pos.status === "active" ? "default" : "secondary"}>
+                        {pos.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="icon" onClick={() => handleEdit(pos)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => {
+                            if (confirm("Are you sure you want to delete this position?")) {
+                              deletePositionMutation.mutate(pos.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           ) : (
-            <div className="space-y-4">
-              {positions.map((position: any) => (
-                <div key={position.fund_id} className="border rounded-lg p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold text-lg">
-                        {position.fund?.name || "Unknown Fund"}
-                      </h3>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <Badge variant="outline">{position.fund?.code || "N/A"}</Badge>
-                        <span>{position.fund?.asset || "N/A"}</span>
-                        <span>Class {position.fund_class}</span>
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <div className="text-lg font-semibold">
-                        {position.current_value?.toFixed(8) || "0.00000000"}{" "}
-                        {position.fund?.asset || "N/A"}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {position.aum_percentage?.toFixed(2) || "0.00"}% of fund AUM
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {editingPosition === position.fund_id ? (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor={`shares-${position.fund_id}`}>Shares</Label>
-                        <Input
-                          id={`shares-${position.fund_id}`}
-                          type="number"
-                          step="0.00000001"
-                          value={editValues[position.fund_id]?.shares || 0}
-                          onChange={(e) =>
-                            updateEditValue(position.fund_id, "shares", e.target.value)
-                          }
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor={`value-${position.fund_id}`}>Current Value</Label>
-                        <Input
-                          id={`value-${position.fund_id}`}
-                          type="number"
-                          step="0.01"
-                          value={editValues[position.fund_id]?.current_value || 0}
-                          onChange={(e) =>
-                            updateEditValue(position.fund_id, "current_value", e.target.value)
-                          }
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor={`cost-${position.fund_id}`}>Cost Basis</Label>
-                        <Input
-                          id={`cost-${position.fund_id}`}
-                          type="number"
-                          step="0.01"
-                          value={editValues[position.fund_id]?.cost_basis || 0}
-                          onChange={(e) =>
-                            updateEditValue(position.fund_id, "cost_basis", e.target.value)
-                          }
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <span className="text-muted-foreground">Current Value:</span>
-                        <span className="ml-2 font-medium">
-                          {position.current_value?.toFixed(8) || "0"} {position.fund?.asset}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Cost Basis:</span>
-                        <span className="ml-2 font-medium">
-                          {position.cost_basis?.toFixed(8) || "0"} {position.fund?.asset}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Unrealized P&L:</span>
-                        <span
-                          className={`ml-2 font-medium ${position.unrealized_pnl >= 0 ? "text-green-600" : "text-red-600"}`}
-                        >
-                          {position.unrealized_pnl >= 0 ? "+" : ""}
-                          {position.unrealized_pnl?.toFixed(8) || "0"} {position.fund?.asset}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Realized P&L:</span>
-                        <span
-                          className={`ml-2 font-medium ${position.realized_pnl >= 0 ? "text-green-600" : "text-red-600"}`}
-                        >
-                          {position.realized_pnl >= 0 ? "+" : ""}
-                          {position.realized_pnl?.toFixed(8) || "0"} {position.fund?.asset}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex justify-end gap-2">
-                    {editingPosition === position.fund_id ? (
-                      <>
-                        <Button variant="outline" size="sm" onClick={handleCancelEdit}>
-                          Cancel
-                        </Button>
-                        <Button size="sm" onClick={() => handleSavePosition(position.fund_id)}>
-                          <Save className="h-4 w-4 mr-2" />
-                          Save
-                        </Button>
-                      </>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditPosition(position.fund_id, position)}
-                      >
-                        Edit Position
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
+            <div className="text-center py-8 text-muted-foreground">
+              <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              No positions found for this investor.
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Position</DialogTitle>
+          </DialogHeader>
+          {selectedPosition && (
+            <EditPositionForm
+              position={selectedPosition}
+              onSubmit={(data) =>
+                updatePositionMutation.mutate({ ...data, id: selectedPosition.id })
+              }
+              isLoading={updatePositionMutation.isPending}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+function AddPositionForm({ funds, onSubmit, isLoading }: any) {
+  const [fundId, setFundId] = useState("");
+  const [shares, setShares] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({ fundId, shares });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label>Fund</Label>
+        <Select value={fundId} onValueChange={setFundId} required>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a fund" />
+          </SelectTrigger>
+          <SelectContent>
+            {funds.map((f: any) => (
+              <SelectItem key={f.id} value={f.id}>
+                {f.name} ({f.asset_symbol})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label>Initial Balance (Shares)</Label>
+        <Input
+          type="number"
+          step="0.000001"
+          value={shares}
+          onChange={(e) => setShares(e.target.value)}
+          required
+        />
+      </div>
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+        Create Position
+      </Button>
+    </form>
+  );
+}
+
+function EditPositionForm({ position, onSubmit, isLoading }: any) {
+  const [shares, setShares] = useState(position.shares.toString());
+  const [status, setStatus] = useState(position.status);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({ shares, status });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label>Current Balance (Shares)</Label>
+        <Input
+          type="number"
+          step="0.000001"
+          value={shares}
+          onChange={(e) => setShares(e.target.value)}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label>Status</Label>
+        <Select value={status} onValueChange={setStatus}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="frozen">Frozen</SelectItem>
+            <SelectItem value="liquidated">Liquidated</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+        Save Changes
+      </Button>
+    </form>
   );
 }

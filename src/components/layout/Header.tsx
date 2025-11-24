@@ -31,7 +31,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           </button>
 
           {/* Logo centered in header */}
-          <div className="flex-1 flex justify-center lg:justify-start lg:ml-4">
+          <div className="flex-1 flex justify-center lg:justify-start lg:ml-4 lg:hidden">
             <AppLogo linkTo="/dashboard" className="h-8 w-auto" showText={false} />
           </div>
 
