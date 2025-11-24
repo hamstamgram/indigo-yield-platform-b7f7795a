@@ -77,7 +77,35 @@ export default function FundManager() {
     },
   });
 
-  const selectedFund = funds?.find((f) => f.id === selectedFundId);
+  // 1.5 Fetch Net Flows
+  const { data: flowData } = useQuery({
+    queryKey: ["fund-flows", selectedFundId, selectedMonth],
+    enabled: !!selectedFundId && !!selectedMonth,
+    queryFn: async () => {
+      const start = `${selectedMonth}-01`;
+      const date = new Date(selectedMonth + "-01");
+      const end = new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString();
+
+      // Using any cast to bypass strict type check on new RPC
+      const { data, error } = await (supabase as any).rpc("get_fund_net_flows", {
+        p_fund_id: selectedFundId,
+        p_start_date: start,
+        p_end_date: end,
+      });
+
+      if (error) throw error;
+      return data[0] || { total_deposits: 0, total_withdrawals: 0 };
+    },
+  });
+
+  useEffect(() => {
+    if (flowData) {
+      setNetFlows({
+        deposits: Number(flowData.total_deposits) || 0,
+        withdrawals: Number(flowData.total_withdrawals) || 0,
+      });
+    }
+  }, [flowData]);
 
   // 2. Simulation / Preview Calculation
   const calculatePreview = (): { yieldPot: number; roi: number } => {

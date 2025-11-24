@@ -128,30 +128,6 @@ struct SyncOperation {
     }
 }
 
-// MARK: - Core Data Stack
-
-class CoreDataStack {
-    lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "IndigoInvestor")
-        container.loadPersistentStores { _, error in
-            if let error = error {
-                fatalError("Core Data failed to load: \(error)")
-            }
-        }
-        return container
-    }()
-    
-    var context: NSManagedObjectContext {
-        persistentContainer.viewContext
-    }
-    
-    func save() throws {
-        if context.hasChanges {
-            try context.save()
-        }
-    }
-}
-
 // MARK: - Certificate Pinning Delegate
 
 class CertificatePinningDelegate: NSObject, URLSessionDelegate {

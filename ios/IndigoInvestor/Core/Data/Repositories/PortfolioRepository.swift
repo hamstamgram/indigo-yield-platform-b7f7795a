@@ -233,7 +233,7 @@ private struct PortfolioNetworkModel: Codable {
     let yearChangePercent: Double
     let lastUpdated: Date
     
-    func toDomainModel(positions: [Position], assetAllocation: [AssetAllocation], performanceHistory: [PerformanceData]) -> Portfolio {
+    func toDomainModel(positions: [AssetPosition], assetAllocation: [AssetAllocation], performanceHistory: [PerformanceData]) -> Portfolio {
         return Portfolio(
             id: id,
             investorId: investorId,
@@ -322,22 +322,6 @@ private struct PerformanceDataNetworkModel: Codable {
             gainPercent: gainPercent
         )
     }
-}
-
-// MARK: - Core Data Entity (Reference)
-// Note: This would be defined in the Core Data model file
-
-@objc(PortfolioEntity)
-class PortfolioEntity: NSManagedObject {
-    @NSManaged var id: UUID
-    @NSManaged var investorId: UUID
-    @NSManaged var totalValue: NSDecimalNumber
-    @NSManaged var totalCost: NSDecimalNumber
-    @NSManaged var totalGain: NSDecimalNumber
-    @NSManaged var totalGainPercent: Double
-    @NSManaged var dayChange: NSDecimalNumber
-    @NSManaged var dayChangePercent: Double
-    @NSManaged var lastUpdated: Date
 }
 
 // MARK: - Extensions
