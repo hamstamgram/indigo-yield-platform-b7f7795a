@@ -1,8 +1,16 @@
-import * as Sentry from "@sentry/react";
+let Sentry: typeof import("@sentry/react") | null = null;
+
+try {
+  Sentry = await import("@sentry/react");
+} catch {
+  console.log("[Sentry] Package not installed, monitoring disabled");
+}
 
 let sentryInitialized = false;
 
 export function initSentry() {
+  if (!Sentry) return;
+  
   // Prevent multiple initializations
   if (sentryInitialized) {
     console.warn("[Sentry] Already initialized, skipping");
@@ -51,7 +59,7 @@ export function initSentry() {
       environment: import.meta.env.MODE || "production",
 
       // Filter out common non-errors
-      beforeSend(event, hint) {
+      beforeSend(event: any, hint: any) {
         // Filter out cancelled requests
         if ((hint.originalException as any)?.message?.includes("cancelled")) {
           return null;

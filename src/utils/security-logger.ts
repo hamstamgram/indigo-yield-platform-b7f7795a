@@ -3,8 +3,13 @@
  * Handles critical security event logging with proper error handling
  */
 
-import { supabase } from '@/integrations/supabase/client';
-import * as Sentry from '@sentry/react';
+let Sentry: typeof import("@sentry/react") | null = null;
+
+try {
+  Sentry = await import("@sentry/react");
+} catch {
+  // Sentry not installed
+}
 
 export enum SecurityEventType {
   LOGIN_ATTEMPT = 'LOGIN_ATTEMPT',
