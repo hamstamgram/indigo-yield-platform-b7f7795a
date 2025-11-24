@@ -53,37 +53,29 @@ export default function AdminManualTransaction() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch Investors
-        const { data: investorsData } = await supabase
-          .from("profiles") // Using profiles assuming joined with investors or role check
-          .select("id, first_name, last_name, email")
-          .eq("role", "investor"); // Assuming role column or join logic
+        // Fetch Investors directly from investors table
+        const { data: investorsData, error: investorsError } = await supabase
+          .from("investors")
+          .select("id, email, name")
+          .eq("status", "active");
+
+        if (investorsError) throw investorsError;
 
         // Fetch Funds
-        const { data: fundsData } = await supabase
+        const { data: fundsData, error: fundsError } = await supabase
           .from("funds")
           .select("id, name, code")
           .eq("status", "active");
 
-        // Fallback mapping if profiles table structure differs (using direct table if needed)
-        // Ideally we query the 'investors' view/table if it exists and links to profiles
-        // For now using profiles directly
+        if (fundsError) throw fundsError;
 
         if (investorsData) {
-          // We actually need the 'investor_id' which is usually the same as profile_id or linked
-          // Let's assume profiles.id IS the investor_id or we need to look up 'investors' table
-          // Based on previous files, 'investors' table has 'id' and 'profile_id'.
-          // Let's query 'investors' table instead for safety.
-          const { data: realInvestors } = await supabase
-            .from("investors")
-            .select("id, email, name"); // Assuming name/email denormalized or joined
-          // If investors table is simple:
           setInvestors(
-            realInvestors?.map((i: any) => ({
+            investorsData.map((i) => ({
               id: i.id,
               name: i.name || i.email,
               email: i.email,
-            })) || []
+            }))
           );
         }
 
