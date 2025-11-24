@@ -11,7 +11,7 @@ export interface CreateTransactionParams {
 
 export const adminTransactionService = {
   async createTransaction(params: CreateTransactionParams) {
-    const { data, error } = await supabase.rpc("admin_create_transaction", {
+    const { data, error } = await (supabase as any).rpc("admin_create_transaction", {
       p_investor_id: params.investorId,
       p_type: params.type,
       p_amount: params.amount,
