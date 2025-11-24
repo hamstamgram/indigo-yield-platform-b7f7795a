@@ -179,7 +179,7 @@ const StatementsPage = () => {
     <div className="container mx-auto px-4 py-8 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
+        <h1 className="text-3xl font-display font-bold flex items-center gap-2">
           <FileText className="h-8 w-8 text-primary" />
           Monthly Statements
         </h1>
@@ -247,7 +247,7 @@ const StatementsPage = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <Calendar className="h-5 w-5 text-primary" />
-                      <h3 className="text-lg font-semibold">
+                      <h3 className="text-lg font-display font-semibold">
                         {getMonthName(statement.period_month)} {statement.period_year}
                       </h3>
                       <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">

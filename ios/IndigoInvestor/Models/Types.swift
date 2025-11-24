@@ -33,14 +33,6 @@ enum TransactionStatus: String, Codable {
     case cancelled = "cancelled"
 }
 
-// MARK: - User Types
-
-enum UserRole: String, Codable {
-    case investor = "investor"
-    case admin = "admin"
-    case superAdmin = "super_admin"
-}
-
 // MARK: - Withdrawal Types
 
 enum WithdrawalStatus: String, Codable {

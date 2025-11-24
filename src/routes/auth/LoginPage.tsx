@@ -205,9 +205,11 @@ export default function LoginPage() {
       </div>
 
       {/* Right side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-indigo-700 p-12 items-center justify-center">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-primary/80 p-12 items-center justify-center">
         <div className="text-white space-y-6 max-w-md">
-          <h1 className="text-4xl font-bold">Secure, Professional Wealth Management</h1>
+          <h1 className="text-4xl font-display font-bold">
+            Secure, Professional Wealth Management
+          </h1>
           <p className="text-xl text-blue-100">
             Access your portfolio, track performance, and manage investments with
             institutional-grade security.

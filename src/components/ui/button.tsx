@@ -25,19 +25,23 @@ const buttonVariants = cva(
     variants: {
       variant: {
         // Primary brand action - Deep Indigo with shadow
-        primary: "bg-indigo-primary text-white hover:bg-indigo-dark shadow-lg shadow-indigo-primary/25 hover:shadow-xl hover:shadow-indigo-primary/30",
+        primary:
+          "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30",
 
         // Success actions - Mint Teal with shadow
-        success: "bg-mint-success text-white hover:bg-mint-light shadow-lg shadow-mint-success/25 hover:shadow-xl hover:shadow-mint-success/30",
+        success:
+          "bg-success text-success-foreground hover:bg-success/90 shadow-lg shadow-success/25 hover:shadow-xl hover:shadow-success/30",
 
         // Warning/Risk actions - Coral with dark text
-        warning: "bg-coral-warning text-slate-900 hover:bg-coral-warning/90 shadow-md shadow-coral-warning/20",
+        warning: "bg-amber-500 text-white hover:bg-amber-600 shadow-md shadow-amber-500/20",
 
         // Destructive actions (keep existing)
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md shadow-destructive/20",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md shadow-destructive/20",
 
         // Outline variant - Slate border with hover fill
-        outline: "border-2 border-slate-300 bg-transparent hover:bg-slate-100 hover:border-slate-400 text-slate-700",
+        outline:
+          "border-2 border-slate-300 bg-transparent hover:bg-slate-100 hover:border-slate-400 text-slate-700",
 
         // Secondary actions - Slate background
         secondary: "bg-slate-100 text-slate-900 hover:bg-slate-200",

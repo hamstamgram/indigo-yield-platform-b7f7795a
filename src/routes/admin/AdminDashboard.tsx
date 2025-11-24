@@ -99,7 +99,8 @@ function AdminDashboardContent() {
 
       setStats({
         totalInvestors: investorsResult.data?.length || 0,
-        activeInvestors: investorsResult.data?.filter((i: any) => i.status === "active").length || 0,
+        activeInvestors:
+          investorsResult.data?.filter((i: any) => i.status === "active").length || 0,
         pendingVerifications: pendingInvestors.data?.length || 0,
         activePositionsCount: positionsResult.data?.length || 0,
         pendingWithdrawals: withdrawalsResult.data?.length || 0,
@@ -259,7 +260,7 @@ function AdminDashboardContent() {
 
       {/* Operational Grid */}
       <div>
-        <h2 className="text-xl font-bold mb-4 tracking-tight">Operational Tools</h2>
+        <h2 className="text-xl font-display font-bold mb-4 tracking-tight">Operational Tools</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {adminActions.map((action) => (
             <Link key={action.href} to={action.href}>

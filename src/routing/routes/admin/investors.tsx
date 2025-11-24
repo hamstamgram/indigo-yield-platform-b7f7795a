@@ -7,15 +7,11 @@ import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
+const AdminInvestorsPage = lazy(() => import("@/routes/admin/AdminInvestorsPage"));
 const InvestorManagement = lazy(() => import("@/routes/admin/investors/InvestorManagement"));
-const InvestorsListPage = lazy(() => import("@/routes/admin/investors/InvestorsListPage"));
 const ExpertInvestorDashboard = lazy(
   () => import("@/components/admin/expert/ExpertInvestorDashboard")
 );
-
-// Placeholder for missing pages if needed, or just remove
-// const InvestorAccountCreation = ... (Missing)
-// const InvestorStatusTracking = ... (Missing)
 
 export function InvestorRoutes() {
   return (
@@ -24,7 +20,7 @@ export function InvestorRoutes() {
         path="/admin/investors"
         element={
           <AdminRoute>
-            <InvestorsListPage />
+            <AdminInvestorsPage />
           </AdminRoute>
         }
       />

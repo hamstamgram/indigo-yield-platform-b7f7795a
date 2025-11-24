@@ -8,7 +8,7 @@ import { lazy } from "react";
 import { ProtectedRoute } from "../../ProtectedRoute";
 
 // Profile pages
-const ProfileSettings = lazy(() => import("@/routes/profile/ProfileSettings"));
+const ProfilePage = lazy(() => import("@/routes/profile/ProfilePage"));
 const ProfileSecurity = lazy(() => import("@/routes/profile/Security"));
 const KYCVerification = lazy(() => import("@/routes/profile/KYCVerification"));
 
@@ -19,7 +19,7 @@ export function ProfileRoutes() {
         path="/profile"
         element={
           <ProtectedRoute>
-            <ProfileSettings />
+            <ProfilePage />
           </ProtectedRoute>
         }
       />

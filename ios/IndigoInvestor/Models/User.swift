@@ -13,6 +13,7 @@ public enum UserRole: String, Codable {
     case admin = "admin"
     case investor = "investor"
     case viewer = "viewer"
+    case superAdmin = "super_admin"
 }
 
 // MARK: - User

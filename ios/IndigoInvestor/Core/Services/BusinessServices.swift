@@ -150,14 +150,14 @@ class AdminService {
         self.client = client
     }
     
-    func fetchAllInvestors() async throws -> [InvestorProfile] {
+    func fetchAllInvestors() async throws -> [InvestorQueryResult] {
         let response = try await client.database
             .from("profiles")
             .select()
             .eq("role", value: "investor")
             .execute()
         
-        return try JSONDecoder().decode([InvestorProfile].self, from: response.data)
+        return try JSONDecoder().decode([InvestorQueryResult].self, from: response.data)
     }
     
     func approveWithdrawal(withdrawalId: String) async throws {
@@ -220,7 +220,7 @@ struct DocumentMetadata {
     let type: String
 }
 
-struct InvestorProfile: Codable {
+struct InvestorQueryResult: Codable {
     let id: String
     let email: String
     let full_name: String

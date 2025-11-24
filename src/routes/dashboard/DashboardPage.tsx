@@ -77,8 +77,10 @@ export default function DashboardPage() {
   });
 
   // Aggregate stats
-  const totalYieldAllTime = portfolio?.reduce((acc: number, curr: AssetPosition) => acc + curr.yieldEarned, 0) || 0;
-  const totalYieldMonth = portfolio?.reduce((acc: number, curr: AssetPosition) => acc + (curr.mtdYield || 0), 0) || 0;
+  const totalYieldAllTime =
+    portfolio?.reduce((acc: number, curr: AssetPosition) => acc + curr.yieldEarned, 0) || 0;
+  const totalYieldMonth =
+    portfolio?.reduce((acc: number, curr: AssetPosition) => acc + (curr.mtdYield || 0), 0) || 0;
   const yieldUnitLabel = portfolio?.length === 1 ? portfolio[0].assetCode : "UNITS";
 
   return (
@@ -143,7 +145,7 @@ export default function DashboardPage() {
       </section>
       {/* LEDGER: Matches the Report PDF Structure */}
       <section className="space-y-4">
-        <h2 className="text-lg font-bold tracking-tight">Asset Ledgers</h2>
+        <h2 className="text-lg font-display font-bold tracking-tight">Asset Ledgers</h2>
 
         {isLoadingPortfolio ? (
           <div className="p-8 text-center text-muted-foreground animate-pulse">

@@ -82,9 +82,9 @@ const Index = () => {
 
       {/* Hero Section */}
       <div className="container mx-auto px-4 sm:px-6 py-10 sm:py-16 md:py-20 text-center">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 leading-tight mb-4 sm:mb-6">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-bold text-gray-900 leading-tight mb-4 sm:mb-6">
           Institutional-Grade <br />
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-indigo-500 to-blue-500">
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary/80 via-primary to-primary/90">
             Yield Opportunities
           </span>
         </h1>
@@ -148,7 +148,9 @@ const Index = () => {
                 />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2 sm:mb-3">Yield Optimization</h3>
+            <h3 className="text-xl font-display font-bold text-gray-900 mb-2 sm:mb-3">
+              Yield Optimization
+            </h3>
             <p className="text-gray-600 text-sm sm:text-base">
               Sophisticated strategies across lending, liquidity provision, and staking to maintain
               consistent yields regardless of market conditions.
@@ -172,7 +174,9 @@ const Index = () => {
                 />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2 sm:mb-3">Risk Management</h3>
+            <h3 className="text-xl font-display font-bold text-gray-900 mb-2 sm:mb-3">
+              Risk Management
+            </h3>
             <p className="text-gray-600 text-sm sm:text-base">
               Advanced risk modeling, diversification across protocols, and continuous monitoring to
               protect capital and generate sustainable returns.
@@ -183,8 +187,8 @@ const Index = () => {
 
       {/* CTA */}
       <div className="container mx-auto px-4 sm:px-6 py-10 sm:py-16">
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 sm:p-10 md:p-16 text-center">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 sm:mb-6">
+        <div className="bg-gradient-to-r from-primary to-primary/90 rounded-2xl p-6 sm:p-10 md:p-16 text-center">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-white mb-4 sm:mb-6">
             Ready to optimize your digital asset portfolio?
           </h2>
           <p className="text-lg sm:text-xl text-indigo-100 mb-6 sm:mb-10 max-w-2xl mx-auto">
