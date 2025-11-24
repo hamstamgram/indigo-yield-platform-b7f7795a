@@ -1,7 +1,11 @@
-let Sentry: typeof import("@sentry/react") | null = null;
-
+// Make Sentry optional - it may not be installed
+let Sentry: any = null;
 try {
-  Sentry = await import("@sentry/react");
+  // Try to require Sentry if available, but don't fail if not
+  if (typeof window !== 'undefined') {
+    // @ts-ignore - optional dependency
+    import('@sentry/react').then(module => { Sentry = module; }).catch(() => {});
+  }
 } catch {
   console.log("[Sentry] Package not installed, monitoring disabled");
 }
@@ -110,19 +114,19 @@ export function isSentryInitialized() {
 }
 
 export function captureException(error: Error, context?: Record<string, any>) {
-  if (!sentryInitialized) return;
+  if (!sentryInitialized || !Sentry) return;
   Sentry.captureException(error, {
     extra: context,
   });
 }
 
-export function captureMessage(message: string, level: Sentry.SeverityLevel = "info") {
-  if (!sentryInitialized) return;
+export function captureMessage(message: string, level: any = "info") {
+  if (!sentryInitialized || !Sentry) return;
   Sentry.captureMessage(message, level);
 }
 
 export function setUserContext(user: { id: string; email: string; name?: string }) {
-  if (!sentryInitialized) return;
+  if (!sentryInitialized || !Sentry) return;
   Sentry.setUser({
     id: user.id,
     email: user.email,
@@ -131,12 +135,12 @@ export function setUserContext(user: { id: string; email: string; name?: string 
 }
 
 export function clearUserContext() {
-  if (!sentryInitialized) return;
+  if (!sentryInitialized || !Sentry) return;
   Sentry.setUser(null);
 }
 
 export function addBreadcrumb(message: string, category: string, data?: any) {
-  if (!sentryInitialized) return;
+  if (!sentryInitialized || !Sentry) return;
   Sentry.addBreadcrumb({
     message,
     category,
