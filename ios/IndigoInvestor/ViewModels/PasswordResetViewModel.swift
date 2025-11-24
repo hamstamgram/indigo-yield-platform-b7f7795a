@@ -23,8 +23,8 @@ class PasswordResetViewModel: ObservableObject {
     @Published var canResendCode = true
     
     // MARK: - Private Properties
-    
-    private let supabaseManager = SupabaseManager.shared
+
+    private let supabaseManager = SupabaseService.shared
     private var resendTimer: Timer?
     private var resendCountdown = 60
     
