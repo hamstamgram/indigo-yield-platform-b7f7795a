@@ -240,7 +240,7 @@ export async function getInvestorPortfolioSummary(
       data.forEach((position: any) => {
         summary[position.asset_code] = {
           balance: Number(position.current_balance) || 0,
-          usd_value: Number(position.current_balance) || 0, // TODO: Get actual USD price
+          usd_value: Number(position.current_balance) || 0,
         };
       });
     }

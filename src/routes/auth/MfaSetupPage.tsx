@@ -108,14 +108,10 @@ export default function MfaSetupPage() {
 
         <CardContent>
           <Tabs defaultValue="totp" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-1">
               <TabsTrigger value="totp">
                 <Smartphone className="h-4 w-4 mr-2" />
                 Authenticator App
-              </TabsTrigger>
-              <TabsTrigger value="sms" disabled>
-                <Mail className="h-4 w-4 mr-2" />
-                SMS (Coming Soon)
               </TabsTrigger>
             </TabsList>
 

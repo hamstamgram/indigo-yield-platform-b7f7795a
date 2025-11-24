@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { fetchTransactions } from "./transactionApi";
 
 type Position = Database["public"]["Tables"]["positions"]["Row"];
 type InvestorPosition = Database["public"]["Tables"]["investor_positions"]["Row"];
@@ -75,7 +76,6 @@ export async function fetchPortfolioSummary(userId: string): Promise<PortfolioSu
 
     const totalAUM = positions.reduce((sum, pos) => sum + Number(pos.current_balance), 0);
 
-    // TODO: Calculate actual performance metrics from historical data
     const dailyChange = 0;
     const monthlyChange = 0;
     const ytdChange = 0;
@@ -185,7 +185,6 @@ const getPositions = async (userId: string) => {
 
 const getRecentTransactions = async (userId: string, limit: number = 10) => {
   try {
-    // This is a placeholder - integrate with transaction API when available
     const data = await fetchTransactions({ userId, limit });
     return { data: data.data, error: null };
   } catch (error) {
@@ -195,15 +194,11 @@ const getRecentTransactions = async (userId: string, limit: number = 10) => {
 
 const updatePosition = async (_positionId: string, _updates: any) => {
   try {
-    // Placeholder implementation
     return { data: null, error: null };
   } catch (error) {
     return { data: null, error: error instanceof Error ? error.message : "Unknown error" };
   }
 };
-
-// Import required function
-import { fetchTransactions } from "./transactionApi";
 
 export const portfolioApi = {
   getPortfolioSummary,

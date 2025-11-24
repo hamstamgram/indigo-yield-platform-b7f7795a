@@ -165,16 +165,6 @@ const StatementsPage = () => {
     })} ${config.symbol}`;
   };
 
-  const downloadStatement = async (_statementId: string) => {
-    try {
-      // TODO: Implement PDF download
-      // For now, show a message
-      alert("PDF download functionality will be implemented soon");
-    } catch (error) {
-      console.error("Error downloading statement:", error);
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -313,16 +303,6 @@ const StatementsPage = () => {
                       </div>
                     )}
                   </div>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => downloadStatement(statement.id)}
-                    className="ml-4"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download PDF
-                  </Button>
                 </div>
               </CardContent>
             </Card>

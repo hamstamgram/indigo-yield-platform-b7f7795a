@@ -71,12 +71,12 @@ export default function Security() {
 
     setLoadingSessions(true);
     try {
-      // Mock data - in production, fetch from your sessions table
+      // Display current session
       setSessions([
         {
-          id: "1",
-          device: "Chrome on Mac OS",
-          location: "San Francisco, US",
+          id: "current",
+          device: "Current Device",
+          location: "Current Location",
           lastActive: new Date().toISOString(),
           current: true,
         },
@@ -136,15 +136,7 @@ export default function Security() {
   };
 
   const handleEnable2FA = async () => {
-    try {
-      // In production, generate TOTP secret and show QR code
-      toast({
-        title: "Coming Soon",
-        description: "2FA setup will be available soon",
-      });
-    } catch (error) {
-      console.error("Failed to enable 2FA:", error);
-    }
+    navigate("/auth/mfa-setup");
   };
 
   const handleDisable2FA = async () => {

@@ -32,7 +32,6 @@ interface AdminStats {
   pendingVerifications: number;
   activePositionsCount: number; // Replaces totalAUM since we don't have fiat
   pendingWithdrawals: number;
-  pendingDocuments: number;
   recentActivity: number;
 }
 
@@ -52,7 +51,6 @@ function AdminDashboardContent() {
     pendingVerifications: 0,
     activePositionsCount: 0,
     pendingWithdrawals: 0,
-    pendingDocuments: 0,
     recentActivity: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -105,7 +103,6 @@ function AdminDashboardContent() {
         pendingVerifications: pendingInvestors.data?.length || 0,
         activePositionsCount: positionsResult.data?.length || 0,
         pendingWithdrawals: withdrawalsResult.data?.length || 0,
-        pendingDocuments: 0, // Placeholder
         recentActivity: recentActivityResult.data?.length || 0,
       });
     } catch (error) {
@@ -144,7 +141,6 @@ function AdminDashboardContent() {
       href: "/admin/documents",
       icon: FileText,
       color: "text-purple-500",
-      badge: stats.pendingDocuments > 0 ? stats.pendingDocuments : undefined,
     },
     {
       title: "Compliance",
@@ -234,12 +230,15 @@ function AdminDashboardContent() {
             <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
               Pending Actions
             </CardTitle>
+
             <AlertCircle className="h-4 w-4 text-orange-500" />
           </CardHeader>
+
           <CardContent>
             <div className="text-3xl font-mono font-bold text-orange-600">
-              {stats.pendingWithdrawals + stats.pendingDocuments + stats.pendingVerifications}
+              {stats.pendingWithdrawals + stats.pendingVerifications}
             </div>
+
             <p className="text-xs text-muted-foreground mt-1">Requires immediate attention</p>
           </CardContent>
         </Card>

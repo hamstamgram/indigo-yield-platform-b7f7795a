@@ -115,25 +115,10 @@ const HistoricalReportsDashboard: React.FC = () => {
       <Tabs defaultValue="generator" className="space-y-4">
         <TabsList>
           <TabsTrigger value="generator">Data Generator</TabsTrigger>
-          <TabsTrigger value="reports">View Reports</TabsTrigger>
         </TabsList>
 
         <TabsContent value="generator">
           <BulkDataGenerator />
-        </TabsContent>
-
-        <TabsContent value="reports">
-          <Card>
-            <CardHeader>
-              <CardTitle>Coming Soon</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Advanced reporting view will be implemented in the next phase. For now, use the
-                individual investor detail pages to view historical data.
-              </p>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>

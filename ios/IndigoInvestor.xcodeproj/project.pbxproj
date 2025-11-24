@@ -121,7 +121,6 @@
 		C48228CCC2AA2E7257A942B5 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01739EA145C0ED501113C10E /* LoadingView.swift */; };
 		C7D3CB427CB93A5F17999DDF /* DocumentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07373B417AB4112D8C338774 /* DocumentModels.swift */; };
 		C7DB3DBAEAC4CC72F9CBCA88 /* Montserrat-BlackItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FE8F77674F7160358651B /* Montserrat-BlackItalic.ttf */; };
-		C9CB8BCE073CF5E2DD135E2F /* AllViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD35F7C5ED7383A2034014C8 /* AllViews.swift */; };
 		CB1F85697AC0260B46588DDA /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = D7BC3BE765832F9C2DB15A80 /* Supabase */; };
 		CBB1261ABDD381CC12845399 /* Montserrat-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 83E634418DE7EEB1F2EA163A /* Montserrat-BoldItalic.ttf */; };
 		CC963F6863D84639D30CEE1E /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DD38C95DDDAA01E377083BB /* AuthService.swift */; };
@@ -283,7 +282,6 @@
 		D7D4F007618495BCC224E179 /* FinancialTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinancialTypography.swift; sourceTree = "<group>"; };
 		DC0BEBC60581716432E97E8C /* InMemoryLocalStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryLocalStorage.swift; sourceTree = "<group>"; };
 		DCD6AA436FD57750A20FAF3C /* generate_icons.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = generate_icons.sh; sourceTree = "<group>"; };
-		DD35F7C5ED7383A2034014C8 /* AllViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllViews.swift; sourceTree = "<group>"; };
 		E06C035EB8311DFAC0D1F557 /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
 		E11500D5E7D760D73A511A42 /* Montserrat-SemiBoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-SemiBoldItalic.ttf"; sourceTree = "<group>"; };
 		E1D768B4B35B4697E5DA3BB4 /* InvestorServiceV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestorServiceV2.swift; sourceTree = "<group>"; };
@@ -352,7 +350,6 @@
 		02025D3B4BC465B3141F098A /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				DD35F7C5ED7383A2034014C8 /* AllViews.swift */,
 				70478BF008EE598863055450 /* AssetDetailView.swift */,
 				5846DD0C1B61E58E27AFA9C0 /* LiveEventsView.swift */,
 				ECD002D213CD7745F8EC64A1 /* MissingViews.swift */,
