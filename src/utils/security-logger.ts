@@ -5,17 +5,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-// Make Sentry optional - it may not be installed
+// Sentry monitoring disabled - package not installed
 let Sentry: any = null;
-try {
-  // Try to require Sentry if available, but don't fail if not
-  if (typeof window !== 'undefined') {
-    // @ts-ignore - optional dependency
-    import('@sentry/react').then(module => { Sentry = module; }).catch(() => {});
-  }
-} catch {
-  // Sentry not installed
-}
 
 export enum SecurityEventType {
   LOGIN_ATTEMPT = 'LOGIN_ATTEMPT',

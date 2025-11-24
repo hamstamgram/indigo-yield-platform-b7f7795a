@@ -1,18 +1,10 @@
-// Make Sentry optional - it may not be installed
+// Sentry monitoring disabled - package not installed
 let Sentry: any = null;
-try {
-  // Try to require Sentry if available, but don't fail if not
-  if (typeof window !== 'undefined') {
-    // @ts-ignore - optional dependency
-    import('@sentry/react').then(module => { Sentry = module; }).catch(() => {});
-  }
-} catch {
-  console.log("[Sentry] Package not installed, monitoring disabled");
-}
-
 let sentryInitialized = false;
 
 export function initSentry() {
+  // Sentry not installed, monitoring disabled
+  return;
   if (!Sentry) return;
   
   // Prevent multiple initializations
@@ -120,7 +112,7 @@ export function captureException(error: Error, context?: Record<string, any>) {
   });
 }
 
-export function captureMessage(message: string, level: any = "info") {
+export function captureMessage(message: string, level: string = "info") {
   if (!sentryInitialized || !Sentry) return;
   Sentry.captureMessage(message, level);
 }
