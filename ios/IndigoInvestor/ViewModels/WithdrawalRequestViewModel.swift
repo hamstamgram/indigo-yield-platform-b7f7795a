@@ -148,7 +148,7 @@ class WithdrawalRequestViewModel: ObservableObject {
             try validateWithdrawal(amount: amount, bankAccount: bankAccount)
             
             // Create withdrawal request
-            let request = WithdrawalRequest(
+            let request = WithdrawalRequestDTO(
                 id: UUID(),
                 userId: UUID(uuidString: supabaseManager.currentUserId ?? "") ?? UUID(),
                 amount: amount,
@@ -304,7 +304,7 @@ struct WithdrawalSettings: Codable {
     }
 }
 
-struct WithdrawalRequest: Codable {
+struct WithdrawalRequestDTO: Codable {
     let id: UUID
     let userId: UUID
     let amount: Double
@@ -315,7 +315,7 @@ struct WithdrawalRequest: Codable {
     let status: WithdrawalStatus
     let requestedAt: Date
     let processedAt: Date?
-    
+
     enum WithdrawalStatus: String, Codable {
         case pending = "PENDING"
         case processing = "PROCESSING"
@@ -324,7 +324,7 @@ struct WithdrawalRequest: Codable {
         case rejected = "REJECTED"
         case cancelled = "CANCELLED"
     }
-    
+
     enum CodingKeys: String, CodingKey {
         case id
         case userId = "user_id"
