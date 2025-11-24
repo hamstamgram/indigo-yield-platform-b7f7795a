@@ -9,14 +9,12 @@ interface EditableInvestorRowProps {
   investor: InvestorSummaryV2;
   assets: Asset[];
   onSendEmail: (email: string) => void;
-  onSaveSuccess: () => void;
 }
 
 const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
   investor,
   assets,
   onSendEmail,
-  onSaveSuccess,
 }) => {
   const name =
     investor.firstName && investor.lastName

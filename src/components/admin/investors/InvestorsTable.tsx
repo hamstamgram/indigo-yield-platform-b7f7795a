@@ -77,7 +77,6 @@ const InvestorsTable: React.FC<InvestorsTableProps> = ({
                 investor={investor}
                 assets={assets}
                 onSendEmail={onSendEmail}
-                onSaveSuccess={onRefresh}
               />
             ))
           )}

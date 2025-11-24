@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { securityLogger, SecurityEventType, SecuritySeverity } from './security-logger';
+import { securityLogger } from './security-logger';
 import { fieldEncryption } from './encryption';
 
 export enum ConsentType {
@@ -205,7 +205,7 @@ class GDPRComplianceManager {
     try {
       // Update status to processing
       // Cast supabase to any - gdpr_data_requests table not in generated types
-      const processingResult = await (supabase as any)
+      await (supabase as any)
         .from('gdpr_data_requests' as any)
         .update({ status: DataRequestStatus.PROCESSING })
         .eq('id', requestId);
@@ -225,7 +225,7 @@ class GDPRComplianceManager {
 
         // Update request with export URL
         // Cast supabase to any - gdpr_data_requests table not in generated types
-        const updateResult = await (supabase as any)
+        await (supabase as any)
           .from('gdpr_data_requests' as any)
           .update({
             status: DataRequestStatus.COMPLETED,
@@ -243,7 +243,7 @@ class GDPRComplianceManager {
 
       // Update status to failed
       // Cast supabase to any - gdpr_data_requests table not in generated types
-      const failResult = await (supabase as any)
+      await (supabase as any)
         .from('gdpr_data_requests' as any)
         .update({
           status: DataRequestStatus.FAILED,
@@ -518,7 +518,7 @@ class GDPRComplianceManager {
 export const gdprManager = GDPRComplianceManager.getInstance();
 
 // React components for GDPR UI
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 export function CookieBanner() {
   const [visible, setVisible] = useState(false);

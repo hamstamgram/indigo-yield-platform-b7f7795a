@@ -8,8 +8,6 @@ import {
   Line,
   AreaChart,
   Area,
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -17,7 +15,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { AlertCircle, CheckCircle, TrendingDown, TrendingUp, Activity } from 'lucide-react';
+import { TrendingDown, TrendingUp, Activity } from 'lucide-react';
 
 interface PerformanceMetrics {
   lighthouse: {
@@ -184,11 +182,11 @@ export const PerformanceDashboard: React.FC = () => {
     );
   }
 
-  const getLighthouseStatus = (score: number) => {
-    if (score >= 90) return 'good';
-    if (score >= 50) return 'warning';
-    return 'error';
-  };
+  // const getLighthouseStatus = (score: number) => {
+  //   if (score >= 90) return 'good';
+  //   if (score >= 50) return 'warning';
+  //   return 'error';
+  // };
 
   const getVitalStatus = (metric: string, value: number) => {
     const thresholds: Record<string, { good: number; warning: number }> = {

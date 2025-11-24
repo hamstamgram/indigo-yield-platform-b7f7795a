@@ -6,15 +6,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { securityLogger, SecurityEventType, SecuritySeverity } from './security-logger';
 
-interface SessionConfig {
-  secure: boolean;
-  sameSite: 'strict' | 'lax' | 'none';
-  httpOnly: boolean;
-  maxAge: number; // in seconds
-  path: string;
-  domain?: string;
-}
-
 class SessionManager {
   private static instance: SessionManager;
   private csrfToken: string | null = null;
@@ -22,15 +13,6 @@ class SessionManager {
   private readonly SESSION_CHECK_INTERVAL = 60000; // 1 minute
   private readonly SESSION_TIMEOUT = 1800000; // 30 minutes
   private lastActivity: number = Date.now();
-
-  private readonly config: SessionConfig = {
-    secure: !import.meta.env.DEV, // HTTPS in production
-    sameSite: 'strict',
-    httpOnly: true,
-    maxAge: 86400, // 24 hours
-    path: '/',
-    domain: import.meta.env.VITE_COOKIE_DOMAIN,
-  };
 
   private constructor() {
     this.initializeSessionMonitoring();
@@ -189,7 +171,7 @@ class SessionManager {
   /**
    * Request server to set httpOnly cookie
    */
-  private async requestServerSession(accessToken: string): Promise<void> {
+  private async requestServerSession(_accessToken: string): Promise<void> {
     // In production, this would call a server endpoint that sets httpOnly cookies
     // For now, we'll store in a secure manner on the client
 

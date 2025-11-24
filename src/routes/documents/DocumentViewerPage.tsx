@@ -8,7 +8,6 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Download, Trash2, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
-import { Document } from "@/types/documents";
 import { useDocuments } from "@/hooks/useDocuments";
 import { Skeleton } from "@/components/ui/skeleton";
 

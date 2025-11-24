@@ -1,5 +1,3 @@
-import { format } from "date-fns";
-
 export interface ReportFundData {
   fundName: string;
   currency: string;
