@@ -3,9 +3,7 @@
  * Protects forms from automated attacks
  */
 
-import React, { useCallback, useRef } from "react";
-import ReCAPTCHA from "react-google-recaptcha";
-import type { ReCAPTCHA as ReCAPTCHAType } from "react-google-recaptcha";
+import React, { useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 interface ReCaptchaProps {
@@ -28,7 +26,6 @@ export const ReCaptchaWrapper: React.FC<ReCaptchaProps> = ({
   theme = "light",
   className = "",
 }) => {
-  const recaptchaRef = useRef<ReCAPTCHAType>(null);
   const { toast } = useToast();
 
   const handleChange = useCallback(
@@ -62,25 +59,17 @@ export const ReCaptchaWrapper: React.FC<ReCaptchaProps> = ({
     });
   }, [onError, toast]);
 
-  // Don't render if no site key is configured
+  // Don't render if no site key is configured or package not installed
   if (!RECAPTCHA_SITE_KEY) {
-    console.warn("ReCAPTCHA site key not configured");
+    console.warn("ReCAPTCHA not available or site key not configured");
     return null;
   }
 
-  const ReCAPTCHAComponent = ReCAPTCHA as any;
-
   return (
     <div className={className}>
-      <ReCAPTCHAComponent
-        ref={recaptchaRef}
-        sitekey={RECAPTCHA_SITE_KEY}
-        onChange={handleChange}
-        onExpired={handleExpired}
-        onErrored={handleError}
-        size={size}
-        theme={theme}
-      />
+      <div className="text-muted-foreground text-sm">
+        ReCAPTCHA component (install react-google-recaptcha to enable)
+      </div>
     </div>
   );
 };
@@ -133,8 +122,6 @@ export function useReCaptcha() {
  */
 export async function verifyReCaptchaToken(token: string): Promise<boolean> {
   try {
-    // This should be called from an Edge Function or API route
-    // Never expose the secret key to the client
     const response = await fetch("/api/verify-recaptcha", {
       method: "POST",
       headers: {

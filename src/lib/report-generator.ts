@@ -63,7 +63,7 @@ export async function generateReportForInvestor(
   if (reportsError) throw reportsError;
 
   const investorData: InvestorData = {
-    investorName: `${investor.profile.first_name} ${investor.profile.last_name}`,
+    investorName: investor.profile ? `${investor.profile.first_name} ${investor.profile.last_name}` : investor.name,
     reportDate: new Date(reportMonth).toLocaleDateString("en-US", {
       month: "long",
       year: "numeric",
@@ -72,27 +72,29 @@ export async function generateReportForInvestor(
       fundName: report.asset_code + " YIELD FUND", // This is an assumption
       currencyName: report.asset_code,
       data: {
-        begin_balance_mtd: report.opening_balance,
+        begin_balance_mtd: report.opening_balance || 0,
         begin_balance_qtd: 0,
         begin_balance_ytd: 0,
         begin_balance_itd: 0,
-        additions_mtd: report.additions,
+        additions_mtd: report.additions || 0,
         additions_qtd: 0,
         additions_ytd: 0,
         additions_itd: 0,
-        redemptions_mtd: report.withdrawals,
+        redemptions_mtd: report.withdrawals || 0,
         redemptions_qtd: 0,
         redemptions_ytd: 0,
         redemptions_itd: 0,
-        net_income_mtd: report.yield_earned,
+        net_income_mtd: report.yield_earned || 0,
         net_income_qtd: 0,
         net_income_ytd: 0,
         net_income_itd: 0,
-        ending_balance_mtd: report.closing_balance,
+        ending_balance_mtd: report.closing_balance || 0,
         ending_balance_qtd: 0,
         ending_balance_ytd: 0,
         ending_balance_itd: 0,
-        return_rate_mtd: ((report.yield_earned / report.opening_balance) * 100).toFixed(2) + "%",
+        return_rate_mtd: (report.opening_balance && report.yield_earned) 
+          ? ((report.yield_earned / report.opening_balance) * 100).toFixed(2) + "%" 
+          : "0.00%",
         return_rate_qtd: "0.00%",
         return_rate_ytd: "0.00%",
         return_rate_itd: "0.00%",

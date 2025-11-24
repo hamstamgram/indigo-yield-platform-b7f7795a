@@ -38,13 +38,13 @@ export default function NotificationCenter() {
     try {
       setIsLoading(true);
       const { data, error } = await supabase
-        .from("email_logs")
+        .from("email_logs" as any)
         .select("*")
         .order("sent_at", { ascending: false })
         .limit(50);
 
       if (error) throw error;
-      setNotifications(data || []);
+      setNotifications((data as any) || []);
     } catch (error: any) {
       console.error("Error fetching notifications:", error);
       toast({

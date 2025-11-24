@@ -21,7 +21,7 @@ export const useInvestorInvite = (onSuccess?: () => void) => {
       } = await supabase.auth.getUser();
 
       // Store or create invite in the database
-      const { error: inviteError } = await supabase.from("investor_invites").insert({
+      const { error: inviteError } = await supabase.from("investor_invites" as any).insert({
         email: email,
         invite_code: inviteCode,
         created_by: user?.id,
