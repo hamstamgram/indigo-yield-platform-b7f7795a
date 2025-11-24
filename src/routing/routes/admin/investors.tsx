@@ -8,6 +8,7 @@ import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
 const InvestorManagement = lazy(() => import("@/routes/admin/investors/InvestorManagement"));
+const InvestorsListPage = lazy(() => import("@/routes/admin/investors/InvestorsListPage"));
 const ExpertInvestorDashboard = lazy(
   () => import("@/components/admin/expert/ExpertInvestorDashboard")
 );
@@ -19,6 +20,15 @@ const ExpertInvestorDashboard = lazy(
 export function InvestorRoutes() {
   return (
     <>
+      <Route
+        path="/admin/investors"
+        element={
+          <AdminRoute>
+            <InvestorsListPage />
+          </AdminRoute>
+        }
+      />
+
       <Route
         path="/admin/investors/:id"
         element={

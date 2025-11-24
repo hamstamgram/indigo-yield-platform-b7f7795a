@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, FileText, Download, Send, Calendar, User } from "lucide-react";
 import { format } from "date-fns";
+import { generatePDF } from "@/lib/pdf/statementGenerator";
 
 export default function AdminStatementsPage() {
   const [selectedInvestor, setSelectedInvestor] = useState<string>("");
@@ -98,8 +99,28 @@ export default function AdminStatementsPage() {
 
       if (dataError) throw dataError;
 
-      // Generate PDF (placeholder - would need actual PDF generation service)
-      const pdfContent = generatePDF(statementData);
+      // Generate PDF using the shared library
+      const mappedData = {
+        investor: {
+          name: (statementData as any).investor.name,
+          id: (statementData as any).investor.id,
+          accountNumber: (statementData as any).investor.id.substring(0, 8).toUpperCase(),
+        },
+        period: {
+          month: (statementData as any).period.month,
+          year: (statementData as any).period.year,
+          start: (statementData as any).period.start_date,
+          end: (statementData as any).period.end_date,
+        },
+        summary: {
+          total_aum: (statementData as any).summary.total_aum,
+          total_pnl: (statementData as any).summary.total_pnl,
+          total_fees: (statementData as any).summary.total_fees,
+        },
+        positions: (statementData as any).positions,
+      };
+
+      const pdfContent = generatePDF(mappedData);
 
       // Upload to storage
       const fileName = `statement-${params.year}-${params.month.toString().padStart(2, "0")}.pdf`;
@@ -163,26 +184,6 @@ export default function AdminStatementsPage() {
       toast.error(`Failed to send notification: ${error.message}`);
     },
   });
-
-  // Placeholder PDF generation function
-  const generatePDF = (statementData: any): Blob => {
-    // In a real implementation, this would use jsPDF or similar library
-    const content = `
-      MONTHLY STATEMENT
-      
-      Investor: ${statementData.investor.name}
-      Period: ${statementData.period.month}/${statementData.period.year}
-      
-      Positions:
-      ${JSON.stringify(statementData.positions, null, 2)}
-      
-      Summary:
-      Total AUM: $${statementData.summary.total_aum}
-      Total P&L: $${statementData.summary.total_pnl}
-      Total Fees: $${statementData.summary.total_fees}
-    `;
-    return new Blob([content], { type: "application/pdf" });
-  };
 
   const handleGenerateStatement = () => {
     if (!selectedInvestor || !selectedYear || !selectedMonth) {

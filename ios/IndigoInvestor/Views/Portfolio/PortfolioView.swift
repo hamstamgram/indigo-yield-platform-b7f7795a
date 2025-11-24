@@ -9,7 +9,7 @@ import SwiftUI
 import Charts
 
 struct PortfolioView: View {
-    @StateObject private var viewModel = PortfolioViewModel(portfolioService: ServiceContainer.shared.portfolioService)
+    @StateObject private var viewModel = PortfolioViewModel(portfolioService: ServiceLocator.shared.portfolioService)
     @State private var selectedAsset: AssetPosition?
     @State private var selectedTimeRange = TimeRange.month
     

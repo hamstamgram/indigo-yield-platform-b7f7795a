@@ -1,0 +1,89 @@
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import InvestorsTable from "@/components/admin/investors/InvestorsTable";
+import AddInvestorDialog from "@/components/admin/investors/AddInvestorDialog";
+import InviteInvestorDialog from "@/components/admin/investors/InviteInvestorDialog";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+import { adminServiceV2 } from "@/services/adminServiceV2";
+import { assetService } from "@/services/assetService";
+import { Asset } from "@/types/investorTypes";
+import { InvestorSummaryV2 } from "@/services/adminServiceV2";
+
+export default function InvestorsListPage() {
+  const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const [investorsData, assetsData] = await Promise.all([
+        adminServiceV2.getAllInvestorsWithSummary(),
+        assetService.getAssets(),
+      ]);
+      setInvestors(investorsData);
+      setAssets(assetsData);
+    } catch (error) {
+      console.error("Failed to load investors list:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const filteredInvestors = investors.filter((inv) => {
+    const search = searchTerm.toLowerCase();
+    return (
+      inv.firstName.toLowerCase().includes(search) ||
+      inv.lastName.toLowerCase().includes(search) ||
+      inv.email.toLowerCase().includes(search)
+    );
+  });
+
+  return (
+    <div className="container mx-auto px-4 py-8 space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Investor Management</h1>
+          <p className="text-muted-foreground">Manage all investor accounts and portfolios</p>
+        </div>
+        <div className="flex gap-2">
+          <InviteInvestorDialog />
+          <AddInvestorDialog assets={assets} onInvestorAdded={loadData} />
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Investors Directory</CardTitle>
+            <div className="relative w-64">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search investors..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <InvestorsTable
+            investors={filteredInvestors}
+            assets={assets}
+            loading={isLoading}
+            searchTerm={searchTerm}
+            onSendEmail={(email) => console.log("Send email to", email)}
+            onRefresh={loadData}
+          />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
