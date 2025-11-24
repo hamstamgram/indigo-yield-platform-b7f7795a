@@ -36,7 +36,6 @@ export default function TransactionsPage() {
   const columns = [
     {
       header: "Type",
-      accessorKey: "type",
       cell: (item: any) => (
         <span className="font-medium capitalize">
           {item.type?.replace(/_/g, " ") || "Transaction"}
@@ -45,12 +44,10 @@ export default function TransactionsPage() {
     },
     {
       header: "Date",
-      accessorKey: "created_at",
       cell: (item: any) => new Date(item.created_at).toLocaleDateString(),
     },
     {
       header: "Amount",
-      accessorKey: "amount",
       cell: (item: any) => (
         <span
           className={item.amount > 0 ? "text-green-600 font-mono" : "text-foreground font-mono"}
@@ -61,7 +58,6 @@ export default function TransactionsPage() {
     },
     {
       header: "Status",
-      accessorKey: "status",
       cell: (item: any) => (
         <Badge
           variant={item.status === "completed" ? "default" : "secondary"}
