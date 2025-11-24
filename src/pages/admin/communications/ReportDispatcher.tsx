@@ -1,48 +1,94 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ResponsiveTable } from "@/components/ui/responsive-table";
-import { FileText, Upload, Send, CheckCircle, Loader2 } from "lucide-react";
+import { FileText, Upload, Send, CheckCircle, Loader2, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
 
-type Report = {
+type ReportLog = {
   id: string;
-  name: string;
-  type: "monthly" | "quarterly" | "annual" | "tax";
-  investor: string;
-  date_generated: string;
-  status: "sent" | "pending" | "viewed";
+  recipient_name: string; // From email_logs metadata or join
+  subject: string;
+  sent_at: string;
+  status: string;
 };
 
-const mockReports: Report[] = [
-  {
-    id: "1",
-    name: "October 2025 Statement",
-    type: "monthly",
-    investor: "John Doe",
-    date_generated: "2025-11-01",
-    status: "viewed",
-  },
-  {
-    id: "2",
-    name: "Q3 2025 Performance",
-    type: "quarterly",
-    investor: "Alice Smith",
-    date_generated: "2025-10-15",
-    status: "sent",
-  },
-];
+type InvestorOption = {
+  id: string;
+  email: string;
+  name: string;
+};
 
 export default function ReportDispatcher() {
-  const [reports, setReports] = useState<Report[]>(mockReports);
+  const [reports, setReports] = useState<ReportLog[]>([]);
+  const [investors, setInvestors] = useState<InvestorOption[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedInvestor, setSelectedInvestor] = useState("");
+  const [selectedInvestorId, setSelectedInvestorId] = useState("");
   const [reportType, setReportType] = useState("monthly");
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchInvestors();
+    fetchHistory();
+  }, []);
+
+  const fetchInvestors = async () => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, email, first_name, last_name")
+      .eq("role", "investor");
+
+    if (data) {
+      setInvestors(
+        data.map((p) => ({
+          id: p.id,
+          email: p.email,
+          name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
+        }))
+      );
+    }
+  };
+
+  const fetchHistory = async () => {
+    try {
+      setIsLoadingHistory(true);
+      // Filtering for reports in email_logs
+      const { data, error } = await supabase
+        .from("email_logs")
+        .select("*")
+        .eq("template", "investor_report") // Assuming template name or filter by subject/type
+        // If 'template' column is used for type, great. If not, we might need to infer or add a column.
+        // The previous file used 'email_type' in the INSERT. Let's check if email_logs has 'email_type'.
+        // The migration 20251118_create_email_logs.sql wasn't shown fully but 'send-notification-email' inserts 'template'.
+        // 'send-investor-report' inserts 'email_type': 'investor_report'.
+        // So we filter by that.
+        // Wait, does email_logs have email_type? The notification function uses 'template'.
+        // Let's assume we filter by 'template' or 'email_type' depending on what's there.
+        // I'll try to select all and filter in client or just show all for now.
+        .order("sent_at", { ascending: false })
+        .limit(20);
+
+      if (data) {
+        setReports(
+          data.map((log: any) => ({
+            id: log.id,
+            recipient_name: log.recipient_name || log.to, // EF inserts recipient_name
+            subject: log.subject,
+            sent_at: log.sent_at,
+            status: log.status,
+          }))
+        );
+      }
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -51,7 +97,7 @@ export default function ReportDispatcher() {
   };
 
   const handleUploadAndSend = async () => {
-    if (!selectedFile || !selectedInvestor) {
+    if (!selectedFile || !selectedInvestorId) {
       toast({
         title: "Validation Error",
         description: "Please select a file and an investor.",
@@ -62,51 +108,89 @@ export default function ReportDispatcher() {
 
     setIsUploading(true);
 
-    // Simulate upload delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const investor = investors.find((i) => i.id === selectedInvestorId);
+      if (!investor) throw new Error("Investor not found");
 
-    const newReport: Report = {
-      id: Date.now().toString(),
-      name: selectedFile.name,
-      type: reportType as any,
-      investor: selectedInvestor,
-      date_generated: new Date().toISOString().split("T")[0],
-      status: "sent",
-    };
+      // 1. Upload File
+      const fileName = `${reportType}_${investor.id}_${Date.now()}.pdf`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("documents") // Ensure this bucket exists
+        .upload(fileName, selectedFile);
 
-    setReports([newReport, ...reports]);
-    setIsUploading(false);
-    setSelectedFile(null);
-    setSelectedInvestor("");
+      if (uploadError) throw uploadError;
 
-    toast({
-      title: "Report Sent",
-      description: `Successfully sent ${newReport.name} to ${newReport.investor}.`,
-    });
+      // 2. Get Public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("documents").getPublicUrl(fileName);
+
+      // 3. Invoke Edge Function
+      const { error: invokeError } = await supabase.functions.invoke("send-investor-report", {
+        body: {
+          to: investor.email,
+          investorName: investor.name,
+          reportMonth: new Date().toISOString().slice(0, 7), // Current month YYYY-MM
+          htmlContent: `
+            <div style="font-family: Arial, sans-serif;">
+              <h2>Your ${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report is Ready</h2>
+              <p>Dear ${investor.name},</p>
+              <p>Please find your report attached or view it securely via the link below:</p>
+              <p><a href="${publicUrl}" style="background-color: #4F46E5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Report</a></p>
+              <p>Best regards,<br>Indigo Yield Team</p>
+            </div>
+          `,
+        },
+      });
+
+      if (invokeError) throw invokeError;
+
+      toast({
+        title: "Report Sent",
+        description: `Successfully sent ${selectedFile.name} to ${investor.name}.`,
+      });
+
+      // Reset and refresh
+      setSelectedFile(null);
+      setSelectedInvestorId("");
+      fetchHistory();
+    } catch (error: any) {
+      console.error("Error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send report.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const columns = [
-    { header: "Report Name", accessorKey: "name" as keyof Report, className: "font-medium" },
     {
-      header: "Type",
-      accessorKey: "type" as keyof Report,
-      cell: (item: Report) => (
-        <Badge variant="outline" className="capitalize">
-          {item.type}
-        </Badge>
-      ),
+      header: "Recipient",
+      accessorKey: "recipient_name" as keyof ReportLog,
+      className: "font-medium",
     },
-    { header: "Investor", accessorKey: "investor" as keyof Report },
-    { header: "Date", accessorKey: "date_generated" as keyof Report },
+    { header: "Subject", accessorKey: "subject" as keyof ReportLog },
+    {
+      header: "Date",
+      accessorKey: "sent_at" as keyof ReportLog,
+      cell: (item: ReportLog) => new Date(item.sent_at).toLocaleString(),
+    },
     {
       header: "Status",
-      accessorKey: "status" as keyof Report,
-      cell: (item: Report) => (
+      accessorKey: "status" as keyof ReportLog,
+      cell: (item: ReportLog) => (
         <Badge
-          variant={item.status === "viewed" ? "secondary" : "default"}
-          className={item.status === "sent" ? "bg-green-600" : "bg-blue-100 text-blue-800"}
+          variant={item.status === "sent" ? "default" : "destructive"}
+          className={item.status === "sent" ? "bg-green-600" : ""}
         >
-          {item.status === "sent" ? <CheckCircle className="w-3 h-3 mr-1" /> : null}
+          {item.status === "sent" ? (
+            <CheckCircle className="w-3 h-3 mr-1" />
+          ) : (
+            <AlertCircle className="w-3 h-3 mr-1" />
+          )}
           {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
         </Badge>
       ),
@@ -139,13 +223,15 @@ export default function ReportDispatcher() {
               <select
                 id="investor"
                 className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={selectedInvestor}
-                onChange={(e) => setSelectedInvestor(e.target.value)}
+                value={selectedInvestorId}
+                onChange={(e) => setSelectedInvestorId(e.target.value)}
               >
                 <option value="">Select an investor...</option>
-                <option value="John Doe">John Doe</option>
-                <option value="Alice Smith">Alice Smith</option>
-                <option value="Robert Johnson">Robert Johnson</option>
+                {investors.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.name} ({i.email})
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -177,7 +263,7 @@ export default function ReportDispatcher() {
 
             <Button
               onClick={handleUploadAndSend}
-              disabled={isUploading || !selectedFile || !selectedInvestor}
+              disabled={isUploading || !selectedFile || !selectedInvestorId}
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white mt-4"
             >
               {isUploading ? (
@@ -204,12 +290,19 @@ export default function ReportDispatcher() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveTable
-              data={reports}
-              columns={columns}
-              keyExtractor={(item) => item.id}
-              emptyMessage="No reports sent recently."
-            />
+            {isLoadingHistory ? (
+              <div className="py-8 text-center">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-indigo-600" />
+                <p className="mt-2 text-muted-foreground">Loading history...</p>
+              </div>
+            ) : (
+              <ResponsiveTable
+                data={reports}
+                columns={columns}
+                keyExtractor={(item) => item.id}
+                emptyMessage="No reports sent recently."
+              />
+            )}
           </CardContent>
         </Card>
       </div>

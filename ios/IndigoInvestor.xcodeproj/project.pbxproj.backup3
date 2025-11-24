@@ -64,6 +64,7 @@
 		523937811DDAE020958FC9C1 /* Montserrat-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8F8738878D2234618B9DBA49 /* Montserrat-Regular.ttf */; };
 		560F245E6F7849FDA6E0A6E9 /* NewDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5109A39251EC97DA6792423 /* NewDashboardView.swift */; };
 		5948B709C5E95FADB0F6DBB5 /* StatementViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BDDCD0FA15FBFC17DA67F4B /* StatementViewer.swift */; };
+		5B826197712D7F2B577EFF7E /* Repositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC122868DCAF2DB079315D2E /* Repositories.swift */; };
 		5E1E5377D8745CB187AA1478 /* supabase.cer in Resources */ = {isa = PBXBuildFile; fileRef = 63030E1D07B69C5E0A31B404 /* supabase.cer */; };
 		5F7BD9953AEF528A5DEB4F19 /* YieldGeneratedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9836595B95EDC2D6E2C011 /* YieldGeneratedView.swift */; };
 		605C843B4917AB241DF9E59D /* AccountViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1781186163B6FF39FB25F44D /* AccountViewModel.swift */; };
@@ -277,6 +278,7 @@
 		C4A9188EDEF438CFE1A0E1FE /* NewsletterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsletterView.swift; sourceTree = "<group>"; };
 		C944FD71E92A09D803A361AA /* ChartWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartWrapper.swift; sourceTree = "<group>"; };
 		C9A3678F7D4A3CEDDA777138 /* IndigoInvestor.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = IndigoInvestor.xcdatamodel; sourceTree = "<group>"; };
+		CC122868DCAF2DB079315D2E /* Repositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Repositories.swift; sourceTree = "<group>"; };
 		CC8D828800EEC512F1FB88BF /* Montserrat-Thin.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-Thin.ttf"; sourceTree = "<group>"; };
 		D03CD0CD3C1D4ABAE44F47D1 /* Montserrat-Black.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-Black.ttf"; sourceTree = "<group>"; };
 		D1913928A26F5D54F78FC57A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -834,6 +836,7 @@
 		FB3D014EC837421FDE2FB1C1 /* Repositories */ = {
 			isa = PBXGroup;
 			children = (
+				CC122868DCAF2DB079315D2E /* Repositories.swift */,
 			);
 			path = Repositories;
 			sourceTree = "<group>";
@@ -1078,6 +1081,7 @@
 				CD9025AAF729A8480D3BD7CB /* PushNotificationManager.swift in Sources */,
 				7459E9B911C54917CB67D6D6 /* QuickDebugView.swift in Sources */,
 				12C94B7E55CE7989EED1007B /* RealtimeService.swift in Sources */,
+				5B826197712D7F2B577EFF7E /* Repositories.swift in Sources */,
 				2B61D803DF13453534144EB6 /* RepositoryProtocols.swift in Sources */,
 				BDF3FA1079D79EA7FD37283F /* RootView.swift in Sources */,
 				017DEB9A9662AEB24F1D4E0C /* SecurityManager.swift in Sources */,

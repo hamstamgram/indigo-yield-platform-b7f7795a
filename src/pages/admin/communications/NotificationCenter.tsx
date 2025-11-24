@@ -1,58 +1,63 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ResponsiveTable } from "@/components/ui/responsive-table";
-import { Bell, Send, Clock, Users, CheckCircle, AlertCircle } from "lucide-react";
+import { Bell, Send, Clock, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
 
-// Mock data type
-type Notification = {
+type NotificationLog = {
   id: string;
-  title: string;
-  message: string;
-  target_audience: "all" | "investors" | "specific";
-  scheduled_at: string | null;
-  status: "sent" | "scheduled" | "draft";
-  sent_at: string | null;
-  recipient_count: number;
+  to: string;
+  subject: string;
+  template: string;
+  status: string;
+  sent_at: string;
+  error_message?: string;
 };
 
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    title: "Monthly Yield Update",
-    message: "Your monthly yield report for October is now available.",
-    target_audience: "all",
-    scheduled_at: null,
-    status: "sent",
-    sent_at: "2025-10-01T09:00:00Z",
-    recipient_count: 142,
-  },
-  {
-    id: "2",
-    title: "Platform Maintenance",
-    message: "Scheduled maintenance this Sunday at 2 AM UTC.",
-    target_audience: "all",
-    scheduled_at: "2025-11-25T10:00:00Z",
-    status: "scheduled",
-    sent_at: null,
-    recipient_count: 150,
-  },
-];
-
 export default function NotificationCenter() {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<NotificationLog[]>([]);
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [audience, setAudience] = useState<"all" | "investors" | "specific">("all");
   const [scheduleTime, setScheduleTime] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
 
-  const handleSend = () => {
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from("email_logs")
+        .select("*")
+        .order("sent_at", { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      setNotifications(data || []);
+    } catch (error: any) {
+      console.error("Error fetching notifications:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load notification history.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSend = async () => {
     if (!title || !message) {
       toast({
         title: "Validation Error",
@@ -62,68 +67,136 @@ export default function NotificationCenter() {
       return;
     }
 
-    const newNotification: Notification = {
-      id: Date.now().toString(),
-      title,
-      message,
-      target_audience: audience,
-      scheduled_at: scheduleTime || null,
-      status: scheduleTime ? "scheduled" : "sent",
-      sent_at: scheduleTime ? null : new Date().toISOString(),
-      recipient_count: 0, // Would calculate based on audience
-    };
+    try {
+      setIsSending(true);
 
-    setNotifications([newNotification, ...notifications]);
-    toast({
-      title: scheduleTime ? "Notification Scheduled" : "Notification Sent",
-      description: `Successfully ${scheduleTime ? "scheduled" : "sent"} notification to ${audience === "all" ? "all users" : "selected audience"}.`,
-    });
+      // 1. Fetch Target Audience
+      let targets: { email: string; full_name?: string }[] = [];
 
-    // Reset form
-    setTitle("");
-    setMessage("");
-    setScheduleTime("");
+      if (audience === "all" || audience === "investors") {
+        const { data: investors, error } = await supabase
+          .from("profiles")
+          .select("email, first_name, last_name")
+          .eq("role", "investor"); // Assuming 'role' column exists on profiles based on schema analysis
+
+        if (error) throw error;
+
+        targets = investors
+          .map((i) => ({
+            email: i.email,
+            full_name: `${i.first_name || ""} ${i.last_name || ""}`.trim(),
+          }))
+          .filter((i) => i.email); // Filter out any with missing emails
+      } else {
+        // For 'specific', just send to current user as test for now, or implement a picker
+        // Using current user as a safe fallback for demo
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user?.email) {
+          targets = [{ email: user.email }];
+        }
+      }
+
+      if (targets.length === 0) {
+        toast({
+          title: "No Recipients",
+          description: "No users found for the selected audience.",
+          variant: "destructive",
+        });
+        setIsSending(false);
+        return;
+      }
+
+      // 2. Send Emails via Edge Function
+      let sentCount = 0;
+      let errorCount = 0;
+
+      // Send in parallel (chunks of 5)
+      const chunkSize = 5;
+      for (let i = 0; i < targets.length; i += chunkSize) {
+        const chunk = targets.slice(i, i + chunkSize);
+        await Promise.all(
+          chunk.map(async (target) => {
+            const { error } = await supabase.functions.invoke("send-notification-email", {
+              body: {
+                to: target.email,
+                subject: title,
+                template: "admin_notification",
+                data: {
+                  message: message,
+                  name: target.full_name || "Investor",
+                },
+              },
+            });
+
+            if (error) {
+              console.error(`Failed to send to ${target.email}:`, error);
+              errorCount++;
+            } else {
+              sentCount++;
+            }
+          })
+        );
+      }
+
+      toast({
+        title: "Batch Complete",
+        description: `Sent ${sentCount} notifications. ${errorCount > 0 ? `${errorCount} failed.` : ""}`,
+        variant: errorCount > 0 ? "destructive" : "default",
+      });
+
+      // Reset form and refresh list
+      setTitle("");
+      setMessage("");
+      setScheduleTime("");
+      fetchNotifications();
+    } catch (error: any) {
+      console.error("Error sending notifications:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send notifications.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const columns = [
-    { header: "Title", accessorKey: "title" as keyof Notification, className: "font-medium" },
     {
-      header: "Audience",
-      accessorKey: "target_audience" as keyof Notification,
-      cell: (item: Notification) => <Badge variant="outline">{item.target_audience}</Badge>,
+      header: "Subject",
+      accessorKey: "subject" as keyof NotificationLog,
+      className: "font-medium",
+    },
+    { header: "Recipient", accessorKey: "to" as keyof NotificationLog },
+    {
+      header: "Template",
+      accessorKey: "template" as keyof NotificationLog,
+      cell: (item: NotificationLog) => <Badge variant="outline">{item.template}</Badge>,
     },
     {
       header: "Status",
-      accessorKey: "status" as keyof Notification,
-      cell: (item: Notification) => (
+      accessorKey: "status" as keyof NotificationLog,
+      cell: (item: NotificationLog) => (
         <Badge
-          variant={
-            item.status === "sent"
-              ? "default"
-              : item.status === "scheduled"
-                ? "secondary"
-                : "outline"
-          }
+          variant={item.status === "sent" ? "default" : "destructive"}
           className={item.status === "sent" ? "bg-green-600" : ""}
         >
           {item.status === "sent" ? (
             <CheckCircle className="w-3 h-3 mr-1" />
-          ) : item.status === "scheduled" ? (
-            <Clock className="w-3 h-3 mr-1" />
-          ) : null}
-          {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+          ) : (
+            <AlertCircle className="w-3 h-3 mr-1" />
+          )}
+          {item.status}
         </Badge>
       ),
     },
     {
-      header: "Date",
-      accessorKey: "sent_at" as keyof Notification,
-      cell: (item: Notification) => {
-        const date = item.sent_at || item.scheduled_at;
-        return date ? new Date(date).toLocaleString() : "-";
-      },
+      header: "Sent At",
+      accessorKey: "sent_at" as keyof NotificationLog,
+      cell: (item: NotificationLog) => new Date(item.sent_at).toLocaleString(),
     },
-    { header: "Recipients", accessorKey: "recipient_count" as keyof Notification },
   ];
 
   return (
@@ -180,26 +253,26 @@ export default function NotificationCenter() {
               >
                 <option value="all">All Users</option>
                 <option value="investors">Active Investors Only</option>
-                <option value="specific">Specific Users (Tag)</option>
+                <option value="specific">Specific Users (Debug: Yourself)</option>
               </select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="schedule">Schedule (Optional)</Label>
-              <Input
-                id="schedule"
-                type="datetime-local"
-                value={scheduleTime}
-                onChange={(e) => setScheduleTime(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">Leave blank to send immediately.</p>
             </div>
 
             <Button
               onClick={handleSend}
+              disabled={isSending}
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white mt-4"
             >
-              {scheduleTime ? "Schedule Notification" : "Send Now"}
+              {isSending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="mr-2 h-4 w-4" />
+                  Send Now
+                </>
+              )}
             </Button>
           </CardContent>
         </Card>
@@ -213,12 +286,19 @@ export default function NotificationCenter() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveTable
-              data={notifications}
-              columns={columns}
-              keyExtractor={(item) => item.id}
-              emptyMessage="No notifications sent yet."
-            />
+            {isLoading ? (
+              <div className="py-8 text-center">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-indigo-600" />
+                <p className="mt-2 text-muted-foreground">Loading history...</p>
+              </div>
+            ) : (
+              <ResponsiveTable
+                data={notifications}
+                columns={columns}
+                keyExtractor={(item) => item.id}
+                emptyMessage="No notifications sent yet."
+              />
+            )}
           </CardContent>
         </Card>
       </div>
