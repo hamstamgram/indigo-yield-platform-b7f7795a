@@ -53,6 +53,9 @@ export const SystemHealthPage = lazy(() => import("@/routes/admin/system-health/
 export const AdminTransactionsPage = lazy(
   () => import("@/routes/admin/transactions/AdminTransactionsPage")
 );
+export const AdminManualTransaction = lazy(
+  () => import("@/routes/admin/transactions/AdminManualTransaction")
+);
 
 // ============================================================================
 // AUTH PAGES
@@ -341,6 +344,11 @@ export const LazySystemHealth = () => (
 export const LazyAdminTransactionsView = () => (
   <RouteSuspense type="admin">
     <AdminTransactionsPage />
+  </RouteSuspense>
+);
+export const LazyAdminManualTransaction = () => (
+  <RouteSuspense type="admin">
+    <AdminManualTransaction />
   </RouteSuspense>
 );
 

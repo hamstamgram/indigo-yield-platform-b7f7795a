@@ -21,6 +21,7 @@ import { OperationsRoutes } from "./admin/operations";
 import { ReportsRoutes } from "./admin/reports";
 import { SystemRoutes } from "./admin/system";
 import { CommunicationsRoutes } from "./admin/communications";
+import { TransactionRoutes } from "./admin/transactions";
 
 /**
  * Admin Routes Component
@@ -38,6 +39,7 @@ export function AdminRoutes() {
       {ReportsRoutes()}
       {SystemRoutes()}
       {CommunicationsRoutes()}
+      {TransactionRoutes()}
     </>
   );
 }

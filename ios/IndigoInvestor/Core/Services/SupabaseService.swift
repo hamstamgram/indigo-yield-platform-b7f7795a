@@ -444,16 +444,6 @@ struct InvestorProfile: Codable, Identifiable {
     let updatedAt: Date
 }
 
-    let id: UUID
-    let type: String
-    let investorId: UUID
-    let amount: Decimal?
-    let status: String
-    let description: String?
-    let createdAt: Date
-    let processedAt: Date?
-    let processedBy: UUID?
-}
 
 // MARK: - Channel Filter Extension
 
