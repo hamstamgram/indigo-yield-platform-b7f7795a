@@ -230,7 +230,7 @@ export class OnboardingSyncService {
       throw error;
     }
 
-    return new Set((data || []).map((row) => row.airtable_record_id).filter(Boolean));
+    return new Set((data || []).map((row: any) => row.airtable_record_id).filter(Boolean));
   }
 
   /**

@@ -384,7 +384,7 @@ export class OnboardingService {
 
       const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
 
-      allSubmissions.forEach((submission) => {
+      allSubmissions.forEach((submission: any) => {
         // Count by status
         if (submission.status === "pending") stats.pending++;
         else if (submission.status === "processing") stats.processing++;

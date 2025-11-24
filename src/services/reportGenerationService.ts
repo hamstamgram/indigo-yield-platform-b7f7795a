@@ -333,10 +333,10 @@ export async function fetchInvestorReportData(
       .eq("investor_id", investorId)
       .order("is_primary", { ascending: false }); // Primary email first
 
-    const { data: emailRecords, error: emailsError } = result as { data: any; error: any };
+    const { data: emailRecords } = result as { data: any; error: any };
 
     // Fallback to legacy email if no emails found
-    const emails = (emailRecords || []).map((e) => ({
+    const emails = (emailRecords || []).map((e: any) => ({
       email: e.email,
       isPrimary: e.is_primary,
       verified: e.verified,
@@ -377,7 +377,7 @@ export async function fetchInvestorReportData(
     }
 
     // Get primary email for backward compatibility
-    const primaryEmail = emails.find((e) => e.isPrimary)?.email || investor.email || "";
+    const primaryEmail = emails.find((e: any) => e.isPrimary)?.email || investor.email || "";
 
     // Transform data for report
     const reportData: InvestorReportData = {
