@@ -23,11 +23,8 @@ import {
 import { toast } from "sonner";
 import {
   Calendar,
-  Save,
   Calculator,
-  TrendingUp,
   ArrowRight,
-  AlertCircle,
   Wallet,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -76,6 +73,9 @@ export default function FundManager() {
       })) as Fund[];
     },
   });
+  
+  // Derived selected fund
+  const selectedFund = funds?.find(f => f.id === selectedFundId);
 
   // 1.5 Fetch Net Flows
   const { data: flowData } = useQuery({
@@ -146,7 +146,7 @@ export default function FundManager() {
 
       if (!positions || !selectedFund) return [];
 
-      const totalShares = positions.reduce((acc, p) => acc + Number(p.shares), 0);
+      const totalShares = positions.reduce((acc: number, p: any) => acc + Number(p.shares), 0);
 
       return positions.map((pos: any) => {
         const balance = Number(pos.shares);
@@ -347,20 +347,20 @@ export default function FundManager() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {investorPreviews.map((row, idx) => (
-                        <TableRow key={idx}>
-                          <TableCell className="font-medium">{row.investorName}</TableCell>
+                      {investorPreviews.map((_row: any, _idx: any) => (
+                        <TableRow key={_idx}>
+                          <TableCell className="font-medium">{_row.investorName}</TableCell>
                           <TableCell className="text-right text-muted-foreground">
-                            {row.ownershipPct.toFixed(2)}%
+                            {_row.ownershipPct.toFixed(2)}%
                           </TableCell>
                           <TableCell className="text-right font-mono">
-                            {row.currentBalance.toFixed(4)}
+                            {_row.currentBalance.toFixed(4)}
                           </TableCell>
                           <TableCell className="text-right font-mono font-bold text-green-600 bg-green-50/50 dark:bg-green-900/10">
-                            +{row.estimatedYield.toFixed(4)}
+                            +{_row.estimatedYield.toFixed(4)}
                           </TableCell>
                           <TableCell className="text-right font-mono font-bold">
-                            {row.newBalance.toFixed(4)}
+                            {_row.newBalance.toFixed(4)}
                           </TableCell>
                         </TableRow>
                       ))}

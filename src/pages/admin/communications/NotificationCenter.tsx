@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ResponsiveTable } from "@/components/ui/responsive-table";
-import { Bell, Send, Clock, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Bell, Send, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +25,6 @@ export default function NotificationCenter() {
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [audience, setAudience] = useState<"all" | "investors" | "specific">("all");
-  const [scheduleTime, setScheduleTime] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
@@ -149,7 +148,6 @@ export default function NotificationCenter() {
       // Reset form and refresh list
       setTitle("");
       setMessage("");
-      setScheduleTime("");
       fetchNotifications();
     } catch (error: any) {
       console.error("Error sending notifications:", error);

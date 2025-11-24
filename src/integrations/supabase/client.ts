@@ -8,10 +8,8 @@ const getEnv = (key: string, viteKey: string) => {
     return process.env[key];
   }
   // 2. Try Vite import.meta.env (if available)
-  // @ts-expect-error - Vite types might be missing in some contexts
-  if (typeof import.meta !== "undefined" && import.meta.env && import.meta.env[viteKey]) {
-    // @ts-expect-error - Vite types might be missing in some contexts
-    return import.meta.env[viteKey];
+  if (typeof import.meta !== "undefined" && (import.meta as any).env && (import.meta as any).env[viteKey]) {
+    return (import.meta as any).env[viteKey];
   }
   // 3. Fallback to process.env for VITE_ keys (legacy)
   if (typeof process !== "undefined" && process.env[viteKey]) {
