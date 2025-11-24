@@ -393,7 +393,7 @@ struct InvestorRow: View {
                             .foregroundColor(.secondary)
                         
                         HStack(spacing: 8) {
-                            StatusBadge(status: investor.status)
+                            InvestorStatusBadge(status: investor.status)
                             
                             if investor.totalInvested >= 1000000 {
                                 Label("High Value", systemImage: "star.fill")
@@ -485,9 +485,9 @@ struct QuickActionButton: View {
     }
 }
 
-// MARK: - Status Badge
+// MARK: - Investor Status Badge
 
-struct StatusBadge: View {
+struct InvestorStatusBadge: View {
     let status: InvestorAccount.Status
     
     var body: some View {

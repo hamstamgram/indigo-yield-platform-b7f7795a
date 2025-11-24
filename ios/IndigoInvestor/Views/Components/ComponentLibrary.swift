@@ -418,8 +418,8 @@ struct EmptyStateView: View {
     }
 }
 
-/// Status badge component
-struct StatusBadge: View {
+/// Generic status badge component for general-purpose status display
+struct GenericStatusBadge: View {
     let text: String
     let status: Status
 

@@ -145,11 +145,17 @@ class FundService: ObservableObject {
 
     func addFundToInvestor(investorId: String, fundId: String, initialInvestment: Double = 0) async -> (success: Bool, error: String?) {
         do {
-            let params: [String: Any] = [
-                "p_investor_id": investorId,
-                "p_fund_id": fundId,
-                "p_initial_investment": initialInvestment
-            ]
+            struct AddFundParams: Encodable {
+                let p_investor_id: String
+                let p_fund_id: String
+                let p_initial_investment: Double
+            }
+
+            let params = AddFundParams(
+                p_investor_id: investorId,
+                p_fund_id: fundId,
+                p_initial_investment: initialInvestment
+            )
 
             _ = try await supabase
                 .rpc("add_fund_to_investor", params: params)
@@ -208,17 +214,19 @@ class FundService: ObservableObject {
         currentValue: Double? = nil
     ) async -> (success: Bool, error: String?) {
         do {
-            var updates: [String: Any] = ["updated_at": ISO8601DateFormatter().string(from: Date())]
+            struct UpdatePositionData: Encodable {
+                let updated_at: String
+                let shares: Double?
+                let cost_basis: Double?
+                let current_value: Double?
+            }
 
-            if let shares = shares {
-                updates["shares"] = shares
-            }
-            if let costBasis = costBasis {
-                updates["cost_basis"] = costBasis
-            }
-            if let currentValue = currentValue {
-                updates["current_value"] = currentValue
-            }
+            let updates = UpdatePositionData(
+                updated_at: ISO8601DateFormatter().string(from: Date()),
+                shares: shares,
+                cost_basis: costBasis,
+                current_value: currentValue
+            )
 
             _ = try await supabase
                 .from("investor_positions")

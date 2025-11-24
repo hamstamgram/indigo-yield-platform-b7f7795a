@@ -208,8 +208,8 @@ final class IndigoInvestorTests: XCTestCase {
         // This test verifies that Supabase can be configured
         // In a real test, you'd use a test/staging environment
         
-        let hasURL = !Environment.Supabase.url.isEmpty
-        let hasKey = !Environment.Supabase.anonKey.isEmpty
+        let hasURL = !AppEnvironment.Supabase.url.isEmpty
+        let hasKey = !AppEnvironment.Supabase.anonKey.isEmpty
         
         // These will be true when properly configured
         XCTAssertTrue(hasURL || hasKey, "Supabase configuration should be available")

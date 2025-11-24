@@ -80,6 +80,7 @@
 		7459E9B911C54917CB67D6D6 /* QuickDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8578B92F377C713BAB854336 /* QuickDebugView.swift */; };
 		78D6CA23ECEA2DFA5FFBCB9C /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AE44B1A67C4B1858115AD21 /* MainTabView.swift */; };
 		78E1483B3208AB4C6653CB5B /* SupportViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09938D2439AA716ECC939377 /* SupportViewModel.swift */; };
+		7C4A403F8B778E6FDCCFD158 /* IndigoTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC0B6DBEFBD739CCE2A9198 /* IndigoTheme.swift */; };
 		7E360B04B96AB1F1B2F3282E /* Montserrat-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EE418EE131FD171A38ABBDD8 /* Montserrat-Medium.ttf */; };
 		7F22AB0BD141A63CF655B960 /* AdminApprovalsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42EB2075C069D0E608A046D /* AdminApprovalsView.swift */; };
 		85518E3BC238205C66220FEA /* ServiceLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 551BFC96C38228D3B6196E27 /* ServiceLocator.swift */; };
@@ -248,6 +249,7 @@
 		9A15C9D79EFBCED9D58B23A9 /* AdditionalServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdditionalServices.swift; sourceTree = "<group>"; };
 		9B5FE8F77674F7160358651B /* Montserrat-BlackItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-BlackItalic.ttf"; sourceTree = "<group>"; };
 		9BAC40A866C7D851E7D324CE /* MockSupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockSupabaseClient.swift; sourceTree = "<group>"; };
+		9BC0B6DBEFBD739CCE2A9198 /* IndigoTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndigoTheme.swift; sourceTree = "<group>"; };
 		9CAD2080143DC9067C853FAD /* BiometricAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricAuthManager.swift; sourceTree = "<group>"; };
 		9E45DEA9C3BC12E51598F6DE /* TransactionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionDetailView.swift; sourceTree = "<group>"; };
 		9EE7B2CD631DCB774FED9FE2 /* CoreDataStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
@@ -584,6 +586,7 @@
 			children = (
 				02E217BDB3BFB7319CC02FAE /* DesignTokens.swift */,
 				D7D4F007618495BCC224E179 /* FinancialTypography.swift */,
+				9BC0B6DBEFBD739CCE2A9198 /* IndigoTheme.swift */,
 				0FD9AA7B99BDC71AF54DC759 /* Typography.swift */,
 			);
 			path = Theme;
@@ -1052,6 +1055,7 @@
 				11B2F0E96576796734818811 /* InMemoryLocalStorage.swift in Sources */,
 				092F33DAE68B58E823071751 /* IndigoInvestor.xcdatamodeld in Sources */,
 				46A9D0D948A6867C6337AD58 /* IndigoInvestorApp.swift in Sources */,
+				7C4A403F8B778E6FDCCFD158 /* IndigoTheme.swift in Sources */,
 				EFB89AFB772E9B355AC488EE /* InvestorServiceV2.swift in Sources */,
 				D263C35E4F600E796DF5A524 /* KeychainLocalStorage.swift in Sources */,
 				9EAC1AD80CF418A747AAC977 /* KeychainManager.swift in Sources */,

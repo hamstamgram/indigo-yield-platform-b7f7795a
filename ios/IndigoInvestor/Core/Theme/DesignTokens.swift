@@ -10,11 +10,11 @@ import UIKit
 
 // MARK: - Design Tokens
 
-struct DesignTokens {
+public struct DesignTokens {
 
     // MARK: - Colors
 
-    struct Colors {
+    public struct Colors {
 
         // MARK: Brand Colors
         // Deep Indigo Premium Branding
@@ -93,7 +93,7 @@ struct DesignTokens {
 
     // MARK: - Typography
 
-    struct Typography {
+    public struct Typography {
 
         // MARK: Display Text (Headlines, Titles)
         static let largeTitle = Font.custom("Montserrat-Bold", size: 34)
@@ -129,7 +129,7 @@ struct DesignTokens {
 
     // MARK: - Spacing
 
-    struct Spacing {
+    public struct Spacing {
         // Base 4pt Grid System
         static let xxs: CGFloat = 4      // 4pt
         static let xs: CGFloat = 8       // 8pt
@@ -153,7 +153,7 @@ struct DesignTokens {
 
     // MARK: - Component Sizes
 
-    struct ComponentSizes {
+    public struct ComponentSizes {
         // Buttons
         static let buttonHeight: CGFloat = 50
         static let buttonHeightCompact: CGFloat = 36
@@ -184,8 +184,8 @@ struct DesignTokens {
 
     // MARK: - Shadows
 
-    struct Shadow {
-        struct Style {
+    public struct Shadow {
+        public struct Style {
             let color: Color
             let radius: CGFloat
             let x: CGFloat
@@ -215,7 +215,7 @@ struct DesignTokens {
 
     // MARK: - Animation
 
-    struct Animation {
+    public struct Animation {
         static let fast = SwiftUI.Animation.easeInOut(duration: 0.2)
         static let medium = SwiftUI.Animation.easeInOut(duration: 0.3)
         static let slow = SwiftUI.Animation.easeInOut(duration: 0.5)
@@ -232,7 +232,7 @@ struct DesignTokens {
 
     // MARK: - Blur Effects
 
-    struct Blur {
+    public struct Blur {
         static let light = UIBlurEffect.Style.systemThinMaterial
         static let medium = UIBlurEffect.Style.systemMaterial
         static let heavy = UIBlurEffect.Style.systemThickMaterial

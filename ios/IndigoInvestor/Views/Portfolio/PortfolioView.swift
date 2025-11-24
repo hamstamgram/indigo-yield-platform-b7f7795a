@@ -27,7 +27,7 @@ struct PortfolioView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     // Portfolio Summary Card
-                    PortfolioSummaryCard(viewModel: viewModel)
+                    PortfolioYieldSummaryCard(viewModel: viewModel)
                         .padding(.horizontal)
                     
                     // Performance Chart (Placeholder for now, as history is optional)
@@ -74,9 +74,9 @@ struct PortfolioView: View {
     }
 }
 
-// MARK: - Portfolio Summary Card
+// MARK: - Portfolio Yield Summary Card
 
-struct PortfolioSummaryCard: View {
+struct PortfolioYieldSummaryCard: View {
     @ObservedObject var viewModel: PortfolioViewModel
     
     var body: some View {

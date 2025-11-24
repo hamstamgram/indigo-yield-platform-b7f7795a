@@ -290,7 +290,7 @@ struct NewsletterIssueCard: View {
 
                 Spacer()
 
-                CategoryBadge(category: newsletter.category)
+                NewsletterCategoryBadge(category: newsletter.category)
             }
 
             // Title
@@ -473,7 +473,7 @@ struct NewsletterHeader: View {
 
                 Spacer()
 
-                CategoryBadge(category: newsletter.category)
+                NewsletterCategoryBadge(category: newsletter.category)
             }
 
             Text(newsletter.title)
@@ -590,7 +590,7 @@ struct NewsletterFooter: View {
 
 // MARK: - Supporting Views
 
-struct CategoryBadge: View {
+struct NewsletterCategoryBadge: View {
     let category: NewsletterCategory
 
     var body: some View {

@@ -7,8 +7,8 @@
 
 import Foundation
 
-/// Environment configuration
-enum Environment {
+/// App environment configuration
+enum AppEnvironment {
     
     // MARK: - Environment Types
     
@@ -38,7 +38,7 @@ enum Environment {
     
     struct Supabase {
         static var url: String {
-            switch Environment.current {
+            switch AppEnvironment.current {
             case .development, .staging:
                 // Use development/staging Supabase project
                 return ProcessInfo.processInfo.environment["SUPABASE_URL"] 
@@ -51,7 +51,7 @@ enum Environment {
         }
         
         static var anonKey: String {
-            switch Environment.current {
+            switch AppEnvironment.current {
             case .development, .staging:
                 return ProcessInfo.processInfo.environment["SUPABASE_ANON_KEY"] 
                     ?? "your-anon-key-here"
@@ -71,7 +71,7 @@ enum Environment {
     
     struct API {
         static var baseURL: String {
-            switch Environment.current {
+            switch AppEnvironment.current {
             case .development:
                 return "http://localhost:3000"
             case .staging:
@@ -93,21 +93,21 @@ enum Environment {
         }
         
         static var enablePushNotifications: Bool {
-            switch Environment.current {
+            switch AppEnvironment.current {
             case .development: return false
             case .staging, .production: return true
             }
         }
         
         static var enableAnalytics: Bool {
-            switch Environment.current {
+            switch AppEnvironment.current {
             case .development: return false
             case .staging, .production: return true
             }
         }
         
         static var enableCrashReporting: Bool {
-            switch Environment.current {
+            switch AppEnvironment.current {
             case .development: return false
             case .staging, .production: return true
             }
@@ -164,7 +164,7 @@ enum Environment {
         }
         
         static var level: LogLevel {
-            switch Environment.current {
+            switch AppEnvironment.current {
             case .development: return .verbose
             case .staging: return .debug
             case .production: return .warning
@@ -221,7 +221,7 @@ enum Environment {
 
 // MARK: - Environment Variables Loader
 
-extension Environment {
+extension AppEnvironment {
     /// Load environment variables from a .env file (for development)
     static func loadDotEnv() {
         #if DEBUG

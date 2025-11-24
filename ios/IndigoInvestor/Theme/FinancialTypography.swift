@@ -157,7 +157,9 @@ extension FinancialTypography {
         relativeTo textStyle: Font.TextStyle,
         maxScale: CGFloat = 2.0
     ) -> Font {
-        return baseFont.scaleEffect(min(maxScale, 1.0)) as! Font
+        // Note: Font scaling is handled by Dynamic Type system
+        // This method returns the base font for consistency
+        return baseFont
     }
     
     /// Currency formatter with proper typography
