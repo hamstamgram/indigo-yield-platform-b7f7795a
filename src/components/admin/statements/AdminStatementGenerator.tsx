@@ -91,14 +91,15 @@ const AdminStatementGenerator: React.FC = () => {
 
         if (!uploadError) {
           // Log Document
+          const currentUser = await supabase.auth.getUser();
           await supabase.from("documents").insert({
-            user_id: investor.profile_id, // Assuming link
+            user_id: investor.profile_id || investor.id,
             type: "statement",
             title: `Monthly Statement - ${selectedMonth}/${selectedYear}`,
-            storage_path: uploadData?.path,
+            storage_path: uploadData?.path || "",
             period_start: statementData.period.start,
             period_end: statementData.period.end,
-            created_by: (await supabase.auth.getUser()).data.user?.id,
+            created_by: currentUser.data.user?.id,
           });
           successCount++;
         }
