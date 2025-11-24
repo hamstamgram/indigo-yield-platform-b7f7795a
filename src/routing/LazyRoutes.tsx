@@ -31,7 +31,6 @@ export const AdminOperationsHub = lazy(() => import("@/routes/admin/AdminOperati
 export const AdminRequestsQueuePage = lazy(() => import("@/routes/admin/AdminRequestsQueuePage"));
 export const AdminSettings = lazy(() => import("@/routes/admin/AdminSettings"));
 export const AdminStatementsPage = lazy(() => import("@/routes/admin/AdminStatementsPage"));
-export const AdminSupportQueue = lazy(() => import("@/routes/admin/AdminSupportQueue"));
 export const AdminTransactions = lazy(() => import("@/routes/admin/AdminTransactions"));
 export const AdminUserManagement = lazy(() => import("@/routes/admin/AdminUserManagement"));
 export const AdminWithdrawalsPage = lazy(() => import("@/routes/admin/AdminWithdrawalsPage"));
@@ -111,12 +110,6 @@ export const SettingsNotificationsPage = lazy(
 );
 export const ProfileSettingsPage = lazy(() => import("@/routes/settings/ProfileSettingsPage"));
 export const SecuritySettings = lazy(() => import("@/routes/settings/SecuritySettings"));
-
-export const LiveChatPage = lazy(() => import("@/routes/support/LiveChatPage"));
-export const NewTicketPage = lazy(() => import("@/routes/support/NewTicketPage"));
-export const SupportHubPage = lazy(() => import("@/routes/support/SupportHubPage"));
-export const SupportTicketsPage = lazy(() => import("@/routes/support/SupportTicketsPage"));
-export const TicketDetailPage = lazy(() => import("@/routes/support/TicketDetailPage"));
 
 export const PendingTransactionsPage = lazy(
   () => import("@/routes/transactions/PendingTransactionsPage")
@@ -252,11 +245,6 @@ export const LazyAdminSettings = () => (
 export const LazyAdminStatements = () => (
   <RouteSuspense type="admin">
     <AdminStatementsPage />
-  </RouteSuspense>
-);
-export const LazyAdminSupportQueue = () => (
-  <RouteSuspense type="admin">
-    <AdminSupportQueue />
   </RouteSuspense>
 );
 export const LazyAdminTransactions = () => (
@@ -482,31 +470,6 @@ export const LazyProfileSettings = () => (
 export const LazySecuritySettings = () => (
   <RouteSuspense>
     <SecuritySettings />
-  </RouteSuspense>
-);
-export const LazyLiveChat = () => (
-  <RouteSuspense>
-    <LiveChatPage />
-  </RouteSuspense>
-);
-export const LazyNewTicket = () => (
-  <RouteSuspense>
-    <NewTicketPage />
-  </RouteSuspense>
-);
-export const LazySupportHub = () => (
-  <RouteSuspense>
-    <SupportHubPage />
-  </RouteSuspense>
-);
-export const LazySupportTickets = () => (
-  <RouteSuspense>
-    <SupportTicketsPage />
-  </RouteSuspense>
-);
-export const LazyTicketDetail = () => (
-  <RouteSuspense>
-    <TicketDetailPage />
   </RouteSuspense>
 );
 export const LazyPendingTransactions = () => (

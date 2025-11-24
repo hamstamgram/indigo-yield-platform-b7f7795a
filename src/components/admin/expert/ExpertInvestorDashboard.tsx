@@ -10,7 +10,9 @@ export default function ExpertInvestorDashboard() {
 
   const { data: investor, isLoading } = useQuery({
     queryKey: ["expert-investor", id],
+    enabled: !!id,
     queryFn: async () => {
+      if (!id) throw new Error("No investor ID provided");
       const { data, error } = await supabase
         .from("investors")
         .select(
@@ -98,7 +100,7 @@ export default function ExpertInvestorDashboard() {
           <CardContent>
             <div className="text-2xl font-bold capitalize">{investor.kyc_status}</div>
             <p className="text-xs text-muted-foreground">
-              Last updated: {new Date(investor.updated_at).toLocaleDateString()}
+              Last updated: {investor.updated_at ? new Date(investor.updated_at).toLocaleDateString() : 'N/A'}
             </p>
           </CardContent>
         </Card>
