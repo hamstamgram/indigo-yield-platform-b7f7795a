@@ -146,24 +146,3 @@ struct AdminTabView: View {
         }
     }
 }
-
-// MARK: - Offline Banner
-
-struct OfflineBanner: View {
-    var body: some View {
-        HStack {
-            Image(systemName: "wifi.slash")
-                .foregroundColor(.white)
-            
-            Text("You're offline. Some features may be limited.")
-                .font(.caption)
-                .foregroundColor(.white)
-            
-            Spacer()
-        }
-        .padding(.horizontal)
-        .padding(.vertical, 8)
-        .background(Color.orange)
-        .shadow(radius: 2)
-    }
-}

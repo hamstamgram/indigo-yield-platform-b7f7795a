@@ -42,6 +42,7 @@
 		2B61D803DF13453534144EB6 /* RepositoryProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 864B0C5A0BE7384404F26E81 /* RepositoryProtocols.swift */; };
 		2E2BCB7DD81CEA260FA153D9 /* Montserrat-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 963EBDAA63EB64C5E1E5F3AE /* Montserrat-Bold.ttf */; };
 		2E2F4097D50420EB6E75C609 /* Montserrat-ExtraLightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F9D96BCDCCA9DA273E88A7B3 /* Montserrat-ExtraLightItalic.ttf */; };
+		34B5457C8E6FA9E771905CBB /* PortfolioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADB906EB8B4EC5D8D06F7B2 /* PortfolioService.swift */; };
 		357A137B1F64B9C593AA12A7 /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E06C035EB8311DFAC0D1F557 /* AccountView.swift */; };
 		37411D003BF3B05B06848E42 /* Montserrat-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9160032DA1E800B7344B8230 /* Montserrat-MediumItalic.ttf */; };
 		39180D304F56858A9160FD70 /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACFD42DD2C2174E6286F2968 /* NotificationsView.swift */; };
@@ -197,6 +198,7 @@
 		4100A6E9DF2329E492F12532 /* NotificationsInboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsInboxView.swift; sourceTree = "<group>"; };
 		411A80C7C7399FCC8788F209 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		45D279A0157E4E0DE8F4CB39 /* FundService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FundService.swift; sourceTree = "<group>"; };
+		4ADB906EB8B4EC5D8D06F7B2 /* PortfolioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioService.swift; sourceTree = "<group>"; };
 		4B2592408ED0996A7B89EBD2 /* Montserrat-ExtraBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-ExtraBold.ttf"; sourceTree = "<group>"; };
 		4D5F122190E14040016B68EC /* WithdrawalRequestViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WithdrawalRequestViewModel.swift; sourceTree = "<group>"; };
 		4EA401C187F5CBBFDA194FD2 /* IndigoInvestor.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = IndigoInvestor.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -761,6 +763,7 @@
 				B0A2769FFE786696B4CC83E7 /* BusinessServices.swift */,
 				9BAC40A866C7D851E7D324CE /* MockSupabaseClient.swift */,
 				F9131DDC5CA9BDB0D2121CB6 /* OfflineManager.swift */,
+				4ADB906EB8B4EC5D8D06F7B2 /* PortfolioService.swift */,
 				8933305BEF036D6595204F98 /* RealtimeService.swift */,
 				A705E385C4B41832C51805DC /* Services.swift */,
 				D4C8284C1F7416E255D88889 /* SupabaseService.swift */,
@@ -1060,6 +1063,7 @@
 				2208B2EAD179840403D9EAC0 /* PasswordResetViewModel.swift in Sources */,
 				FF3B3788B7D6D4B0B3CA04AD /* Portfolio.swift in Sources */,
 				140E740902110581CFA3C555 /* PortfolioRepository.swift in Sources */,
+				34B5457C8E6FA9E771905CBB /* PortfolioService.swift in Sources */,
 				47CF7538DF6DA985929C8509 /* PortfolioView.swift in Sources */,
 				A4CDAA83551AEB1C516CDDF3 /* PortfolioViewModel.swift in Sources */,
 				065B24929928FBA02A453360 /* ProfileSettingsView.swift in Sources */,

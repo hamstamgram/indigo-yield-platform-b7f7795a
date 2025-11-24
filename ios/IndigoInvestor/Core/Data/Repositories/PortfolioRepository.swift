@@ -143,11 +143,7 @@ class PortfolioRepository: PortfolioRepositoryProtocol {
             .map { $0.toDomainModel() }
         
         // Convert to domain model
-        let portfolio = portfolioData.toDomainModel(
-            positions: positions,
-            assetAllocation: allocations,
-            performanceHistory: performance
-        )
+        let portfolio = portfolioData.toDomainModel(positions: positions)
         
         print("✅ Fetched portfolio from network for investor: \(investorId)")
         return portfolio
@@ -194,22 +190,11 @@ class PortfolioRepository: PortfolioRepositoryProtocol {
         return Portfolio(
             id: UUID(),
             investorId: investorId,
-            totalValue: 0,
-            totalCost: 0,
-            totalGain: 0,
-            totalGainPercent: 0.0,
-            dayChange: 0,
-            dayChangePercent: 0.0,
-            weekChange: 0,
-            weekChangePercent: 0.0,
-            monthChange: 0,
-            monthChangePercent: 0.0,
-            yearChange: 0,
-            yearChangePercent: 0.0,
+            totalYieldAllTime: 0,
+            totalYieldMonth: 0,
+            activePositionsCount: 0,
             lastUpdated: Date(),
-            positions: [],
-            assetAllocation: [],
-            performanceHistory: []
+            assets: []
         )
     }
 }
@@ -233,26 +218,15 @@ private struct PortfolioNetworkModel: Codable {
     let yearChangePercent: Double
     let lastUpdated: Date
     
-    func toDomainModel(positions: [AssetPosition], assetAllocation: [AssetAllocation], performanceHistory: [PerformanceData]) -> Portfolio {
+    func toDomainModel(positions: [AssetPosition]) -> Portfolio {
         return Portfolio(
             id: id,
             investorId: investorId,
-            totalValue: totalValue,
-            totalCost: totalCost,
-            totalGain: totalGain,
-            totalGainPercent: totalGainPercent,
-            dayChange: dayChange,
-            dayChangePercent: dayChangePercent,
-            weekChange: weekChange,
-            weekChangePercent: weekChangePercent,
-            monthChange: monthChange,
-            monthChangePercent: monthChangePercent,
-            yearChange: yearChange,
-            yearChangePercent: yearChangePercent,
+            totalYieldAllTime: totalGain, // Map network totalGain to yield model
+            totalYieldMonth: monthChange,  // Map network monthChange to monthly yield
+            activePositionsCount: positions.count,
             lastUpdated: lastUpdated,
-            positions: positions,
-            assetAllocation: assetAllocation,
-            performanceHistory: performanceHistory
+            assets: positions
         )
     }
 }

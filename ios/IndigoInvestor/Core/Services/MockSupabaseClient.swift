@@ -30,7 +30,7 @@ class MockSupabaseClient {
                 expiresIn: 3600,
                 expiresAt: Int(Date().timeIntervalSince1970) + 3600,
                 refreshToken: "mock-refresh-token",
-                user: User(
+                user: MockUser(
                     id: UUID(),
                     appMetadata: [:],
                     userMetadata: ["email": email, "role": email.contains("admin") ? "admin" : "lp"],
@@ -65,11 +65,11 @@ struct AuthResponse {
     let expiresIn: Int
     let expiresAt: Int
     let refreshToken: String
-    let user: User
+    let user: MockUser
 }
 
-// Mock User
-struct User {
+// Mock User (renamed to avoid conflict with Supabase.User)
+struct MockUser {
     let id: UUID
     let appMetadata: [String: Any]
     let userMetadata: [String: Any]

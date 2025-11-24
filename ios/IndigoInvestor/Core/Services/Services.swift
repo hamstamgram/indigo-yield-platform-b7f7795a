@@ -51,38 +51,6 @@ class StorageService {
     }
 }
 
-// MARK: - Realtime Service
-
-class RealtimeService {
-    private let client: SupabaseClient
-    private var channels: [String: RealtimeChannel] = [:]
-    
-    init(client: SupabaseClient) {
-        self.client = client
-    }
-    
-    func subscribeToChannel(_ channelName: String, callback: @escaping (Any) -> Void) {
-        let channel = client.channel(channelName)
-        channel.on(.all) { message in
-            callback(message)
-        }
-        channel.subscribe()
-        channels[channelName] = channel
-    }
-    
-    func unsubscribeFromChannel(_ channelName: String) {
-        if let channel = channels[channelName] {
-            channel.unsubscribe()
-            channels.removeValue(forKey: channelName)
-        }
-    }
-    
-    func unsubscribeAll() {
-        channels.values.forEach { $0.unsubscribe() }
-        channels.removeAll()
-    }
-}
-
 // MARK: - Offline Manager
 
 class OfflineManager {

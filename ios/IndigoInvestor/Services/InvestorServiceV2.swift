@@ -207,7 +207,7 @@ class InvestorServiceV2: ObservableObject {
             .eq("investor_id", value: investorId)
             .execute()
 
-        let positionsData = try JSONDecoder().decode([[String: AnyDecodable]].self, from: positionsResponse.data)
+        let positionsData = try JSONDecoder().decode([[String: AnyCodable]].self, from: positionsResponse.data)
 
         let totalValue = positionsData.reduce(0) { sum, pos in
             sum + (pos["current_value"]?.doubleValue ?? 0)
@@ -289,7 +289,7 @@ class InvestorServiceV2: ObservableObject {
             .order("application_date", ascending: false)
             .execute()
 
-        let data = try JSONDecoder().decode([[String: AnyDecodable]].self, from: response.data)
+        let data = try JSONDecoder().decode([[String: AnyCodable]].self, from: response.data)
 
         return data.compactMap { entry in
             guard let date = entry["application_date"]?.stringValue,
@@ -339,7 +339,7 @@ class InvestorServiceV2: ObservableObject {
             .order("created_at", ascending: false)
             .execute()
 
-        let data = try JSONDecoder().decode([[String: AnyDecodable]].self, from: response.data)
+        let data = try JSONDecoder().decode([[String: AnyCodable]].self, from: response.data)
 
         return data.compactMap { request in
             guard let id = request["id"]?.stringValue,
@@ -392,12 +392,12 @@ class InvestorServiceV2: ObservableObject {
             throw NSError(domain: "InvestorServiceV2", code: 0, userInfo: [NSLocalizedDescriptionKey: "Investor profile not found"])
         }
 
-        let params: [String: AnyDecodable] = [
-            "p_investor_id": AnyDecodable(investorId),
-            "p_fund_id": AnyDecodable(fundId),
-            "p_amount": AnyDecodable(amount),
-            "p_type": AnyDecodable(withdrawalType),
-            "p_notes": AnyDecodable(notes)
+        let params: [String: AnyCodable] = [
+            "p_investor_id": AnyCodable(investorId),
+            "p_fund_id": AnyCodable(fundId),
+            "p_amount": AnyCodable(amount),
+            "p_type": AnyCodable(withdrawalType),
+            "p_notes": AnyCodable(notes)
         ]
 
         let response = try await supabaseClient.database.rpc("create_withdrawal_request", params: params).execute()
@@ -426,7 +426,7 @@ class InvestorServiceV2: ObservableObject {
 
     // MARK: - Get Available Funds
 
-    func getAvailableFunds() async throws -> [[String: AnyDecodable]] {
+    func getAvailableFunds() async throws -> [[String: AnyCodable]] {
         let response = try await supabaseClient.database
             .from("funds")
             .select("*")
@@ -434,7 +434,7 @@ class InvestorServiceV2: ObservableObject {
             .order("name")
             .execute()
 
-        return try JSONDecoder().decode([[String: AnyDecodable]].self, from: response.data)
+        return try JSONDecoder().decode([[String: AnyCodable]].self, from: response.data)
     }
 
     // MARK: - Get Current Yield Rates
@@ -451,7 +451,7 @@ class InvestorServiceV2: ObservableObject {
             .eq("date", value: String(today))
             .execute()
 
-        let data = try JSONDecoder().decode([[String: AnyDecodable]].self, from: response.data)
+        let data = try JSONDecoder().decode([[String: AnyCodable]].self, from: response.data)
 
         return data.compactMap { rate in
             guard let assetsData = rate["assets"]?.dictionaryValue,
@@ -472,7 +472,7 @@ class InvestorServiceV2: ObservableObject {
 
     // MARK: - Get Investor Documents
 
-    func getInvestorDocuments() async throws -> [[String: AnyDecodable]] {
+    func getInvestorDocuments() async throws -> [[String: AnyCodable]] {
         guard let user = supabaseClient.auth.currentUser else { return [] }
 
         let response = try await supabaseClient.database
@@ -482,12 +482,12 @@ class InvestorServiceV2: ObservableObject {
             .order("created_at", ascending: false)
             .execute()
 
-        return try JSONDecoder().decode([[String: AnyDecodable]].self, from: response.data)
+        return try JSONDecoder().decode([[String: AnyCodable]].self, from: response.data)
     }
 
     // MARK: - Get Portfolio Performance History
 
-    func getPortfolioPerformanceHistory(days: Int = 30) async throws -> [[String: AnyDecodable]] {
+    func getPortfolioPerformanceHistory(days: Int = 30) async throws -> [[String: AnyCodable]] {
         guard let user = supabaseClient.auth.currentUser else { return [] }
 
         // Get portfolio
@@ -515,6 +515,6 @@ class InvestorServiceV2: ObservableObject {
             .order("as_of", ascending: true)
             .execute()
 
-        return try JSONDecoder().decode([[String: AnyDecodable]].self, from: response.data)
+        return try JSONDecoder().decode([[String: AnyCodable]].self, from: response.data)
     }
 }

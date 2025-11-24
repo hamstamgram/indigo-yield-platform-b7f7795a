@@ -367,36 +367,6 @@ struct FilterOptionsSheet: View {
     }
 }
 
-// MARK: - Loading View
-
-struct LoadingView: View {
-    var body: some View {
-        ZStack {
-            Color.black.opacity(0.3)
-                .ignoresSafeArea()
-            
-            VStack(spacing: IndigoTheme.Spacing.md) {
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: IndigoTheme.Colors.primary))
-                    .scaleEffect(1.5)
-                
-                Text("Loading statements...")
-                    .font(IndigoTheme.Typography.body)
-                    .foregroundColor(IndigoTheme.Colors.text)
-            }
-            .padding(IndigoTheme.Spacing.xl)
-            .background(IndigoTheme.Colors.cardBackground)
-            .cornerRadius(IndigoTheme.CornerRadius.md)
-            .shadow(
-                color: IndigoTheme.Shadows.md.color,
-                radius: IndigoTheme.Shadows.md.radius,
-                x: IndigoTheme.Shadows.md.x,
-                y: IndigoTheme.Shadows.md.y
-            )
-        }
-    }
-}
-
 // MARK: - Empty State View
 
 struct EmptyStateView: View {

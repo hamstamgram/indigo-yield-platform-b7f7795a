@@ -757,7 +757,7 @@ extension View {
                 )
             )
 
-            StatusBadge(text: "Active", status: .active)
+            StatusBadge(status: .active)
 
             InfoCard(
                 icon: "info.circle",
