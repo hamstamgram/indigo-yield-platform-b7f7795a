@@ -3,10 +3,16 @@
  * Handles critical security event logging with proper error handling
  */
 
-let Sentry: typeof import("@sentry/react") | null = null;
+import { supabase } from '@/integrations/supabase/client';
 
+// Make Sentry optional - it may not be installed
+let Sentry: any = null;
 try {
-  Sentry = await import("@sentry/react");
+  // Try to require Sentry if available, but don't fail if not
+  if (typeof window !== 'undefined') {
+    // @ts-ignore - optional dependency
+    import('@sentry/react').then(module => { Sentry = module; }).catch(() => {});
+  }
 } catch {
   // Sentry not installed
 }
