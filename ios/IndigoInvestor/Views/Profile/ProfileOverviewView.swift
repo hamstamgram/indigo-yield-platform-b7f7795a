@@ -246,21 +246,21 @@ private struct AccountStatusSection: View {
                 .foregroundColor(IndigoTheme.Colors.primaryText)
 
             VStack(spacing: IndigoTheme.Spacing.md) {
-                StatusBadge(
+                ProfileStatusBadge(
                     icon: "checkmark.shield.fill",
                     title: "KYC Verification",
                     status: viewModel.profile?.kycVerified == true ? "Verified" : "Pending",
                     isPositive: viewModel.profile?.kycVerified == true
                 )
 
-                StatusBadge(
+                ProfileStatusBadge(
                     icon: "lock.shield.fill",
                     title: "Two-Factor Authentication",
                     status: viewModel.profile?.has2FA == true ? "Enabled" : "Disabled",
                     isPositive: viewModel.profile?.has2FA == true
                 )
 
-                StatusBadge(
+                ProfileStatusBadge(
                     icon: "faceid",
                     title: "Biometric Login",
                     status: viewModel.profile?.hasBiometric == true ? "Enabled" : "Disabled",
@@ -366,7 +366,7 @@ private struct InfoRow: View {
     }
 }
 
-private struct StatusBadge: View {
+private struct ProfileStatusBadge: View {
     let icon: String
     let title: String
     let status: String

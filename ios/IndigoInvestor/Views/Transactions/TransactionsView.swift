@@ -281,7 +281,7 @@ struct TransactionListRow: View {
                             .lineLimit(1)
                     }
 
-                    StatusBadge(status: transaction.status)
+                    TransactionStatusBadge(status: transaction.status)
                 }
             }
 
@@ -376,7 +376,7 @@ struct TransactionListRow: View {
 
 // MARK: - Status Badge
 
-struct StatusBadge: View {
+struct TransactionStatusBadge: View {
     let status: Transaction.TransactionStatus
 
     var body: some View {
@@ -502,7 +502,7 @@ struct TransactionDetailView: View {
                             .fontWeight(.bold)
                             .accessibilityLabel("Amount: \(transaction.formattedAmount)")
 
-                        StatusBadge(status: transaction.status)
+                        TransactionStatusBadge(status: transaction.status)
                             .scaleEffect(1.2)
                     }
                     .padding(.top)

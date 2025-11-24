@@ -215,9 +215,9 @@ struct TransactionListItem: View {
                     
                     Text("•")
                         .foregroundColor(DesignTokens.Colors.textTertiary)
-                    
+
                     // Transaction Type Badge instead of just Status
-                    StatusBadge(status: transaction.status)
+                    TransactionStatusBadge(status: transaction.status)
                 }
             }
             
@@ -342,7 +342,7 @@ struct StatCard: View {
 
 // MARK: - Status Badge
 
-struct StatusBadge: View {
+struct TransactionStatusBadge: View {
     let status: Transaction.TransactionStatus
     
     private var color: Color {
