@@ -15,14 +15,9 @@ const AdminWithdrawalsPage = lazy(() => import("@/routes/admin/AdminWithdrawalsP
 const MonthlyDataEntry = lazy(() => import("@/routes/admin/MonthlyDataEntry"));
 const DailyRatesManagement = lazy(() => import("@/routes/admin/DailyRatesManagement"));
 const InvestorReports = lazy(() => import("@/routes/admin/InvestorReports"));
-const InvestorReportGenerator = lazy(() => import("@/routes/admin/InvestorReportGenerator"));
 const AdminTransactions = lazy(() => import("@/routes/admin/AdminTransactions"));
-const BalanceAdjustments = lazy(() =>
-  import("@/routes/admin/BalanceAdjustments").then((m) => ({ default: m.BalanceAdjustments }))
-);
 const AdminOperationsHub = lazy(() => import("@/routes/admin/AdminOperationsHub"));
 const FundManagement = lazy(() => import("@/routes/admin/funds/FundManagement"));
-const TestYieldPage = lazy(() => import("@/routes/admin/TestYieldPage"));
 
 export function OperationsRoutes() {
   return (
@@ -59,14 +54,6 @@ export function OperationsRoutes() {
         element={
           <AdminRoute>
             <InvestorReports />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/admin/report-generator"
-        element={
-          <AdminRoute>
-            <InvestorReportGenerator />
           </AdminRoute>
         }
       />
@@ -113,16 +100,6 @@ export function OperationsRoutes() {
         }
       />
 
-      {/* Balance adjustments */}
-      <Route
-        path="/admin/balances/adjust"
-        element={
-          <AdminRoute>
-            <BalanceAdjustments />
-          </AdminRoute>
-        }
-      />
-
       {/* Fund management */}
       <Route
         path="/admin/funds"
@@ -144,16 +121,6 @@ export function OperationsRoutes() {
         }
       />
       <Route path="/admin-operations" element={<Navigate to="/admin/operations" replace />} />
-
-      {/* Test utilities */}
-      <Route
-        path="/admin/test-yield"
-        element={
-          <AdminRoute>
-            <TestYieldPage />
-          </AdminRoute>
-        }
-      />
     </>
   );
 }

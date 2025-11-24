@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff, Lock, Mail, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -122,27 +123,25 @@ export default function Login() {
   if (checkingAuth) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-indigo-600"></div>
+        <LoadingSpinner size="lg" className="text-indigo-600" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-6 sm:p-4">
+      <div className="w-full max-w-sm sm:max-w-md">
         <div className="mb-8 flex justify-center">
           <img
             src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
             alt="Infinite Yield Fund"
-            className="h-14"
-            width="168"
-            height="56"
+            className="h-12 sm:h-14 w-auto"
             loading="eager"
           />
         </div>
         <Card className="border border-gray-200 bg-white shadow-md">
           <CardHeader>
-            <CardTitle className="text-center text-2xl text-gray-800">
+            <CardTitle className="text-center text-xl sm:text-2xl text-gray-800">
               {isLogin ? "Investor Access" : "Request Access"}
             </CardTitle>
           </CardHeader>
@@ -173,6 +172,8 @@ export default function Login() {
                     className="pl-10 border-gray-200 text-gray-800 placeholder-gray-400"
                     required
                     autoComplete="email"
+                    error={!!error}
+                    aria-invalid={!!error}
                   />
                 </div>
               </div>
@@ -192,16 +193,18 @@ export default function Login() {
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 border-gray-200 text-gray-800 placeholder-gray-400"
+                    className="pl-10 pr-12 sm:pr-10 border-gray-200 text-gray-800 placeholder-gray-400"
                     required
                     minLength={6}
                     autoComplete="current-password"
+                    error={!!error}
+                    aria-invalid={!!error}
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-1 top-1 text-gray-400 hover:text-gray-600"
+                    className="absolute right-1 top-1 h-9 w-9 sm:h-8 sm:w-8 text-gray-400 hover:text-gray-600"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
@@ -222,26 +225,7 @@ export default function Login() {
                 >
                   {loading ? (
                     <span className="flex items-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
+                      <LoadingSpinner size="sm" className="mr-2 text-white" />
                       Processing...
                     </span>
                   ) : isLogin ? (

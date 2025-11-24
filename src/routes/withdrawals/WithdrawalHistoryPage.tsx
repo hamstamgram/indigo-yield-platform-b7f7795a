@@ -3,8 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Filter } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Search, Filter } from "lucide-react";
 import { useState } from "react";
 
 export default function WithdrawalHistoryPage() {
@@ -60,15 +59,9 @@ export default function WithdrawalHistoryPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">WithdrawalHistory</h1>
+          <h1 className="text-3xl font-bold">Withdrawals</h1>
           <p className="text-muted-foreground">View withdrawal history</p>
         </div>
-        <Button asChild>
-          <Link to="/withdrawals/history/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New
-          </Link>
-        </Button>
       </div>
 
       <Card>
@@ -125,9 +118,6 @@ export default function WithdrawalHistoryPage() {
                           {new Date(item.request_date).toLocaleDateString()}
                         </p>
                       </div>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/withdrawals/history/${item.id}`}>View Details</Link>
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -135,10 +125,7 @@ export default function WithdrawalHistoryPage() {
             </div>
           ) : (
             <div className="py-12 text-center space-y-4">
-              <p className="text-muted-foreground">No items found</p>
-              <Button asChild>
-                <Link to="/withdrawals/history/new">Create your first item</Link>
-              </Button>
+              <p className="text-muted-foreground">No withdrawal requests found</p>
             </div>
           )}
         </CardContent>

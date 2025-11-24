@@ -17,11 +17,12 @@ struct DesignTokens {
     struct Colors {
 
         // MARK: Brand Colors
-        static let indigoPrimary = Color(hex: "#4147CC")
-        static let indigoSecondary = Color(hex: "#6B70D9")
-        static let indigoAccent = Color(hex: "#FBB93C")
-        static let indigoDark = Color(hex: "#2A2E8F")
-        static let indigoLight = Color(hex: "#E8E9F5")
+        // Deep Indigo Premium Branding
+        static let indigoPrimary = Color(hex: "#283593") // Deep Indigo (Web: --indigo-deep)
+        static let indigoSecondary = Color(hex: "#3F51B5") // Brand Indigo
+        static let indigoAccent = Color(hex: "#00C853") // Yield Green (Web: --yield-green)
+        static let indigoDark = Color(hex: "#1A237E") // Ultra Deep
+        static let indigoLight = Color(hex: "#E8EAF6") // Soft Tint
 
         // MARK: Financial Data Colors
         static let positiveGreen = Color(hex: "#22C55E")

@@ -13,14 +13,13 @@ import Combine
 class PortfolioViewModel: ObservableObject {
     // MARK: - Published Properties
     @Published var portfolio: Portfolio?
-    @Published var positions: [Position] = []
-    @Published var selectedPosition: Position?
-    @Published var assetAllocation: [AssetAllocation] = []
+    @Published var assets: [AssetPosition] = []
+    @Published var selectedAsset: AssetPosition?
     @Published var isLoading = false
     @Published var isRefreshing = false
     @Published var errorMessage: String?
     @Published var showError = false
-    @Published var selectedTab = 0 // 0: Positions, 1: Allocation, 2: Performance
+    @Published var selectedTab = 0 // 0: Assets, 1: Performance
     
     // MARK: - Dependencies
     private let portfolioService: PortfolioServiceProtocol
@@ -54,8 +53,7 @@ class PortfolioViewModel: ObservableObject {
             let portfolio = try await portfolioService.fetchPortfolio(for: investorId)
             
             self.portfolio = portfolio
-            self.positions = portfolio.positions
-            self.assetAllocation = portfolio.assetAllocation
+            self.assets = portfolio.assets
             
             // Setup real-time updates
             setupRealtimeSubscription(for: investorId)
@@ -77,8 +75,7 @@ class PortfolioViewModel: ObservableObject {
             let portfolio = try await portfolioService.refreshPortfolioData(for: investorId)
             
             self.portfolio = portfolio
-            self.positions = portfolio.positions
-            self.assetAllocation = portfolio.assetAllocation
+            self.assets = portfolio.assets
             
         } catch {
             handleError(error)
@@ -87,12 +84,12 @@ class PortfolioViewModel: ObservableObject {
         isRefreshing = false
     }
     
-    func selectPosition(_ position: Position) {
-        selectedPosition = position
+    func selectAsset(_ asset: AssetPosition) {
+        selectedAsset = asset
     }
     
     func clearSelection() {
-        selectedPosition = nil
+        selectedAsset = nil
     }
     
     // MARK: - Private Methods
@@ -108,13 +105,12 @@ class PortfolioViewModel: ObservableObject {
             for await updatedPortfolio in portfolioService.subscribeToPortfolioUpdates(investorId: investorId) {
                 await MainActor.run {
                     self.portfolio = updatedPortfolio
-                    self.positions = updatedPortfolio.positions
-                    self.assetAllocation = updatedPortfolio.assetAllocation
+                    self.assets = updatedPortfolio.assets
                     
-                    // Update selected position if it exists
-                    if let selectedPos = self.selectedPosition,
-                       let updatedPos = updatedPortfolio.positions.first(where: { $0.id == selectedPos.id }) {
-                        self.selectedPosition = updatedPos
+                    // Update selected asset if it exists
+                    if let selected = self.selectedAsset,
+                       let updated = updatedPortfolio.assets.first(where: { $0.id == selected.id }) {
+                        self.selectedAsset = updated
                     }
                 }
             }
@@ -146,46 +142,25 @@ class PortfolioViewModel: ObservableObject {
 // MARK: - Computed Properties
 
 extension PortfolioViewModel {
-    var totalValue: String {
-        return portfolio?.formattedTotalValue ?? "$0.00"
+    var totalYieldDisplay: String {
+        return portfolio?.totalYieldAllTimeFormatted ?? "0"
     }
     
-    var totalGain: String {
-        guard let portfolio = portfolio else { return "$0.00" }
-        
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = "USD"
-        formatter.positivePrefix = "+"
-        
-        return formatter.string(from: portfolio.totalGain as NSNumber) ?? "$0.00"
+    var monthlyYieldDisplay: String {
+        return portfolio?.latestYieldFormatted ?? "0"
     }
     
-    var totalGainPercent: String {
-        guard let portfolio = portfolio else { return "0.00%" }
-        return String(format: "%.2f%%", portfolio.totalGainPercent)
+    var yieldUnit: String {
+        return portfolio?.yieldUnitLabel ?? ""
     }
     
-    var totalGainColor: Color {
-        guard let portfolio = portfolio else { return .primary }
-        return portfolio.totalGain >= 0 ? .green : .red
+    var activePositionsCount: Int {
+        return portfolio?.activePositionsCount ?? 0
     }
     
-    var dayChange: String {
-        return portfolio?.formattedDayChange ?? "$0.00"
-    }
-    
-    var dayChangeColor: Color {
-        guard let portfolio = portfolio else { return .primary }
-        return portfolio.dayChange >= 0 ? .green : .red
-    }
-    
-    var sortedPositions: [Position] {
-        return positions.sorted { $0.marketValue > $1.marketValue }
-    }
-    
-    var topPositions: [Position] {
-        return Array(sortedPositions.prefix(5))
+    var sortedAssets: [AssetPosition] {
+        // Default sort by balance descending
+        return assets.sorted { $0.balance > $1.balance }
     }
     
     var hasData: Bool {
@@ -197,79 +172,46 @@ extension PortfolioViewModel {
     }
 }
 
-// MARK: - Position Filtering and Sorting
+// MARK: - Asset Filtering and Sorting
 
 extension PortfolioViewModel {
     enum SortOption: String, CaseIterable {
-        case marketValue = "Market Value"
-        case gainLoss = "Gain/Loss"
-        case allocation = "Allocation"
-        case symbol = "Symbol"
+        case balance = "Balance"
+        case yield = "Yield Earned"
+        case fund = "Fund Name"
+        case asset = "Asset"
         
         var systemImage: String {
             switch self {
-            case .marketValue: return "dollarsign.circle"
-            case .gainLoss: return "chart.line.uptrend.xyaxis"
-            case .allocation: return "chart.pie"
-            case .symbol: return "textformat.abc"
+            case .balance: return "scalemass"
+            case .yield: return "chart.line.uptrend.xyaxis"
+            case .fund: return "building.2"
+            case .asset: return "bitcoinsign.circle"
             }
         }
     }
     
-    func sortPositions(by option: SortOption) {
+    func sortAssets(by option: SortOption) {
         switch option {
-        case .marketValue:
-            positions.sort { $0.marketValue > $1.marketValue }
-        case .gainLoss:
-            positions.sort { $0.totalGain > $1.totalGain }
-        case .allocation:
-            positions.sort { $0.allocation > $1.allocation }
-        case .symbol:
-            positions.sort { $0.assetSymbol < $1.assetSymbol }
+        case .balance:
+            assets.sort { $0.balance > $1.balance }
+        case .yield:
+            assets.sort { $0.yieldEarned > $1.yieldEarned }
+        case .fund:
+            assets.sort { $0.fundName < $1.fundName }
+        case .asset:
+            assets.sort { $0.assetCode < $1.assetCode }
         }
     }
     
-    func filterPositions(by searchText: String) -> [Position] {
+    func filterAssets(by searchText: String) -> [AssetPosition] {
         if searchText.isEmpty {
-            return positions
+            return assets
         }
         
-        return positions.filter { position in
-            position.assetSymbol.localizedCaseInsensitiveContains(searchText) ||
-            position.assetName.localizedCaseInsensitiveContains(searchText)
+        return assets.filter { asset in
+            asset.fundName.localizedCaseInsensitiveContains(searchText) ||
+            asset.assetCode.localizedCaseInsensitiveContains(searchText)
         }
     }
 }
-
-// MARK: - Mock Data for Previews
-
-#if DEBUG
-extension PortfolioViewModel {
-    static var preview: PortfolioViewModel {
-        let mockService = MockPortfolioService()
-        let viewModel = PortfolioViewModel(portfolioService: mockService)
-        
-        // Set up mock data
-        let mockPortfolio = Portfolio.mockPortfolio(for: UUID())
-        viewModel.portfolio = mockPortfolio
-        viewModel.positions = mockPortfolio.positions
-        viewModel.assetAllocation = mockPortfolio.assetAllocation
-        
-        return viewModel
-    }
-}
-
-private class MockPortfolioService: PortfolioServiceProtocol {
-    func fetchPortfolio(for investorId: UUID) async throws -> Portfolio {
-        return Portfolio.mockPortfolio(for: investorId)
-    }
-    
-    func subscribeToPortfolioUpdates(investorId: UUID) -> AsyncStream<Portfolio> {
-        return AsyncStream { _ in }
-    }
-    
-    func refreshPortfolioData(for investorId: UUID) async throws -> Portfolio {
-        return Portfolio.mockPortfolio(for: investorId)
-    }
-}
-#endif

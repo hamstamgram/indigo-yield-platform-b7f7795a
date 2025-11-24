@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export default function TransactionDetailsDetailsPage() {
@@ -60,16 +60,6 @@ export default function TransactionDetailsDetailsPage() {
             Back
           </Link>
         </Button>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Edit className="mr-2 h-4 w-4" />
-            Edit
-          </Button>
-          <Button variant="destructive" size="sm">
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete
-          </Button>
-        </div>
       </div>
 
       <Card>
@@ -102,7 +92,7 @@ export default function TransactionDetailsDetailsPage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Amount</p>
-              <p>
+              <p className="font-semibold text-lg">
                 {item.amount} {item.asset_code}
               </p>
             </div>

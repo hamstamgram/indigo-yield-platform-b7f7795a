@@ -15,13 +15,12 @@
 import { CoreAdminRoutes } from "./admin/core";
 import { InvestorRoutes } from "./admin/investors";
 import { InvestmentRoutes } from "./admin/investments";
-import { FeeRoutes } from "./admin/fees";
-import { AssetRoutes } from "./admin/assets";
 import { DepositRoutes } from "./admin/deposits";
 import { WithdrawalRoutes } from "./admin/withdrawals";
 import { OperationsRoutes } from "./admin/operations";
 import { ReportsRoutes } from "./admin/reports";
 import { SystemRoutes } from "./admin/system";
+import { CommunicationsRoutes } from "./admin/communications";
 
 /**
  * Admin Routes Component
@@ -33,13 +32,12 @@ export function AdminRoutes() {
       {CoreAdminRoutes()}
       {InvestorRoutes()}
       {InvestmentRoutes()}
-      {FeeRoutes()}
-      {AssetRoutes()}
       {DepositRoutes()}
       {WithdrawalRoutes()}
       {OperationsRoutes()}
       {ReportsRoutes()}
       {SystemRoutes()}
+      {CommunicationsRoutes()}
     </>
   );
 }

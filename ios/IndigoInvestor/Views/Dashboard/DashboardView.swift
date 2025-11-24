@@ -2,69 +2,87 @@
 //  DashboardView.swift
 //  IndigoInvestor
 //
-//  Main dashboard view for Limited Partners
+//  Refactored Dashboard for Passive Investment Tracker (No Chart, No Fiat, Yield Focus)
 //
 
 import SwiftUI
-import Charts
 
 struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
     @EnvironmentObject var serviceLocator: ServiceLocator
-    @State private var selectedTimeRange = TimeRange.month
     @State private var showWithdrawalSheet = false
-    
-    enum TimeRange: String, CaseIterable, Identifiable {
-        case day = "1D"
-        case week = "1W"
-        case month = "1M"
-        case threeMonths = "3M"
-        case year = "1Y"
-        case all = "All"
-        
-        var id: String { rawValue }
-    }
     
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(spacing: 20) {
-                    // Portfolio Value Card
-                    PortfolioValueCard(
-                        portfolio: viewModel.portfolio,
-                        isLoading: viewModel.isLoading
-                    )
+                VStack(spacing: 24) {
+                    // 1. HERO: Yield Overview
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Performance")
+                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .foregroundColor(.primary)
+                        Text("Capital Account Summary")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
-                    .accessibilityElement(children: .combine)
                     
-                    // Time Range Selector
-                    TimeRangePicker(selection: $selectedTimeRange)
-                        .padding(.horizontal)
-                        .onChange(of: selectedTimeRange) { newValue in
-                            Task {
-                                await viewModel.loadPerformanceData(for: newValue)
+                    // 2. YIELD CARDS GRID (Replaces Charts/Fiat)
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                        // Card 1: Yield (Inception)
+                        YieldCard(
+                            title: "Yield (Inception)",
+                            value: viewModel.portfolio?.totalYieldAllTimeFormatted ?? "0.0000",
+                            unitLabel: viewModel.portfolio?.yieldUnitLabel ?? "UNITS",
+                            iconName: "clock.fill",
+                            color: .indigo,
+                            subtitle: "Total earnings since opening"
+                        )
+                        
+                        // Card 2: Yield (This Month)
+                        YieldCard(
+                            title: "Latest Yield",
+                            value: viewModel.portfolio?.latestYieldFormatted ?? "+0.0000",
+                            unitLabel: viewModel.portfolio?.yieldUnitLabel ?? "UNITS",
+                            iconName: "calendar",
+                            color: .green,
+                            subtitle: "Net income this period"
+                        )
+                    }
+                    .padding(.horizontal)
+                    
+                    // 3. ASSET LEDGER STACK
+                    VStack(alignment: .leading, spacing: 16) {
+                        HStack {
+                            Text("Active Positions")
+                                .font(.headline)
+                            Spacer()
+                            Button("View All") {
+                                // Navigate to portfolio tab
                             }
+                            .font(.subheadline)
                         }
-                    
-                    // Performance Chart
-                    if !viewModel.performanceData.isEmpty {
-                        PerformanceChartCard(
-                            data: viewModel.performanceData,
-                            timeRange: selectedTimeRange
-                        )
-                        .frame(height: 250)
                         .padding(.horizontal)
+                        
+                        if let assets = viewModel.portfolio?.assets, !assets.isEmpty {
+                            ForEach(assets) { asset in
+                                AssetLedgerCard(asset: asset)
+                            }
+                        } else if !viewModel.isLoading {
+                            EmptyStateView(
+                                iconName: "chart.bar.doc.horizontal",
+                                title: "No Active Positions",
+                                message: "Contact admin to activate your portfolio."
+                            )
+                        } else {
+                            ProgressView()
+                                .frame(maxWidth: .infinity, minHeight: 100)
+                        }
                     }
+                    .padding(.horizontal)
                     
-                    // Asset Allocation
-                    if let portfolio = viewModel.portfolio {
-                        AssetAllocationCard(
-                            allocations: portfolio.assetAllocation
-                        )
-                        .padding(.horizontal)
-                    }
-                    
-                    // Quick Actions
+                    // Quick Actions (Updated: No Deposit)
                     QuickActionsCard(
                         onWithdrawTapped: {
                             showWithdrawalSheet = true
@@ -74,20 +92,10 @@ struct DashboardView: View {
                         }
                     )
                     .padding(.horizontal)
-                    
-                    // Recent Transactions
-                    if !viewModel.recentTransactions.isEmpty {
-                        RecentTransactionsCard(
-                            transactions: viewModel.recentTransactions
-                        )
-                        .padding(.horizontal)
-                    }
                 }
                 .padding(.vertical)
             }
-            .navigationTitle("Dashboard")
-            .navigationBarTitleDisplayMode(.large)
-            .accessibilityAddTraits(.isHeader)
+            .navigationBarHidden(true)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     NotificationButton()
@@ -106,305 +114,187 @@ struct DashboardView: View {
     }
 }
 
-// MARK: - Portfolio Value Card
-
-struct PortfolioValueCard: View {
-    let portfolio: Portfolio?
-    let isLoading: Bool
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Total Portfolio Value")
-                .font(Typography.headline)
-                .foregroundColor(.secondary)
-                .accessibilityAddTraits(.isHeader)
-
-            if isLoading {
-                ProgressView()
-                    .frame(height: 60)
-                    .accessibilityLabel("Loading portfolio value")
-            } else if let portfolio = portfolio {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(portfolio.formattedTotalValue)
-                        .font(Typography.largeTitle)
-                        .accessibilityLabel("Portfolio value: \(portfolio.formattedTotalValue)")
-
-                    HStack(spacing: 12) {
-                        ChangeIndicator(
-                            value: portfolio.dayChange,
-                            percentage: portfolio.dayChangePercent,
-                            label: "Today"
-                        )
-
-                        Divider()
-                            .frame(height: 20)
-                            .accessibilityHidden(true)
-
-                        ChangeIndicator(
-                            value: portfolio.totalGain,
-                            percentage: portfolio.totalGainPercent,
-                            label: "Total"
-                        )
-                    }
-                }
-            } else {
-                Text("Unable to load portfolio")
-                    .foregroundColor(.secondary)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
-    }
-}
-
-// MARK: - Change Indicator
-
-struct ChangeIndicator: View {
-    let value: Decimal
-    let percentage: Double
-    let label: String
-    
-    var color: Color {
-        value >= 0 ? .green : .red
-    }
-    
-    var icon: String {
-        value >= 0 ? "arrow.up.right" : "arrow.down.right"
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label)
-                .font(Typography.caption1)
-                .foregroundColor(.secondary)
-
-            HStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(Typography.caption1)
-                    .accessibilityHidden(true)
-
-                Text(value.formatted(.currency(code: "USD")))
-                    .font(Typography.bodyMedium)
-
-                Text("(\(String(format: "%.2f", percentage))%)")
-                    .font(Typography.caption1)
-            }
-            .foregroundColor(color)
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(label) change: \(value >= 0 ? "up" : "down") \(value.formatted(.currency(code: "USD"))), \(String(format: "%.2f", abs(percentage))) percent")
-    }
-}
-
-// MARK: - Time Range Picker
-
-struct TimeRangePicker: View {
-    @Binding var selection: DashboardView.TimeRange
-    
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(DashboardView.TimeRange.allCases) { range in
-                    TimeRangeButton(
-                        title: range.rawValue,
-                        isSelected: selection == range
-                    ) {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            selection = range
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-struct TimeRangeButton: View {
+// MARK: - Yield Card Component
+struct YieldCard: View {
     let title: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.subheadline)
-                .fontWeight(isSelected ? .semibold : .regular)
-                .foregroundColor(isSelected ? .white : .primary)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isSelected ? Color.accentColor : Color(.secondarySystemFill))
-                )
-        }
-        .buttonStyle(PlainButtonStyle())
-        .accessibilityLabel("Time range: \(title)")
-        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
-        .accessibilityHint("Select \(title) time range for performance chart")
-    }
-}
-
-// MARK: - Performance Chart Card
-
-struct PerformanceChartCard: View {
-    let data: [PerformanceData]
-    let timeRange: DashboardView.TimeRange
+    let value: String
+    let unitLabel: String
+    let iconName: String
+    let color: Color
+    let subtitle: String
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Performance")
-                .font(.headline)
-                .accessibilityAddTraits(.isHeader)
-
-            if #available(iOS 16.0, *) {
-                Chart(data) { item in
-                    LineMark(
-                        x: .value("Date", item.date),
-                        y: .value("Value", item.value)
-                    )
-                    .foregroundStyle(Color.accentColor)
-                    .interpolationMethod(.catmullRom)
-                    
-                    AreaMark(
-                        x: .value("Date", item.date),
-                        y: .value("Value", item.value)
-                    )
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [
-                                Color.accentColor.opacity(0.3),
-                                Color.accentColor.opacity(0.05)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                }
-                .chartXAxis {
-                    AxisMarks(values: .automatic) { _ in
-                        AxisGridLine()
-                        AxisTick()
-                        AxisValueLabel(format: dateFormat(for: timeRange))
-                    }
-                }
-                .chartYAxis {
-                    AxisMarks { _ in
-                        AxisGridLine()
-                        AxisValueLabel(format: .currency(code: "USD"))
-                    }
-                }
-                .accessibilityLabel("Performance chart for \(timeRange.rawValue) time period")
-                .accessibilityValue(chartAccessibilityValue)
-                .accessibilityHint("Shows portfolio value trend over time")
-            } else {
-                // Fallback for iOS 15
-                Text("Chart requires iOS 16+")
+            HStack {
+                Text(title.uppercased())
+                    .font(.caption)
+                    .fontWeight(.bold)
                     .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                Spacer()
+                Image(systemName: iconName)
+                    .foregroundColor(color)
+                    .font(.system(size: 20))
+                    .padding(8)
+                    .background(color.opacity(0.1))
+                    .clipShape(Circle())
             }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(value)
+                    .font(.system(size: 24, weight: .bold, design: .monospaced))
+                    .foregroundColor(color)
+                    .minimumScaleFactor(0.8)
+                    .lineLimit(1)
+                
+                Text(unitLabel)
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundColor(color.opacity(0.8))
+            }
+            
+            Text(subtitle)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color(.secondarySystemBackground))
         .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
-    }
-    
-    private func dateFormat(for range: DashboardView.TimeRange) -> Date.FormatStyle {
-        switch range {
-        case .day:
-            return .dateTime.hour()
-        case .week, .month:
-            return .dateTime.month(.abbreviated).day()
-        case .threeMonths, .year, .all:
-            return .dateTime.month(.abbreviated)
-        }
-    }
-
-    private var chartAccessibilityValue: String {
-        guard let first = data.first?.value, let last = data.last?.value else {
-            return "No data available"
-        }
-        let change = last - first
-        let percentChange = (change / first) * 100
-        let direction = change >= 0 ? "increased" : "decreased"
-        return "Portfolio value \(direction) from \(first.formatted(.currency(code: "USD"))) to \(last.formatted(.currency(code: "USD"))), \(String(format: "%.2f", abs(percentChange))) percent"
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(color.opacity(0.2), lineWidth: 1)
+        )
     }
 }
 
-// MARK: - Asset Allocation Card
-
-struct AssetAllocationCard: View {
-    let allocations: [AssetAllocation]
+// MARK: - Asset Ledger Card Component
+struct AssetLedgerCard: View {
+    let asset: AssetPosition
+    @State private var isExpanded = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Asset Allocation")
-                .font(.headline)
-                .accessibilityAddTraits(.isHeader)
-
-            VStack(spacing: 12) {
-                ForEach(allocations) { allocation in
-                    HStack {
-                        Circle()
-                            .fill(Color(allocation.color))
-                            .frame(width: 12, height: 12)
-                            .accessibilityHidden(true)
-
-                        Text(allocation.assetType)
-                            .font(.subheadline)
-
-                        Spacer()
-
-                        Text(allocation.formattedPercentage)
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-
-                        Text(allocation.value.formatted(.currency(code: "USD")))
-                            .font(.caption)
+        VStack(spacing: 0) {
+            // Header Row
+            Button(action: { withAnimation { isExpanded.toggle() } }) {
+                HStack(spacing: 12) {
+                    // Asset Icon
+                    AssetIconView(assetCode: asset.assetCode, size: 40)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(asset.fundName)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.primary)
+                        Text("\(asset.balanceFormatted) \(asset.assetCode)")
+                            .font(.system(size: 14, design: .monospaced))
                             .foregroundColor(.secondary)
                     }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel("\(allocation.assetType): \(allocation.formattedPercentage), \(allocation.value.formatted(.currency(code: "USD")))")
+                    
+                    Spacer()
+                    
+                    // Yield Badge
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.up.right")
+                            .font(.caption2)
+                        Text(asset.mtdYieldFormatted)
+                            .font(.caption)
+                            .fontWeight(.bold)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.green.opacity(0.1))
+                    .foregroundColor(.green)
+                    .cornerRadius(8)
+                    
+                    Image(systemName: "chevron.down")
+                        .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                        .foregroundColor(.secondary)
                 }
+                .padding()
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            // Expanded Details (Ledger)
+            if isExpanded {
+                VStack(spacing: 12) {
+                    Divider()
+                    
+                    HStack {
+                        Text("CAPITAL ACCOUNT SUMMARY (MTD)")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                    }
+                    
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        LedgerItem(label: "Opening", value: asset.openingBalanceFormatted)
+                        LedgerItem(label: "Additions", value: asset.additionsFormatted, color: .green)
+                        LedgerItem(label: "Redemptions", value: asset.withdrawalsFormatted, color: .red)
+                        LedgerItem(label: "Net Income", value: asset.mtdYieldFormatted, color: .blue)
+                    }
+                    
+                    HStack {
+                        Text("Ending Balance")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                        Spacer()
+                        Text("\(asset.balanceFormatted) \(asset.assetCode)")
+                            .font(.system(size: 16, weight: .bold, design: .monospaced))
+                    }
+                    .padding(.top, 8)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 8)
+                    .background(Color(.tertiarySystemBackground))
+                    .cornerRadius(8)
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 16)
+                .transition(.opacity)
             }
         }
-        .padding()
         .background(Color(.systemBackground))
         .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
     }
 }
 
-// MARK: - Quick Actions Card
+struct LedgerItem: View {
+    let label: String
+    let value: String
+    var color: Color = .primary
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label.uppercased())
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            Text(value)
+                .font(.system(size: 14, design: .monospaced))
+                .foregroundColor(color)
+        }
+    }
+}
 
+// MARK: - Quick Actions (Updated)
 struct QuickActionsCard: View {
     let onWithdrawTapped: () -> Void
     let onStatementsTapped: () -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Quick Actions")
-                .font(.headline)
-                .accessibilityAddTraits(.isHeader)
+        HStack(spacing: 12) {
+            QuickActionButton(
+                icon: "arrow.up.circle.fill",
+                title: "Request Withdrawal",
+                color: .blue,
+                action: onWithdrawTapped
+            )
 
-            HStack(spacing: 12) {
-                QuickActionButton(
-                    icon: "arrow.up.circle.fill",
-                    title: "Withdraw",
-                    color: .blue,
-                    action: onWithdrawTapped
-                )
-
-                QuickActionButton(
-                    icon: "doc.text.fill",
-                    title: "Statements",
-                    color: .green,
-                    action: onStatementsTapped
-                )
-            }
+            QuickActionButton(
+                icon: "doc.text.fill",
+                title: "View Statements",
+                color: .indigo,
+                action: onStatementsTapped
+            )
         }
         .padding()
         .background(Color(.systemBackground))
@@ -413,186 +303,47 @@ struct QuickActionsCard: View {
     }
 }
 
-struct QuickActionButton: View {
-    let icon: String
+// Helper Models (Stubbed for View - Implementation in ViewModel)
+struct AssetPosition: Identifiable {
+    let id: String
+    let fundName: String
+    let assetCode: String
+    let balance: Decimal
+    let openingBalance: Decimal
+    let additions: Decimal
+    let withdrawals: Decimal
+    let mtdYield: Decimal
+    
+    var balanceFormatted: String { balance.formatted() }
+    var mtdYieldFormatted: String { "+\(mtdYield.formatted())" }
+    var openingBalanceFormatted: String { openingBalance.formatted() }
+    var additionsFormatted: String { "+\(additions.formatted())" }
+    var withdrawalsFormatted: String { withdrawals > 0 ? "-\(withdrawals.formatted())" : "0.0000" }
+}
+
+struct EmptyStateView: View {
+    let iconName: String
     let title: String
-    let color: Color
-    let action: () -> Void
+    let message: String
     
     var body: some View {
-        Button(action: action) {
-            VStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.system(size: 24))
-                    .foregroundColor(.white)
-                    .frame(width: 48, height: 48)
-                    .background(color)
-                    .cornerRadius(12)
-                    .accessibilityHidden(true)
-
-                Text(title)
-                    .font(.caption)
-                    .foregroundColor(.primary)
-            }
-            .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(PlainButtonStyle())
-        .accessibilityLabel(title)
-        .accessibilityHint(title == "Withdraw" ? "Request a withdrawal from your portfolio" : "View your account statements")
-        .accessibilityAddTraits(.isButton)
-    }
-}
-
-// MARK: - Recent Transactions Card
-
-struct RecentTransactionsCard: View {
-    let transactions: [Transaction]
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Recent Transactions")
-                    .font(.headline)
-                    .accessibilityAddTraits(.isHeader)
-
-                Spacer()
-
-                // NavigationLink(destination: TransactionsView()) {
-                    Button(action: {}) {
-                        Text("View All")
-                            .font(.caption)
-                            .foregroundColor(.accentColor)
-                    }
-                    .accessibilityLabel("View all transactions")
-                    .accessibilityAddTraits(.isButton)
-                // }
-            }
-
-            VStack(spacing: 8) {
-                ForEach(transactions.prefix(5)) { transaction in
-                    TransactionRow(transaction: transaction)
-                }
-            }
-        }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
-    }
-}
-
-struct TransactionRow: View {
-    let transaction: Transaction
-    
-    var body: some View {
-        HStack {
-            Circle()
-                .fill(iconColor.opacity(0.15))
-                .frame(width: 36, height: 36)
-                .overlay(
-                    Image(systemName: iconName)
-                        .foregroundColor(iconColor)
-                        .font(.system(size: 16))
-                )
-                .accessibilityHidden(true)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(transaction.description)
-                    .font(.subheadline)
-                    .lineLimit(1)
-
-                Text(transaction.formattedDate)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-
-            Spacer()
-
-            Text(transaction.formattedAmount)
+        VStack(spacing: 12) {
+            Image(systemName: iconName)
+                .font(.system(size: 40))
+                .foregroundColor(.secondary)
+            Text(title)
+                .font(.headline)
+            Text(message)
                 .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundColor(amountColor)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
         }
-        .padding(.vertical, 4)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(transaction.type.rawValue): \(transaction.description), \(transaction.formattedAmount), \(transaction.formattedDate)")
-    }
-    
-    private var iconName: String {
-        switch transaction.type {
-        case .deposit:
-            return "arrow.down.circle"
-        case .withdrawal:
-            return "arrow.up.circle"
-        case .interest:
-            return "percent"
-        case .fee:
-            return "dollarsign.circle"
-        case .adjustment:
-            return "slider.horizontal.3"
-        }
-    }
-    
-    private var iconColor: Color {
-        switch transaction.type {
-        case .deposit, .interest:
-            return .green
-        case .withdrawal, .fee:
-            return .red
-        case .adjustment:
-            return .orange
-        }
-    }
-    
-    private var amountColor: Color {
-        switch transaction.type {
-        case .deposit, .interest:
-            return .green
-        case .withdrawal, .fee:
-            return .primary
-        case .adjustment:
-            return .orange
-        }
+        .frame(maxWidth: .infinity)
+        .padding(32)
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(16)
     }
 }
 
-// MARK: - Notification Button
-
-struct NotificationButton: View {
-    @State private var hasUnread = true
-    
-    var body: some View {
-        Button(action: {
-            // Navigate to notifications
-        }) {
-            Image(systemName: "bell.fill")
-                .overlay(
-                    hasUnread ?
-                    Circle()
-                        .fill(Color.red)
-                        .frame(width: 8, height: 8)
-                        .offset(x: 8, y: -8)
-                        .accessibilityHidden(true)
-                    : nil
-                )
-        }
-        .accessibilityLabel(hasUnread ? "Notifications, unread messages" : "Notifications")
-        .accessibilityHint("View your notifications")
-        .accessibilityAddTraits(.isButton)
-    }
-}
-
-// MARK: - Preview
-
-#Preview {
-    DashboardView()
-            .environmentObject(ServiceLocator.shared)
-}
-
-// MARK: - Typography
-private struct Typography {
-    static let largeTitle = Font.system(size: 34, weight: .bold)
-    static let headline = Font.system(size: 17, weight: .semibold)
-    static let bodyMedium = Font.system(size: 17, weight: .medium)
-    static let caption1 = Font.system(size: 12, weight: .regular)
-}
+// Note: Reusing existing QuickActionButton and NotificationButton components from previous file if available,
+// otherwise they need to be redefined here or imported. Assuming they exist in the project scope.

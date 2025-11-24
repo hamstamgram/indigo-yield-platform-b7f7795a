@@ -9,8 +9,6 @@ import { ProtectedRoute } from "../../ProtectedRoute";
 
 // Reports pages
 const ReportsPage = lazy(() => import("@/routes/reports/ReportsPage"));
-const PortfolioPerformance = lazy(() => import("@/routes/reports/PortfolioPerformance"));
-const MonthlyStatement = lazy(() => import("@/routes/reports/MonthlyStatement"));
 const CustomReport = lazy(() => import("@/routes/reports/CustomReport"));
 
 export function ReportsRoutes() {
@@ -21,22 +19,6 @@ export function ReportsRoutes() {
         element={
           <ProtectedRoute>
             <ReportsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/reports/portfolio-performance"
-        element={
-          <ProtectedRoute>
-            <PortfolioPerformance />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/reports/monthly-statement"
-        element={
-          <ProtectedRoute>
-            <MonthlyStatement />
           </ProtectedRoute>
         }
       />

@@ -7,93 +7,27 @@ import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const AdminInvestorNewPage = lazy(() => import("@/routes/admin/investors/AdminInvestorNewPage"));
-const AdminInvestorDetailPage = lazy(
-  () => import("@/routes/admin/investors/AdminInvestorDetailPage")
-);
-const AdminInvestorPositionsPage = lazy(
-  () => import("@/routes/admin/investors/AdminInvestorPositionsPage")
-);
-const AdminInvestorTransactionsPage = lazy(
-  () => import("@/routes/admin/investors/AdminInvestorTransactionsPage")
-);
-const ExpertInvestorMasterView = lazy(() => import("@/routes/admin/ExpertInvestorMasterView"));
+const InvestorManagement = lazy(() => import("@/routes/admin/investors/InvestorManagement"));
 const ExpertInvestorDashboard = lazy(
   () => import("@/components/admin/expert/ExpertInvestorDashboard")
 );
-const InvestorAccountCreation = lazy(() =>
-  import("@/routes/admin/InvestorAccountCreation").then((m) => ({
-    default: m.InvestorAccountCreation,
-  }))
-);
-const InvestorStatusTracking = lazy(() =>
-  import("@/routes/admin/InvestorStatusTracking").then((m) => ({
-    default: m.InvestorStatusTracking,
-  }))
-);
+
+// Placeholder for missing pages if needed, or just remove
+// const InvestorAccountCreation = ... (Missing)
+// const InvestorStatusTracking = ... (Missing)
 
 export function InvestorRoutes() {
   return (
     <>
-      {/* Main investor routes */}
-      <Route
-        path="/admin/investors/new"
-        element={
-          <AdminRoute>
-            <AdminInvestorNewPage />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/admin/investors/create"
-        element={
-          <AdminRoute>
-            <InvestorAccountCreation />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/admin/investors/status"
-        element={
-          <AdminRoute>
-            <InvestorStatusTracking />
-          </AdminRoute>
-        }
-      />
       <Route
         path="/admin/investors/:id"
         element={
           <AdminRoute>
-            <AdminInvestorDetailPage />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/admin/investors/:id/positions"
-        element={
-          <AdminRoute>
-            <AdminInvestorPositionsPage />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/admin/investors/:id/transactions"
-        element={
-          <AdminRoute>
-            <AdminInvestorTransactionsPage />
+            <InvestorManagement />
           </AdminRoute>
         }
       />
 
-      {/* Expert investors */}
-      <Route
-        path="/admin/expert-investors"
-        element={
-          <AdminRoute>
-            <ExpertInvestorMasterView />
-          </AdminRoute>
-        }
-      />
       <Route
         path="/admin/expert-investor/:id"
         element={
@@ -104,7 +38,7 @@ export function InvestorRoutes() {
       />
 
       {/* Legacy redirect */}
-      <Route path="/admin-investors" element={<Navigate to="/admin/expert-investors" replace />} />
+      <Route path="/admin-investors" element={<Navigate to="/admin/investors" replace />} />
     </>
   );
 }

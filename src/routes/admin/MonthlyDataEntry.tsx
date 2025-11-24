@@ -21,474 +21,333 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Calendar, Save, Download, Upload, AlertCircle, Info } from "lucide-react";
+import {
+  Calendar,
+  Save,
+  Calculator,
+  TrendingUp,
+  ArrowRight,
+  AlertCircle,
+  Wallet,
+} from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 
-interface MonthlyDataEntry {
-  id?: string;
-  investor_id: string;
-  investor_name: string;
-  report_month: string;
-  asset_code: string;
-  opening_balance: string;
-  additions: string;
-  withdrawals: string;
-  yield_earned: string;
-  closing_balance: string;
-  entry_date?: string;
-  exit_date?: string;
+interface Fund {
+  id: string;
+  name: string;
+  code: string;
+  asset_symbol: string;
+  total_aum: number;
 }
 
-export default function MonthlyDataEntry() {
+interface DistributionPreview {
+  investorName: string;
+  currentBalance: number;
+  ownershipPct: number;
+  estimatedYield: number;
+  newBalance: number;
+}
+
+export default function FundManager() {
   const queryClient = useQueryClient();
-  const [selectedMonth, setSelectedMonth] = useState<string>(
-    new Date().toISOString().slice(0, 7) // YYYY-MM format
-  );
-  const [selectedAsset, setSelectedAsset] = useState<string>("BTC");
-  const [editingData, setEditingData] = useState<Record<string, MonthlyDataEntry>>({});
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7));
+  const [selectedFundId, setSelectedFundId] = useState<string>("");
+  const [newAumInput, setNewAumInput] = useState<string>("");
+  const [netFlows, setNetFlows] = useState({ deposits: 0, withdrawals: 0 });
 
-  const assets = ["BTC", "ETH", "SOL", "USDT", "USDC", "EURC"];
-
-  // Fetch all investors
-  const { data: investors } = useQuery({
-    queryKey: ["all-investors"],
+  // 1. Fetch Funds
+  const { data: funds } = useQuery({
+    queryKey: ["admin-funds"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("investors")
-        .select(
-          `
-          id,
-          profiles:profile_id(full_name, email)
-        `
-        )
-        .order("created_at");
-
+        .from("funds") // Ensure this table exists via migration
+        .select("*")
+        .eq("status", "active");
       if (error) throw error;
-      return data || [];
+
+      // Map DB fields to Fund interface
+      return (data as any[]).map((item) => ({
+        id: item.id,
+        name: item.name,
+        code: item.code,
+        asset_symbol: item.asset || item.asset_symbol || "UNITS", // Handle DB column 'asset'
+        total_aum: item.total_aum || 0,
+      })) as Fund[];
     },
   });
 
-  // Fetch existing monthly data for selected month/asset
-  const {
-    data: monthlyData,
-    isLoading,
-    refetch,
-  } = useQuery({
-    queryKey: ["monthly-data", selectedMonth, selectedAsset],
-    queryFn: async () => {
-      const reportMonth = `${selectedMonth}-01`; // Convert YYYY-MM to YYYY-MM-01
+  const selectedFund = funds?.find((f) => f.id === selectedFundId);
 
-      const { data, error } = await supabase
-        .from("investor_monthly_reports")
+  // 2. Simulation / Preview Calculation
+  const calculatePreview = (): { yieldPot: number; roi: number } => {
+    if (!selectedFund || !newAumInput) return { yieldPot: 0, roi: 0 };
+
+    const newAum = parseFloat(newAumInput);
+    const oldAum = selectedFund.total_aum;
+    const flows = netFlows.deposits - netFlows.withdrawals;
+
+    // Formula: Yield = New - (Old + Flows)
+    const yieldPot = newAum - (oldAum + flows);
+    const roi = oldAum > 0 ? (yieldPot / oldAum) * 100 : 0;
+
+    return { yieldPot, roi };
+  };
+
+  const preview = calculatePreview();
+
+  // 3. Fetch Investors for Preview Table
+  const { data: investorPreviews } = useQuery({
+    queryKey: ["fund-investors-preview", selectedFundId, preview.yieldPot],
+    enabled: !!selectedFundId && !!preview.yieldPot,
+    queryFn: async () => {
+      // In a real app, this would be an RPC call to get exact math
+      // Here we simulate the frontend projection based on the logic
+      const { data: positions } = await (supabase as any)
+        .from("investor_positions")
         .select(
           `
-          *,
-          investors!inner(
-            id,
-            profiles:profile_id(full_name, email)
+          shares,
+          investors (
+            profiles ( full_name, email )
           )
         `
         )
-        .eq("report_month", reportMonth)
-        .eq("asset_code", selectedAsset);
+        .eq("fund_id", selectedFundId)
+        .eq("status", "active");
 
-      if (error) throw error;
+      if (!positions || !selectedFund) return [];
 
-      // Transform data to include investor names
-      return (data || []).map((record) => ({
-        ...record,
-        investor_name:
-          record.investors?.profiles?.full_name || record.investors?.profiles?.email || "Unknown",
-      }));
+      const totalShares = positions.reduce((acc, p) => acc + Number(p.shares), 0);
+
+      return positions.map((pos: any) => {
+        const balance = Number(pos.shares);
+        const ownership = totalShares > 0 ? balance / totalShares : 0;
+        const estYield = preview.yieldPot * ownership;
+
+        return {
+          investorName:
+            pos.investors?.profiles?.full_name || pos.investors?.profiles?.email || "Unknown",
+          currentBalance: balance,
+          ownershipPct: ownership * 100,
+          estimatedYield: estYield,
+          newBalance: balance + estYield,
+        } as DistributionPreview;
+      });
     },
   });
 
-  // Initialize editing data when monthlyData changes
-  useEffect(() => {
-    if (monthlyData) {
-      const dataMap: Record<string, MonthlyDataEntry> = {};
-      monthlyData.forEach((record) => {
-        dataMap[record.investor_id] = {
-          id: record.id,
-          investor_id: record.investor_id,
-          investor_name: record.investor_name,
-          report_month: record.report_month,
-          asset_code: record.asset_code,
-          opening_balance: record.opening_balance?.toString() || "0",
-          additions: record.additions?.toString() || "0",
-          withdrawals: record.withdrawals?.toString() || "0",
-          yield_earned: record.yield_earned?.toString() || "0",
-          closing_balance: record.closing_balance?.toString() || "0",
-          entry_date: record.entry_date || undefined,
-          exit_date: record.exit_date || undefined,
-        };
-      });
-      setEditingData(dataMap);
-      setHasUnsavedChanges(false);
-    } else if (investors) {
-      // Initialize empty records for all investors
-      const dataMap: Record<string, MonthlyDataEntry> = {};
-      investors.forEach((investor) => {
-        dataMap[investor.id] = {
-          investor_id: investor.id,
-          investor_name: investor.profiles?.full_name || investor.profiles?.email || "Unknown",
-          report_month: `${selectedMonth}-01`,
-          asset_code: selectedAsset,
-          opening_balance: "0",
-          additions: "0",
-          withdrawals: "0",
-          yield_earned: "0",
-          closing_balance: "0",
-        };
-      });
-      setEditingData(dataMap);
-      setHasUnsavedChanges(false);
-    }
-  }, [monthlyData, investors, selectedMonth, selectedAsset]);
-
-  // Auto-calculate closing balance
-  const calculateClosingBalance = (
-    opening: string,
-    additions: string,
-    withdrawals: string,
-    yield_earned: string
-  ) => {
-    const openingNum = parseFloat(opening) || 0;
-    const additionsNum = parseFloat(additions) || 0;
-    const withdrawalsNum = parseFloat(withdrawals) || 0;
-    const yieldNum = parseFloat(yield_earned) || 0;
-    return (openingNum + additionsNum - withdrawalsNum + yieldNum).toFixed(10);
-  };
-
-  // Handle field changes
-  const handleFieldChange = (investorId: string, field: keyof MonthlyDataEntry, value: string) => {
-    setEditingData((prev) => {
-      const updated = { ...prev };
-      const record = { ...updated[investorId] };
-      record[field] = value as any;
-
-      // Auto-calculate closing balance when relevant fields change
-      if (["opening_balance", "additions", "withdrawals", "yield_earned"].includes(field)) {
-        record.closing_balance = calculateClosingBalance(
-          record.opening_balance,
-          record.additions,
-          record.withdrawals,
-          record.yield_earned
-        );
-      }
-
-      updated[investorId] = record;
-      return updated;
-    });
-    setHasUnsavedChanges(true);
-  };
-
-  // Save mutation
-  const saveMutation = useMutation({
+  // 4. Commit Mutation
+  const distributeMutation = useMutation({
     mutationFn: async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user");
+      if (!user) throw new Error("Unauthorized");
 
-      const recordsToUpsert = Object.values(editingData).map((record) => ({
-        id: record.id,
-        investor_id: record.investor_id,
-        report_month: record.report_month,
-        asset_code: record.asset_code,
-        opening_balance: parseFloat(record.opening_balance),
-        closing_balance: parseFloat(record.closing_balance),
-        additions: parseFloat(record.additions),
-        withdrawals: parseFloat(record.withdrawals),
-        yield_earned: parseFloat(record.yield_earned),
-        entry_date: record.entry_date || null,
-        exit_date: record.exit_date || null,
-        edited_by: user.id,
-        updated_at: new Date().toISOString(),
-      }));
-
-      const { error } = await supabase.from("investor_monthly_reports").upsert(recordsToUpsert, {
-        onConflict: "investor_id,report_month,asset_code",
+      // Call the RPC function we defined in the migration
+      const { data, error } = await supabase.rpc("distribute_monthly_yield" as any, {
+        p_fund_id: selectedFundId,
+        p_report_month: `${selectedMonth}-01`,
+        p_new_aum: parseFloat(newAumInput),
+        p_admin_id: user.id,
       });
 
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
-      toast.success("Monthly data saved successfully");
-      setHasUnsavedChanges(false);
-      queryClient.invalidateQueries({ queryKey: ["monthly-data"] });
-      refetch();
+      toast.success("Yield Distributed Successfully", {
+        description: `Allocated ${preview.yieldPot.toFixed(4)} ${selectedFund?.asset_symbol} across investors.`,
+      });
+      setNewAumInput("");
+      queryClient.invalidateQueries({ queryKey: ["admin-funds"] });
     },
-    onError: (error: any) => {
-      console.error("Error saving monthly data:", error);
-      toast.error(error.message || "Failed to save monthly data");
+    onError: (err: any) => {
+      toast.error("Distribution Failed", { description: err.message });
     },
   });
 
-  // Calculate totals
-  const totals = Object.values(editingData).reduce(
-    (acc, record) => ({
-      opening: acc.opening + (parseFloat(record.opening_balance) || 0),
-      additions: acc.additions + (parseFloat(record.additions) || 0),
-      withdrawals: acc.withdrawals + (parseFloat(record.withdrawals) || 0),
-      yield: acc.yield + (parseFloat(record.yield_earned) || 0),
-      closing: acc.closing + (parseFloat(record.closing_balance) || 0),
-    }),
-    { opening: 0, additions: 0, withdrawals: 0, yield: 0, closing: 0 }
-  );
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Calendar className="h-8 w-8 text-primary" />
-          Monthly Data Entry
-        </h1>
-        <p className="text-muted-foreground">Enter monthly investor data for report generation</p>
+    <div className="space-y-6 p-6 max-w-6xl mx-auto">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-display font-bold flex items-center gap-2 text-foreground">
+            <Calculator className="h-8 w-8 text-primary" />
+            Fund Manager Cockpit
+          </h1>
+          <p className="text-muted-foreground mt-1">Monthly revaluation and yield distribution</p>
+        </div>
       </div>
 
-      {/* Info Alert */}
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertDescription>
-          This interface replaces daily AUM management. Enter monthly data manually from your
-          records. Closing Balance is auto-calculated: Opening + Additions - Withdrawals + Yield.
-        </AlertDescription>
-      </Alert>
-
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Select Month and Asset</CardTitle>
-          <CardDescription>Choose the reporting period and asset to enter data</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Month Selector */}
-            <div>
-              <Label htmlFor="month">Report Month</Label>
-              <Input
-                id="month"
-                type="month"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-
-            {/* Asset Selector */}
-            <div>
-              <Label htmlFor="asset">Asset</Label>
-              <Select value={selectedAsset} onValueChange={setSelectedAsset}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
+      {/* 1. SELECTION PANEL */}
+      <Card className="border-l-4 border-l-primary bg-muted/10">
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <Label>Select Fund</Label>
+              <Select value={selectedFundId} onValueChange={setSelectedFundId}>
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Choose a fund..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {assets.map((asset) => (
-                    <SelectItem key={asset} value={asset}>
-                      {asset}{" "}
-                      {asset === "BTC"
-                        ? "YIELD FUND"
-                        : asset === "ETH"
-                          ? "YIELD FUND"
-                          : asset === "SOL"
-                            ? "YIELD FUND"
-                            : "FUND"}
+                  {funds?.map((fund) => (
+                    <SelectItem key={fund.id} value={fund.id}>
+                      {fund.name} ({fund.asset_symbol})
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Actions */}
-            <div className="flex items-end gap-2">
-              <Button variant="outline" className="flex-1" disabled>
-                <Upload className="h-4 w-4 mr-2" />
-                Import CSV
-              </Button>
-              <Button variant="outline" className="flex-1" disabled>
-                <Download className="h-4 w-4 mr-2" />
-                Export CSV
-              </Button>
+            <div className="space-y-2">
+              <Label>Reporting Month</Label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="pl-9 bg-background"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Current AUM (System)</Label>
+              <div className="p-2 bg-background border rounded-md font-mono text-right">
+                {selectedFund ? selectedFund.total_aum.toLocaleString() : "0.00"}{" "}
+                {selectedFund?.asset_symbol}
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-sm text-muted-foreground">Opening Balance</div>
-            <div className="text-xl font-bold">
-              {totals.opening.toFixed(8)} {selectedAsset}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-sm text-muted-foreground">Additions</div>
-            <div className="text-xl font-bold text-green-600">+{totals.additions.toFixed(8)}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-sm text-muted-foreground">Withdrawals</div>
-            <div className="text-xl font-bold text-red-600">-{totals.withdrawals.toFixed(8)}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-sm text-muted-foreground">Yield Earned</div>
-            <div className="text-xl font-bold text-blue-600">+{totals.yield.toFixed(8)}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-sm text-muted-foreground">Closing Balance</div>
-            <div className="text-xl font-bold">
-              {totals.closing.toFixed(8)} {selectedAsset}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {selectedFund && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* 2. INPUT PANEL */}
+          <Card className="lg:col-span-1 shadow-lg border-primary/20">
+            <CardHeader className="bg-primary/5 pb-4">
+              <CardTitle className="text-lg">Revaluation</CardTitle>
+              <CardDescription>Enter the new total value of the fund</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 pt-6">
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-foreground">
+                  New Closing Balance (AUM)
+                </Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="0.00000000"
+                    value={newAumInput}
+                    onChange={(e) => setNewAumInput(e.target.value)}
+                    className="text-2xl h-14 font-mono font-bold text-right pr-16"
+                  />
+                  <span className="absolute right-4 top-4 font-bold text-muted-foreground">
+                    {selectedFund.asset_symbol}
+                  </span>
+                </div>
+              </div>
 
-      {/* Data Entry Table */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>
-                Investor Data - {selectedMonth} - {selectedAsset}
-              </CardTitle>
+              <div className="space-y-2 p-4 bg-muted rounded-lg text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Previous AUM</span>
+                  <span className="font-mono">{selectedFund.total_aum.toFixed(4)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Net Flows (Est.)</span>
+                  <span className="font-mono text-blue-600">
+                    {netFlows.deposits - netFlows.withdrawals > 0 ? "+" : ""}
+                    {(netFlows.deposits - netFlows.withdrawals).toFixed(4)}
+                  </span>
+                </div>
+                <div className="border-t my-2"></div>
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-foreground">Implied Yield</span>
+                  <span
+                    className={`font-mono font-bold text-lg ${preview.yieldPot >= 0 ? "text-green-600" : "text-red-600"}`}
+                  >
+                    {preview.yieldPot > 0 ? "+" : ""}
+                    {preview.yieldPot.toFixed(4)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-muted-foreground text-xs">Return on Investment</span>
+                  <Badge
+                    variant={preview.roi >= 0 ? "default" : "destructive"}
+                    className="bg-green-600"
+                  >
+                    {preview.roi.toFixed(2)}%
+                  </Badge>
+                </div>
+              </div>
+
+              <Button
+                className="w-full h-12 text-lg font-bold"
+                disabled={!newAumInput || distributeMutation.isPending}
+                onClick={() => distributeMutation.mutate()}
+              >
+                {distributeMutation.isPending ? "Distributing..." : "Confirm & Distribute"}
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* 3. PREVIEW PANEL */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Distribution Preview</CardTitle>
               <CardDescription>
-                {Object.keys(editingData).length} investors •{" "}
-                {hasUnsavedChanges ? "Unsaved changes" : "All changes saved"}
+                How this yield will be allocated to investors (Pro-Rata)
               </CardDescription>
-            </div>
-            <Button
-              onClick={() => saveMutation.mutate()}
-              disabled={!hasUnsavedChanges || saveMutation.isPending}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {saveMutation.isPending ? "Saving..." : "Save All Changes"}
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading...</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[200px]">Investor</TableHead>
-                    <TableHead className="text-right">Opening Balance</TableHead>
-                    <TableHead className="text-right">Additions</TableHead>
-                    <TableHead className="text-right">Withdrawals</TableHead>
-                    <TableHead className="text-right">Yield Earned</TableHead>
-                    <TableHead className="text-right">Closing Balance</TableHead>
-                    <TableHead className="text-center">Entry Date</TableHead>
-                    <TableHead className="text-center">Exit Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {Object.values(editingData).map((record) => (
-                    <TableRow key={record.investor_id}>
-                      <TableCell className="font-medium">{record.investor_name}</TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          step="0.00000001"
-                          value={record.opening_balance}
-                          onChange={(e) =>
-                            handleFieldChange(record.investor_id, "opening_balance", e.target.value)
-                          }
-                          className="text-right"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          step="0.00000001"
-                          value={record.additions}
-                          onChange={(e) =>
-                            handleFieldChange(record.investor_id, "additions", e.target.value)
-                          }
-                          className="text-right text-green-600"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          step="0.00000001"
-                          value={record.withdrawals}
-                          onChange={(e) =>
-                            handleFieldChange(record.investor_id, "withdrawals", e.target.value)
-                          }
-                          className="text-right text-red-600"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          step="0.00000001"
-                          value={record.yield_earned}
-                          onChange={(e) =>
-                            handleFieldChange(record.investor_id, "yield_earned", e.target.value)
-                          }
-                          className="text-right text-blue-600"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          step="0.00000001"
-                          value={record.closing_balance}
-                          disabled
-                          className="text-right font-bold bg-muted"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="date"
-                          value={record.entry_date || ""}
-                          onChange={(e) =>
-                            handleFieldChange(record.investor_id, "entry_date", e.target.value)
-                          }
-                          className="text-center text-sm"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="date"
-                          value={record.exit_date || ""}
-                          onChange={(e) =>
-                            handleFieldChange(record.investor_id, "exit_date", e.target.value)
-                          }
-                          className="text-center text-sm"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Unsaved Changes Warning */}
-      {hasUnsavedChanges && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            You have unsaved changes. Click "Save All Changes" to persist your data.
-          </AlertDescription>
-        </Alert>
+            </CardHeader>
+            <CardContent>
+              {investorPreviews ? (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead>Investor</TableHead>
+                        <TableHead className="text-right">Ownership</TableHead>
+                        <TableHead className="text-right">Current Bal</TableHead>
+                        <TableHead className="text-right text-green-600 font-bold">
+                          Yield Allocation
+                        </TableHead>
+                        <TableHead className="text-right">New Bal</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {investorPreviews.map((row, idx) => (
+                        <TableRow key={idx}>
+                          <TableCell className="font-medium">{row.investorName}</TableCell>
+                          <TableCell className="text-right text-muted-foreground">
+                            {row.ownershipPct.toFixed(2)}%
+                          </TableCell>
+                          <TableCell className="text-right font-mono">
+                            {row.currentBalance.toFixed(4)}
+                          </TableCell>
+                          <TableCell className="text-right font-mono font-bold text-green-600 bg-green-50/50 dark:bg-green-900/10">
+                            +{row.estimatedYield.toFixed(4)}
+                          </TableCell>
+                          <TableCell className="text-right font-mono font-bold">
+                            {row.newBalance.toFixed(4)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+                  <Wallet className="h-12 w-12 mb-4 opacity-20" />
+                  <p>Enter a new AUM value to see distribution preview.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );

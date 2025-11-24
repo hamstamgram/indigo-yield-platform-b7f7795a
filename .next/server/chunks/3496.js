@@ -1,1 +1,0 @@
-"use strict";exports.id=3496,exports.ids=[3496],exports.modules={3496:(e,t,s)=>{s.r(t),s.d(t,{default:()=>d});var r=s(997);let d=()=>{let e=new Date().toISOString();return(0,r.jsxs)("div",{style:{padding:"20px",fontFamily:"monospace"},children:[r.jsx("h1",{children:"Health Check"}),(0,r.jsxs)("p",{children:["OK ",e]})]})}}};

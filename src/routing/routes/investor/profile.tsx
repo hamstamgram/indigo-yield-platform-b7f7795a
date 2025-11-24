@@ -8,12 +8,8 @@ import { lazy } from "react";
 import { ProtectedRoute } from "../../ProtectedRoute";
 
 // Profile pages
-const ProfileOverview = lazy(() => import("@/routes/profile/ProfileOverview"));
-const PersonalInfo = lazy(() => import("@/routes/profile/PersonalInfo"));
+const ProfileSettings = lazy(() => import("@/routes/profile/ProfileSettings"));
 const ProfileSecurity = lazy(() => import("@/routes/profile/Security"));
-const Preferences = lazy(() => import("@/routes/profile/Preferences"));
-const ProfilePrivacy = lazy(() => import("@/routes/profile/Privacy"));
-const LinkedAccounts = lazy(() => import("@/routes/profile/LinkedAccounts"));
 const KYCVerification = lazy(() => import("@/routes/profile/KYCVerification"));
 
 export function ProfileRoutes() {
@@ -23,15 +19,7 @@ export function ProfileRoutes() {
         path="/profile"
         element={
           <ProtectedRoute>
-            <ProfileOverview />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile/personal-info"
-        element={
-          <ProtectedRoute>
-            <PersonalInfo />
+            <ProfileSettings />
           </ProtectedRoute>
         }
       />
@@ -40,30 +28,6 @@ export function ProfileRoutes() {
         element={
           <ProtectedRoute>
             <ProfileSecurity />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile/preferences"
-        element={
-          <ProtectedRoute>
-            <Preferences />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile/privacy"
-        element={
-          <ProtectedRoute>
-            <ProfilePrivacy />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile/linked-accounts"
-        element={
-          <ProtectedRoute>
-            <LinkedAccounts />
           </ProtectedRoute>
         }
       />

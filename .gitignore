@@ -36,3 +36,9 @@ ios/IndigoInvestor/Config/Production.xcconfig
 
 # Do NOT ignore templates
 !ios/Config/Secrets.xcconfig.template
+
+# Next.js build output
+.next/
+out/
+build/
+*.tsbuildinfo

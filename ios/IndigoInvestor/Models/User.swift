@@ -2,25 +2,32 @@
 //  User.swift
 //  IndigoInvestor
 //
-//  User models for authentication and profiles
+//  User and Profile models
 //
 
 import Foundation
-import Supabase
 
-// MARK: - User Model
+// MARK: - User Role
 
-struct User: Identifiable, Codable {
-    let id: UUID
-    let email: String
-    let fullName: String?
-    let role: UserRole
-    let isActive: Bool
-    let createdAt: Date
-    let lastLogin: Date?
-    let profile: InvestorProfile?
+public enum UserRole: String, Codable {
+    case admin = "admin"
+    case investor = "investor"
+    case viewer = "viewer"
+}
 
-    init(id: UUID, email: String, fullName: String?, role: UserRole, isActive: Bool, createdAt: Date, lastLogin: Date?, profile: InvestorProfile? = nil) {
+// MARK: - User
+
+public struct User: Identifiable, Codable {
+    public let id: UUID
+    public let email: String
+    public let fullName: String?
+    public let role: UserRole
+    public let isActive: Bool
+    public let createdAt: Date
+    public let lastLogin: Date?
+    public let profile: InvestorProfile?
+
+    public init(id: UUID, email: String, fullName: String?, role: UserRole, isActive: Bool, createdAt: Date, lastLogin: Date?, profile: InvestorProfile? = nil) {
         self.id = id
         self.email = email
         self.fullName = fullName
@@ -34,31 +41,17 @@ struct User: Identifiable, Codable {
 
 // MARK: - Investor Profile
 
-struct InvestorProfile: Codable, Identifiable {
-    let id: UUID
-    let userId: UUID
-    let email: String
-    let fullName: String
-    let phoneNumber: String?
-    let dateOfBirth: Date?
-    let address: String?
-    let kycStatus: String
-    let investorType: String
-    let riskProfile: String?
-    let createdAt: Date
-    let updatedAt: Date
-}
-
-// Extension for Supabase User compatibility
-extension User {
-    init(from supabaseUser: Supabase.User) {
-        self.id = supabaseUser.id
-        self.email = supabaseUser.email ?? ""
-        self.fullName = supabaseUser.userMetadata["full_name"]?.value as? String
-        self.role = .investor
-        self.isActive = true
-        self.createdAt = supabaseUser.createdAt
-        self.lastLogin = Date()
-        self.profile = nil
-    }
+public struct InvestorProfile: Codable, Identifiable {
+    public let id: UUID
+    public let userId: UUID
+    public let email: String
+    public let fullName: String
+    public let phoneNumber: String?
+    public let dateOfBirth: Date?
+    public let address: String?
+    public let kycStatus: String
+    public let investorType: String
+    public let riskProfile: String?
+    public let createdAt: Date
+    public let updatedAt: Date
 }

@@ -36,9 +36,9 @@ class StorageService {
         return data
     }
     
-    func getSignedUrl(path: String, expiresIn: Int = 3600) async throws -> URL {
+    func createSignedUrl(path: String, bucket: String, expiresIn: Int = 3600) async throws -> URL {
         let url = try await client.storage
-            .from(bucketName)
+            .from(bucket)
             .createSignedURL(path: path, expiresIn: expiresIn)
         
         return url
@@ -204,7 +204,11 @@ class PortfolioRepositoryImpl: PortfolioRepository {
             .single()
             .execute()
         
-        let portfolio = try JSONDecoder().decode(Portfolio.self, from: response.data)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .iso8601
+        
+        let portfolio = try decoder.decode(Portfolio.self, from: response.data)
         
         // Cache for offline
         offlineManager.saveForOffline(portfolio, type: "portfolio", id: userId)
@@ -213,6 +217,8 @@ class PortfolioRepositoryImpl: PortfolioRepository {
     }
     
     func updatePortfolio(_ portfolio: Portfolio) async throws {
+        // Note: Update might require an Encodable struct that matches DB schema (snake_case)
+        // Assuming Portfolio encodes to matching keys or using a DTO
         try await client.database
             .from("portfolios")
             .update(portfolio)
@@ -245,13 +251,21 @@ class TransactionRepositoryImpl: TransactionRepository {
             .order("created_at", ascending: false)
             .execute()
         
-        return try JSONDecoder().decode([Transaction].self, from: response.data)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .iso8601
+        
+        return try decoder.decode([Transaction].self, from: response.data)
     }
     
     func createTransaction(_ transaction: Transaction) async throws {
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        encoder.dateEncodingStrategy = .iso8601
+        
         try await client.database
             .from("transactions")
-            .insert(transaction)
+            .insert(transaction, encoder: encoder)
             .execute()
     }
 }
@@ -279,13 +293,17 @@ class StatementRepositoryImpl: StatementRepository {
             .order("period_end", ascending: false)
             .execute()
         
-        return try JSONDecoder().decode([Statement].self, from: response.data)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .iso8601
+        
+        return try decoder.decode([Statement].self, from: response.data)
     }
 }
 
 protocol WithdrawalRepository {
-    func fetchWithdrawals(for userId: String) async throws -> [Withdrawal]
-    func createWithdrawal(_ withdrawal: Withdrawal) async throws
+    func fetchWithdrawals(for userId: String) async throws -> [WithdrawalRequest]
+    func createWithdrawal(_ withdrawal: WithdrawalRequest) async throws
 }
 
 class WithdrawalRepositoryImpl: WithdrawalRepository {
@@ -299,7 +317,7 @@ class WithdrawalRepositoryImpl: WithdrawalRepository {
         self.offlineManager = offlineManager
     }
     
-    func fetchWithdrawals(for userId: String) async throws -> [Withdrawal] {
+    func fetchWithdrawals(for userId: String) async throws -> [WithdrawalRequest] {
         let response = try await client.database
             .from("withdrawal_requests")
             .select()
@@ -307,41 +325,21 @@ class WithdrawalRepositoryImpl: WithdrawalRepository {
             .order("created_at", ascending: false)
             .execute()
         
-        return try JSONDecoder().decode([Withdrawal].self, from: response.data)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .iso8601
+        
+        return try decoder.decode([WithdrawalRequest].self, from: response.data)
     }
     
-    func createWithdrawal(_ withdrawal: Withdrawal) async throws {
+    func createWithdrawal(_ withdrawal: WithdrawalRequest) async throws {
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        encoder.dateEncodingStrategy = .iso8601
+        
         try await client.database
             .from("withdrawal_requests")
-            .insert(withdrawal)
+            .insert(withdrawal, encoder: encoder)
             .execute()
     }
-}
-
-// MARK: - Models for Repositories
-
-struct Transaction: Codable {
-    let id: String
-    let investor_id: String
-    let type: String
-    let amount: Double
-    let status: String
-    let created_at: Date
-}
-
-struct Statement: Codable {
-    let id: String
-    let investor_id: String
-    let period_start: Date
-    let period_end: Date
-    let file_path: String
-    let created_at: Date
-}
-
-struct Withdrawal: Codable {
-    let id: String
-    let investor_id: String
-    let amount: Double
-    let status: String
-    let created_at: Date
 }

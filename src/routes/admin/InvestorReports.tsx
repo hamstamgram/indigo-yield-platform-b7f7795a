@@ -40,6 +40,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format, subMonths, parseISO } from "date-fns";
+import { generateInvestorReportHtml, ReportData } from "@/utils/reportGenerator";
 
 interface InvestorReport {
   investor_id: string;
@@ -214,6 +215,55 @@ const InvestorReports = () => {
   useEffect(() => {
     fetchReports();
   }, [selectedMonth]);
+
+  const handlePreviewReport = (investor: InvestorReport) => {
+    const reportData: ReportData = {
+      investorName: investor.investor_name,
+      reportDate: format(parseISO(`${selectedMonth}-01`), "MMMM d, yyyy"),
+      funds: investor.assets.map((asset) => ({
+        fundName: `${asset.asset_code} YIELD FUND`,
+        currency: asset.asset_code,
+        metrics: {
+          begin_balance_mtd: asset.opening_balance.toString(),
+          begin_balance_qtd: "-",
+          begin_balance_ytd: "-",
+          begin_balance_itd: "-",
+
+          additions_mtd: asset.additions.toString(),
+          additions_qtd: "-",
+          additions_ytd: "-",
+          additions_itd: "-",
+
+          redemptions_mtd: asset.withdrawals.toString(),
+          redemptions_qtd: "-",
+          redemptions_ytd: "-",
+          redemptions_itd: "-",
+
+          net_income_mtd: asset.yield_earned.toString(),
+          net_income_qtd: "-",
+          net_income_ytd: "-",
+          net_income_itd: "-",
+
+          ending_balance_mtd: asset.closing_balance.toString(),
+          ending_balance_qtd: "-",
+          ending_balance_ytd: "-",
+          ending_balance_itd: "-",
+
+          return_rate_mtd: "0",
+          return_rate_qtd: "-",
+          return_rate_ytd: "-",
+          return_rate_itd: "-",
+        },
+      })),
+    };
+
+    const html = generateInvestorReportHtml(reportData);
+    const win = window.open("", "_blank");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+    }
+  };
 
   // Send reports via email (placeholder for email integration)
   const handleSendReports = async () => {
@@ -509,8 +559,6 @@ const InvestorReports = () => {
                   <TableHead>Investor Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Assets</TableHead>
-                  <TableHead className="text-right">Total Value</TableHead>
-                  <TableHead className="text-right">Yield Earned</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -542,20 +590,6 @@ const InvestorReports = () => {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatCurrency(report.total_value)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span
-                        className={
-                          report.total_yield >= 0
-                            ? "text-green-600 font-medium"
-                            : "text-red-600 font-medium"
-                        }
-                      >
-                        {formatCurrency(report.total_yield)}
-                      </span>
-                    </TableCell>
                     <TableCell>
                       <Badge
                         variant={report.has_reports ? "default" : "outline"}
@@ -566,6 +600,15 @@ const InvestorReports = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handlePreviewReport(report)}
+                          disabled={!report.has_reports}
+                          title="Preview HTML Report"
+                        >
+                          <FileText className="h-3 w-3" />
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"

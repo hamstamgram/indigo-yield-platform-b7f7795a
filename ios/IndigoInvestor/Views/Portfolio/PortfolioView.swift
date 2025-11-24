@@ -2,16 +2,15 @@
 //  PortfolioView.swift
 //  IndigoInvestor
 //
-//  Portfolio view showing positions and allocations
+//  Portfolio view showing assets and yield performance
 //
 
 import SwiftUI
 import Charts
 
 struct PortfolioView: View {
-    @StateObject private var viewModel = PortfolioViewModel()
-    @State private var selectedPosition: Position?
-    @State private var showingAllocationChart = true
+    @StateObject private var viewModel = PortfolioViewModel(portfolioService: ServiceContainer.shared.portfolioService)
+    @State private var selectedAsset: AssetPosition?
     @State private var selectedTimeRange = TimeRange.month
     
     enum TimeRange: String, CaseIterable {
@@ -28,76 +27,49 @@ struct PortfolioView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     // Portfolio Summary Card
-                    PortfolioSummaryCard(portfolio: viewModel.portfolio)
+                    PortfolioSummaryCard(viewModel: viewModel)
                         .padding(.horizontal)
                     
-                    // Chart Toggle
-                    Picker("View", selection: $showingAllocationChart) {
-                        Text("Allocation").tag(true)
-                        Text("Performance").tag(false)
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
+                    // Performance Chart (Placeholder for now, as history is optional)
+                    /*
+                    PerformanceHistoryChart(
+                        data: viewModel.performanceHistory,
+                        timeRange: selectedTimeRange
+                    )
+                    .frame(height: 300)
                     .padding(.horizontal)
-                    .accessibilityLabel("Chart view selector")
-                    .accessibilityHint("Choose between allocation pie chart and performance line chart")
+                    */
                     
-                    // Charts Section
-                    if showingAllocationChart {
-                        AllocationChartView(portfolio: viewModel.portfolio)
-                            .frame(height: 300)
-                            .padding(.horizontal)
-                    } else {
-                        PerformanceHistoryChart(
-                            data: viewModel.performanceHistory,
-                            timeRange: selectedTimeRange
-                        )
-                        .frame(height: 300)
-                        .padding(.horizontal)
-                    }
-                    
-                    // Positions List
-                    PositionsListView(
-                        positions: viewModel.portfolio?.positions ?? [],
-                        selectedPosition: $selectedPosition
+                    // Assets List
+                    AssetsListView(
+                        assets: viewModel.assets,
+                        selectedAsset: $selectedAsset
                     )
                     .padding(.horizontal)
-                    
-                    // Investment Metrics
-                    InvestmentMetricsView(portfolio: viewModel.portfolio)
-                        .padding(.horizontal)
                 }
                 .padding(.vertical)
             }
             .navigationTitle("Portfolio")
             .navigationBarTitleDisplayMode(.large)
-            .accessibilityAddTraits(.isHeader)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button(action: { viewModel.exportPortfolio() }) {
-                            Label("Export PDF", systemImage: "square.and.arrow.up")
-                        }
-                        .accessibilityLabel("Export portfolio as PDF")
-                        Button(action: { viewModel.refreshData() }) {
-                            Label("Refresh", systemImage: "arrow.clockwise")
-                        }
-                        .accessibilityLabel("Refresh portfolio data")
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
+                    Button(action: { Task { await viewModel.refreshPortfolio() } }) {
+                        Image(systemName: "arrow.clockwise")
                     }
-                    .accessibilityLabel("Portfolio options")
-                    .accessibilityHint("Export or refresh portfolio data")
                 }
             }
             .refreshable {
-                await viewModel.refreshData()
+                await viewModel.refreshPortfolio()
             }
-            .sheet(item: $selectedPosition) { position in
-                PositionDetailView(position: position)
+            .sheet(item: $selectedAsset) { asset in
+                AssetDetailView(asset: asset)
             }
         }
         .task {
-            await viewModel.loadPortfolio()
+            // Mock ID for now, replace with auth service user ID
+            if let id = UUID(uuidString: "00000000-0000-0000-0000-000000000000") {
+                await viewModel.loadPortfolio(for: id)
+            }
         }
     }
 }
@@ -105,77 +77,50 @@ struct PortfolioView: View {
 // MARK: - Portfolio Summary Card
 
 struct PortfolioSummaryCard: View {
-    let portfolio: Portfolio?
+    @ObservedObject var viewModel: PortfolioViewModel
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Portfolio Summary")
+            Text("Yield Summary")
                 .font(.headline)
                 .foregroundColor(.secondary)
-                .accessibilityAddTraits(.isHeader)
 
-            if let portfolio = portfolio {
+            if viewModel.hasData {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Total Value")
+                        Text("Total Yield (All Time)")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        Text(portfolio.formattedTotalValue)
-                            .font(.title2)
-                            .fontWeight(.bold)
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                            Text(viewModel.totalYieldDisplay)
+                                .font(.title2)
+                                .fontWeight(.bold)
+                            Text(viewModel.yieldUnit)
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(.secondary)
+                        }
                     }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel("Total portfolio value: \(portfolio.formattedTotalValue)")
 
                     Spacer()
 
                     VStack(alignment: .trailing, spacing: 8) {
-                        Text("Total Return")
+                        Text("Monthly Yield")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        HStack(spacing: 4) {
-                            Image(systemName: portfolio.totalGain >= 0 ? "arrow.up.right" : "arrow.down.right")
-                                .font(.caption)
-                                .accessibilityHidden(true)
-                            Text(portfolio.totalGain.formatted(.currency(code: "USD")))
-                                .fontWeight(.semibold)
-                        }
-                        .foregroundColor(portfolio.totalGain >= 0 ? .green : .red)
-                        Text("\(String(format: "%.2f", portfolio.totalGainPercent))%")
-                            .font(.caption)
-                            .foregroundColor(portfolio.totalGain >= 0 ? .green : .red)
+                        Text(viewModel.monthlyYieldDisplay)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.green)
                     }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel("Total return: \(portfolio.totalGain >= 0 ? "gain" : "loss") of \(portfolio.totalGain.formatted(.currency(code: "USD"))), \(String(format: "%.2f", abs(portfolio.totalGainPercent))) percent")
                 }
                 
                 Divider()
                 
                 HStack {
-                    MetricView(
-                        title: "Day Change",
-                        value: portfolio.formattedDayChange,
-                        percentage: portfolio.dayChangePercent,
-                        isPositive: portfolio.dayChange >= 0
-                    )
-                    
+                    Text("\(viewModel.activePositionsCount) Active Assets")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                     Spacer()
-                    
-                    MetricView(
-                        title: "Month Change",
-                        value: portfolio.monthChange.formatted(.currency(code: "USD")),
-                        percentage: portfolio.monthChangePercent,
-                        isPositive: portfolio.monthChange >= 0
-                    )
-                    
-                    Spacer()
-                    
-                    MetricView(
-                        title: "Year Change",
-                        value: portfolio.yearChange.formatted(.currency(code: "USD")),
-                        percentage: portfolio.yearChangePercent,
-                        isPositive: portfolio.yearChange >= 0
-                    )
                 }
             } else {
                 ProgressView()
@@ -189,187 +134,21 @@ struct PortfolioSummaryCard: View {
     }
 }
 
-// MARK: - Metric View
+// MARK: - Assets List
 
-struct MetricView: View {
-    let title: String
-    let value: String
-    let percentage: Double
-    let isPositive: Bool
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-
-            Text(value)
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundColor(isPositive ? .green : .red)
-
-            Text("\(String(format: "%.2f", percentage))%")
-                .font(.caption2)
-                .foregroundColor(isPositive ? .green : .red)
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(title): \(isPositive ? "gain" : "loss") of \(value), \(String(format: "%.2f", abs(percentage))) percent")
-    }
-}
-
-// MARK: - Allocation Chart
-
-struct AllocationChartView: View {
-    let portfolio: Portfolio?
-
-    private func allocationAccessibilityValue(_ allocations: [AssetAllocation]) -> String {
-        let descriptions = allocations.map { "\($0.assetType) \($0.formattedPercentage)" }
-        return descriptions.joined(separator: ", ")
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Asset Allocation")
-                .font(.headline)
-                .accessibilityAddTraits(.isHeader)
-
-            if let allocations = portfolio?.assetAllocation {
-                if #available(iOS 16.0, *) {
-                    Chart(allocations) { allocation in
-                        SectorMark(
-                            angle: .value("Value", allocation.value),
-                            innerRadius: .ratio(0.5),
-                            angularInset: 2
-                        )
-                        .foregroundStyle(Color(allocation.color))
-                        .cornerRadius(4)
-                    }
-                    .frame(height: 250)
-                    .accessibilityLabel("Asset allocation pie chart")
-                    .accessibilityValue(allocationAccessibilityValue(allocations))
-                    .accessibilityHint("Shows portfolio distribution across different asset types")
-                    
-                    // Legend
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                        ForEach(allocations) { allocation in
-                            HStack {
-                                Circle()
-                                    .fill(Color(allocation.color))
-                                    .frame(width: 12, height: 12)
-                                
-                                Text(allocation.assetType)
-                                    .font(.caption)
-                                
-                                Spacer()
-                                
-                                Text(allocation.formattedPercentage)
-                                    .font(.caption)
-                                    .fontWeight(.semibold)
-                            }
-                        }
-                    }
-                } else {
-                    // Fallback for iOS 15
-                    VStack(spacing: 8) {
-                        ForEach(allocations) { allocation in
-                            HStack {
-                                Circle()
-                                    .fill(Color(allocation.color))
-                                    .frame(width: 12, height: 12)
-                                
-                                Text(allocation.assetType)
-                                    .font(.subheadline)
-                                
-                                Spacer()
-                                
-                                Text(allocation.formattedPercentage)
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                
-                                Text(allocation.value.formatted(.currency(code: "USD")))
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
-    }
-}
-
-// MARK: - Performance History Chart
-
-struct PerformanceHistoryChart: View {
-    let data: [PerformanceData]?
-    let timeRange: PortfolioView.TimeRange
+struct AssetsListView: View {
+    let assets: [AssetPosition]
+    @Binding var selectedAsset: AssetPosition?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Performance History")
-                .font(.headline)
-            
-            if let data = data, !data.isEmpty {
-                if #available(iOS 16.0, *) {
-                    Chart(data) { item in
-                        LineMark(
-                            x: .value("Date", item.date),
-                            y: .value("Value", item.value)
-                        )
-                        .foregroundStyle(Color.accentColor)
-                        .interpolationMethod(.catmullRom)
-                        
-                        AreaMark(
-                            x: .value("Date", item.date),
-                            y: .value("Value", item.value)
-                        )
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [
-                                    Color.accentColor.opacity(0.3),
-                                    Color.accentColor.opacity(0.05)
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                    }
-                } else {
-                    Text("Charts require iOS 16+")
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-            } else {
-                ProgressView()
-                    .frame(maxWidth: .infinity, minHeight: 200)
-            }
-        }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
-    }
-}
-
-// MARK: - Positions List
-
-struct PositionsListView: View {
-    let positions: [Position]
-    @Binding var selectedPosition: Position?
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Positions")
+            Text("Assets")
                 .font(.headline)
             
             VStack(spacing: 8) {
-                ForEach(positions) { position in
-                    Button(action: { selectedPosition = position }) {
-                        PositionRow(position: position)
+                ForEach(assets) { asset in
+                    Button(action: { selectedAsset = asset }) {
+                        AssetRow(asset: asset)
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
@@ -382,44 +161,35 @@ struct PositionsListView: View {
     }
 }
 
-// MARK: - Position Row
+// MARK: - Asset Row
 
-struct PositionRow: View {
-    let position: Position
+struct AssetRow: View {
+    let asset: AssetPosition
     
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(position.assetName)
+                Text(asset.fundName)
                     .font(.subheadline)
                     .fontWeight(.semibold)
                 
-                HStack(spacing: 8) {
-                    Text(position.quantity.formatted())
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    Text("@ \(position.currentPrice.formatted(.currency(code: "USD")))")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                Text(asset.assetCode)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
             
             Spacer()
             
             VStack(alignment: .trailing, spacing: 4) {
-                Text(position.formattedMarketValue)
+                Text(asset.balanceFormatted)
                     .font(.subheadline)
                     .fontWeight(.semibold)
                 
                 HStack(spacing: 4) {
-                    Image(systemName: position.totalGain >= 0 ? "arrow.up" : "arrow.down")
-                        .font(.caption2)
-                    
-                    Text("\(String(format: "%.2f", position.totalGainPercent))%")
+                    Text("Yield: \(asset.yieldEarned.formatted())")
                         .font(.caption)
+                        .foregroundColor(.green)
                 }
-                .foregroundColor(position.totalGain >= 0 ? .green : .red)
             }
             
             Image(systemName: "chevron.right")
@@ -432,90 +202,32 @@ struct PositionRow: View {
     }
 }
 
-// MARK: - Investment Metrics
+// MARK: - Asset Detail View (Simplified)
 
-struct InvestmentMetricsView: View {
-    let portfolio: Portfolio?
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Investment Metrics")
-                .font(.headline)
-            
-            if let portfolio = portfolio {
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                    MetricCard(title: "Total Cost", value: portfolio.totalCost.formatted(.currency(code: "USD")))
-                    MetricCard(title: "Market Value", value: portfolio.totalValue.formatted(.currency(code: "USD")))
-                    MetricCard(title: "Total Gain", value: portfolio.totalGain.formatted(.currency(code: "USD")))
-                    MetricCard(title: "Positions", value: "\(portfolio.positions.count)")
-                }
-            }
-        }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
-    }
-}
-
-// MARK: - Metric Card
-
-struct MetricCard: View {
-    let title: String
-    let value: String
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Text(value)
-                .font(.subheadline)
-                .fontWeight(.semibold)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .background(Color(.secondarySystemBackground))
-        .cornerRadius(8)
-    }
-}
-
-// MARK: - Position Detail View
-
-struct PositionDetailView: View {
-    let position: Position
+struct AssetDetailView: View {
+    let asset: AssetPosition
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Position Header
                     VStack(spacing: 12) {
-                        Text(position.assetName)
+                        Text(asset.fundName)
                             .font(.largeTitle)
                             .fontWeight(.bold)
-                        
-                        Text(position.assetSymbol)
+                        Text(asset.assetCode)
                             .font(.title3)
                             .foregroundColor(.secondary)
-                        
-                        Text(position.formattedMarketValue)
-                            .font(.title)
-                            .fontWeight(.semibold)
                     }
                     .padding()
                     
-                    // Position Details
                     VStack(spacing: 16) {
-                        DetailRow(label: "Quantity", value: position.quantity.formatted())
-                        DetailRow(label: "Average Cost", value: position.averageCost.formatted(.currency(code: "USD")))
-                        DetailRow(label: "Current Price", value: position.currentPrice.formatted(.currency(code: "USD")))
-                        DetailRow(label: "Total Gain", value: position.formattedGain, color: position.totalGain >= 0 ? .green : .red)
-                        DetailRow(label: "Gain %", value: "\(String(format: "%.2f", position.totalGainPercent))%", color: position.totalGain >= 0 ? .green : .red)
-                        DetailRow(label: "Day Change", value: position.dayChange.formatted(.currency(code: "USD")), color: position.dayChange >= 0 ? .green : .red)
-                        DetailRow(label: "Allocation", value: "\(String(format: "%.2f", position.allocation))%")
+                        DetailRow(label: "Balance", value: asset.balanceFormatted)
+                        DetailRow(label: "Yield Earned", value: asset.yieldEarned.formatted(), color: .green)
+                        DetailRow(label: "MTD Yield", value: asset.mtdYieldFormatted)
+                        DetailRow(label: "Additions", value: asset.additionsFormatted)
+                        DetailRow(label: "Withdrawals", value: asset.withdrawalsFormatted)
                     }
                     .padding()
                     .background(Color(.systemBackground))
@@ -526,9 +238,7 @@ struct PositionDetailView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
+                    Button("Done") { dismiss() }
                 }
             }
         }
@@ -553,129 +263,6 @@ struct DetailRow: View {
         }
     }
 }
-
-// MARK: - Portfolio ViewModel
-
-@MainActor
-class PortfolioViewModel: ObservableObject {
-    @Published var portfolio: Portfolio?
-    @Published var performanceHistory: [PerformanceData] = []
-    @Published var isLoading = false
-    @Published var error: Error?
-    
-    private let serviceLocator = ServiceLocator.shared
-    
-    func loadPortfolio() async {
-        isLoading = true
-        
-        // Simulate loading portfolio data
-        // In real implementation, fetch from Supabase
-        do {
-            try await Task.sleep(nanoseconds: 1_000_000_000)
-            
-            // Mock data for demonstration
-            portfolio = createMockPortfolio()
-            performanceHistory = createMockPerformanceHistory()
-        } catch {
-            self.error = error
-        }
-        
-        isLoading = false
-    }
-    
-    func refreshData() async {
-        await loadPortfolio()
-    }
-    
-    func exportPortfolio() {
-        // Export portfolio to PDF
-    }
-    
-    private func createMockPortfolio() -> Portfolio {
-        let positions = [
-            Position(
-                id: UUID(),
-                portfolioId: UUID(),
-                assetSymbol: "BTC",
-                assetName: "Bitcoin",
-                quantity: 0.5,
-                averageCost: 45000,
-                currentPrice: 52000,
-                marketValue: 26000,
-                totalGain: 3500,
-                totalGainPercent: 15.56,
-                dayChange: 500,
-                dayChangePercent: 1.96,
-                allocation: 40
-            ),
-            Position(
-                id: UUID(),
-                portfolioId: UUID(),
-                assetSymbol: "ETH",
-                assetName: "Ethereum",
-                quantity: 10,
-                averageCost: 3000,
-                currentPrice: 3200,
-                marketValue: 32000,
-                totalGain: 2000,
-                totalGainPercent: 6.67,
-                dayChange: -100,
-                dayChangePercent: -0.31,
-                allocation: 30
-            )
-        ]
-        
-        let allocations = [
-            AssetAllocation(assetType: "Bitcoin", value: 26000, percentage: 40, color: "orange"),
-            AssetAllocation(assetType: "Ethereum", value: 32000, percentage: 30, color: "blue"),
-            AssetAllocation(assetType: "USDC", value: 20000, percentage: 20, color: "green"),
-            AssetAllocation(assetType: "Solana", value: 10000, percentage: 10, color: "purple")
-        ]
-        
-        return Portfolio(
-            id: UUID(),
-            investorId: UUID(),
-            totalValue: 88000,
-            totalCost: 82000,
-            totalGain: 6000,
-            totalGainPercent: 7.32,
-            dayChange: 400,
-            dayChangePercent: 0.46,
-            weekChange: 2000,
-            weekChangePercent: 2.33,
-            monthChange: 5000,
-            monthChangePercent: 6.02,
-            yearChange: 15000,
-            yearChangePercent: 20.55,
-            lastUpdated: Date(),
-            positions: positions,
-            assetAllocation: allocations,
-            performanceHistory: []
-        )
-    }
-    
-    private func createMockPerformanceHistory() -> [PerformanceData] {
-        var history: [PerformanceData] = []
-        let baseValue: Decimal = 75000
-        
-        for i in 0..<30 {
-            let date = Calendar.current.date(byAdding: .day, value: -30 + i, to: Date())!
-            let randomChange = Decimal(Double.random(in: -2000...3000))
-            let value = baseValue + randomChange + Decimal(i * 300)
-            
-            history.append(PerformanceData(
-                date: date,
-                value: value,
-                gain: value - baseValue,
-                gainPercent: Double((value - baseValue) / baseValue * 100)
-            ))
-        }
-        
-        return history
-    }
-}
-
-// MARK: - Preview
 
 #Preview {
     PortfolioView()

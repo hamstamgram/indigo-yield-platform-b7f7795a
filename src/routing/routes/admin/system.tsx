@@ -12,13 +12,8 @@ const AdminInvite = lazy(() => import("@/routes/admin/settings/AdminInvite"));
 const AdminSettingsNew = lazy(() => import("@/routes/admin/AdminSettings"));
 const AdminAuditLogs = lazy(() => import("@/routes/admin/AdminAuditLogs"));
 const AdminAudit = lazy(() => import("@/routes/admin/settings/AdminAudit"));
-const AuditDrilldown = lazy(() => import("@/routes/admin/AuditDrilldown"));
 const AdminUserManagement = lazy(() => import("@/routes/admin/AdminUserManagement"));
-const AdminCompliance = lazy(() => import("@/routes/admin/AdminCompliance"));
-const DataIntegrityDashboard = lazy(() => import("@/routes/admin/DataIntegrityDashboard"));
-const SystemHealthPage = lazy(
-  () => import("@/routes/admin/system-health/SystemHealthPage")
-);
+const SystemHealthPage = lazy(() => import("@/routes/admin/system-health/SystemHealthPage"));
 
 export function SystemRoutes() {
   return (
@@ -47,32 +42,6 @@ export function SystemRoutes() {
         element={
           <AdminRoute>
             <AdminAudit />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/admin/audit-drilldown"
-        element={
-          <AdminRoute>
-            <AuditDrilldown />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/admin/compliance"
-        element={
-          <AdminRoute>
-            <AdminCompliance />
-          </AdminRoute>
-        }
-      />
-
-      {/* Data integrity */}
-      <Route
-        path="/admin/data-integrity"
-        element={
-          <AdminRoute>
-            <DataIntegrityDashboard />
           </AdminRoute>
         }
       />

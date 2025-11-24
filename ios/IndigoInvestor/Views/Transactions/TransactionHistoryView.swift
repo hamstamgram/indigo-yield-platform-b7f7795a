@@ -9,7 +9,7 @@ import SwiftUI
 import Combine
 
 struct TransactionHistoryView: View {
-    @StateObject private var viewModel = TransactionHistoryViewModel()
+    @StateObject private var viewModel = TransactionViewModel(transactionService: ServiceContainer.shared.transactionService)
     @State private var searchText = ""
     @State private var selectedFilter: TransactionFilter = .all
     @State private var showingFilterSheet = false
@@ -20,26 +20,29 @@ struct TransactionHistoryView: View {
         case all = "All"
         case deposits = "Deposits"
         case withdrawals = "Withdrawals"
-        case interest = "Interest"
+        case yield = "Yield" // Changed from Interest
         case fees = "Fees"
+        case adjustments = "Adjustments"
         
         var transactionType: Transaction.TransactionType? {
             switch self {
             case .all: return nil
             case .deposits: return .deposit
             case .withdrawals: return .withdrawal
-            case .interest: return .interest
+            case .yield: return .yield
             case .fees: return .fee
+            case .adjustments: return .adjustment
             }
         }
         
         var icon: String {
             switch self {
             case .all: return "list.bullet"
-            case .deposits: return "arrow.down.circle"
-            case .withdrawals: return "arrow.up.circle"
-            case .interest: return "percent"
-            case .fees: return "dollarsign.circle"
+            case .deposits: return "arrow.down.circle.fill"
+            case .withdrawals: return "arrow.up.circle.fill"
+            case .yield: return "dollarsign.arrow.circlepath" // New icon for yield
+            case .fees: return "tag.fill"
+            case .adjustments: return "slider.horizontal.3"
             }
         }
     }
@@ -48,7 +51,11 @@ struct TransactionHistoryView: View {
         NavigationView {
             ZStack {
                 if viewModel.transactions.isEmpty && !viewModel.isLoading {
-                    EmptyStateView()
+                    EmptyStateView(
+                        iconName: "doc.text.magnifyingglass",
+                        title: "No Transactions Found",
+                        message: "Your transaction history will appear here."
+                    )
                 } else {
                     transactionsList
                 }
@@ -62,15 +69,15 @@ struct TransactionHistoryView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack(spacing: IndigoTheme.Spacing.sm) {
+                    HStack(spacing: 8) { // Updated spacing for consistency
                         Button(action: { showingFilterSheet = true }) {
                             Image(systemName: "line.3.horizontal.decrease.circle")
-                                .foregroundColor(IndigoTheme.Colors.primary)
+                                .foregroundColor(DesignTokens.Colors.indigoPrimary)
                         }
                         
                         Button(action: { showingExportOptions = true }) {
                             Image(systemName: "square.and.arrow.up")
-                                .foregroundColor(IndigoTheme.Colors.primary)
+                                .foregroundColor(DesignTokens.Colors.indigoPrimary)
                         }
                     }
                 }
@@ -80,7 +87,7 @@ struct TransactionHistoryView: View {
                 viewModel.searchTransactions(query: newValue)
             }
             .onChange(of: selectedFilter) { newFilter in
-                viewModel.filterTransactions(by: newFilter.transactionType)
+                viewModel.updateFilter(newFilter)
             }
             .sheet(isPresented: $showingFilterSheet) {
                 FilterSheet(
@@ -103,11 +110,17 @@ struct TransactionHistoryView: View {
                 }
                 Button("Cancel", role: .cancel) {}
             }
-            .onAppear {
-                viewModel.loadTransactions()
+            .task { // Use .task for async operations
+                // Mock ID for now, replace with auth service user ID
+                if let id = UUID(uuidString: "00000000-0000-0000-0000-000000000000") {
+                    await viewModel.loadTransactions(for: id)
+                }
             }
             .refreshable {
-                await viewModel.refreshTransactions()
+                // Mock ID for now, replace with auth service user ID
+                if let id = UUID(uuidString: "00000000-0000-0000-0000-000000000000") {
+                    await viewModel.refreshTransactions(for: id)
+                }
             }
         }
     }
@@ -122,7 +135,7 @@ struct TransactionHistoryView: View {
                 
                 // Summary Stats
                 if !viewModel.filteredTransactions.isEmpty {
-                    summaryStats
+                    TransactionSummaryView(summary: viewModel.transactionSummary) // Extracted to a subview
                         .padding()
                 }
                 
@@ -137,16 +150,16 @@ struct TransactionHistoryView: View {
                             
                             if transaction != transactions.last {
                                 Divider()
-                                    .padding(.leading, 60)
+                                    .padding(.leading, DesignTokens.Spacing.xl) // Adjusted padding
                             }
                         }
                     } header: {
-                        MonthHeader(month: month, total: calculateMonthTotal(transactions))
+                        MonthHeader(month: month, total: viewModel.calculateMonthTotal(transactions)) // Updated
                     }
-                    .background(IndigoTheme.Colors.cardBackground)
-                    .cornerRadius(IndigoTheme.CornerRadius.md)
+                    .background(DesignTokens.Colors.backgroundSecondary) // Use DesignTokens
+                    .cornerRadius(DesignTokens.CornerRadius.medium) // Use DesignTokens
                     .padding(.horizontal)
-                    .padding(.bottom, IndigoTheme.Spacing.md)
+                    .padding(.bottom, DesignTokens.Spacing.md)
                 }
             }
         }
@@ -175,42 +188,7 @@ struct TransactionHistoryView: View {
         }
     }
     
-    // MARK: - Summary Stats
-    
-    private var summaryStats: some View {
-        HStack(spacing: IndigoTheme.Spacing.md) {
-            StatCard(
-                title: "Total In",
-                value: viewModel.formattedTotalDeposits,
-                color: .green
-            )
-            
-            StatCard(
-                title: "Total Out",
-                value: viewModel.formattedTotalWithdrawals,
-                color: .red
-            )
-            
-            StatCard(
-                title: "Net",
-                value: viewModel.formattedNetAmount,
-                color: viewModel.netAmount >= 0 ? .green : .red
-            )
-        }
-    }
-    
-    // MARK: - Helper Methods
-    
-    private func calculateMonthTotal(_ transactions: [Transaction]) -> Double {
-        transactions.reduce(0) { total, transaction in
-            switch transaction.type {
-            case .deposit, .interest:
-                return total + transaction.amount
-            case .withdrawal, .fee:
-                return total - transaction.amount
-            }
-        }
-    }
+
 }
 
 // MARK: - Transaction List Item
@@ -219,33 +197,27 @@ struct TransactionListItem: View {
     let transaction: Transaction
     
     var body: some View {
-        HStack(spacing: IndigoTheme.Spacing.md) {
-            // Icon
-            Image(systemName: transaction.iconName)
-                .font(.system(size: 20))
-                .foregroundColor(transaction.color)
-                .frame(width: 40, height: 40)
-                .background(transaction.color.opacity(0.1))
-                .cornerRadius(IndigoTheme.CornerRadius.sm)
+        HStack(spacing: DesignTokens.Spacing.md) {
+            // Icon - Asset Specific
+            AssetIconView(assetCode: transaction.assetCode, size: 40)
             
             // Details
             VStack(alignment: .leading, spacing: 4) {
                 Text(transaction.description)
-                    .font(IndigoTheme.Typography.body)
-                    .foregroundColor(IndigoTheme.Colors.text)
+                    .font(DesignTokens.Typography.body)
+                    .foregroundColor(DesignTokens.Colors.textPrimary)
                     .lineLimit(1)
                 
                 HStack(spacing: 4) {
                     Text(transaction.date.formatted(date: .abbreviated, time: .omitted))
-                        .font(IndigoTheme.Typography.caption2)
-                        .foregroundColor(IndigoTheme.Colors.textTertiary)
+                        .font(DesignTokens.Typography.caption2)
+                        .foregroundColor(DesignTokens.Colors.textTertiary)
                     
-                    if transaction.status != .completed {
-                        Text("•")
-                            .foregroundColor(IndigoTheme.Colors.textTertiary)
-                        
-                        StatusBadge(status: transaction.status)
-                    }
+                    Text("•")
+                        .foregroundColor(DesignTokens.Colors.textTertiary)
+                    
+                    // Transaction Type Badge instead of just Status
+                    StatusBadge(status: transaction.status)
                 }
             }
             
@@ -253,23 +225,23 @@ struct TransactionListItem: View {
             
             // Amount
             VStack(alignment: .trailing, spacing: 2) {
-                Text(transaction.type == .withdrawal || transaction.type == .fee ? "-" : "+")
-                    .font(IndigoTheme.Typography.caption1)
-                    .foregroundColor(transaction.type == .withdrawal || transaction.type == .fee ? .red : .green)
+                Text(transaction.formattedSign)
+                    .font(DesignTokens.Typography.caption1)
+                    .foregroundColor(transaction.color)
                 +
                 Text(transaction.formattedAmount)
-                    .font(IndigoTheme.Typography.bodyBold)
-                    .foregroundColor(IndigoTheme.Colors.text)
+                    .font(DesignTokens.Typography.bodyEmphasized)
+                    .foregroundColor(DesignTokens.Colors.textPrimary)
                 
-                if let reference = transaction.referenceNumber {
+                if let reference = transaction.reference {
                     Text(reference)
-                        .font(IndigoTheme.Typography.caption2)
-                        .foregroundColor(IndigoTheme.Colors.textTertiary)
+                        .font(DesignTokens.Typography.caption2)
+                        .foregroundColor(DesignTokens.Colors.textTertiary)
                         .lineLimit(1)
                 }
             }
         }
-        .padding(IndigoTheme.Spacing.md)
+        .padding(DesignTokens.Spacing.md)
         .contentShape(Rectangle())
     }
 }
@@ -278,32 +250,32 @@ struct TransactionListItem: View {
 
 struct MonthHeader: View {
     let month: String
-    let total: Double
+    let total: Decimal // Change to Decimal
     
     private var formattedTotal: String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = "USD"
-        let absTotal = abs(total)
-        let sign = total >= 0 ? "+" : "-"
-        return sign + (formatter.string(from: NSNumber(value: absTotal)) ?? "$0.00")
+        // Simple number formatting without currency symbol
+        return total.formatted(.number.precision(.fractionLength(2)))
     }
     
     var body: some View {
         HStack {
             Text(month)
-                .font(IndigoTheme.Typography.headline)
-                .foregroundColor(IndigoTheme.Colors.text)
+                .font(DesignTokens.Typography.headline)
+                .foregroundColor(DesignTokens.Colors.textPrimary)
             
             Spacer()
             
+            // Contextual label? Or just value?
+            // If we don't know the unit, just showing number might be ambiguous.
+            // But since we can't sum apples and oranges, this total is likely "Net Flow" number.
+            // Let's just show the number for now as requested "No fiat value".
             Text(formattedTotal)
-                .font(IndigoTheme.Typography.bodyBold)
-                .foregroundColor(total >= 0 ? .green : .red)
+                .font(DesignTokens.Typography.bodyEmphasized)
+                .foregroundColor(total >= 0 ? DesignTokens.Colors.positiveGreen : DesignTokens.Colors.negativeRed)
         }
         .padding(.horizontal)
-        .padding(.vertical, IndigoTheme.Spacing.sm)
-        .background(IndigoTheme.Colors.backgroundSecondary)
+        .padding(.vertical, DesignTokens.Spacing.sm)
+        .background(DesignTokens.Colors.backgroundSecondary)
     }
 }
 
@@ -323,22 +295,22 @@ struct FilterPill: View {
                     .font(.system(size: 14))
                 
                 Text(title)
-                    .font(IndigoTheme.Typography.caption1)
+                    .font(DesignTokens.Typography.caption1)
                 
                 if count > 0 {
-                    Text("\\(count)")
-                        .font(IndigoTheme.Typography.caption2)
+                    Text("\(count)")
+                        .font(DesignTokens.Typography.caption2)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(isSelected ? Color.white.opacity(0.2) : IndigoTheme.Colors.primary.opacity(0.1))
-                        .cornerRadius(IndigoTheme.CornerRadius.xs)
+                        .background(isSelected ? Color.white.opacity(0.2) : DesignTokens.Colors.indigoPrimary.opacity(0.1))
+                        .cornerRadius(DesignTokens.CornerRadius.small) // Use DesignTokens
                 }
             }
-            .foregroundColor(isSelected ? .white : IndigoTheme.Colors.textSecondary)
-            .padding(.horizontal, IndigoTheme.Spacing.md)
-            .padding(.vertical, IndigoTheme.Spacing.sm)
-            .background(isSelected ? IndigoTheme.Colors.primary : IndigoTheme.Colors.cardBackground)
-            .cornerRadius(IndigoTheme.CornerRadius.pill)
+            .foregroundColor(isSelected ? .white : DesignTokens.Colors.textSecondary)
+            .padding(.horizontal, DesignTokens.Spacing.md)
+            .padding(.vertical, DesignTokens.Spacing.sm)
+            .background(isSelected ? DesignTokens.Colors.indigoPrimary : DesignTokens.Colors.cardGradient.linearGradient) // Use DesignTokens
+            .cornerRadius(DesignTokens.CornerRadius.pill) // Use DesignTokens
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -354,17 +326,17 @@ struct StatCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(IndigoTheme.Typography.caption2)
-                .foregroundColor(IndigoTheme.Colors.textSecondary)
+                .font(DesignTokens.Typography.caption2)
+                .foregroundColor(DesignTokens.Colors.textSecondary)
             
             Text(value)
-                .font(IndigoTheme.Typography.bodyBold)
+                .font(DesignTokens.Typography.bodyEmphasized) // Use bodyEmphasized
                 .foregroundColor(color)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(IndigoTheme.Spacing.sm)
+        .padding(DesignTokens.Spacing.sm)
         .background(color.opacity(0.1))
-        .cornerRadius(IndigoTheme.CornerRadius.sm)
+        .cornerRadius(DesignTokens.CornerRadius.small) // Use DesignTokens
     }
 }
 
@@ -375,31 +347,31 @@ struct StatusBadge: View {
     
     private var color: Color {
         switch status {
-        case .pending: return .orange
-        case .completed: return .green
-        case .failed: return .red
-        case .cancelled: return .gray
+        case .pending: return DesignTokens.Colors.warningOrange
+        case .completed: return DesignTokens.Colors.successGreen
+        case .failed: return DesignTokens.Colors.errorRed
+        case .cancelled: return DesignTokens.Colors.neutralGray
         }
     }
     
     var body: some View {
-        Text(status.displayName)
-            .font(IndigoTheme.Typography.caption2)
+        Text(status.displayName) // Now from Transaction.TransactionStatus extension
+            .font(DesignTokens.Typography.caption2)
             .foregroundColor(color)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(color.opacity(0.1))
-            .cornerRadius(IndigoTheme.CornerRadius.xs)
+            .cornerRadius(DesignTokens.CornerRadius.small) // Use DesignTokens
     }
 }
 
 // MARK: - Filter Sheet
 
 struct FilterSheet: View {
-    @Binding var selectedFilter: TransactionHistoryView.TransactionFilter
-    @Binding var dateRange: DateRange?
-    @Binding var minAmount: Double?
-    @Binding var maxAmount: Double?
+    @Binding var selectedFilter: TransactionFilter
+    @Binding var dateRange: DateRange // This should be updated to use the full DateRange struct
+    @Binding var minAmount: Decimal? // Changed to Decimal
+    @Binding var maxAmount: Decimal? // Changed to Decimal
     @Environment(\.dismiss) private var dismiss
     
     @State private var showingDatePicker = false
@@ -412,10 +384,10 @@ struct FilterSheet: View {
         NavigationView {
             Form {
                 Section("Transaction Type") {
-                    ForEach(TransactionHistoryView.TransactionFilter.allCases, id: \.self) { filter in
+                    ForEach(TransactionFilter.allCases, id: \.self) { filter in
                         HStack {
                             Image(systemName: filter.icon)
-                                .foregroundColor(IndigoTheme.Colors.primary)
+                                .foregroundColor(DesignTokens.Colors.indigoPrimary)
                                 .frame(width: 30)
                             
                             Text(filter.rawValue)
@@ -424,7 +396,7 @@ struct FilterSheet: View {
                             
                             if selectedFilter == filter {
                                 Image(systemName: "checkmark")
-                                    .foregroundColor(IndigoTheme.Colors.primary)
+                                    .foregroundColor(DesignTokens.Colors.indigoPrimary)
                             }
                         }
                         .contentShape(Rectangle())
@@ -465,7 +437,7 @@ struct FilterSheet: View {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Reset") {
                         selectedFilter = .all
-                        dateRange = nil
+                        dateRange = .all // Reset to All Time
                         minAmount = nil
                         maxAmount = nil
                         dismiss()
@@ -475,16 +447,15 @@ struct FilterSheet: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Apply") {
                         if showingDatePicker {
-                            dateRange = DateRange(start: startDate, end: endDate)
+                            // Update dateRange only if custom is selected
+                            // For simplicity, TransactionViewModel will use selectedDateRange.startDate logic
+                        } else {
+                            // Reset to all if custom date picker is not shown
+                            // But viewModel uses selectedDateRange directly, so it will handle it
                         }
                         
-                        if let min = Double(minAmountText) {
-                            minAmount = min
-                        }
-                        
-                        if let max = Double(maxAmountText) {
-                            maxAmount = max
-                        }
+                        minAmount = Decimal(string: minAmountText)
+                        maxAmount = Decimal(string: maxAmountText)
                         
                         dismiss()
                     }
@@ -526,11 +497,11 @@ struct LoadingOverlay: View {
                 .ignoresSafeArea()
             
             ProgressView()
-                .progressViewStyle(CircularProgressViewStyle(tint: IndigoTheme.Colors.primary))
+                .progressViewStyle(CircularProgressViewStyle(tint: DesignTokens.Colors.indigoPrimary))
                 .scaleEffect(1.5)
                 .padding()
-                .background(IndigoTheme.Colors.cardBackground)
-                .cornerRadius(IndigoTheme.CornerRadius.md)
+                .background(DesignTokens.Colors.cardGradient.linearGradient) // Use DesignTokens
+                .cornerRadius(DesignTokens.CornerRadius.medium) // Use DesignTokens
         }
     }
 }
@@ -540,4 +511,174 @@ struct LoadingOverlay: View {
 struct DateRange {
     let start: Date
     let end: Date
+}
+
+// MARK: - Transaction Summary View (New Component)
+
+struct TransactionSummaryView: View {
+    let summary: TransactionSummary
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Summary for Filtered Transactions")
+                .font(DesignTokens.Typography.headline)
+                .foregroundColor(DesignTokens.Colors.textPrimary)
+            
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                StatCard(title: "Deposits", value: summary.formattedTotalDeposits, color: DesignTokens.Colors.positiveGreen)
+                StatCard(title: "Withdrawals", value: summary.formattedTotalWithdrawals, color: DesignTokens.Colors.negativeRed)
+                StatCard(title: "Yield", value: summary.formattedTotalYield, color: DesignTokens.Colors.indigoPrimary)
+                StatCard(title: "Fees", value: summary.formattedTotalFees, color: DesignTokens.Colors.warningOrange)
+            }
+            
+            HStack {
+                Text("Net Flow")
+                    .font(DesignTokens.Typography.bodyEmphasized)
+                    .foregroundColor(DesignTokens.Colors.textPrimary)
+                Spacer()
+                Text(summary.formattedNetFlow)
+                    .font(DesignTokens.Typography.financialMedium)
+                    .foregroundColor(summary.netFlowColor)
+            }
+            .padding(.top, 8)
+        }
+        .padding(DesignTokens.Spacing.md)
+        .background(DesignTokens.Colors.backgroundPrimary)
+        .cornerRadius(DesignTokens.CornerRadius.medium)
+        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+    }
+}
+
+// MARK: - Extensions for Transaction Model
+
+extension Transaction {
+    var iconName: String {
+        switch type {
+        case .deposit: return "arrow.down.circle.fill"
+        case .withdrawal: return "arrow.up.circle.fill"
+        case .yield: return "dollarsign.arrow.circlepath"
+        case .fee: return "tag.fill"
+        case .adjustment: return "slider.horizontal.3"
+        }
+    }
+    
+    var color: Color {
+        switch type {
+        case .deposit: return DesignTokens.Colors.positiveGreen
+        case .withdrawal: return DesignTokens.Colors.negativeRed
+        case .yield: return DesignTokens.Colors.indigoPrimary
+        case .fee: return DesignTokens.Colors.warningOrange
+        case .adjustment: return DesignTokens.Colors.neutralGray
+        }
+    }
+    
+    var formattedSign: String {
+        switch type {
+        case .deposit, .yield: return "+"
+        case .withdrawal, .fee, .adjustment: return "-"
+        }
+    }
+}
+
+extension Transaction.TransactionStatus {
+    var displayName: String {
+        return rawValue.capitalized
+    }
+}
+
+// MARK: - Extensions for DateRange
+
+extension DateRange {
+    var displayName: String {
+        switch self {
+        case .all: return "All Time"
+        case .today: return "Today"
+        case .week: return "Last Week"
+        case .month: return "Last Month"
+        case .quarter: return "Last Quarter"
+        case .year: return "Last Year"
+        }
+    }
+}
+
+// MARK: - Export Functionality (Placeholder)
+
+extension TransactionViewModel {
+    func exportAsPDF() {
+        print("Exporting transactions as PDF...")
+        errorMessage = "PDF Export feature is not yet implemented."
+        showError = true
+    }
+    
+    func exportAsCSV() {
+        print("Exporting transactions as CSV...")
+        errorMessage = "CSV Export feature is not yet implemented."
+        showError = true
+    }
+    
+    func getCount(for type: Transaction.TransactionType?) -> Int {
+        if let type = type {
+            return transactions.filter { $0.type == type }.count
+        }
+        return transactions.count
+    }
+}
+
+// MARK: - Transaction Detail Sheet (Placeholder)
+
+struct TransactionDetailSheet: View {
+    let transaction: Transaction
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    Text("Transaction Details")
+                        .font(DesignTokens.Typography.title1)
+                        .foregroundColor(DesignTokens.Colors.textPrimary)
+                    
+                    // Display details using DetailRow
+                    DetailRow(label: "Type", value: transaction.type.rawValue.capitalized)
+                    DetailRow(label: "Amount", value: transaction.formattedAmount)
+                    DetailRow(label: "Asset Code", value: transaction.assetCode)
+                    DetailRow(label: "Date", value: transaction.formattedDate)
+                    DetailRow(label: "Status", value: transaction.status.displayName, color: transaction.color)
+                    DetailRow(label: "Description", value: transaction.description)
+                    if let ref = transaction.reference {
+                        DetailRow(label: "Reference", value: ref)
+                    }
+                    
+                }
+                .padding()
+            }
+            .navigationTitle(transaction.description)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Assuming DetailRow exists elsewhere or is defined locally as it was in PortfolioView
+struct DetailRow: View {
+    let label: String
+    let value: String
+    var color: Color = .primary
+    
+    var body: some View {
+        HStack {
+            Text(label)
+                .foregroundColor(DesignTokens.Colors.textSecondary)
+            Spacer()
+            Text(value)
+                .fontWeight(.semibold)
+                .foregroundColor(color)
+        }
+    }
 }

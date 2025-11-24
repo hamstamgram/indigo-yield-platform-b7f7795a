@@ -15,7 +15,6 @@
 
 import { CoreInvestorRoutes } from "./investor/core";
 import { PortfolioRoutes } from "./investor/portfolio";
-import { NotificationRoutes } from "./investor/notifications";
 import { DocumentRoutes } from "./investor/documents";
 import { ProfileRoutes } from "./investor/profile";
 import { ReportsRoutes } from "./investor/reports";
@@ -29,7 +28,6 @@ export function InvestorRoutes() {
     <>
       {CoreInvestorRoutes()}
       {PortfolioRoutes()}
-      {NotificationRoutes()}
       {DocumentRoutes()}
       {ProfileRoutes()}
       {ReportsRoutes()}

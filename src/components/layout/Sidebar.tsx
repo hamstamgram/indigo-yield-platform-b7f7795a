@@ -9,8 +9,6 @@ import { adminNavGroups, mainNav } from "@/config/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { useUserAssets } from "@/hooks/useUserAssets";
-import { CryptoIcon } from "@/components/CryptoIcons";
 import { NavItem } from "@/types/navigation";
 
 type SidebarProps = {
@@ -60,24 +58,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
     getUser();
   }, [navigate]);
 
-  // Fetch user's actual assets dynamically
-  const { data: userAssets } = useUserAssets();
-
   // Filter navigation items based on admin status and search
   const filteredMainNav = isAdmin
     ? [] // Admins don't need the regular main nav
     : mainNav;
-
-  // Generate dynamic asset navigation from user's actual positions
-  const dynamicAssetNav = isAdmin
-    ? []
-    : (userAssets || []).map((asset) => ({
-        title: asset.name,
-        href: `/assets/${asset.symbol}`,
-        icon: <CryptoIcon symbol={asset.symbol} className="h-5 w-5" />,
-      }));
-
-  const filteredAssetNav = dynamicAssetNav;
 
   // Toggle group expansion
   const toggleGroup = (groupName: string) => {
@@ -173,11 +157,15 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-sidebar-border">
-            <div className="flex items-center gap-2 flex-1">
-              <div className="text-lg font-semibold text-sidebar-foreground">
-                {isAdmin ? "Admin" : "Dashboard"}
-              </div>
-              {isAdmin}
+            <div
+              className="flex items-center gap-2 flex-1 cursor-pointer"
+              onClick={() => navigate(isAdmin ? "/admin" : "/dashboard")}
+            >
+              <img
+                src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
+                alt="Indigo Yield Fund"
+                className="h-8 w-auto"
+              />
             </div>
             <button
               onClick={closeSidebar}
@@ -259,17 +247,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                 onItemClick={handleNavigationClick}
                 isExpanded={expandedGroups.includes("Main")}
                 onToggle={() => toggleGroup("Main")}
-              />
-            )}
-
-            {/* Asset Navigation - Only for non-admin users */}
-            {filteredAssetNav.length > 0 && (
-              <NavSection
-                title="Assets"
-                items={filteredAssetNav}
-                onItemClick={handleNavigationClick}
-                isExpanded={expandedGroups.includes("Assets")}
-                onToggle={() => toggleGroup("Assets")}
               />
             )}
 

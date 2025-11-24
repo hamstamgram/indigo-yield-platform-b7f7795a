@@ -28,7 +28,6 @@ class TransactionViewModel: ObservableObject {
     
     // MARK: - Private Properties
     private var cancellables = Set<AnyCancellable>()
-    private var transactionSubscription: Task<Void, Never>?
     private var currentInvestorId: UUID?
     private var currentPage = 0
     private let pageSize = 50
@@ -107,11 +106,14 @@ class TransactionViewModel: ObservableObject {
         isLoadingMore = false
     }
     
-    func refreshTransactions() async {
-        guard let investorId = currentInvestorId else { return }
+    func refreshTransactions(for investorId: UUID) async {
+        guard !isLoading else { return }
         
+        isLoading = true
+        currentInvestorId = investorId
         currentPage = 0
         hasMoreData = true
+        errorMessage = nil
         
         do {
             let refreshedTransactions = try await transactionService.fetchTransactions(
@@ -127,6 +129,8 @@ class TransactionViewModel: ObservableObject {
         } catch {
             handleError(error)
         }
+        
+        isLoading = false
     }
     
     func selectTransaction(_ transaction: Transaction) {
@@ -185,8 +189,8 @@ class TransactionViewModel: ObservableObject {
                     return transaction.type == .deposit
                 case .withdrawals:
                     return transaction.type == .withdrawal
-                case .interest:
-                    return transaction.type == .interest
+                case .yield: // Changed from interest
+                    return transaction.type == .yield
                 case .fees:
                     return transaction.type == .fee
                 case .adjustments:
@@ -245,7 +249,7 @@ enum TransactionFilter: String, CaseIterable {
     case all = "All"
     case deposits = "Deposits"
     case withdrawals = "Withdrawals"
-    case interest = "Interest"
+    case yield = "Yield" // Changed from interest
     case fees = "Fees"
     case adjustments = "Adjustments"
     
@@ -254,7 +258,7 @@ enum TransactionFilter: String, CaseIterable {
         case .all: return "list.bullet"
         case .deposits: return "arrow.down.circle.fill"
         case .withdrawals: return "arrow.up.circle.fill"
-        case .interest: return "percent"
+        case .yield: return "percent"
         case .fees: return "dollarsign.circle.fill"
         case .adjustments: return "slider.horizontal.3"
         }
@@ -265,7 +269,7 @@ enum TransactionFilter: String, CaseIterable {
         case .all: return .primary
         case .deposits: return .green
         case .withdrawals: return .red
-        case .interest: return .blue
+        case .yield: return .blue
         case .fees: return .orange
         case .adjustments: return .purple
         }
@@ -313,8 +317,8 @@ extension TransactionViewModel {
             .filter { $0.type == .withdrawal }
             .reduce(Decimal(0)) { $0 + $1.amount }
         
-        let interest = filteredTransactions
-            .filter { $0.type == .interest }
+        let yield = filteredTransactions // Changed from interest
+            .filter { $0.type == .yield }
             .reduce(Decimal(0)) { $0 + $1.amount }
         
         let fees = filteredTransactions
@@ -324,9 +328,9 @@ extension TransactionViewModel {
         return TransactionSummary(
             totalDeposits: deposits,
             totalWithdrawals: withdrawals,
-            totalInterest: interest,
+            totalYield: yield, // Changed from totalInterest
             totalFees: fees,
-            netFlow: deposits - withdrawals
+            netFlow: deposits + yield - withdrawals - fees
         )
     }
     
@@ -346,7 +350,7 @@ extension TransactionViewModel {
 struct TransactionSummary {
     let totalDeposits: Decimal
     let totalWithdrawals: Decimal
-    let totalInterest: Decimal
+    let totalYield: Decimal // Changed from totalInterest
     let totalFees: Decimal
     let netFlow: Decimal
     
@@ -358,8 +362,8 @@ struct TransactionSummary {
         return totalWithdrawals.formatted(.currency(code: "USD"))
     }
     
-    var formattedTotalInterest: String {
-        return totalInterest.formatted(.currency(code: "USD"))
+    var formattedTotalYield: String { // Changed from formattedTotalInterest
+        return totalYield.formatted(.currency(code: "USD"))
     }
     
     var formattedTotalFees: String {
@@ -402,12 +406,8 @@ private class MockTransactionService: TransactionServiceProtocol {
         return Transaction.mockTransactions(for: investorId, limit: limit)
     }
     
-    func fetchTransaction(id: UUID) async throws -> Transaction {
-        return Transaction.mockTransaction(id: id)
-    }
-    
-    func fetchRecentTransactions(for investorId: UUID) async throws -> [Transaction] {
-        return Transaction.mockTransactions(for: investorId, limit: 5)
+    func createTransaction(_ transaction: Transaction) async throws {
+        // Mock implementation
     }
     
     func subscribeToTransactionUpdates(for investorId: UUID) -> AsyncStream<Transaction> {

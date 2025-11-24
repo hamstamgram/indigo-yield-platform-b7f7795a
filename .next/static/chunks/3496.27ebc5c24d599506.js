@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[3496],{53496:function(e,n,s){s.r(n);var t=s(85893);n.default=()=>{let e=new Date().toISOString();return(0,t.jsxs)("div",{style:{padding:"20px",fontFamily:"monospace"},children:[(0,t.jsx)("h1",{children:"Health Check"}),(0,t.jsxs)("p",{children:["OK ",e]})]})}}}]);

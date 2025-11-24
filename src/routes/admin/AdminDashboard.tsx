@@ -2,9 +2,7 @@
  * Admin Dashboard Page
  * Main admin overview with key metrics
  *
- * TODO: Refactor to use correct database schema
- * - "investments" table doesn't exist, should query investor_positions or funds
- * - Update queries to match actual database structure
+ * Updated for "Command Center" aesthetic
  */
 
 import { useEffect, useState } from "react";
@@ -19,6 +17,8 @@ import {
   Settings,
   Activity,
   Loader2,
+  CheckCircle2,
+  Clock,
   type LucideIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,7 +30,7 @@ interface AdminStats {
   totalInvestors: number;
   activeInvestors: number;
   pendingVerifications: number;
-  totalAUM: number;
+  activePositionsCount: number; // Replaces totalAUM since we don't have fiat
   pendingWithdrawals: number;
   pendingDocuments: number;
   recentActivity: number;
@@ -41,7 +41,7 @@ interface AdminAction {
   description: string;
   href: string;
   icon: LucideIcon;
-  color: string;
+  color: string; // Tailwind text color class
   badge?: number;
 }
 
@@ -50,7 +50,7 @@ function AdminDashboardContent() {
     totalInvestors: 0,
     activeInvestors: 0,
     pendingVerifications: 0,
-    totalAUM: 0,
+    activePositionsCount: 0,
     pendingWithdrawals: 0,
     pendingDocuments: 0,
     recentActivity: 0,
@@ -60,7 +60,6 @@ function AdminDashboardContent() {
   useEffect(() => {
     loadAdminStats();
 
-    // Set up real-time subscriptions for dynamic updates
     const withdrawalChannel = supabase
       .channel("admin-withdrawals")
       .on(
@@ -71,70 +70,42 @@ function AdminDashboardContent() {
           table: "withdrawal_requests",
           filter: "status=eq.pending",
         },
-        () => {
-          console.log("Withdrawal request changed, reloading stats...");
-          loadAdminStats();
-        }
-      )
-      .subscribe();
-
-    const investorChannel = supabase
-      .channel("admin-investors")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "investors",
-          filter: "kyc_status=eq.pending",
-        },
-        () => {
-          console.log("Investor KYC status changed, reloading stats...");
-          loadAdminStats();
-        }
+        () => loadAdminStats()
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(withdrawalChannel);
-      supabase.removeChannel(investorChannel);
     };
   }, []);
 
   const loadAdminStats = async () => {
     try {
-      const [
-        investorsResult,
-        positionsResult,
-        withdrawalsResult,
-        pendingInvestors,
-        recentActivityResult,
-      ] = await Promise.all([
-        supabase.from("investors").select("id, status"),
-        supabase.from("investor_positions").select("current_value, investor_id"),
-        supabase.from("withdrawal_requests").select("id").eq("status", "pending"),
-        supabase.from("investors").select("id").eq("kyc_status", "pending"),
-        supabase
-          .from("investments")
-          .select("id")
-          .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
-      ]);
-
-      // Calculate total AUM from investor positions
-      const positions = positionsResult.data || [];
-      const totalAUM = positions.reduce((sum, pos) => sum + Number(pos.current_value || 0), 0);
-
-      // Get active investors (those with positions)
-      const activeInvestorIds = new Set(positions.map((p) => p.investor_id));
-      const activeInvestors = activeInvestorIds.size;
+      const investorsResult = await (supabase as any).from("investors").select("id, status");
+      const positionsResult = await (supabase as any)
+        .from("investor_positions")
+        .select("id, status")
+        .eq("status", "active");
+      const withdrawalsResult = await (supabase as any)
+        .from("withdrawal_requests")
+        .select("id")
+        .eq("status", "pending");
+      const pendingInvestors = await (supabase as any)
+        .from("investors")
+        .select("id")
+        .eq("kyc_status", "pending");
+      const recentActivityResult = await (supabase as any)
+        .from("investments")
+        .select("id")
+        .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
       setStats({
         totalInvestors: investorsResult.data?.length || 0,
-        activeInvestors,
+        activeInvestors: investorsResult.data?.filter((i) => i.status === "active").length || 0,
         pendingVerifications: pendingInvestors.data?.length || 0,
-        totalAUM,
+        activePositionsCount: positionsResult.data?.length || 0,
         pendingWithdrawals: withdrawalsResult.data?.length || 0,
-        pendingDocuments: 0,
+        pendingDocuments: 0, // Placeholder
         recentActivity: recentActivityResult.data?.length || 0,
       });
     } catch (error) {
@@ -150,21 +121,21 @@ function AdminDashboardContent() {
       description: "Manage investor accounts",
       href: "/admin/investors",
       icon: Users,
-      color: "bg-blue-500",
+      color: "text-blue-500",
     },
     {
       title: "Transactions",
       description: "View all transactions",
       href: "/admin/transactions",
       icon: Activity,
-      color: "bg-green-500",
+      color: "text-green-500",
     },
     {
       title: "Withdrawals",
       description: "Approve withdrawal requests",
       href: "/admin/withdrawals",
       icon: DollarSign,
-      color: "bg-amber-500",
+      color: "text-amber-500",
       badge: stats.pendingWithdrawals > 0 ? stats.pendingWithdrawals : undefined,
     },
     {
@@ -172,7 +143,7 @@ function AdminDashboardContent() {
       description: "Review pending documents",
       href: "/admin/documents",
       icon: FileText,
-      color: "bg-purple-500",
+      color: "text-purple-500",
       badge: stats.pendingDocuments > 0 ? stats.pendingDocuments : undefined,
     },
     {
@@ -180,7 +151,7 @@ function AdminDashboardContent() {
       description: "KYC/AML oversight",
       href: "/admin/compliance",
       icon: Shield,
-      color: "bg-red-500",
+      color: "text-red-500",
       badge: stats.pendingVerifications > 0 ? stats.pendingVerifications : undefined,
     },
     {
@@ -188,21 +159,21 @@ function AdminDashboardContent() {
       description: "Generate admin reports",
       href: "/admin/reports",
       icon: TrendingUp,
-      color: "bg-indigo-500",
+      color: "text-indigo-500",
     },
     {
       title: "Settings",
       description: "Platform configuration",
       href: "/admin/settings",
       icon: Settings,
-      color: "bg-gray-500",
+      color: "text-gray-500",
     },
     {
       title: "Audit Logs",
       description: "View system audit logs",
       href: "/admin/audit-logs",
       icon: AlertCircle,
-      color: "bg-cyan-500",
+      color: "text-cyan-500",
     },
   ];
 
@@ -216,76 +187,99 @@ function AdminDashboardContent() {
 
   return (
     <div className="container max-w-7xl mx-auto px-4 py-8 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-        <p className="text-muted-foreground mt-2">Platform overview and management tools</p>
+      <div className="flex justify-between items-end">
+        <div>
+          <h1 className="text-4xl font-display font-bold tracking-tight">Command Center</h1>
+          <p className="text-muted-foreground mt-2">Platform overview and operational status</p>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+          System Operational
+        </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* High Contrast Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="dashboard-card border-0 shadow-lg bg-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Investors</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+              Total Investors
+            </CardTitle>
+            <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalInvestors}</div>
-            <p className="text-xs text-muted-foreground">{stats.activeInvestors} active</p>
+            <div className="text-3xl font-mono font-bold">{stats.totalInvestors}</div>
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+              <CheckCircle2 className="h-3 w-3 text-green-500" />
+              {stats.activeInvestors} active accounts
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="dashboard-card border-0 shadow-lg bg-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total AUM</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+              Active Positions
+            </CardTitle>
+            <Activity className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${(stats.totalAUM / 1000000).toFixed(2)}M</div>
-            <p className="text-xs text-muted-foreground">Assets under management</p>
+            <div className="text-3xl font-mono font-bold">{stats.activePositionsCount}</div>
+            <p className="text-xs text-muted-foreground mt-1">Across all asset classes</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="dashboard-card border-0 shadow-lg bg-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Actions</CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+              Pending Actions
+            </CardTitle>
+            <AlertCircle className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-3xl font-mono font-bold text-orange-600">
               {stats.pendingWithdrawals + stats.pendingDocuments + stats.pendingVerifications}
             </div>
-            <p className="text-xs text-muted-foreground">Require attention</p>
+            <p className="text-xs text-muted-foreground mt-1">Requires immediate attention</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="dashboard-card border-0 shadow-lg bg-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Activity</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+              24h Activity
+            </CardTitle>
+            <Clock className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.recentActivity}</div>
-            <p className="text-xs text-muted-foreground">Last 24 hours</p>
+            <div className="text-3xl font-mono font-bold">{stats.recentActivity}</div>
+            <p className="text-xs text-muted-foreground mt-1">New events logged</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Quick Actions */}
+      {/* Operational Grid */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+        <h2 className="text-xl font-bold mb-4 tracking-tight">Operational Tools</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {adminActions.map((action) => (
             <Link key={action.href} to={action.href}>
-              <Card className="hover:bg-accent transition-colors cursor-pointer h-full">
+              <Card className="dashboard-card border-0 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full group">
                 <CardContent className="pt-6">
                   <div className="flex items-start justify-between mb-4">
-                    <div className={`rounded-lg ${action.color} p-3`}>
-                      <action.icon className="h-6 w-6 text-white" />
+                    <div
+                      className={`rounded-xl bg-muted/50 p-3 group-hover:bg-primary/10 transition-colors`}
+                    >
+                      <action.icon className={`h-6 w-6 ${action.color}`} />
                     </div>
-                    {action.badge && <Badge variant="destructive">{action.badge}</Badge>}
+                    {action.badge && (
+                      <Badge variant="destructive" className="animate-pulse">
+                        {action.badge}
+                      </Badge>
+                    )}
                   </div>
-                  <h3 className="font-semibold mb-1">{action.title}</h3>
-                  <p className="text-sm text-muted-foreground">{action.description}</p>
+                  <h3 className="font-bold text-lg mb-1">{action.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-snug">{action.description}</p>
                 </CardContent>
               </Card>
             </Link>

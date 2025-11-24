@@ -3,9 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Filter } from "lucide-react";
+import { Search, Filter, Receipt } from "lucide-react"; // Added Receipt icon
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { ResponsiveTable } from "@/components/ui/responsive-table"; // Import
+import { EmptyState } from "@/components/ui/empty-state"; // Import
+import { Badge } from "@/components/ui/badge"; // Import Badge for status
 
 export default function TransactionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -30,28 +33,71 @@ export default function TransactionsPage() {
     },
   });
 
+  const columns = [
+    {
+      header: "Type",
+      accessorKey: "type",
+      cell: (item: any) => (
+        <span className="font-medium capitalize">
+          {item.type?.replace(/_/g, " ") || "Transaction"}
+        </span>
+      ),
+    },
+    {
+      header: "Date",
+      accessorKey: "created_at",
+      cell: (item: any) => new Date(item.created_at).toLocaleDateString(),
+    },
+    {
+      header: "Amount",
+      accessorKey: "amount",
+      cell: (item: any) => (
+        <span
+          className={item.amount > 0 ? "text-green-600 font-mono" : "text-foreground font-mono"}
+        >
+          {item.amount} {item.asset_code}
+        </span>
+      ),
+    },
+    {
+      header: "Status",
+      accessorKey: "status",
+      cell: (item: any) => (
+        <Badge
+          variant={item.status === "completed" ? "default" : "secondary"}
+          className={item.status === "completed" ? "bg-green-600" : ""}
+        >
+          {item.status}
+        </Badge>
+      ),
+    },
+    {
+      header: "Actions",
+      cell: (item: any) => (
+        <Button variant="outline" size="sm" asChild>
+          <Link to={`/transactions/${item.id}`}>View</Link>
+        </Button>
+      ),
+    },
+  ];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 md:p-8">
+      {" "}
+      {/* Added padding */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Transactions</h1>
-          <p className="text-muted-foreground">View and manage all transactions</p>
+          <p className="text-muted-foreground">View your transaction history</p>
         </div>
-        <Button asChild>
-          <Link to="/transactions/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New
-          </Link>
-        </Button>
       </div>
-
       <Card>
         <CardHeader>
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search..."
+                placeholder="Search transactions..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -66,34 +112,13 @@ export default function TransactionsPage() {
           {isLoading ? (
             <div className="py-12 text-center text-muted-foreground">Loading...</div>
           ) : items && items.length > 0 ? (
-            <div className="space-y-4">
-              {items.map((item) => (
-                <Card key={item.id}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-semibold">
-                          {item.type?.replace(/_/g, " ").toUpperCase() || "Transaction"}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(item.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/transactions/${item.id}`}>View Details</Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <ResponsiveTable data={items} columns={columns} keyExtractor={(item) => item.id} />
           ) : (
-            <div className="py-12 text-center space-y-4">
-              <p className="text-muted-foreground">No items found</p>
-              <Button asChild>
-                <Link to="/transactions/new">Create your first item</Link>
-              </Button>
-            </div>
+            <EmptyState
+              icon={Receipt}
+              title="No transactions found"
+              description="You haven't made any transactions yet, or no transactions match your search."
+            />
           )}
         </CardContent>
       </Card>

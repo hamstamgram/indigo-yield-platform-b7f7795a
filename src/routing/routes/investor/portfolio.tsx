@@ -3,18 +3,15 @@
  * Withdrawals, analytics, and portfolio-specific features
  */
 
-import { Route, Navigate } from "react-router-dom";
+import { Route } from "react-router-dom";
 import { lazy } from "react";
 import { ProtectedRoute } from "../../ProtectedRoute";
 
 // Portfolio pages
-const WithdrawalsPage = lazy(() => import("@/routes/admin/investors/WithdrawalsPage"));
+const WithdrawalsPage = lazy(() => import("@/routes/withdrawals/WithdrawalHistoryPage"));
 const PortfolioAnalyticsPage = lazy(
   () => import("@/routes/investor/portfolio/PortfolioAnalyticsPage")
 );
-const SessionManagementPage = lazy(() => import("@/routes/investor/account/SessionManagementPage"));
-const ProfileSettingsPage = lazy(() => import("@/routes/settings/ProfileSettingsPage"));
-const SecuritySettings = lazy(() => import("@/routes/settings/SecuritySettings"));
 
 export function PortfolioRoutes() {
   return (
@@ -35,43 +32,6 @@ export function PortfolioRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/settings/sessions"
-        element={
-          <ProtectedRoute>
-            <SessionManagementPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/settings/profile"
-        element={
-          <ProtectedRoute>
-            <ProfileSettingsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/settings/security"
-        element={
-          <ProtectedRoute>
-            <SecuritySettings />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Portfolio route redirects for backward compatibility */}
-      <Route path="/portfolio/USDC" element={<Navigate to="/assets/usdc" replace />} />
-      <Route path="/portfolio/BTC" element={<Navigate to="/assets/btc" replace />} />
-      <Route path="/portfolio/ETH" element={<Navigate to="/assets/eth" replace />} />
-      <Route path="/portfolio/SOL" element={<Navigate to="/assets/sol" replace />} />
-      <Route path="/portfolio/usdc" element={<Navigate to="/assets/usdc" replace />} />
-      <Route path="/portfolio/btc" element={<Navigate to="/assets/btc" replace />} />
-      <Route path="/portfolio/eth" element={<Navigate to="/assets/eth" replace />} />
-      <Route path="/portfolio/sol" element={<Navigate to="/assets/sol" replace />} />
-
-      {/* Deprecated yield management route with redirect */}
-      <Route path="/yield-sources" element={<Navigate to="/admin/yield-settings" replace />} />
     </>
   );
 }
