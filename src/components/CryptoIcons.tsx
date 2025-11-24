@@ -17,6 +17,8 @@ export const CryptoIcon: React.FC<CryptoIconProps> = ({ symbol, className = "h-1
     src = "https://cryptologos.cc/logos/euro-coin-eurc-logo.svg?v=035";
   } else if (lowerSymbol === "sol") {
     src = "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/sol.svg";
+  } else if (lowerSymbol === "usd") {
+    src = "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/usdc.svg";
   }
 
   if (error) {

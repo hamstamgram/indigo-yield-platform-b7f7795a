@@ -56,9 +56,10 @@ export default function DashboardPage() {
         .order("report_month", { ascending: false });
 
       return positions.map((pos: any) => {
-        const assetCode = pos.funds?.asset_symbol || pos.funds?.asset || "UNITS";
+        const rawAssetCode = pos.funds?.asset_symbol || pos.funds?.asset || "UNITS";
+        const assetCode = rawAssetCode === "USDC" || rawAssetCode === "USDT" ? "USD" : rawAssetCode;
         // Get latest report for this asset to show "This Month's Activity"
-        const latestReport = reports?.find((r: any) => r.asset_code === assetCode);
+        const latestReport = reports?.find((r: any) => r.asset_code === rawAssetCode);
 
         return {
           fundName: pos.funds?.name || "Unknown Fund",

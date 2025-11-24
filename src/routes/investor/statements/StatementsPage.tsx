@@ -152,8 +152,8 @@ const StatementsPage = () => {
       BTC: { decimals: 8, symbol: "BTC" },
       ETH: { decimals: 8, symbol: "ETH" },
       SOL: { decimals: 6, symbol: "SOL" },
-      USDT: { decimals: 2, symbol: "USDT" },
-      USDC: { decimals: 2, symbol: "USDC" },
+      USDT: { decimals: 2, symbol: "USD" },
+      USDC: { decimals: 2, symbol: "USD" },
       EURC: { decimals: 2, symbol: "EURC" }, // NOT $ symbol - native currency
     };
 

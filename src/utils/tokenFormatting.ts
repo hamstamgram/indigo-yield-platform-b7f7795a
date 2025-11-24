@@ -10,8 +10,8 @@ const TOKEN_CONFIGS: Record<string, TokenConfig> = {
   BTC: { symbol: "BTC", decimals: 8, displayName: "Bitcoin" },
   ETH: { symbol: "ETH", decimals: 18, displayName: "Ethereum" },
   SOL: { symbol: "SOL", decimals: 9, displayName: "Solana" },
-  USDC: { symbol: "USDC", decimals: 6, displayName: "USD Coin" },
-  USDT: { symbol: "USDT", decimals: 6, displayName: "Tether" },
+  USDC: { symbol: "USD", decimals: 2, displayName: "Stablecoin (USD)" },
+  USDT: { symbol: "USD", decimals: 2, displayName: "Stablecoin (USD)" },
   EURC: { symbol: "EURC", decimals: 6, displayName: "Euro Coin" },
 };
 

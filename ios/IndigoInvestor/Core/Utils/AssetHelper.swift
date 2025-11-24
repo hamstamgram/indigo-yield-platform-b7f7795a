@@ -15,7 +15,8 @@ struct AssetHelper {
             "bitcoin": "btc",
             "ethereum": "eth",
             "solana": "sol",
-            "tether": "usdt"
+            "tether": "usdt",
+            "usd": "usdc"
         ]
         
         let normalized = symbolMap[lowerCode] ?? lowerCode

@@ -1014,7 +1014,6 @@
 				B8F50598BBE55E208B4191A1 /* AdminService.swift in Sources */,
 				BE465DE577618530B79EFBEB /* AdminServiceV2.swift in Sources */,
 				67AE9E2D489B0C093FA1768B /* AdminSettingsView.swift in Sources */,
-				C9CB8BCE073CF5E2DD135E2F /* AllViews.swift in Sources */,
 				BA3AD770CD11BA7F05D8DCC7 /* AppError.swift in Sources */,
 				203580B609F806D9D9505763 /* AssetDetailView.swift in Sources */,
 				CC963F6863D84639D30CEE1E /* AuthService.swift in Sources */,
