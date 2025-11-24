@@ -150,18 +150,16 @@ class ServiceLocator: ObservableObject {
         )
 
         transactionService = TransactionService(
-            supabase: client,
-            authService: authService
+            repository: transactionRepository
         )
 
         documentService = DocumentService(
-            supabase: client,
-            authService: authService
+            repository: statementRepository,
+            storageService: storageService
         )
 
         withdrawalService = WithdrawalService(
-            supabase: client,
-            authService: authService
+            repository: withdrawalRepository
         )
 
         adminService = AdminService(supabase: client)

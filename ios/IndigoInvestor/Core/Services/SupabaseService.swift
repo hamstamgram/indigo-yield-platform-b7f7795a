@@ -106,7 +106,7 @@ class SupabaseService: ObservableObject {
     // MARK: - Database Operations
     
     /// Fetch investor profile
-    func fetchInvestorProfile(userId: UUID) async throws -> InvestorProfile {
+    func fetchInvestorProfile(userId: UUID) async throws -> InvestorProfileDTO {
         guard let client = client else {
             throw SupabaseError.clientNotConfigured
         }
@@ -122,7 +122,7 @@ class SupabaseService: ObservableObject {
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .iso8601
         
-        return try decoder.decode(InvestorProfile.self, from: response.data)
+        return try decoder.decode(InvestorProfileDTO.self, from: response.data)
     }
     
     /// Fetch portfolio data
@@ -234,7 +234,7 @@ class SupabaseService: ObservableObject {
     // MARK: - Admin Operations
     
     /// Fetch all investors (admin only)
-    func fetchAllInvestors() async throws -> [InvestorProfile] {
+    func fetchAllInvestors() async throws -> [InvestorProfileDTO] {
         guard let client = client else {
             throw SupabaseError.clientNotConfigured
         }
@@ -248,7 +248,7 @@ class SupabaseService: ObservableObject {
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .iso8601
         
-        return try decoder.decode([InvestorProfile].self, from: response.data)
+        return try decoder.decode([InvestorProfileDTO].self, from: response.data)
     }
     
     /// Fetch pending approvals (admin only)
@@ -429,7 +429,7 @@ enum SupabaseError: LocalizedError {
 
 // MARK: - Data Models
 
-struct InvestorProfile: Codable, Identifiable {
+struct InvestorProfileDTO: Codable, Identifiable {
     let id: UUID
     let userId: UUID
     let email: String

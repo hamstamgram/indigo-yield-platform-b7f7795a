@@ -41,21 +41,43 @@ class PortfolioService {
 // MARK: - Transaction Service
 
 class TransactionService {
-    private let repository: TransactionRepository
+    private let client: SupabaseClient
     @Published var transactions: [Transaction] = []
     
-    init(repository: TransactionRepository) {
-        self.repository = repository
+    init(client: SupabaseClient) {
+        self.client = client
     }
     
-    func loadTransactions(for userId: String) async throws {
-        transactions = try await repository.fetchTransactions(for: userId)
+    func loadTransactions(for userId: String, limit: Int = 50) async throws {
+        let response = try await client.database
+            .from("transactions")
+            .select()
+            .eq("investor_id", value: userId)
+            .order("created_at", ascending: false)
+            .limit(limit)
+            .execute()
+        
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .iso8601
+        
+        transactions = try decoder.decode([Transaction].self, from: response.data)
     }
     
     func createTransaction(_ transaction: Transaction) async throws {
-        try await repository.createTransaction(transaction)
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        encoder.dateEncodingStrategy = .iso8601
+        
+        let data = try encoder.encode(transaction)
+        
+        _ = try await client.database
+            .from("transactions")
+            .insert(data)
+            .execute()
+        
         // Reload transactions
-        transactions = try await repository.fetchTransactions(for: transaction.investor_id)
+        try await loadTransactions(for: transaction.investor_id)
     }
 }
 
