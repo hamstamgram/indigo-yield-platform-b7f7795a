@@ -10,7 +10,7 @@
  * - Bulk actions for efficiency
  */
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Users,
@@ -54,7 +54,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { MultiEmailInput, InvestorEmailAddress } from "@/components/admin/MultiEmailInput";
@@ -114,7 +113,7 @@ export default function AdminOnboardingPage() {
   // =====================================================
 
   // Fetch onboarding statistics
-  const { data: stats, isLoading: statsLoading } = useQuery<OnboardingStats>({
+  const { data: stats } = useQuery<OnboardingStats>({
     queryKey: ["onboarding-stats"],
     queryFn: async () => {
       return await onboardingService.getOnboardingStats();
@@ -126,7 +125,6 @@ export default function AdminOnboardingPage() {
   const {
     data: submissions,
     isLoading: submissionsLoading,
-    refetch: refetchSubmissions,
   } = useQuery<OnboardingSubmission[]>({
     queryKey: ["onboarding-submissions", filters],
     queryFn: async () => {

@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { expertInvestorService } from "@/services/expertInvestorService";
-import { CACHE_KEYS } from "@/utils/performance/caching";
-import type { UnifiedInvestorData, ExpertInvestorSummary } from "@/services/expertInvestorService";
+import type { ExpertInvestorSummary } from "@/services/expertInvestorService";
 
 // Cache keys for investor data
 export const INVESTOR_CACHE_KEYS = {
@@ -189,7 +188,7 @@ export function useUpdateInvestorStatus() {
   const invalidateInvestor = useInvalidateInvestor();
 
   return useMutation({
-    mutationFn: async ({ investorId, status }: { investorId: string; status: string }) => {
+    mutationFn: async (_variables: { investorId: string; status: string }) => {
       // TODO: Replace with actual update service method
       // return await investorService.updateStatus(investorId, status);
       throw new Error("Not implemented - add actual service method");
@@ -225,7 +224,7 @@ export function useUpdateInvestorStatus() {
       return { previousInvestor };
     },
     // If mutation fails, rollback to previous value
-    onError: (error, variables, context) => {
+    onError: (_error, variables, context) => {
       if (context?.previousInvestor) {
         queryClient.setQueryData(
           [INVESTOR_CACHE_KEYS.INVESTOR_DETAIL, variables.investorId],
@@ -234,7 +233,7 @@ export function useUpdateInvestorStatus() {
       }
     },
     // Always refetch after error or success to ensure UI is in sync
-    onSettled: (data, error, variables) => {
+    onSettled: (_data, _error, variables) => {
       invalidateInvestor(variables.investorId);
     },
   });

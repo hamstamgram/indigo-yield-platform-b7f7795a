@@ -17,7 +17,7 @@
 // TODO: Install pdfkit when Phase 2 is activated
 // import PDFDocument from "pdfkit";
 // Temporary stub to allow compilation
-type PDFDocument = any;
+// type PDFDocument = any;
 import { PassThrough } from "stream";
 import { toDecimal, formatMoney, formatCrypto, formatPercentage } from "@/utils/financial";
 

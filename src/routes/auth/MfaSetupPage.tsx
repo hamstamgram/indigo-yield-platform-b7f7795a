@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Smartphone, Mail, Loader2, CheckCircle2 } from "lucide-react";
+import { Shield, Smartphone, Loader2, CheckCircle2 } from "lucide-react";
 import QRCode from "qrcode";
 import { useEffect } from "react";
 

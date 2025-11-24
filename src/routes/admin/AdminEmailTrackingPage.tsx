@@ -11,7 +11,7 @@
  * - Statistics dashboard
  */
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Mail,
@@ -54,7 +54,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
 
 // =====================================================
 // TYPES & INTERFACES
@@ -124,7 +123,7 @@ export default function AdminEmailTrackingPage() {
 
   // Fetch email statistics
   // TODO: Create email_logs table in database when email tracking feature is activated
-  const { data: stats, isLoading: statsLoading } = useQuery<EmailStats>({
+  const { data: stats } = useQuery<EmailStats>({
     queryKey: ["email-stats"],
     queryFn: async () => {
       // Stubbed - email_logs table doesn't exist yet

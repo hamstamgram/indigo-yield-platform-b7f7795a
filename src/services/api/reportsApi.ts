@@ -79,7 +79,7 @@ export class ReportsApi {
    * Generate a report
    * TODO: Implement when reportEngine module is available
    */
-  static async generateReport(request: GenerateReportRequest): Promise<GenerateReportResponse> {
+  static async generateReport(_request: GenerateReportRequest): Promise<GenerateReportResponse> {
     // TODO: Use lazy-loaded ReportEngine to handle generation
     // return await ReportEngineLazy.generateReport(request);
     return {

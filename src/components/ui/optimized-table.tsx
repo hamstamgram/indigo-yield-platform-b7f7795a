@@ -207,9 +207,8 @@ export function OptimizedTable<T>({
   if (isMobile) {
     return (
       <div className={cn("space-y-4", className)} ref={containerRef}>
-        {visibleData.map((row, index) => {
+        {visibleData.map((row) => {
           const key = getRowKey(row);
-          const actualIndex = enableVirtualScroll ? visibleRange.start + index : index;
 
           return (
             <Card key={key} className="overflow-hidden">
@@ -309,7 +308,7 @@ export function OptimizedTable<T>({
           {enableVirtualScroll && (
             <tr style={{ height: visibleRange.start * rowHeight }} />
           )}
-          {visibleData.map((row, index) => {
+          {visibleData.map((row) => {
             const key = getRowKey(row);
             return (
               <TableRow

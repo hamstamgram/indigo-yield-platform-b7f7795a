@@ -10,15 +10,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Loader2, Mail } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Loader2, Mail } from "lucide-react";
 import { useInvestorInvite } from "@/hooks/useInvestorInvite";
 
 const InviteInvestorDialog: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const { createInvite, isSending } = useInvestorInvite();
-  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

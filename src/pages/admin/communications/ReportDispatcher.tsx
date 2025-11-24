@@ -39,7 +39,7 @@ export default function ReportDispatcher() {
   }, []);
 
   const fetchInvestors = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("profiles")
       .select("id, email, first_name, last_name")
       .eq("role", "investor");
@@ -59,7 +59,7 @@ export default function ReportDispatcher() {
     try {
       setIsLoadingHistory(true);
       // Filtering for reports in email_logs
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("email_logs")
         .select("*")
         .eq("template", "investor_report") // Assuming template name or filter by subject/type
@@ -114,7 +114,7 @@ export default function ReportDispatcher() {
 
       // 1. Upload File
       const fileName = `${reportType}_${investor.id}_${Date.now()}.pdf`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from("documents") // Ensure this bucket exists
         .upload(fileName, selectedFile);
 
