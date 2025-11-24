@@ -87,7 +87,6 @@
 		8EEBEDB174F7EE83FC52A2A0 /* Montserrat-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7428A8BB352E7B6B9A41E48E /* Montserrat-LightItalic.ttf */; };
 		8F53A5B6AEA85AC0EF98920C /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40DA37A1580AD29FD17C332C /* Environment.swift */; };
 		8FA5B43B5D965730AAB087A0 /* TransactionHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C192631E08B07B51D590DD4E /* TransactionHistoryView.swift */; };
-		91ED76AC61071D005C2AC0D1 /* PlaceholderViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9520784DE730879C150EB72 /* PlaceholderViews.swift */; };
 		92BC31CA52F35922C20C14AE /* Color+Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD14EB97D98D897826B4A34 /* Color+Brand.swift */; };
 		9734598AB4D72B51B6BE1A1B /* UpdatedRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 752947D194FEECE198B16738 /* UpdatedRootView.swift */; };
 		99DE2DF88DABAC4F343F9D1B /* BiometricAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CAD2080143DC9067C853FAD /* BiometricAuthManager.swift */; };
@@ -299,7 +298,6 @@
 		F2D745ED560723A8546CF88D /* CoreDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataModel.swift; sourceTree = "<group>"; };
 		F72EA5BC7464901E4564087A /* Montserrat-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-SemiBold.ttf"; sourceTree = "<group>"; };
 		F9131DDC5CA9BDB0D2121CB6 /* OfflineManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineManager.swift; sourceTree = "<group>"; };
-		F9520784DE730879C150EB72 /* PlaceholderViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderViews.swift; sourceTree = "<group>"; };
 		F9D96BCDCCA9DA273E88A7B3 /* Montserrat-ExtraLightItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-ExtraLightItalic.ttf"; sourceTree = "<group>"; };
 		FBF079F9E3C8CA4085D39D53 /* SupabaseDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseDebugView.swift; sourceTree = "<group>"; };
 		FD09C6A96F3631F548115448 /* PasswordResetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordResetView.swift; sourceTree = "<group>"; };
@@ -359,7 +357,6 @@
 				5846DD0C1B61E58E27AFA9C0 /* LiveEventsView.swift */,
 				ECD002D213CD7745F8EC64A1 /* MissingViews.swift */,
 				C4A9188EDEF438CFE1A0E1FE /* NewsletterView.swift */,
-				F9520784DE730879C150EB72 /* PlaceholderViews.swift */,
 				ADDADB3F5657362D503B3D36 /* RootView.swift */,
 				9E45DEA9C3BC12E51598F6DE /* TransactionDetailView.swift */,
 				752947D194FEECE198B16738 /* UpdatedRootView.swift */,
@@ -1068,7 +1065,6 @@
 				6816EA535172901FE091633A /* OfflineManager.swift in Sources */,
 				CF6E38CD6EA7FACE81472231 /* PasswordResetView.swift in Sources */,
 				2208B2EAD179840403D9EAC0 /* PasswordResetViewModel.swift in Sources */,
-				91ED76AC61071D005C2AC0D1 /* PlaceholderViews.swift in Sources */,
 				FF3B3788B7D6D4B0B3CA04AD /* Portfolio.swift in Sources */,
 				140E740902110581CFA3C555 /* PortfolioRepository.swift in Sources */,
 				34B5457C8E6FA9E771905CBB /* PortfolioService.swift in Sources */,

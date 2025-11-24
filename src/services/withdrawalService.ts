@@ -152,15 +152,11 @@ export const withdrawalService = {
    * Mark withdrawal as completed
    */
   async markAsCompleted(withdrawalId: string, txHash?: string, adminNotes?: string): Promise<void> {
-    const { error } = await supabase
-      .from("withdrawal_requests")
-      .update({
-        status: "completed",
-        tx_hash: txHash,
-        admin_notes: adminNotes,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", withdrawalId);
+    const { error } = await supabase.rpc("complete_withdrawal", {
+      p_request_id: withdrawalId,
+      p_tx_hash: txHash,
+      p_admin_notes: adminNotes,
+    });
 
     if (error) throw error;
   },
