@@ -3,49 +3,45 @@
 
 // Cache service with fallback (no Redis dependency)
 export class CacheService {
-  private client: any = null;
-  private defaultTTL: number;
-
-  constructor(defaultTTL = 3600) {
-    this.defaultTTL = defaultTTL;
+  constructor(_defaultTTL = 3600) {
     // Redis is optional - install ioredis to enable caching
     console.log('Redis caching disabled (install ioredis to enable)');
   }
 
-  async get<T>(key: string): Promise<T | null> {
+  async get<T>(_key: string): Promise<T | null> {
     return null;
   }
 
-  async set(key: string, value: any, ttl?: number): Promise<boolean> {
+  async set(_key: string, _value: any, _ttl?: number): Promise<boolean> {
     return false;
   }
 
-  async del(key: string | string[]): Promise<boolean> {
+  async del(_key: string | string[]): Promise<boolean> {
     return false;
   }
 
-  async invalidate(pattern: string): Promise<boolean> {
+  async invalidate(_pattern: string): Promise<boolean> {
     return false;
   }
 
   async getOrSet<T>(
-    key: string,
+    _key: string,
     factory: () => Promise<T>,
-    ttl?: number
+    _ttl?: number
   ): Promise<T> {
     // Without cache, just run the factory function
     return await factory();
   }
 
-  async exists(key: string): Promise<boolean> {
+  async exists(_key: string): Promise<boolean> {
     return false;
   }
 
-  async ttl(key: string): Promise<number> {
+  async ttl(_key: string): Promise<number> {
     return -1;
   }
 
-  async incr(key: string, ttl?: number): Promise<number> {
+  async incr(_key: string, _ttl?: number): Promise<number> {
     return 0;
   }
 
@@ -53,7 +49,7 @@ export class CacheService {
     return keys.map(() => null);
   }
 
-  async mset(items: Array<{ key: string; value: any; ttl?: number }>): Promise<boolean> {
+  async mset(_items: Array<{ key: string; value: any; ttl?: number }>): Promise<boolean> {
     return false;
   }
 

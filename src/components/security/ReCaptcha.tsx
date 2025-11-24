@@ -4,7 +4,6 @@
  */
 
 import React, { useCallback } from "react";
-import { useToast } from "@/hooks/use-toast";
 
 interface ReCaptchaProps {
   onVerify: (token: string) => void;
@@ -19,46 +18,8 @@ interface ReCaptchaProps {
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || "";
 
 export const ReCaptchaWrapper: React.FC<ReCaptchaProps> = ({
-  onVerify,
-  onExpire,
-  onError,
-  size = "normal",
-  theme = "light",
   className = "",
 }) => {
-  const { toast } = useToast();
-
-  const handleChange = useCallback(
-    (token: string | null) => {
-      if (token) {
-        onVerify(token);
-      }
-    },
-    [onVerify]
-  );
-
-  const handleExpired = useCallback(() => {
-    if (onExpire) {
-      onExpire();
-    }
-    toast({
-      title: "Verification Expired",
-      description: "Please complete the CAPTCHA again.",
-      variant: "default",
-    });
-  }, [onExpire, toast]);
-
-  const handleError = useCallback(() => {
-    if (onError) {
-      onError();
-    }
-    toast({
-      title: "Verification Error",
-      description: "Unable to verify CAPTCHA. Please try again.",
-      variant: "destructive",
-    });
-  }, [onError, toast]);
-
   // Don't render if no site key is configured or package not installed
   if (!RECAPTCHA_SITE_KEY) {
     console.warn("ReCAPTCHA not available or site key not configured");
