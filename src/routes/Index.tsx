@@ -1,7 +1,45 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { Menu, X } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const Index = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const NavLinks = () => (
+    <>
+      <Link
+        to="/about"
+        className="text-gray-700 hover:text-gray-900 transition-colors duration-300 font-medium"
+        onClick={() => setIsOpen(false)}
+      >
+        About
+      </Link>
+      <Link
+        to="/strategies"
+        className="text-gray-700 hover:text-gray-900 transition-colors duration-300 font-medium"
+        onClick={() => setIsOpen(false)}
+      >
+        Strategies
+      </Link>
+      <Link
+        to="/faq"
+        className="text-gray-700 hover:text-gray-900 transition-colors duration-300 font-medium"
+        onClick={() => setIsOpen(false)}
+      >
+        FAQ
+      </Link>
+      <Link
+        to="/contact"
+        className="text-gray-700 hover:text-gray-900 transition-colors duration-300 font-medium"
+        onClick={() => setIsOpen(false)}
+      >
+        Contact
+      </Link>
+    </>
+  );
+
   return (
     <div className="min-h-screen w-full bg-white font-sans">
       {/* Navigation */}
@@ -17,65 +55,44 @@ const Index = () => {
               loading="eager"
             />
           </div>
-          <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
-            <Link
-              to="/about"
-              className="text-gray-700 hover:text-gray-900 transition-colors duration-300"
-            >
-              About
-            </Link>
-            <Link
-              to="/strategies"
-              className="text-gray-700 hover:text-gray-900 transition-colors duration-300"
-            >
-              Strategies
-            </Link>
-            <Link
-              to="/faq"
-              className="text-gray-700 hover:text-gray-900 transition-colors duration-300"
-            >
-              FAQ
-            </Link>
-            <Link
-              to="/contact"
-              className="text-gray-700 hover:text-gray-900 transition-colors duration-300"
-            >
-              Contact
-            </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            <NavLinks />
           </div>
+
           <div className="hidden md:block">
             <Link to="/login">
               <Button
                 variant="outline"
-                className="border-indigo-500 text-indigo-500 hover:bg-indigo-500 hover:text-white"
+                className="border-primary text-primary hover:bg-primary hover:text-white"
               >
                 Investor Login
               </Button>
             </Link>
           </div>
+
+          {/* Mobile Navigation */}
           <div className="md:hidden">
-            {/* Mobile menu button */}
-            <button
-              className="text-gray-700 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-md transition-colors"
-              aria-label="Open navigation menu"
-              aria-expanded="false"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            </button>
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Open navigation menu">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                <nav className="flex flex-col gap-6 mt-8">
+                  <NavLinks />
+                  <div className="pt-4 border-t">
+                    <Link to="/login" onClick={() => setIsOpen(false)}>
+                      <Button className="w-full bg-primary text-white hover:bg-primary/90">
+                        Investor Login
+                      </Button>
+                    </Link>
+                  </div>
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </nav>
@@ -96,7 +113,7 @@ const Index = () => {
           <Link to="/login">
             <Button
               size="lg"
-              className="bg-indigo-600 hover:bg-indigo-700 text-base sm:text-lg py-2 sm:py-3 px-6 sm:px-8"
+              className="bg-primary hover:bg-primary/90 text-base sm:text-lg py-2 sm:py-3 px-6 sm:px-8 shadow-lg shadow-primary/25"
             >
               Investor Access
             </Button>
@@ -107,11 +124,12 @@ const Index = () => {
       {/* Features */}
       <div className="container mx-auto px-4 sm:px-6 py-10 sm:py-16">
         <div className="grid md:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
-          <div className="bg-gray-50 p-6 sm:p-8 rounded-xl border border-gray-200">
+          {/* Feature 1 */}
+          <div className="bg-gray-50 p-6 sm:p-8 rounded-xl border border-gray-200 hover:shadow-md transition-shadow duration-300">
             <div className="h-12 w-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-indigo-600"
+                className="h-6 w-6 text-primary"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -124,18 +142,21 @@ const Index = () => {
                 />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2 sm:mb-3">Institutional Security</h3>
+            <h3 className="text-xl font-display font-bold text-gray-900 mb-2 sm:mb-3">
+              Institutional Security
+            </h3>
             <p className="text-gray-600 text-sm sm:text-base">
               Enterprise-grade security with multi-signature wallets, cold storage solutions, and
               comprehensive insurance coverage.
             </p>
           </div>
 
-          <div className="bg-gray-50 p-6 sm:p-8 rounded-xl border border-gray-200">
+          {/* Feature 2 */}
+          <div className="bg-gray-50 p-6 sm:p-8 rounded-xl border border-gray-200 hover:shadow-md transition-shadow duration-300">
             <div className="h-12 w-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-indigo-600"
+                className="h-6 w-6 text-primary"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -157,11 +178,12 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="bg-gray-50 p-6 sm:p-8 rounded-xl border border-gray-200">
+          {/* Feature 3 */}
+          <div className="bg-gray-50 p-6 sm:p-8 rounded-xl border border-gray-200 hover:shadow-md transition-shadow duration-300">
             <div className="h-12 w-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-indigo-600"
+                className="h-6 w-6 text-primary"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -187,7 +209,7 @@ const Index = () => {
 
       {/* CTA */}
       <div className="container mx-auto px-4 sm:px-6 py-10 sm:py-16">
-        <div className="bg-gradient-to-r from-primary to-primary/90 rounded-2xl p-6 sm:p-10 md:p-16 text-center">
+        <div className="bg-gradient-to-r from-primary to-primary/90 rounded-2xl p-6 sm:p-10 md:p-16 text-center shadow-xl shadow-primary/10">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-white mb-4 sm:mb-6">
             Ready to optimize your digital asset portfolio?
           </h2>
@@ -198,7 +220,7 @@ const Index = () => {
           <Link to="/login">
             <Button
               size="lg"
-              className="bg-white text-indigo-600 hover:bg-gray-100 text-base sm:text-lg py-2 px-6"
+              className="bg-white text-primary hover:bg-gray-50 text-base sm:text-lg py-2 px-6 border-0"
             >
               Access Portal
             </Button>

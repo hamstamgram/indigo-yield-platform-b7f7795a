@@ -42,7 +42,7 @@ class RealtimeService: RealtimeServiceProtocol, ObservableObject {
     func unsubscribeFromChannel(_ channelName: String) {
         if let channel = subscriptions[channelName] {
             Task {
-                await channel.unsubscribe()
+                channel.unsubscribe()
                 subscriptions.removeValue(forKey: channelName)
                 eventHandlers.removeValue(forKey: channelName)
                 print("✅ Unsubscribed from channel: \(channelName)")
@@ -53,7 +53,7 @@ class RealtimeService: RealtimeServiceProtocol, ObservableObject {
     func disconnect() {
         Task {
             for (channelName, channel) in subscriptions {
-                await channel.unsubscribe()
+                channel.unsubscribe()
                 print("✅ Disconnected from channel: \(channelName)")
             }
             subscriptions.removeAll()
@@ -79,9 +79,9 @@ class RealtimeService: RealtimeServiceProtocol, ObservableObject {
             // Configure channel based on channel name pattern
             if channelName.contains("portfolios:investor:") {
                 let investorId = String(channelName.suffix(36)) // Extract UUID
-                await channel.on("postgres_changes", filter: ChannelFilter(
+                channel.on("postgres_changes", filter: ChannelFilter(
                     event: "UPDATE",
-                    schema: "public", 
+                    schema: "public",
                     table: "portfolios",
                     filter: "investor_id=eq.\(investorId)"
                 )) { payload in
@@ -89,16 +89,16 @@ class RealtimeService: RealtimeServiceProtocol, ObservableObject {
                 }
             } else if channelName.contains("transactions:investor:") {
                 let investorId = String(channelName.suffix(36)) // Extract UUID
-                await channel.on("postgres_changes", filter: ChannelFilter(
+                channel.on("postgres_changes", filter: ChannelFilter(
                     event: "INSERT",
                     schema: "public",
-                    table: "transactions", 
+                    table: "transactions",
                     filter: "investor_id=eq.\(investorId)"
                 )) { payload in
                     onEvent(payload)
                 }
             } else if channelName.contains("withdrawal_requests:") {
-                await channel.on("postgres_changes", filter: ChannelFilter(
+                channel.on("postgres_changes", filter: ChannelFilter(
                     event: "*",
                     schema: "public",
                     table: "withdrawal_requests"
@@ -120,6 +120,8 @@ class RealtimeService: RealtimeServiceProtocol, ObservableObject {
                 throw RealtimeError.subscriptionTimeout
             case .closed:
                 throw RealtimeError.connectionClosed
+            @unknown default:
+                throw RealtimeError.subscriptionFailed("Unknown subscription status")
             }
             
         } catch {

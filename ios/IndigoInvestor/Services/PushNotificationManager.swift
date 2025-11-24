@@ -163,7 +163,7 @@ class PushNotificationManager: NSObject, ObservableObject {
         do {
             // Register token with Supabase
             let data: [String: Any] = [
-                "user_id": authService?.currentUser?.id.uuidString ?? "",
+                "user_id": await authService?.currentUser?.id.uuidString ?? "",
                 "push_token": token,
                 "platform": "ios",
                 "app_version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0",
@@ -187,7 +187,7 @@ class PushNotificationManager: NSObject, ObservableObject {
     
     func unregisterToken() async {
         guard let token = pushToken,
-              let userId = authService?.currentUser?.id.uuidString else { return }
+              let userId = await authService?.currentUser?.id.uuidString else { return }
         
         do {
             _ = try await supabase
@@ -354,7 +354,7 @@ class PushNotificationManager: NSObject, ObservableObject {
         Task {
             do {
                 let data: [String: Any] = [
-                    "user_id": authService?.currentUser?.id.uuidString ?? "",
+                    "user_id": await authService?.currentUser?.id.uuidString ?? "",
                     "notification_id": response.notification.request.identifier,
                     "action": response.actionIdentifier,
                     "category": response.notification.request.content.categoryIdentifier,
