@@ -34,17 +34,17 @@ export default function AdminTransactionsPage() {
   const columns = [
     {
       header: "Date",
-      accessorKey: "occurred_at",
+      accessorKey: "occurred_at" as const,
       cell: (item: any) => new Date(item.occurred_at).toLocaleDateString(),
     },
     {
       header: "Type",
-      accessorKey: "type",
+      accessorKey: "type" as const,
       cell: (item: any) => <Badge variant="outline">{item.type}</Badge>,
     },
     {
       header: "Investor",
-      accessorKey: "investor_id",
+      accessorKey: "investor_id" as const,
       cell: (item: any) => {
         const profile = item.investors?.profiles;
         return profile
@@ -54,7 +54,7 @@ export default function AdminTransactionsPage() {
     },
     {
       header: "Amount",
-      accessorKey: "amount",
+      accessorKey: "amount" as const,
       cell: (item: any) => (
         <span className="font-mono font-medium">
           {item.amount} {item.asset}
@@ -63,7 +63,7 @@ export default function AdminTransactionsPage() {
     },
     {
       header: "Status",
-      accessorKey: "status",
+      accessorKey: "status" as const,
       cell: (item: any) => (
         <Badge variant={item.status === "completed" ? "default" : "secondary"}>{item.status}</Badge>
       ),

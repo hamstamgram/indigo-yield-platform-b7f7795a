@@ -99,7 +99,7 @@ function AdminDashboardContent() {
 
       setStats({
         totalInvestors: investorsResult.data?.length || 0,
-        activeInvestors: investorsResult.data?.filter((i) => i.status === "active").length || 0,
+        activeInvestors: investorsResult.data?.filter((i: any) => i.status === "active").length || 0,
         pendingVerifications: pendingInvestors.data?.length || 0,
         activePositionsCount: positionsResult.data?.length || 0,
         pendingWithdrawals: withdrawalsResult.data?.length || 0,
