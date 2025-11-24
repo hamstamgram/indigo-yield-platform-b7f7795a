@@ -77,8 +77,8 @@ export default function DashboardPage() {
   });
 
   // Aggregate stats
-  const totalYieldAllTime = portfolio?.reduce((acc, curr) => acc + curr.yieldEarned, 0) || 0;
-  const totalYieldMonth = portfolio?.reduce((acc, curr) => acc + (curr.mtdYield || 0), 0) || 0;
+  const totalYieldAllTime = portfolio?.reduce((acc: number, curr: AssetPosition) => acc + curr.yieldEarned, 0) || 0;
+  const totalYieldMonth = portfolio?.reduce((acc: number, curr: AssetPosition) => acc + (curr.mtdYield || 0), 0) || 0;
   const yieldUnitLabel = portfolio?.length === 1 ? portfolio[0].assetCode : "UNITS";
 
   return (
@@ -151,7 +151,7 @@ export default function DashboardPage() {
           </div>
         ) : portfolio && portfolio.length > 0 ? (
           <div className="space-y-3">
-            {portfolio.map((asset, idx) => (
+            {portfolio.map((asset: AssetPosition, idx: number) => (
               <Accordion type="single" collapsible key={idx} className="w-full">
                 <AccordionItem value={`item-${idx}`} className="border-none mb-2">
                   <Card className="dashboard-card border-0 bg-card hover:bg-accent/5 transition-all overflow-hidden">

@@ -24,7 +24,13 @@ export default function InvestorsListPage() {
         assetService.getAssets(),
       ]);
       setInvestors(investorsData);
-      setAssets(assetsData);
+      // Transform Asset type to match investorTypes.Asset
+      const transformedAssets: Asset[] = assetsData.map((a) => ({
+        id: parseInt(a.asset_id.split('-')[0]) || 0,
+        symbol: a.symbol,
+        name: a.name,
+      }));
+      setAssets(transformedAssets);
     } catch (error) {
       console.error("Failed to load investors list:", error);
     } finally {
