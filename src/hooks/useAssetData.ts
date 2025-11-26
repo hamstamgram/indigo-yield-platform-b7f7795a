@@ -85,7 +85,7 @@ export const useAssetData = () => {
 
         // Fetch latest daily rates (most recent date)
         const { data: dailyRates, error: ratesError } = await supabase
-          // @ts-ignore - daily_rates table exists in migration but types need regeneration from DB
+          // @ts-expect-error - daily_rates table exists in migration but types need regeneration from DB
           .from("daily_rates")
           .select("*")
           .order("rate_date", { ascending: false })

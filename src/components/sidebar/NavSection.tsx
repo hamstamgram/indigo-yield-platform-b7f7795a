@@ -28,6 +28,18 @@ const NavSection = ({
   const location = useLocation();
   const [loadingItems, setLoadingItems] = useState<string[]>([]);
 
+  // Manage sub-nav expanded states at component level (not inside map callback)
+  const [expandedSubNavs, setExpandedSubNavs] = useState<Record<number, boolean>>(() => {
+    // Initialize with active items expanded
+    const initial: Record<number, boolean> = {};
+    items.forEach((item, index) => {
+      if (item.subNav) {
+        initial[index] = location.pathname.startsWith(item.href);
+      }
+    });
+    return initial;
+  });
+
   const handleNavigation = async (href: string) => {
     // Add loading state for heavy routes
     const heavyRoutes = ["/admin/reports", "/admin/audit", "/statements"];
@@ -108,13 +120,18 @@ const NavSection = ({
           {items.map((item, index) => {
             const isItemActive = isActive(item.href);
             const isLoading = loadingItems.includes(item.href);
-            const [isSubNavExpanded, setIsSubNavExpanded] = useState(isItemActive);
+            const isSubNavExpanded = expandedSubNavs[index] ?? isItemActive;
 
             if (item.subNav) {
               return (
                 <li key={index} role="none">
                   <button
-                    onClick={() => setIsSubNavExpanded(!isSubNavExpanded)}
+                    onClick={() =>
+                      setExpandedSubNavs((prev) => ({
+                        ...prev,
+                        [index]: !prev[index],
+                      }))
+                    }
                     className={cn(
                       "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-between space-x-3 group focus:outline-none focus:ring-2 focus:ring-sidebar-ring",
                       isItemActive
@@ -127,7 +144,11 @@ const NavSection = ({
                       {item.icon}
                       <span className="flex-1 truncate">{item.title}</span>
                     </span>
-                    {isSubNavExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    {isSubNavExpanded ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
                   </button>
                   {isSubNavExpanded && (
                     <div className="pl-4 pt-2">
