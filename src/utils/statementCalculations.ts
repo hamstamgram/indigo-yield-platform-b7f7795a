@@ -53,15 +53,10 @@ export async function computeStatement(
   try {
     // Get investor profile
     const { data: investor, error: investorError } = await supabase
-      .from("profiles")
-      .select("id, first_name, last_name, email")
+      .from("investors")
+      .select("id, name, email, profile_id")
       .eq("id", investor_id)
       .maybeSingle();
-
-    if (!investor) {
-      console.error("Investor not found:", investorError);
-      return null;
-    }
 
     if (investorError || !investor) {
       console.error("Investor not found:", investorError);
@@ -71,30 +66,125 @@ export async function computeStatement(
     // Calculate period dates
     const period_start = new Date(period_year, period_month - 1, 1);
     const period_end = new Date(period_year, period_month, 0, 23, 59, 59);
+    const period_start_str = period_start.toISOString().split("T")[0];
+    const period_end_str = period_end.toISOString().split("T")[0];
 
-    // For now, return a simplified statement structure
-    // TODO: Implement full statement calculation when transaction schema is finalized
+    // Fetch all transactions for this investor up to the end of the period
+    // using transactions_v2
+    const { data: transactions, error: txError } = await supabase
+      .from("transactions_v2")
+      .select("*")
+      .eq("investor_id", investor_id)
+      .lte("tx_date", period_end_str)
+      .order("tx_date", { ascending: true });
+
+    if (txError) {
+      console.error("Error fetching transactions:", txError);
+      throw txError;
+    }
+
+    const assetsMap: Record<string, AssetStatement> = {};
+    const summary = {
+      begin_balance: 0,
+      additions: 0,
+      redemptions: 0,
+      net_income: 0,
+      fees: 0,
+      end_balance: 0,
+      rate_of_return_mtd: 0,
+      rate_of_return_qtd: 0,
+      rate_of_return_ytd: 0,
+      rate_of_return_itd: 0,
+    };
+
+    // Process transactions
+    transactions?.forEach((tx) => {
+      const assetCode = tx.asset;
+      if (!assetsMap[assetCode]) {
+        assetsMap[assetCode] = {
+          asset_id: 0, // Placeholder, usually ID from assets table
+          asset_code: assetCode,
+          asset_name: assetCode, // Placeholder
+          begin_balance: 0,
+          deposits: 0,
+          withdrawals: 0,
+          interest: 0,
+          fees: 0,
+          end_balance: 0,
+          transactions: [],
+        };
+      }
+
+      const assetStat = assetsMap[assetCode];
+      const txDate = new Date(tx.tx_date);
+      const amount = Number(tx.amount);
+
+      // Identify if transaction is before this period (Beginning Balance)
+      if (txDate < period_start) {
+        if (tx.type === "WITHDRAWAL" || tx.type === "FEE") {
+          assetStat.begin_balance -= amount;
+        } else {
+          assetStat.begin_balance += amount;
+        }
+      } else {
+        // Transaction is within this period
+        let type: Transaction["type"] = "deposit"; // default
+        if (tx.type === "DEPOSIT") {
+          assetStat.deposits += amount;
+          type = "deposit";
+        } else if (tx.type === "WITHDRAWAL") {
+          assetStat.withdrawals += amount;
+          type = "withdrawal";
+        } else if (tx.type === "INTEREST" || tx.type === "YIELD") {
+          assetStat.interest += amount;
+          type = "interest";
+        } else if (tx.type === "FEE") {
+          assetStat.fees += amount;
+          type = "fee";
+        }
+
+        assetStat.transactions.push({
+          id: tx.id,
+          date: tx.tx_date,
+          type,
+          amount,
+          description: tx.notes || tx.type,
+        });
+      }
+    });
+
+    // Calculate End Balances and Summary
+    Object.values(assetsMap).forEach((asset) => {
+      asset.end_balance =
+        asset.begin_balance + asset.deposits - asset.withdrawals + asset.interest - asset.fees;
+
+      // Add to total summary (Assuming 1:1 USD value for simplicity or need prices)
+      // TODO: Multiply by asset price for accurate USD summary
+      summary.begin_balance += asset.begin_balance;
+      summary.additions += asset.deposits;
+      summary.redemptions += asset.withdrawals;
+      summary.net_income += asset.interest;
+      summary.fees += asset.fees;
+      summary.end_balance += asset.end_balance;
+    });
+
+    // Simple ROI calc (Net Income / (Begin Balance + (Additions - Redemptions)/2))
+    // This is a Modified Dietz approximation
+    const denominator = summary.begin_balance + (summary.additions - summary.redemptions) / 2;
+    if (denominator > 0) {
+      summary.rate_of_return_mtd = ((summary.net_income - summary.fees) / denominator) * 100;
+    }
+
     return {
       investor_id,
-      investor_name: `${investor.first_name || ""} ${investor.last_name || ""}`.trim(),
+      investor_name: investor.name,
       investor_email: investor.email,
       period_year,
       period_month,
       period_start,
       period_end,
-      assets: [],
-      summary: {
-        begin_balance: 0,
-        additions: 0,
-        redemptions: 0,
-        net_income: 0,
-        fees: 0,
-        end_balance: 0,
-        rate_of_return_mtd: 0,
-        rate_of_return_qtd: 0,
-        rate_of_return_ytd: 0,
-        rate_of_return_itd: 0,
-      },
+      assets: Object.values(assetsMap),
+      summary,
     };
   } catch (error) {
     console.error("Error computing statement:", error);
