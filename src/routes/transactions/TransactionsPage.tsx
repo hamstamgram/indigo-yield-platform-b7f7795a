@@ -3,31 +3,49 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, Receipt } from "lucide-react"; // Added Receipt icon
+import { Search, Filter, Receipt } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { ResponsiveTable } from "@/components/ui/responsive-table"; // Import
-import { EmptyState } from "@/components/ui/empty-state"; // Import
-import { Badge } from "@/components/ui/badge"; // Import Badge for status
+import { ResponsiveTable } from "@/components/ui/responsive-table";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Badge } from "@/components/ui/badge";
 
 export default function TransactionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ["transactions", searchTerm],
+    queryKey: ["transactions-v2", searchTerm],
     queryFn: async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
 
-      let query = supabase.from("transactions").select("*").eq("user_id", user.id);
+      // 1. Get Investor ID
+      const { data: investor, error: investorError } = await supabase
+        .from("investors")
+        .select("id")
+        .eq("profile_id", user.id)
+        .single();
 
-      if (searchTerm) {
-        query = query.ilike("note", `%${searchTerm}%`);
+      if (investorError) {
+        console.warn("No investor profile found for user:", user.id);
+        return [];
       }
 
-      const { data, error } = await query.order("created_at", { ascending: false });
+      if (!investor) return [];
+
+      // 2. Query transactions_v2
+      let query = supabase.from("transactions_v2").select("*").eq("investor_id", investor.id);
+
+      if (searchTerm) {
+        // Note: notes search might need exact match or text search index if simple ILIKE fails on large datasets,
+        // but standard ILIKE works for small-medium.
+        // asset is text, notes is text.
+        query = query.or(`asset.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%`);
+      }
+
+      const { data, error } = await query.order("tx_date", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -44,7 +62,7 @@ export default function TransactionsPage() {
     },
     {
       header: "Date",
-      cell: (item: any) => new Date(item.created_at).toLocaleDateString(),
+      cell: (item: any) => new Date(item.tx_date || item.created_at).toLocaleDateString(),
     },
     {
       header: "Amount",
@@ -52,18 +70,15 @@ export default function TransactionsPage() {
         <span
           className={item.amount > 0 ? "text-green-600 font-mono" : "text-foreground font-mono"}
         >
-          {item.amount} {item.asset_code}
+          {item.amount} {item.asset}
         </span>
       ),
     },
     {
       header: "Status",
       cell: (item: any) => (
-        <Badge
-          variant={item.status === "completed" ? "default" : "secondary"}
-          className={item.status === "completed" ? "bg-green-600" : ""}
-        >
-          {item.status}
+        <Badge variant="default" className="bg-green-600">
+          Completed
         </Badge>
       ),
     },
@@ -79,8 +94,6 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-6 p-4 md:p-8">
-      {" "}
-      {/* Added padding */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Transactions</h1>

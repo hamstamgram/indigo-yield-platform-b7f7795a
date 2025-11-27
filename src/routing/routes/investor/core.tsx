@@ -11,6 +11,11 @@ import { ProtectedRoute } from "../../ProtectedRoute";
 const Dashboard = lazy(() => import("@/routes/dashboard/DashboardPage"));
 const StatementsPage = lazy(() => import("@/routes/investor/statements/StatementsPage"));
 const TransactionsPage = lazy(() => import("@/routes/transactions/TransactionsPage"));
+const TransactionDetailsPage = lazy(() => import("@/routes/transactions/TransactionDetailsPage"));
+const PendingTransactionsPage = lazy(() => import("@/routes/transactions/PendingTransactionsPage"));
+const PendingTransactionDetailsPage = lazy(
+  () => import("@/routes/transactions/PendingTransactionDetailsPage")
+);
 const AccountPage = lazy(() => import("@/routes/investor/account/AccountPage"));
 const SettingsPage = lazy(() => import("@/routes/investor/account/SettingsPage"));
 const ActivityPage = lazy(() => import("@/routes/activity/ActivityPage"));
@@ -47,6 +52,30 @@ export function CoreInvestorRoutes() {
         element={
           <ProtectedRoute>
             <TransactionsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/transactions/:id"
+        element={
+          <ProtectedRoute>
+            <TransactionDetailsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/transactions/pending"
+        element={
+          <ProtectedRoute>
+            <PendingTransactionsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/transactions/pending/:type/:id"
+        element={
+          <ProtectedRoute>
+            <PendingTransactionDetailsPage />
           </ProtectedRoute>
         }
       />

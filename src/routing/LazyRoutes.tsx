@@ -114,6 +114,9 @@ export const SecuritySettings = lazy(() => import("@/routes/settings/SecuritySet
 export const PendingTransactionsPage = lazy(
   () => import("@/routes/transactions/PendingTransactionsPage")
 );
+export const PendingTransactionDetailsPage = lazy(
+  () => import("@/routes/transactions/PendingTransactionDetailsPage")
+);
 export const TransactionDetailsPage = lazy(
   () => import("@/routes/transactions/TransactionDetailsPage")
 );
@@ -475,6 +478,11 @@ export const LazySecuritySettings = () => (
 export const LazyPendingTransactions = () => (
   <RouteSuspense>
     <PendingTransactionsPage />
+  </RouteSuspense>
+);
+export const LazyPendingTransactionDetails = () => (
+  <RouteSuspense>
+    <PendingTransactionDetailsPage />
   </RouteSuspense>
 );
 export const LazyTransactionDetails = () => (
