@@ -85,7 +85,7 @@ class AdminServiceV2 {
         onboardingDate: summary.onboardingDate || null,
         lastStatementDate: null,
         portfolioDetails: {
-          assetBreakdown: {},
+          assetBreakdown: summary.assetBreakdown || {},
           performanceMetrics: {
             totalReturn: summary.totalEarned,
             monthlyReturn: summary.totalEarned / 12,

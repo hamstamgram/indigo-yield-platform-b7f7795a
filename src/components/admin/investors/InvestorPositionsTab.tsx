@@ -47,7 +47,7 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
         .select(
           `
           *,
-          funds ( id, name, asset_symbol )
+          funds ( id, name, asset )
         `
         )
         .eq("investor_id", investorId);
@@ -122,7 +122,7 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
   const { data: funds } = useQuery({
     queryKey: ["active-funds"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("funds").select("id, name, asset_symbol");
+      const { data, error } = await supabase.from("funds").select("id, name, asset");
       if (error) throw error;
       return data;
     },
@@ -186,7 +186,7 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
                   <TableRow key={pos.id}>
                     <TableCell className="font-medium">{pos.funds?.name}</TableCell>
                     <TableCell className="font-mono">{Number(pos.shares).toFixed(4)}</TableCell>
-                    <TableCell>{pos.funds?.asset_symbol}</TableCell>
+                    <TableCell>{pos.funds?.asset}</TableCell>
                     <TableCell className="text-green-600 font-mono">
                       +{Number(pos.total_yield_earned).toFixed(4)}
                     </TableCell>
@@ -268,7 +268,7 @@ function AddPositionForm({ funds, onSubmit, isLoading }: any) {
           <SelectContent>
             {funds.map((f: any) => (
               <SelectItem key={f.id} value={f.id}>
-                {f.name} ({f.asset_symbol})
+                {f.name} ({f.asset})
               </SelectItem>
             ))}
           </SelectContent>

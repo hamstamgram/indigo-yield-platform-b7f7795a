@@ -27,6 +27,7 @@ export interface InvestorSummary {
   totalEarned: number;
   totalPrincipal: number;
   positionCount: number;
+  assetBreakdown: Record<string, number>;
   kycStatus?: string | null;
   amlStatus?: string | null;
   onboardingDate?: string | null;
@@ -162,6 +163,15 @@ export class InvestorDataService {
       const totalEarned = positions.reduce((sum, pos) => sum + pos.unrealizedPnl, 0);
       const totalPrincipal = positions.reduce((sum, pos) => sum + pos.costBasis, 0);
 
+      // Calculate asset breakdown
+      const assetBreakdown: Record<string, number> = {};
+      positions.forEach((pos) => {
+        if (!assetBreakdown[pos.asset]) {
+          assetBreakdown[pos.asset] = 0;
+        }
+        assetBreakdown[pos.asset] += pos.currentValue;
+      });
+
       return {
         id: investor.id,
         name: investor.name,
@@ -171,6 +181,7 @@ export class InvestorDataService {
         totalEarned,
         totalPrincipal,
         positionCount: positions.length,
+        assetBreakdown,
         kycStatus: investor.kyc_status,
         amlStatus: investor.aml_status,
         onboardingDate: investor.onboarding_date,
@@ -213,6 +224,7 @@ export class InvestorDataService {
               totalEarned: 0,
               totalPrincipal: 0,
               positionCount: 0,
+              assetBreakdown: {},
               kycStatus: investor.kyc_status,
               amlStatus: investor.aml_status,
               onboardingDate: investor.onboarding_date,
