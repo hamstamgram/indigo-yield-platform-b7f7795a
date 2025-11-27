@@ -1,0 +1,88 @@
+{
+  "critical_variables": [
+    {
+      "name": "VITE_SUPABASE_URL",
+      "value": "https://nkfimvovosdehmyyjubn.supabase.co",
+      "secret": false,
+      "description": "Supabase project URL",
+      "priority": "CRITICAL"
+    },
+    {
+      "name": "VITE_SUPABASE_ANON_KEY",
+      "value": "PLACEHOLDER_NEW_ANON_KEY",
+      "secret": false,
+      "description": "NEW Supabase anon key (must rotate!)",
+      "priority": "CRITICAL",
+      "rotate_required": true
+    },
+    {
+      "name": "SUPABASE_SERVICE_ROLE_KEY",
+      "value": "PLACEHOLDER_NEW_SERVICE_ROLE_KEY",
+      "secret": true,
+      "description": "NEW Supabase service role key (must rotate!)",
+      "priority": "CRITICAL",
+      "rotate_required": true
+    },
+    {
+      "name": "VITE_APP_ENV",
+      "value": "production",
+      "secret": false,
+      "description": "Application environment",
+      "priority": "CRITICAL"
+    },
+    {
+      "name": "NEXT_PUBLIC_APP_URL",
+      "value": "https://your-project.lovable.app",
+      "secret": false,
+      "description": "Production URL (update after first deploy)",
+      "priority": "CRITICAL"
+    }
+  ],
+  "monitoring_variables": [
+    {
+      "name": "VITE_SENTRY_DSN",
+      "value": "PLACEHOLDER_NEW_SENTRY_DSN",
+      "secret": false,
+      "description": "NEW Sentry DSN (must rotate!)",
+      "priority": "HIGH",
+      "rotate_required": true
+    },
+    {
+      "name": "SENTRY_DSN",
+      "value": "PLACEHOLDER_NEW_SENTRY_DSN",
+      "secret": false,
+      "description": "NEW Sentry DSN (must rotate!)",
+      "priority": "HIGH",
+      "rotate_required": true
+    },
+    {
+      "name": "VITE_POSTHOG_KEY",
+      "value": "PLACEHOLDER_NEW_POSTHOG_KEY",
+      "secret": false,
+      "description": "NEW PostHog key (must rotate!)",
+      "priority": "HIGH",
+      "rotate_required": true
+    },
+    {
+      "name": "VITE_POSTHOG_HOST",
+      "value": "https://app.posthog.com",
+      "secret": false,
+      "description": "PostHog host URL",
+      "priority": "HIGH"
+    },
+    {
+      "name": "POSTHOG_API_KEY",
+      "value": "PLACEHOLDER_NEW_POSTHOG_API_KEY",
+      "secret": true,
+      "description": "NEW PostHog API key (must rotate!)",
+      "priority": "HIGH",
+      "rotate_required": true
+    }
+  ],
+  "instructions": {
+    "step1": "Replace all PLACEHOLDER values with actual rotated credentials",
+    "step2": "Verify 'secret': true variables are marked as SECRET in Lovable dashboard",
+    "step3": "Update NEXT_PUBLIC_APP_URL after first deployment with actual Lovable URL",
+    "step4": "Never commit this file with real credentials to git"
+  }
+}

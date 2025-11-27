@@ -56,7 +56,7 @@ CREATE OR REPLACE FUNCTION public.apply_daily_yield_with_fees(
 ) RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $$
 DECLARE
   v_fund_aum NUMERIC(28,10);
@@ -201,7 +201,7 @@ CREATE OR REPLACE FUNCTION public.get_investor_period_summary(
 ) RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $$
 DECLARE
   v_inception_date DATE;

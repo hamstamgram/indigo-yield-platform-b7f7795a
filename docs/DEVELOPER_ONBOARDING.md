@@ -88,8 +88,10 @@ nano .env.local
 **Required Variables:**
 ```bash
 # Supabase (get from team lead or Supabase dashboard)
-NEXT_PUBLIC_SUPABASE_URL=https://mdngruhkxlrsgwwlfqru.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_PROJECT_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+
+# ⚠️ SECURITY: Never commit real credentials. Get actual values from your team lead or secure credential store.
 
 # App Configuration
 NEXT_PUBLIC_APP_ENV=development

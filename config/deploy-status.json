@@ -1,0 +1,74 @@
+{
+  "deployment_id": "deploy_20251126_000000",
+  "project": "indigo-yield-platform-v01",
+  "started_at": null,
+  "completed_at": null,
+  "current_phase": "not_started",
+  "phases": {
+    "credential_rotation": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "artifacts": {
+        ".env.production": null,
+        "validation_log": null
+      },
+      "validations": {
+        "new_supabase_anon_key_differs": false,
+        "new_service_role_key_differs": false,
+        "new_sentry_dsn_differs": false,
+        "new_posthog_key_differs": false,
+        "all_10_vars_present": false
+      }
+    },
+    "database_patch": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "artifacts": {
+        "db_patch_log": null,
+        "rls_verification_results": null
+      },
+      "validations": {
+        "rls_enabled_on_all_tables": false,
+        "zero_vulnerable_tables": false,
+        "audit_log_policies_immutable": false,
+        "withdrawal_policies_check_ownership": false
+      }
+    },
+    "lovable_configuration": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "artifacts": {
+        "lovable_env_config": null,
+        "deployment_url": null
+      },
+      "validations": {
+        "all_env_vars_configured": false,
+        "secret_vars_marked_secret": false,
+        "build_successful": false,
+        "deployment_url_accessible": false
+      }
+    },
+    "post_deployment_validation": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "validations": {
+        "login_flow_works": false,
+        "dashboard_loads_under_2s": false,
+        "security_headers_present": false,
+        "sentry_capturing_errors": false,
+        "posthog_tracking_events": false,
+        "no_console_errors": false
+      }
+    }
+  },
+  "errors": [],
+  "warnings": [],
+  "resume_from_phase": null,
+  "deployment_readiness": "85%",
+  "deployment_grade": "B+",
+  "notes": "Deployment preparation complete. Ready to execute credential rotation."
+}

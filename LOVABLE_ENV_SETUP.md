@@ -13,18 +13,22 @@ Add these to your Lovable project settings (Next.js Format):
 ### 1. Supabase Configuration
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=https://noekumitbfoxhsndwypz.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vZWt1bWl0YmZveGhzbmR3eXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NDI5MzEsImV4cCI6MjA2NTIxODkzMX0.NsqZLt_0kIK_c1qHg3zDIfbLoZ5z1vf2CuNJKkWVKZ8
+NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_PROJECT_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 ```
+
+⚠️ **SECURITY WARNING:** Never commit real API keys or tokens to version control. Always use placeholders in documentation.
 
 *Note: The platform also supports `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` as fallbacks, but `NEXT_PUBLIC_` is the standard for Next.js applications.*
 
 ### 2. Optional (Analytics & Monitoring)
 
 ```bash
-NEXT_PUBLIC_SENTRY_DSN=https://d9c2a485401aa221a88caa3c007eee4a@o4509944393629696.ingest.de.sentry.io/4509949718233168
-NEXT_PUBLIC_POSTHOG_KEY=your_posthog_key_here
+NEXT_PUBLIC_SENTRY_DSN=YOUR_SENTRY_DSN_HERE
+NEXT_PUBLIC_POSTHOG_KEY=YOUR_POSTHOG_KEY_HERE
 ```
+
+⚠️ **SECURITY NOTE:** Replace placeholders with actual values from your secure credential management system.
 
 ---
 

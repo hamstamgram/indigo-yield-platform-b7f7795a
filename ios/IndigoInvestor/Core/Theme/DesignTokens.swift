@@ -25,42 +25,51 @@ public struct DesignTokens {
         public static let indigoLight = Color(hex: "#E8EAF6") // Soft Tint
 
         // MARK: Financial Data Colors
-        static let positiveGreen = Color(hex: "#22C55E")
-        static let negativeRed = Color(hex: "#EF4444")
-        static let neutralGray = Color(hex: "#6B7280")
+        public static let positiveGreen = Color(hex: "#22C55E")
+        public static let negativeRed = Color(hex: "#EF4444")
+        public static let neutralGray = Color(hex: "#6B7280")
 
         // MARK: Asset Category Colors
-        static let equityBlue = Color(hex: "#3B82F6")
-        static let bondGreen = Color(hex: "#10B981")
-        static let cryptoOrange = Color(hex: "#F59E0B")
-        static let realEstateRed = Color(hex: "#DC2626")
-        static let commodityPurple = Color(hex: "#8B5CF6")
-        static let cashGray = Color(hex: "#4B5563")
+        public static let equityBlue = Color(hex: "#3B82F6")
+        public static let bondGreen = Color(hex: "#10B981")
+        public static let cryptoOrange = Color(hex: "#F59E0B")
+        public static let realEstateRed = Color(hex: "#DC2626")
+        public static let commodityPurple = Color(hex: "#8B5CF6")
+        public static let cashGray = Color(hex: "#4B5563")
 
         // MARK: System Colors (iOS Adaptive)
-        static let backgroundPrimary = Color(.systemBackground)
-        static let backgroundSecondary = Color(.secondarySystemBackground)
-        static let backgroundTertiary = Color(.tertiarySystemBackground)
-        static let backgroundQuaternary = Color(.quaternarySystemFill)
+        public static let backgroundPrimary = Color(.systemBackground)
+        public static let backgroundSecondary = Color(.secondarySystemBackground)
+        public static let backgroundTertiary = Color(.tertiarySystemBackground)
+        public static let backgroundQuaternary = Color(.quaternarySystemFill)
 
-        static let textPrimary = Color(.label)
-        static let textSecondary = Color(.secondaryLabel)
-        static let textTertiary = Color(.tertiaryLabel)
-        static let textPlaceholder = Color(.placeholderText)
+        public static let textPrimary = Color(.label)
+        public static let textSecondary = Color(.secondaryLabel)
+        public static let textTertiary = Color(.tertiaryLabel)
+        public static let textPlaceholder = Color(.placeholderText)
 
         // MARK: Status Colors
-        static let successGreen = Color(.systemGreen)
-        static let warningOrange = Color(.systemOrange)
-        static let errorRed = Color(.systemRed)
-        static let infoBlue = Color(.systemBlue)
+        public static let successGreen = Color(.systemGreen)
+        public static let warningOrange = Color(.systemOrange)
+        public static let errorRed = Color(.systemRed)
+        public static let infoBlue = Color(.systemBlue)
 
         // MARK: Interactive Colors
-        static let linkBlue = Color(.link)
-        static let separatorGray = Color(.separator)
-        static let opaqueSeparator = Color(.opaqueSeparator)
+        public static let linkBlue = Color(.link)
+        public static let separatorGray = Color(.separator)
+        public static let opaqueSeparator = Color(.opaqueSeparator)
+        
+        // MARK: Component Color Aliases
+        // Semantic color mappings for components
+        public static let cardBackground = backgroundSecondary
+        public static let buttonPrimary = indigoPrimary
+        public static let inputBackground = backgroundSecondary
+        public static let inputFocusBorder = indigoPrimary
+        public static let inputBorder = separatorGray
+        public static let warningAmber = warningOrange  // Alias for consistency
 
         // MARK: Chart Colors
-        static let chartColors: [Color] = [
+        public static let chartColors: [Color] = [
             indigoPrimary,
             equityBlue,
             bondGreen,
@@ -72,19 +81,19 @@ public struct DesignTokens {
         ]
 
         // MARK: Gradient Definitions
-        static let indigoGradient = LinearGradient(
+        public static let indigoGradient = LinearGradient(
             colors: [indigoPrimary, indigoSecondary],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
 
-        static let successGradient = LinearGradient(
+        public static let successGradient = LinearGradient(
             colors: [positiveGreen, positiveGreen.opacity(0.8)],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
 
-        static let cardGradient = LinearGradient(
+        public static let cardGradient = LinearGradient(
             colors: [backgroundSecondary, backgroundTertiary],
             startPoint: .top,
             endPoint: .bottom
@@ -155,42 +164,46 @@ public struct DesignTokens {
 
     public struct ComponentSizes {
         // Buttons
-        static let buttonHeight: CGFloat = 50
-        static let buttonHeightCompact: CGFloat = 36
-        static let buttonCornerRadius: CGFloat = 8
-        static let pillButtonCornerRadius: CGFloat = 25
+        public static let buttonHeight: CGFloat = 50
+        public static let buttonHeightCompact: CGFloat = 36
+        public static let buttonCornerRadius: CGFloat = 8
+        public static let pillButtonCornerRadius: CGFloat = 25
 
         // Input Fields
-        static let inputHeight: CGFloat = 44
-        static let inputCornerRadius: CGFloat = 8
+        public static let inputHeight: CGFloat = 44
+        public static let inputCornerRadius: CGFloat = 8
 
         // Cards
-        static let cardCornerRadius: CGFloat = 12
-        static let cardCornerRadiusSmall: CGFloat = 8
+        public static let cardCornerRadius: CGFloat = 12
+        public static let cardCornerRadiusSmall: CGFloat = 8
+        public static let smallCardCornerRadius = cardCornerRadiusSmall  // Alias for naming consistency
 
         // Icons
-        static let iconSmall: CGFloat = 16
-        static let iconMedium: CGFloat = 24
-        static let iconLarge: CGFloat = 32
-        static let iconXLarge: CGFloat = 48
+        public static let iconSmall: CGFloat = 16
+        public static let iconMedium: CGFloat = 24
+        public static let iconLarge: CGFloat = 32
+        public static let iconXLarge: CGFloat = 48
 
         // Touch Targets (iOS HIG Minimum)
-        static let minimumTouchTarget: CGFloat = 44
+        public static let minimumTouchTarget: CGFloat = 44
 
         // Tab Bar
-        static let tabBarHeight: CGFloat = 49
-        static let tabBarIconSize: CGFloat = 25
+        public static let tabBarHeight: CGFloat = 49
+        public static let tabBarIconSize: CGFloat = 25
     }
-
+    
+    // MARK: - Legacy API Compatibility
+    public typealias Dimensions = ComponentSizes
+    
     // MARK: - Shadows
 
     public struct Shadow {
         public struct Style {
-            let color: Color
-            let radius: CGFloat
-            let x: CGFloat
-            let y: CGFloat
-            let opacity: Double
+            public let color: Color
+            public let radius: CGFloat
+            public let x: CGFloat
+            public let y: CGFloat
+            public let opacity: Double
 
             init(color: Color = .black, radius: CGFloat, x: CGFloat = 0, y: CGFloat, opacity: Double) {
                 self.color = color
@@ -201,34 +214,39 @@ public struct DesignTokens {
             }
         }
 
-        static let none = Style(radius: 0, y: 0, opacity: 0)
-        static let small = Style(radius: 2, y: 1, opacity: 0.05)
-        static let medium = Style(radius: 4, y: 2, opacity: 0.1)
-        static let large = Style(radius: 8, y: 4, opacity: 0.15)
-        static let xlarge = Style(radius: 16, y: 8, opacity: 0.2)
+        public static let none = Style(radius: 0, y: 0, opacity: 0)
+        public static let small = Style(radius: 2, y: 1, opacity: 0.05)
+        public static let subtleShadow = small  // Legacy alias
+        public static let medium = Style(radius: 4, y: 2, opacity: 0.1)
+        public static let large = Style(radius: 8, y: 4, opacity: 0.15)
+        public static let xlarge = Style(radius: 16, y: 8, opacity: 0.2)
 
         // Card specific shadows
-        static let card = Style(radius: 4, y: 2, opacity: 0.08)
-        static let cardHover = Style(radius: 8, y: 4, opacity: 0.12)
-        static let modal = Style(radius: 24, y: 12, opacity: 0.25)
+        public static let card = Style(radius: 4, y: 2, opacity: 0.08)
+        public static let cardHover = Style(radius: 8, y: 4, opacity: 0.12)
+        public static let modal = Style(radius: 24, y: 12, opacity: 0.25)
     }
-
+    
+    public typealias Shadows = Shadow
+    
     // MARK: - Animation
 
     public struct Animation {
-        static let fast = SwiftUI.Animation.easeInOut(duration: 0.2)
-        static let medium = SwiftUI.Animation.easeInOut(duration: 0.3)
-        static let slow = SwiftUI.Animation.easeInOut(duration: 0.5)
+        public static let fast = SwiftUI.Animation.easeInOut(duration: 0.2)
+        public static let medium = SwiftUI.Animation.easeInOut(duration: 0.3)
+        public static let slow = SwiftUI.Animation.easeInOut(duration: 0.5)
 
-        static let spring = SwiftUI.Animation.spring(response: 0.4, dampingFraction: 0.8)
-        static let springBouncy = SwiftUI.Animation.spring(response: 0.3, dampingFraction: 0.6)
-        static let springSnappy = SwiftUI.Animation.spring(response: 0.2, dampingFraction: 0.9)
+        public static let spring = SwiftUI.Animation.spring(response: 0.4, dampingFraction: 0.8)
+        public static let springBouncy = SwiftUI.Animation.spring(response: 0.3, dampingFraction: 0.6)
+        public static let springSnappy = SwiftUI.Animation.spring(response: 0.2, dampingFraction: 0.9)
 
         // Micro-interactions
-        static let buttonPress = SwiftUI.Animation.easeOut(duration: 0.1)
-        static let tabSwitch = SwiftUI.Animation.easeInOut(duration: 0.25)
-        static let modalPresentation = SwiftUI.Animation.spring(response: 0.5, dampingFraction: 0.8)
+        public static let buttonPress = SwiftUI.Animation.easeOut(duration: 0.1)
+        public static let tabSwitch = SwiftUI.Animation.easeInOut(duration: 0.25)
+        public static let modalPresentation = SwiftUI.Animation.spring(response: 0.5, dampingFraction: 0.8)
     }
+    
+    public typealias Animations = Animation
 
     // MARK: - Blur Effects
 

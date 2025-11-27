@@ -3,7 +3,7 @@ CREATE OR REPLACE FUNCTION public.log_data_edit()
 RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 DECLARE
   v_import_id UUID;

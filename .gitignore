@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# CRITICAL: Environment files - NEVER commit these
+.env
+.env.local
+.env.production
+.env.development
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -42,3 +48,9 @@ ios/IndigoInvestor/Config/Production.xcconfig
 out/
 build/
 *.tsbuildinfo
+
+# Security scanning reports - NEVER commit these
+gitleaks-report.json
+gitleaks-report.csv
+security-scan-results/
+*-security-report.*

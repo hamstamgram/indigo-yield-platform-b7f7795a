@@ -1,9 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { generateStatementFilename } from "./statementPdfGenerator";
 
-// IMPORTANT: Statement operations must be done server-side with service role key
-// This file should only be used for client-side operations with signed URLs
-// Actual PDF generation and storage should be handled by an Edge Function or backend service
+// IMPORTANT: Statement operations must be done server-side with service role key.
+// On Lovable/production, use an Edge Function to generate a signed URL and upload there.
 
 export async function uploadStatementToStorage(
   pdfBlob: Blob,
@@ -11,6 +10,14 @@ export async function uploadStatementToStorage(
   period_year: number,
   period_month: number
 ): Promise<{ storage_path: string; signed_url: string } | null> {
+  // Block direct client uploads in production to avoid anon-key misuse.
+  if (import.meta.env.PROD) {
+    console.error(
+      "uploadStatementToStorage called in production; route this through an Edge Function with the service role key."
+    );
+    return null;
+  }
+
   try {
     const filename = generateStatementFilename(investor_id, period_year, period_month);
     const storagePath = `statements/${investor_id}/${period_year}/${filename}`;
@@ -96,6 +103,11 @@ export async function getStatementSignedUrl(storage_path: string): Promise<strin
 }
 
 export async function deleteStatement(storage_path: string): Promise<boolean> {
+  if (import.meta.env.PROD) {
+    console.error("deleteStatement is disabled in production; use a backend/Edge Function.");
+    return false;
+  }
+
   try {
     const { error } = await supabase.storage.from("statements").remove([storage_path]);
 

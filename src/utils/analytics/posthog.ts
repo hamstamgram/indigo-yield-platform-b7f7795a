@@ -171,7 +171,7 @@ export const analytics = {
     });
   },
 
-  // Error tracking (in addition to Sentry)
+  // Error tracking
   trackError: (error: string, context?: Record<string, any>) => {
     if (!isInitialized) return;
     posthog.capture("error_occurred", {

@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION public.ensure_investor_for_profile()
 RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 BEGIN
   -- Only create investor record for non-admin users
@@ -47,7 +47,7 @@ CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 BEGIN
   NEW.updated_at = now();
@@ -60,7 +60,7 @@ CREATE OR REPLACE FUNCTION public.get_security_headers()
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 BEGIN
   RETURN jsonb_build_object(
@@ -80,7 +80,7 @@ CREATE OR REPLACE FUNCTION public.audit_transaction_changes()
 RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 BEGIN
   IF TG_OP = 'INSERT' THEN

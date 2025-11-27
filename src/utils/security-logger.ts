@@ -3,35 +3,34 @@
  * Handles critical security event logging with proper error handling
  */
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
-// Sentry monitoring disabled - package not installed
-let Sentry: any = null;
+// Sentry monitoring removed
 
 export enum SecurityEventType {
-  LOGIN_ATTEMPT = 'LOGIN_ATTEMPT',
-  LOGIN_SUCCESS = 'LOGIN_SUCCESS',
-  LOGIN_FAILURE = 'LOGIN_FAILURE',
-  LOGOUT = 'LOGOUT',
-  PASSWORD_RESET = 'PASSWORD_RESET',
-  PASSWORD_CHANGE = 'PASSWORD_CHANGE',
-  MFA_ENABLED = 'MFA_ENABLED',
-  MFA_DISABLED = 'MFA_DISABLED',
-  MFA_CHALLENGE = 'MFA_CHALLENGE',
-  PERMISSION_DENIED = 'PERMISSION_DENIED',
-  SUSPICIOUS_ACTIVITY = 'SUSPICIOUS_ACTIVITY',
-  DATA_EXPORT = 'DATA_EXPORT',
-  DATA_DELETION = 'DATA_DELETION',
-  ADMIN_ACTION = 'ADMIN_ACTION',
-  API_RATE_LIMIT = 'API_RATE_LIMIT',
-  SECURITY_SCAN = 'SECURITY_SCAN',
+  LOGIN_ATTEMPT = "LOGIN_ATTEMPT",
+  LOGIN_SUCCESS = "LOGIN_SUCCESS",
+  LOGIN_FAILURE = "LOGIN_FAILURE",
+  LOGOUT = "LOGOUT",
+  PASSWORD_RESET = "PASSWORD_RESET",
+  PASSWORD_CHANGE = "PASSWORD_CHANGE",
+  MFA_ENABLED = "MFA_ENABLED",
+  MFA_DISABLED = "MFA_DISABLED",
+  MFA_CHALLENGE = "MFA_CHALLENGE",
+  PERMISSION_DENIED = "PERMISSION_DENIED",
+  SUSPICIOUS_ACTIVITY = "SUSPICIOUS_ACTIVITY",
+  DATA_EXPORT = "DATA_EXPORT",
+  DATA_DELETION = "DATA_DELETION",
+  ADMIN_ACTION = "ADMIN_ACTION",
+  API_RATE_LIMIT = "API_RATE_LIMIT",
+  SECURITY_SCAN = "SECURITY_SCAN",
 }
 
 export enum SecuritySeverity {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
-  CRITICAL = 'CRITICAL',
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+  HIGH = "HIGH",
+  CRITICAL = "CRITICAL",
 }
 
 interface SecurityEventData {
@@ -88,12 +87,14 @@ class SecurityLogger {
 
     // Get current user if authenticated
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         eventData.user_id = user.id;
       }
     } catch (error) {
-      console.warn('Failed to get user for security event:', error);
+      console.warn("Failed to get user for security event:", error);
     }
 
     // Add to queue
@@ -103,7 +104,11 @@ class SecurityLogger {
     try {
       await this.processQueue();
     } catch (error) {
-      this.handleLoggingError(error, eventData, throwOnError || CRITICAL_EVENTS.includes(eventType));
+      this.handleLoggingError(
+        error,
+        eventData,
+        throwOnError || CRITICAL_EVENTS.includes(eventType)
+      );
     }
   }
 
@@ -132,19 +137,18 @@ class SecurityLogger {
    */
   private async persistEvent(event: SecurityEventData, retryCount = 0): Promise<void> {
     try {
-      const { error } = await supabase
-        .rpc('log_security_event', {
-          event_type: event.event_type,
-          user_id_param: event.user_id,
-          details: {
-            severity: event.severity,
-            ip_address: event.ip_address,
-            user_agent: event.user_agent,
-            error_message: event.error_message,
-            stack_trace: event.stack_trace,
-            ...event.details
-          }
-        });
+      const { error } = await supabase.rpc("log_security_event", {
+        event_type: event.event_type,
+        user_id_param: event.user_id,
+        details: {
+          severity: event.severity,
+          ip_address: event.ip_address,
+          user_agent: event.user_agent,
+          error_message: event.error_message,
+          stack_trace: event.stack_trace,
+          ...event.details,
+        },
+      });
 
       if (error) {
         throw error;
@@ -157,7 +161,9 @@ class SecurityLogger {
     } catch (error) {
       if (retryCount < this.maxRetries) {
         // Retry with exponential backoff
-        await new Promise(resolve => setTimeout(resolve, this.retryDelay * Math.pow(2, retryCount)));
+        await new Promise((resolve) =>
+          setTimeout(resolve, this.retryDelay * Math.pow(2, retryCount))
+        );
         return this.persistEvent(event, retryCount + 1);
       }
       throw error;
@@ -168,7 +174,7 @@ class SecurityLogger {
    * Handle logging errors
    */
   private handleLoggingError(error: unknown, event: SecurityEventData, throwError: boolean): void {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     const errorDetails = {
       event,
       error: errorMessage,
@@ -176,31 +182,19 @@ class SecurityLogger {
     };
 
     // Log to console
-    console.error('CRITICAL: Security logging failed', errorDetails);
-
-    // Send to Sentry if available
-    if (typeof Sentry !== 'undefined' && Sentry.captureException) {
-      Sentry.captureException(new Error('Security logging failed'), {
-        level: 'error',
-        tags: {
-          security_event: event.event_type,
-          severity: event.severity,
-        },
-        extra: errorDetails,
-      });
-    }
+    console.error("CRITICAL: Security logging failed", errorDetails);
 
     // Store in localStorage as fallback
     try {
-      const failedEvents = JSON.parse(localStorage.getItem('failed_security_events') || '[]');
+      const failedEvents = JSON.parse(localStorage.getItem("failed_security_events") || "[]");
       failedEvents.push(errorDetails);
       // Keep only last 100 failed events
       if (failedEvents.length > 100) {
         failedEvents.shift();
       }
-      localStorage.setItem('failed_security_events', JSON.stringify(failedEvents));
+      localStorage.setItem("failed_security_events", JSON.stringify(failedEvents));
     } catch (localStorageError) {
-      console.error('Failed to store security event in localStorage:', localStorageError);
+      console.error("Failed to store security event in localStorage:", localStorageError);
     }
 
     // Throw error if critical
@@ -214,28 +208,32 @@ class SecurityLogger {
    */
   public async retryFailedEvents(): Promise<void> {
     try {
-      const failedEvents = JSON.parse(localStorage.getItem('failed_security_events') || '[]');
+      const failedEvents = JSON.parse(localStorage.getItem("failed_security_events") || "[]");
       if (failedEvents.length === 0) return;
 
       for (const failedEvent of failedEvents) {
         try {
           await this.persistEvent(failedEvent.event);
         } catch (error) {
-          console.warn('Failed to retry security event:', error);
+          console.warn("Failed to retry security event:", error);
         }
       }
 
       // Clear successfully retried events
-      localStorage.removeItem('failed_security_events');
+      localStorage.removeItem("failed_security_events");
     } catch (error) {
-      console.error('Error retrying failed security events:', error);
+      console.error("Error retrying failed security events:", error);
     }
   }
 
   /**
    * Log login attempt
    */
-  public async logLoginAttempt(email: string, success: boolean, details?: Record<string, any>): Promise<void> {
+  public async logLoginAttempt(
+    email: string,
+    success: boolean,
+    details?: Record<string, any>
+  ): Promise<void> {
     await this.logEvent(
       success ? SecurityEventType.LOGIN_SUCCESS : SecurityEventType.LOGIN_FAILURE,
       success ? SecuritySeverity.LOW : SecuritySeverity.MEDIUM,
@@ -246,7 +244,11 @@ class SecurityLogger {
   /**
    * Log admin action
    */
-  public async logAdminAction(action: string, targetUserId?: string, details?: Record<string, any>): Promise<void> {
+  public async logAdminAction(
+    action: string,
+    targetUserId?: string,
+    details?: Record<string, any>
+  ): Promise<void> {
     await this.logEvent(
       SecurityEventType.ADMIN_ACTION,
       SecuritySeverity.HIGH,
@@ -270,13 +272,13 @@ class SecurityLogger {
   /**
    * Log GDPR-related events
    */
-  public async logGDPREvent(type: 'EXPORT' | 'DELETE' | 'CONSENT', details?: Record<string, any>): Promise<void> {
-    const eventType = type === 'EXPORT' ? SecurityEventType.DATA_EXPORT : SecurityEventType.DATA_DELETION;
-    await this.logEvent(
-      eventType,
-      SecuritySeverity.HIGH,
-      { gdpr_action: type, ...details }
-    );
+  public async logGDPREvent(
+    type: "EXPORT" | "DELETE" | "CONSENT",
+    details?: Record<string, any>
+  ): Promise<void> {
+    const eventType =
+      type === "EXPORT" ? SecurityEventType.DATA_EXPORT : SecurityEventType.DATA_DELETION;
+    await this.logEvent(eventType, SecuritySeverity.HIGH, { gdpr_action: type, ...details });
   }
 }
 
@@ -284,8 +286,8 @@ class SecurityLogger {
 export const securityLogger = SecurityLogger.getInstance();
 
 // Auto-retry failed events on page load
-if (typeof window !== 'undefined') {
-  window.addEventListener('load', () => {
+if (typeof window !== "undefined") {
+  window.addEventListener("load", () => {
     securityLogger.retryFailedEvents().catch(console.error);
   });
 }

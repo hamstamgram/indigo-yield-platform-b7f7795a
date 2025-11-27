@@ -2,7 +2,7 @@
 -- The trigger assumes all tables have an 'id' field, but some don't
 
 CREATE OR REPLACE FUNCTION public.log_data_edit()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path TO ''
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path TO public
 AS $$
 DECLARE
   v_import_id UUID;

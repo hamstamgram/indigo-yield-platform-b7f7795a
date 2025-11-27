@@ -119,12 +119,23 @@ public struct PerformanceMetricCard: View {
     let icon: String
     let color: Color
     
+    // Convenience initializer with default color
+    public init(
+        title: String,
+        value: String,
+        change: Double? = nil,
+        icon: String
+    ) {
+        self.init(title: title, value: value, change: change, icon: icon, color: DesignTokens.Colors.indigoPrimary)
+    }
+
+    // Full initializer with explicit color
     public init(
         title: String,
         value: String,
         change: Double? = nil,
         icon: String,
-        color: Color = DesignTokens.Colors.indigoPrimary
+        color: Color
     ) {
         self.title = title
         self.value = value
@@ -432,7 +443,13 @@ public struct CategoryBadge: View {
     let category: String
     let color: Color
     
-    public init(category: String, color: Color = DesignTokens.Colors.indigoPrimary) {
+    // Convenience initializer with default color
+    public init(category: String) {
+        self.init(category: category, color: DesignTokens.Colors.indigoPrimary)
+    }
+
+    // Full initializer with explicit color
+    public init(category: String, color: Color) {
         self.category = category
         self.color = color
     }

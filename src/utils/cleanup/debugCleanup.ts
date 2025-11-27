@@ -2,46 +2,7 @@
  * Debug cleanup utilities to remove console logs and debug code
  */
 
-// Replace console.log statements in production
-if (process.env.NODE_ENV === "production") {
-  console.log = () => {};
-  console.info = () => {};
-  console.debug = () => {};
-}
-
-// Keep console.warn and console.error for important issues
-const originalWarn = console.warn;
-const originalError = console.error;
-
-console.warn = (...args: any[]) => {
-  // Filter out non-critical warnings in production
-  if (process.env.NODE_ENV === "production") {
-    const message = args[0];
-    if (typeof message === "string") {
-      // Allow critical warnings through
-      if (
-        message.includes("Auth") ||
-        message.includes("Error") ||
-        message.includes("Failed") ||
-        message.includes("Network")
-      ) {
-        originalWarn(...args);
-      }
-    }
-    return;
-  }
-  originalWarn(...args);
-};
-
-console.error = (...args: any[]) => {
-  // Always allow errors in both dev and production
-  originalError(...args);
-
-  // In production, also send to error tracking
-  if (process.env.NODE_ENV === "production" && (window as any).Sentry) {
-    (window as any).Sentry.captureException(args[0]);
-  }
-};
+// Keep default console behavior; do not suppress logs in production
 
 // Clean up common debug patterns
 export const cleanupUtils = {

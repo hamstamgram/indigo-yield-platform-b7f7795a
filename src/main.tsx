@@ -8,12 +8,10 @@ import "@fontsource/montserrat/500.css"; // Medium
 import "@fontsource/montserrat/600.css"; // Semi-bold
 import "@fontsource/montserrat/700.css"; // Bold
 
-import { initSentry } from "./utils/monitoring/sentry";
 import { initPostHog } from "./utils/analytics/posthog";
 import { registerSW } from "./pwa/registerSW";
 
-// Initialize monitoring and analytics
-initSentry();
+// Initialize analytics
 initPostHog();
 
 // Register service worker for PWA

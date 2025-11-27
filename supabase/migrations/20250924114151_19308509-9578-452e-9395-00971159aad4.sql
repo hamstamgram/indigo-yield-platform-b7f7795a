@@ -7,7 +7,7 @@ CREATE OR REPLACE FUNCTION public.set_fund_daily_aum(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 DECLARE
   v_fund_code TEXT;

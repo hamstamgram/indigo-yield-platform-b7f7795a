@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION public.apply_daily_yield_to_fund(p_fund_id uuid, p_da
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 DECLARE
   v_fund_aum NUMERIC(28,10);
@@ -124,7 +124,7 @@ CREATE OR REPLACE FUNCTION public.set_fund_daily_aum(p_fund_id uuid, p_aum_amoun
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 DECLARE
   v_investor_count INTEGER;

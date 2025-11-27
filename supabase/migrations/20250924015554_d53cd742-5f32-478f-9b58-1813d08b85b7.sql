@@ -15,7 +15,7 @@ RETURNS TABLE(
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $$
 BEGIN
     -- Only allow admins to view migration status

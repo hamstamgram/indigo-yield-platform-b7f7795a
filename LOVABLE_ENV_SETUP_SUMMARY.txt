@@ -1,0 +1,220 @@
+================================================================================
+LOVABLE ENVIRONMENT VARIABLES CONFIGURATION - SETUP COMPLETE
+================================================================================
+
+Created: 2025-11-26
+Platform: Indigo Yield Platform
+Deployment Target: Lovable
+
+================================================================================
+FILES CREATED (3 files)
+================================================================================
+
+1. /config/lovable-env-vars.json (11 KB)
+   - Complete JSON configuration template
+   - All 10 required environment variables
+   - Detailed metadata and documentation
+   - Rotation guidelines and audit trails
+   - Validation rules and security practices
+   - Troubleshooting section
+   
+2. /LOVABLE_ENV_VARS_QUICK_START.md (5.5 KB)
+   - Quick deployment checklist
+   - Step-by-step instructions
+   - Variable overview table
+   - File location and features
+   - Security reminders
+   
+3. /LOVABLE_ENV_DEPLOYMENT_REFERENCE.md (8 KB)
+   - Detailed variable documentation
+   - Deployment sequence (5 phases)
+   - Critical secrets to mark
+   - Pre-deployment validation checklist
+   - Value sources (where to get credentials)
+   - Troubleshooting guide
+   - Security checklist
+
+================================================================================
+ENVIRONMENT VARIABLES (10 TOTAL)
+================================================================================
+
+CRITICAL VARIABLES (5):
+  1. VITE_SUPABASE_URL              → https://nkfimvovosdehmyyjubn.supabase.co
+  2. VITE_SUPABASE_ANON_KEY         → PLACEHOLDER_NEW_ANON_KEY (ROTATE!)
+  3. SUPABASE_SERVICE_ROLE_KEY      → PLACEHOLDER_NEW_SERVICE_ROLE_KEY (SECRET, ROTATE!)
+  4. VITE_APP_ENV                   → production
+  5. NEXT_PUBLIC_APP_URL            → https://your-project.lovable.app (UPDATE AFTER DEPLOY)
+
+MONITORING VARIABLES (5):
+  6. VITE_SENTRY_DSN                → PLACEHOLDER_NEW_SENTRY_DSN (ROTATE!)
+  7. SENTRY_DSN                     → PLACEHOLDER_NEW_SENTRY_DSN (ROTATE!)
+  8. VITE_POSTHOG_KEY               → PLACEHOLDER_NEW_POSTHOG_KEY (ROTATE!)
+  9. VITE_POSTHOG_HOST              → https://app.posthog.com
+ 10. POSTHOG_API_KEY                → PLACEHOLDER_NEW_POSTHOG_API_KEY (SECRET, ROTATE!)
+
+SECRET VARIABLES (mark in Lovable dashboard):
+  - SUPABASE_SERVICE_ROLE_KEY
+  - POSTHOG_API_KEY
+
+================================================================================
+QUICK DEPLOYMENT CHECKLIST
+================================================================================
+
+PRE-DEPLOYMENT:
+[ ] Review config/lovable-env-vars.json
+[ ] Generate NEW credentials from Supabase, Sentry, PostHog
+[ ] Replace all PLACEHOLDER_* values with real credentials
+[ ] Verify no PLACEHOLDER strings remain: grep -r 'PLACEHOLDER' config/lovable-env-vars.json
+[ ] Verify JSON is valid: python3 -m json.tool config/lovable-env-vars.json
+
+LOVABLE DASHBOARD:
+[ ] Go to Project Settings > Environment Variables
+[ ] Add all 10 variables
+[ ] Mark SUPABASE_SERVICE_ROLE_KEY as SECRET
+[ ] Mark POSTHOG_API_KEY as SECRET
+[ ] Verify all values are correct
+
+DEPLOYMENT:
+[ ] Click Deploy in Lovable dashboard
+[ ] Monitor deployment logs
+[ ] Verify app loads without 401/403 errors
+
+POST-DEPLOYMENT:
+[ ] Note actual Lovable URL (e.g., https://indigo-yield-platform.lovable.app)
+[ ] Update NEXT_PUBLIC_APP_URL in Lovable dashboard
+[ ] Update NEXT_PUBLIC_APP_URL in config/lovable-env-vars.json
+[ ] Trigger redeploy
+
+VERIFICATION:
+[ ] App loads successfully
+[ ] No console errors
+[ ] Sentry error tracking works
+[ ] PostHog analytics working
+
+================================================================================
+CREDENTIAL ROTATION REQUIREMENTS
+================================================================================
+
+REQUIRED BEFORE PRODUCTION DEPLOYMENT:
+  - VITE_SUPABASE_ANON_KEY (generate new)
+  - SUPABASE_SERVICE_ROLE_KEY (generate new)
+  - VITE_SENTRY_DSN (generate new)
+  - SENTRY_DSN (generate new)
+  - VITE_POSTHOG_KEY (generate new)
+  - POSTHOG_API_KEY (generate new)
+
+WHERE TO GET CREDENTIALS:
+
+Supabase (https://app.supabase.com):
+  - Project: Indigo Yield Platform
+  - Go to Settings > API
+  - VITE_SUPABASE_URL: Project URL
+  - VITE_SUPABASE_ANON_KEY: Anon Key
+  - SUPABASE_SERVICE_ROLE_KEY: Service Role
+
+Sentry (https://sentry.io):
+  - Project: indigo-yield-platform
+  - Go to Settings > Client Keys (DSN)
+  - VITE_SENTRY_DSN: Frontend DSN
+  - SENTRY_DSN: Backend DSN
+
+PostHog (https://app.posthog.com):
+  - Project Settings
+  - VITE_POSTHOG_KEY: Project API Key
+  - POSTHOG_API_KEY: Personal API Key
+  - VITE_POSTHOG_HOST: https://app.posthog.com
+
+================================================================================
+SECURITY NOTES
+================================================================================
+
+1. NEVER commit real credentials to git
+   - Add config/lovable-env-vars.json to .gitignore
+   - Use secure storage for credential file
+
+2. Always rotate credentials BEFORE production
+   - Generate new keys in source systems
+   - Don't reuse old credentials across environments
+   - Document rotation date and reason
+
+3. Mark secret variables in Lovable
+   - SUPABASE_SERVICE_ROLE_KEY
+   - POSTHOG_API_KEY
+   - Prevents accidental exposure in logs
+
+4. Implement regular rotation
+   - Quarterly minimum (recommended)
+   - Mandatory after security incidents
+   - Document audit trail for compliance
+
+5. Least privilege principle
+   - Use anon key in browser (limited permissions)
+   - Use service role key on server only (full permissions)
+   - Never expose service role key to client
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Issue: App won't load (401/403)
+Solution: Verify VITE_SUPABASE_ANON_KEY is correct
+  - Check no extra spaces when copied
+  - Test key in Supabase dashboard first
+  - Regenerate if needed
+
+Issue: Errors not in Sentry
+Solution: Verify Sentry DSN
+  - Check format: https://[key]@o[org].ingest.sentry.io/[project]
+  - Verify project is active
+  - Check org ID is correct
+
+Issue: Analytics missing from PostHog
+Solution: Verify PostHog keys
+  - Check VITE_POSTHOG_KEY matches project
+  - Verify POSTHOG_API_KEY is correct
+  - Check VITE_POSTHOG_HOST is reachable
+
+Issue: Deployment fails with env var errors
+Solution: Check configuration
+  - No PLACEHOLDER_ values remain
+  - No trailing spaces in values
+  - JSON is valid: python3 -m json.tool config/lovable-env-vars.json
+  - All 10 variables added to Lovable
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. Read LOVABLE_ENV_VARS_QUICK_START.md for quick deployment guide
+2. Review LOVABLE_ENV_DEPLOYMENT_REFERENCE.md for detailed info
+3. Open config/lovable-env-vars.json and replace PLACEHOLDER values
+4. Verify credentials are correct and unique to production environment
+5. Add all 10 variables to Lovable Project Settings
+6. Mark secret variables in Lovable dashboard
+7. Deploy and verify functionality
+
+================================================================================
+REFERENCES
+================================================================================
+
+Main Config File:
+  /Users/mama/indigo-yield-platform-v01/config/lovable-env-vars.json
+
+Quick Start Guide:
+  /Users/mama/indigo-yield-platform-v01/LOVABLE_ENV_VARS_QUICK_START.md
+
+Deployment Reference:
+  /Users/mama/indigo-yield-platform-v01/LOVABLE_ENV_DEPLOYMENT_REFERENCE.md
+
+Official Documentation:
+  - Lovable: https://docs.lovable.dev/guides/environment-variables
+  - Supabase: https://supabase.com/docs/guides/api#api-keys
+  - Sentry: https://docs.sentry.io/platforms/javascript/
+  - PostHog: https://posthog.com/docs/api/overview
+
+================================================================================
+DOCUMENT VERSION: 1.0
+CREATED: 2025-11-26
+PLATFORM: Indigo Yield Platform
+DEPLOYMENT TARGET: Lovable
+================================================================================

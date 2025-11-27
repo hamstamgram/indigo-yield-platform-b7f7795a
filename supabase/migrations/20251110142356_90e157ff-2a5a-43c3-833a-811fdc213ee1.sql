@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION public.cleanup_expired_reports(p_retention_days integ
 RETURNS TABLE(deleted_count integer, storage_paths text[])
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 DECLARE
   v_deleted_count INTEGER;
@@ -36,7 +36,7 @@ CREATE OR REPLACE FUNCTION public.get_report_statistics(p_user_id uuid DEFAULT N
 RETURNS TABLE(report_type report_type, format report_format, total_generated bigint, successful bigint, failed bigint, avg_processing_time_ms numeric, total_downloads bigint, total_file_size_bytes bigint)
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 BEGIN
   RETURN QUERY
@@ -62,7 +62,7 @@ CREATE OR REPLACE FUNCTION public.get_user_reports(p_user_id uuid, p_report_type
 RETURNS TABLE(id uuid, report_type report_type, format report_format, status report_status, storage_path text, file_size_bytes bigint, download_url text, download_url_expires_at timestamp with time zone, download_count integer, date_range_start date, date_range_end date, created_at timestamp with time zone, processing_completed_at timestamp with time zone)
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 BEGIN
   RETURN QUERY

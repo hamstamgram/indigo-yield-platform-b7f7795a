@@ -106,7 +106,7 @@ supabase functions serve hello-world
 
 # In another terminal, test it
 curl -i --location --request POST 'http://localhost:54321/functions/v1/hello-world' \
-  --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' \
+  --header 'Authorization: Bearer YOUR_SUPABASE_ANON_KEY' \
   --header 'Content-Type: application/json' \
   --data '{"name":"Indigo"}'
 

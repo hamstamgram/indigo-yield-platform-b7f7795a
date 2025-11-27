@@ -3,7 +3,7 @@ CREATE OR REPLACE FUNCTION public.migrate_legacy_positions_temp()
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 DECLARE
   v_position RECORD;

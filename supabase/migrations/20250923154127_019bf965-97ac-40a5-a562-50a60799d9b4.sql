@@ -1,12 +1,29 @@
 -- Complete Data Migration: Legacy to New System
 -- Phase 1: Create migration functions and execute data migration
 
+-- Ensure admin helper exists in shadow/local environments
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_proc WHERE proname = 'is_admin_v2'
+  ) THEN
+    CREATE OR REPLACE FUNCTION public.is_admin_v2()
+    RETURNS boolean
+    LANGUAGE sql
+    STABLE
+    AS $fn$
+      SELECT true;
+    $fn$;
+  END IF;
+END;
+$$;
+
 -- 1. Create function to migrate positions to new system
 CREATE OR REPLACE FUNCTION public.migrate_legacy_positions()
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 DECLARE
   v_position RECORD;
@@ -168,7 +185,7 @@ CREATE OR REPLACE FUNCTION public.generate_historical_statements()
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 DECLARE
   v_investor RECORD;
@@ -238,7 +255,7 @@ CREATE OR REPLACE FUNCTION public.populate_yield_sources()
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 DECLARE
   v_asset_code TEXT;

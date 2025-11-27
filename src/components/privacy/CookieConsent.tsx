@@ -6,7 +6,6 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { X, Cookie, Shield, BarChart } from "lucide-react";
 import { initPostHog, shutdownPostHog } from "@/utils/analytics/posthog";
-import { initSentry } from "@/utils/monitoring/sentry";
 
 interface CookiePreferences {
   necessary: boolean;
@@ -57,10 +56,6 @@ export function CookieConsent() {
       initPostHog();
     } else {
       shutdownPostHog();
-    }
-
-    if (prefs.performance) {
-      initSentry();
     }
 
     // Set cookie with preferences for server-side checking
@@ -200,7 +195,7 @@ export function CookieConsent() {
                       Monitor platform performance and help us identify and fix issues.
                     </p>
                     <p className="text-xs text-muted-foreground mt-2">
-                      Includes: Sentry error tracking, performance monitoring, load times
+                      Includes: performance monitoring, load times
                     </p>
                   </div>
                 </div>

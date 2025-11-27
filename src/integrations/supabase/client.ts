@@ -8,7 +8,11 @@ const getEnv = (key: string, viteKey: string) => {
     return process.env[key];
   }
   // 2. Try Vite import.meta.env (if available)
-  if (typeof import.meta !== "undefined" && (import.meta as any).env && (import.meta as any).env[viteKey]) {
+  if (
+    typeof import.meta !== "undefined" &&
+    (import.meta as any).env &&
+    (import.meta as any).env[viteKey]
+  ) {
     return (import.meta as any).env[viteKey];
   }
   // 3. Fallback to process.env for VITE_ keys (legacy)
@@ -19,8 +23,11 @@ const getEnv = (key: string, viteKey: string) => {
 };
 
 // Use a single, unified Supabase project (nkfimvovosdehmyyjubn)
+// Accept both ANON and PUBLISHABLE naming to match Lovable docs
 const SUPABASE_URL = getEnv("NEXT_PUBLIC_SUPABASE_URL", "VITE_SUPABASE_URL");
-const SUPABASE_ANON_KEY = getEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "VITE_SUPABASE_PUBLISHABLE_KEY");
+const SUPABASE_ANON_KEY =
+  getEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "VITE_SUPABASE_ANON_KEY") ||
+  getEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "VITE_SUPABASE_PUBLISHABLE_KEY");
 
 // Validate required environment variables
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {

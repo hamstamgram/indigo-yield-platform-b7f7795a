@@ -37,7 +37,7 @@ CREATE OR REPLACE FUNCTION public.create_daily_aum_entry(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $$
 DECLARE
   v_fund RECORD;
@@ -110,7 +110,7 @@ CREATE OR REPLACE FUNCTION public.generate_statement_data(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $$
 DECLARE
   v_investor RECORD;

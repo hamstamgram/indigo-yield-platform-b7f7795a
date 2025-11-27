@@ -54,6 +54,15 @@ $$;
 GRANT EXECUTE ON FUNCTION public.check_is_admin(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
 
+-- Avoid duplicate policy errors
+DROP POLICY IF EXISTS "profiles_own_select" ON public.profiles;
+DROP POLICY IF EXISTS "profiles_select_policy" ON public.profiles;
+DROP POLICY IF EXISTS "profiles_own_update" ON public.profiles;
+DROP POLICY IF EXISTS "profiles_update_policy" ON public.profiles;
+DROP POLICY IF EXISTS "profiles_admin_select" ON public.profiles;
+DROP POLICY IF EXISTS "profiles_admin_update" ON public.profiles;
+DROP POLICY IF EXISTS "profiles_no_delete" ON public.profiles;
+
 -- Now create simple, non-recursive policies
 -- 1. Users can see their own profile
 CREATE POLICY "profiles_own_select" ON public.profiles

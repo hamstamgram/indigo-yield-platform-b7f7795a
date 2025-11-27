@@ -693,20 +693,25 @@ jobs:
 
 **Vercel Environment Variables:**
 ```bash
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://mdngruhkxlrsgwwlfqru.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+# Supabase - REPLACE WITH YOUR ACTUAL VALUES
+NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_PROJECT_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 
 # App Configuration
 NEXT_PUBLIC_APP_ENV=production
 NEXT_PUBLIC_APP_VERSION=1.0.0
 
-# Analytics
-NEXT_PUBLIC_POSTHOG_KEY=phc_xxx
+# Analytics - REPLACE WITH YOUR ACTUAL VALUES
+NEXT_PUBLIC_POSTHOG_KEY=YOUR_POSTHOG_KEY
 NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
 
-# Error Tracking
-SENTRY_DSN=https://xxx@sentry.io/xxx
+# Error Tracking - REPLACE WITH YOUR ACTUAL VALUE
+SENTRY_DSN=YOUR_SENTRY_DSN
+
+⚠️ **CRITICAL SECURITY WARNING:**
+- NEVER commit real API keys, tokens, or secrets to version control
+- Always use environment variables from secure credential management
+- Rotate any keys that may have been exposed
 SENTRY_AUTH_TOKEN=xxx
 ```
 

@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { initSentry } from "./utils/monitoring/sentry";
 import { initPostHog } from "./utils/analytics/posthog";
 import "./utils/cleanup/debugCleanup"; // Initialize cleanup on app start
 import { SkipLink } from "./components/accessibility/SkipLink";
@@ -72,9 +71,6 @@ function AppContent() {
 function App() {
   // Initialize observability tools on app startup
   useEffect(() => {
-    // Initialize error tracking
-    initSentry();
-
     // Initialize analytics
     initPostHog();
   }, []);

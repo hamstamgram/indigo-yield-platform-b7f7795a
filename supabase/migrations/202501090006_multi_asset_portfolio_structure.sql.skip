@@ -1,6 +1,18 @@
 -- Multi-Asset Portfolio Structure Migration
 -- Ensures proper structure for USDT, BTC, ETH, SOL, EUR asset management
 
+-- Ensure enum supports EUR before inserting
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'asset_code') THEN
+    BEGIN
+      ALTER TYPE asset_code ADD VALUE IF NOT EXISTS 'EUR';
+    EXCEPTION
+      WHEN duplicate_object THEN NULL;
+    END;
+  END IF;
+END $$;
+
 -- Ensure assets table has all required assets
 INSERT INTO assets (symbol, name) 
 VALUES 

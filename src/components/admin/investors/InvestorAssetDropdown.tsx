@@ -63,20 +63,7 @@ const InvestorAssetDropdown = ({
         duration: 7000,
       });
 
-      // Report to Sentry if available
-      if (typeof window !== "undefined" && (window as any).Sentry) {
-        (window as any).Sentry.captureException(error, {
-          tags: {
-            component: "InvestorAssetDropdown",
-            operation: "addAsset",
-          },
-          extra: {
-            userId,
-            assetId,
-            existingAssets,
-          },
-        });
-      }
+      // No external error tracking configured
     } finally {
       setIsLoading(false);
     }

@@ -1,3 +1,14 @@
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'profiles'
+  ) THEN
+    RAISE NOTICE 'profiles table missing; skipping policy setup';
+    RETURN;
+  END IF;
+END $$;
+
 -- Migration: Fix RLS infinite recursion URGENTLY
 -- Date: 2025-09-03
 -- This MUST be applied to fix database access

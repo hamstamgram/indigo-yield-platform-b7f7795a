@@ -113,9 +113,11 @@ CREATE TABLE IF NOT EXISTS public.yield_rates (
 ALTER TABLE public.yield_rates ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for yield_rates
+DROP POLICY IF EXISTS "Admins can manage yield rates" ON public.yield_rates;
 CREATE POLICY "Admins can manage yield rates" ON public.yield_rates
   FOR ALL USING (is_admin_v2()) WITH CHECK (is_admin_v2());
 
+DROP POLICY IF EXISTS "All can view yield rates" ON public.yield_rates;
 CREATE POLICY "All can view yield rates" ON public.yield_rates
   FOR SELECT USING (true);
 

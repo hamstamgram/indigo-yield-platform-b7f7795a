@@ -4,7 +4,7 @@ CREATE OR REPLACE FUNCTION public.migrate_legacy_positions()
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 DECLARE
   v_position RECORD;
@@ -164,7 +164,7 @@ CREATE OR REPLACE FUNCTION public.generate_historical_statements()
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 DECLARE
   v_investor RECORD;
@@ -232,7 +232,7 @@ CREATE OR REPLACE FUNCTION public.populate_yield_sources()
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 DECLARE
   v_asset_code TEXT;

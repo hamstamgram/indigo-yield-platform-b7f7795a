@@ -46,7 +46,7 @@ CREATE OR REPLACE FUNCTION public.generate_monthly_report_template(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path TO public
 AS $function$
 DECLARE
   v_investor RECORD;

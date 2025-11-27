@@ -1,4 +1,5 @@
 import { useState } from "react";
+import QRCode from "qrcode";
 
 /**
  * TOTP (Time-Based One-Time Password) Utilities
@@ -94,22 +95,15 @@ export class TOTPUtils {
    * Generate QR code data URL for TOTP setup
    */
   static async generateQRCode(totpUrl: string): Promise<string> {
-    // Using a simple QR code generation approach
-    // In a production app, you might want to use a dedicated QR code library
-    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(totpUrl)}`;
-
+    // Render locally to avoid leaking secrets to third-party QR services
     try {
-      const response = await fetch(qrApiUrl);
-      const blob = await response.blob();
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
+      return await QRCode.toDataURL(totpUrl, {
+        errorCorrectionLevel: "M",
+        margin: 1,
+        width: 256,
       });
     } catch (error) {
-      console.error("Failed to generate QR code:", error);
-      // Fallback: return the URL as text
+      console.error("Failed to generate QR code locally:", error);
       return `data:text/plain;charset=utf-8,${encodeURIComponent(totpUrl)}`;
     }
   }
@@ -290,16 +284,8 @@ export class TOTPUtils {
    * Get client IP address (best effort)
    */
   static async getClientIP(): Promise<string> {
-    try {
-      // This is a best-effort client-side IP detection
-      // In production, IP should be captured server-side
-      const response = await fetch("https://api.ipify.org?format=json");
-      const data = await response.json();
-      return data.ip;
-    } catch (error) {
-      console.warn("Failed to get client IP:", error);
-      return "unknown";
-    }
+    // Avoid client-side IP lookups; collect IP server-side instead
+    return "unknown";
   }
 }
 
