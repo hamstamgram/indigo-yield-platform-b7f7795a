@@ -17,16 +17,18 @@ export interface TransactionSummary {
  */
 export async function getTransactionSummary(): Promise<TransactionSummary> {
   try {
-    const { data, error } = await supabase.from("transactions").select("*");
+    const { data, error } = await supabase.from("transactions_v2").select("*");
 
     if (error) throw error;
 
     const summary = {
       total_transactions: data?.length || 0,
-      total_volume: data?.reduce((sum, tx) => sum + (tx.amount || 0), 0) || 0,
+      total_volume: data?.reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0) || 0,
       pending_count: data?.filter((tx) => tx.status === "pending").length || 0,
-      completed_count: data?.filter((tx) => tx.status === "confirmed").length || 0,
-      failed_count: data?.filter((tx) => tx.status === "failed").length || 0,
+      completed_count:
+        data?.filter((tx) => tx.status === "completed" || tx.status === "approved").length || 0,
+      failed_count:
+        data?.filter((tx) => tx.status === "failed" || tx.status === "rejected").length || 0,
     };
 
     return summary;

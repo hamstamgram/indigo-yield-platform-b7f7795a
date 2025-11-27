@@ -37,18 +37,23 @@ export default function PrivacyTab() {
 
     setExporting(true);
     try {
+      // 1. Get Investor ID
+      const { data: investor } = await supabase
+        .from("investors")
+        .select("id")
+        .eq("profile_id", user.id)
+        .single();
+
+      if (!investor) {
+        throw new Error("Investor profile not found");
+      }
+
       // Gather all user data
       const [profile, investments, transactions, documents] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
-        supabase
-          .from("investments" as any)
-          .select("*")
-          .eq("investor_id", user.id),
-        supabase
-          .from("transactions" as any)
-          .select("*")
-          .eq("user_id", user.id),
-        supabase.from("documents").select("*").eq("user_id", user.id),
+        supabase.from("investor_positions").select("*").eq("investor_id", investor.id),
+        supabase.from("transactions_v2").select("*").eq("investor_id", investor.id),
+        supabase.from("documents").select("*").eq("user_id", user.id), // documents might use user_id or investor_id, check schema. 004 migration added documents with user_id.
       ]);
 
       const exportData = {
