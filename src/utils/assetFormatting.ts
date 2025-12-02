@@ -32,6 +32,7 @@ export const getDecimalsForAsset = (symbol: string): number => {
     USDC: 2,
     USDT: 2,
     EURC: 2,
+    XRP: 6,
   };
 
   return decimals[symbol] || 4;
@@ -60,6 +61,7 @@ export const getAssetDisplayName = (symbol: string): string => {
     USDC: "Tokenized Gold",
     USDT: "Stablecoin Fund",
     EURC: "Euro Coin",
+    XRP: "XRP",
   };
 
   return names[symbol] || symbol;

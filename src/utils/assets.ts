@@ -54,6 +54,14 @@ export const ASSETS: Record<string, AssetConfig> = {
     color: "#3C3C3D",
     decimals: 6,
   },
+  XRP: {
+    symbol: "XRP",
+    name: "XRP",
+    logoUrl:
+      "https://storage.mlcdn.com/account_image/855106/mlmOJ9qsJ3LDZaVyWnIqhffzzem0vIts6bourbHO.png",
+    color: "#00AAE4",
+    decimals: 6,
+  },
 };
 
 // Fallback logo
