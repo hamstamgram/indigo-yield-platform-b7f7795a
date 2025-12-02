@@ -24,7 +24,6 @@ export const Terms = lazy(() => import("@/routes/Terms"));
 export const AdminAuditLogs = lazy(() => import("@/routes/admin/AdminAuditLogs"));
 export const AdminDashboard = lazy(() => import("@/routes/admin/AdminDashboard"));
 export const AdminDepositsPage = lazy(() => import("@/routes/admin/AdminDepositsPage"));
-export const AdminDocumentsPage = lazy(() => import("@/routes/admin/AdminDocumentsPage"));
 export const AdminEmailTrackingPage = lazy(() => import("@/routes/admin/AdminEmailTrackingPage"));
 export const AdminOnboardingPage = lazy(() => import("@/routes/admin/AdminOnboardingPage"));
 export const AdminOperationsHub = lazy(() => import("@/routes/admin/AdminOperationsHub"));
@@ -91,8 +90,6 @@ export const TransactionsPage = lazy(() => import("@/routes/transactions/Transac
 // ============================================================================
 // FEATURE PAGES
 // ============================================================================
-export const DocumentViewerPage = lazy(() => import("@/routes/documents/DocumentViewerPage"));
-export const DocumentsHubPage = lazy(() => import("@/routes/documents/DocumentsHubPage"));
 
 export const NotificationSettingsPage = lazy(
   () => import("@/routes/settings/NotificationSettingsPage")
@@ -208,11 +205,6 @@ export const LazyAdminDashboard = () => (
 export const LazyAdminDeposits = () => (
   <RouteSuspense type="admin">
     <AdminDepositsPage />
-  </RouteSuspense>
-);
-export const LazyAdminDocuments = () => (
-  <RouteSuspense type="admin">
-    <AdminDocumentsPage />
   </RouteSuspense>
 );
 export const LazyAdminEmailTracking = () => (
@@ -415,16 +407,6 @@ export const LazyStatements = () => (
 );
 
 // Feature Pages
-export const LazyDocumentViewer = () => (
-  <RouteSuspense>
-    <DocumentViewerPage />
-  </RouteSuspense>
-);
-export const LazyDocumentsHub = () => (
-  <RouteSuspense>
-    <DocumentsHubPage />
-  </RouteSuspense>
-);
 export const LazyNotificationSettings = () => (
   <RouteSuspense>
     <NotificationSettingsPage />

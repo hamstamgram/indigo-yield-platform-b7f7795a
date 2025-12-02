@@ -62,7 +62,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     { icon: FileText, label: "Statements", path: "/statements" },
     { icon: DollarSign, label: "Transaction History", path: "/transactions" },
     { icon: DollarSign, label: "Withdrawals Request", path: "/withdrawals" }, // Added
-    { icon: FileText, label: "Documents", path: "/documents" },
     { icon: Bell, label: "Notifications", path: "/notifications" },
     { icon: Settings, label: "Account", path: "/account" }, // Changed Account Ultrathink to Account
     { icon: Settings, label: "Settings", path: "/settings" },
@@ -74,7 +73,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     { icon: Users, label: "Investors", path: "/admin/investors" },
     { icon: TrendingUp, label: "Portfolio Management", path: "/admin/portfolio" },
     { icon: DollarSign, label: "Withdrawals", path: "/admin/withdrawals" }, // Explicitly added for clarity, was implicitly in Admin Operations
-    { icon: FileText, label: "Documents", path: "/admin/documents" },
     { icon: HelpCircle, label: "Support", path: "/admin/support" },
     { icon: Settings, label: "Operations", path: "/admin/operations" },
   ];

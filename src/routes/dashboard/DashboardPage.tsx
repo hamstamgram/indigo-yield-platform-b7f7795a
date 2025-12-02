@@ -43,10 +43,10 @@ export default function DashboardPage() {
           realized_pnl,
           current_value,
           cost_basis,
-          funds ( name, asset_symbol, code )
+          funds ( name, asset, code )
         `
         )
-        .eq("investor_id", investors.id);
+        .eq("investor_id", user.id);
 
       if (error) throw error;
 
@@ -54,11 +54,11 @@ export default function DashboardPage() {
       const { data: reports } = await (supabase as any)
         .from("investor_monthly_reports")
         .select("*")
-        .eq("investor_id", investors.id)
+        .eq("investor_id", user.id)
         .order("report_month", { ascending: false });
 
       return positions.map((pos: any) => {
-        const rawAssetCode = (pos.funds?.asset_symbol || pos.funds?.asset || "UNITS").toUpperCase();
+        const rawAssetCode = (pos.funds?.asset || "UNITS").toUpperCase();
         const assetCode = rawAssetCode;
         // Get latest report for this asset to show "This Month's Activity"
         const latestReport = reports?.find((r: any) => r.asset_code === rawAssetCode);

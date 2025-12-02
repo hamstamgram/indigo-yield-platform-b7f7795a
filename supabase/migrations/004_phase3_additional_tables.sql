@@ -13,7 +13,11 @@ CREATE TABLE IF NOT EXISTS public.yield_settings (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 -- Documents table for investor document vault
-CREATE TYPE document_type AS ENUM ('statement', 'notice', 'terms', 'tax', 'other');
+DO $$ BEGIN
+    CREATE TYPE document_type AS ENUM ('statement', 'notice', 'terms', 'tax', 'other');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 CREATE TABLE IF NOT EXISTS public.documents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -41,8 +45,16 @@ CREATE TABLE IF NOT EXISTS public.user_sessions (
     revoked_by UUID REFERENCES auth.users(id)
 );
 -- Notifications table
-CREATE TYPE notification_type AS ENUM ('deposit', 'statement', 'performance', 'system', 'support');
-CREATE TYPE notification_priority AS ENUM ('low', 'medium', 'high');
+DO $$ BEGIN
+    CREATE TYPE notification_type AS ENUM ('deposit', 'statement', 'performance', 'system', 'support');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+DO $$ BEGIN
+    CREATE TYPE notification_priority AS ENUM ('low', 'medium', 'high');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 CREATE TABLE IF NOT EXISTS public.notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -61,7 +73,11 @@ BEGIN
 EXCEPTION 
   WHEN duplicate_object THEN NULL; 
 END $$;
-CREATE TYPE benchmark_type AS ENUM ('BTC', 'ETH', 'STABLE', 'CUSTOM');
+DO $$ BEGIN
+    CREATE TYPE benchmark_type AS ENUM ('BTC', 'ETH', 'STABLE', 'CUSTOM');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 CREATE TABLE IF NOT EXISTS public.fund_configurations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code TEXT UNIQUE NOT NULL,
@@ -78,7 +94,11 @@ CREATE TABLE IF NOT EXISTS public.fund_configurations (
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 -- Access logs table
-CREATE TYPE access_event AS ENUM ('login', 'logout', '2fa_setup', '2fa_verify', 'session_revoked', 'password_change');
+DO $$ BEGIN
+    CREATE TYPE access_event AS ENUM ('login', 'logout', '2fa_setup', '2fa_verify', 'session_revoked', 'password_change');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 CREATE TABLE IF NOT EXISTS public.access_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -90,7 +110,11 @@ CREATE TABLE IF NOT EXISTS public.access_logs (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 -- Secure shares table for portfolio sharing
-CREATE TYPE share_scope AS ENUM ('portfolio', 'documents', 'statement');
+DO $$ BEGIN
+    CREATE TYPE share_scope AS ENUM ('portfolio', 'documents', 'statement');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 CREATE TABLE IF NOT EXISTS public.secure_shares (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     owner_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,

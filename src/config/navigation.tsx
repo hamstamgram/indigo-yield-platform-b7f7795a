@@ -44,7 +44,6 @@ export const activityNav: NavItem[] = [
 
 export const profileAndSettingsNav: NavItem[] = [
   { title: "Settings", href: "/settings", icon: <Settings className="h-5 w-5" /> },
-  { title: "Documents", href: "/documents", icon: <FileText className="h-5 w-5" /> },
   { title: "Account", href: "/account", icon: <User className="h-5 w-5" /> },
 ];
 
@@ -150,22 +149,9 @@ export const adminNavGroups: NavGroup[] = [
     icon: Cog,
     items: [
       {
-        title: "Documents",
-        href: "/admin/documents",
-        icon: <FileText className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "Email Tracking",
-        href: "/admin/email-tracking",
-        icon: <Mail className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "System Health",
-        href: "/admin/system-health",
-        icon: <Activity className="h-5 w-5" />,
-        adminOnly: true,
+        title: "Support",
+        href: "/admin/support",
+        icon: <MessageSquare className="h-4 w-4" />,
       },
     ],
   },

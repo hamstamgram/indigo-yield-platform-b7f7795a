@@ -27,7 +27,6 @@ export function InvestorRoutes() {
     <>
       {CoreInvestorRoutes()}
       {PortfolioRoutes()}
-      {DocumentRoutes()}
       {ReportsRoutes()}
     </>
   );

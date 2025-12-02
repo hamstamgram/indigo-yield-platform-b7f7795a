@@ -298,13 +298,6 @@ function AdminOperationsHubContent() {
       icon: HelpCircle,
       category: "Request Management",
     },
-    {
-      title: "Document Requests",
-      description: "Handle document uploads and requests",
-      href: "/admin/documents",
-      icon: FileText,
-      category: "Request Management",
-    },
 
     // Reports & Analytics
     {

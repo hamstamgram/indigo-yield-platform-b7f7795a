@@ -68,7 +68,7 @@ BEGIN
     SELECT DISTINCT p.id
     FROM public.profiles p
     JOIN public.investors i ON i.profile_id = p.id
-    WHERE p.role = 'investor'
+    WHERE p.user_type = 'investor'
       AND i.status = 'active'
   LOOP
     -- Insert notification

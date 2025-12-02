@@ -137,13 +137,6 @@ function AdminDashboardContent() {
       badge: stats.pendingWithdrawals > 0 ? stats.pendingWithdrawals : undefined,
     },
     {
-      title: "Documents",
-      description: "Review pending documents",
-      href: "/admin/documents",
-      icon: FileText,
-      color: "text-purple-500",
-    },
-    {
       title: "Compliance",
       description: "KYC/AML oversight",
       href: "/admin/compliance",
@@ -256,9 +249,6 @@ function AdminDashboardContent() {
           </CardContent>
         </Card>
       </div>
-      import FundAUMManager from "@/components/admin/funds/FundAUMManager"; import{" "}
-      {FundPerformanceHistory} from "@/components/admin/funds/FundPerformanceHistory"; // ...
-      existing imports ... // ... inside AdminDashboardContent ...
       {/* Operational Grid */}
       <div>
         <h2 className="text-xl font-display font-bold mb-4 tracking-tight">Operational Tools</h2>

@@ -163,11 +163,11 @@ export function WithdrawalRequestForm({
       if (insertError) throw insertError;
 
       // 5. Log Audit Event
-      await supabase.from("audit_logs").insert({
-        user_id: user.id,
+      await supabase.from("audit_log").insert({
+        actor_user: user.id,
         action: "WITHDRAWAL_REQUEST_CREATED",
-        resource_type: "withdrawal_requests",
-        resource_id: request.id,
+        entity: "withdrawal_requests",
+        entity_id: request.id,
         details: {
           amount: data.amount,
           asset: data.assetCode,

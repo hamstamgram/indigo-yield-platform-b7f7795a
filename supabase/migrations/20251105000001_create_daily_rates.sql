@@ -52,7 +52,7 @@ CREATE POLICY "Admins can manage daily rates"
     EXISTS (
       SELECT 1 FROM public.profiles
       WHERE profiles.id = auth.uid()
-      AND profiles.role = 'admin'
+      AND profiles.is_admin = true
     )
   );
 
@@ -64,7 +64,7 @@ CREATE POLICY "Investors can view daily rates"
     EXISTS (
       SELECT 1 FROM public.profiles
       WHERE profiles.id = auth.uid()
-      AND profiles.role = 'investor'
+      AND profiles.user_type = 'investor'
     )
   );
 
