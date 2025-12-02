@@ -79,6 +79,22 @@
       "rotate_required": true
     }
   ],
+  "feature_variables": [
+    {
+      "name": "VITE_AIRTABLE_API_KEY",
+      "value": "PLACEHOLDER_AIRTABLE_API_KEY",
+      "secret": true,
+      "description": "Airtable Personal Access Token",
+      "priority": "MEDIUM"
+    },
+    {
+      "name": "VITE_AIRTABLE_BASE_ID",
+      "value": "PLACEHOLDER_AIRTABLE_BASE_ID",
+      "secret": false,
+      "description": "Airtable Base ID",
+      "priority": "MEDIUM"
+    }
+  ],
   "instructions": {
     "step1": "Replace all PLACEHOLDER values with actual rotated credentials",
     "step2": "Verify 'secret': true variables are marked as SECRET in Lovable dashboard",

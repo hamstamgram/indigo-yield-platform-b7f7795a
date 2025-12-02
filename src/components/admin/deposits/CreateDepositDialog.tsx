@@ -52,6 +52,20 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
     enabled: open,
   });
 
+  // Fetch funds to avoid free-text symbols
+  const { data: funds } = useQuery({
+    queryKey: ["funds-for-deposits"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("funds")
+        .select("id, name, asset_symbol")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: open,
+  });
+
   const createMutation = useMutation({
     mutationFn: (data: DepositFormData) => depositService.createDeposit(data),
     onSuccess: () => {
@@ -112,15 +126,22 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="asset_symbol">Asset Symbol *</Label>
-              <Input
-                id="asset_symbol"
+              <Label htmlFor="asset_symbol">Fund / Asset *</Label>
+              <Select
                 value={formData.asset_symbol}
-                onChange={(e) => setFormData({ ...formData, asset_symbol: e.target.value })}
-                placeholder="e.g., BTC, ETH, USDT"
-                required
-                maxLength={10}
-              />
+                onValueChange={(value) => setFormData({ ...formData, asset_symbol: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a fund" />
+                </SelectTrigger>
+                <SelectContent>
+                  {funds?.map((fund) => (
+                    <SelectItem key={fund.id} value={(fund.asset_symbol || "").toUpperCase()}>
+                      {fund.name} ({(fund.asset_symbol || "").toUpperCase()})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">

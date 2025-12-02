@@ -69,7 +69,7 @@ const AdminYieldRates = () => {
             const asset = assetsData?.find((a) => a.id === rate.asset_id);
             return {
               ...rate,
-              asset_symbol: asset?.symbol || "",
+              asset_symbol: (asset?.symbol || "").toUpperCase(),
               asset_name: asset?.name || "",
             };
           });
@@ -79,7 +79,7 @@ const AdminYieldRates = () => {
           const defaultRates = assetsData?.map((asset) => ({
             id: "", // Empty as it doesn't exist in DB yet
             asset_id: asset.id,
-            asset_symbol: asset.symbol,
+            asset_symbol: (asset.symbol || "").toUpperCase(),
             asset_name: asset.name,
             daily_yield_percentage: 0,
             date: today,

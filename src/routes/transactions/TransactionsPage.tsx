@@ -94,9 +94,9 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-6 p-4 md:p-8">
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Transactions</h1>
+          <h1 className="text-3xl font-bold">Transaction History</h1>
           <p className="text-muted-foreground">View your transaction history</p>
         </div>
       </div>

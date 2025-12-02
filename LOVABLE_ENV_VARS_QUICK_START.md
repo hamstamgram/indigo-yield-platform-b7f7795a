@@ -38,11 +38,12 @@ grep -r 'PLACEHOLDER' config/lovable-env-vars.json
 
 ### Step 3: Add to Lovable Dashboard
 1. Go to **Lovable Project Settings** → **Environment Variables**
-2. Add all 10 variables from the config file
+2. Add all 12 variables from the config file
 3. For each variable, copy the exact value from `config/lovable-env-vars.json`
 4. Mark these as SECRET in Lovable (use secret toggle):
    - `SUPABASE_SERVICE_ROLE_KEY`
    - `POSTHOG_API_KEY`
+   - `VITE_AIRTABLE_API_KEY`
 
 ### Step 4: Deploy
 1. Trigger deployment from Lovable dashboard
@@ -77,6 +78,12 @@ After successful first deployment:
 | `VITE_POSTHOG_KEY` | Public | Frontend analytics (rotate!) |
 | `VITE_POSTHOG_HOST` | Public | Analytics host URL |
 | `POSTHOG_API_KEY` | **SECRET** | Backend analytics (rotate!) |
+
+### Feature Variables (2)
+| Variable | Type | Purpose |
+|----------|------|---------|
+| `VITE_AIRTABLE_API_KEY` | **SECRET** | Investor onboarding sync |
+| `VITE_AIRTABLE_BASE_ID` | Public | Airtable Base identifier |
 
 ---
 
@@ -114,7 +121,7 @@ After successful first deployment:
 # Check no PLACEHOLDER values remain
 grep -r 'PLACEHOLDER' config/lovable-env-vars.json
 
-# Count variables (should be 10)
+# Count variables (should be 12)
 grep '"name":' config/lovable-env-vars.json | wc -l
 
 # Verify not tracked by git
@@ -146,6 +153,11 @@ python3 -m json.tool config/lovable-env-vars.json > /dev/null && echo "Valid JSO
 - Verify `VITE_POSTHOG_KEY` matches PostHog project
 - Check `VITE_POSTHOG_HOST` is reachable
 - Verify in browser Network tab for failed requests
+
+### Airtable sync failing
+- Verify `VITE_AIRTABLE_API_KEY` has read permissions
+- Verify `VITE_AIRTABLE_BASE_ID` is correct
+- Check console logs for sync errors
 
 ---
 

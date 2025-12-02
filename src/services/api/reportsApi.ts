@@ -1,13 +1,6 @@
-/**
- * Reports API Service
- * Handles all report-related API calls
- * NOTE: This file uses database tables (report_definitions, generated_reports, etc.)
- * that may not exist yet. Keeping type-safe by importing from generated types.
- */
-
 import { supabase } from "@/integrations/supabase/client";
 import {
-  // ReportEngineLazy, // TODO: Uncomment when reportEngine module is implemented
+  ReportEngineLazy,
   generatePDFReportLazy,
   generateExcelReportLazy,
 } from "./reportsApi.lazy";
@@ -77,15 +70,10 @@ export class ReportsApi {
 
   /**
    * Generate a report
-   * TODO: Implement when reportEngine module is available
    */
-  static async generateReport(_request: GenerateReportRequest): Promise<GenerateReportResponse> {
-    // TODO: Use lazy-loaded ReportEngine to handle generation
-    // return await ReportEngineLazy.generateReport(request);
-    return {
-      success: false,
-      error: "Report generation not yet implemented - ReportEngine module pending",
-    };
+  static async generateReport(request: GenerateReportRequest): Promise<GenerateReportResponse> {
+    // Use lazy-loaded ReportEngine to handle generation
+    return await ReportEngineLazy.generateReport(request);
   }
 
   /**
@@ -104,37 +92,13 @@ export class ReportsApi {
         return { success: false, error: "User not authenticated" };
       }
 
-      // Fetch actual transaction data for the report
-      // TODO: Use lazy-loaded ReportEngine for PDF/Excel when available
-      // For now, fetch directly for CSV/JSON
-
-      const { data: transactions } = await supabase
-        .from("transactions_v2")
-        .select("*")
-        // Filter by user - assumes profile_id = user_id link in investors table or direct link
-        // We need to find the investor_id for this user first
-        // This is a bit hacky but works for the "Now" generation
-        .order("tx_date", { ascending: false });
-
-      // Filter locally if needed or improve query if we had the investor_id handy
-      // Let's assume we want all transactions for the user's investor profile(s)
-
-      // Temporary placeholder data until ReportEngine is implemented
-      const reportData: any = {
-        title: `${request.reportType} Report`,
-        reportPeriod: {
-          startDate: request.filters?.dateFrom || new Date().toISOString(),
-          endDate: request.filters?.dateTo || new Date().toISOString(),
-        },
-        generatedDate: new Date().toISOString(),
-        summary: {
-          message: "Generated from live data",
-          status: "completed",
-          totalTransactions: transactions?.length || 0,
-        },
-        reportType: request.reportType,
-        transactions: transactions || [],
-      };
+      // Fetch report data using the engine
+      const reportData = await ReportEngineLazy.fetchReportData(
+        user.id,
+        request.reportType,
+        request.filters || {},
+        request.parameters || {}
+      );
 
       // Generate based on format (all lazy loaded)
       if (request.format === "pdf") {

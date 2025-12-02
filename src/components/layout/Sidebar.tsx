@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Search, ChevronDown, ChevronRight } from "lucide-react";
+import { X, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import NavSection from "@/components/sidebar/NavSection";
 import UserProfile from "@/components/sidebar/UserProfile";
 import LogoutButton from "@/components/sidebar/LogoutButton";
 import { adminNavGroups, mainNav } from "@/config/navigation";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { NavItem } from "@/types/navigation";
@@ -23,7 +22,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
 
   const [userName, setUserName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [expandedGroups, setExpandedGroups] = useState<string[]>(["Main"]);
+  // Removed expandedGroups state as we want everything open by default
   const navigate = useNavigate();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -62,13 +61,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
   const filteredMainNav = isAdmin
     ? [] // Admins don't need the regular main nav
     : mainNav;
-
-  // Toggle group expansion
-  const toggleGroup = (groupName: string) => {
-    setExpandedGroups((prev) =>
-      prev.includes(groupName) ? prev.filter((name) => name !== groupName) : [...prev, groupName]
-    );
-  };
 
   // Filter navigation items based on search
   const filterNavItems = (items: NavItem[], query: string) => {
@@ -196,45 +188,29 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
 
           {/* Nav */}
           <nav className="flex-1 px-4 py-6 overflow-y-auto" role="menu">
-            {/* Admin Navigation - Grouped and collapsible */}
+            {/* Admin Navigation - Always expanded */}
             {isAdmin &&
               adminNavGroups.map((group) => {
                 const filteredItems = filterNavItems(group.items, searchQuery);
                 if (filteredItems.length === 0) return null;
-                const isExpanded = expandedGroups.includes(group.title);
-                return (
-                  <div key={group.title} className="mb-4">
-                    <Button
-                      variant="ghost"
-                      onClick={() => toggleGroup(group.title)}
-                      className="w-full justify-between p-2 h-auto text-left bg-sidebar-accent/50 hover:bg-sidebar-accent text-sidebar-foreground mb-2"
-                      aria-expanded={isExpanded}
-                      aria-controls={`nav-group-${group.title}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {group.icon && <group.icon className="h-4 w-4" />}
-                        <span className="font-medium">{group.title}</span>
-                        <span className="text-xs bg-sidebar-primary text-sidebar-primary-foreground px-1.5 py-0.5 rounded">
-                          {filteredItems.length}
-                        </span>
-                      </div>
-                      {isExpanded ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
-                    </Button>
 
-                    {isExpanded && (
-                      <div id={`nav-group-${group.title}`} className="ml-2">
-                        <NavSection
-                          title=""
-                          items={filteredItems}
-                          onItemClick={handleNavigationClick}
-                          showTitle={false}
-                        />
+                return (
+                  <div key={group.title} className="mb-6">
+                    <div className="w-full flex items-center justify-between px-2 py-1.5 mb-1 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider">
+                      <div className="flex items-center gap-2">
+                        {group.icon && <group.icon className="h-3 w-3" />}
+                        <span>{group.title}</span>
                       </div>
-                    )}
+                    </div>
+
+                    <div id={`nav-group-${group.title}`} className="ml-0">
+                      <NavSection
+                        title=""
+                        items={filteredItems}
+                        onItemClick={handleNavigationClick}
+                        showTitle={false}
+                      />
+                    </div>
                   </div>
                 );
               })}
@@ -245,8 +221,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                 title="Main"
                 items={filteredMainNav}
                 onItemClick={handleNavigationClick}
-                isExpanded={expandedGroups.includes("Main")}
-                onToggle={() => toggleGroup("Main")}
+                isExpanded={true}
               />
             )}
 
@@ -256,8 +231,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                 title="Settings"
                 items={settingsNav}
                 onItemClick={handleNavigationClick}
-                isExpanded={expandedGroups.includes("Settings")}
-                onToggle={() => toggleGroup("Settings")}
+                isExpanded={true}
               />
             )}
 
@@ -266,8 +240,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
               title="Account"
               items={accountNav}
               onItemClick={handleNavigationClick}
-              isExpanded={expandedGroups.includes("Account")}
-              onToggle={() => toggleGroup("Account")}
+              isExpanded={true}
             />
 
             {/* Logout Button */}

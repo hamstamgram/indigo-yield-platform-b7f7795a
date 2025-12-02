@@ -5,7 +5,6 @@
 -- Enable extensions for encryption
 -- Using pgcrypto for encryption functions
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
 -- Note: TOTP secrets will be encrypted using pgcrypto functions
 -- The application layer should handle encryption/decryption using a secure key
 
@@ -44,7 +43,6 @@ CREATE TABLE IF NOT EXISTS user_totp_settings (
     
     UNIQUE(user_id)
 );
-
 -- TOTP Backup Codes table
 -- Stores hashed backup codes for account recovery
 CREATE TABLE IF NOT EXISTS user_totp_backup_codes (
@@ -62,7 +60,6 @@ CREATE TABLE IF NOT EXISTS user_totp_backup_codes (
     
     UNIQUE(user_id, code_hash)
 );
-
 -- Enhanced Access Logs table (extends existing functionality)
 -- This will replace/enhance the existing access_logs table
 CREATE TABLE IF NOT EXISTS user_access_logs_enhanced (
@@ -104,7 +101,6 @@ CREATE TABLE IF NOT EXISTS user_access_logs_enhanced (
     -- Timestamps
     created_at TIMESTAMPTZ DEFAULT now()
 );
-
 -- System-wide 2FA enforcement settings
 -- Allows admins to configure 2FA requirements
 CREATE TABLE IF NOT EXISTS system_2fa_policy (
@@ -127,38 +123,29 @@ CREATE TABLE IF NOT EXISTS system_2fa_policy (
     updated_at TIMESTAMPTZ DEFAULT now(),
     updated_by UUID REFERENCES auth.users(id)
 );
-
 -- Insert default 2FA policy
 INSERT INTO system_2fa_policy (require_2fa_for_admins, require_2fa_for_investors)
 SELECT FALSE, FALSE
 WHERE NOT EXISTS (SELECT 1 FROM system_2fa_policy);
-
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_user_totp_settings_user_id ON user_totp_settings(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_totp_settings_enabled ON user_totp_settings(enabled) WHERE enabled = TRUE;
-
 CREATE INDEX IF NOT EXISTS idx_totp_backup_codes_user_id ON user_totp_backup_codes(user_id);
 CREATE INDEX IF NOT EXISTS idx_totp_backup_codes_used ON user_totp_backup_codes(used_at) WHERE used_at IS NULL;
-
 CREATE INDEX IF NOT EXISTS idx_access_logs_enhanced_user_id ON user_access_logs_enhanced(user_id);
 CREATE INDEX IF NOT EXISTS idx_access_logs_enhanced_created_at ON user_access_logs_enhanced(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_access_logs_enhanced_event ON user_access_logs_enhanced(event);
 CREATE INDEX IF NOT EXISTS idx_access_logs_enhanced_ip ON user_access_logs_enhanced(ip_address);
-
 -- RLS Policies
 
 -- TOTP Settings: Users can only see their own settings
 ALTER TABLE user_totp_settings ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY "Users can view their own TOTP settings" ON user_totp_settings
     FOR SELECT USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can insert their own TOTP settings" ON user_totp_settings
     FOR INSERT WITH CHECK (auth.uid() = user_id);
-
 CREATE POLICY "Users can update their own TOTP settings" ON user_totp_settings
     FOR UPDATE USING (auth.uid() = user_id);
-
 CREATE POLICY "Admins can view all TOTP settings" ON user_totp_settings
     FOR ALL USING (
         EXISTS (
@@ -167,27 +154,21 @@ CREATE POLICY "Admins can view all TOTP settings" ON user_totp_settings
             AND profiles.is_admin = TRUE
         )
     );
-
 -- Backup Codes: Users can only see their own codes
 ALTER TABLE user_totp_backup_codes ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY "Users can view their own backup codes" ON user_totp_backup_codes
     FOR SELECT USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can insert their own backup codes" ON user_totp_backup_codes
     FOR INSERT WITH CHECK (auth.uid() = user_id);
-
 CREATE POLICY "Users can update their own backup codes" ON user_totp_backup_codes
     FOR UPDATE USING (auth.uid() = user_id);
-
 -- Access Logs: Users can see their own, admins can see all
 ALTER TABLE user_access_logs_enhanced ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY "Users can view their own access logs" ON user_access_logs_enhanced
     FOR SELECT USING (auth.uid() = user_id);
-
 CREATE POLICY "System can insert access logs" ON user_access_logs_enhanced
-    FOR INSERT WITH CHECK (TRUE); -- Allow Edge Functions to insert logs
+    FOR INSERT WITH CHECK (TRUE);
+-- Allow Edge Functions to insert logs
 
 CREATE POLICY "Admins can view all access logs" ON user_access_logs_enhanced
     FOR ALL USING (
@@ -197,10 +178,8 @@ CREATE POLICY "Admins can view all access logs" ON user_access_logs_enhanced
             AND profiles.is_admin = TRUE
         )
     );
-
 -- System policy: Only admins can read/update
 ALTER TABLE system_2fa_policy ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY "Admins can manage 2FA policy" ON system_2fa_policy
     FOR ALL USING (
         EXISTS (
@@ -209,7 +188,6 @@ CREATE POLICY "Admins can manage 2FA policy" ON system_2fa_policy
             AND profiles.is_admin = TRUE
         )
     );
-
 -- Utility functions for TOTP management
 
 -- Function to encrypt TOTP secret
@@ -245,7 +223,6 @@ EXCEPTION
         RETURN pgp_sym_encrypt(secret_text, 'totp_master_key_fallback');
 END;
 $$;
-
 -- Function to decrypt TOTP secret (SECURITY DEFINER - only callable by server)
 CREATE OR REPLACE FUNCTION decrypt_totp_secret(encrypted_secret BYTEA)
 RETURNS TEXT
@@ -282,7 +259,6 @@ EXCEPTION
         RETURN pgp_sym_decrypt(encrypted_secret, 'totp_master_key_fallback');
 END;
 $$;
-
 -- Function to log access events
 CREATE OR REPLACE FUNCTION log_access_event(
     p_user_id UUID,
@@ -311,7 +287,6 @@ BEGIN
     RETURN log_id;
 END;
 $$;
-
 -- Function to check if 2FA is required for a user
 CREATE OR REPLACE FUNCTION is_2fa_required(p_user_id UUID)
 RETURNS BOOLEAN
@@ -353,7 +328,6 @@ BEGIN
     RETURN FALSE;
 END;
 $$;
-
 -- Trigger to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER
@@ -364,22 +338,18 @@ BEGIN
     RETURN NEW;
 END;
 $$;
-
 -- Apply the trigger to relevant tables
 CREATE TRIGGER update_totp_settings_updated_at
     BEFORE UPDATE ON user_totp_settings
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 CREATE TRIGGER update_2fa_policy_updated_at
     BEFORE UPDATE ON system_2fa_policy
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 -- Comments for documentation
 COMMENT ON TABLE user_totp_settings IS 'TOTP configuration and encrypted secrets for users';
 COMMENT ON TABLE user_totp_backup_codes IS 'Hashed backup codes for 2FA recovery';
 COMMENT ON TABLE user_access_logs_enhanced IS 'Enhanced access logs with 2FA tracking and geolocation';
 COMMENT ON TABLE system_2fa_policy IS 'System-wide 2FA enforcement policies';
-
 COMMENT ON FUNCTION encrypt_totp_secret(TEXT) IS 'Encrypts TOTP secret using master key';
 COMMENT ON FUNCTION decrypt_totp_secret(BYTEA) IS 'Decrypts TOTP secret - SECURITY DEFINER only';
 COMMENT ON FUNCTION log_access_event(UUID, TEXT, INET, TEXT, BOOLEAN, TEXT, JSONB) IS 'Logs user access events with context';

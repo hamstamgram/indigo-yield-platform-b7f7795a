@@ -1,5 +1,5 @@
 import React from "react";
-import { getTotpStatus, initTotp, verifyTotp, disableTotp } from "../../server/mfa";
+import { getTotpStatus, initTotp, verifyTotp, disableTotp } from "@/services/auth/mfaService";
 
 type State = {
   status: "disabled" | "pending" | "enabled";

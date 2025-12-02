@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS public.system_config (
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   updated_by UUID REFERENCES public.profiles(id)
 );
-
 -- Insert default configuration
 INSERT INTO public.system_config (key, value, description) VALUES
   ('excel_import_enabled', 'true'::jsonb, 'Controls whether Excel imports are allowed'),
@@ -20,7 +19,6 @@ INSERT INTO public.system_config (key, value, description) VALUES
   ('maintenance_mode', 'false'::jsonb, 'Enables maintenance mode for the platform'),
   ('allowed_fund_classes', '["USDT","USDC","EURC","BTC","ETH","SOL"]'::jsonb, 'List of allowed fund classes')
 ON CONFLICT (key) DO NOTHING;
-
 -- ========================================
 -- Import Lock Table
 -- ========================================
@@ -35,7 +33,6 @@ CREATE TABLE IF NOT EXISTS public.import_locks (
   unlocked_at TIMESTAMPTZ,
   is_active BOOLEAN DEFAULT TRUE
 );
-
 -- ========================================
 -- Data Edit Audit Table
 -- ========================================
@@ -53,7 +50,6 @@ CREATE TABLE IF NOT EXISTS public.data_edit_audit (
   edited_at TIMESTAMPTZ DEFAULT NOW(),
   edit_source TEXT CHECK (edit_source IN ('excel_import', 'manual', 'api', 'system'))
 );
-
 -- ========================================
 -- Functions for cutover control
 -- ========================================
@@ -69,7 +65,6 @@ BEGIN
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- Function to check if data is within edit window
 CREATE OR REPLACE FUNCTION public.is_within_edit_window(p_created_at TIMESTAMPTZ) 
 RETURNS BOOLEAN AS $$
@@ -83,7 +78,6 @@ BEGIN
   RETURN (NOW() - p_created_at) < (v_window_days || ' days')::INTERVAL;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- Function to lock imports (admin only)
 CREATE OR REPLACE FUNCTION public.lock_imports(p_reason TEXT DEFAULT 'Manual lock') 
 RETURNS UUID AS $$
@@ -119,7 +113,6 @@ BEGIN
   RETURN v_lock_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- Function to unlock imports (admin only)
 CREATE OR REPLACE FUNCTION public.unlock_imports() 
 RETURNS BOOLEAN AS $$
@@ -149,7 +142,6 @@ BEGIN
   RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ========================================
 -- Trigger for audit logging
 -- ========================================
@@ -197,7 +189,6 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- Apply audit triggers to critical tables
 DO $$
 DECLARE
@@ -220,7 +211,6 @@ BEGIN
     ', tbl, tbl);
   END LOOP;
 END $$;
-
 -- ========================================
 -- View for import status
 -- ========================================
@@ -232,21 +222,18 @@ SELECT
   (SELECT locked_at FROM public.import_locks WHERE is_active = TRUE ORDER BY locked_at DESC LIMIT 1) as last_lock_time,
   (SELECT COUNT(*) FROM public.excel_import_log WHERE status = 'completed') as successful_imports,
   (SELECT MAX(completed_at) FROM public.excel_import_log WHERE status = 'completed') as last_import_time;
-
 -- ========================================
 -- Create indexes
 -- ========================================
 CREATE INDEX IF NOT EXISTS idx_import_locks_active ON public.import_locks(is_active) WHERE is_active = TRUE;
 CREATE INDEX IF NOT EXISTS idx_data_edit_audit_table ON public.data_edit_audit(table_name, edited_at DESC);
 CREATE INDEX IF NOT EXISTS idx_data_edit_audit_import ON public.data_edit_audit(import_id) WHERE import_id IS NOT NULL;
-
 -- ========================================
 -- RLS Policies
 -- ========================================
 ALTER TABLE public.system_config ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.import_locks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.data_edit_audit ENABLE ROW LEVEL SECURITY;
-
 -- System config - admins only
 CREATE POLICY "system_config_admin_all" ON public.system_config
   FOR ALL
@@ -256,7 +243,6 @@ CREATE POLICY "system_config_admin_all" ON public.system_config
       WHERE id = auth.uid() AND is_admin = TRUE
     )
   );
-
 -- Import locks - admins only
 CREATE POLICY "import_locks_admin_all" ON public.import_locks
   FOR ALL
@@ -266,7 +252,6 @@ CREATE POLICY "import_locks_admin_all" ON public.import_locks
       WHERE id = auth.uid() AND is_admin = TRUE
     )
   );
-
 -- Data audit - admins can see all, users can see their own
 CREATE POLICY "data_edit_audit_select" ON public.data_edit_audit
   FOR SELECT
@@ -277,7 +262,6 @@ CREATE POLICY "data_edit_audit_select" ON public.data_edit_audit
       WHERE id = auth.uid() AND is_admin = TRUE
     )
   );
-
 -- ========================================
 -- Grant permissions
 -- ========================================
@@ -286,7 +270,6 @@ GRANT EXECUTE ON FUNCTION public.is_import_enabled() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_within_edit_window(TIMESTAMPTZ) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.lock_imports(TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.unlock_imports() TO authenticated;
-
 COMMENT ON TABLE public.system_config IS 'System-wide configuration parameters';
 COMMENT ON TABLE public.import_locks IS 'Tracks when and why Excel imports were locked';
 COMMENT ON TABLE public.data_edit_audit IS 'Comprehensive audit trail for all data modifications';

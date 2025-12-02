@@ -11,6 +11,7 @@ BEGIN;
 
 -- Drop existing permissive policy
 DROP POLICY IF EXISTS "audit_log_insert_policy" ON public.audit_log;
+DROP POLICY IF EXISTS "audit_log_insert_secure" ON public.audit_log;
 
 -- Create secure policy: actor_user must match authenticated user
 CREATE POLICY "audit_log_insert_secure" ON public.audit_log
@@ -127,7 +128,7 @@ ON public.access_logs(user_id, created_at DESC);
 DO $$
 BEGIN
     RAISE NOTICE 'Fix 3: Email lookup indexes created successfully';
-    RAISE NOTICE 'Expected performance improvement: 50-90% on email queries';
+    RAISE NOTICE 'Expected performance improvement: 50-90%% on email queries';
 END $$;
 
 COMMIT;

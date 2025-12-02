@@ -54,3 +54,7 @@ gitleaks-report.json
 gitleaks-report.csv
 security-scan-results/
 *-security-report.*
+
+# Test artifacts
+test-results/
+test-reports/playwright/

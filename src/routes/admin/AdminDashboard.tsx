@@ -80,10 +80,10 @@ function AdminDashboardContent() {
   const loadAdminStats = async () => {
     try {
       const investorsResult = await (supabase as any).from("investors").select("id, status");
+      // investor_positions does not expose a status column; count all positions
       const positionsResult = await (supabase as any)
         .from("investor_positions")
-        .select("id, status")
-        .eq("status", "active");
+        .select("investor_id, fund_id");
       const withdrawalsResult = await (supabase as any)
         .from("withdrawal_requests")
         .select("id")
@@ -194,7 +194,6 @@ function AdminDashboardContent() {
           System Operational
         </div>
       </div>
-
       {/* High Contrast Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="dashboard-card border-0 shadow-lg bg-card">
@@ -257,7 +256,9 @@ function AdminDashboardContent() {
           </CardContent>
         </Card>
       </div>
-
+      import FundAUMManager from "@/components/admin/funds/FundAUMManager"; import{" "}
+      {FundPerformanceHistory} from "@/components/admin/funds/FundPerformanceHistory"; // ...
+      existing imports ... // ... inside AdminDashboardContent ...
       {/* Operational Grid */}
       <div>
         <h2 className="text-xl font-display font-bold mb-4 tracking-tight">Operational Tools</h2>
@@ -284,6 +285,18 @@ function AdminDashboardContent() {
               </Card>
             </Link>
           ))}
+        </div>
+      </div>
+      {/* Fund Management Section */}
+      <div className="space-y-6">
+        <h2 className="text-xl font-display font-bold tracking-tight">Fund Management</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="lg:col-span-2">
+            <FundAUMManager />
+          </div>
+          <div className="lg:col-span-2">
+            <FundPerformanceHistory />
+          </div>
         </div>
       </div>
     </div>

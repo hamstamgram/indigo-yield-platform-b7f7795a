@@ -7,7 +7,6 @@
 UPDATE public.profiles 
 SET is_admin = TRUE, updated_at = NOW()
 WHERE email = 'hammadou@indigo.fund' AND is_admin = FALSE;
-
 -- Log this action in the audit log
 INSERT INTO public.audit_log (action, entity, entity_id, new_values, meta)
 SELECT 
@@ -18,7 +17,6 @@ SELECT
   jsonb_build_object('email', p.email, 'granted_by', 'system_migration', 'migration_version', '009')
 FROM public.profiles p 
 WHERE p.email = 'hammadou@indigo.fund';
-
 -- Ensure we updated exactly one row (the user should exist)
 DO $$
 BEGIN

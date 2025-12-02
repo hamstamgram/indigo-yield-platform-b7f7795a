@@ -34,9 +34,52 @@ export async function fetchTransactions(filter: TransactionFilter = {}): Promise
   count: number;
 }> {
   try {
-    const { data, error, count } = await supabase
-      .from("transactions_v2")
-      .select("*", { count: "exact" })
+    let query = supabase.from("transactions_v2").select("*", { count: "exact" });
+
+    // Apply filters
+
+    // 1. User Filter (Resolve profile_id -> investor_id)
+    if (filter.userId) {
+      // We need to look up the investor_id for this profile_id
+      // Since we can't do a join filter easily on the same query if we want to filter by the *foreign* key's property without !inner logic
+      // Let's try !inner join
+      query = query.eq("investors.profile_id", filter.userId);
+      // NOTE: This assumes relationship transactions_v2 -> investors -> profiles exists and is named correctly.
+      // In Supabase, this is usually: .select("*, investors!inner(*)")
+      // But that changes the return shape.
+
+      // Safer approach: fetch investor_id first if userId is provided
+      const { data: investor } = await supabase
+        .from("investors")
+        .select("id")
+        .eq("profile_id", filter.userId)
+        .maybeSingle();
+      if (investor) {
+        query = query.eq("investor_id", investor.id);
+      } else {
+        // If no investor profile found, return empty (assuming filter.userId was mandatory)
+        // If it was just a hint, we might proceed? No, safety first.
+        return { data: [], count: 0 };
+      }
+    }
+
+    if (filter.txnType) {
+      query = query.eq("type", filter.txnType);
+    }
+
+    if (filter.assetId) {
+      query = query.eq("asset", filter.assetId); // Assuming assetId is the symbol
+    }
+
+    if (filter.startDate) {
+      query = query.gte("created_at", filter.startDate);
+    }
+
+    if (filter.endDate) {
+      query = query.lte("created_at", filter.endDate);
+    }
+
+    const { data, error, count } = await query
       .order("created_at", { ascending: false })
       .limit(filter.limit || 50);
 

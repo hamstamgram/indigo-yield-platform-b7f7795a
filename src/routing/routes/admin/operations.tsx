@@ -10,7 +10,6 @@ import { AdminRoute } from "../../AdminRoute";
 const AdminRequestsQueuePage = lazy(() => import("@/routes/admin/AdminRequestsQueuePage"));
 const AdminStatementsPage = lazy(() => import("@/routes/admin/AdminStatementsPage"));
 const AdminDocumentsPage = lazy(() => import("@/routes/admin/AdminDocumentsPage"));
-const AdminWithdrawalsPage = lazy(() => import("@/routes/admin/AdminWithdrawalsPage"));
 const MonthlyDataEntry = lazy(() => import("@/routes/admin/MonthlyDataEntry"));
 const DailyRatesManagement = lazy(() => import("@/routes/admin/DailyRatesManagement"));
 const InvestorReports = lazy(() => import("@/routes/admin/InvestorReports"));
@@ -79,14 +78,6 @@ export function OperationsRoutes() {
         element={
           <AdminRoute>
             <AdminDocumentsPage />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/admin/withdrawals"
-        element={
-          <AdminRoute>
-            <AdminWithdrawalsPage />
           </AdminRoute>
         }
       />

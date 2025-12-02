@@ -19,14 +19,22 @@ export default function PortfolioAnalyticsPage() {
   const fetchAnalytics = async () => {
     try {
       const { data } = await supabase
-        .from("fund_configurations")
+        .from("funds")
         .select("*")
         .order("created_at", { ascending: false });
 
       if (data) {
-        const mappedData = data.map((item) => ({
-          ...item,
+        const mappedData = data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          code: item.code,
+          currency: (item.asset_symbol || item.asset || "USD").toUpperCase(),
           status: item.status === "suspended" ? "inactive" : item.status,
+          mgmt_fee_bps: item.mgmt_fee_bps || 0,
+          perf_fee_bps: item.perf_fee_bps || 0,
+          benchmark: item.strategy || "Standard", // Map strategy to benchmark for display
+          created_at: item.created_at,
+          updated_at: item.updated_at,
         })) as FundConfiguration[];
         setFundConfigs(mappedData);
       }
@@ -144,7 +152,7 @@ export default function PortfolioAnalyticsPage() {
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Code: {fund.code} | Currency: {fund.currency} | Benchmark: {fund.benchmark}
+                    Code: {fund.code} | Currency: {fund.currency} | Strategy: {fund.benchmark}
                   </p>
                 </div>
                 <div className="text-right">

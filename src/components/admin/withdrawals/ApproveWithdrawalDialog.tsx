@@ -74,7 +74,8 @@ export function ApproveWithdrawalDialog({
             <div>
               <Label className="text-sm font-medium">Requested Amount</Label>
               <p className="text-sm text-muted-foreground">
-                ${withdrawal.requested_amount.toLocaleString()}
+                {withdrawal.requested_amount.toLocaleString()}{" "}
+                {(withdrawal.fund_class || "UNITS").toUpperCase()}
               </p>
             </div>
             <div>

@@ -21,8 +21,9 @@ export default function ExpertInvestorDashboard() {
           profiles ( full_name, email, phone ),
           investor_positions (
             shares,
-            total_yield_earned,
-            status,
+            realized_pnl,
+            current_value,
+            fund_class,
             funds ( name, asset_symbol )
           )
         `
@@ -48,8 +49,8 @@ export default function ExpertInvestorDashboard() {
   }
 
   const totalPositions = investor.investor_positions?.length || 0;
-  const activePositions =
-    investor.investor_positions?.filter((p: any) => p.status === "active").length || 0;
+  // All positions are treated as active in the new schema
+  const activePositions = totalPositions;
 
   return (
     <div className="container mx-auto p-6 space-y-8">
@@ -130,7 +131,7 @@ export default function ExpertInvestorDashboard() {
                   <div>
                     <h3 className="font-bold text-lg">{position.funds?.name}</h3>
                     <Badge variant="outline" className="mt-1">
-                      {position.status}
+                      Active
                     </Badge>
                   </div>
                   <ArrowUpRight className="h-5 w-5 text-muted-foreground" />
@@ -143,9 +144,9 @@ export default function ExpertInvestorDashboard() {
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Total Yield</span>
+                    <span className="text-muted-foreground">Realized PnL</span>
                     <span className="font-mono font-medium text-green-600">
-                      +{Number(position.total_yield_earned).toFixed(4)}{" "}
+                      +{Number(position.realized_pnl || 0).toFixed(4)}{" "}
                       {position.funds?.asset_symbol}
                     </span>
                   </div>

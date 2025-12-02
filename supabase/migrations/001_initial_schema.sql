@@ -6,13 +6,11 @@
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
 -- Create ENUM types for constrained values
 CREATE TYPE asset_code AS ENUM ('BTC', 'ETH', 'SOL', 'USDT', 'USDC', 'EURC');
 CREATE TYPE transaction_type AS ENUM ('DEPOSIT', 'WITHDRAWAL', 'INTEREST', 'FEE');
 CREATE TYPE fee_kind AS ENUM ('mgmt', 'perf');
 CREATE TYPE transaction_status AS ENUM ('pending', 'confirmed', 'failed', 'cancelled');
-
 -- Profiles table (extends auth.users)
 CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -28,7 +26,6 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
-
 -- Assets table (define supported assets)
 CREATE TABLE IF NOT EXISTS public.assets (
     id SERIAL PRIMARY KEY,
@@ -39,7 +36,6 @@ CREATE TABLE IF NOT EXISTS public.assets (
     is_active BOOLEAN DEFAULT TRUE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
-
 -- Positions table (current investor positions)
 CREATE TABLE IF NOT EXISTS public.positions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -51,7 +47,6 @@ CREATE TABLE IF NOT EXISTS public.positions (
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     UNIQUE(investor_id, asset_code)
 );
-
 -- Transactions table (complete ledger)
 CREATE TABLE IF NOT EXISTS public.transactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -66,7 +61,6 @@ CREATE TABLE IF NOT EXISTS public.transactions (
     confirmed_at TIMESTAMPTZ,
     created_by UUID REFERENCES auth.users(id)
 );
-
 -- Statements table (monthly reports)
 CREATE TABLE IF NOT EXISTS public.statements (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -87,7 +81,6 @@ CREATE TABLE IF NOT EXISTS public.statements (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     UNIQUE(investor_id, period_year, period_month, asset_code)
 );
-
 -- Fees table (management and performance fees)
 CREATE TABLE IF NOT EXISTS public.fees (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -100,7 +93,6 @@ CREATE TABLE IF NOT EXISTS public.fees (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     created_by UUID REFERENCES auth.users(id)
 );
-
 -- Audit log table (compliance and tracking)
 CREATE TABLE IF NOT EXISTS public.audit_log (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -113,7 +105,6 @@ CREATE TABLE IF NOT EXISTS public.audit_log (
     meta JSONB,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
-
 -- Yield rates table (already exists, but ensuring structure)
 CREATE TABLE IF NOT EXISTS public.yield_rates (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -126,7 +117,6 @@ CREATE TABLE IF NOT EXISTS public.yield_rates (
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     UNIQUE(asset_id, date)
 );
-
 -- Portfolio history table (already exists, ensuring structure)
 CREATE TABLE IF NOT EXISTS public.portfolio_history (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -139,7 +129,6 @@ CREATE TABLE IF NOT EXISTS public.portfolio_history (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     UNIQUE(user_id, asset_id, date)
 );
-
 -- Deposits table
 CREATE TABLE IF NOT EXISTS public.deposits (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -151,7 +140,6 @@ CREATE TABLE IF NOT EXISTS public.deposits (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     created_by UUID REFERENCES auth.users(id)
 );
-
 -- Admin invites table (already exists, ensuring structure)
 CREATE TABLE IF NOT EXISTS public.admin_invites (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -162,7 +150,6 @@ CREATE TABLE IF NOT EXISTS public.admin_invites (
     expires_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
-
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_positions_investor ON public.positions(investor_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_investor ON public.transactions(investor_id);
@@ -172,7 +159,6 @@ CREATE INDEX IF NOT EXISTS idx_statements_period ON public.statements(period_yea
 CREATE INDEX IF NOT EXISTS idx_audit_log_actor ON public.audit_log(actor_user);
 CREATE INDEX IF NOT EXISTS idx_audit_log_date ON public.audit_log(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_portfolio_history_user_date ON public.portfolio_history(user_id, date DESC);
-
 -- Create helper functions
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN AS $$
@@ -184,7 +170,6 @@ BEGIN
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- Create trigger for updated_at columns
 CREATE OR REPLACE FUNCTION public.update_updated_at()
 RETURNS TRIGGER AS $$
@@ -193,17 +178,14 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 CREATE TRIGGER update_profiles_updated_at
     BEFORE UPDATE ON public.profiles
     FOR EACH ROW
     EXECUTE FUNCTION public.update_updated_at();
-
 CREATE TRIGGER update_positions_updated_at
     BEFORE UPDATE ON public.positions
     FOR EACH ROW
     EXECUTE FUNCTION public.update_updated_at();
-
 -- Seed initial assets
 INSERT INTO public.assets (symbol, name, decimal_places, icon_url) VALUES
     ('BTC', 'Bitcoin', 8, '/assets/btc.svg'),
@@ -213,7 +195,6 @@ INSERT INTO public.assets (symbol, name, decimal_places, icon_url) VALUES
     ('USDC', 'USD Coin', 6, '/assets/usdc.svg'),
     ('EURC', 'Euro Coin', 6, '/assets/eurc.svg')
 ON CONFLICT (symbol) DO NOTHING;
-
 -- Grant necessary permissions
 GRANT USAGE ON SCHEMA public TO authenticated;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;

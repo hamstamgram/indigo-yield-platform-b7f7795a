@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { depositService } from "@/services/depositService";
 import {
   Loader2,
   CheckCircle,
@@ -58,12 +59,8 @@ export default function AdminRequestsQueuePage() {
   const { data: deposits, isLoading: depositsLoading } = useQuery({
     queryKey: ["deposits-admin"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("deposits")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      // Transactions_v2 has no status column; show all deposits ordered by occurred_at
+      return depositService.getDeposits();
     },
   });
 
@@ -113,27 +110,7 @@ export default function AdminRequestsQueuePage() {
     },
   });
 
-  // Update deposit status mutation
-  const updateDepositMutation = useMutation({
-    mutationFn: async (params: { depositId: string; status: string; txHash?: string }) => {
-      const { data, error } = await supabase
-        .from("deposits")
-        .update({
-          status: params.status,
-          transaction_hash: params.txHash,
-        })
-        .eq("id", params.depositId);
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      toast.success("Deposit status updated successfully");
-      queryClient.invalidateQueries({ queryKey: ["deposits-admin"] });
-    },
-    onError: (error) => {
-      toast.error(`Failed to update deposit: ${error.message}`);
-    },
-  });
+  // No status mutation needed; deposits are recorded as completed
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -145,6 +122,7 @@ export default function AdminRequestsQueuePage() {
           </Badge>
         );
       case "approved":
+      case "verified":
         return (
           <Badge variant="outline" className="text-blue-600">
             <CheckCircle className="h-3 w-3 mr-1" />
@@ -152,6 +130,7 @@ export default function AdminRequestsQueuePage() {
           </Badge>
         );
       case "rejected":
+      case "failed":
         return (
           <Badge variant="destructive">
             <XCircle className="h-3 w-3 mr-1" />
@@ -424,7 +403,7 @@ export default function AdminRequestsQueuePage() {
           <Card>
             <CardHeader>
               <CardTitle>Deposit Requests</CardTitle>
-              <CardDescription>Review and process deposit confirmations</CardDescription>
+              <CardDescription>Recorded deposits (auto-completed)</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -436,13 +415,17 @@ export default function AdminRequestsQueuePage() {
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <DollarSign className="h-4 w-4" />
-                          <span className="font-semibold">{deposit.asset_symbol}</span>
-                          {getStatusBadge(deposit.status || "pending")}
+                          <span className="font-semibold">
+                            {(deposit.asset_symbol || "ASSET").toUpperCase()}
+                          </span>
+                          <Badge variant="default" className="text-green-700 bg-green-100">
+                            Recorded
+                          </Badge>
                         </div>
                         <div className="text-right">
                           <div className="font-semibold">
                             {parseFloat(deposit.amount.toString()).toLocaleString()}{" "}
-                            {deposit.asset_symbol}
+                            {(deposit.asset_symbol || "ASSET").toUpperCase()}
                           </div>
                           <div className="text-sm text-muted-foreground">
                             {new Date(deposit.created_at || new Date()).toLocaleDateString()}
@@ -456,38 +439,6 @@ export default function AdminRequestsQueuePage() {
                           <code className="text-xs bg-muted px-2 py-1 rounded">
                             {deposit.transaction_hash}
                           </code>
-                        </div>
-                      )}
-
-                      {deposit.status === "pending" && (
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            onClick={() =>
-                              updateDepositMutation.mutate({
-                                depositId: deposit.id,
-                                status: "completed",
-                              })
-                            }
-                            disabled={updateDepositMutation.isPending}
-                          >
-                            <CheckCircle className="h-4 w-4 mr-1" />
-                            Confirm
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() =>
-                              updateDepositMutation.mutate({
-                                depositId: deposit.id,
-                                status: "failed",
-                              })
-                            }
-                            disabled={updateDepositMutation.isPending}
-                          >
-                            <XCircle className="h-4 w-4 mr-1" />
-                            Reject
-                          </Button>
                         </div>
                       )}
                     </div>

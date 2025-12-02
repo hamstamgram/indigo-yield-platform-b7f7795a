@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { expertInvestorService } from "@/services/expertInvestorService";
+import { adminServiceV2 } from "@/services/adminServiceV2";
 import type { ExpertInvestorSummary } from "@/services/expertInvestorService";
 
 // Cache keys for investor data
@@ -188,10 +189,8 @@ export function useUpdateInvestorStatus() {
   const invalidateInvestor = useInvalidateInvestor();
 
   return useMutation({
-    mutationFn: async (_variables: { investorId: string; status: string }) => {
-      // TODO: Replace with actual update service method
-      // return await investorService.updateStatus(investorId, status);
-      throw new Error("Not implemented - add actual service method");
+    mutationFn: async ({ investorId, status }: { investorId: string; status: string }) => {
+      return await adminServiceV2.updateInvestorStatus(investorId, status);
     },
     // Optimistic update: immediately update the UI before API responds
     onMutate: async ({ investorId, status }) => {

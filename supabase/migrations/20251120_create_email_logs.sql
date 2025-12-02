@@ -17,6 +17,11 @@ CREATE TABLE IF NOT EXISTS email_logs (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
+ALTER TABLE email_logs ADD COLUMN IF NOT EXISTS user_id UUID;
+ALTER TABLE email_logs ADD COLUMN IF NOT EXISTS recipient TEXT;
+ALTER TABLE email_logs ADD COLUMN IF NOT EXISTS template TEXT;
+ALTER TABLE email_logs ADD COLUMN IF NOT EXISTS delivery_status JSONB;
+
 -- Create indexes for common queries
 CREATE INDEX IF NOT EXISTS email_logs_user_id_idx ON email_logs(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS email_logs_recipient_idx ON email_logs(recipient, created_at DESC);

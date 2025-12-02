@@ -70,8 +70,6 @@ export class OnboardingService {
     const { submissionId, emails, processedBy, notes } = input;
 
     try {
-      console.log(`🔄 Creating investor from submission ${submissionId}...`);
-
       // Validate inputs
       if (!emails || emails.length === 0) {
         throw new Error("At least one email is required");
@@ -197,8 +195,6 @@ export class OnboardingService {
         throw new Error(`Failed to create investor: ${createError?.message || "Unknown error"}`);
       }
 
-      console.log(`✅ Created investor ${investor.id}`);
-
       // =====================================================
       // STEP 5: Create investor emails (primary + additional)
       // =====================================================
@@ -212,13 +208,13 @@ export class OnboardingService {
       }));
 
       // Cast supabase to any - investor_emails table not in generated types
-      const { error: emailsError } = await (supabase as any).from("investor_emails").insert(emailInserts);
+      const { error: emailsError } = await (supabase as any)
+        .from("investor_emails")
+        .insert(emailInserts);
 
       if (emailsError) {
         console.error("❌ Failed to create investor emails:", emailsError);
         // Continue anyway - investor is created, emails can be added later
-      } else {
-        console.log(`✅ Created ${emails.length} email(s) for investor ${investor.id}`);
       }
 
       // =====================================================
@@ -254,14 +250,11 @@ export class OnboardingService {
             investor.id,
             "Completed"
           );
-          console.log(`✅ Updated Airtable record ${submission.airtable_record_id}`);
         } catch (airtableError) {
           console.error("❌ Failed to update Airtable:", airtableError);
           // Continue anyway - investor is created in our DB
         }
       }
-
-      console.log(`✅ Investor creation complete: ${investor.id}`);
 
       return {
         success: true,
@@ -330,7 +323,6 @@ export class OnboardingService {
         }
       }
 
-      console.log(`✅ Rejected submission ${submissionId}`);
       return { success: true };
     } catch (error) {
       console.error("❌ Failed to reject submission:", error);

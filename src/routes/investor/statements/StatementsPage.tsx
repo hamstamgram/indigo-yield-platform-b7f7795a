@@ -9,12 +9,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FileText, Calendar, TrendingUp, Info, AlertCircle } from "lucide-react";
+import { FileText, Calendar, TrendingUp, Info, AlertCircle, Download, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { getAssetConfig, getAssetName } from "@/utils/assets";
+import { ReportsApi } from "@/services/api/reportsApi";
+import { useToast } from "@/hooks/use-toast";
 
 const StatementsPage = () => {
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [selectedAsset, setSelectedAsset] = useState<string>("all");
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // Fetch user's statements from investor_monthly_reports
   const {
@@ -72,6 +78,7 @@ const StatementsPage = () => {
                 100
               ).toFixed(4)
             : "0",
+        report_month: record.report_month, // Needed for report generation date range
       }));
     },
   });
@@ -147,21 +154,74 @@ const StatementsPage = () => {
   };
 
   const formatAssetAmount = (value: number, assetCode: string): string => {
-    const assetConfig: Record<string, { decimals: number; symbol: string }> = {
-      BTC: { decimals: 8, symbol: "BTC" },
-      ETH: { decimals: 8, symbol: "ETH" },
-      SOL: { decimals: 6, symbol: "SOL" },
-      USDT: { decimals: 2, symbol: "USD" },
-      USDC: { decimals: 2, symbol: "USD" },
-      EURC: { decimals: 2, symbol: "EURC" }, // NOT $ symbol - native currency
-    };
-
-    const config = assetConfig[assetCode] || { decimals: 4, symbol: assetCode };
+    const config = getAssetConfig(assetCode);
+    const decimals = config?.decimals || 4;
+    // Use symbol from config or fallback to code
+    // Ensure we don't use "$" for everything unless it's USD
+    const symbol = config?.symbol || assetCode;
 
     return `${value.toLocaleString("en-US", {
-      minimumFractionDigits: config.decimals,
-      maximumFractionDigits: config.decimals,
-    })} ${config.symbol}`;
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    })} ${symbol}`;
+  };
+
+  const handleDownload = async (statement: any) => {
+    try {
+      setDownloadingId(statement.id);
+
+      // Calculate start and end dates for the report month
+      // report_month is YYYY-MM-DD (usually 01 of month)
+      const date = new Date(statement.report_month);
+      const year = date.getFullYear();
+      const month = date.getMonth();
+
+      const startDate = new Date(year, month, 1).toISOString();
+      const endDate = new Date(year, month + 1, 0).toISOString(); // Last day of month
+
+      const result = await ReportsApi.generateReportNow({
+        reportType: "monthly_statement",
+        format: "pdf",
+        filters: {
+          dateFrom: startDate,
+          dateTo: endDate,
+          asset: statement.asset_code,
+        },
+        parameters: {
+          includeCharts: true,
+          confidential: true,
+        },
+      });
+
+      if (!result.success || !result.data) {
+        throw new Error(result.error || "Failed to generate PDF");
+      }
+
+      // Create download link
+      const blob = new Blob([result.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = result.filename || `Statement_${statement.asset_code}_${year}_${month + 1}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Success",
+        description: "Statement downloaded successfully",
+      });
+    } catch (error) {
+      console.error("Download failed:", error);
+      toast({
+        title: "Error",
+        description: "Failed to download statement",
+        variant: "destructive",
+      });
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   if (isLoading) {
@@ -222,7 +282,7 @@ const StatementsPage = () => {
                   <SelectItem value="all">All Assets</SelectItem>
                   {availableAssets?.map((asset) => (
                     <SelectItem key={asset} value={asset}>
-                      {asset}
+                      {getAssetName(asset)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -245,14 +305,29 @@ const StatementsPage = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Calendar className="h-5 w-5 text-primary" />
-                      <h3 className="text-lg font-display font-semibold">
-                        {getMonthName(statement.period_month)} {statement.period_year}
-                      </h3>
-                      <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                        {statement.asset_code}
-                      </span>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-5 w-5 text-primary" />
+                        <h3 className="text-lg font-display font-semibold">
+                          {getMonthName(statement.period_month)} {statement.period_year}
+                        </h3>
+                        <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                          {statement.asset_code}
+                        </span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDownload(statement)}
+                        disabled={downloadingId === statement.id}
+                      >
+                        {downloadingId === statement.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          <Download className="h-4 w-4 mr-2" />
+                        )}
+                        Download PDF
+                      </Button>
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">

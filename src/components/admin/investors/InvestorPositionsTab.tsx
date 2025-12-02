@@ -46,8 +46,15 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
         .from("investor_positions")
         .select(
           `
-          *,
-          funds ( id, name, asset )
+          investor_id,
+          fund_id,
+          shares,
+          cost_basis,
+          current_value,
+          realized_pnl,
+          fund_class,
+          updated_at,
+          funds ( id, name, asset_symbol )
         `
         )
         .eq("investor_id", investorId);
@@ -65,8 +72,6 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
           investor_id: investorId,
           fund_id: newPosition.fundId,
           shares: parseFloat(newPosition.shares),
-          status: "active",
-          total_yield_earned: 0,
         },
       ]);
       if (error) throw error;
@@ -88,9 +93,9 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
         .from("investor_positions")
         .update({
           shares: parseFloat(position.shares),
-          status: position.status,
         })
-        .eq("id", position.id);
+        .eq("investor_id", investorId)
+        .eq("fund_id", position.fund_id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -105,8 +110,12 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
 
   // Delete Position Mutation
   const deletePositionMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("investor_positions").delete().eq("id", id);
+    mutationFn: async (fundId: string) => {
+      const { error } = await supabase
+        .from("investor_positions")
+        .delete()
+        .eq("investor_id", investorId)
+        .eq("fund_id", fundId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -122,9 +131,22 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
   const { data: funds } = useQuery({
     queryKey: ["active-funds"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("funds").select("id, name, asset");
+      const { data, error } = await supabase.from("funds").select("id, name, asset_symbol");
       if (error) throw error;
       return data;
+    },
+  });
+
+  // Check for legacy data
+  const { data: legacyPositions } = useQuery({
+    queryKey: ["legacy-positions", investorId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("positions")
+        .select("*")
+        .eq("user_id", investorId)
+        .gt("current_balance", 0);
+      return data || [];
     },
   });
 
@@ -141,8 +163,28 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
     );
   }
 
+  const showMigrationWarning =
+    (!positions || positions.length === 0) && legacyPositions && legacyPositions.length > 0;
+
   return (
     <div className="space-y-6">
+      {showMigrationWarning && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <AlertCircle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-yellow-700">
+                <strong>Legacy Data Detected:</strong> This investor has {legacyPositions?.length}{" "}
+                active assets in the old system that have not been migrated. The detailed view only
+                shows the new system. Please run the migration script to move these assets.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Asset Positions</h2>
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
@@ -157,7 +199,7 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
             </DialogHeader>
             <AddPositionForm
               funds={funds || []}
-              onSubmit={(data) => addPositionMutation.mutate(data)}
+              onSubmit={(data: any) => addPositionMutation.mutate(data)}
               isLoading={addPositionMutation.isPending}
             />
           </DialogContent>
@@ -176,24 +218,18 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
                   <TableHead>Fund</TableHead>
                   <TableHead>Shares/Balance</TableHead>
                   <TableHead>Asset</TableHead>
-                  <TableHead>Total Yield</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Realized PnL</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {positions.map((pos) => (
-                  <TableRow key={pos.id}>
+                  <TableRow key={`${pos.investor_id}-${pos.fund_id}`}>
                     <TableCell className="font-medium">{pos.funds?.name}</TableCell>
                     <TableCell className="font-mono">{Number(pos.shares).toFixed(4)}</TableCell>
-                    <TableCell>{pos.funds?.asset}</TableCell>
+                    <TableCell>{(pos.funds?.asset_symbol || "").toUpperCase()}</TableCell>
                     <TableCell className="text-green-600 font-mono">
-                      +{Number(pos.total_yield_earned).toFixed(4)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={pos.status === "active" ? "default" : "secondary"}>
-                        {pos.status}
-                      </Badge>
+                      +{Number(pos.realized_pnl || 0).toFixed(4)}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
@@ -206,7 +242,7 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
                           className="text-destructive hover:text-destructive"
                           onClick={() => {
                             if (confirm("Are you sure you want to delete this position?")) {
-                              deletePositionMutation.mutate(pos.id);
+                              deletePositionMutation.mutate(pos.fund_id);
                             }
                           }}
                         >
@@ -236,8 +272,8 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
           {selectedPosition && (
             <EditPositionForm
               position={selectedPosition}
-              onSubmit={(data) =>
-                updatePositionMutation.mutate({ ...data, id: selectedPosition.id })
+              onSubmit={(data: any) =>
+                updatePositionMutation.mutate({ ...data, fund_id: selectedPosition.fund_id })
               }
               isLoading={updatePositionMutation.isPending}
             />
@@ -268,7 +304,7 @@ function AddPositionForm({ funds, onSubmit, isLoading }: any) {
           <SelectContent>
             {funds.map((f: any) => (
               <SelectItem key={f.id} value={f.id}>
-                {f.name} ({f.asset})
+                {f.name} ({f.asset_symbol})
               </SelectItem>
             ))}
           </SelectContent>
@@ -294,11 +330,10 @@ function AddPositionForm({ funds, onSubmit, isLoading }: any) {
 
 function EditPositionForm({ position, onSubmit, isLoading }: any) {
   const [shares, setShares] = useState(position.shares.toString());
-  const [status, setStatus] = useState(position.status);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ shares, status });
+    onSubmit({ shares });
   };
 
   return (
@@ -312,19 +347,6 @@ function EditPositionForm({ position, onSubmit, isLoading }: any) {
           onChange={(e) => setShares(e.target.value)}
           required
         />
-      </div>
-      <div className="space-y-2">
-        <Label>Status</Label>
-        <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="frozen">Frozen</SelectItem>
-            <SelectItem value="liquidated">Liquidated</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

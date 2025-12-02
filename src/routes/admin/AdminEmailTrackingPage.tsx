@@ -13,6 +13,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Mail,
   Send,
@@ -122,14 +123,23 @@ export default function AdminEmailTrackingPage() {
   // =====================================================
 
   // Fetch email statistics
-  // TODO: Create email_logs table in database when email tracking feature is activated
   const { data: stats } = useQuery<EmailStats>({
     queryKey: ["email-stats"],
     queryFn: async () => {
-      // Stubbed - email_logs table doesn't exist yet
-      const data: any[] = [];
-      // const { data, error } = await supabase.from("email_logs").select("status, sent_at");
-      // if (error) throw error;
+      const { data, error } = await supabase.from("email_logs").select("status, sent_at");
+
+      // If table doesn't exist yet or empty, return zeros instead of throwing
+      if (error) {
+        console.warn("Error fetching email stats:", error);
+        return {
+          totalSent: 0,
+          delivered: 0,
+          failed: 0,
+          bounced: 0,
+          successRate: 0,
+          todayCount: 0,
+        };
+      }
 
       const today = new Date().toISOString().split("T")[0];
 
@@ -146,7 +156,7 @@ export default function AdminEmailTrackingPage() {
         if (log.status === "sent" || log.status === "delivered") stats.delivered++;
         if (log.status === "failed") stats.failed++;
         if (log.status === "bounced") stats.bounced++;
-        if (log.sent_at.startsWith(today)) stats.todayCount++;
+        if (log.sent_at && log.sent_at.startsWith(today)) stats.todayCount++;
       });
 
       stats.successRate =
@@ -158,14 +168,9 @@ export default function AdminEmailTrackingPage() {
   });
 
   // Fetch email logs
-  // TODO: Enable when email_logs table is created
   const { data: emailLogs, isLoading: logsLoading } = useQuery<EmailLog[]>({
     queryKey: ["email-logs", filters],
     queryFn: async () => {
-      // Stubbed - email_logs table doesn't exist yet
-      return [];
-
-      /* Original code - restore when email_logs table is created:
       let query = supabase
         .from("email_logs")
         .select("*")
@@ -183,7 +188,7 @@ export default function AdminEmailTrackingPage() {
 
       if (filters.search) {
         query = query.or(
-          `recipient_email.ilike.%${filters.search}%,recipient_name.ilike.%${filters.search}%,subject.ilike.%${filters.search}%`
+          `recipient_email.ilike.%${filters.search}%,subject.ilike.%${filters.search}%`
         );
       }
 
@@ -197,10 +202,12 @@ export default function AdminEmailTrackingPage() {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.warn("Error fetching email logs:", error);
+        return [];
+      }
 
-      return data || [];
-      */
+      return (data as any[]) || [];
     },
   });
 

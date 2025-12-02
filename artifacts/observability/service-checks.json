@@ -1,29 +1,29 @@
 {
-  "timestamp": "2025-09-07T16:50:55.907Z",
+  "timestamp": "2025-11-28T14:39:23.274Z",
   "supabaseUrl": "https://nkfimvovosdehmyyjubn.supabase.co",
   "checks": [
     {
       "service": "Database",
       "status": "healthy",
-      "latency": 853,
+      "latency": 497,
       "message": "Database connection successful"
     },
     {
       "service": "Storage",
       "status": "healthy",
-      "latency": 1231,
+      "latency": 495,
       "message": "Storage accessible"
     },
     {
       "service": "Authentication",
       "status": "healthy",
-      "latency": 17,
+      "latency": 12,
       "message": "Auth service available"
     },
     {
       "service": "Realtime",
       "status": "healthy",
-      "latency": 1018,
+      "latency": 1012,
       "message": "Realtime service available"
     }
   ],

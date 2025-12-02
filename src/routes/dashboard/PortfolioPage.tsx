@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, Layers } from "lucide-react";
+import { getAssetLogo } from "@/utils/assets";
 
 export default function PortfolioPage() {
   const { data: positions, isLoading } = useQuery({
@@ -16,27 +17,32 @@ export default function PortfolioPage() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
 
-      // Fetch investor positions
-      // We avoid joining non-existent tables. Assuming 'funds' relationship exists or we just use the raw data.
-      // Based on AdminPage, 'investor_positions' seems to be the table (or 'positions').
-      // AdminPage uses 'getInvestorPositions' which likely joins 'funds'.
-      // Here we will try to select from 'investor_positions' and 'funds'.
+      // Resolve investor_id from profile_id
+      const { data: investor } = await supabase
+        .from("investors")
+        .select("id")
+        .eq("profile_id", user.id)
+        .maybeSingle();
+
+      if (!investor) return [];
 
       const { data, error } = await (supabase as any)
         .from("investor_positions")
         .select(
           `
-          *,
+          investor_id,
+          fund_id,
+          shares,
           funds (
             id,
             name,
             asset,
+            asset_symbol,
             code
           )
         `
         )
-        .eq("investor_id", user.id)
-        .eq("status", "active");
+        .eq("investor_id", investor.id);
 
       if (error) {
         // Fallback if 'investor_positions' view/table issue, try 'positions' table if it was legacy
@@ -77,9 +83,13 @@ export default function PortfolioPage() {
               {positions.map((position: any) => {
                 // Use funds relation if available, otherwise fallback
                 const fundName = position.funds?.name || "Fund";
-                const assetCode = position.funds?.asset || "Units";
+                const assetCode = (
+                  position.funds?.asset_symbol ||
+                  position.funds?.asset ||
+                  "UNITS"
+                ).toUpperCase();
                 const fundCode = position.funds?.code || "";
-                // Display shares/quantity
+                const logo = getAssetLogo(assetCode);
                 const quantity = position.shares || position.quantity || 0;
 
                 return (
@@ -88,7 +98,15 @@ export default function PortfolioPage() {
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden">
+                              <img
+                                src={logo}
+                                alt={assetCode}
+                                className="h-8 w-8 object-contain"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = "none";
+                                }}
+                              />
                               <Layers className="h-5 w-5" />
                             </div>
                             <div>

@@ -50,12 +50,57 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS investor_emails_updated_at_trigger ON public.investor_emails;
+
 CREATE TRIGGER investor_emails_updated_at_trigger
   BEFORE UPDATE ON public.investor_emails
   FOR EACH ROW
   EXECUTE FUNCTION update_investor_emails_updated_at();
 
 COMMENT ON TABLE public.investor_emails IS 'Multi-email support for investors (companies can have multiple recipients)';
+
+-- RLS Policies
+ALTER TABLE public.investor_emails ENABLE ROW LEVEL SECURITY;
+
+-- Admins can manage all emails
+DROP POLICY IF EXISTS "Admins can manage all investor emails" ON public.investor_emails;
+CREATE POLICY "Admins can manage all investor emails"
+  ON public.investor_emails
+  FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND is_admin = true
+    )
+  );
+
+-- Investors can view their own emails
+DROP POLICY IF EXISTS "Investors can view own emails" ON public.investor_emails;
+CREATE POLICY "Investors can view own emails"
+  ON public.investor_emails
+  FOR SELECT
+  USING (
+    investor_id IN (
+      SELECT id FROM public.investors WHERE profile_id = auth.uid()
+    )
+  );
+
+-- Investors can manage their own emails (insert/update/delete)
+DROP POLICY IF EXISTS "Investors can manage own emails" ON public.investor_emails;
+CREATE POLICY "Investors can manage own emails"
+  ON public.investor_emails
+  FOR ALL
+  USING (
+    investor_id IN (
+      SELECT id FROM public.investors WHERE profile_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    investor_id IN (
+      SELECT id FROM public.investors WHERE profile_id = auth.uid()
+    )
+  );
+
 
 -- ============================================
 -- TABLE 2: email_logs (Email Delivery Tracking)
@@ -110,12 +155,53 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS email_logs_updated_at_trigger ON public.email_logs;
+
 CREATE TRIGGER email_logs_updated_at_trigger
   BEFORE UPDATE ON public.email_logs
   FOR EACH ROW
   EXECUTE FUNCTION update_email_logs_updated_at();
 
 COMMENT ON TABLE public.email_logs IS 'Email delivery tracking and audit log';
+
+-- RLS Policies
+ALTER TABLE public.email_logs ENABLE ROW LEVEL SECURITY;
+
+-- Admins can view all email logs
+DROP POLICY IF EXISTS "Admins can view all email logs" ON public.email_logs;
+CREATE POLICY "Admins can view all email logs"
+  ON public.email_logs
+  FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND is_admin = true
+    )
+  );
+
+-- Admins can insert logs (system generated)
+DROP POLICY IF EXISTS "Admins can insert email logs" ON public.email_logs;
+CREATE POLICY "Admins can insert email logs"
+  ON public.email_logs
+  FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND is_admin = true
+    )
+  );
+
+-- Investors can view their own logs
+DROP POLICY IF EXISTS "Investors can view own email logs" ON public.email_logs;
+CREATE POLICY "Investors can view own email logs"
+  ON public.email_logs
+  FOR SELECT
+  USING (
+    investor_id IN (
+      SELECT id FROM public.investors WHERE profile_id = auth.uid()
+    )
+  );
+
 
 -- ============================================
 -- TABLE 3: onboarding_submissions (Airtable Integration)
@@ -161,12 +247,29 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS onboarding_submissions_updated_at_trigger ON public.onboarding_submissions;
+
 CREATE TRIGGER onboarding_submissions_updated_at_trigger
   BEFORE UPDATE ON public.onboarding_submissions
   FOR EACH ROW
   EXECUTE FUNCTION update_onboarding_submissions_updated_at();
 
 COMMENT ON TABLE public.onboarding_submissions IS 'Airtable onboarding submissions sync tracking';
+
+-- RLS Policies
+ALTER TABLE public.onboarding_submissions ENABLE ROW LEVEL SECURITY;
+
+-- Admins can manage all submissions
+DROP POLICY IF EXISTS "Admins can manage all onboarding submissions" ON public.onboarding_submissions;
+CREATE POLICY "Admins can manage all onboarding submissions"
+  ON public.onboarding_submissions
+  FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND is_admin = true
+    )
+  );
 
 -- ============================================
 -- VERIFICATION: Check new tables created
@@ -177,9 +280,9 @@ BEGIN
   RAISE NOTICE '===========================================';
   RAISE NOTICE 'NEW TABLES DEPLOYMENT COMPLETE';
   RAISE NOTICE '===========================================';
-  RAISE NOTICE 'Created: investor_emails';
-  RAISE NOTICE 'Created: email_logs';
-  RAISE NOTICE 'Created: onboarding_submissions';
+  RAISE NOTICE 'Created: investor_emails (with RLS)';
+  RAISE NOTICE 'Created: email_logs (with RLS)';
+  RAISE NOTICE 'Created: onboarding_submissions (with RLS)';
   RAISE NOTICE '===========================================';
   RAISE NOTICE 'Multi-email support: ENABLED';
   RAISE NOTICE 'Email tracking: ENABLED';

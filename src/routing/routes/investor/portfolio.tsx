@@ -9,6 +9,7 @@ import { ProtectedRoute } from "../../ProtectedRoute";
 
 // Portfolio pages
 const WithdrawalsPage = lazy(() => import("@/routes/withdrawals/WithdrawalHistoryPage"));
+const NewWithdrawalPage = lazy(() => import("@/routes/withdrawals/NewWithdrawalPage"));
 const PortfolioAnalyticsPage = lazy(
   () => import("@/routes/investor/portfolio/PortfolioAnalyticsPage")
 );
@@ -21,6 +22,14 @@ export function PortfolioRoutes() {
         element={
           <ProtectedRoute>
             <WithdrawalsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/withdrawals/new"
+        element={
+          <ProtectedRoute>
+            <NewWithdrawalPage />
           </ProtectedRoute>
         }
       />

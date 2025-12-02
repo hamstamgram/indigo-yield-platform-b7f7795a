@@ -1,0 +1,2 @@
+-- Placeholder migration for version 20250109141500.
+-- Remote history already contains this version; no-op locally to satisfy Supabase CLI.

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Withdrawal, WithdrawalFilters, WithdrawalStatus } from "@/types/withdrawal";
+import { getAssetLogo } from "@/utils/assets";
 import {
   Table,
   TableBody,
@@ -132,7 +133,18 @@ export function WithdrawalsTable({
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">
-                    ${withdrawal.requested_amount.toLocaleString()}
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={getAssetLogo((withdrawal.fund_class || "ASSET").toUpperCase())}
+                        alt={withdrawal.fund_class || "ASSET"}
+                        className="h-5 w-5 rounded-full border"
+                        onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
+                      />
+                      <span>
+                        {withdrawal.requested_amount.toLocaleString()}{" "}
+                        {(withdrawal.fund_class || "UNITS").toUpperCase()}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">{withdrawal.withdrawal_type}</Badge>

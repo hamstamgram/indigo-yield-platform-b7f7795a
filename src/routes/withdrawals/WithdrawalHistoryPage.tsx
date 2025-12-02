@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, Plus } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function WithdrawalHistoryPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -17,20 +18,11 @@ export default function WithdrawalHistoryPage() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
 
-      // Get investor_id from profiles -> investors relationship
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (!profile) throw new Error("Profile not found");
-
       // Get investor record
       const { data: investor } = await supabase
         .from("investors")
         .select("id")
-        .eq("profile_id", profile.id)
+        .eq("profile_id", user.id)
         .maybeSingle();
 
       if (!investor) throw new Error("No investor record found");
@@ -57,11 +49,14 @@ export default function WithdrawalHistoryPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Withdrawals</h1>
-          <p className="text-muted-foreground">View withdrawal history</p>
-        </div>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Withdrawals Request</h1>
+        <Button asChild>
+          <Link to="/withdrawals/new">
+            <Plus className="mr-2 h-4 w-4" />
+            Request Withdrawal
+          </Link>
+        </Button>
       </div>
 
       <Card>

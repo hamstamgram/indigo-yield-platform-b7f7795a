@@ -1,4 +1,4 @@
-export type DepositStatus = "pending" | "verified" | "rejected";
+export type DepositStatus = "pending" | "verified" | "rejected" | "completed" | "failed";
 
 export interface Deposit {
   id: string;

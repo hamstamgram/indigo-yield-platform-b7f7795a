@@ -9,7 +9,7 @@ export const createDefaultAssetSummaries = () => {
     { id: 1, symbol: "BTC", name: "Bitcoin" },
     { id: 2, symbol: "ETH", name: "Ethereum" },
     { id: 3, symbol: "SOL", name: "Solana" },
-    { id: 4, symbol: "USDC", name: "USD Coin" },
+    { id: 4, symbol: "USDC", name: "Tokenized Gold" },
   ];
 
   // Define default values for each supported asset type

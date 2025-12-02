@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { depositService } from "@/services/depositService";
 import { PlusCircle, Loader2 } from "lucide-react";
 
 interface AdminDepositFormProps {
@@ -46,90 +46,22 @@ const AdminDepositForm: React.FC<AdminDepositFormProps> = ({ investors, assets, 
     setLoading(true);
 
     try {
-      // Get current user (admin)
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user");
-
-      // Record the deposit
-      const { data: deposit, error: depositError } = await supabase
-        .from("deposits")
-        .insert({
-          user_id: formData.investor_id,
-          asset_symbol: assets.find((a) => a.id === parseInt(formData.asset_id))?.symbol || "USDT",
-          amount: parseFloat(formData.amount),
-          transaction_hash: formData.tx_hash || null,
-          status: "confirmed",
-          created_by: user.id,
-        })
-        .select()
-        .single();
-
-      if (depositError) throw depositError;
-
-      // Update portfolio balance (using positions table)
+      // Map the selected asset to its symbol
       const selectedAsset = assets.find((a) => a.id === parseInt(formData.asset_id));
-      const assetCode =
+      const assetSymbol =
         (selectedAsset?.symbol as "BTC" | "ETH" | "SOL" | "USDT" | "USDC" | "EURC") || "USDT";
 
-      const { data: existingPosition } = await supabase
-        .from("positions")
-        .select("*")
-        .eq("user_id", formData.investor_id)
-        .eq("asset_code", assetCode)
-        .maybeSingle();
-
-      if (existingPosition) {
-        // Update existing position
-        const { error: updateError } = await supabase
-          .from("positions")
-          .update({
-            current_balance: existingPosition.current_balance + parseFloat(formData.amount),
-            principal: existingPosition.principal + parseFloat(formData.amount),
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", existingPosition.id);
-
-        if (updateError) throw updateError;
-      } else {
-        // Create new position entry
-        const { error: createError } = await supabase.from("positions").insert({
-          user_id: formData.investor_id,
-          asset_code: assetCode,
-          current_balance: parseFloat(formData.amount),
-          principal: parseFloat(formData.amount),
-          total_earned: 0,
-        });
-
-        if (createError) throw createError;
-      }
-
-      // Skip transaction recording for now - needs proper schema alignment
-      console.log("Deposit recorded successfully, skipping transaction log");
-
-      // Log to audit trail
-      const { error: auditError } = await supabase.from("audit_log").insert({
-        actor_user: user.id,
-        action: "CREATE_DEPOSIT",
-        entity: "deposits",
-        entity_id: deposit.id,
-        new_values: {
-          investor_id: formData.investor_id,
-          asset_id: formData.asset_id,
-          amount: formData.amount,
-          tx_hash: formData.tx_hash,
-        },
-        meta: {
-          notes: formData.notes,
-        },
+      await depositService.createDeposit({
+        user_id: formData.investor_id,
+        asset_symbol: assetSymbol,
+        amount: parseFloat(formData.amount),
+        transaction_hash: formData.tx_hash || undefined,
       });
 
-      if (auditError) console.error("Audit log error:", auditError);
-
+      const symbolLabel = (selectedAsset?.symbol || "ASSET").toUpperCase();
       toast({
         title: "Deposit Recorded",
-        description: `Successfully added ${formData.amount} ${assets.find((a) => a.id === parseInt(formData.asset_id))?.symbol} deposit`,
+        description: `Successfully added ${formData.amount} ${symbolLabel} deposit`,
       });
 
       // Reset form
@@ -186,7 +118,7 @@ const AdminDepositForm: React.FC<AdminDepositFormProps> = ({ investors, assets, 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="asset">Asset *</Label>
+              <Label htmlFor="asset">Fund / Asset *</Label>
               <Select
                 value={formData.asset_id}
                 onValueChange={(value) => setFormData({ ...formData, asset_id: value })}
@@ -198,7 +130,7 @@ const AdminDepositForm: React.FC<AdminDepositFormProps> = ({ investors, assets, 
                 <SelectContent>
                   {assets.map((asset) => (
                     <SelectItem key={asset.id} value={asset.id.toString()}>
-                      {asset.symbol} - {asset.name}
+                      {(asset.symbol || "").toUpperCase()} - {asset.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

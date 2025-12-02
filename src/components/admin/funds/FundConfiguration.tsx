@@ -24,7 +24,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Settings, Percent, Calendar, Save, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { listFunds, getFund, updateFund, createFund, type Fund } from "@/server/admin.funds";
+import {
+  listFunds,
+  getFund,
+  updateFund,
+  createFund,
+  type Fund,
+} from "@/services/admin/fundService";
 
 interface FeeHistory {
   id: string;
@@ -76,18 +82,21 @@ const FundConfiguration = () => {
     }
   }, [selectedFund, toast]);
 
-  const loadFundData = useCallback(async (fundId: string) => {
-    try {
-      const fund = await getFund(fundId);
-      setFundData(fund);
-    } catch (error: any) {
-      toast({
-        title: "Error loading fund data",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  }, [toast]);
+  const loadFundData = useCallback(
+    async (fundId: string) => {
+      try {
+        const fund = await getFund(fundId);
+        setFundData(fund);
+      } catch (error: any) {
+        toast({
+          title: "Error loading fund data",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    },
+    [toast]
+  );
 
   useEffect(() => {
     loadFunds();
@@ -297,8 +306,8 @@ const FundConfiguration = () => {
                       <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
                       <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
                       <SelectItem value="SOL">Solana (SOL)</SelectItem>
-                      <SelectItem value="USDC">USD Coin (USDC)</SelectItem>
-                      <SelectItem value="USDT">Tether (USDT)</SelectItem>
+                      <SelectItem value="USDC">Tokenized Gold (USDC)</SelectItem>
+                      <SelectItem value="USDT">Stablecoin Fund (USDT)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

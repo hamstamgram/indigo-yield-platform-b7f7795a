@@ -130,6 +130,8 @@
     "@axe-core/playwright": "^4.10.2",
     "@babel/core": "^7.28.4",
     "@babel/preset-env": "^7.28.3",
+    "@babel/preset-react": "^7.28.5",
+    "@babel/preset-typescript": "^7.28.5",
     "@brave/brave-search-mcp-server": "^1.3.7",
     "@brightdata/mcp": "^2.5.0",
     "@eslint/js": "^9.9.0",

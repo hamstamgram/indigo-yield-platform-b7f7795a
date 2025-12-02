@@ -4,8 +4,7 @@
  */
 
 // Core engine
-// TODO: ReportEngine not implemented yet
-// export { ReportEngine } from "./reportEngine";
+export { ReportEngine } from "./reportEngine";
 
 // Generators
 export { PDFReportGenerator, generatePDFReport } from "./pdfGenerator";

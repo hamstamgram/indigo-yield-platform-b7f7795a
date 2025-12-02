@@ -19,7 +19,6 @@ BEGIN
   END IF;
 END;
 $$;
-
 -- ========================================
 -- 2. AUTO-UPDATE TIMESTAMP TRIGGER
 -- ========================================
@@ -32,14 +31,12 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
 -- Apply trigger to withdrawal_requests
 DROP TRIGGER IF EXISTS trg_withdrawals_updated_at ON public.withdrawal_requests;
 CREATE TRIGGER trg_withdrawals_updated_at
   BEFORE UPDATE ON public.withdrawal_requests
   FOR EACH ROW
   EXECUTE PROCEDURE public.set_updated_at();
-
 -- ========================================
 -- 3. AUDIT LOG TABLE AND ENUM
 -- ========================================
@@ -57,7 +54,6 @@ BEGIN
 EXCEPTION 
   WHEN duplicate_object THEN NULL;
 END $$;
-
 CREATE TABLE IF NOT EXISTS public.withdrawal_audit_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   request_id UUID NOT NULL REFERENCES public.withdrawal_requests(id) ON DELETE CASCADE,
@@ -66,7 +62,6 @@ CREATE TABLE IF NOT EXISTS public.withdrawal_audit_logs (
   details JSONB DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_withdrawal_audit_logs_request 
   ON public.withdrawal_audit_logs(request_id);
@@ -74,10 +69,8 @@ CREATE INDEX IF NOT EXISTS idx_withdrawal_audit_logs_actor
   ON public.withdrawal_audit_logs(actor_id);
 CREATE INDEX IF NOT EXISTS idx_withdrawal_audit_logs_created 
   ON public.withdrawal_audit_logs(created_at DESC);
-
 -- Enable RLS
 ALTER TABLE public.withdrawal_audit_logs ENABLE ROW LEVEL SECURITY;
-
 -- Admins can see all logs
 CREATE POLICY "withdrawal_audit_logs_admin_select" ON public.withdrawal_audit_logs
   FOR SELECT
@@ -87,11 +80,9 @@ CREATE POLICY "withdrawal_audit_logs_admin_select" ON public.withdrawal_audit_lo
       WHERE id = auth.uid() AND is_admin = TRUE
     )
   );
-
 -- Revoke direct write access (logs only written by functions)
 REVOKE ALL ON public.withdrawal_audit_logs FROM authenticated;
 GRANT SELECT ON public.withdrawal_audit_logs TO authenticated;
-
 -- ========================================
 -- 4. AUDIT LOGGING HELPER
 -- ========================================
@@ -109,7 +100,6 @@ BEGIN
   VALUES (p_request_id, p_action, auth.uid(), p_details);
 END;
 $$;
-
 -- ========================================
 -- 5. ENHANCED APPROVE FUNCTION
 -- ========================================
@@ -178,7 +168,6 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
 -- ========================================
 -- 6. REJECT WITHDRAWAL FUNCTION
 -- ========================================
@@ -238,7 +227,6 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
 -- ========================================
 -- 7. START PROCESSING FUNCTION
 -- ========================================
@@ -312,7 +300,6 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
 -- ========================================
 -- 8. COMPLETE WITHDRAWAL FUNCTION
 -- ========================================
@@ -366,7 +353,6 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
 -- ========================================
 -- 9. ADMIN CANCEL FUNCTION
 -- ========================================
@@ -427,7 +413,6 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
 -- ========================================
 -- 10. LOG INVESTOR-DRIVEN CANCELLATIONS
 -- ========================================
@@ -455,7 +440,6 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
 -- Apply trigger for investor cancellations
 DROP TRIGGER IF EXISTS trg_withdrawals_cancel_log ON public.withdrawal_requests;
 CREATE TRIGGER trg_withdrawals_cancel_log
@@ -463,7 +447,6 @@ CREATE TRIGGER trg_withdrawals_cancel_log
   FOR EACH ROW
   WHEN (NEW.status = 'cancelled' AND OLD.status IS DISTINCT FROM NEW.status)
   EXECUTE PROCEDURE public.log_cancel_on_status_change();
-
 -- ========================================
 -- 11. LOG CREATION OF NEW REQUESTS
 -- ========================================
@@ -487,20 +470,17 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
 -- Apply trigger for new requests
 DROP TRIGGER IF EXISTS trg_withdrawals_create_log ON public.withdrawal_requests;
 CREATE TRIGGER trg_withdrawals_create_log
   AFTER INSERT ON public.withdrawal_requests
   FOR EACH ROW
   EXECUTE PROCEDURE public.log_withdrawal_creation();
-
 -- ========================================
 -- 12. ENHANCED WITHDRAWAL QUEUE VIEW
 -- ========================================
 -- Drop and recreate with more comprehensive fields
 DROP VIEW IF EXISTS public.withdrawal_queue CASCADE;
-
 CREATE VIEW public.withdrawal_queue AS
 SELECT 
   wr.id,
@@ -553,7 +533,6 @@ LEFT JOIN public.investor_positions ip
 LEFT JOIN public.profiles ap ON wr.approved_by = ap.id
 LEFT JOIN public.profiles rp ON wr.rejected_by = rp.id
 LEFT JOIN public.profiles cp ON wr.cancelled_by = cp.id;
-
 -- ========================================
 -- 13. GRANT PERMISSIONS
 -- ========================================
@@ -565,10 +544,8 @@ GRANT EXECUTE ON FUNCTION public.reject_withdrawal(UUID, TEXT, TEXT) TO authenti
 GRANT EXECUTE ON FUNCTION public.start_processing_withdrawal(UUID, NUMERIC, TEXT, DATE, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.complete_withdrawal(UUID, TEXT, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.cancel_withdrawal_by_admin(UUID, TEXT, TEXT) TO authenticated;
-
 -- Grant select on view (RLS will filter appropriately)
 GRANT SELECT ON public.withdrawal_queue TO authenticated;
-
 -- ========================================
 -- 14. ADD COMMENTS FOR DOCUMENTATION
 -- ========================================
@@ -580,7 +557,6 @@ COMMENT ON FUNCTION public.start_processing_withdrawal IS 'Admin function to beg
 COMMENT ON FUNCTION public.complete_withdrawal IS 'Admin function to mark a withdrawal as completed';
 COMMENT ON FUNCTION public.cancel_withdrawal_by_admin IS 'Admin function to cancel a pending or approved withdrawal';
 COMMENT ON VIEW public.withdrawal_queue IS 'Comprehensive view of withdrawal requests with related data';
-
 -- ========================================
 -- MIGRATION COMPLETE
--- ========================================
+-- ========================================;

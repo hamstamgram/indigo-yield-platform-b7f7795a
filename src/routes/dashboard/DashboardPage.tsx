@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state"; // Import
+import { getAssetLogo } from "@/utils/assets";
 
 interface AssetPosition {
   fundName: string;
@@ -39,12 +40,13 @@ export default function DashboardPage() {
         .select(
           `
           shares,
-          total_yield_earned,
+          realized_pnl,
+          current_value,
+          cost_basis,
           funds ( name, asset_symbol, code )
         `
         )
-        .eq("investor_id", user.id)
-        .eq("status", "active");
+        .eq("investor_id", investors.id);
 
       if (error) throw error;
 
@@ -52,12 +54,12 @@ export default function DashboardPage() {
       const { data: reports } = await (supabase as any)
         .from("investor_monthly_reports")
         .select("*")
-        .eq("investor_id", user.id)
+        .eq("investor_id", investors.id)
         .order("report_month", { ascending: false });
 
       return positions.map((pos: any) => {
-        const rawAssetCode = pos.funds?.asset_symbol || pos.funds?.asset || "UNITS";
-        const assetCode = rawAssetCode === "USDC" || rawAssetCode === "USDT" ? "USD" : rawAssetCode;
+        const rawAssetCode = (pos.funds?.asset_symbol || pos.funds?.asset || "UNITS").toUpperCase();
+        const assetCode = rawAssetCode;
         // Get latest report for this asset to show "This Month's Activity"
         const latestReport = reports?.find((r: any) => r.asset_code === rawAssetCode);
 
@@ -65,7 +67,7 @@ export default function DashboardPage() {
           fundName: pos.funds?.name || "Unknown Fund",
           assetCode: assetCode,
           balance: Number(pos.shares) || 0,
-          yieldEarned: Number(pos.total_yield_earned) || 0,
+          yieldEarned: Number(pos.realized_pnl ?? 0) || 0,
           // Ledger Data matching Report Columns
           openingBalance: latestReport ? Number(latestReport.opening_balance) : 0,
           additions: latestReport ? Number(latestReport.additions) : 0,
@@ -81,7 +83,8 @@ export default function DashboardPage() {
     portfolio?.reduce((acc: number, curr: AssetPosition) => acc + curr.yieldEarned, 0) || 0;
   const totalYieldMonth =
     portfolio?.reduce((acc: number, curr: AssetPosition) => acc + (curr.mtdYield || 0), 0) || 0;
-  const yieldUnitLabel = portfolio?.length === 1 ? portfolio[0].assetCode : "UNITS";
+  const isMultiAsset = portfolio && portfolio.length > 1;
+  const yieldUnitLabel = isMultiAsset ? "Mixed Assets" : portfolio?.[0]?.assetCode || "UNITS";
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-20 p-4 md:p-0">
@@ -103,10 +106,18 @@ export default function DashboardPage() {
                   Yield (Inception)
                 </p>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-4xl font-mono font-bold text-primary">
-                    {totalYieldAllTime.toFixed(4)}
-                  </span>
-                  <span className="text-sm font-bold text-muted-foreground">{yieldUnitLabel}</span>
+                  {isMultiAsset ? (
+                    <span className="text-2xl font-mono font-bold text-primary">See Breakdown</span>
+                  ) : (
+                    <>
+                      <span className="text-4xl font-mono font-bold text-primary">
+                        {totalYieldAllTime.toFixed(4)}
+                      </span>
+                      <span className="text-sm font-bold text-muted-foreground">
+                        {yieldUnitLabel.toUpperCase()}
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="p-2 bg-primary/10 rounded-full">
@@ -127,10 +138,20 @@ export default function DashboardPage() {
                   Yield (This Month)
                 </p>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-4xl font-mono font-bold text-green-600">
-                    +{totalYieldMonth.toFixed(4)}
-                  </span>
-                  <span className="text-sm font-bold text-muted-foreground">{yieldUnitLabel}</span>
+                  {isMultiAsset ? (
+                    <span className="text-2xl font-mono font-bold text-green-600">
+                      See Breakdown
+                    </span>
+                  ) : (
+                    <>
+                      <span className="text-4xl font-mono font-bold text-green-600">
+                        +{totalYieldMonth.toFixed(4)}
+                      </span>
+                      <span className="text-sm font-bold text-muted-foreground">
+                        {yieldUnitLabel.toUpperCase()}
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-full">
@@ -160,8 +181,17 @@ export default function DashboardPage() {
                     <AccordionTrigger className="hover:no-underline px-6 py-5">
                       <div className="flex items-center justify-between w-full pr-4">
                         <div className="flex items-center gap-4">
-                          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
-                            {asset.assetCode.substring(0, 1)}
+                          <div className="h-10 w-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                            <img
+                              src={getAssetLogo(asset.assetCode)}
+                              alt={asset.assetCode}
+                              className="h-8 w-8 object-contain"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = "none";
+                                (e.target as HTMLImageElement).parentElement!.innerText =
+                                  asset.assetCode.substring(0, 1);
+                              }}
+                            />
                           </div>
                           <div className="text-left">
                             <h3 className="font-bold text-base">{asset.fundName}</h3>

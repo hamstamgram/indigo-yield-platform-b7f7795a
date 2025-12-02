@@ -8,42 +8,35 @@
 ALTER TABLE public.funds
 ADD COLUMN IF NOT EXISTS fund_class TEXT 
 CHECK (fund_class IN ('USDT', 'USDC', 'EURC', 'BTC', 'ETH', 'SOL'));
-
 -- Update existing funds with class based on asset
 UPDATE public.funds 
 SET fund_class = asset 
 WHERE fund_class IS NULL;
-
 -- Make fund_class NOT NULL after backfill
 ALTER TABLE public.funds
 ALTER COLUMN fund_class SET NOT NULL;
-
 -- ========================================
 -- Add fund_class to transactions_v2
 -- ========================================
 ALTER TABLE public.transactions_v2
 ADD COLUMN IF NOT EXISTS fund_class TEXT
 CHECK (fund_class IN ('USDT', 'USDC', 'EURC', 'BTC', 'ETH', 'SOL'));
-
 -- Backfill fund_class from related fund
 UPDATE public.transactions_v2 t
 SET fund_class = f.fund_class
 FROM public.funds f
 WHERE t.fund_id = f.id AND t.fund_class IS NULL;
-
 -- ========================================
 -- Add fund_class to investor_positions
 -- ========================================
 ALTER TABLE public.investor_positions
 ADD COLUMN IF NOT EXISTS fund_class TEXT
 CHECK (fund_class IN ('USDT', 'USDC', 'EURC', 'BTC', 'ETH', 'SOL'));
-
 -- Backfill fund_class from related fund
 UPDATE public.investor_positions p
 SET fund_class = f.fund_class
 FROM public.funds f
 WHERE p.fund_id = f.id AND p.fund_class IS NULL;
-
 -- ========================================
 -- Create aggregated positions view by class
 -- ========================================
@@ -63,7 +56,6 @@ SELECT
 FROM public.investor_positions
 WHERE fund_class IS NOT NULL
 GROUP BY investor_id, fund_class;
-
 -- ========================================
 -- Create function to get positions by class
 -- ========================================
@@ -100,14 +92,12 @@ BEGIN
   ORDER BY total_value DESC;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ========================================
 -- Update Excel import log for class tracking
 -- ========================================
 ALTER TABLE public.excel_import_log
 ADD COLUMN IF NOT EXISTS fund_classes JSONB,
 ADD COLUMN IF NOT EXISTS class_summary JSONB;
-
 -- ========================================
 -- Create helper function for Excel imports with class awareness
 -- ========================================
@@ -150,21 +140,18 @@ BEGIN
   RETURN v_result;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ========================================
 -- Create index for class-based queries
 -- ========================================
 CREATE INDEX IF NOT EXISTS idx_funds_fund_class ON public.funds(fund_class);
 CREATE INDEX IF NOT EXISTS idx_transactions_v2_fund_class ON public.transactions_v2(fund_class);
 CREATE INDEX IF NOT EXISTS idx_investor_positions_fund_class ON public.investor_positions(fund_class);
-
 -- ========================================
 -- Grant necessary permissions
 -- ========================================
 GRANT SELECT ON public.investor_positions_by_class TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_investor_positions_by_class(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.process_excel_import_with_classes(JSONB, TEXT) TO authenticated;
-
 COMMENT ON COLUMN public.funds.fund_class IS 'Asset class categorization for the fund';
 COMMENT ON VIEW public.investor_positions_by_class IS 'Aggregated investor positions grouped by fund class';
 COMMENT ON FUNCTION public.get_investor_positions_by_class IS 'Returns investor positions summarized by fund class with allocation percentages';

@@ -58,7 +58,17 @@ export function useDashboardData() {
         // Fetch investor positions
         const { data: positions } = await supabase
           .from("investor_positions")
-          .select("*, funds(*)")
+          .select(
+            `
+            investor_id,
+            fund_id,
+            shares,
+            cost_basis,
+            current_value,
+            realized_pnl,
+            funds (*)
+          `
+          )
           .eq("investor_id", investors.id);
 
         const totalValue =

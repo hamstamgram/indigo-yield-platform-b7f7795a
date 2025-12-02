@@ -1,126 +1,77 @@
 # Indigo Yield Platform
 
-> Multi-platform investment platform with web and native iOS applications
+> Multi-platform investment management system featuring a comprehensive Web Dashboard and native iOS Application.
 
-## 🏗️ Repository Structure
+## 🏗️ Project Structure
 
-This is a monorepo containing two separate applications:
+The project is organized as follows:
 
 ```
 indigo-yield-platform-v01/
-├── web/                    # React + TypeScript web application
-│   ├── src/
-│   ├── public/
-│   ├── package.json
-│   └── docs/              # Web-specific documentation
-├── ios/                   # Native Swift iOS application
-│   ├── IndigoInvestor/
-│   ├── IndigoInvestorTests/
-│   └── docs/              # iOS-specific documentation
-├── docs/                  # Shared documentation
-│   ├── backend/          # Backend/Supabase docs
-│   └── deployment/       # Deployment guides
-└── .github/workflows/    # CI/CD workflows
+├── src/                  # Web Application (React + TypeScript + Vite)
+├── public/               # Static assets for Web
+├── supabase/             # Database migrations and Edge Functions
+├── ios/                  # Native iOS Application (SwiftUI)
+├── docs/                 # Project documentation
+├── tests/                # Unit and Integration tests
+├── package.json          # Web dependencies and scripts
+└── README.md             # This file
 ```
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Web)
 
-### Web Application
-```bash
-# Install dependencies
-npm install
+1.  **Install Dependencies:**
+    ```bash
+    npm install
+    ```
 
-# Start development server
-npm run dev
+2.  **Set Up Environment:**
+    Copy `.env.example` to `.env` and configure your Supabase credentials.
+    ```bash
+    cp .env.example .env
+    ```
 
-# Build for production
-npm run build
-```
-📖 [Web Documentation](./web/README.md)
+3.  **Run Development Server:**
+    ```bash
+    npm run dev
+    ```
 
-### iOS Application
+4.  **Build for Production:**
+    ```bash
+    npm run build
+    ```
+
+## 📱 iOS Application
+
+The iOS application is located in the `ios/` directory.
+
 ```bash
 cd ios
-
-# Install dependencies (if using CocoaPods)
-pod install
-
-# Open in Xcode
+pod install  # If using CocoaPods
 open IndigoInvestor.xcworkspace
 ```
-📖 [iOS Documentation](./ios/README.md)
 
-## 📚 Documentation
+See [ios/README.md](ios/README.md) for detailed iOS build instructions.
 
-### Platform-Specific
-- **Web**: [web/README.md](./web/README.md) - React setup, components, deployment
-- **iOS**: [ios/README.md](./ios/README.md) - SwiftUI, architecture, TestFlight
+## 🛠️ Core Features
 
-### Shared Resources
-- **Backend**: [docs/backend/](./docs/backend/) - Supabase schema, Edge Functions, RLS
-- **Deployment**: [docs/deployment/](./docs/deployment/) - Infrastructure, CI/CD, environments
-- **Architecture**: [ARCHITECTURAL_ANALYSIS_AND_BUILD_PLAN.md](./ARCHITECTURAL_ANALYSIS_AND_BUILD_PLAN.md)
+-   **Monthly Reporting:** Admins enter monthly performance data; investors receive generated PDF/HTML reports.
+-   **Asset Management:** Support for BTC, ETH, SOL, USDC, USDT, and EURC.
+-   **Role-Based Access:** Secure Admin Portal and Investor Dashboard.
+-   **Notifications:** Email tracking and real-time alerts.
 
-## 🔄 CI/CD Workflows
+## 🔐 Database & Migration
 
-- **Web CI/CD**: `.github/workflows/web-ci-cd.yml` - Triggers on changes to `src/`, `public/`, web config files
-- **iOS CI/CD**: `.github/workflows/ios-ci-cd.yml` - Triggers on changes to `ios/` directory
-- **Staging**: `.github/workflows/staging.yml` - Deploy to staging environments
+This project uses **Supabase** (PostgreSQL).
 
-## 🛠️ Tech Stack
+**Important:** If you are setting this up for the first time or deploying updates, please refer to **`FINAL_MIGRATION_SUMMARY.md`** for the critical SQL scripts required to configure the database schema and security policies.
 
-### Web Application
-- **Framework**: React 18 + TypeScript
-- **Build Tool**: Vite 5
-- **UI**: shadcn-ui + Tailwind CSS
-- **Backend**: Supabase
-- **State**: TanStack Query
+## 🧪 Testing
 
-### iOS Application
-- **Language**: Swift 5.9+
-- **UI Framework**: SwiftUI
-- **Architecture**: MVVM + Services
-- **Backend**: Supabase
-- **Target**: iOS 17.0+
-
-## 🔐 Environment Setup
-
-### Web Environment Variables
-Create `.env.local`:
-```bash
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-### iOS Configuration
-Create `ios/Config/Secrets.xcconfig`:
-```bash
-SUPABASE_URL = your_supabase_url
-SUPABASE_ANON_KEY = your_supabase_anon_key
-```
-
-## 🤝 Contributing
-
-When working on this repository:
-
-1. **Web changes**: Work in root directory, changes trigger `web-ci-cd.yml`
-2. **iOS changes**: Work in `ios/` directory, changes trigger `ios-ci-cd.yml`
-3. **Backend changes**: Update both platforms to maintain consistency
-4. **Commit messages**: Prefix with `web:`, `ios:`, or `backend:` for clarity
-
-## 📦 Deployment
-
-- **Web**: Deployed via GitHub Actions to Vercel/Netlify
-- **iOS**: TestFlight builds via Xcode Cloud or manual upload
-
-See [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for detailed instructions.
+-   **Unit Tests:** `npm run test:unit`
+-   **E2E Tests:** `npm run test:e2e`
+-   **Service Health:** `npm run check:services`
 
 ## 📄 License
 
-Proprietary - All rights reserved
-
-## 🆘 Support
-
-- Web issues: Tag with `platform:web`
-- iOS issues: Tag with `platform:ios`
-- Backend issues: Tag with `platform:backend`
+Proprietary - All rights reserved.

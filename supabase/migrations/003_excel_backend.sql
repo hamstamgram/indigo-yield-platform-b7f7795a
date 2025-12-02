@@ -11,14 +11,12 @@ BEGIN
 EXCEPTION 
   WHEN duplicate_object THEN NULL; 
 END $$;
-
 DO $$ 
 BEGIN 
   CREATE TYPE fund_status AS ENUM ('active', 'inactive', 'suspended'); 
 EXCEPTION 
   WHEN duplicate_object THEN NULL; 
 END $$;
-
 -- ========================================
 -- FUNDS TABLE (Fund configurations)
 -- ========================================
@@ -38,7 +36,6 @@ CREATE TABLE IF NOT EXISTS public.funds (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- ========================================
 -- INVESTORS TABLE (Master investor data)
 -- ========================================
@@ -59,7 +56,6 @@ CREATE TABLE IF NOT EXISTS public.investors (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- ========================================
 -- TRANSACTIONS TABLE (Unified ledger)
 -- ========================================
@@ -82,7 +78,6 @@ CREATE TABLE IF NOT EXISTS public.transactions_v2 (
   created_by UUID REFERENCES public.profiles(id),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- ========================================
 -- DAILY NAV TABLE (Net Asset Value tracking)
 -- ========================================
@@ -103,7 +98,6 @@ CREATE TABLE IF NOT EXISTS public.daily_nav (
   created_by UUID REFERENCES public.profiles(id),
   PRIMARY KEY (fund_id, nav_date)
 );
-
 -- ========================================
 -- INVESTOR POSITIONS TABLE (Current holdings)
 -- ========================================
@@ -123,7 +117,6 @@ CREATE TABLE IF NOT EXISTS public.investor_positions (
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   PRIMARY KEY (investor_id, fund_id)
 );
-
 -- ========================================
 -- RECONCILIATION TABLE (Balance checks)
 -- ========================================
@@ -145,7 +138,6 @@ CREATE TABLE IF NOT EXISTS public.reconciliation (
   reconciled_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- ========================================
 -- FEE CALCULATIONS TABLE
 -- ========================================
@@ -164,7 +156,6 @@ CREATE TABLE IF NOT EXISTS public.fee_calculations (
   created_by UUID REFERENCES public.profiles(id),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- ========================================
 -- EXCEL IMPORT LOG
 -- ========================================
@@ -182,7 +173,6 @@ CREATE TABLE IF NOT EXISTS public.excel_import_log (
   imported_by UUID REFERENCES public.profiles(id),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- ========================================
 -- Create indexes for performance
 -- ========================================
@@ -193,7 +183,6 @@ CREATE INDEX IF NOT EXISTS idx_daily_nav_fund_date ON public.daily_nav(fund_id, 
 CREATE INDEX IF NOT EXISTS idx_investor_positions_fund ON public.investor_positions(fund_id);
 CREATE INDEX IF NOT EXISTS idx_reconciliation_fund_date ON public.reconciliation(fund_id, reconciliation_date DESC);
 CREATE INDEX IF NOT EXISTS idx_fee_calculations_investor ON public.fee_calculations(investor_id, calculation_date DESC);
-
 -- ========================================
 -- KPI Views and Calculation Functions
 -- ========================================
@@ -220,7 +209,6 @@ STABLE AS $$
     AND dn.nav_date >= d1 
     AND dn.nav_date <= d2;
 $$;
-
 -- View: Inception-to-date returns
 CREATE OR REPLACE VIEW public.v_itd_returns AS 
 SELECT 
@@ -228,7 +216,6 @@ SELECT
   EXP(SUM(LN(1 + COALESCE(net_return_pct, 0) / 100.0))) - 1 AS itd_return
 FROM public.daily_nav 
 GROUP BY fund_id;
-
 -- View: Fund KPIs
 CREATE OR REPLACE VIEW public.v_fund_kpis AS
 SELECT 
@@ -256,7 +243,6 @@ SELECT
      AND ip.shares > 0) AS active_investors
 FROM public.funds f
 WHERE f.status = 'active';
-
 -- View: Investor KPIs
 CREATE OR REPLACE VIEW public.v_investor_kpis AS
 SELECT 
@@ -278,7 +264,6 @@ FROM public.investors i
 LEFT JOIN public.investor_positions ip ON i.id = ip.investor_id
 LEFT JOIN public.transactions_v2 t ON i.id = t.investor_id
 GROUP BY i.id, i.name, i.email, i.status, i.kyc_status;
-
 -- ========================================
 -- Row Level Security Policies
 -- ========================================
@@ -292,60 +277,50 @@ ALTER TABLE public.investor_positions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reconciliation ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.fee_calculations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.excel_import_log ENABLE ROW LEVEL SECURITY;
-
 -- Funds policies
 CREATE POLICY "funds_select_policy" ON public.funds
-  FOR SELECT USING (TRUE); -- All authenticated users can view funds
+  FOR SELECT USING (TRUE);
+-- All authenticated users can view funds
 
 CREATE POLICY "funds_admin_policy" ON public.funds
   FOR ALL USING (public.is_admin());
-
 -- Investors policies
 CREATE POLICY "investors_select_own" ON public.investors
   FOR SELECT USING (
     profile_id = auth.uid() OR public.is_admin()
   );
-
 CREATE POLICY "investors_admin_policy" ON public.investors
   FOR ALL USING (public.is_admin());
-
 -- Transactions policies
 CREATE POLICY "transactions_v2_select_own" ON public.transactions_v2
   FOR SELECT USING (
     investor_id IN (SELECT id FROM public.investors WHERE profile_id = auth.uid())
     OR public.is_admin()
   );
-
 CREATE POLICY "transactions_v2_admin_policy" ON public.transactions_v2
   FOR ALL USING (public.is_admin());
-
 -- Daily NAV policies
 CREATE POLICY "daily_nav_select_policy" ON public.daily_nav
-  FOR SELECT USING (TRUE); -- All authenticated users can view NAV
+  FOR SELECT USING (TRUE);
+-- All authenticated users can view NAV
 
 CREATE POLICY "daily_nav_admin_policy" ON public.daily_nav
   FOR ALL USING (public.is_admin());
-
 -- Investor positions policies
 CREATE POLICY "investor_positions_select_own" ON public.investor_positions
   FOR SELECT USING (
     investor_id IN (SELECT id FROM public.investors WHERE profile_id = auth.uid())
     OR public.is_admin()
   );
-
 CREATE POLICY "investor_positions_admin_policy" ON public.investor_positions
   FOR ALL USING (public.is_admin());
-
 -- Other tables - admin only
 CREATE POLICY "reconciliation_admin_policy" ON public.reconciliation
   FOR ALL USING (public.is_admin());
-
 CREATE POLICY "fee_calculations_admin_policy" ON public.fee_calculations
   FOR ALL USING (public.is_admin());
-
 CREATE POLICY "excel_import_log_admin_policy" ON public.excel_import_log
   FOR ALL USING (public.is_admin());
-
 -- ========================================
 -- Seed initial fund data
 -- ========================================
@@ -355,7 +330,6 @@ VALUES
   ('ETHYF', 'ETH Yield Fund', 'ETH', 'Staking and DeFi', 200, 2000),
   ('USDTYF', 'USDT Yield Fund', 'USDT', 'Stable Yield', 100, 1000)
 ON CONFLICT (code) DO NOTHING;
-
 -- ========================================
 -- Create trigger for updated_at columns
 -- ========================================
@@ -363,12 +337,10 @@ CREATE TRIGGER update_funds_updated_at
   BEFORE UPDATE ON public.funds
   FOR EACH ROW
   EXECUTE FUNCTION public.update_updated_at();
-
 CREATE TRIGGER update_investors_updated_at
   BEFORE UPDATE ON public.investors
   FOR EACH ROW
   EXECUTE FUNCTION public.update_updated_at();
-
 CREATE TRIGGER update_investor_positions_updated_at
   BEFORE UPDATE ON public.investor_positions
   FOR EACH ROW

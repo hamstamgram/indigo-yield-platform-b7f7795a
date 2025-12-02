@@ -37,10 +37,11 @@ export const operationsService = {
           .select("id", { count: "exact", head: true })
           .in("status", ["pending", "approved"]),
 
-        // Pending deposits
+        // Pending deposits (from transactions_v2)
         supabase
-          .from("deposits")
+          .from("transactions_v2")
           .select("id", { count: "exact", head: true })
+          .eq("type", "DEPOSIT")
           .eq("status", "pending"),
 
         // Pending investments

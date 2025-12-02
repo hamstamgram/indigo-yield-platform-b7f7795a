@@ -4,7 +4,6 @@
 -- First, drop the incorrect policies that might have been partially created
 DROP POLICY IF EXISTS "transactions_select_own" ON transactions;
 DROP POLICY IF EXISTS "statements_select_own" ON statements;
-
 -- Now create the corrected policies
 -- For transactions table - check which column exists and use it
 DO $$
@@ -30,7 +29,6 @@ BEGIN
             USING (user_id = auth.uid())';
     END IF;
 END $$;
-
 -- For statements table - check which column exists and use it
 DO $$
 BEGIN

@@ -83,7 +83,6 @@ const InvestorReports = () => {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      console.log("Fetching reports for month:", selectedMonth);
 
       const reportDate = `${selectedMonth}-01`;
 
@@ -101,15 +100,15 @@ const InvestorReports = () => {
         return;
       }
 
-      // TODO: Fetch investor emails when investor_emails table is created
-      // Stubbed - investor_emails table doesn't exist yet
-      const emailsByInvestor: Record<string, any[]> = {};
-
-      /* Original code - restore when investor_emails table is created:
+      // Fetch investor emails
       const { data: allInvestorEmails, error: emailsError } = await supabase
         .from("investor_emails")
         .select("investor_id, email, is_primary, verified")
         .order("investor_id, is_primary", { ascending: false });
+
+      if (emailsError) {
+        console.warn("Could not fetch investor emails (table might not exist yet):", emailsError);
+      }
 
       const emailsByInvestor = (allInvestorEmails || []).reduce(
         (acc, emailRecord) => {
@@ -123,9 +122,8 @@ const InvestorReports = () => {
           });
           return acc;
         },
-        {} as Record<string, typeof allInvestorEmails>
+        {} as Record<string, any[]> // Using any[] to match the previous inferred type structure
       );
-      */
 
       // Fetch monthly reports for the selected month
       const { data: monthlyReports, error: reportsError } = await supabase
@@ -286,9 +284,11 @@ const InvestorReports = () => {
         investorId: string;
         investorName: string;
         recipientEmails: string[];
+        htmlContent: string;
       }> = [];
 
-      reportsToSend.forEach((report) => {
+      // Prepare batches
+      for (const report of reportsToSend) {
         // Get all recipient emails (verified + primary)
         const recipientEmails = report.investor_emails
           .filter((e) => e.verified || e.is_primary) // Send to verified emails + primary email
@@ -299,44 +299,87 @@ const InvestorReports = () => {
           recipientEmails.push(report.investor_email);
         }
 
+        if (recipientEmails.length === 0) continue;
+
         totalRecipients += recipientEmails.length;
+
+        // Generate HTML Content
+        const reportData: ReportData = {
+          investorName: report.investor_name,
+          reportDate: format(parseISO(`${selectedMonth}-01`), "MMMM d, yyyy"),
+          funds: report.assets.map((asset) => ({
+            fundName: `${asset.asset_code} YIELD FUND`,
+            currency: asset.asset_code,
+            metrics: {
+              begin_balance_mtd: asset.opening_balance.toString(),
+              begin_balance_qtd: "-",
+              begin_balance_ytd: "-",
+              begin_balance_itd: "-",
+
+              additions_mtd: asset.additions.toString(),
+              additions_qtd: "-",
+              additions_ytd: "-",
+              additions_itd: "-",
+
+              redemptions_mtd: asset.withdrawals.toString(),
+              redemptions_qtd: "-",
+              redemptions_ytd: "-",
+              redemptions_itd: "-",
+
+              net_income_mtd: asset.yield_earned.toString(),
+              net_income_qtd: "-",
+              net_income_ytd: "-",
+              net_income_itd: "-",
+
+              ending_balance_mtd: asset.closing_balance.toString(),
+              ending_balance_qtd: "-",
+              ending_balance_ytd: "-",
+              ending_balance_itd: "-",
+
+              return_rate_mtd: "0",
+              return_rate_qtd: "-",
+              return_rate_ytd: "-",
+              return_rate_itd: "-",
+            },
+          })),
+        };
+
+        const htmlContent = generateInvestorReportHtml(reportData);
 
         emailBatchData.push({
           investorId: report.investor_id,
           investorName: report.investor_name,
           recipientEmails,
+          htmlContent,
         });
-      });
+      }
 
-      console.log("📧 Email Sending Summary:", {
-        investors: reportsToSend.length,
-        totalRecipients,
-        emailBatchData,
-      });
+      // Send emails via Edge Function
+      let sentCount = 0;
+      for (const batch of emailBatchData) {
+        for (const recipientEmail of batch.recipientEmails) {
+          const { error } = await supabase.functions.invoke("send-investor-report", {
+            body: {
+              to: recipientEmail,
+              investorName: batch.investorName,
+              reportMonth: selectedMonth, // YYYY-MM
+              htmlContent: batch.htmlContent,
+            },
+          });
 
-      // For MVP: Log the email batch data
-      // In production: Call Supabase Edge Function or email service
-      // Example production code:
-      //
-      // for (const batch of emailBatchData) {
-      //   for (const recipientEmail of batch.recipientEmails) {
-      //     await supabase.functions.invoke('send-investor-report', {
-      //       body: {
-      //         investorId: batch.investorId,
-      //         recipientEmail: recipientEmail,
-      //         reportMonth: selectedMonth,
-      //       }
-      //     });
-      //   }
-      // }
+          if (error) {
+            console.error(`Failed to send to ${recipientEmail}:`, error);
+            // Continue sending to others even if one fails
+          } else {
+            sentCount++;
+          }
+        }
+      }
 
       toast({
-        title: "Multi-Email Support Ready",
-        description: `${reportsToSend.length} investors with ${totalRecipients} total recipients. Email service integration pending.`,
+        title: "Reports Sent",
+        description: `Successfully sent ${sentCount} emails to investors.`,
       });
-
-      // For now, just show success
-      // In production, this would actually send emails via Supabase Edge Function
     } catch (error: any) {
       console.error("Error sending reports:", error);
       toast({

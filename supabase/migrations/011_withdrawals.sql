@@ -18,7 +18,6 @@ BEGIN
 EXCEPTION 
   WHEN duplicate_object THEN NULL; 
 END $$;
-
 -- ========================================
 -- WITHDRAWAL REQUESTS TABLE
 -- ========================================
@@ -65,7 +64,6 @@ CREATE TABLE IF NOT EXISTS public.withdrawal_requests (
     (status IN ('rejected', 'cancelled'))
   )
 );
-
 -- ========================================
 -- WITHDRAWAL QUEUE VIEW (for admins)
 -- ========================================
@@ -95,7 +93,6 @@ LEFT JOIN public.investor_positions ip
   AND wr.fund_id = ip.fund_id
 WHERE wr.status IN ('pending', 'approved', 'processing')
 ORDER BY wr.request_date ASC;
-
 -- ========================================
 -- Functions for withdrawal processing
 -- ========================================
@@ -170,7 +167,6 @@ BEGIN
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- Function to create withdrawal request
 CREATE OR REPLACE FUNCTION public.create_withdrawal_request(
   p_investor_id UUID,
@@ -218,7 +214,6 @@ BEGIN
   RETURN v_request_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- Function for admin to approve withdrawal
 CREATE OR REPLACE FUNCTION public.approve_withdrawal(
   p_request_id UUID,
@@ -255,7 +250,6 @@ BEGIN
   RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ========================================
 -- Create indexes
 -- ========================================
@@ -263,12 +257,10 @@ CREATE INDEX IF NOT EXISTS idx_withdrawal_requests_investor ON public.withdrawal
 CREATE INDEX IF NOT EXISTS idx_withdrawal_requests_fund ON public.withdrawal_requests(fund_id);
 CREATE INDEX IF NOT EXISTS idx_withdrawal_requests_status ON public.withdrawal_requests(status);
 CREATE INDEX IF NOT EXISTS idx_withdrawal_requests_date ON public.withdrawal_requests(request_date DESC);
-
 -- ========================================
 -- RLS Policies
 -- ========================================
 ALTER TABLE public.withdrawal_requests ENABLE ROW LEVEL SECURITY;
-
 -- Investors can view their own requests
 CREATE POLICY "withdrawal_requests_select_own" ON public.withdrawal_requests
   FOR SELECT
@@ -277,7 +269,6 @@ CREATE POLICY "withdrawal_requests_select_own" ON public.withdrawal_requests
       SELECT id FROM public.investors WHERE profile_id = auth.uid()
     )
   );
-
 -- Investors can create their own requests
 CREATE POLICY "withdrawal_requests_insert_own" ON public.withdrawal_requests
   FOR INSERT
@@ -286,7 +277,6 @@ CREATE POLICY "withdrawal_requests_insert_own" ON public.withdrawal_requests
       SELECT id FROM public.investors WHERE profile_id = auth.uid()
     )
   );
-
 -- Investors can cancel their pending requests
 CREATE POLICY "withdrawal_requests_update_own" ON public.withdrawal_requests
   FOR UPDATE
@@ -298,7 +288,6 @@ CREATE POLICY "withdrawal_requests_update_own" ON public.withdrawal_requests
   WITH CHECK (
     status = 'cancelled'
   );
-
 -- Admins can do everything
 CREATE POLICY "withdrawal_requests_admin_all" ON public.withdrawal_requests
   FOR ALL
@@ -308,7 +297,6 @@ CREATE POLICY "withdrawal_requests_admin_all" ON public.withdrawal_requests
       WHERE id = auth.uid() AND is_admin = TRUE
     )
   );
-
 -- ========================================
 -- Grant permissions
 -- ========================================
@@ -316,7 +304,6 @@ GRANT SELECT ON public.withdrawal_queue TO authenticated;
 GRANT EXECUTE ON FUNCTION public.can_withdraw(UUID, UUID, NUMERIC) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.create_withdrawal_request(UUID, UUID, NUMERIC, TEXT, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.approve_withdrawal(UUID, NUMERIC, TEXT) TO authenticated;
-
 COMMENT ON TABLE public.withdrawal_requests IS 'Tracks investor withdrawal requests and their processing status';
 COMMENT ON VIEW public.withdrawal_queue IS 'Administrative view of pending and processing withdrawals';
 COMMENT ON FUNCTION public.can_withdraw IS 'Checks if an investor is eligible to withdraw from a fund';

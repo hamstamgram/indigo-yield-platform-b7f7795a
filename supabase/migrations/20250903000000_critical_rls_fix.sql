@@ -19,7 +19,6 @@ BEGIN
 EXCEPTION
     WHEN OTHERS THEN NULL;
 END $$;
-
 -- Create a SECURITY DEFINER function to check admin status without RLS
 CREATE OR REPLACE FUNCTION public.check_is_admin(user_id UUID)
 RETURNS BOOLEAN 
@@ -38,7 +37,6 @@ BEGIN
     RETURN COALESCE(admin_status, FALSE);
 END;
 $$;
-
 -- Update the main is_admin function to use the new check
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN 
@@ -49,53 +47,36 @@ BEGIN
     RETURN public.check_is_admin(auth.uid());
 END;
 $$;
-
 -- Grant execute permission
 GRANT EXECUTE ON FUNCTION public.check_is_admin(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
-
--- Avoid duplicate policy errors
-DROP POLICY IF EXISTS "profiles_own_select" ON public.profiles;
-DROP POLICY IF EXISTS "profiles_select_policy" ON public.profiles;
-DROP POLICY IF EXISTS "profiles_own_update" ON public.profiles;
-DROP POLICY IF EXISTS "profiles_update_policy" ON public.profiles;
-DROP POLICY IF EXISTS "profiles_admin_select" ON public.profiles;
-DROP POLICY IF EXISTS "profiles_admin_update" ON public.profiles;
-DROP POLICY IF EXISTS "profiles_no_delete" ON public.profiles;
-
 -- Now create simple, non-recursive policies
 -- 1. Users can see their own profile
 CREATE POLICY "profiles_own_select" ON public.profiles
     FOR SELECT
     USING (auth.uid() = id);
-
 -- 2. Users can update their own profile  
 CREATE POLICY "profiles_own_update" ON public.profiles
     FOR UPDATE
     USING (auth.uid() = id)
     WITH CHECK (auth.uid() = id);
-
 -- 3. Users can insert their own profile
 CREATE POLICY "profiles_own_insert" ON public.profiles
     FOR INSERT
     WITH CHECK (auth.uid() = id);
-
 -- 4. Admins can see all profiles (using the SECURITY DEFINER function)
 CREATE POLICY "profiles_admin_select" ON public.profiles
     FOR SELECT
     USING (public.check_is_admin(auth.uid()));
-
 -- 5. Admins can update all profiles
 CREATE POLICY "profiles_admin_update" ON public.profiles
     FOR UPDATE
     USING (public.check_is_admin(auth.uid()))
     WITH CHECK (public.check_is_admin(auth.uid()));
-
 -- 6. No one can delete profiles
 CREATE POLICY "profiles_no_delete" ON public.profiles
     FOR DELETE
     USING (FALSE);
-
 -- Verify the fix by testing a simple query
 DO $$
 BEGIN

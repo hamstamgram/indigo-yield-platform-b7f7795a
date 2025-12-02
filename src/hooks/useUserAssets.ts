@@ -54,8 +54,8 @@ export const useUserAssets = () => {
         BTC: "Bitcoin",
         ETH: "Ethereum",
         SOL: "Solana",
-        USDT: "Tether",
-        USDC: "USD Coin",
+        USDT: "Stablecoin Fund",
+        USDC: "Tokenized Gold",
         EURC: "Euro Coin",
       };
 

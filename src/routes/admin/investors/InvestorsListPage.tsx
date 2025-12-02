@@ -26,7 +26,7 @@ export default function InvestorsListPage() {
       setInvestors(investorsData);
       // Transform Asset type to match investorTypes.Asset
       const transformedAssets: Asset[] = assetsData.map((a) => ({
-        id: parseInt(a.asset_id.split('-')[0]) || 0,
+        id: parseInt(a.asset_id.split("-")[0]) || 0,
         symbol: a.symbol,
         name: a.name,
       }));
@@ -85,7 +85,7 @@ export default function InvestorsListPage() {
             assets={assets}
             loading={isLoading}
             searchTerm={searchTerm}
-            onSendEmail={(email) => console.log("Send email to", email)}
+            onSendEmail={() => {}}
             onRefresh={loadData}
           />
         </CardContent>

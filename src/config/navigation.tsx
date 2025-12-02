@@ -27,17 +27,19 @@ export type NavGroup = {
 // Investor Platform Navigation (Redesigned)
 
 export const activityNav: NavItem[] = [
-  { title: "Overview", href: "/activity", icon: <Activity className="h-5 w-5" /> },
   { title: "Statements", href: "/statements", icon: <FileText className="h-5 w-5" /> },
-  { title: "Transactions", href: "/transactions", icon: <CreditCard className="h-5 w-5" /> },
-  { title: "Withdrawals", href: "/withdrawals", icon: <ArrowLeftRight className="h-5 w-5" /> },
+  { title: "Transaction History", href: "/transactions", icon: <CreditCard className="h-5 w-5" /> },
+  {
+    title: "Withdrawals Request",
+    href: "/withdrawals",
+    icon: <ArrowLeftRight className="h-5 w-5" />,
+  },
 ];
 
 export const profileAndSettingsNav: NavItem[] = [
-  { title: "Profile", href: "/profile", icon: <User className="h-5 w-5" /> },
   { title: "Settings", href: "/settings", icon: <Settings className="h-5 w-5" /> },
   { title: "Documents", href: "/documents", icon: <FileText className="h-5 w-5" /> },
-  { title: "Account", href: "/account", icon: <User className="h-5 w-5" /> },
+  { title: "Account Ultrathink", href: "/account", icon: <User className="h-5 w-5" /> },
 ];
 
 export const mainNav: NavItem[] = [

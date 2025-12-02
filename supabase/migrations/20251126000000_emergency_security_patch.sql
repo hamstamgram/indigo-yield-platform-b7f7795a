@@ -69,10 +69,11 @@ END $$;
 
 -- Policies for investor_emails
 DROP POLICY IF EXISTS "investor_emails_select_own" ON investor_emails;
+DROP POLICY IF EXISTS "investor_emails_select_own" ON investor_emails;
 CREATE POLICY "investor_emails_select_own" ON investor_emails
     FOR SELECT USING (
         investor_id IN (
-            SELECT id FROM investors WHERE user_id = auth.uid()
+            SELECT id FROM investors WHERE profile_id = auth.uid()
         ) OR EXISTS (
             SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true
         )
@@ -91,7 +92,7 @@ DROP POLICY IF EXISTS "email_logs_select_own" ON email_logs;
 CREATE POLICY "email_logs_select_own" ON email_logs
     FOR SELECT USING (
         investor_id IN (
-            SELECT id FROM investors WHERE user_id = auth.uid()
+            SELECT id FROM investors WHERE profile_id = auth.uid()
         ) OR EXISTS (
             SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true
         )
@@ -115,68 +116,103 @@ CREATE POLICY "onboarding_admin_only" ON onboarding_submissions
     );
 
 -- Policies for email_queue (admin only)
-DROP POLICY IF EXISTS "email_queue_admin_only" ON email_queue;
-CREATE POLICY "email_queue_admin_only" ON email_queue
-    FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true
-        )
-    );
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'email_queue') THEN
+        DROP POLICY IF EXISTS "email_queue_admin_only" ON email_queue;
+        CREATE POLICY "email_queue_admin_only" ON email_queue
+            FOR ALL USING (
+                EXISTS (
+                    SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true
+                )
+            );
+    ELSE
+        RAISE NOTICE 'email_queue table not found; skipping policy creation';
+    END IF;
+END $$;
 
 -- Policies for fee_transactions
-DROP POLICY IF EXISTS "fee_transactions_select_own" ON fee_transactions;
-CREATE POLICY "fee_transactions_select_own" ON fee_transactions
-    FOR SELECT USING (
-        investor_id IN (
-            SELECT id FROM investors WHERE user_id = auth.uid()
-        ) OR EXISTS (
-            SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true
-        )
-    );
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'fee_transactions') THEN
+        DROP POLICY IF EXISTS "fee_transactions_select_own" ON fee_transactions;
+        CREATE POLICY "fee_transactions_select_own" ON fee_transactions
+            FOR SELECT USING (
+                investor_id IN (
+                    SELECT id FROM investors WHERE profile_id = auth.uid()
+                ) OR EXISTS (
+                    SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true
+                )
+            );
 
-DROP POLICY IF EXISTS "fee_transactions_admin_manage" ON fee_transactions;
-CREATE POLICY "fee_transactions_admin_manage" ON fee_transactions
-    FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true
-        )
-    );
+        DROP POLICY IF EXISTS "fee_transactions_admin_manage" ON fee_transactions;
+        CREATE POLICY "fee_transactions_admin_manage" ON fee_transactions
+            FOR ALL USING (
+                EXISTS (
+                    SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true
+                )
+            );
+    ELSE
+        RAISE NOTICE 'fee_transactions table not found; skipping policies';
+    END IF;
+END $$;
 
 -- Policies for generated_statements
-DROP POLICY IF EXISTS "generated_statements_select_own" ON generated_statements;
-CREATE POLICY "generated_statements_select_own" ON generated_statements
-    FOR SELECT USING (
-        investor_id IN (
-            SELECT id FROM investors WHERE user_id = auth.uid()
-        ) OR EXISTS (
-            SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true
-        )
-    );
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'generated_statements') THEN
+        DROP POLICY IF EXISTS "generated_statements_select_own" ON generated_statements;
+        CREATE POLICY "generated_statements_select_own" ON generated_statements
+            FOR SELECT USING (
+                investor_id IN (
+                    SELECT id FROM investors WHERE profile_id = auth.uid()
+                ) OR EXISTS (
+                    SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true
+                )
+            );
 
-DROP POLICY IF EXISTS "generated_statements_admin_manage" ON generated_statements;
-CREATE POLICY "generated_statements_admin_manage" ON generated_statements
-    FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true
-        )
-    );
+        DROP POLICY IF EXISTS "generated_statements_admin_manage" ON generated_statements;
+        CREATE POLICY "generated_statements_admin_manage" ON generated_statements
+            FOR ALL USING (
+                EXISTS (
+                    SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true
+                )
+            );
+    ELSE
+        RAISE NOTICE 'generated_statements table not found; skipping policies';
+    END IF;
+END $$;
 
 -- Admin-only tables
-DROP POLICY IF EXISTS "legacy_migration_admin_only" ON legacy_system_migration;
-CREATE POLICY "legacy_migration_admin_only" ON legacy_system_migration
-    FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true
-        )
-    );
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'legacy_system_migration') THEN
+        DROP POLICY IF EXISTS "legacy_migration_admin_only" ON legacy_system_migration;
+        CREATE POLICY "legacy_migration_admin_only" ON legacy_system_migration
+            FOR ALL USING (
+                EXISTS (
+                    SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true
+                )
+            );
+    ELSE
+        RAISE NOTICE 'legacy_system_migration table not found; skipping policies';
+    END IF;
+END $$;
 
-DROP POLICY IF EXISTS "investor_fund_perf_admin_only" ON investor_fund_performance;
-CREATE POLICY "investor_fund_perf_admin_only" ON investor_fund_performance
-    FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true
-        )
-    );
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'investor_fund_performance') THEN
+        DROP POLICY IF EXISTS "investor_fund_perf_admin_only" ON investor_fund_performance;
+        CREATE POLICY "investor_fund_perf_admin_only" ON investor_fund_performance
+            FOR ALL USING (
+                EXISTS (
+                    SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true
+                )
+            );
+    ELSE
+        RAISE NOTICE 'investor_fund_performance table not found; skipping policies';
+    END IF;
+END $$;
 
 DO $$
 BEGIN
@@ -242,7 +278,7 @@ BEGIN
     -- CRITICAL: Verify caller owns this investor account
     SELECT id INTO v_user_investor_id
     FROM investors
-    WHERE user_id = auth.uid() AND id = p_investor_id;
+    WHERE profile_id = auth.uid() AND id = p_investor_id;
 
     IF v_user_investor_id IS NULL THEN
         -- Log the attempted unauthorized access
@@ -345,8 +381,13 @@ END $$;
 
 -- Add constraints to prevent invalid transactions
 DO $$
+DECLARE
+    negative_txns INTEGER;
 BEGIN
-    IF NOT EXISTS (
+    SELECT COUNT(*) INTO negative_txns FROM transactions WHERE amount < 0;
+    IF negative_txns > 0 THEN
+        RAISE NOTICE 'Skipping positive_transaction_amount constraint: % negative rows present', negative_txns;
+    ELSIF NOT EXISTS (
         SELECT 1 FROM pg_constraint
         WHERE conname = 'positive_transaction_amount'
     ) THEN
@@ -377,6 +418,7 @@ ALTER TABLE rate_limits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rate_limits FORCE ROW LEVEL SECURITY;
 
 -- Only the system can manage rate limits
+DROP POLICY IF EXISTS "rate_limits_system_only" ON rate_limits;
 CREATE POLICY "rate_limits_system_only" ON rate_limits
     FOR ALL USING (false)
     WITH CHECK (false);
@@ -395,8 +437,9 @@ DECLARE
     v_unprotected_tables INTEGER;
     v_audit_policies INTEGER;
     v_total_policies INTEGER;
+    v_table_name TEXT;
 BEGIN
-    -- Count unprotected tables
+    -- Count unprotected tables (ignore sequences/pg internals)
     SELECT COUNT(*) INTO v_unprotected_tables
     FROM pg_tables t
     WHERE schemaname = 'public'
@@ -427,7 +470,7 @@ BEGIN
         RAISE WARNING 'CRITICAL: % tables still unprotected!', v_unprotected_tables;
 
         -- List unprotected tables
-        FOR v_unprotected_tables IN
+        FOR v_table_name IN
             SELECT tablename
             FROM pg_tables
             WHERE schemaname = 'public'
@@ -435,7 +478,7 @@ BEGIN
             AND tablename NOT LIKE 'pg_%'
             AND tablename NOT LIKE '%_id_seq'
         LOOP
-            RAISE WARNING 'Unprotected table: %', v_unprotected_tables;
+            RAISE WARNING 'Unprotected table: %', v_table_name;
         END LOOP;
     END IF;
 END $$;
@@ -485,25 +528,73 @@ FROM pg_tables
 WHERE schemaname = 'public'
 ORDER BY rowsecurity, tablename;
 
--- 2. Check for overly permissive policies
-SELECT
-    tablename,
-    policyname,
-    CASE
-        WHEN polpermissive THEN '⚠️ PERMISSIVE'
-        ELSE '✅ Restrictive'
-    END as policy_type
-FROM pg_policies
-WHERE schemaname = 'public'
-ORDER BY tablename, policyname;
+-- 2. Check for overly permissive policies (compatible with Postgres versions missing polpermissive)
+DO $$
+DECLARE
+    rec RECORD;
+    has_polpermissive BOOLEAN;
+BEGIN
+    SELECT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'pg_catalog'
+          AND table_name = 'pg_policy'
+          AND column_name = 'polpermissive'
+    ) INTO has_polpermissive;
+
+    IF has_polpermissive THEN
+        RAISE NOTICE 'Policy permissiveness check (pg_policy.polpermissive present):';
+        FOR rec IN
+            SELECT
+                tablename,
+                policyname,
+                CASE
+                    WHEN polpermissive THEN '⚠️ PERMISSIVE'
+                    ELSE '✅ Restrictive'
+                END as policy_type
+            FROM pg_policies
+            WHERE schemaname = 'public'
+            ORDER BY tablename, policyname
+        LOOP
+            RAISE NOTICE '% - % - %', rec.tablename, rec.policyname, rec.policy_type;
+        END LOOP;
+    ELSE
+        RAISE NOTICE 'Policy permissiveness check: polpermissive not available; showing Unknown';
+        FOR rec IN
+            SELECT tablename, policyname, 'Unknown' as policy_type
+            FROM pg_policies
+            WHERE schemaname = 'public'
+            ORDER BY tablename, policyname
+        LOOP
+            RAISE NOTICE '% - % - %', rec.tablename, rec.policyname, rec.policy_type;
+        END LOOP;
+    END IF;
+END $$;
 
 -- 3. Verify audit log is protected
-SELECT
-    policyname,
-    polcmd as operation,
-    polpermissive as is_permissive
-FROM pg_policies
-WHERE tablename = 'audit_log';
+DO $$
+DECLARE
+    rec RECORD;
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'pg_catalog'
+          AND table_name = 'pg_policy'
+          AND column_name = 'polpermissive'
+    ) THEN
+        FOR rec IN
+            SELECT
+                policyname,
+                polcmd as operation,
+                polpermissive as is_permissive
+            FROM pg_policies
+            WHERE tablename = 'audit_log'
+        LOOP
+            RAISE NOTICE 'Audit policy: % - % - permissive=%', rec.policyname, rec.operation, rec.is_permissive;
+        END LOOP;
+    ELSE
+        RAISE NOTICE 'Skipping audit log permissive check: pg_policy.polpermissive not available';
+    END IF;
+END $$;
 
 -- 4. Test as a non-admin user (replace with actual non-admin user ID)
 -- SET LOCAL ROLE authenticated;

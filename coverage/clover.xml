@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1764342291403" clover="3.2.0">
+  <project timestamp="1764342291403" name="All files">
+    <metrics statements="12" coveredstatements="12" conditionals="3" coveredconditionals="2" methods="4" coveredmethods="4" elements="19" coveredelements="18" complexity="0" loc="12" ncloc="12" packages="1" files="1" classes="1"/>
+    <file name="test-data.js" path="/Users/mama/indigo-yield-platform-v01/tests/fixtures/test-data.js">
+      <metrics statements="12" coveredstatements="12" conditionals="3" coveredconditionals="2" methods="4" coveredmethods="4"/>
+      <line num="4" count="3" type="stmt"/>
+      <line num="31" count="3" type="stmt"/>
+      <line num="64" count="3" type="stmt"/>
+      <line num="87" count="3" type="stmt"/>
+      <line num="110" count="3" type="stmt"/>
+      <line num="118" count="3" type="stmt"/>
+      <line num="153" count="6" type="stmt"/>
+      <line num="167" count="5" type="stmt"/>
+      <line num="168" count="5" type="stmt"/>
+      <line num="170" count="5" type="stmt"/>
+      <line num="188" count="11" type="stmt"/>
+      <line num="196" count="62" type="stmt"/>
+    </file>
+  </project>
+</coverage>

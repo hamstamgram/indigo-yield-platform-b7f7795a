@@ -20,10 +20,8 @@ BEGIN
     );
 END;
 $$;
-
 -- Grant execute permission to authenticated users
 GRANT EXECUTE ON FUNCTION public.get_user_admin_status(UUID) TO authenticated;
-
 -- Add comment for documentation
 COMMENT ON FUNCTION public.get_user_admin_status(UUID) IS 
 'Returns true if the specified user has admin privileges, false otherwise. Used by the frontend AuthContext to determine admin access.';

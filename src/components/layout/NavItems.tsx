@@ -41,16 +41,22 @@ export function useNavItems(): NavItem[] {
       description: "Monthly and quarterly statements",
     },
     {
-      title: "Transactions",
+      title: "Transaction History",
       href: "/transactions",
       icon: CreditCard,
       description: "Transaction history and details",
     },
     {
-      title: "Account",
+      title: "Withdrawals Request",
+      href: "/withdrawals",
+      icon: ArrowUpFromLine, // Reusing ArrowUpFromLine for withdrawals
+      description: "Request and manage withdrawals",
+    },
+    {
+      title: "Account Ultrathink",
       href: "/account",
       icon: Settings,
-      description: "Profile and account settings",
+      description: "Your Ultrathink account settings",
     },
   ];
 

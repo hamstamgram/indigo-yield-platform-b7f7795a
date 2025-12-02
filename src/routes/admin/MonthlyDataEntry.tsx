@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -21,12 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import {
-  Calendar,
-  Calculator,
-  ArrowRight,
-  Wallet,
-} from "lucide-react";
+import { Calendar, Calculator, ArrowRight, Wallet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface Fund {
@@ -51,6 +47,7 @@ export default function FundManager() {
   const [selectedFundId, setSelectedFundId] = useState<string>("");
   const [newAumInput, setNewAumInput] = useState<string>("");
   const [netFlows, setNetFlows] = useState({ deposits: 0, withdrawals: 0 });
+  const [isBaselineMode, setIsBaselineMode] = useState<boolean>(false);
 
   // 1. Fetch Funds
   const { data: funds } = useQuery({
@@ -67,14 +64,14 @@ export default function FundManager() {
         id: item.id,
         name: item.name,
         code: item.code,
-        asset_symbol: item.asset || item.asset_symbol || "UNITS", // Handle DB column 'asset'
+        asset_symbol: (item.asset || item.asset_symbol || "UNITS").toUpperCase(),
         total_aum: item.total_aum || 0,
       })) as Fund[];
     },
   });
-  
+
   // Derived selected fund
-  const selectedFund = funds?.find(f => f.id === selectedFundId);
+  const selectedFund = funds?.find((f) => f.id === selectedFundId);
 
   // 1.5 Fetch Net Flows
   const { data: flowData } = useQuery({
@@ -126,7 +123,7 @@ export default function FundManager() {
   // 3. Fetch Investors for Preview Table
   const { data: investorPreviews } = useQuery({
     queryKey: ["fund-investors-preview", selectedFundId, preview.yieldPot],
-    enabled: !!selectedFundId && !!preview.yieldPot,
+    enabled: !!selectedFundId && !!preview.yieldPot && !isBaselineMode,
     queryFn: async () => {
       // In a real app, this would be an RPC call to get exact math
       // Here we simulate the frontend projection based on the logic
@@ -140,8 +137,7 @@ export default function FundManager() {
           )
         `
         )
-        .eq("fund_id", selectedFundId)
-        .eq("status", "active");
+        .eq("fund_id", selectedFundId);
 
       if (!positions || !selectedFund) return [];
 
@@ -172,21 +168,37 @@ export default function FundManager() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Unauthorized");
 
-      // Call the RPC function we defined in the migration
-      const { data, error } = await supabase.rpc("distribute_monthly_yield" as any, {
-        p_fund_id: selectedFundId,
-        p_report_month: `${selectedMonth}-01`,
-        p_new_aum: parseFloat(newAumInput),
-        p_admin_id: user.id,
-      });
+      if (isBaselineMode) {
+        const { data, error } = await supabase.rpc("update_fund_aum_baseline" as any, {
+          p_fund_id: selectedFundId,
+          p_new_aum: parseFloat(newAumInput),
+          p_admin_id: user.id,
+        });
+        if (error) throw error;
+        return data;
+      } else {
+        // Call the RPC function we defined in the migration
+        const { data, error } = await supabase.rpc("distribute_monthly_yield" as any, {
+          p_fund_id: selectedFundId,
+          p_report_month: `${selectedMonth}-01`,
+          p_new_aum: parseFloat(newAumInput),
+          p_admin_id: user.id,
+        });
 
-      if (error) throw error;
-      return data;
+        if (error) throw error;
+        return data;
+      }
     },
     onSuccess: () => {
-      toast.success("Yield Distributed Successfully", {
-        description: `Allocated ${preview.yieldPot.toFixed(4)} ${selectedFund?.asset_symbol} across investors.`,
-      });
+      if (isBaselineMode) {
+        toast.success("Baseline Updated", {
+          description: `Fund AUM set to ${parseFloat(newAumInput).toLocaleString()} ${selectedFund?.asset_symbol}`,
+        });
+      } else {
+        toast.success("Yield Distributed Successfully", {
+          description: `Allocated ${preview.yieldPot.toFixed(4)} ${selectedFund?.asset_symbol} across investors.`,
+        });
+      }
       setNewAumInput("");
       queryClient.invalidateQueries({ queryKey: ["admin-funds"] });
     },
@@ -260,6 +272,15 @@ export default function FundManager() {
               <CardDescription>Enter the new total value of the fund</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
+              <div className="flex items-center space-x-2 pb-4 border-b">
+                <Switch
+                  id="baseline-mode"
+                  checked={isBaselineMode}
+                  onCheckedChange={setIsBaselineMode}
+                />
+                <Label htmlFor="baseline-mode">Set Baseline Only (No Yield)</Label>
+              </div>
+
               <div className="space-y-2">
                 <Label className="text-sm font-semibold text-foreground">
                   New Closing Balance (AUM)
@@ -290,34 +311,43 @@ export default function FundManager() {
                     {(netFlows.deposits - netFlows.withdrawals).toFixed(4)}
                   </span>
                 </div>
-                <div className="border-t my-2"></div>
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-foreground">Implied Yield</span>
-                  <span
-                    className={`font-mono font-bold text-lg ${preview.yieldPot >= 0 ? "text-green-600" : "text-red-600"}`}
-                  >
-                    {preview.yieldPot > 0 ? "+" : ""}
-                    {preview.yieldPot.toFixed(4)}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center mt-1">
-                  <span className="text-muted-foreground text-xs">Return on Investment</span>
-                  <Badge
-                    variant={preview.roi >= 0 ? "default" : "destructive"}
-                    className="bg-green-600"
-                  >
-                    {preview.roi.toFixed(2)}%
-                  </Badge>
-                </div>
+                {!isBaselineMode && (
+                  <>
+                    <div className="border-t my-2"></div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-foreground">Implied Yield</span>
+                      <span
+                        className={`font-mono font-bold text-lg ${preview.yieldPot >= 0 ? "text-green-600" : "text-red-600"}`}
+                      >
+                        {preview.yieldPot > 0 ? "+" : ""}
+                        {preview.yieldPot.toFixed(4)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-muted-foreground text-xs">Return on Investment</span>
+                      <Badge
+                        variant={preview.roi >= 0 ? "default" : "destructive"}
+                        className="bg-green-600"
+                      >
+                        {preview.roi.toFixed(2)}%
+                      </Badge>
+                    </div>
+                  </>
+                )}
               </div>
 
               <Button
                 className="w-full h-12 text-lg font-bold"
                 disabled={!newAumInput || distributeMutation.isPending}
                 onClick={() => distributeMutation.mutate()}
+                variant={isBaselineMode ? "secondary" : "default"}
               >
-                {distributeMutation.isPending ? "Distributing..." : "Confirm & Distribute"}
-                <ArrowRight className="ml-2 h-5 w-5" />
+                {distributeMutation.isPending
+                  ? "Processing..."
+                  : isBaselineMode
+                    ? "Update Baseline AUM"
+                    : "Confirm & Distribute"}
+                {!distributeMutation.isPending && <ArrowRight className="ml-2 h-5 w-5" />}
               </Button>
             </CardContent>
           </Card>
@@ -327,11 +357,13 @@ export default function FundManager() {
             <CardHeader>
               <CardTitle>Distribution Preview</CardTitle>
               <CardDescription>
-                How this yield will be allocated to investors (Pro-Rata)
+                {isBaselineMode
+                  ? "Distribution preview disabled in Baseline Mode"
+                  : "How this yield will be allocated to investors (Pro-Rata)"}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {investorPreviews ? (
+              {investorPreviews && !isBaselineMode ? (
                 <div className="rounded-md border">
                   <Table>
                     <TableHeader>
@@ -369,7 +401,11 @@ export default function FundManager() {
               ) : (
                 <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
                   <Wallet className="h-12 w-12 mb-4 opacity-20" />
-                  <p>Enter a new AUM value to see distribution preview.</p>
+                  <p>
+                    {isBaselineMode
+                      ? "Baseline update only - no yield distribution."
+                      : "Enter a new AUM value to see distribution preview."}
+                  </p>
                 </div>
               )}
             </CardContent>

@@ -28,20 +28,19 @@ export const generateExcelReportLazy = async (
 /**
  * Dynamically import ReportEngine
  * Reduces initial bundle size by ~300KB
- * TODO: Uncomment when reportEngine module is implemented
  */
-// export const ReportEngineLazy = {
-//   generateReport: async (
-//     ...args: Parameters<typeof import("@/lib/reports/reportEngine").ReportEngine.generateReport>
-//   ) => {
-//     const { ReportEngine } = await import("@/lib/reports/reportEngine");
-//     return ReportEngine.generateReport(...args);
-//   },
+export const ReportEngineLazy = {
+  generateReport: async (
+    ...args: Parameters<typeof import("@/lib/reports/reportEngine").ReportEngine.generateReport>
+  ) => {
+    const { ReportEngine } = await import("@/lib/reports/reportEngine");
+    return ReportEngine.generateReport(...args);
+  },
 
-//   fetchReportData: async (
-//     ...args: Parameters<typeof import("@/lib/reports/reportEngine").ReportEngine.fetchReportData>
-//   ) => {
-//     const { ReportEngine } = await import("@/lib/reports/reportEngine");
-//     return ReportEngine.fetchReportData(...args);
-//   },
-// };
+  fetchReportData: async (
+    ...args: Parameters<typeof import("@/lib/reports/reportEngine").ReportEngine.fetchReportData>
+  ) => {
+    const { ReportEngine } = await import("@/lib/reports/reportEngine");
+    return ReportEngine.fetchReportData(...args);
+  },
+};

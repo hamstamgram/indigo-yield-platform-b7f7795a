@@ -60,9 +60,11 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   const investorMenuItems = [
     { icon: Home, label: "Dashboard", path: "/dashboard" },
     { icon: FileText, label: "Statements", path: "/statements" },
-    { icon: DollarSign, label: "Transactions", path: "/transactions" },
+    { icon: DollarSign, label: "Transaction History", path: "/transactions" },
+    { icon: DollarSign, label: "Withdrawals Request", path: "/withdrawals" }, // Added
     { icon: FileText, label: "Documents", path: "/documents" },
     { icon: Bell, label: "Notifications", path: "/notifications" },
+    { icon: Settings, label: "Account Ultrathink", path: "/account" }, // Changed Profile to Account Ultrathink
     { icon: Settings, label: "Settings", path: "/settings" },
     { icon: HelpCircle, label: "Support", path: "/support" },
   ];
@@ -71,6 +73,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     { icon: Home, label: "Admin Dashboard", path: "/admin" },
     { icon: Users, label: "Investors", path: "/admin/investors" },
     { icon: TrendingUp, label: "Portfolio Management", path: "/admin/portfolio" },
+    { icon: DollarSign, label: "Withdrawals", path: "/admin/withdrawals" }, // Explicitly added for clarity, was implicitly in Admin Operations
     { icon: FileText, label: "Documents", path: "/admin/documents" },
     { icon: HelpCircle, label: "Support", path: "/admin/support" },
     { icon: Settings, label: "Operations", path: "/admin/operations" },
@@ -168,52 +171,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({
                 );
               })}
             </ul>
-
-            {/* Expandable Sections */}
-            {isAdmin && (
-              <div className="mt-6 px-3">
-                <button
-                  onClick={() => toggleSection("operations")}
-                  className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50"
-                >
-                  <span>Operations</span>
-                  <ChevronDown
-                    className={cn(
-                      "h-4 w-4 transition-transform",
-                      expandedSection === "operations" && "rotate-180"
-                    )}
-                  />
-                </button>
-                {expandedSection === "operations" && (
-                  <ul className="mt-2 ml-6 space-y-1">
-                    <li>
-                      <Link
-                        to="/admin/withdrawals"
-                        className="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-50"
-                      >
-                        Withdrawals
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/admin/statements"
-                        className="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-50"
-                      >
-                        Statements
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/admin/audit"
-                        className="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-50"
-                      >
-                        Audit Log
-                      </Link>
-                    </li>
-                  </ul>
-                )}
-              </div>
-            )}
           </nav>
 
           {/* Menu Footer */}

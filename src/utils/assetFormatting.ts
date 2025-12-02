@@ -57,8 +57,8 @@ export const getAssetDisplayName = (symbol: string): string => {
     BTC: "Bitcoin",
     ETH: "Ethereum",
     SOL: "Solana",
-    USDC: "USD Coin",
-    USDT: "Tether",
+    USDC: "Tokenized Gold",
+    USDT: "Stablecoin Fund",
     EURC: "Euro Coin",
   };
 

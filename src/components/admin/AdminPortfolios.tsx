@@ -137,7 +137,7 @@ const AdminPortfolios = ({
           balance: portfolio.current_balance,
           user_email: user?.email || "",
           user_name: userName,
-          asset_symbol: asset?.symbol || portfolio.asset_code,
+          asset_symbol: (asset?.symbol || portfolio.asset_code || "").toUpperCase(),
           asset_name: asset?.name || "",
         };
       });
@@ -429,7 +429,7 @@ const AdminPortfolios = ({
                     <TableRow key={portfolio.id}>
                       <TableCell>{portfolio.user_name || portfolio.user_email}</TableCell>
                       <TableCell>{portfolio.asset_name}</TableCell>
-                      <TableCell>{portfolio.asset_symbol}</TableCell>
+                      <TableCell>{(portfolio.asset_symbol || "").toUpperCase()}</TableCell>
                       <TableCell>
                         <Input
                           type="number"

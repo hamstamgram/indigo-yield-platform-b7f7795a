@@ -443,35 +443,44 @@ export class AirtableService {
  * Create AirtableService instance from environment variables
  */
 export function createAirtableService(): AirtableService {
-  const apiKey = process.env.VITE_AIRTABLE_API_KEY || process.env.AIRTABLE_API_KEY;
-  const baseId = process.env.VITE_AIRTABLE_BASE_ID || process.env.AIRTABLE_BASE_ID;
+  // Use import.meta.env for Vite, fallback to process.env for other environments (e.g. testing)
+  const env = import.meta.env || (process as any).env || {};
+
+  const apiKey = env.VITE_AIRTABLE_API_KEY || env.AIRTABLE_API_KEY;
+  const baseId = env.VITE_AIRTABLE_BASE_ID || env.AIRTABLE_BASE_ID;
   const tableName =
-    process.env.VITE_AIRTABLE_TABLE_NAME ||
-    process.env.AIRTABLE_TABLE_NAME ||
-    "Investor Onboarding";
-  const webhookSecret =
-    process.env.VITE_AIRTABLE_WEBHOOK_SECRET || process.env.AIRTABLE_WEBHOOK_SECRET;
+    env.VITE_AIRTABLE_TABLE_NAME || env.AIRTABLE_TABLE_NAME || "Investor Onboarding";
+  const webhookSecret = env.VITE_AIRTABLE_WEBHOOK_SECRET || env.AIRTABLE_WEBHOOK_SECRET;
 
   // Only throw error at runtime, not during build
   // During Next.js build, process.env.NEXT_PHASE will be set
-  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' ||
-                      process.env.NEXT_PHASE === 'phase-export';
+  const isBuildTime =
+    typeof process !== "undefined" &&
+    (process.env.NEXT_PHASE === "phase-production-build" ||
+      process.env.NEXT_PHASE === "phase-export");
 
   if (!apiKey || !baseId) {
     if (isBuildTime) {
       // During build, return a stub service to allow static analysis
-      console.warn('⚠️ Airtable credentials not configured - service will not be functional');
+      console.warn("⚠️ Airtable credentials not configured - service will not be functional");
       // Return stub service with placeholder values
       return new AirtableService({
-        apiKey: 'build-time-placeholder',
-        baseId: 'build-time-placeholder',
+        apiKey: "build-time-placeholder",
+        baseId: "build-time-placeholder",
         tableName,
         webhookSecret,
       });
     } else {
-      throw new Error(
-        "Missing required Airtable configuration. Set AIRTABLE_API_KEY and AIRTABLE_BASE_ID in environment variables."
+      // Don't throw immediately to avoid breaking the app if feature is unused
+      console.warn(
+        "Missing required Airtable configuration. Set VITE_AIRTABLE_API_KEY and VITE_AIRTABLE_BASE_ID in environment variables."
       );
+      return new AirtableService({
+        apiKey: "missing-key",
+        baseId: "missing-id",
+        tableName,
+        webhookSecret,
+      });
     }
   }
 

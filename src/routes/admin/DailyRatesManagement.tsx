@@ -53,8 +53,8 @@ export default function DailyRatesManagement() {
     { code: "BTC", name: "Bitcoin", color: "orange" },
     { code: "ETH", name: "Ethereum", color: "blue" },
     { code: "SOL", name: "Solana", color: "purple" },
-    { code: "USDT", name: "Tether", color: "green", stablecoin: true },
-    { code: "USDC", name: "USD Coin", color: "blue", stablecoin: true },
+    { code: "USDT", name: "Stablecoin Fund", color: "green", stablecoin: true },
+    { code: "USDC", name: "Tokenized Gold", color: "blue", stablecoin: true },
     { code: "EURC", name: "Euro Coin", color: "blue", stablecoin: true },
   ];
 

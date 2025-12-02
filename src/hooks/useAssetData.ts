@@ -19,8 +19,8 @@ const ASSET_NAMES: Record<string, string> = {
   BTC: "Bitcoin",
   ETH: "Ethereum",
   SOL: "Solana",
-  USDT: "Tether USD",
-  USDC: "USD Coin",
+  USDT: "Stablecoin Fund",
+  USDC: "Tokenized Gold",
   EURC: "Euro Coin",
 };
 

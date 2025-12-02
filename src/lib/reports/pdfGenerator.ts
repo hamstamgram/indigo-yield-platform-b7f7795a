@@ -7,6 +7,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { ReportData, ReportStyles } from "@/types/reports";
+import { getAssetLogo } from "@/utils/assets";
 
 // Extend jsPDF type to include autoTable
 declare module "jspdf" {
@@ -69,6 +70,25 @@ export class PDFReportGenerator {
   }
 
   /**
+   * Helper to load image as base64
+   */
+  private async loadImage(url: string): Promise<string | null> {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.warn(`Failed to load image: ${url}`, error);
+      return null;
+    }
+  }
+
+  /**
    * Generate PDF from report data
    */
   async generate(
@@ -95,7 +115,7 @@ export class PDFReportGenerator {
       // Add holdings if available
       if (data.holdings && data.holdings.length > 0) {
         this.addPage();
-        this.generateHoldingsPage(data);
+        await this.generateHoldingsPage(data); // Made async
       }
 
       // Add transactions if available
@@ -329,7 +349,7 @@ export class PDFReportGenerator {
   /**
    * Generate holdings page
    */
-  private generateHoldingsPage(data: ReportData): void {
+  private async generateHoldingsPage(data: ReportData): Promise<void> {
     this.addSectionHeader("Portfolio Holdings");
 
     if (!data.holdings || data.holdings.length === 0) {
@@ -339,7 +359,15 @@ export class PDFReportGenerator {
       return;
     }
 
+    // Pre-load images
+    const logoPromises = data.holdings.map((h) => {
+      const url = getAssetLogo(h.assetCode);
+      return this.loadImage(url);
+    });
+    const logos = await Promise.all(logoPromises);
+
     const tableData = data.holdings.map((h) => [
+      "", // Placeholder for logo
       h.assetName,
       this.formatNumber(h.quantity, 8),
       this.formatCurrency(h.currentPrice),
@@ -351,7 +379,9 @@ export class PDFReportGenerator {
 
     (this.doc as any).autoTable({
       startY: this.currentY,
-      head: [["Asset", "Quantity", "Price", "Value", "Allocation", "Unrealized Gain", "Gain %"]],
+      head: [
+        ["", "Asset", "Quantity", "Price", "Value", "Allocation", "Unrealized Gain", "Gain %"],
+      ],
       body: tableData,
       theme: "striped",
       headStyles: {
@@ -363,17 +393,28 @@ export class PDFReportGenerator {
       styles: {
         fontSize: 9,
         cellPadding: 6,
+        valign: "middle",
+        minCellHeight: 24, // Ensure enough height for logo
       },
       columnStyles: {
-        0: { fontStyle: "bold", cellWidth: 80 },
-        1: { halign: "right", cellWidth: 70 },
-        2: { halign: "right", cellWidth: 60 },
-        3: { halign: "right", cellWidth: 70 },
-        4: { halign: "right", cellWidth: 60 },
-        5: { halign: "right", cellWidth: 70 },
-        6: { halign: "right", cellWidth: 60 },
+        0: { cellWidth: 24 }, // Logo column
+        1: { fontStyle: "bold", cellWidth: 60 },
+        2: { halign: "right", cellWidth: 70 },
+        3: { halign: "right", cellWidth: 60 },
+        4: { halign: "right", cellWidth: 70 },
+        5: { halign: "right", cellWidth: 60 },
+        6: { halign: "right", cellWidth: 70 },
+        7: { halign: "right", cellWidth: 60 },
       },
       margin: { left: this.margin, right: this.margin },
+      didDrawCell: (data: any) => {
+        if (data.section === "body" && data.column.index === 0) {
+          const logoBase64 = logos[data.row.index];
+          if (logoBase64) {
+            this.doc.addImage(logoBase64, "PNG", data.cell.x + 2, data.cell.y + 2, 20, 20);
+          }
+        }
+      },
     });
 
     this.currentY = this.doc.lastAutoTable?.finalY || this.currentY;

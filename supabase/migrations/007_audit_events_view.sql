@@ -130,15 +130,12 @@ SELECT
 FROM audit_log
 
 ORDER BY created_at DESC;
-
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_audit_events_v_created_at ON audit_log(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_events_v_actor_user ON audit_log(actor_user);
 CREATE INDEX IF NOT EXISTS idx_audit_events_v_operation ON audit_log(action);
-
 -- Grant access to the view
 GRANT SELECT ON audit_events_v TO authenticated;
-
 -- Create helper function to get admin name
 CREATE OR REPLACE FUNCTION get_admin_name(admin_id UUID)
 RETURNS TEXT AS $$
@@ -153,6 +150,5 @@ BEGIN
     RETURN TRIM(COALESCE(admin_name, 'Unknown'));
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- Grant execute permission on helper function
 GRANT EXECUTE ON FUNCTION get_admin_name(UUID) TO authenticated;
