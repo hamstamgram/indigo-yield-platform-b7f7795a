@@ -30,7 +30,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({ loading, assetSummaries }
                 symbol={asset.symbol}
                 name={asset.name}
                 totalBalance={asset.totalBalance}
-                usdValue={asset.usdValue}
                 totalUsers={asset.totalUsers}
                 avgYield={asset.avgYield}
               />

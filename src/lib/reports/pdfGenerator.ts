@@ -8,6 +8,7 @@ import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { ReportData, ReportStyles } from "@/types/reports";
 import { getAssetLogo } from "@/utils/assets";
+import { formatAssetWithSymbol } from "@/utils/assetFormatting";
 
 // Extend jsPDF type to include autoTable
 declare module "jspdf" {
@@ -370,10 +371,10 @@ export class PDFReportGenerator {
       "", // Placeholder for logo
       h.assetName,
       this.formatNumber(h.quantity, 8),
-      this.formatCurrency(h.currentPrice),
-      this.formatCurrency(h.currentValue),
+      this.formatCurrency(h.currentPrice, h.assetCode),
+      this.formatCurrency(h.currentValue, h.assetCode),
       this.formatPercentage(h.allocationPercentage),
-      this.formatCurrency(h.unrealizedGain),
+      this.formatCurrency(h.unrealizedGain, h.assetCode),
       this.formatPercentage(h.unrealizedGainPercentage),
     ]);
 
@@ -441,7 +442,7 @@ export class PDFReportGenerator {
       t.type,
       t.assetCode,
       this.formatNumber(t.amount, 8),
-      this.formatCurrency(t.value),
+      this.formatCurrency(t.value, t.assetCode),
       t.status,
     ]);
 
@@ -631,14 +632,16 @@ export class PDFReportGenerator {
   }
 
   /**
-   * Format currency
+   * Format value in native tokens when asset code is provided, otherwise format as number
    */
-  private formatCurrency(value: number): string {
+  private formatCurrency(value: number, assetCode?: string): string {
+    if (assetCode) {
+      return formatAssetWithSymbol(value, assetCode);
+    }
+    // Fallback to number formatting without currency symbol for aggregated values
     return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      maximumFractionDigits: 8,
     }).format(value);
   }
 

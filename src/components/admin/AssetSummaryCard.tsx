@@ -7,21 +7,11 @@ interface AssetSummaryProps {
   symbol: string;
   name: string;
   totalBalance: number;
-  usdValue: number;
   totalUsers: number;
   avgYield: number;
 }
 
 // Format helpers
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-    minimumFractionDigits: 0,
-  }).format(value);
-};
-
 const formatPercent = (value: number) => {
   return `${value.toFixed(2)}%`;
 };
@@ -48,7 +38,6 @@ const AssetSummaryCard: React.FC<AssetSummaryProps> = ({
   symbol,
   name,
   totalBalance,
-  usdValue,
   totalUsers,
   avgYield,
 }) => {
@@ -73,14 +62,6 @@ const AssetSummaryCard: React.FC<AssetSummaryProps> = ({
             <p className="text-sm text-gray-500 mb-1">Total Balance</p>
             <p className="text-base font-semibold text-gray-900 dark:text-white">
               {formatCrypto(totalBalance, symbol)}
-            </p>
-          </div>
-
-          {/* USD Value section */}
-          <div>
-            <p className="text-sm text-gray-500 mb-1">USD Value</p>
-            <p className="text-base font-semibold text-gray-900 dark:text-white">
-              {formatCurrency(usdValue)}
             </p>
           </div>
 

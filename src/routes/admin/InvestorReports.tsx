@@ -33,14 +33,15 @@ import {
   Search,
   TrendingUp,
   Users,
-  DollarSign,
   CheckCircle2,
   Eye,
+  Coins,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format, subMonths, parseISO } from "date-fns";
 import { generateInvestorReportHtml, ReportData } from "@/utils/reportGenerator";
+import { formatAssetWithSymbol } from "@/utils/assetFormatting";
 
 interface InvestorReport {
   investor_id: string;
@@ -404,13 +405,9 @@ const InvestorReports = () => {
     setDetailsOpen(true);
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
+  // Use native token formatting from assetFormatting utility
+  const formatAmount = (amount: number, assetCode: string) => {
+    return formatAssetWithSymbol(amount, assetCode);
   };
 
   const filteredReports = reports.filter((report) => {
@@ -432,8 +429,6 @@ const InvestorReports = () => {
     totalInvestors: reports.length,
     reportsGenerated: reports.filter((r) => r.has_reports).length,
     reportsMissing: reports.filter((r) => !r.has_reports).length,
-    totalAUM: reports.reduce((sum, r) => sum + r.total_value, 0),
-    totalYield: reports.reduce((sum, r) => sum + r.total_yield, 0),
   };
 
   if (loading) {
@@ -516,25 +511,27 @@ const InvestorReports = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total AUM</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Positions</CardTitle>
+            <Coins className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(stats.totalAUM)}</div>
-            <p className="text-xs text-muted-foreground">Closing balances</p>
+            <div className="text-2xl font-bold">
+              {reports.reduce((sum, r) => sum + r.assets.length, 0)}
+            </div>
+            <p className="text-xs text-muted-foreground">Across all assets</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Yield</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Assets</CardTitle>
             <TrendingUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(stats.totalYield)}
+              {new Set(reports.flatMap((r) => r.assets.map((a) => a.asset_code))).size}
             </div>
-            <p className="text-xs text-muted-foreground">Monthly earnings</p>
+            <p className="text-xs text-muted-foreground">Unique asset types</p>
           </CardContent>
         </Card>
       </div>
@@ -689,19 +686,21 @@ const InvestorReports = () => {
 
           {selectedInvestor && (
             <div className="space-y-6">
-              {/* Summary */}
+              {/* Summary - Show per-asset values in native tokens */}
               <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Portfolio Value</p>
-                  <p className="text-2xl font-bold">
-                    {formatCurrency(selectedInvestor.total_value)}
-                  </p>
+                  <p className="text-sm text-muted-foreground">Total Positions</p>
+                  <p className="text-2xl font-bold">{selectedInvestor.assets.length}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Yield Earned</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    {formatCurrency(selectedInvestor.total_yield)}
-                  </p>
+                  <p className="text-sm text-muted-foreground">Asset Types</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {selectedInvestor.assets.map((a) => (
+                      <Badge key={a.asset_code} variant="secondary">
+                        {a.asset_code}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -757,19 +756,19 @@ const InvestorReports = () => {
                           <Badge>{asset.asset_code}</Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          {formatCurrency(asset.opening_balance)}
+                          {formatAmount(asset.opening_balance, asset.asset_code)}
                         </TableCell>
                         <TableCell className="text-right text-green-600">
-                          {formatCurrency(asset.additions)}
+                          {formatAmount(asset.additions, asset.asset_code)}
                         </TableCell>
                         <TableCell className="text-right text-red-600">
-                          {formatCurrency(asset.withdrawals)}
+                          {formatAmount(asset.withdrawals, asset.asset_code)}
                         </TableCell>
                         <TableCell className="text-right text-green-600 font-medium">
-                          {formatCurrency(asset.yield_earned)}
+                          {formatAmount(asset.yield_earned, asset.asset_code)}
                         </TableCell>
                         <TableCell className="text-right font-medium">
-                          {formatCurrency(asset.closing_balance)}
+                          {formatAmount(asset.closing_balance, asset.asset_code)}
                         </TableCell>
                       </TableRow>
                     ))}

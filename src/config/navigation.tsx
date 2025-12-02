@@ -15,6 +15,7 @@ import {
   Activity,
   Cog,
   FilePlus,
+  TrendingUp,
 } from "lucide-react";
 import { NavItem } from "@/types/navigation";
 
@@ -28,6 +29,11 @@ export type NavGroup = {
 
 export const activityNav: NavItem[] = [
   { title: "Statements", href: "/statements", icon: <FileText className="h-5 w-5" /> },
+  {
+    title: "Portfolio Performance",
+    href: "/portfolio/analytics",
+    icon: <TrendingUp className="h-5 w-5" />,
+  },
   { title: "Transaction History", href: "/transactions", icon: <CreditCard className="h-5 w-5" /> },
   {
     title: "Withdrawals Request",

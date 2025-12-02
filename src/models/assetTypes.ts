@@ -3,7 +3,6 @@ export interface AssetSummary {
   symbol: string;
   name: string;
   totalBalance: number;
-  usdValue: number;
   totalUsers: number;
   avgYield: number;
 }

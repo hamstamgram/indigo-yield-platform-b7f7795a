@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
@@ -24,6 +25,7 @@ import {
 
 export default function AdminInvestorsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
 
   const { data: investors, isLoading } = useQuery({
     queryKey: ["admin-investors"],
@@ -157,7 +159,11 @@ export default function AdminInvestorsPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>View Profile</DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => navigate(`/admin/investors/${investor.id}`)}
+                            >
+                              View Profile
+                            </DropdownMenuItem>
                             <DropdownMenuItem>Edit Details</DropdownMenuItem>
                             <DropdownMenuItem className="text-destructive">
                               Deactivate
