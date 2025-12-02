@@ -178,7 +178,7 @@ const AccountPage = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Account</h1>
+      <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Account Ultrathink</h1>
 
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="mb-4 bg-gray-100 dark:bg-gray-800">

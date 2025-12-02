@@ -214,12 +214,18 @@ const InvestorReports = () => {
     fetchReports();
   }, [selectedMonth]);
 
+  const getFundDisplayName = (assetCode: string) => {
+    if (assetCode === "USDC") return "Tokenized Gold";
+    if (assetCode === "USDT") return "Stablecoin Fund";
+    return `${assetCode} YIELD FUND`;
+  };
+
   const handlePreviewReport = (investor: InvestorReport) => {
     const reportData: ReportData = {
       investorName: investor.investor_name,
       reportDate: format(parseISO(`${selectedMonth}-01`), "MMMM d, yyyy"),
       funds: investor.assets.map((asset) => ({
-        fundName: `${asset.asset_code} YIELD FUND`,
+        fundName: getFundDisplayName(asset.asset_code),
         currency: asset.asset_code,
         metrics: {
           begin_balance_mtd: asset.opening_balance.toString(),
@@ -308,7 +314,7 @@ const InvestorReports = () => {
           investorName: report.investor_name,
           reportDate: format(parseISO(`${selectedMonth}-01`), "MMMM d, yyyy"),
           funds: report.assets.map((asset) => ({
-            fundName: `${asset.asset_code} YIELD FUND`,
+            fundName: getFundDisplayName(asset.asset_code),
             currency: asset.asset_code,
             metrics: {
               begin_balance_mtd: asset.opening_balance.toString(),

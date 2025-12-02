@@ -98,8 +98,7 @@ export const NotificationSettingsPage = lazy(
   () => import("@/routes/settings/NotificationSettingsPage")
 );
 
-export const KYCVerification = lazy(() => import("@/routes/profile/KYCVerification"));
-export const Security = lazy(() => import("@/routes/profile/Security"));
+export const KYCVerification = lazy(() => import("@/routes/investor/account/KYCVerification"));
 
 export const CustomReport = lazy(() => import("@/routes/reports/CustomReport"));
 export const PerformanceReportPage = lazy(() => import("@/routes/reports/PerformanceReportPage"));
@@ -108,8 +107,6 @@ export const ReportsPage = lazy(() => import("@/routes/reports/ReportsPage"));
 export const SettingsNotificationsPage = lazy(
   () => import("@/routes/settings/NotificationSettingsPage")
 );
-export const ProfileSettingsPage = lazy(() => import("@/routes/settings/ProfileSettingsPage"));
-export const SecuritySettings = lazy(() => import("@/routes/settings/SecuritySettings"));
 
 export const PendingTransactionsPage = lazy(
   () => import("@/routes/transactions/PendingTransactionsPage")
@@ -125,8 +122,6 @@ export const TransactionsPageV2 = TransactionsPage;
 export const WithdrawalHistoryPage = lazy(
   () => import("@/routes/withdrawals/WithdrawalHistoryPage")
 );
-
-export const ActivityPage = lazy(() => import("@/routes/activity/ActivityPage"));
 
 // ============================================================================
 // LAZY WRAPPERS WITH SUSPENSE
@@ -440,11 +435,6 @@ export const LazyKYCVerification = () => (
     <KYCVerification />
   </RouteSuspense>
 );
-export const LazySecurity = () => (
-  <RouteSuspense>
-    <Security />
-  </RouteSuspense>
-);
 export const LazyCustomReport = () => (
   <RouteSuspense>
     <CustomReport />
@@ -463,16 +453,6 @@ export const LazyReportsPage = () => (
 export const LazySettingsNotifications = () => (
   <RouteSuspense>
     <SettingsNotificationsPage />
-  </RouteSuspense>
-);
-export const LazyProfileSettings = () => (
-  <RouteSuspense>
-    <ProfileSettingsPage />
-  </RouteSuspense>
-);
-export const LazySecuritySettings = () => (
-  <RouteSuspense>
-    <SecuritySettings />
   </RouteSuspense>
 );
 export const LazyPendingTransactions = () => (
@@ -498,10 +478,5 @@ export const LazyTransactionsV2 = () => (
 export const LazyWithdrawalHistory = () => (
   <RouteSuspense>
     <WithdrawalHistoryPage />
-  </RouteSuspense>
-);
-export const LazyActivity = () => (
-  <RouteSuspense>
-    <ActivityPage />
   </RouteSuspense>
 );

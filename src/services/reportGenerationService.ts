@@ -6,9 +6,9 @@ const FUND_ICON_MAP: Record<string, string> = {
     "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
   "ETH YIELD FUND":
     "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
-  "USDC YIELD FUND":
+  "Tokenized Gold":
     "https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png",
-  "USDT YIELD FUND":
+  "Stablecoin Fund":
     "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
   "SOL YIELD FUND":
     "https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFQ.png",
@@ -386,16 +386,25 @@ export async function fetchInvestorReportData(
       email: primaryEmail, // Legacy field: primary email only
       emails: emails, // All emails for multi-recipient sending
       reportMonth,
-      positions: positions.map((pos: any) => ({
-        fundName: pos.funds?.name || "Unknown Fund",
-        currencyName: pos.funds?.asset_code || "Unknown",
-        openingBalance: pos.opening_balance || 0,
-        additions: pos.additions || 0,
-        withdrawals: pos.withdrawals || 0,
-        yield: pos.yield || 0,
-        closingBalance: pos.closing_balance || 0,
-        rateOfReturn: pos.rate_of_return || 0,
-      })),
+      positions: positions.map((pos: any) => {
+        let fundName = pos.funds?.name || "Unknown Fund";
+        const assetCode = pos.funds?.asset_code;
+
+        // Normalize fund names for branding
+        if (assetCode === "USDC") fundName = "Tokenized Gold";
+        if (assetCode === "USDT") fundName = "Stablecoin Fund";
+
+        return {
+          fundName,
+          currencyName: assetCode || "Unknown",
+          openingBalance: pos.opening_balance || 0,
+          additions: pos.additions || 0,
+          withdrawals: pos.withdrawals || 0,
+          yield: pos.yield || 0,
+          closingBalance: pos.closing_balance || 0,
+          rateOfReturn: pos.rate_of_return || 0,
+        };
+      }),
     };
 
     return reportData;
