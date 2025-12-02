@@ -435,7 +435,7 @@ export async function sendInvestorStatement(periodId: string, userId: string): P
     const subject = `Your ${period.period_name} Investment Statement - Indigo Fund`;
 
     // Queue email for delivery
-    const { error: deliveryError } = (await supabase
+    const { data: deliveryRecord, error: deliveryError } = (await supabase
       .from("statement_email_delivery" as any)
       .insert({
         statement_id: statement.id,
@@ -443,15 +443,44 @@ export async function sendInvestorStatement(periodId: string, userId: string): P
         period_id: periodId,
         recipient_email: profile.email || "",
         subject,
-        status: "QUEUED",
-      })) as any;
+        status: "SENDING",
+      })
+      .select()
+      .single()) as any;
 
     if (deliveryError) throw deliveryError;
 
-    // TODO: Trigger Edge Function to actually send the email
-    // This would typically call a Supabase Edge Function that uses
-    // an email service like Resend, SendGrid, etc.
-    // For now, we just queue it in the database
+    // Trigger Edge Function to send email
+    const { error: sendError } = await supabase.functions.invoke("send-email", {
+      body: {
+        to: profile.email,
+        subject: subject,
+        html: statement.html_content,
+      },
+    });
+
+    if (sendError) {
+      // Update status to FAILED
+      await supabase
+        .from("statement_email_delivery" as any)
+        .update({
+          status: "FAILED",
+          error_message: sendError.message || "Failed to invoke edge function",
+          failed_at: new Date().toISOString(),
+        })
+        .eq("id", deliveryRecord.id);
+
+      throw sendError;
+    }
+
+    // Update status to SENT
+    await supabase
+      .from("statement_email_delivery" as any)
+      .update({
+        status: "SENT",
+        sent_at: new Date().toISOString(),
+      })
+      .eq("id", deliveryRecord.id);
   } catch (error) {
     console.error("Error sending investor statement:", error);
     throw new Error("Failed to send investor statement");
