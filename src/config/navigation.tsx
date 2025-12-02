@@ -39,7 +39,7 @@ export const activityNav: NavItem[] = [
 export const profileAndSettingsNav: NavItem[] = [
   { title: "Settings", href: "/settings", icon: <Settings className="h-5 w-5" /> },
   { title: "Documents", href: "/documents", icon: <FileText className="h-5 w-5" /> },
-  { title: "Account Ultrathink", href: "/account", icon: <User className="h-5 w-5" /> },
+  { title: "Account", href: "/account", icon: <User className="h-5 w-5" /> },
 ];
 
 export const mainNav: NavItem[] = [

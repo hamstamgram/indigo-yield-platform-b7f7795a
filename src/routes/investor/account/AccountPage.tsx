@@ -109,45 +109,6 @@ const AccountPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSaveProfile = async (updatedData: any) => {
-    try {
-      if (!profile) return;
-
-      // Just update the local state since database operations may fail
-      setProfile({
-        ...profile,
-        ...updatedData,
-      });
-
-      // Attempt to save to database but don't block the UI if it fails
-      try {
-        const { error } = await supabase.from("profiles").update(updatedData).eq("id", profile.id);
-
-        if (error) {
-          console.warn("Could not save profile to database:", error);
-          // Don't show error to user, UI will still update correctly
-        }
-      } catch (dbError) {
-        console.warn("Database update failed:", dbError);
-        // Don't show error to user, UI will still update correctly
-      }
-
-      toast({
-        title: "Profile updated",
-        description: "Your profile information has been updated successfully.",
-      });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to update profile information";
-      console.error("Error updating profile:", error);
-      toast({
-        title: "Update failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -178,7 +139,7 @@ const AccountPage = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Account Ultrathink</h1>
+      <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Account</h1>
 
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="mb-4 bg-gray-100 dark:bg-gray-800">
@@ -188,7 +149,7 @@ const AccountPage = () => {
         </TabsList>
 
         <TabsContent value="profile">
-          <ProfileTab profile={profile} loading={loading} onSave={handleSaveProfile} />
+          <ProfileTab profile={profile} loading={loading} />
         </TabsContent>
 
         <TabsContent value="security">

@@ -64,7 +64,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     { icon: DollarSign, label: "Withdrawals Request", path: "/withdrawals" }, // Added
     { icon: FileText, label: "Documents", path: "/documents" },
     { icon: Bell, label: "Notifications", path: "/notifications" },
-    { icon: Settings, label: "Account Ultrathink", path: "/account" }, // Changed Profile to Account Ultrathink
+    { icon: Settings, label: "Account", path: "/account" }, // Changed Account Ultrathink to Account
     { icon: Settings, label: "Settings", path: "/settings" },
     { icon: HelpCircle, label: "Support", path: "/support" },
   ];

@@ -26,61 +26,62 @@ DECLARE
     v_fund_class text;
     v_migrated_count int := 0;
 BEGIN
-    RAISE NOTICE 'Starting migration of positions...';
+    IF EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'positions'
+    ) THEN
+        RAISE NOTICE 'Starting migration of positions...';
 
-    FOR r IN SELECT * FROM positions WHERE current_balance > 0 LOOP
-        
-        -- A. Resolve Investor
-        -- positions.user_id is the auth.uid. 
-        -- We need the investor_id from the 'investors' table where investors.profile_id = auth.uid
-        SELECT id INTO v_investor_id 
-        FROM investors 
-        WHERE profile_id = r.user_id;
+        FOR r IN SELECT * FROM positions WHERE current_balance > 0 LOOP
+            -- A. Resolve Investor
+            SELECT id INTO v_investor_id FROM investors WHERE profile_id = r.user_id;
 
-        -- B. Resolve Fund
-        SELECT id, fund_class INTO v_fund_id, v_fund_class 
-        FROM funds 
-        WHERE asset_symbol = r.asset_code::text 
-        LIMIT 1;
+            -- B. Resolve Fund
+            SELECT id, fund_class INTO v_fund_id, v_fund_class
+            FROM funds
+            WHERE asset_symbol = r.asset_code::text
+            LIMIT 1;
 
-        -- C. Insert Record if valid
-        IF v_investor_id IS NOT NULL AND v_fund_id IS NOT NULL THEN
-            
-            INSERT INTO investor_positions (
-                investor_id,
-                fund_id,
-                shares,
-                cost_basis,
-                current_value,
-                realized_pnl,
-                fund_class,
-                updated_at
-            ) VALUES (
-                v_investor_id,
-                v_fund_id,
-                r.current_balance, -- Shares match the asset balance 1:1
-                r.principal,
-                r.current_balance, -- Initial value matches balance (assuming 1.0 NAV baseline)
-                r.total_earned,
-                v_fund_class,
-                now()
-            )
-            ON CONFLICT (investor_id, fund_id) 
-            DO UPDATE SET
-                shares = EXCLUDED.shares,
-                cost_basis = EXCLUDED.cost_basis,
-                current_value = EXCLUDED.current_value,
-                realized_pnl = EXCLUDED.realized_pnl,
-                fund_class = EXCLUDED.fund_class,
-                updated_at = now();
-                
-            v_migrated_count := v_migrated_count + 1;
-        ELSE
-            RAISE NOTICE 'Skipping position for user % asset % (Investor or Fund not found)', r.user_id, r.asset_code;
-        END IF;
-    END LOOP;
+            -- C. Insert Record if valid
+            IF v_investor_id IS NOT NULL AND v_fund_id IS NOT NULL THEN
+                INSERT INTO investor_positions (
+                    investor_id,
+                    fund_id,
+                    shares,
+                    cost_basis,
+                    current_value,
+                    realized_pnl,
+                    fund_class,
+                    updated_at
+                ) VALUES (
+                    v_investor_id,
+                    v_fund_id,
+                    r.current_balance,
+                    r.principal,
+                    r.current_balance,
+                    r.total_earned,
+                    v_fund_class,
+                    now()
+                )
+                ON CONFLICT (investor_id, fund_id)
+                DO UPDATE SET
+                    shares = EXCLUDED.shares,
+                    cost_basis = EXCLUDED.cost_basis,
+                    current_value = EXCLUDED.current_value,
+                    realized_pnl = EXCLUDED.realized_pnl,
+                    fund_class = EXCLUDED.fund_class,
+                    updated_at = now();
 
-    RAISE NOTICE 'Migration complete. Migrated % positions.', v_migrated_count;
+                v_migrated_count := v_migrated_count + 1;
+            ELSE
+                RAISE NOTICE 'Skipping position for user % asset % (Investor or Fund not found)', r.user_id, r.asset_code;
+            END IF;
+        END LOOP;
+
+        RAISE NOTICE 'Migration complete. Migrated % positions.', v_migrated_count;
+    ELSE
+        RAISE NOTICE 'positions table not found; skipping position migration';
+    END IF;
 END $$;
 
 COMMIT;

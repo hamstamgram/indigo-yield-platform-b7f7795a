@@ -53,10 +53,10 @@ export function useNavItems(): NavItem[] {
       description: "Request and manage withdrawals",
     },
     {
-      title: "Account Ultrathink",
+      title: "Account",
       href: "/account",
       icon: Settings,
-      description: "Your Ultrathink account settings",
+      description: "Your account settings",
     },
   ];
 
