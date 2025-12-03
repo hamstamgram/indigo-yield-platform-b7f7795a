@@ -1,10 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
 
-// Simplified transaction interfaces for now
-interface Transaction {
-  id: string;
-  [key: string]: any; // Flexible for now
-}
+type TransactionRow = Database["public"]["Tables"]["transactions_v2"]["Row"];
 
 export interface TransactionFilter {
   userId?: string;
@@ -22,15 +19,14 @@ export interface TransactionSummary {
   totalDeposits: number;
   totalWithdrawals: number;
   totalFees: number;
-  recentTransactions: Transaction[];
+  recentTransactions: TransactionRow[];
 }
 
 /**
- * Simplified transaction API - focused on basic functionality for now
- * TODO: Enhance with proper typing in Phase 2
+ * Transaction API - Strongly typed fetching of transaction history
  */
 export async function fetchTransactions(filter: TransactionFilter = {}): Promise<{
-  data: any[];
+  data: TransactionRow[];
   count: number;
 }> {
   try {
@@ -40,25 +36,16 @@ export async function fetchTransactions(filter: TransactionFilter = {}): Promise
 
     // 1. User Filter (Resolve profile_id -> investor_id)
     if (filter.userId) {
-      // We need to look up the investor_id for this profile_id
-      // Since we can't do a join filter easily on the same query if we want to filter by the *foreign* key's property without !inner logic
-      // Let's try !inner join
-      query = query.eq("investors.profile_id", filter.userId);
-      // NOTE: This assumes relationship transactions_v2 -> investors -> profiles exists and is named correctly.
-      // In Supabase, this is usually: .select("*, investors!inner(*)")
-      // But that changes the return shape.
-
-      // Safer approach: fetch investor_id first if userId is provided
       const { data: investor } = await supabase
         .from("investors")
         .select("id")
         .eq("profile_id", filter.userId)
         .maybeSingle();
+
       if (investor) {
         query = query.eq("investor_id", investor.id);
       } else {
-        // If no investor profile found, return empty (assuming filter.userId was mandatory)
-        // If it was just a hint, we might proceed? No, safety first.
+        // If no investor profile found for this user, return empty
         return { data: [], count: 0 };
       }
     }
@@ -68,7 +55,7 @@ export async function fetchTransactions(filter: TransactionFilter = {}): Promise
     }
 
     if (filter.assetId) {
-      query = query.eq("asset", filter.assetId); // Assuming assetId is the symbol
+      query = query.eq("asset", filter.assetId);
     }
 
     if (filter.startDate) {
