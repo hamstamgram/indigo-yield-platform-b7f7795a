@@ -231,13 +231,19 @@ class AdminServiceV2 {
   }
 
   // Get fund performance data
-  async getFundPerformance(_fundId?: string): Promise<any[]> {
+  async getFundPerformance(fundId?: string): Promise<any[]> {
     try {
-      const { data, error } = await supabase
-        .from("daily_nav")
+      let query = supabase
+        .from("fund_daily_aum")
         .select("*")
-        .order("nav_date", { ascending: false })
+        .order("aum_date", { ascending: false })
         .limit(30);
+
+      if (fundId) {
+        query = query.eq("fund_id", fundId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       return data || [];

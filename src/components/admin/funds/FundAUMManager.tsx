@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, TrendingUp, Users, RefreshCw } from "lucide-react";
 import { formatAssetValue } from "@/utils/kpiCalculations";
+import { getAssetLogo } from "@/utils/assets";
 
 interface FundWithAUM {
   id: string;
@@ -69,7 +70,7 @@ export default function FundAUMManager() {
     fetchFunds();
   }, [fetchFunds]);
 
-  const handlePreviewYield = async () => {
+  const handlePreviewYield = useCallback(async () => {
     if (!selectedFund || !aumAmount) return;
 
     try {
@@ -94,7 +95,7 @@ export default function FundAUMManager() {
     } finally {
       setIsLoadingPreview(false);
     }
-  };
+  }, [selectedFund, aumAmount, aumDate]);
 
   // Auto-preview when AUM amount or fund changes
   useEffect(() => {
@@ -230,8 +231,21 @@ export default function FundAUMManager() {
             onClick={() => setSelectedFund(fund.id)}
           >
             <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <Badge variant="outline">{fund.code}</Badge>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full overflow-hidden bg-muted border flex items-center justify-center">
+                    <img
+                      src={getAssetLogo(fund.asset)}
+                      alt={fund.asset}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback if image fails
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  </div>
+                  <Badge variant="outline">{fund.code}</Badge>
+                </div>
                 <Badge>{fund.asset}</Badge>
               </div>
               <h3 className="font-semibold text-sm mb-3">{fund.name}</h3>

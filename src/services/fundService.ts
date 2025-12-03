@@ -18,7 +18,6 @@ export interface Fund {
   mgmt_fee_bps: number | null;
   perf_fee_bps: number | null;
   min_investment: number | null;
-  strategy: string | null;
   created_at: string | null;
   updated_at: string | null;
 }

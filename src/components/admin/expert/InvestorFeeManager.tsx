@@ -1,11 +1,23 @@
 import type React from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { DollarSign, TrendingUp, Calendar } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { DollarSign, TrendingUp, Calendar, History, FileText, Percent } from "lucide-react";
 import { UnifiedInvestorData } from "@/services/expertInvestorService";
 import { formatAssetValue } from "@/utils/kpiCalculations";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface InvestorFeeManagerProps {
   investor: UnifiedInvestorData;
@@ -17,6 +29,76 @@ interface InvestorFeeManagerProps {
 }
 
 const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees }) => {
+  const { toast } = useToast();
+  const [showFeeHistory, setShowFeeHistory] = useState(false);
+  const [showAdjustRate, setShowAdjustRate] = useState(false);
+  const [newFeeRate, setNewFeeRate] = useState((investor.feePercentage * 100).toFixed(2));
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [feeHistory, setFeeHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  const handleViewFeeHistory = async () => {
+    setShowFeeHistory(true);
+    setLoadingHistory(true);
+    try {
+      const { data, error } = await supabase
+        .from("platform_fees_collected")
+        .select("*")
+        .eq("investor_id", investor.id)
+        .order("fee_date", { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      setFeeHistory(data || []);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load fee history",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const handleGenerateFeeStatement = () => {
+    toast({
+      title: "Fee Statement",
+      description: "Fee statement generation is available in the Investor Reports section",
+    });
+  };
+
+  const handleAdjustFeeRate = async () => {
+    setIsUpdating(true);
+    try {
+      const newRate = parseFloat(newFeeRate) / 100;
+      if (isNaN(newRate) || newRate < 0 || newRate > 1) {
+        throw new Error("Invalid fee rate. Must be between 0% and 100%");
+      }
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({ fee_percentage: newRate })
+        .eq("id", investor.profileId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Fee rate updated to ${newFeeRate}%`,
+      });
+      setShowAdjustRate(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update fee rate",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Fee Overview */}
@@ -115,12 +197,95 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
 
           {/* Actions */}
           <div className="flex space-x-2 pt-4">
-            <Button variant="outline">View Fee History</Button>
-            <Button variant="outline">Generate Fee Statement</Button>
-            <Button variant="outline">Adjust Fee Rate</Button>
+            <Button variant="outline" onClick={handleViewFeeHistory}>
+              <History className="h-4 w-4 mr-2" />
+              View Fee History
+            </Button>
+            <Button variant="outline" onClick={handleGenerateFeeStatement}>
+              <FileText className="h-4 w-4 mr-2" />
+              Generate Fee Statement
+            </Button>
+            <Button variant="outline" onClick={() => setShowAdjustRate(true)}>
+              <Percent className="h-4 w-4 mr-2" />
+              Adjust Fee Rate
+            </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Fee History Dialog */}
+      <Dialog open={showFeeHistory} onOpenChange={setShowFeeHistory}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Fee History</DialogTitle>
+            <DialogDescription>Historical fee collections for {investor.name}</DialogDescription>
+          </DialogHeader>
+          <div className="max-h-96 overflow-y-auto">
+            {loadingHistory ? (
+              <div className="text-center py-8 text-muted-foreground">Loading...</div>
+            ) : feeHistory.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">No fee history found</div>
+            ) : (
+              <div className="space-y-2">
+                {feeHistory.map((fee) => (
+                  <div key={fee.id} className="flex justify-between p-3 bg-muted/50 rounded">
+                    <div>
+                      <div className="font-medium">{fee.fee_type || "Platform Fee"}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {new Date(fee.fee_date).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-mono">{formatAssetValue(fee.fee_amount)}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowFeeHistory(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Adjust Fee Rate Dialog */}
+      <Dialog open={showAdjustRate} onOpenChange={setShowAdjustRate}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adjust Fee Rate</DialogTitle>
+            <DialogDescription>Update the fee percentage for {investor.name}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="new-fee-rate">New Fee Rate (%)</Label>
+              <Input
+                id="new-fee-rate"
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                value={newFeeRate}
+                onChange={(e) => setNewFeeRate(e.target.value)}
+                placeholder="e.g., 10.00"
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Current rate: {(investor.feePercentage * 100).toFixed(2)}%
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAdjustRate(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAdjustFeeRate} disabled={isUpdating}>
+              {isUpdating ? "Updating..." : "Update Rate"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Fee Collection Status */}
       <Card>

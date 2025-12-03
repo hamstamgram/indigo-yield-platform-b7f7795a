@@ -1,114 +1,101 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Asset, AssetFormData, AssetPrice, AssetPriceFormData } from "@/types/asset";
 
+// Asset kind mapping based on symbol
+const getAssetKind = (symbol: string): "crypto" | "stablecoin" | "other" => {
+  const stablecoins = ["USDT", "USDC", "EURC", "DAI", "BUSD"];
+  if (stablecoins.includes(symbol.toUpperCase())) return "stablecoin";
+  return "crypto";
+};
+
+// Convert database row to Asset type with defaults
+const mapDbRowToAsset = (row: { id: string; symbol: string; name: string }): Asset => ({
+  asset_id: row.id,
+  symbol: row.symbol,
+  name: row.name,
+  kind: getAssetKind(row.symbol),
+  decimals: row.symbol === "BTC" ? 8 : row.symbol === "ETH" ? 18 : 6,
+  is_active: true,
+  price_source: "manual",
+  metadata: {},
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+});
+
 export class AssetService {
   async getAssets(filters?: {
     kind?: string;
     is_active?: boolean;
     search?: string;
   }): Promise<Asset[]> {
-    let query = supabase.from("assets_v2").select("*").order("created_at", { ascending: false });
-
-    if (filters?.kind) {
-      query = query.eq("kind", filters.kind);
-    }
-
-    if (filters?.is_active !== undefined) {
-      query = query.eq("is_active", filters.is_active);
-    }
+    // Use the existing 'assets' view which has id, symbol, name
+    let query = supabase.from("assets").select("*");
 
     if (filters?.search) {
-      query = query.or(
-        `symbol.ilike.%${filters.search}%,name.ilike.%${filters.search}%,asset_id.ilike.%${filters.search}%`
-      );
+      query = query.or(`symbol.ilike.%${filters.search}%,name.ilike.%${filters.search}%`);
     }
 
     const { data, error } = await query;
 
     if (error) throw error;
-    return (data || []) as Asset[];
+
+    // Map to Asset type and apply client-side filters for fields not in view
+    let assets = (data || []).map(mapDbRowToAsset);
+
+    if (filters?.kind) {
+      assets = assets.filter((a) => a.kind === filters.kind);
+    }
+
+    if (filters?.is_active !== undefined) {
+      assets = assets.filter((a) => a.is_active === filters.is_active);
+    }
+
+    return assets;
   }
 
   async getAssetById(assetId: string): Promise<Asset> {
-    const { data, error } = await supabase
-      .from("assets_v2")
-      .select("*")
-      .eq("asset_id", assetId)
-      .single();
+    const { data, error } = await supabase.from("assets").select("*").eq("id", assetId).single();
 
     if (error) throw error;
-    return data as Asset;
+    return mapDbRowToAsset(data);
   }
 
-  async createAsset(formData: AssetFormData): Promise<Asset> {
-    const { data, error } = await supabase
-      .from("assets_v2")
-      .insert({
-        ...formData,
-        metadata: formData.metadata || {},
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as Asset;
+  async createAsset(_formData: AssetFormData): Promise<Asset> {
+    // The 'assets' view is read-only (derived from funds table)
+    // Asset creation should be done through fund management
+    throw new Error(
+      "Asset creation is not supported directly. Assets are derived from fund configurations."
+    );
   }
 
-  async updateAsset(assetId: string, updates: Partial<AssetFormData>): Promise<Asset> {
-    const { data, error } = await supabase
-      .from("assets_v2")
-      .update(updates)
-      .eq("asset_id", assetId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as Asset;
+  async updateAsset(_assetId: string, _updates: Partial<AssetFormData>): Promise<Asset> {
+    // The 'assets' view is read-only
+    throw new Error(
+      "Asset updates are not supported directly. Assets are derived from fund configurations."
+    );
   }
 
-  async deleteAsset(assetId: string): Promise<void> {
-    const { error } = await supabase.from("assets_v2").delete().eq("asset_id", assetId);
-
-    if (error) throw error;
+  async deleteAsset(_assetId: string): Promise<void> {
+    // The 'assets' view is read-only
+    throw new Error(
+      "Asset deletion is not supported directly. Assets are derived from fund configurations."
+    );
   }
 
-  async getAssetPrices(assetId: string, limit: number = 100): Promise<AssetPrice[]> {
-    const { data, error } = await supabase
-      .from("asset_prices")
-      .select("*")
-      .eq("asset_id", assetId)
-      .order("as_of", { ascending: false })
-      .limit(limit);
-
-    if (error) throw error;
-    return (data || []) as AssetPrice[];
+  async getAssetPrices(_assetId: string, _limit: number = 100): Promise<AssetPrice[]> {
+    // Asset prices table doesn't exist yet - return empty array
+    // Price data could be fetched from external APIs in the future
+    return [];
   }
 
-  async getLatestPrice(assetId: string): Promise<AssetPrice | null> {
-    const { data, error } = await supabase
-      .from("asset_prices")
-      .select("*")
-      .eq("asset_id", assetId)
-      .order("as_of", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data as AssetPrice | null;
+  async getLatestPrice(_assetId: string): Promise<AssetPrice | null> {
+    // Asset prices table doesn't exist yet
+    return null;
   }
 
-  async addAssetPrice(priceData: AssetPriceFormData): Promise<AssetPrice> {
-    const { data, error } = await supabase
-      .from("asset_prices")
-      .insert({
-        ...priceData,
-        as_of: new Date().toISOString(),
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as AssetPrice;
+  async addAssetPrice(_priceData: AssetPriceFormData): Promise<AssetPrice> {
+    // Asset prices table doesn't exist yet
+    throw new Error("Asset price tracking is not yet implemented.");
   }
 
   async getAssetStats(): Promise<{
@@ -117,18 +104,20 @@ export class AssetService {
     inactive: number;
     by_kind: Record<string, number>;
   }> {
-    const { data, error } = await supabase.from("assets_v2").select("kind, is_active");
+    const { data, error } = await supabase.from("assets").select("*");
 
     if (error) throw error;
 
+    const assets = (data || []).map(mapDbRowToAsset);
+
     const stats = {
-      total: data?.length || 0,
-      active: data?.filter((a) => a.is_active).length || 0,
-      inactive: data?.filter((a) => !a.is_active).length || 0,
+      total: assets.length,
+      active: assets.filter((a) => a.is_active).length,
+      inactive: assets.filter((a) => !a.is_active).length,
       by_kind: {} as Record<string, number>,
     };
 
-    data?.forEach((asset) => {
+    assets.forEach((asset) => {
       stats.by_kind[asset.kind] = (stats.by_kind[asset.kind] || 0) + 1;
     });
 

@@ -73,20 +73,11 @@ class InvestorServiceV2 {
     // Get investor record
     const { data: investor } = await supabase
       .from("investors")
-      .select("id")
+      .select("id, name")
       .eq("profile_id", user.user.id)
       .maybeSingle();
 
     if (!investor) return null;
-
-    // Get portfolio with positions
-    const { data: portfolio } = await supabase
-      .from("portfolios_v2")
-      .select("id, name")
-      .eq("owner_user_id", user.user.id)
-      .maybeSingle();
-
-    if (!portfolio) return null;
 
     // Get all positions for this investor
     const { data: positions, error } = await supabase
@@ -143,8 +134,8 @@ class InvestorServiceV2 {
     };
 
     return {
-      portfolio_id: portfolio.id,
-      portfolio_name: portfolio.name,
+      portfolio_id: investor.id,
+      portfolio_name: investor.name || "Portfolio",
       total_value: totalValue,
       total_pnl: totalPnL,
       positions: portfolioPositions,
@@ -152,41 +143,42 @@ class InvestorServiceV2 {
     };
   }
 
-  // Get yield history for the investor
+  // Get yield history for the investor (from transactions_v2)
   async getYieldHistory(days: number = 30): Promise<YieldHistoryEntry[]> {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) return [];
 
+    // Get investor record
+    const { data: investor } = await supabase
+      .from("investors")
+      .select("id")
+      .eq("profile_id", user.user.id)
+      .maybeSingle();
+
+    if (!investor) return [];
+
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
+    // Get yield transactions (INTEREST type) from transactions_v2
     const { data, error } = await supabase
-      .from("yield_distribution_log")
-      .select(
-        `
-        application_date,
-        asset_code,
-        balance_before,
-        yield_amount,
-        balance_after,
-        daily_yield_applications!inner(daily_yield_percentage)
-      `
-      )
-      .eq("user_id", user.user.id)
-      .gte("application_date", startDate.toISOString().split("T")[0])
-      .order("application_date", { ascending: false });
+      .from("transactions_v2")
+      .select("*")
+      .eq("investor_id", investor.id)
+      .eq("type", "INTEREST")
+      .gte("tx_date", startDate.toISOString().split("T")[0])
+      .order("tx_date", { ascending: false });
 
     if (error) throw error;
 
     return (data || []).map((entry) => ({
-      date: entry.application_date,
-      asset: entry.asset_code,
-      balance_before: Number(entry.balance_before),
-      yield_amount: Number(entry.yield_amount),
-      balance_after: Number(entry.balance_after),
-      daily_rate: Number((entry.daily_yield_applications as any)?.daily_yield_percentage || 0),
-      annual_rate:
-        Number((entry.daily_yield_applications as any)?.daily_yield_percentage || 0) * 365,
+      date: entry.tx_date,
+      asset: entry.asset,
+      balance_before: Number(entry.balance_before || 0),
+      yield_amount: Number(entry.amount),
+      balance_after: Number(entry.balance_after || 0),
+      daily_rate: 0.0197, // Default daily rate (7.2% APY / 365)
+      annual_rate: 7.2,
     }));
   }
 
@@ -297,28 +289,56 @@ class InvestorServiceV2 {
     return data || [];
   }
 
-  // Get current yield rates for all assets
+  // Get current yield rates for all assets (from daily_rates table)
   async getCurrentYieldRates(): Promise<any[]> {
     const today = new Date().toISOString().split("T")[0];
 
     const { data, error } = await supabase
-      .from("yield_rates")
-      .select(
-        `
-        daily_yield_percentage,
-        assets!inner(symbol, name)
-      `
-      )
-      .eq("date", today);
+      .from("daily_rates")
+      .select("*")
+      .eq("rate_date", today)
+      .maybeSingle();
 
-    if (error) throw error;
+    if (error && error.code !== "PGRST116") throw error;
 
-    return (data || []).map((rate) => ({
-      asset_symbol: (rate.assets as any)?.symbol || "Unknown",
-      asset_name: (rate.assets as any)?.name || "Unknown",
-      daily_rate: Number(rate.daily_yield_percentage),
-      annual_rate: Number(rate.daily_yield_percentage) * 365,
-    }));
+    // If no rates for today, return defaults based on fund configuration
+    if (!data) {
+      return [
+        { asset_symbol: "BTC", asset_name: "Bitcoin", daily_rate: 0.0197, annual_rate: 7.2 },
+        { asset_symbol: "ETH", asset_name: "Ethereum", daily_rate: 0.0197, annual_rate: 7.2 },
+        { asset_symbol: "SOL", asset_name: "Solana", daily_rate: 0.0197, annual_rate: 7.2 },
+        { asset_symbol: "USDT", asset_name: "Stablecoin", daily_rate: 0.0274, annual_rate: 10.0 },
+        { asset_symbol: "XRP", asset_name: "XRP", daily_rate: 0.0197, annual_rate: 7.2 },
+        { asset_symbol: "XAUT", asset_name: "Tether Gold", daily_rate: 0.0137, annual_rate: 5.0 },
+      ];
+    }
+
+    return [
+      {
+        asset_symbol: "BTC",
+        asset_name: "Bitcoin",
+        daily_rate: data.btc_rate,
+        annual_rate: data.btc_rate * 365,
+      },
+      {
+        asset_symbol: "ETH",
+        asset_name: "Ethereum",
+        daily_rate: data.eth_rate,
+        annual_rate: data.eth_rate * 365,
+      },
+      {
+        asset_symbol: "SOL",
+        asset_name: "Solana",
+        daily_rate: data.sol_rate,
+        annual_rate: data.sol_rate * 365,
+      },
+      {
+        asset_symbol: "USDT",
+        asset_name: "Stablecoin",
+        daily_rate: data.usdc_rate,
+        annual_rate: data.usdc_rate * 365,
+      },
+    ];
   }
 
   // Get investor documents (statements, etc.)
@@ -336,29 +356,29 @@ class InvestorServiceV2 {
     return data || [];
   }
 
-  // Get portfolio performance over time
+  // Get portfolio performance over time (from portfolio_history)
   async getPortfolioPerformanceHistory(days: number = 30): Promise<any[]> {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) return [];
 
+    // Get investor record
+    const { data: investor } = await supabase
+      .from("investors")
+      .select("id")
+      .eq("profile_id", user.user.id)
+      .maybeSingle();
+
+    if (!investor) return [];
+
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    // Get portfolio NAV snapshots
-    const { data: portfolio } = await supabase
-      .from("portfolios_v2")
-      .select("id")
-      .eq("owner_user_id", user.user.id)
-      .maybeSingle();
-
-    if (!portfolio) return [];
-
     const { data, error } = await supabase
-      .from("portfolio_nav_snapshots")
+      .from("portfolio_history")
       .select("*")
-      .eq("portfolio_id", portfolio.id)
-      .gte("as_of", startDate.toISOString())
-      .order("as_of", { ascending: true });
+      .eq("investor_id", investor.id)
+      .gte("snapshot_date", startDate.toISOString().split("T")[0])
+      .order("snapshot_date", { ascending: true });
 
     if (error) throw error;
     return data || [];

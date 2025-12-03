@@ -112,31 +112,43 @@ async function getDayTransactions(fundId: string, date: string): Promise<DailyTr
 }
 
 /**
- * Calculate daily yield based on AUM changes after processing deposits/withdrawals
- * Formula: Daily Yield = (Today's AUM - Yesterday's AUM + Withdrawals - Deposits)
+ * Calculate daily yield based on AUM difference
+ * Formula: Daily Yield = Target AUM - Current Live System AUM
  */
 async function calculateDailyYield(
   fundId: string,
-  currentAUM: number,
+  targetAUM: number,
   date: string
 ): Promise<YieldCalculationResult> {
   try {
-    // Get previous day's AUM
-    const previousAUM = await getPreviousDayAUM(fundId, date);
+    // 1. Get the Current Live AUM (Sum of all investor positions)
+    // We use the same query logic as getAllFundsWithAUM to ensure consistency
+    const { data: positions, error } = await supabase
+      .from("investor_positions")
+      .select("current_value")
+      .eq("fund_id", fundId)
+      .gt("current_value", 0);
 
-    // Get day's transactions
+    if (error) throw error;
+
+    const currentSystemAUM =
+      positions?.reduce((sum, pos) => sum + (pos.current_value || 0), 0) || 0;
+
+    // 2. Calculate Yield
+    // Yield is simply the difference: What it IS (Target) - What we HAVE (System)
+    const calculatedYield = targetAUM - currentSystemAUM;
+
+    // 3. Calculate Percentage
+    // This % is applied to everyone's balance to bridge the gap
+    const yieldPercentage = currentSystemAUM > 0 ? (calculatedYield / currentSystemAUM) * 100 : 0;
+
+    // For logging/display purposes, we can still fetch transactions, but they don't drive the math anymore
+    // This ensures "What you type is what you get"
     const transactions = await getDayTransactions(fundId, date);
 
-    // Calculate yield: currentAUM - previousAUM + withdrawals - deposits
-    const calculatedYield =
-      currentAUM - previousAUM + transactions.withdrawals - transactions.deposits;
-
-    // Calculate yield percentage
-    const yieldPercentage = previousAUM > 0 ? (calculatedYield / previousAUM) * 100 : 0;
-
     return {
-      previous_aum: previousAUM,
-      current_aum: currentAUM,
+      previous_aum: currentSystemAUM, // In this context, "Previous" is the state *before* the update
+      current_aum: targetAUM,
       deposits: transactions.deposits,
       withdrawals: transactions.withdrawals,
       calculated_yield: calculatedYield,

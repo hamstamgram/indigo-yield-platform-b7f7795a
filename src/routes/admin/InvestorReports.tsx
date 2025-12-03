@@ -42,6 +42,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, subMonths, parseISO } from "date-fns";
 import { generateInvestorReportHtml, ReportData } from "@/utils/reportGenerator";
 import { formatAssetWithSymbol } from "@/utils/assetFormatting";
+import { SingleReportGenerator } from "@/components/admin/reports/SingleReportGenerator";
 
 interface InvestorReport {
   investor_id: string;
@@ -78,10 +79,11 @@ const InvestorReports = () => {
   const [sendingReports, setSendingReports] = useState(false);
   const [selectedInvestor, setSelectedInvestor] = useState<InvestorReport | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [generatorOpen, setGeneratorOpen] = useState(false);
   const { toast } = useToast();
 
   // Fetch real reports from database
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -209,11 +211,11 @@ const InvestorReports = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedMonth, toast]);
 
   useEffect(() => {
     fetchReports();
-  }, [selectedMonth]);
+  }, [fetchReports]);
 
   const getFundDisplayName = (assetCode: string) => {
     if (assetCode === "USDC") return "Tokenized Gold";
@@ -459,6 +461,10 @@ const InvestorReports = () => {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button onClick={() => setGeneratorOpen(true)} variant="outline">
+            <FileText className="h-4 w-4 mr-2" />
+            Single PDF
+          </Button>
           <Button onClick={fetchReports} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
@@ -473,6 +479,12 @@ const InvestorReports = () => {
           </Button>
         </div>
       </div>
+
+      <Dialog open={generatorOpen} onOpenChange={setGeneratorOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <SingleReportGenerator />
+        </DialogContent>
+      </Dialog>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">

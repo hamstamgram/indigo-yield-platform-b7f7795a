@@ -6,6 +6,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)";
   };
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
   public: {
     Tables: {
       access_logs: {
@@ -43,33 +68,65 @@ export type Database = {
       };
       admin_invites: {
         Row: {
-          created_at: string;
+          created_at: string | null;
           created_by: string | null;
           email: string;
           expires_at: string;
           id: string;
           invite_code: string;
-          used: boolean | null;
+          used_at: string | null;
+          used_by: string | null;
         };
         Insert: {
-          created_at?: string;
+          created_at?: string | null;
           created_by?: string | null;
           email: string;
           expires_at: string;
           id?: string;
           invite_code: string;
-          used?: boolean | null;
+          used_at?: string | null;
+          used_by?: string | null;
         };
         Update: {
-          created_at?: string;
+          created_at?: string | null;
           created_by?: string | null;
           email?: string;
           expires_at?: string;
           id?: string;
           invite_code?: string;
-          used?: boolean | null;
+          used_at?: string | null;
+          used_by?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "admin_invites_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "investor_directory";
+            referencedColumns: ["profile_id"];
+          },
+          {
+            foreignKeyName: "admin_invites_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "admin_invites_used_by_fkey";
+            columns: ["used_by"];
+            isOneToOne: false;
+            referencedRelation: "investor_directory";
+            referencedColumns: ["profile_id"];
+          },
+          {
+            foreignKeyName: "admin_invites_used_by_fkey";
+            columns: ["used_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       admin_users: {
         Row: {
@@ -97,120 +154,79 @@ export type Database = {
       };
       asset_prices: {
         Row: {
-          as_of: string;
+          as_of: string | null;
           asset_id: string;
-          created_at: string;
-          high_24h: number | null;
-          low_24h: number | null;
+          created_at: string | null;
+          id: string;
           market_cap: number | null;
+          price_btc: number | null;
+          price_eth: number | null;
           price_usd: number;
-          source: string;
+          source: string | null;
           volume_24h: number | null;
         };
         Insert: {
-          as_of: string;
+          as_of?: string | null;
           asset_id: string;
-          created_at?: string;
-          high_24h?: number | null;
-          low_24h?: number | null;
+          created_at?: string | null;
+          id?: string;
           market_cap?: number | null;
+          price_btc?: number | null;
+          price_eth?: number | null;
           price_usd: number;
-          source: string;
+          source?: string | null;
           volume_24h?: number | null;
         };
         Update: {
-          as_of?: string;
+          as_of?: string | null;
           asset_id?: string;
-          created_at?: string;
-          high_24h?: number | null;
-          low_24h?: number | null;
+          created_at?: string | null;
+          id?: string;
           market_cap?: number | null;
+          price_btc?: number | null;
+          price_eth?: number | null;
           price_usd?: number;
-          source?: string;
+          source?: string | null;
           volume_24h?: number | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "asset_prices_asset_id_fkey";
-            columns: ["asset_id"];
-            isOneToOne: false;
-            referencedRelation: "assets_v2";
-            referencedColumns: ["asset_id"];
-          },
-        ];
-      };
-      assets: {
-        Row: {
-          created_at: string;
-          decimal_places: number;
-          icon_url: string | null;
-          id: number;
-          is_active: boolean;
-          name: string;
-          symbol: Database["public"]["Enums"]["asset_code"];
-        };
-        Insert: {
-          created_at?: string;
-          decimal_places?: number;
-          icon_url?: string | null;
-          id?: number;
-          is_active?: boolean;
-          name: string;
-          symbol: Database["public"]["Enums"]["asset_code"];
-        };
-        Update: {
-          created_at?: string;
-          decimal_places?: number;
-          icon_url?: string | null;
-          id?: number;
-          is_active?: boolean;
-          name?: string;
-          symbol?: Database["public"]["Enums"]["asset_code"];
         };
         Relationships: [];
       };
       assets_v2: {
         Row: {
           asset_id: string;
-          chain: string | null;
-          coingecko_id: string | null;
-          created_at: string;
-          decimals: number;
-          is_active: boolean;
+          created_at: string | null;
+          decimals: number | null;
+          is_active: boolean | null;
           kind: string;
-          metadata: Json;
+          logo_url: string | null;
+          metadata: Json | null;
           name: string;
-          price_source: string;
           symbol: string;
-          updated_at: string;
+          updated_at: string | null;
         };
         Insert: {
           asset_id: string;
-          chain?: string | null;
-          coingecko_id?: string | null;
-          created_at?: string;
-          decimals: number;
-          is_active?: boolean;
-          kind: string;
-          metadata?: Json;
+          created_at?: string | null;
+          decimals?: number | null;
+          is_active?: boolean | null;
+          kind?: string;
+          logo_url?: string | null;
+          metadata?: Json | null;
           name: string;
-          price_source?: string;
           symbol: string;
-          updated_at?: string;
+          updated_at?: string | null;
         };
         Update: {
           asset_id?: string;
-          chain?: string | null;
-          coingecko_id?: string | null;
-          created_at?: string;
-          decimals?: number;
-          is_active?: boolean;
+          created_at?: string | null;
+          decimals?: number | null;
+          is_active?: boolean | null;
           kind?: string;
-          metadata?: Json;
+          logo_url?: string | null;
+          metadata?: Json | null;
           name?: string;
-          price_source?: string;
           symbol?: string;
-          updated_at?: string;
+          updated_at?: string | null;
         };
         Relationships: [];
       };
@@ -289,51 +305,6 @@ export type Database = {
         };
         Relationships: [];
       };
-      bank_accounts: {
-        Row: {
-          account_name: string;
-          account_number: string;
-          account_type: string;
-          bank_name: string;
-          created_at: string | null;
-          id: string;
-          is_primary: boolean | null;
-          is_verified: boolean | null;
-          routing_number: string | null;
-          updated_at: string | null;
-          user_id: string;
-          verification_date: string | null;
-        };
-        Insert: {
-          account_name: string;
-          account_number: string;
-          account_type: string;
-          bank_name: string;
-          created_at?: string | null;
-          id?: string;
-          is_primary?: boolean | null;
-          is_verified?: boolean | null;
-          routing_number?: string | null;
-          updated_at?: string | null;
-          user_id: string;
-          verification_date?: string | null;
-        };
-        Update: {
-          account_name?: string;
-          account_number?: string;
-          account_type?: string;
-          bank_name?: string;
-          created_at?: string | null;
-          id?: string;
-          is_primary?: boolean | null;
-          is_verified?: boolean | null;
-          routing_number?: string | null;
-          updated_at?: string | null;
-          user_id?: string;
-          verification_date?: string | null;
-        };
-        Relationships: [];
-      };
       benchmarks: {
         Row: {
           created_at: string;
@@ -373,313 +344,48 @@ export type Database = {
         };
         Relationships: [];
       };
-      crypto_wallets: {
+      daily_rates: {
         Row: {
-          created_at: string | null;
-          id: string;
-          is_verified: boolean | null;
-          label: string;
-          network: string;
-          updated_at: string | null;
-          user_id: string;
-          verification_date: string | null;
-          verification_signature: string | null;
-          wallet_address: string;
-        };
-        Insert: {
-          created_at?: string | null;
-          id?: string;
-          is_verified?: boolean | null;
-          label: string;
-          network: string;
-          updated_at?: string | null;
-          user_id: string;
-          verification_date?: string | null;
-          verification_signature?: string | null;
-          wallet_address: string;
-        };
-        Update: {
-          created_at?: string | null;
-          id?: string;
-          is_verified?: boolean | null;
-          label?: string;
-          network?: string;
-          updated_at?: string | null;
-          user_id?: string;
-          verification_date?: string | null;
-          verification_signature?: string | null;
-          wallet_address?: string;
-        };
-        Relationships: [];
-      };
-      daily_aum_entries: {
-        Row: {
-          asset_breakdown: Json | null;
+          btc_rate: number;
           created_at: string;
           created_by: string | null;
-          entry_date: string;
-          fund_id: string | null;
+          eth_rate: number;
+          eurc_rate: number;
           id: string;
-          investor_count: number;
-          total_aum: number;
+          notes: string | null;
+          rate_date: string;
+          sol_rate: number;
+          updated_at: string;
+          usdc_rate: number;
+          usdt_rate: number;
         };
         Insert: {
-          asset_breakdown?: Json | null;
+          btc_rate?: number;
           created_at?: string;
           created_by?: string | null;
-          entry_date: string;
-          fund_id?: string | null;
+          eth_rate?: number;
+          eurc_rate?: number;
           id?: string;
-          investor_count?: number;
-          total_aum?: number;
+          notes?: string | null;
+          rate_date: string;
+          sol_rate?: number;
+          updated_at?: string;
+          usdc_rate?: number;
+          usdt_rate?: number;
         };
         Update: {
-          asset_breakdown?: Json | null;
+          btc_rate?: number;
           created_at?: string;
           created_by?: string | null;
-          entry_date?: string;
-          fund_id?: string | null;
+          eth_rate?: number;
+          eurc_rate?: number;
           id?: string;
-          investor_count?: number;
-          total_aum?: number;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "daily_aum_entries_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "funds";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "daily_aum_entries_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "v_fund_kpis";
-            referencedColumns: ["fund_id"];
-          },
-          {
-            foreignKeyName: "daily_aum_entries_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["fund_id"];
-          },
-        ];
-      };
-      daily_nav: {
-        Row: {
-          aum: number;
-          created_at: string | null;
-          created_by: string | null;
-          fees_accrued: number | null;
-          fund_id: string;
-          gross_return_pct: number | null;
-          high_water_mark: number | null;
-          investor_count: number | null;
-          nav_date: string;
-          nav_per_share: number | null;
-          net_return_pct: number | null;
-          shares_outstanding: number | null;
-          total_inflows: number | null;
-          total_outflows: number | null;
-        };
-        Insert: {
-          aum: number;
-          created_at?: string | null;
-          created_by?: string | null;
-          fees_accrued?: number | null;
-          fund_id: string;
-          gross_return_pct?: number | null;
-          high_water_mark?: number | null;
-          investor_count?: number | null;
-          nav_date: string;
-          nav_per_share?: number | null;
-          net_return_pct?: number | null;
-          shares_outstanding?: number | null;
-          total_inflows?: number | null;
-          total_outflows?: number | null;
-        };
-        Update: {
-          aum?: number;
-          created_at?: string | null;
-          created_by?: string | null;
-          fees_accrued?: number | null;
-          fund_id?: string;
-          gross_return_pct?: number | null;
-          high_water_mark?: number | null;
-          investor_count?: number | null;
-          nav_date?: string;
-          nav_per_share?: number | null;
-          net_return_pct?: number | null;
-          shares_outstanding?: number | null;
-          total_inflows?: number | null;
-          total_outflows?: number | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "daily_nav_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "investor_directory";
-            referencedColumns: ["profile_id"];
-          },
-          {
-            foreignKeyName: "daily_nav_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "daily_nav_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "funds";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "daily_nav_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "v_fund_kpis";
-            referencedColumns: ["fund_id"];
-          },
-          {
-            foreignKeyName: "daily_nav_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["fund_id"];
-          },
-        ];
-      };
-      daily_yield_applications: {
-        Row: {
-          application_date: string;
-          applied_at: string | null;
-          applied_by: string | null;
-          asset_code: string;
-          daily_yield_percentage: number;
-          id: string;
-          investors_affected: number;
-          total_aum: number;
-          total_yield_generated: number;
-        };
-        Insert: {
-          application_date: string;
-          applied_at?: string | null;
-          applied_by?: string | null;
-          asset_code: string;
-          daily_yield_percentage: number;
-          id?: string;
-          investors_affected?: number;
-          total_aum: number;
-          total_yield_generated: number;
-        };
-        Update: {
-          application_date?: string;
-          applied_at?: string | null;
-          applied_by?: string | null;
-          asset_code?: string;
-          daily_yield_percentage?: number;
-          id?: string;
-          investors_affected?: number;
-          total_aum?: number;
-          total_yield_generated?: number;
-        };
-        Relationships: [];
-      };
-      data_edit_audit: {
-        Row: {
-          changed_fields: string[] | null;
-          edit_source: string | null;
-          edited_at: string | null;
-          edited_by: string | null;
-          id: string;
-          import_id: string | null;
-          import_related: boolean | null;
-          new_data: Json | null;
-          old_data: Json | null;
-          operation: string | null;
-          record_id: string;
-          table_name: string;
-        };
-        Insert: {
-          changed_fields?: string[] | null;
-          edit_source?: string | null;
-          edited_at?: string | null;
-          edited_by?: string | null;
-          id?: string;
-          import_id?: string | null;
-          import_related?: boolean | null;
-          new_data?: Json | null;
-          old_data?: Json | null;
-          operation?: string | null;
-          record_id: string;
-          table_name: string;
-        };
-        Update: {
-          changed_fields?: string[] | null;
-          edit_source?: string | null;
-          edited_at?: string | null;
-          edited_by?: string | null;
-          id?: string;
-          import_id?: string | null;
-          import_related?: boolean | null;
-          new_data?: Json | null;
-          old_data?: Json | null;
-          operation?: string | null;
-          record_id?: string;
-          table_name?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "data_edit_audit_edited_by_fkey";
-            columns: ["edited_by"];
-            isOneToOne: false;
-            referencedRelation: "investor_directory";
-            referencedColumns: ["profile_id"];
-          },
-          {
-            foreignKeyName: "data_edit_audit_edited_by_fkey";
-            columns: ["edited_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      deposits: {
-        Row: {
-          amount: number;
-          asset_symbol: string;
-          created_at: string | null;
-          created_by: string | null;
-          id: string;
-          status: string | null;
-          transaction_hash: string | null;
-          user_id: string | null;
-        };
-        Insert: {
-          amount: number;
-          asset_symbol: string;
-          created_at?: string | null;
-          created_by?: string | null;
-          id?: string;
-          status?: string | null;
-          transaction_hash?: string | null;
-          user_id?: string | null;
-        };
-        Update: {
-          amount?: number;
-          asset_symbol?: string;
-          created_at?: string | null;
-          created_by?: string | null;
-          id?: string;
-          status?: string | null;
-          transaction_hash?: string | null;
-          user_id?: string | null;
+          notes?: string | null;
+          rate_date?: string;
+          sol_rate?: number;
+          updated_at?: string;
+          usdc_rate?: number;
+          usdt_rate?: number;
         };
         Relationships: [];
       };
@@ -724,89 +430,6 @@ export type Database = {
           user_id?: string;
         };
         Relationships: [];
-      };
-      email_logs: {
-        Row: {
-          bounced_at: string | null;
-          clicked_at: string | null;
-          created_at: string | null;
-          delivered_at: string | null;
-          email_type: string;
-          error_message: string | null;
-          id: string;
-          investor_id: string | null;
-          opened_at: string | null;
-          recipient_email: string;
-          retry_count: number | null;
-          sent_at: string | null;
-          status: string;
-          subject: string;
-          updated_at: string | null;
-        };
-        Insert: {
-          bounced_at?: string | null;
-          clicked_at?: string | null;
-          created_at?: string | null;
-          delivered_at?: string | null;
-          email_type: string;
-          error_message?: string | null;
-          id?: string;
-          investor_id?: string | null;
-          opened_at?: string | null;
-          recipient_email: string;
-          retry_count?: number | null;
-          sent_at?: string | null;
-          status?: string;
-          subject: string;
-          updated_at?: string | null;
-        };
-        Update: {
-          bounced_at?: string | null;
-          clicked_at?: string | null;
-          created_at?: string | null;
-          delivered_at?: string | null;
-          email_type?: string;
-          error_message?: string | null;
-          id?: string;
-          investor_id?: string | null;
-          opened_at?: string | null;
-          recipient_email?: string;
-          retry_count?: number | null;
-          sent_at?: string | null;
-          status?: string;
-          subject?: string;
-          updated_at?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "email_logs_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "investor_directory";
-            referencedColumns: ["investor_id"];
-          },
-          {
-            foreignKeyName: "email_logs_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "investors";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "email_logs_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "v_investor_kpis";
-            referencedColumns: ["investor_id"];
-          },
-          {
-            foreignKeyName: "email_logs_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["investor_id"];
-          },
-        ];
       };
       fee_calculations: {
         Row: {
@@ -877,20 +500,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "fee_calculations_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "v_fund_kpis";
-            referencedColumns: ["fund_id"];
-          },
-          {
-            foreignKeyName: "fee_calculations_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["fund_id"];
-          },
-          {
             foreignKeyName: "fee_calculations_investor_id_fkey";
             columns: ["investor_id"];
             isOneToOne: false;
@@ -905,20 +514,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "fee_calculations_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "v_investor_kpis";
-            referencedColumns: ["investor_id"];
-          },
-          {
-            foreignKeyName: "fee_calculations_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["investor_id"];
-          },
-          {
             foreignKeyName: "fee_calculations_posted_transaction_id_fkey";
             columns: ["posted_transaction_id"];
             isOneToOne: false;
@@ -926,42 +521,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
-      };
-      fees: {
-        Row: {
-          amount: number;
-          asset_code: Database["public"]["Enums"]["asset_code"];
-          created_at: string;
-          created_by: string | null;
-          id: string;
-          kind: Database["public"]["Enums"]["fee_kind"];
-          period_month: number | null;
-          period_year: number | null;
-          user_id: string;
-        };
-        Insert: {
-          amount: number;
-          asset_code: Database["public"]["Enums"]["asset_code"];
-          created_at?: string;
-          created_by?: string | null;
-          id?: string;
-          kind: Database["public"]["Enums"]["fee_kind"];
-          period_month?: number | null;
-          period_year?: number | null;
-          user_id: string;
-        };
-        Update: {
-          amount?: number;
-          asset_code?: Database["public"]["Enums"]["asset_code"];
-          created_at?: string;
-          created_by?: string | null;
-          id?: string;
-          kind?: Database["public"]["Enums"]["fee_kind"];
-          period_month?: number | null;
-          period_year?: number | null;
-          user_id?: string;
-        };
-        Relationships: [];
       };
       fund_configurations: {
         Row: {
@@ -1014,33 +573,39 @@ export type Database = {
       fund_daily_aum: {
         Row: {
           aum_date: string;
-          created_at: string;
+          created_at: string | null;
+          fees_accrued: number | null;
           fund_id: string;
           id: string;
-          investor_count: number;
+          inflows: number | null;
+          investor_count: number | null;
+          outflows: number | null;
           total_aum: number;
-          updated_at: string;
-          updated_by: string | null;
+          yield_accrued: number | null;
         };
         Insert: {
-          aum_date?: string;
-          created_at?: string;
+          aum_date: string;
+          created_at?: string | null;
+          fees_accrued?: number | null;
           fund_id: string;
           id?: string;
-          investor_count?: number;
-          total_aum?: number;
-          updated_at?: string;
-          updated_by?: string | null;
+          inflows?: number | null;
+          investor_count?: number | null;
+          outflows?: number | null;
+          total_aum: number;
+          yield_accrued?: number | null;
         };
         Update: {
           aum_date?: string;
-          created_at?: string;
+          created_at?: string | null;
+          fees_accrued?: number | null;
           fund_id?: string;
           id?: string;
-          investor_count?: number;
+          inflows?: number | null;
+          investor_count?: number | null;
+          outflows?: number | null;
           total_aum?: number;
-          updated_at?: string;
-          updated_by?: string | null;
+          yield_accrued?: number | null;
         };
         Relationships: [
           {
@@ -1049,20 +614,6 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "funds";
             referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "fund_daily_aum_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "v_fund_kpis";
-            referencedColumns: ["fund_id"];
-          },
-          {
-            foreignKeyName: "fund_daily_aum_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["fund_id"];
           },
         ];
       };
@@ -1120,7 +671,6 @@ export type Database = {
           name: string;
           perf_fee_bps: number | null;
           status: Database["public"]["Enums"]["fund_status"] | null;
-          strategy: string | null;
           total_aum: number | null;
           updated_at: string | null;
         };
@@ -1139,7 +689,6 @@ export type Database = {
           name: string;
           perf_fee_bps?: number | null;
           status?: Database["public"]["Enums"]["fund_status"] | null;
-          strategy?: string | null;
           total_aum?: number | null;
           updated_at?: string | null;
         };
@@ -1158,7 +707,6 @@ export type Database = {
           name?: string;
           perf_fee_bps?: number | null;
           status?: Database["public"]["Enums"]["fund_status"] | null;
-          strategy?: string | null;
           total_aum?: number | null;
           updated_at?: string | null;
         };
@@ -1166,7 +714,7 @@ export type Database = {
       };
       generated_reports: {
         Row: {
-          created_at: string;
+          created_at: string | null;
           date_range_end: string | null;
           date_range_start: string | null;
           download_count: number | null;
@@ -1176,7 +724,7 @@ export type Database = {
           error_message: string | null;
           file_size_bytes: number | null;
           filters: Json | null;
-          format: Database["public"]["Enums"]["report_format"];
+          format: string;
           generated_by_user_id: string | null;
           generated_for_user_id: string | null;
           id: string;
@@ -1186,14 +734,14 @@ export type Database = {
           processing_duration_ms: number | null;
           processing_started_at: string | null;
           report_definition_id: string | null;
-          report_type: Database["public"]["Enums"]["report_type"];
+          report_type: string;
           schedule_id: string | null;
-          status: Database["public"]["Enums"]["report_status"];
+          status: string | null;
           storage_path: string | null;
-          updated_at: string;
+          updated_at: string | null;
         };
         Insert: {
-          created_at?: string;
+          created_at?: string | null;
           date_range_end?: string | null;
           date_range_start?: string | null;
           download_count?: number | null;
@@ -1203,7 +751,7 @@ export type Database = {
           error_message?: string | null;
           file_size_bytes?: number | null;
           filters?: Json | null;
-          format: Database["public"]["Enums"]["report_format"];
+          format: string;
           generated_by_user_id?: string | null;
           generated_for_user_id?: string | null;
           id?: string;
@@ -1213,14 +761,14 @@ export type Database = {
           processing_duration_ms?: number | null;
           processing_started_at?: string | null;
           report_definition_id?: string | null;
-          report_type: Database["public"]["Enums"]["report_type"];
+          report_type: string;
           schedule_id?: string | null;
-          status?: Database["public"]["Enums"]["report_status"];
+          status?: string | null;
           storage_path?: string | null;
-          updated_at?: string;
+          updated_at?: string | null;
         };
         Update: {
-          created_at?: string;
+          created_at?: string | null;
           date_range_end?: string | null;
           date_range_start?: string | null;
           download_count?: number | null;
@@ -1230,7 +778,7 @@ export type Database = {
           error_message?: string | null;
           file_size_bytes?: number | null;
           filters?: Json | null;
-          format?: Database["public"]["Enums"]["report_format"];
+          format?: string;
           generated_by_user_id?: string | null;
           generated_for_user_id?: string | null;
           id?: string;
@@ -1240,76 +788,92 @@ export type Database = {
           processing_duration_ms?: number | null;
           processing_started_at?: string | null;
           report_definition_id?: string | null;
-          report_type?: Database["public"]["Enums"]["report_type"];
+          report_type?: string;
           schedule_id?: string | null;
-          status?: Database["public"]["Enums"]["report_status"];
+          status?: string | null;
           storage_path?: string | null;
-          updated_at?: string;
+          updated_at?: string | null;
         };
-        Relationships: [
-          {
-            foreignKeyName: "generated_reports_report_definition_id_fkey";
-            columns: ["report_definition_id"];
-            isOneToOne: false;
-            referencedRelation: "report_definitions";
-            referencedColumns: ["id"];
-          },
-        ];
+        Relationships: [];
+      };
+      generated_statements: {
+        Row: {
+          created_at: string | null;
+          fund_names: string[] | null;
+          generated_by: string | null;
+          html_content: string | null;
+          id: string;
+          pdf_storage_path: string | null;
+          period_id: string;
+          updated_at: string | null;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          fund_names?: string[] | null;
+          generated_by?: string | null;
+          html_content?: string | null;
+          id?: string;
+          pdf_storage_path?: string | null;
+          period_id: string;
+          updated_at?: string | null;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string | null;
+          fund_names?: string[] | null;
+          generated_by?: string | null;
+          html_content?: string | null;
+          id?: string;
+          pdf_storage_path?: string | null;
+          period_id?: string;
+          updated_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [];
       };
       investments: {
         Row: {
           amount: number;
-          created_at: string;
-          created_by: string | null;
+          asset_code: string | null;
+          created_at: string | null;
           fund_id: string;
           id: string;
           investment_date: string;
           investor_id: string;
-          metadata: Json | null;
+          nav_at_investment: number | null;
           notes: string | null;
-          processed_at: string | null;
-          processed_by: string | null;
-          reference_number: string | null;
-          shares: number;
-          status: string;
-          transaction_type: string;
-          updated_at: string;
+          shares: number | null;
+          status: string | null;
+          updated_at: string | null;
         };
         Insert: {
           amount: number;
-          created_at?: string;
-          created_by?: string | null;
+          asset_code?: string | null;
+          created_at?: string | null;
           fund_id: string;
           id?: string;
           investment_date?: string;
           investor_id: string;
-          metadata?: Json | null;
+          nav_at_investment?: number | null;
           notes?: string | null;
-          processed_at?: string | null;
-          processed_by?: string | null;
-          reference_number?: string | null;
-          shares?: number;
-          status?: string;
-          transaction_type?: string;
-          updated_at?: string;
+          shares?: number | null;
+          status?: string | null;
+          updated_at?: string | null;
         };
         Update: {
           amount?: number;
-          created_at?: string;
-          created_by?: string | null;
+          asset_code?: string | null;
+          created_at?: string | null;
           fund_id?: string;
           id?: string;
           investment_date?: string;
           investor_id?: string;
-          metadata?: Json | null;
+          nav_at_investment?: number | null;
           notes?: string | null;
-          processed_at?: string | null;
-          processed_by?: string | null;
-          reference_number?: string | null;
-          shares?: number;
-          status?: string;
-          transaction_type?: string;
-          updated_at?: string;
+          shares?: number | null;
+          status?: string | null;
+          updated_at?: string | null;
         };
         Relationships: [
           {
@@ -1318,20 +882,6 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "funds";
             referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "investments_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "v_fund_kpis";
-            referencedColumns: ["fund_id"];
-          },
-          {
-            foreignKeyName: "investments_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["fund_id"];
           },
           {
             foreignKeyName: "investments_investor_id_fkey";
@@ -1346,20 +896,6 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "investors";
             referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "investments_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "v_investor_kpis";
-            referencedColumns: ["investor_id"];
-          },
-          {
-            foreignKeyName: "investments_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["investor_id"];
           },
         ];
       };
@@ -1406,55 +942,104 @@ export type Database = {
             referencedRelation: "investors";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "investor_emails_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "v_investor_kpis";
-            referencedColumns: ["investor_id"];
-          },
-          {
-            foreignKeyName: "investor_emails_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["investor_id"];
-          },
         ];
       };
-      investor_invites: {
+      investor_fund_performance: {
         Row: {
           created_at: string | null;
-          created_by: string | null;
-          email: string;
-          expires_at: string;
+          fund_name: string;
           id: string;
-          invite_code: string;
-          status: string | null;
+          itd_additions: number | null;
+          itd_beginning_balance: number | null;
+          itd_ending_balance: number | null;
+          itd_net_income: number | null;
+          itd_rate_of_return: number | null;
+          itd_redemptions: number | null;
+          mtd_additions: number | null;
+          mtd_beginning_balance: number | null;
+          mtd_ending_balance: number | null;
+          mtd_net_income: number | null;
+          mtd_rate_of_return: number | null;
+          mtd_redemptions: number | null;
+          period_id: string;
+          qtd_additions: number | null;
+          qtd_beginning_balance: number | null;
+          qtd_ending_balance: number | null;
+          qtd_net_income: number | null;
+          qtd_rate_of_return: number | null;
+          qtd_redemptions: number | null;
           updated_at: string | null;
-          used_by: string | null;
+          user_id: string;
+          ytd_additions: number | null;
+          ytd_beginning_balance: number | null;
+          ytd_ending_balance: number | null;
+          ytd_net_income: number | null;
+          ytd_rate_of_return: number | null;
+          ytd_redemptions: number | null;
         };
         Insert: {
           created_at?: string | null;
-          created_by?: string | null;
-          email: string;
-          expires_at: string;
+          fund_name: string;
           id?: string;
-          invite_code: string;
-          status?: string | null;
+          itd_additions?: number | null;
+          itd_beginning_balance?: number | null;
+          itd_ending_balance?: number | null;
+          itd_net_income?: number | null;
+          itd_rate_of_return?: number | null;
+          itd_redemptions?: number | null;
+          mtd_additions?: number | null;
+          mtd_beginning_balance?: number | null;
+          mtd_ending_balance?: number | null;
+          mtd_net_income?: number | null;
+          mtd_rate_of_return?: number | null;
+          mtd_redemptions?: number | null;
+          period_id: string;
+          qtd_additions?: number | null;
+          qtd_beginning_balance?: number | null;
+          qtd_ending_balance?: number | null;
+          qtd_net_income?: number | null;
+          qtd_rate_of_return?: number | null;
+          qtd_redemptions?: number | null;
           updated_at?: string | null;
-          used_by?: string | null;
+          user_id: string;
+          ytd_additions?: number | null;
+          ytd_beginning_balance?: number | null;
+          ytd_ending_balance?: number | null;
+          ytd_net_income?: number | null;
+          ytd_rate_of_return?: number | null;
+          ytd_redemptions?: number | null;
         };
         Update: {
           created_at?: string | null;
-          created_by?: string | null;
-          email?: string;
-          expires_at?: string;
+          fund_name?: string;
           id?: string;
-          invite_code?: string;
-          status?: string | null;
+          itd_additions?: number | null;
+          itd_beginning_balance?: number | null;
+          itd_ending_balance?: number | null;
+          itd_net_income?: number | null;
+          itd_rate_of_return?: number | null;
+          itd_redemptions?: number | null;
+          mtd_additions?: number | null;
+          mtd_beginning_balance?: number | null;
+          mtd_ending_balance?: number | null;
+          mtd_net_income?: number | null;
+          mtd_rate_of_return?: number | null;
+          mtd_redemptions?: number | null;
+          period_id?: string;
+          qtd_additions?: number | null;
+          qtd_beginning_balance?: number | null;
+          qtd_ending_balance?: number | null;
+          qtd_net_income?: number | null;
+          qtd_rate_of_return?: number | null;
+          qtd_redemptions?: number | null;
           updated_at?: string | null;
-          used_by?: string | null;
+          user_id?: string;
+          ytd_additions?: number | null;
+          ytd_beginning_balance?: number | null;
+          ytd_ending_balance?: number | null;
+          ytd_net_income?: number | null;
+          ytd_rate_of_return?: number | null;
+          ytd_redemptions?: number | null;
         };
         Relationships: [];
       };
@@ -1525,75 +1110,7 @@ export type Database = {
             referencedRelation: "investors";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "investor_monthly_reports_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "v_investor_kpis";
-            referencedColumns: ["investor_id"];
-          },
-          {
-            foreignKeyName: "investor_monthly_reports_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["investor_id"];
-          },
         ];
-      };
-      investor_monthly_reports_backup_20250106: {
-        Row: {
-          additions: number | null;
-          asset_code: string | null;
-          aum_manual_override: number | null;
-          closing_balance: number | null;
-          created_at: string | null;
-          edited_by: string | null;
-          entry_date: string | null;
-          exit_date: string | null;
-          id: string | null;
-          investor_id: string | null;
-          opening_balance: number | null;
-          report_month: string | null;
-          updated_at: string | null;
-          withdrawals: number | null;
-          yield_earned: number | null;
-        };
-        Insert: {
-          additions?: number | null;
-          asset_code?: string | null;
-          aum_manual_override?: number | null;
-          closing_balance?: number | null;
-          created_at?: string | null;
-          edited_by?: string | null;
-          entry_date?: string | null;
-          exit_date?: string | null;
-          id?: string | null;
-          investor_id?: string | null;
-          opening_balance?: number | null;
-          report_month?: string | null;
-          updated_at?: string | null;
-          withdrawals?: number | null;
-          yield_earned?: number | null;
-        };
-        Update: {
-          additions?: number | null;
-          asset_code?: string | null;
-          aum_manual_override?: number | null;
-          closing_balance?: number | null;
-          created_at?: string | null;
-          edited_by?: string | null;
-          entry_date?: string | null;
-          exit_date?: string | null;
-          id?: string | null;
-          investor_id?: string | null;
-          opening_balance?: number | null;
-          report_month?: string | null;
-          updated_at?: string | null;
-          withdrawals?: number | null;
-          yield_earned?: number | null;
-        };
-        Relationships: [];
       };
       investor_positions: {
         Row: {
@@ -1662,20 +1179,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "investor_positions_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "v_fund_kpis";
-            referencedColumns: ["fund_id"];
-          },
-          {
-            foreignKeyName: "investor_positions_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["fund_id"];
-          },
-          {
             foreignKeyName: "investor_positions_investor_id_fkey";
             columns: ["investor_id"];
             isOneToOne: false;
@@ -1688,20 +1191,6 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "investors";
             referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "investor_positions_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "v_investor_kpis";
-            referencedColumns: ["investor_id"];
-          },
-          {
-            foreignKeyName: "investor_positions_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["investor_id"];
           },
         ];
       };
@@ -1774,36 +1263,66 @@ export type Database = {
           },
         ];
       };
-      monthly_fee_summary: {
+      notification_settings: {
         Row: {
-          asset_code: string;
-          created_at: string;
+          alert_notifications: boolean | null;
+          created_at: string | null;
+          document_notifications: boolean | null;
+          email_enabled: boolean | null;
+          email_frequency: string | null;
           id: string;
-          investor_count: number;
-          summary_month: string;
-          total_fees_collected: number;
-          total_gross_yield: number;
-          total_net_yield: number;
+          in_app_enabled: boolean | null;
+          portfolio_notifications: boolean | null;
+          push_enabled: boolean | null;
+          quiet_hours_end: string | null;
+          quiet_hours_start: string | null;
+          security_notifications: boolean | null;
+          support_notifications: boolean | null;
+          system_notifications: boolean | null;
+          transaction_notifications: boolean | null;
+          updated_at: string | null;
+          user_id: string;
+          yield_notifications: boolean | null;
         };
         Insert: {
-          asset_code: string;
-          created_at?: string;
+          alert_notifications?: boolean | null;
+          created_at?: string | null;
+          document_notifications?: boolean | null;
+          email_enabled?: boolean | null;
+          email_frequency?: string | null;
           id?: string;
-          investor_count?: number;
-          summary_month: string;
-          total_fees_collected?: number;
-          total_gross_yield?: number;
-          total_net_yield?: number;
+          in_app_enabled?: boolean | null;
+          portfolio_notifications?: boolean | null;
+          push_enabled?: boolean | null;
+          quiet_hours_end?: string | null;
+          quiet_hours_start?: string | null;
+          security_notifications?: boolean | null;
+          support_notifications?: boolean | null;
+          system_notifications?: boolean | null;
+          transaction_notifications?: boolean | null;
+          updated_at?: string | null;
+          user_id: string;
+          yield_notifications?: boolean | null;
         };
         Update: {
-          asset_code?: string;
-          created_at?: string;
+          alert_notifications?: boolean | null;
+          created_at?: string | null;
+          document_notifications?: boolean | null;
+          email_enabled?: boolean | null;
+          email_frequency?: string | null;
           id?: string;
-          investor_count?: number;
-          summary_month?: string;
-          total_fees_collected?: number;
-          total_gross_yield?: number;
-          total_net_yield?: number;
+          in_app_enabled?: boolean | null;
+          portfolio_notifications?: boolean | null;
+          push_enabled?: boolean | null;
+          quiet_hours_end?: string | null;
+          quiet_hours_start?: string | null;
+          security_notifications?: boolean | null;
+          support_notifications?: boolean | null;
+          system_notifications?: boolean | null;
+          transaction_notifications?: boolean | null;
+          updated_at?: string | null;
+          user_id?: string;
+          yield_notifications?: boolean | null;
         };
         Relationships: [];
       };
@@ -1845,42 +1364,146 @@ export type Database = {
       };
       onboarding_submissions: {
         Row: {
-          airtable_record_id: string;
+          accreditation_documents: string[] | null;
+          accreditation_type: string | null;
+          accredited_investor: boolean | null;
+          address: string | null;
+          admin_notes: string | null;
+          airtable_record_id: string | null;
+          airtable_synced_at: string | null;
+          approved_at: string | null;
+          approved_by: string | null;
+          city: string | null;
+          company_name: string | null;
+          country: string | null;
           created_at: string | null;
-          error_message: string | null;
+          email: string;
+          entity_type: string | null;
+          first_name: string | null;
+          full_name: string | null;
           id: string;
+          id_document_expiry: string | null;
+          id_document_number: string | null;
+          id_document_type: string | null;
+          id_document_url: string | null;
+          investment_amount: number | null;
+          investment_horizon: string | null;
           investor_id: string | null;
-          processed_at: string | null;
-          retry_count: number | null;
-          submission_data: Json;
-          sync_status: string;
+          last_name: string | null;
+          notes: string | null;
+          phone: string | null;
+          postal_code: string | null;
+          preferred_assets: string[] | null;
+          proof_of_address_url: string | null;
+          rejection_reason: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          risk_tolerance: string | null;
+          state: string | null;
+          status: string | null;
+          submitted_at: string | null;
+          tax_id: string | null;
           updated_at: string | null;
         };
         Insert: {
-          airtable_record_id: string;
+          accreditation_documents?: string[] | null;
+          accreditation_type?: string | null;
+          accredited_investor?: boolean | null;
+          address?: string | null;
+          admin_notes?: string | null;
+          airtable_record_id?: string | null;
+          airtable_synced_at?: string | null;
+          approved_at?: string | null;
+          approved_by?: string | null;
+          city?: string | null;
+          company_name?: string | null;
+          country?: string | null;
           created_at?: string | null;
-          error_message?: string | null;
+          email: string;
+          entity_type?: string | null;
+          first_name?: string | null;
+          full_name?: string | null;
           id?: string;
+          id_document_expiry?: string | null;
+          id_document_number?: string | null;
+          id_document_type?: string | null;
+          id_document_url?: string | null;
+          investment_amount?: number | null;
+          investment_horizon?: string | null;
           investor_id?: string | null;
-          processed_at?: string | null;
-          retry_count?: number | null;
-          submission_data: Json;
-          sync_status?: string;
+          last_name?: string | null;
+          notes?: string | null;
+          phone?: string | null;
+          postal_code?: string | null;
+          preferred_assets?: string[] | null;
+          proof_of_address_url?: string | null;
+          rejection_reason?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          risk_tolerance?: string | null;
+          state?: string | null;
+          status?: string | null;
+          submitted_at?: string | null;
+          tax_id?: string | null;
           updated_at?: string | null;
         };
         Update: {
-          airtable_record_id?: string;
+          accreditation_documents?: string[] | null;
+          accreditation_type?: string | null;
+          accredited_investor?: boolean | null;
+          address?: string | null;
+          admin_notes?: string | null;
+          airtable_record_id?: string | null;
+          airtable_synced_at?: string | null;
+          approved_at?: string | null;
+          approved_by?: string | null;
+          city?: string | null;
+          company_name?: string | null;
+          country?: string | null;
           created_at?: string | null;
-          error_message?: string | null;
+          email?: string;
+          entity_type?: string | null;
+          first_name?: string | null;
+          full_name?: string | null;
           id?: string;
+          id_document_expiry?: string | null;
+          id_document_number?: string | null;
+          id_document_type?: string | null;
+          id_document_url?: string | null;
+          investment_amount?: number | null;
+          investment_horizon?: string | null;
           investor_id?: string | null;
-          processed_at?: string | null;
-          retry_count?: number | null;
-          submission_data?: Json;
-          sync_status?: string;
+          last_name?: string | null;
+          notes?: string | null;
+          phone?: string | null;
+          postal_code?: string | null;
+          preferred_assets?: string[] | null;
+          proof_of_address_url?: string | null;
+          rejection_reason?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          risk_tolerance?: string | null;
+          state?: string | null;
+          status?: string | null;
+          submitted_at?: string | null;
+          tax_id?: string | null;
           updated_at?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "onboarding_submissions_approved_by_fkey";
+            columns: ["approved_by"];
+            isOneToOne: false;
+            referencedRelation: "investor_directory";
+            referencedColumns: ["profile_id"];
+          },
+          {
+            foreignKeyName: "onboarding_submissions_approved_by_fkey";
+            columns: ["approved_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "onboarding_submissions_investor_id_fkey";
             columns: ["investor_id"];
@@ -1896,389 +1519,221 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "onboarding_submissions_investor_id_fkey";
+            foreignKeyName: "onboarding_submissions_reviewed_by_fkey";
+            columns: ["reviewed_by"];
+            isOneToOne: false;
+            referencedRelation: "investor_directory";
+            referencedColumns: ["profile_id"];
+          },
+          {
+            foreignKeyName: "onboarding_submissions_reviewed_by_fkey";
+            columns: ["reviewed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      platform_fees_collected: {
+        Row: {
+          created_at: string | null;
+          fee_amount: number;
+          fee_date: string;
+          fee_type: string | null;
+          fund_id: string | null;
+          gross_yield: number | null;
+          id: string;
+          investor_id: string;
+          net_yield: number | null;
+          transaction_id: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          fee_amount: number;
+          fee_date?: string;
+          fee_type?: string | null;
+          fund_id?: string | null;
+          gross_yield?: number | null;
+          id?: string;
+          investor_id: string;
+          net_yield?: number | null;
+          transaction_id?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          fee_amount?: number;
+          fee_date?: string;
+          fee_type?: string | null;
+          fund_id?: string | null;
+          gross_yield?: number | null;
+          id?: string;
+          investor_id?: string;
+          net_yield?: number | null;
+          transaction_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "platform_fees_collected_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "funds";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "platform_fees_collected_investor_id_fkey";
             columns: ["investor_id"];
             isOneToOne: false;
-            referencedRelation: "v_investor_kpis";
+            referencedRelation: "investor_directory";
             referencedColumns: ["investor_id"];
           },
           {
-            foreignKeyName: "onboarding_submissions_investor_id_fkey";
+            foreignKeyName: "platform_fees_collected_investor_id_fkey";
             columns: ["investor_id"];
             isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["investor_id"];
+            referencedRelation: "investors";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "platform_fees_collected_transaction_id_fkey";
+            columns: ["transaction_id"];
+            isOneToOne: false;
+            referencedRelation: "transactions_v2";
+            referencedColumns: ["id"];
           },
         ];
       };
       platform_settings: {
         Row: {
+          allow_new_registrations: boolean | null;
+          created_at: string | null;
+          enable_2fa: boolean | null;
           id: string;
           maintenance_mode: boolean | null;
-          allow_new_registrations: boolean | null;
-          require_email_verification: boolean | null;
-          require_kyc: boolean | null;
-          enable_2fa: boolean | null;
           min_deposit: number | null;
           min_withdrawal: number | null;
           notification_email: string | null;
-          support_email: string | null;
           platform_name: string | null;
-          created_at: string | null;
+          require_email_verification: boolean | null;
+          require_kyc: boolean | null;
+          support_email: string | null;
           updated_at: string | null;
         };
         Insert: {
+          allow_new_registrations?: boolean | null;
+          created_at?: string | null;
+          enable_2fa?: boolean | null;
           id?: string;
           maintenance_mode?: boolean | null;
-          allow_new_registrations?: boolean | null;
-          require_email_verification?: boolean | null;
-          require_kyc?: boolean | null;
-          enable_2fa?: boolean | null;
           min_deposit?: number | null;
           min_withdrawal?: number | null;
           notification_email?: string | null;
-          support_email?: string | null;
           platform_name?: string | null;
-          created_at?: string | null;
+          require_email_verification?: boolean | null;
+          require_kyc?: boolean | null;
+          support_email?: string | null;
           updated_at?: string | null;
         };
         Update: {
+          allow_new_registrations?: boolean | null;
+          created_at?: string | null;
+          enable_2fa?: boolean | null;
           id?: string;
           maintenance_mode?: boolean | null;
-          allow_new_registrations?: boolean | null;
-          require_email_verification?: boolean | null;
-          require_kyc?: boolean | null;
-          enable_2fa?: boolean | null;
           min_deposit?: number | null;
           min_withdrawal?: number | null;
           notification_email?: string | null;
-          support_email?: string | null;
           platform_name?: string | null;
-          created_at?: string | null;
+          require_email_verification?: boolean | null;
+          require_kyc?: boolean | null;
+          support_email?: string | null;
           updated_at?: string | null;
         };
         Relationships: [];
       };
-      platform_fees_collected: {
+      portfolio_history: {
         Row: {
-          asset_code: string;
-          created_at: string;
-          created_by: string | null;
-          fee_amount: number;
-          fee_month: string;
-          fee_rate_percentage: number;
-          gross_yield: number;
+          created_at: string | null;
           id: string;
           investor_id: string;
-          net_yield: number;
+          positions_data: Json | null;
+          realized_pnl: number | null;
+          snapshot_date: string;
+          total_cost_basis: number | null;
+          total_value: number;
+          unrealized_pnl: number | null;
         };
         Insert: {
-          asset_code: string;
-          created_at?: string;
-          created_by?: string | null;
-          fee_amount?: number;
-          fee_month: string;
-          fee_rate_percentage: number;
-          gross_yield?: number;
+          created_at?: string | null;
           id?: string;
           investor_id: string;
-          net_yield?: number;
+          positions_data?: Json | null;
+          realized_pnl?: number | null;
+          snapshot_date: string;
+          total_cost_basis?: number | null;
+          total_value: number;
+          unrealized_pnl?: number | null;
         };
         Update: {
-          asset_code?: string;
-          created_at?: string;
-          created_by?: string | null;
-          fee_amount?: number;
-          fee_month?: string;
-          fee_rate_percentage?: number;
-          gross_yield?: number;
+          created_at?: string | null;
           id?: string;
           investor_id?: string;
-          net_yield?: number;
+          positions_data?: Json | null;
+          realized_pnl?: number | null;
+          snapshot_date?: string;
+          total_cost_basis?: number | null;
+          total_value?: number;
+          unrealized_pnl?: number | null;
         };
         Relationships: [
           {
-            foreignKeyName: "platform_fees_collected_investor_id_fkey";
+            foreignKeyName: "portfolio_history_investor_id_fkey";
             columns: ["investor_id"];
             isOneToOne: false;
             referencedRelation: "investor_directory";
             referencedColumns: ["investor_id"];
           },
           {
-            foreignKeyName: "platform_fees_collected_investor_id_fkey";
+            foreignKeyName: "portfolio_history_investor_id_fkey";
             columns: ["investor_id"];
             isOneToOne: false;
             referencedRelation: "investors";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "platform_fees_collected_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "v_investor_kpis";
-            referencedColumns: ["investor_id"];
-          },
-          {
-            foreignKeyName: "platform_fees_collected_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["investor_id"];
-          },
         ];
       };
-      portfolio_history: {
+      price_alerts: {
         Row: {
-          asset_id: number;
-          balance: number;
-          created_at: string;
-          date: string;
+          alert_type: string;
+          asset_symbol: string;
+          created_at: string | null;
           id: string;
-          usd_value: number | null;
-          user_id: string;
-          yield_applied: number | null;
-        };
-        Insert: {
-          asset_id: number;
-          balance: number;
-          created_at?: string;
-          date: string;
-          id?: string;
-          usd_value?: number | null;
-          user_id: string;
-          yield_applied?: number | null;
-        };
-        Update: {
-          asset_id?: number;
-          balance?: number;
-          created_at?: string;
-          date?: string;
-          id?: string;
-          usd_value?: number | null;
-          user_id?: string;
-          yield_applied?: number | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "portfolio_history_asset_id_fkey";
-            columns: ["asset_id"];
-            isOneToOne: false;
-            referencedRelation: "assets";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      portfolio_members: {
-        Row: {
-          granted_at: string;
-          granted_by: string | null;
-          portfolio_id: string;
-          role: string;
-          user_id: string;
-        };
-        Insert: {
-          granted_at?: string;
-          granted_by?: string | null;
-          portfolio_id: string;
-          role?: string;
-          user_id: string;
-        };
-        Update: {
-          granted_at?: string;
-          granted_by?: string | null;
-          portfolio_id?: string;
-          role?: string;
-          user_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "portfolio_members_portfolio_id_fkey";
-            columns: ["portfolio_id"];
-            isOneToOne: false;
-            referencedRelation: "admin_portfolio_overview_v";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "portfolio_members_portfolio_id_fkey";
-            columns: ["portfolio_id"];
-            isOneToOne: false;
-            referencedRelation: "portfolio_overview_v";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "portfolio_members_portfolio_id_fkey";
-            columns: ["portfolio_id"];
-            isOneToOne: false;
-            referencedRelation: "portfolios_v2";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "portfolio_members_portfolio_id_fkey";
-            columns: ["portfolio_id"];
-            isOneToOne: false;
-            referencedRelation: "positions_current_v";
-            referencedColumns: ["portfolio_id"];
-          },
-        ];
-      };
-      portfolio_nav_snapshots: {
-        Row: {
-          as_of: string;
-          created_at: string;
-          details: Json;
-          nav_usd: number;
-          portfolio_id: string;
-        };
-        Insert: {
-          as_of: string;
-          created_at?: string;
-          details: Json;
-          nav_usd: number;
-          portfolio_id: string;
-        };
-        Update: {
-          as_of?: string;
-          created_at?: string;
-          details?: Json;
-          nav_usd?: number;
-          portfolio_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "portfolio_nav_snapshots_portfolio_id_fkey";
-            columns: ["portfolio_id"];
-            isOneToOne: false;
-            referencedRelation: "admin_portfolio_overview_v";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "portfolio_nav_snapshots_portfolio_id_fkey";
-            columns: ["portfolio_id"];
-            isOneToOne: false;
-            referencedRelation: "portfolio_overview_v";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "portfolio_nav_snapshots_portfolio_id_fkey";
-            columns: ["portfolio_id"];
-            isOneToOne: false;
-            referencedRelation: "portfolios_v2";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "portfolio_nav_snapshots_portfolio_id_fkey";
-            columns: ["portfolio_id"];
-            isOneToOne: false;
-            referencedRelation: "positions_current_v";
-            referencedColumns: ["portfolio_id"];
-          },
-        ];
-      };
-      portfolios_v2: {
-        Row: {
-          base_currency: string;
-          created_at: string;
-          id: string;
-          inception_date: string;
-          metadata: Json;
-          name: string;
-          owner_user_id: string;
-          status: string;
-          updated_at: string;
-        };
-        Insert: {
-          base_currency?: string;
-          created_at?: string;
-          id?: string;
-          inception_date?: string;
-          metadata?: Json;
-          name: string;
-          owner_user_id: string;
-          status?: string;
-          updated_at?: string;
-        };
-        Update: {
-          base_currency?: string;
-          created_at?: string;
-          id?: string;
-          inception_date?: string;
-          metadata?: Json;
-          name?: string;
-          owner_user_id?: string;
-          status?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-      positions: {
-        Row: {
-          asset_code: Database["public"]["Enums"]["asset_code"];
-          current_balance: number;
-          id: string;
-          last_modified_at: string | null;
-          last_modified_by: string | null;
-          principal: number;
-          total_earned: number;
-          updated_at: string;
-          user_id: string;
-        };
-        Insert: {
-          asset_code: Database["public"]["Enums"]["asset_code"];
-          current_balance?: number;
-          id?: string;
-          last_modified_at?: string | null;
-          last_modified_by?: string | null;
-          principal?: number;
-          total_earned?: number;
-          updated_at?: string;
-          user_id: string;
-        };
-        Update: {
-          asset_code?: Database["public"]["Enums"]["asset_code"];
-          current_balance?: number;
-          id?: string;
-          last_modified_at?: string | null;
-          last_modified_by?: string | null;
-          principal?: number;
-          total_earned?: number;
-          updated_at?: string;
-          user_id?: string;
-        };
-        Relationships: [];
-      };
-      positions_backup_20250106: {
-        Row: {
-          asset_code: Database["public"]["Enums"]["asset_code"] | null;
-          current_balance: number | null;
-          id: string | null;
-          last_modified_at: string | null;
-          last_modified_by: string | null;
-          principal: number | null;
-          total_earned: number | null;
+          is_active: boolean | null;
+          threshold_value: number;
+          triggered_at: string | null;
           updated_at: string | null;
-          user_id: string | null;
+          user_id: string;
         };
         Insert: {
-          asset_code?: Database["public"]["Enums"]["asset_code"] | null;
-          current_balance?: number | null;
-          id?: string | null;
-          last_modified_at?: string | null;
-          last_modified_by?: string | null;
-          principal?: number | null;
-          total_earned?: number | null;
+          alert_type: string;
+          asset_symbol: string;
+          created_at?: string | null;
+          id?: string;
+          is_active?: boolean | null;
+          threshold_value: number;
+          triggered_at?: string | null;
           updated_at?: string | null;
-          user_id?: string | null;
+          user_id: string;
         };
         Update: {
-          asset_code?: Database["public"]["Enums"]["asset_code"] | null;
-          current_balance?: number | null;
-          id?: string | null;
-          last_modified_at?: string | null;
-          last_modified_by?: string | null;
-          principal?: number | null;
-          total_earned?: number | null;
+          alert_type?: string;
+          asset_symbol?: string;
+          created_at?: string | null;
+          id?: string;
+          is_active?: boolean | null;
+          threshold_value?: number;
+          triggered_at?: string | null;
           updated_at?: string | null;
-          user_id?: string | null;
+          user_id?: string;
         };
         Relationships: [];
       };
@@ -2363,133 +1818,10 @@ export type Database = {
         };
         Relationships: [];
       };
-      rate_limit_events: {
-        Row: {
-          blocked: boolean | null;
-          endpoint: string;
-          event_time: string | null;
-          id: string;
-          identifier: string;
-          ip_address: unknown;
-          user_id: string | null;
-        };
-        Insert: {
-          blocked?: boolean | null;
-          endpoint: string;
-          event_time?: string | null;
-          id?: string;
-          identifier: string;
-          ip_address?: unknown;
-          user_id?: string | null;
-        };
-        Update: {
-          blocked?: boolean | null;
-          endpoint?: string;
-          event_time?: string | null;
-          id?: string;
-          identifier?: string;
-          ip_address?: unknown;
-          user_id?: string | null;
-        };
-        Relationships: [];
-      };
-      reconciliation: {
-        Row: {
-          beginning_nav: number;
-          calculated_nav: number;
-          created_at: string | null;
-          ending_nav: number;
-          fees: number;
-          fund_id: string;
-          gross_pnl: number;
-          id: string;
-          net_flows: number;
-          notes: string | null;
-          reconciled_at: string | null;
-          reconciled_by: string | null;
-          reconciliation_date: string;
-          status: string | null;
-          variance: number;
-          variance_pct: number | null;
-        };
-        Insert: {
-          beginning_nav: number;
-          calculated_nav: number;
-          created_at?: string | null;
-          ending_nav: number;
-          fees: number;
-          fund_id: string;
-          gross_pnl: number;
-          id?: string;
-          net_flows: number;
-          notes?: string | null;
-          reconciled_at?: string | null;
-          reconciled_by?: string | null;
-          reconciliation_date: string;
-          status?: string | null;
-          variance: number;
-          variance_pct?: number | null;
-        };
-        Update: {
-          beginning_nav?: number;
-          calculated_nav?: number;
-          created_at?: string | null;
-          ending_nav?: number;
-          fees?: number;
-          fund_id?: string;
-          gross_pnl?: number;
-          id?: string;
-          net_flows?: number;
-          notes?: string | null;
-          reconciled_at?: string | null;
-          reconciled_by?: string | null;
-          reconciliation_date?: string;
-          status?: string | null;
-          variance?: number;
-          variance_pct?: number | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "reconciliation_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "funds";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "reconciliation_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "v_fund_kpis";
-            referencedColumns: ["fund_id"];
-          },
-          {
-            foreignKeyName: "reconciliation_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["fund_id"];
-          },
-          {
-            foreignKeyName: "reconciliation_reconciled_by_fkey";
-            columns: ["reconciled_by"];
-            isOneToOne: false;
-            referencedRelation: "investor_directory";
-            referencedColumns: ["profile_id"];
-          },
-          {
-            foreignKeyName: "reconciliation_reconciled_by_fkey";
-            columns: ["reconciled_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       report_access_logs: {
         Row: {
           action: string;
-          created_at: string;
+          created_at: string | null;
           id: string;
           ip_address: unknown;
           metadata: Json | null;
@@ -2499,7 +1831,7 @@ export type Database = {
         };
         Insert: {
           action: string;
-          created_at?: string;
+          created_at?: string | null;
           id?: string;
           ip_address?: unknown;
           metadata?: Json | null;
@@ -2509,7 +1841,7 @@ export type Database = {
         };
         Update: {
           action?: string;
-          created_at?: string;
+          created_at?: string | null;
           id?: string;
           ip_address?: unknown;
           metadata?: Json | null;
@@ -2517,20 +1849,12 @@ export type Database = {
           user_agent?: string | null;
           user_id?: string | null;
         };
-        Relationships: [
-          {
-            foreignKeyName: "report_access_logs_report_id_fkey";
-            columns: ["report_id"];
-            isOneToOne: false;
-            referencedRelation: "generated_reports";
-            referencedColumns: ["id"];
-          },
-        ];
+        Relationships: [];
       };
       report_definitions: {
         Row: {
-          available_formats: Database["public"]["Enums"]["report_format"][] | null;
-          created_at: string;
+          available_formats: string[] | null;
+          created_at: string | null;
           created_by: string | null;
           default_filters: Json | null;
           description: string | null;
@@ -2538,13 +1862,13 @@ export type Database = {
           is_active: boolean | null;
           is_admin_only: boolean | null;
           name: string;
-          report_type: Database["public"]["Enums"]["report_type"];
-          template_config: Json;
-          updated_at: string;
+          report_type: string;
+          template_config: Json | null;
+          updated_at: string | null;
         };
         Insert: {
-          available_formats?: Database["public"]["Enums"]["report_format"][] | null;
-          created_at?: string;
+          available_formats?: string[] | null;
+          created_at?: string | null;
           created_by?: string | null;
           default_filters?: Json | null;
           description?: string | null;
@@ -2552,13 +1876,13 @@ export type Database = {
           is_active?: boolean | null;
           is_admin_only?: boolean | null;
           name: string;
-          report_type: Database["public"]["Enums"]["report_type"];
-          template_config?: Json;
-          updated_at?: string;
+          report_type: string;
+          template_config?: Json | null;
+          updated_at?: string | null;
         };
         Update: {
-          available_formats?: Database["public"]["Enums"]["report_format"][] | null;
-          created_at?: string;
+          available_formats?: string[] | null;
+          created_at?: string | null;
           created_by?: string | null;
           default_filters?: Json | null;
           description?: string | null;
@@ -2566,15 +1890,15 @@ export type Database = {
           is_active?: boolean | null;
           is_admin_only?: boolean | null;
           name?: string;
-          report_type?: Database["public"]["Enums"]["report_type"];
-          template_config?: Json;
-          updated_at?: string;
+          report_type?: string;
+          template_config?: Json | null;
+          updated_at?: string | null;
         };
         Relationships: [];
       };
       report_schedules: {
         Row: {
-          created_at: string;
+          created_at: string | null;
           created_by: string | null;
           day_of_month: number | null;
           day_of_week: number | null;
@@ -2582,8 +1906,8 @@ export type Database = {
           description: string | null;
           failure_count: number | null;
           filters: Json | null;
-          formats: Database["public"]["Enums"]["report_format"][] | null;
-          frequency: Database["public"]["Enums"]["report_schedule_frequency"];
+          formats: string[] | null;
+          frequency: string;
           id: string;
           is_active: boolean | null;
           last_run_at: string | null;
@@ -2593,14 +1917,14 @@ export type Database = {
           parameters: Json | null;
           recipient_emails: string[] | null;
           recipient_user_ids: string[] | null;
-          report_definition_id: string | null;
+          report_definition_id: string;
           run_count: number | null;
-          time_of_day: string;
+          time_of_day: string | null;
           timezone: string | null;
-          updated_at: string;
+          updated_at: string | null;
         };
         Insert: {
-          created_at?: string;
+          created_at?: string | null;
           created_by?: string | null;
           day_of_month?: number | null;
           day_of_week?: number | null;
@@ -2608,8 +1932,8 @@ export type Database = {
           description?: string | null;
           failure_count?: number | null;
           filters?: Json | null;
-          formats?: Database["public"]["Enums"]["report_format"][] | null;
-          frequency: Database["public"]["Enums"]["report_schedule_frequency"];
+          formats?: string[] | null;
+          frequency: string;
           id?: string;
           is_active?: boolean | null;
           last_run_at?: string | null;
@@ -2619,14 +1943,14 @@ export type Database = {
           parameters?: Json | null;
           recipient_emails?: string[] | null;
           recipient_user_ids?: string[] | null;
-          report_definition_id?: string | null;
+          report_definition_id: string;
           run_count?: number | null;
-          time_of_day?: string;
+          time_of_day?: string | null;
           timezone?: string | null;
-          updated_at?: string;
+          updated_at?: string | null;
         };
         Update: {
-          created_at?: string;
+          created_at?: string | null;
           created_by?: string | null;
           day_of_month?: number | null;
           day_of_week?: number | null;
@@ -2634,8 +1958,8 @@ export type Database = {
           description?: string | null;
           failure_count?: number | null;
           filters?: Json | null;
-          formats?: Database["public"]["Enums"]["report_format"][] | null;
-          frequency?: Database["public"]["Enums"]["report_schedule_frequency"];
+          formats?: string[] | null;
+          frequency?: string;
           id?: string;
           is_active?: boolean | null;
           last_run_at?: string | null;
@@ -2645,71 +1969,13 @@ export type Database = {
           parameters?: Json | null;
           recipient_emails?: string[] | null;
           recipient_user_ids?: string[] | null;
-          report_definition_id?: string | null;
+          report_definition_id?: string;
           run_count?: number | null;
-          time_of_day?: string;
+          time_of_day?: string | null;
           timezone?: string | null;
-          updated_at?: string;
+          updated_at?: string | null;
         };
-        Relationships: [
-          {
-            foreignKeyName: "report_schedules_report_definition_id_fkey";
-            columns: ["report_definition_id"];
-            isOneToOne: false;
-            referencedRelation: "report_definitions";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      report_shares: {
-        Row: {
-          created_at: string;
-          download_count: number | null;
-          expires_at: string;
-          id: string;
-          is_active: boolean | null;
-          last_accessed_at: string | null;
-          max_downloads: number | null;
-          password_hash: string | null;
-          report_id: string | null;
-          share_token: string;
-          shared_by_user_id: string | null;
-        };
-        Insert: {
-          created_at?: string;
-          download_count?: number | null;
-          expires_at: string;
-          id?: string;
-          is_active?: boolean | null;
-          last_accessed_at?: string | null;
-          max_downloads?: number | null;
-          password_hash?: string | null;
-          report_id?: string | null;
-          share_token: string;
-          shared_by_user_id?: string | null;
-        };
-        Update: {
-          created_at?: string;
-          download_count?: number | null;
-          expires_at?: string;
-          id?: string;
-          is_active?: boolean | null;
-          last_accessed_at?: string | null;
-          max_downloads?: number | null;
-          password_hash?: string | null;
-          report_id?: string | null;
-          share_token?: string;
-          shared_by_user_id?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "report_shares_report_id_fkey";
-            columns: ["report_id"];
-            isOneToOne: false;
-            referencedRelation: "generated_reports";
-            referencedColumns: ["id"];
-          },
-        ];
+        Relationships: [];
       };
       secure_shares: {
         Row: {
@@ -2753,240 +2019,93 @@ export type Database = {
         };
         Relationships: [];
       };
-      statements: {
+      statement_email_delivery: {
         Row: {
-          additions: number;
-          asset_code: Database["public"]["Enums"]["asset_code"];
-          begin_balance: number;
-          created_at: string;
-          end_balance: number;
-          file_path: string | null;
-          fund_code: string | null;
+          created_at: string | null;
+          error_message: string | null;
+          failed_at: string | null;
           id: string;
-          month: number | null;
-          net_income: number;
-          period_month: number;
-          period_year: number;
-          rate_of_return_itd: number | null;
-          rate_of_return_mtd: number | null;
-          rate_of_return_qtd: number | null;
-          rate_of_return_ytd: number | null;
-          redemptions: number;
-          signed_url: string | null;
-          storage_path: string | null;
-          url_expires_at: string | null;
-          user_id: string;
-          year: number | null;
-        };
-        Insert: {
-          additions: number;
-          asset_code: Database["public"]["Enums"]["asset_code"];
-          begin_balance: number;
-          created_at?: string;
-          end_balance: number;
-          file_path?: string | null;
-          fund_code?: string | null;
-          id?: string;
-          month?: number | null;
-          net_income: number;
-          period_month: number;
-          period_year: number;
-          rate_of_return_itd?: number | null;
-          rate_of_return_mtd?: number | null;
-          rate_of_return_qtd?: number | null;
-          rate_of_return_ytd?: number | null;
-          redemptions: number;
-          signed_url?: string | null;
-          storage_path?: string | null;
-          url_expires_at?: string | null;
-          user_id: string;
-          year?: number | null;
-        };
-        Update: {
-          additions?: number;
-          asset_code?: Database["public"]["Enums"]["asset_code"];
-          begin_balance?: number;
-          created_at?: string;
-          end_balance?: number;
-          file_path?: string | null;
-          fund_code?: string | null;
-          id?: string;
-          month?: number | null;
-          net_income?: number;
-          period_month?: number;
-          period_year?: number;
-          rate_of_return_itd?: number | null;
-          rate_of_return_mtd?: number | null;
-          rate_of_return_qtd?: number | null;
-          rate_of_return_ytd?: number | null;
-          redemptions?: number;
-          signed_url?: string | null;
-          storage_path?: string | null;
-          url_expires_at?: string | null;
-          user_id?: string;
-          year?: number | null;
-        };
-        Relationships: [];
-      };
-      support_tickets: {
-        Row: {
-          assigned_admin_id: string | null;
-          attachments: string[] | null;
-          category: Database["public"]["Enums"]["ticket_category"];
-          created_at: string;
-          id: string;
-          messages_jsonb: Json;
-          priority: Database["public"]["Enums"]["ticket_priority"];
-          status: Database["public"]["Enums"]["ticket_status"];
-          subject: string;
-          updated_at: string;
+          period_id: string;
+          recipient_email: string;
+          sent_at: string | null;
+          statement_id: string;
+          status: string | null;
+          subject: string | null;
           user_id: string;
         };
         Insert: {
-          assigned_admin_id?: string | null;
-          attachments?: string[] | null;
-          category?: Database["public"]["Enums"]["ticket_category"];
-          created_at?: string;
+          created_at?: string | null;
+          error_message?: string | null;
+          failed_at?: string | null;
           id?: string;
-          messages_jsonb?: Json;
-          priority?: Database["public"]["Enums"]["ticket_priority"];
-          status?: Database["public"]["Enums"]["ticket_status"];
-          subject: string;
-          updated_at?: string;
+          period_id: string;
+          recipient_email: string;
+          sent_at?: string | null;
+          statement_id: string;
+          status?: string | null;
+          subject?: string | null;
           user_id: string;
         };
         Update: {
-          assigned_admin_id?: string | null;
-          attachments?: string[] | null;
-          category?: Database["public"]["Enums"]["ticket_category"];
-          created_at?: string;
+          created_at?: string | null;
+          error_message?: string | null;
+          failed_at?: string | null;
           id?: string;
-          messages_jsonb?: Json;
-          priority?: Database["public"]["Enums"]["ticket_priority"];
-          status?: Database["public"]["Enums"]["ticket_status"];
-          subject?: string;
-          updated_at?: string;
+          period_id?: string;
+          recipient_email?: string;
+          sent_at?: string | null;
+          statement_id?: string;
+          status?: string | null;
+          subject?: string | null;
           user_id?: string;
         };
         Relationships: [];
       };
-      system_2fa_policy: {
+      statement_periods: {
         Row: {
-          backup_code_length: number | null;
-          backup_codes_count: number | null;
-          grace_period_days: number | null;
-          id: string;
-          lockout_duration_minutes: number | null;
-          max_failed_attempts: number | null;
-          require_2fa_for_admins: boolean | null;
-          require_2fa_for_investors: boolean | null;
-          updated_at: string | null;
-          updated_by: string | null;
-        };
-        Insert: {
-          backup_code_length?: number | null;
-          backup_codes_count?: number | null;
-          grace_period_days?: number | null;
-          id?: string;
-          lockout_duration_minutes?: number | null;
-          max_failed_attempts?: number | null;
-          require_2fa_for_admins?: boolean | null;
-          require_2fa_for_investors?: boolean | null;
-          updated_at?: string | null;
-          updated_by?: string | null;
-        };
-        Update: {
-          backup_code_length?: number | null;
-          backup_codes_count?: number | null;
-          grace_period_days?: number | null;
-          id?: string;
-          lockout_duration_minutes?: number | null;
-          max_failed_attempts?: number | null;
-          require_2fa_for_admins?: boolean | null;
-          require_2fa_for_investors?: boolean | null;
-          updated_at?: string | null;
-          updated_by?: string | null;
-        };
-        Relationships: [];
-      };
-      system_config: {
-        Row: {
-          description: string | null;
-          key: string;
-          updated_at: string | null;
-          updated_by: string | null;
-          value: Json;
-        };
-        Insert: {
-          description?: string | null;
-          key: string;
-          updated_at?: string | null;
-          updated_by?: string | null;
-          value: Json;
-        };
-        Update: {
-          description?: string | null;
-          key?: string;
-          updated_at?: string | null;
-          updated_by?: string | null;
-          value?: Json;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "system_config_updated_by_fkey";
-            columns: ["updated_by"];
-            isOneToOne: false;
-            referencedRelation: "investor_directory";
-            referencedColumns: ["profile_id"];
-          },
-          {
-            foreignKeyName: "system_config_updated_by_fkey";
-            columns: ["updated_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      transactions: {
-        Row: {
-          amount: number;
-          asset_code: Database["public"]["Enums"]["asset_code"];
-          confirmed_at: string | null;
-          created_at: string;
+          created_at: string | null;
           created_by: string | null;
+          finalized_at: string | null;
+          finalized_by: string | null;
           id: string;
-          note: string | null;
-          status: Database["public"]["Enums"]["transaction_status"];
-          tx_hash: string | null;
-          type: Database["public"]["Enums"]["transaction_type"];
-          user_id: string;
+          month: number;
+          notes: string | null;
+          period_end_date: string;
+          period_name: string;
+          period_start_date: string;
+          status: string | null;
+          updated_at: string | null;
+          year: number;
         };
         Insert: {
-          amount: number;
-          asset_code: Database["public"]["Enums"]["asset_code"];
-          confirmed_at?: string | null;
-          created_at?: string;
+          created_at?: string | null;
           created_by?: string | null;
+          finalized_at?: string | null;
+          finalized_by?: string | null;
           id?: string;
-          note?: string | null;
-          status?: Database["public"]["Enums"]["transaction_status"];
-          tx_hash?: string | null;
-          type: Database["public"]["Enums"]["transaction_type"];
-          user_id: string;
+          month: number;
+          notes?: string | null;
+          period_end_date: string;
+          period_name: string;
+          period_start_date: string;
+          status?: string | null;
+          updated_at?: string | null;
+          year: number;
         };
         Update: {
-          amount?: number;
-          asset_code?: Database["public"]["Enums"]["asset_code"];
-          confirmed_at?: string | null;
-          created_at?: string;
+          created_at?: string | null;
           created_by?: string | null;
+          finalized_at?: string | null;
+          finalized_by?: string | null;
           id?: string;
-          note?: string | null;
-          status?: Database["public"]["Enums"]["transaction_status"];
-          tx_hash?: string | null;
-          type?: Database["public"]["Enums"]["transaction_type"];
-          user_id?: string;
+          month?: number;
+          notes?: string | null;
+          period_end_date?: string;
+          period_name?: string;
+          period_start_date?: string;
+          status?: string | null;
+          updated_at?: string | null;
+          year?: number;
         };
         Relationships: [];
       };
@@ -2996,26 +2115,17 @@ export type Database = {
           approved_at: string | null;
           approved_by: string | null;
           asset: string;
-          asset_id: string | null;
           balance_after: number | null;
           balance_before: number | null;
           created_at: string | null;
           created_by: string | null;
-          fund_class: string | null;
           fund_id: string;
           id: string;
           investor_id: string;
           notes: string | null;
-          occurred_at: string;
-          portfolio_id: string | null;
-          price_per_unit: number | null;
-          quantity: number | null;
-          ref_code: string | null;
           reference_id: string | null;
-          total_value: number | null;
           tx_date: string;
           tx_hash: string | null;
-          txn_type: string | null;
           type: Database["public"]["Enums"]["tx_type"];
           value_date: string;
         };
@@ -3024,26 +2134,17 @@ export type Database = {
           approved_at?: string | null;
           approved_by?: string | null;
           asset: string;
-          asset_id?: string | null;
           balance_after?: number | null;
           balance_before?: number | null;
           created_at?: string | null;
           created_by?: string | null;
-          fund_class?: string | null;
           fund_id: string;
           id?: string;
           investor_id: string;
           notes?: string | null;
-          occurred_at?: string;
-          portfolio_id?: string | null;
-          price_per_unit?: number | null;
-          quantity?: number | null;
-          ref_code?: string | null;
           reference_id?: string | null;
-          total_value?: number | null;
           tx_date?: string;
           tx_hash?: string | null;
-          txn_type?: string | null;
           type: Database["public"]["Enums"]["tx_type"];
           value_date?: string;
         };
@@ -3052,26 +2153,17 @@ export type Database = {
           approved_at?: string | null;
           approved_by?: string | null;
           asset?: string;
-          asset_id?: string | null;
           balance_after?: number | null;
           balance_before?: number | null;
           created_at?: string | null;
           created_by?: string | null;
-          fund_class?: string | null;
           fund_id?: string;
           id?: string;
           investor_id?: string;
           notes?: string | null;
-          occurred_at?: string;
-          portfolio_id?: string | null;
-          price_per_unit?: number | null;
-          quantity?: number | null;
-          ref_code?: string | null;
           reference_id?: string | null;
-          total_value?: number | null;
           tx_date?: string;
           tx_hash?: string | null;
-          txn_type?: string | null;
           type?: Database["public"]["Enums"]["tx_type"];
           value_date?: string;
         };
@@ -3089,13 +2181,6 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "transactions_v2_asset_id_fkey";
-            columns: ["asset_id"];
-            isOneToOne: false;
-            referencedRelation: "assets_v2";
-            referencedColumns: ["asset_id"];
           },
           {
             foreignKeyName: "transactions_v2_created_by_fkey";
@@ -3119,20 +2204,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "transactions_v2_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "v_fund_kpis";
-            referencedColumns: ["fund_id"];
-          },
-          {
-            foreignKeyName: "transactions_v2_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["fund_id"];
-          },
-          {
             foreignKeyName: "transactions_v2_investor_id_fkey";
             columns: ["investor_id"];
             isOneToOne: false;
@@ -3146,106 +2217,7 @@ export type Database = {
             referencedRelation: "investors";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "transactions_v2_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "v_investor_kpis";
-            referencedColumns: ["investor_id"];
-          },
-          {
-            foreignKeyName: "transactions_v2_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["investor_id"];
-          },
-          {
-            foreignKeyName: "transactions_v2_portfolio_id_fkey";
-            columns: ["portfolio_id"];
-            isOneToOne: false;
-            referencedRelation: "admin_portfolio_overview_v";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "transactions_v2_portfolio_id_fkey";
-            columns: ["portfolio_id"];
-            isOneToOne: false;
-            referencedRelation: "portfolio_overview_v";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "transactions_v2_portfolio_id_fkey";
-            columns: ["portfolio_id"];
-            isOneToOne: false;
-            referencedRelation: "portfolios_v2";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "transactions_v2_portfolio_id_fkey";
-            columns: ["portfolio_id"];
-            isOneToOne: false;
-            referencedRelation: "positions_current_v";
-            referencedColumns: ["portfolio_id"];
-          },
         ];
-      };
-      user_access_logs_enhanced: {
-        Row: {
-          authentication_method: string | null;
-          backup_code_used: boolean | null;
-          created_at: string | null;
-          device_fingerprint: string | null;
-          event: string;
-          failure_reason: string | null;
-          id: string;
-          ip_address: unknown;
-          location_city: string | null;
-          location_country: string | null;
-          metadata: Json | null;
-          session_id: string | null;
-          success: boolean;
-          totp_used: boolean | null;
-          user_agent: string | null;
-          user_id: string;
-        };
-        Insert: {
-          authentication_method?: string | null;
-          backup_code_used?: boolean | null;
-          created_at?: string | null;
-          device_fingerprint?: string | null;
-          event: string;
-          failure_reason?: string | null;
-          id?: string;
-          ip_address?: unknown;
-          location_city?: string | null;
-          location_country?: string | null;
-          metadata?: Json | null;
-          session_id?: string | null;
-          success: boolean;
-          totp_used?: boolean | null;
-          user_agent?: string | null;
-          user_id: string;
-        };
-        Update: {
-          authentication_method?: string | null;
-          backup_code_used?: boolean | null;
-          created_at?: string | null;
-          device_fingerprint?: string | null;
-          event?: string;
-          failure_reason?: string | null;
-          id?: string;
-          ip_address?: unknown;
-          location_city?: string | null;
-          location_country?: string | null;
-          metadata?: Json | null;
-          session_id?: string | null;
-          success?: boolean;
-          totp_used?: boolean | null;
-          user_agent?: string | null;
-          user_id?: string;
-        };
-        Relationships: [];
       };
       user_sessions: {
         Row: {
@@ -3286,110 +2258,6 @@ export type Database = {
         };
         Relationships: [];
       };
-      user_totp_backup_codes: {
-        Row: {
-          code_hash: string;
-          created_at: string | null;
-          generated_batch_id: string | null;
-          id: string;
-          totp_settings_id: string;
-          used_at: string | null;
-          user_id: string;
-        };
-        Insert: {
-          code_hash: string;
-          created_at?: string | null;
-          generated_batch_id?: string | null;
-          id?: string;
-          totp_settings_id: string;
-          used_at?: string | null;
-          user_id: string;
-        };
-        Update: {
-          code_hash?: string;
-          created_at?: string | null;
-          generated_batch_id?: string | null;
-          id?: string;
-          totp_settings_id?: string;
-          used_at?: string | null;
-          user_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "user_totp_backup_codes_totp_settings_id_fkey";
-            columns: ["totp_settings_id"];
-            isOneToOne: false;
-            referencedRelation: "user_totp_settings";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      user_totp_settings: {
-        Row: {
-          algorithm: string | null;
-          backup_codes_generated_at: string | null;
-          created_at: string | null;
-          created_by: string | null;
-          digits: number | null;
-          enabled: boolean;
-          enforce_required: boolean | null;
-          failed_attempts: number | null;
-          id: string;
-          last_used_at: string | null;
-          locked_until: string | null;
-          period: number | null;
-          qr_code_shown_at: string | null;
-          recovery_used_count: number | null;
-          secret_encrypted: string | null;
-          setup_completed_at: string | null;
-          updated_at: string | null;
-          user_id: string;
-          verified_at: string | null;
-        };
-        Insert: {
-          algorithm?: string | null;
-          backup_codes_generated_at?: string | null;
-          created_at?: string | null;
-          created_by?: string | null;
-          digits?: number | null;
-          enabled?: boolean;
-          enforce_required?: boolean | null;
-          failed_attempts?: number | null;
-          id?: string;
-          last_used_at?: string | null;
-          locked_until?: string | null;
-          period?: number | null;
-          qr_code_shown_at?: string | null;
-          recovery_used_count?: number | null;
-          secret_encrypted?: string | null;
-          setup_completed_at?: string | null;
-          updated_at?: string | null;
-          user_id: string;
-          verified_at?: string | null;
-        };
-        Update: {
-          algorithm?: string | null;
-          backup_codes_generated_at?: string | null;
-          created_at?: string | null;
-          created_by?: string | null;
-          digits?: number | null;
-          enabled?: boolean;
-          enforce_required?: boolean | null;
-          failed_attempts?: number | null;
-          id?: string;
-          last_used_at?: string | null;
-          locked_until?: string | null;
-          period?: number | null;
-          qr_code_shown_at?: string | null;
-          recovery_used_count?: number | null;
-          secret_encrypted?: string | null;
-          setup_completed_at?: string | null;
-          updated_at?: string | null;
-          user_id?: string;
-          verified_at?: string | null;
-        };
-        Relationships: [];
-      };
       web_push_subscriptions: {
         Row: {
           auth: string;
@@ -3419,62 +2287,6 @@ export type Database = {
           user_id?: string;
         };
         Relationships: [];
-      };
-      withdrawal_audit_logs: {
-        Row: {
-          action: Database["public"]["Enums"]["withdrawal_action"];
-          actor_id: string | null;
-          created_at: string;
-          details: Json | null;
-          id: string;
-          request_id: string;
-        };
-        Insert: {
-          action: Database["public"]["Enums"]["withdrawal_action"];
-          actor_id?: string | null;
-          created_at?: string;
-          details?: Json | null;
-          id?: string;
-          request_id: string;
-        };
-        Update: {
-          action?: Database["public"]["Enums"]["withdrawal_action"];
-          actor_id?: string | null;
-          created_at?: string;
-          details?: Json | null;
-          id?: string;
-          request_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "withdrawal_audit_logs_actor_id_fkey";
-            columns: ["actor_id"];
-            isOneToOne: false;
-            referencedRelation: "investor_directory";
-            referencedColumns: ["profile_id"];
-          },
-          {
-            foreignKeyName: "withdrawal_audit_logs_actor_id_fkey";
-            columns: ["actor_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "withdrawal_audit_logs_request_id_fkey";
-            columns: ["request_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "withdrawal_audit_logs_request_id_fkey";
-            columns: ["request_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_requests";
-            referencedColumns: ["id"];
-          },
-        ];
       };
       withdrawal_requests: {
         Row: {
@@ -3615,20 +2427,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "withdrawal_requests_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "v_fund_kpis";
-            referencedColumns: ["fund_id"];
-          },
-          {
-            foreignKeyName: "withdrawal_requests_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["fund_id"];
-          },
-          {
             foreignKeyName: "withdrawal_requests_investor_id_fkey";
             columns: ["investor_id"];
             isOneToOne: false;
@@ -3643,20 +2441,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "withdrawal_requests_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "v_investor_kpis";
-            referencedColumns: ["investor_id"];
-          },
-          {
-            foreignKeyName: "withdrawal_requests_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["investor_id"];
-          },
-          {
             foreignKeyName: "withdrawal_requests_rejected_by_fkey";
             columns: ["rejected_by"];
             isOneToOne: false;
@@ -3668,94 +2452,6 @@ export type Database = {
             columns: ["rejected_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      yield_distribution_log: {
-        Row: {
-          application_date: string;
-          asset_code: string;
-          balance_after: number;
-          balance_before: number;
-          created_at: string | null;
-          daily_yield_application_id: string | null;
-          id: string;
-          percentage_owned: number;
-          user_id: string;
-          yield_amount: number;
-        };
-        Insert: {
-          application_date: string;
-          asset_code: string;
-          balance_after: number;
-          balance_before: number;
-          created_at?: string | null;
-          daily_yield_application_id?: string | null;
-          id?: string;
-          percentage_owned: number;
-          user_id: string;
-          yield_amount: number;
-        };
-        Update: {
-          application_date?: string;
-          asset_code?: string;
-          balance_after?: number;
-          balance_before?: number;
-          created_at?: string | null;
-          daily_yield_application_id?: string | null;
-          id?: string;
-          percentage_owned?: number;
-          user_id?: string;
-          yield_amount?: number;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "yield_distribution_log_daily_yield_application_id_fkey";
-            columns: ["daily_yield_application_id"];
-            isOneToOne: false;
-            referencedRelation: "daily_yield_applications";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      yield_rates: {
-        Row: {
-          asset_id: number;
-          created_at: string;
-          daily_yield_percentage: number;
-          date: string;
-          entered_by: string | null;
-          id: string;
-          is_api_sourced: boolean | null;
-          updated_at: string;
-        };
-        Insert: {
-          asset_id: number;
-          created_at?: string;
-          daily_yield_percentage: number;
-          date: string;
-          entered_by?: string | null;
-          id?: string;
-          is_api_sourced?: boolean | null;
-          updated_at?: string;
-        };
-        Update: {
-          asset_id?: number;
-          created_at?: string;
-          daily_yield_percentage?: number;
-          date?: string;
-          entered_by?: string | null;
-          id?: string;
-          is_api_sourced?: boolean | null;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "yield_rates_asset_id_fkey";
-            columns: ["asset_id"];
-            isOneToOne: false;
-            referencedRelation: "assets";
             referencedColumns: ["id"];
           },
         ];
@@ -3787,88 +2483,45 @@ export type Database = {
         };
         Relationships: [];
       };
-      yield_sources: {
-        Row: {
-          asset_code: string;
-          created_at: string | null;
-          current_balance: number;
-          id: string;
-          last_updated: string | null;
-          percentage_of_aum: number;
-          user_id: string;
-        };
-        Insert: {
-          asset_code: string;
-          created_at?: string | null;
-          current_balance?: number;
-          id?: string;
-          last_updated?: string | null;
-          percentage_of_aum?: number;
-          user_id: string;
-        };
-        Update: {
-          asset_code?: string;
-          created_at?: string | null;
-          current_balance?: number;
-          id?: string;
-          last_updated?: string | null;
-          percentage_of_aum?: number;
-          user_id?: string;
-        };
-        Relationships: [];
-      };
     };
     Views: {
-      admin_portfolio_overview_v: {
+      assets: {
         Row: {
-          asset_count: number | null;
-          base_currency: string | null;
-          created_at: string | null;
-          email: string | null;
-          first_name: string | null;
-          full_name: string | null;
           id: string | null;
-          inception_date: string | null;
-          last_name: string | null;
-          metadata: Json | null;
           name: string | null;
-          owner_user_id: string | null;
-          status: string | null;
-          total_value_usd: number | null;
-          updated_at: string | null;
+          symbol: string | null;
         };
         Relationships: [];
       };
-      audit_events_v: {
+      daily_rate_notification_history: {
         Row: {
-          actor_user: string | null;
+          body: string | null;
+          btc_rate: number | null;
           created_at: string | null;
-          entity: string | null;
-          entity_id: string | null;
-          event_id: string | null;
-          meta: Json | null;
-          new_values: Json | null;
-          old_values: Json | null;
-          operation: string | null;
-          source_table: string | null;
+          data_jsonb: Json | null;
+          eth_rate: number | null;
+          id: string | null;
+          investor_email: string | null;
+          investor_name: string | null;
+          priority: Database["public"]["Enums"]["notification_priority"] | null;
+          rate_date: string | null;
+          read_at: string | null;
+          sol_rate: number | null;
+          title: string | null;
           user_id: string | null;
         };
         Relationships: [];
       };
       investment_summary: {
         Row: {
-          active_count: number | null;
-          cancelled_count: number | null;
-          first_investment_date: string | null;
-          fund_code: string | null;
+          asset: string | null;
+          first_investment: string | null;
           fund_id: string | null;
           fund_name: string | null;
+          investment_count: number | null;
           investor_id: string | null;
-          investor_name: string | null;
-          last_investment_date: string | null;
-          pending_count: number | null;
+          last_investment: string | null;
           total_invested: number | null;
-          total_investments: number | null;
           total_shares: number | null;
         };
         Relationships: [
@@ -3878,20 +2531,6 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "funds";
             referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "investments_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "v_fund_kpis";
-            referencedColumns: ["fund_id"];
-          },
-          {
-            foreignKeyName: "investments_fund_id_fkey";
-            columns: ["fund_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["fund_id"];
           },
           {
             foreignKeyName: "investments_investor_id_fkey";
@@ -3906,20 +2545,6 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "investors";
             referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "investments_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "v_investor_kpis";
-            referencedColumns: ["investor_id"];
-          },
-          {
-            foreignKeyName: "investments_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["investor_id"];
           },
         ];
       };
@@ -3968,151 +2593,124 @@ export type Database = {
             referencedRelation: "investors";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "investor_positions_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "v_investor_kpis";
-            referencedColumns: ["investor_id"];
-          },
-          {
-            foreignKeyName: "investor_positions_investor_id_fkey";
-            columns: ["investor_id"];
-            isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["investor_id"];
-          },
         ];
       };
-      portfolio_overview_v: {
+      monthly_fee_summary: {
         Row: {
-          asset_count: number | null;
-          created_at: string | null;
-          id: string | null;
-          inception_date: string | null;
-          name: string | null;
-          owner_user_id: string | null;
-          status: string | null;
-          total_value_usd: number | null;
-          updated_at: string | null;
-        };
-        Relationships: [];
-      };
-      positions_current_v: {
-        Row: {
-          asset_id: string | null;
-          asset_name: string | null;
-          last_price_usd: number | null;
-          owner_user_id: string | null;
-          portfolio_id: string | null;
-          portfolio_name: string | null;
-          quantity: number | null;
-          symbol: string | null;
-          value_usd: number | null;
-        };
-        Relationships: [];
-      };
-      v_fund_kpis: {
-        Row: {
-          active_investors: number | null;
-          asset: string | null;
-          code: string | null;
-          current_aum: number | null;
-          day_return_pct: number | null;
+          fee_type: string | null;
           fund_id: string | null;
-          itd_return: number | null;
-          mtd_return: number | null;
-          name: string | null;
-          qtd_return: number | null;
-          ytd_return: number | null;
-        };
-        Insert: {
-          active_investors?: never;
-          asset?: string | null;
-          code?: string | null;
-          current_aum?: never;
-          day_return_pct?: never;
-          fund_id?: string | null;
-          itd_return?: never;
-          mtd_return?: never;
-          name?: string | null;
-          qtd_return?: never;
-          ytd_return?: never;
-        };
-        Update: {
-          active_investors?: never;
-          asset?: string | null;
-          code?: string | null;
-          current_aum?: never;
-          day_return_pct?: never;
-          fund_id?: string | null;
-          itd_return?: never;
-          mtd_return?: never;
-          name?: string | null;
-          qtd_return?: never;
-          ytd_return?: never;
-        };
-        Relationships: [];
-      };
-      v_investor_kpis: {
-        Row: {
-          email: string | null;
-          first_investment_date: string | null;
-          funds_invested: number | null;
-          investor_id: string | null;
-          kyc_status: string | null;
-          last_activity_date: string | null;
-          name: string | null;
-          status: string | null;
-          total_invested: number | null;
-          total_mgmt_fees: number | null;
-          total_perf_fees: number | null;
-          total_realized_pnl: number | null;
-          total_unrealized_pnl: number | null;
-          total_value: number | null;
-        };
-        Relationships: [];
-      };
-      v_itd_returns: {
-        Row: {
-          fund_id: string | null;
-          itd_return: number | null;
+          month: string | null;
+          total_fees_collected: number | null;
+          total_gross_yield: number | null;
+          total_net_yield: number | null;
+          transaction_count: number | null;
         };
         Relationships: [
           {
-            foreignKeyName: "daily_nav_fund_id_fkey";
+            foreignKeyName: "platform_fees_collected_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "funds";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      positions: {
+        Row: {
+          aum_percentage: number | null;
+          cost_basis: number | null;
+          current_value: number | null;
+          fund_class: string | null;
+          fund_id: string | null;
+          high_water_mark: number | null;
+          investor_id: string | null;
+          last_transaction_date: string | null;
+          lock_until_date: string | null;
+          mgmt_fees_paid: number | null;
+          perf_fees_paid: number | null;
+          realized_pnl: number | null;
+          shares: number | null;
+          unrealized_pnl: number | null;
+          updated_at: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          aum_percentage?: number | null;
+          cost_basis?: number | null;
+          current_value?: number | null;
+          fund_class?: string | null;
+          fund_id?: string | null;
+          high_water_mark?: number | null;
+          investor_id?: string | null;
+          last_transaction_date?: string | null;
+          lock_until_date?: string | null;
+          mgmt_fees_paid?: number | null;
+          perf_fees_paid?: number | null;
+          realized_pnl?: number | null;
+          shares?: number | null;
+          unrealized_pnl?: number | null;
+          updated_at?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          aum_percentage?: number | null;
+          cost_basis?: number | null;
+          current_value?: number | null;
+          fund_class?: string | null;
+          fund_id?: string | null;
+          high_water_mark?: number | null;
+          investor_id?: string | null;
+          last_transaction_date?: string | null;
+          lock_until_date?: string | null;
+          mgmt_fees_paid?: number | null;
+          perf_fees_paid?: number | null;
+          realized_pnl?: number | null;
+          shares?: number | null;
+          unrealized_pnl?: number | null;
+          updated_at?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "investor_positions_fund_id_fkey";
             columns: ["fund_id"];
             isOneToOne: false;
             referencedRelation: "funds";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "daily_nav_fund_id_fkey";
-            columns: ["fund_id"];
+            foreignKeyName: "investor_positions_investor_id_fkey";
+            columns: ["user_id"];
             isOneToOne: false;
-            referencedRelation: "v_fund_kpis";
-            referencedColumns: ["fund_id"];
+            referencedRelation: "investor_directory";
+            referencedColumns: ["investor_id"];
           },
           {
-            foreignKeyName: "daily_nav_fund_id_fkey";
-            columns: ["fund_id"];
+            foreignKeyName: "investor_positions_investor_id_fkey";
+            columns: ["investor_id"];
             isOneToOne: false;
-            referencedRelation: "withdrawal_queue";
-            referencedColumns: ["fund_id"];
+            referencedRelation: "investor_directory";
+            referencedColumns: ["investor_id"];
+          },
+          {
+            foreignKeyName: "investor_positions_investor_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "investors";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "investor_positions_investor_id_fkey";
+            columns: ["investor_id"];
+            isOneToOne: false;
+            referencedRelation: "investors";
+            referencedColumns: ["id"];
           },
         ];
       };
       withdrawal_queue: {
         Row: {
-          admin_notes: string | null;
           approved_amount: number | null;
-          approved_at: string | null;
-          approved_by_email: string | null;
-          approved_by_name: string | null;
-          cancellation_reason: string | null;
-          cancelled_at: string | null;
-          cancelled_by_email: string | null;
-          cancelled_by_name: string | null;
           current_position_value: number | null;
           current_shares: number | null;
           expected_withdrawal: number | null;
@@ -4125,19 +2723,43 @@ export type Database = {
           investor_id: string | null;
           investor_name: string | null;
           notes: string | null;
-          processed_amount: number | null;
-          processed_at: string | null;
-          rejected_at: string | null;
-          rejected_by_email: string | null;
-          rejected_by_name: string | null;
-          rejection_reason: string | null;
           request_date: string | null;
           requested_amount: number | null;
-          settlement_date: string | null;
           status: Database["public"]["Enums"]["withdrawal_status"] | null;
-          tx_hash: string | null;
-          updated_at: string | null;
           withdrawal_type: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_requests_fund_id_fkey";
+            columns: ["fund_id"];
+            isOneToOne: false;
+            referencedRelation: "funds";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "withdrawal_requests_investor_id_fkey";
+            columns: ["investor_id"];
+            isOneToOne: false;
+            referencedRelation: "investor_directory";
+            referencedColumns: ["investor_id"];
+          },
+          {
+            foreignKeyName: "withdrawal_requests_investor_id_fkey";
+            columns: ["investor_id"];
+            isOneToOne: false;
+            referencedRelation: "investors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      yield_rates: {
+        Row: {
+          asset_id: string | null;
+          created_at: string | null;
+          created_by: string | null;
+          daily_yield_percentage: number | null;
+          effective_date: string | null;
+          id: string | null;
         };
         Relationships: [];
       };
@@ -4150,6 +2772,25 @@ export type Database = {
           p_investor_id: string;
         };
         Returns: boolean;
+      };
+      add_investor_email: {
+        Args: {
+          investor_uuid: string;
+          new_email: string;
+          set_as_primary?: boolean;
+        };
+        Returns: string;
+      };
+      admin_create_transaction: {
+        Args: {
+          p_amount: number;
+          p_description?: string;
+          p_fund_id: string;
+          p_investor_id: string;
+          p_tx_hash?: string;
+          p_type: string;
+        };
+        Returns: Json;
       };
       apply_daily_yield: {
         Args: {
@@ -4264,6 +2905,26 @@ export type Database = {
         };
         Returns: string;
       };
+      create_withdrawal_request_secure: {
+        Args: {
+          p_amount: number;
+          p_fund_id: string;
+          p_investor_id: string;
+          p_notes?: string;
+          p_type?: string;
+        };
+        Returns: string;
+      };
+      create_withdrawal_request_v2: {
+        Args: {
+          p_amount: number;
+          p_fund_id: string;
+          p_investor_id: string;
+          p_notes?: string;
+          p_type?: string;
+        };
+        Returns: string;
+      };
       decrypt_totp_secret: {
         Args: { encrypted_secret: string };
         Returns: string;
@@ -4279,6 +2940,14 @@ export type Database = {
       };
       encrypt_totp_secret: { Args: { secret_text: string }; Returns: string };
       ensure_admin: { Args: never; Returns: undefined };
+      finalize_statement_period: {
+        Args: {
+          p_investor_id: string;
+          p_period_end: string;
+          p_statement_data?: Json;
+        };
+        Returns: Json;
+      };
       fund_period_return: {
         Args: { d1: string; d2: string; f: string; net?: boolean };
         Returns: number;
@@ -4385,6 +3054,15 @@ export type Database = {
           count: number;
         }[];
       };
+      get_investor_emails: {
+        Args: { investor_uuid: string };
+        Returns: {
+          created_at: string;
+          email: string;
+          is_primary: boolean;
+          verified: boolean;
+        }[];
+      };
       get_investor_period_summary: {
         Args: {
           p_as_of_date?: string;
@@ -4416,6 +3094,7 @@ export type Database = {
           count: number;
         }[];
       };
+      get_primary_email: { Args: { investor_uuid: string }; Returns: string };
       get_profile_basic: {
         Args: { user_id: string };
         Returns: {
@@ -4436,19 +3115,24 @@ export type Database = {
         }[];
       };
       get_report_statistics: {
-        Args: { p_days_back?: number; p_user_id?: string };
+        Args: { p_days_back?: number; p_user_id: string };
         Returns: {
-          avg_processing_time_ms: number;
-          failed: number;
-          format: Database["public"]["Enums"]["report_format"];
-          report_type: Database["public"]["Enums"]["report_type"];
-          successful: number;
-          total_downloads: number;
-          total_file_size_bytes: number;
-          total_generated: number;
+          avg_processing_ms: number;
+          completed_count: number;
+          failed_count: number;
+          report_type: string;
+          total_count: number;
         }[];
       };
       get_security_headers: { Args: never; Returns: Json };
+      get_statement_period_summary: {
+        Args: {
+          p_end_date: string;
+          p_investor_id: string;
+          p_start_date: string;
+        };
+        Returns: Json;
+      };
       get_total_aum: {
         Args: never;
         Returns: {
@@ -4464,30 +3148,73 @@ export type Database = {
           total_aum: number;
         }[];
       };
-      get_user_reports: {
-        Args: {
-          p_limit?: number;
-          p_offset?: number;
-          p_report_type?: Database["public"]["Enums"]["report_type"];
-          p_status?: Database["public"]["Enums"]["report_status"];
-          p_user_id: string;
-        };
-        Returns: {
-          created_at: string;
-          date_range_end: string;
-          date_range_start: string;
-          download_count: number;
-          download_url: string;
-          download_url_expires_at: string;
-          file_size_bytes: number;
-          format: Database["public"]["Enums"]["report_format"];
-          id: string;
-          processing_completed_at: string;
-          report_type: Database["public"]["Enums"]["report_type"];
-          status: Database["public"]["Enums"]["report_status"];
-          storage_path: string;
-        }[];
-      };
+      get_user_reports:
+        | {
+            Args: {
+              p_limit?: number;
+              p_offset?: number;
+              p_report_type?: Database["public"]["Enums"]["report_type"];
+              p_status?: Database["public"]["Enums"]["report_status"];
+              p_user_id: string;
+            };
+            Returns: {
+              created_at: string;
+              date_range_end: string;
+              date_range_start: string;
+              download_count: number;
+              download_url: string;
+              download_url_expires_at: string;
+              file_size_bytes: number;
+              format: Database["public"]["Enums"]["report_format"];
+              id: string;
+              processing_completed_at: string;
+              report_type: Database["public"]["Enums"]["report_type"];
+              status: Database["public"]["Enums"]["report_status"];
+              storage_path: string;
+            }[];
+          }
+        | {
+            Args: {
+              p_limit?: number;
+              p_offset?: number;
+              p_report_type?: string;
+              p_status?: string;
+              p_user_id: string;
+            };
+            Returns: {
+              created_at: string | null;
+              date_range_end: string | null;
+              date_range_start: string | null;
+              download_count: number | null;
+              download_url: string | null;
+              download_url_expires_at: string | null;
+              error_details: Json | null;
+              error_message: string | null;
+              file_size_bytes: number | null;
+              filters: Json | null;
+              format: string;
+              generated_by_user_id: string | null;
+              generated_for_user_id: string | null;
+              id: string;
+              page_count: number | null;
+              parameters: Json | null;
+              processing_completed_at: string | null;
+              processing_duration_ms: number | null;
+              processing_started_at: string | null;
+              report_definition_id: string | null;
+              report_type: string;
+              schedule_id: string | null;
+              status: string | null;
+              storage_path: string | null;
+              updated_at: string | null;
+            }[];
+            SetofOptions: {
+              from: "*";
+              to: "generated_reports";
+              isOneToOne: false;
+              isSetofReturn: true;
+            };
+          };
       has_portfolio_access: {
         Args: { p_portfolio_id: string };
         Returns: boolean;
@@ -4547,9 +3274,38 @@ export type Database = {
         Args: { p_asset_code: string };
         Returns: boolean;
       };
-      reject_withdrawal: {
-        Args: { p_admin_notes?: string; p_reason: string; p_request_id: string };
+      reject_withdrawal:
+        | {
+            Args: {
+              p_admin_notes?: string;
+              p_reason: string;
+              p_request_id: string;
+            };
+            Returns: boolean;
+          }
+        | {
+            Args: { p_reason?: string; p_request_id: string };
+            Returns: boolean;
+          };
+      remove_investor_email: {
+        Args: { email_to_remove: string; investor_uuid: string };
         Returns: boolean;
+      };
+      send_daily_rate_notifications: {
+        Args: {
+          p_btc_rate: number;
+          p_eth_rate: number;
+          p_eurc_rate: number;
+          p_notes?: string;
+          p_rate_date: string;
+          p_sol_rate: number;
+          p_usdc_rate: number;
+          p_usdt_rate: number;
+        };
+        Returns: {
+          notification_ids: string[];
+          notifications_sent: number;
+        }[];
       };
       set_fund_daily_aum: {
         Args: { p_aum_amount: number; p_aum_date?: string; p_fund_id: string };
@@ -4572,6 +3328,10 @@ export type Database = {
           result: boolean;
           test_name: string;
         }[];
+      };
+      update_fund_aum_baseline: {
+        Args: { p_admin_id: string; p_fund_id: string; p_new_aum: number };
+        Returns: Json;
       };
       update_investor_aum_percentages: {
         Args: { p_fund_id: string; p_total_aum?: number };
@@ -4610,7 +3370,13 @@ export type Database = {
       fee_kind: "mgmt" | "perf";
       fund_status: "active" | "inactive" | "suspended";
       notification_priority: "low" | "medium" | "high";
-      notification_type: "deposit" | "statement" | "performance" | "system" | "support";
+      notification_type:
+        | "deposit"
+        | "statement"
+        | "performance"
+        | "system"
+        | "support"
+        | "daily_rate";
       report_format: "pdf" | "excel" | "csv" | "json";
       report_schedule_frequency: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
       report_status: "queued" | "processing" | "completed" | "failed" | "cancelled";
@@ -4650,6 +3416,511 @@ export type Database = {
         | "completed"
         | "rejected"
         | "cancelled";
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
+  storage: {
+    Tables: {
+      buckets: {
+        Row: {
+          allowed_mime_types: string[] | null;
+          avif_autodetection: boolean | null;
+          created_at: string | null;
+          file_size_limit: number | null;
+          id: string;
+          name: string;
+          owner: string | null;
+          owner_id: string | null;
+          public: boolean | null;
+          type: Database["storage"]["Enums"]["buckettype"];
+          updated_at: string | null;
+        };
+        Insert: {
+          allowed_mime_types?: string[] | null;
+          avif_autodetection?: boolean | null;
+          created_at?: string | null;
+          file_size_limit?: number | null;
+          id: string;
+          name: string;
+          owner?: string | null;
+          owner_id?: string | null;
+          public?: boolean | null;
+          type?: Database["storage"]["Enums"]["buckettype"];
+          updated_at?: string | null;
+        };
+        Update: {
+          allowed_mime_types?: string[] | null;
+          avif_autodetection?: boolean | null;
+          created_at?: string | null;
+          file_size_limit?: number | null;
+          id?: string;
+          name?: string;
+          owner?: string | null;
+          owner_id?: string | null;
+          public?: boolean | null;
+          type?: Database["storage"]["Enums"]["buckettype"];
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
+      buckets_analytics: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          format: string;
+          id: string;
+          name: string;
+          type: Database["storage"]["Enums"]["buckettype"];
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          format?: string;
+          id?: string;
+          name: string;
+          type?: Database["storage"]["Enums"]["buckettype"];
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          format?: string;
+          id?: string;
+          name?: string;
+          type?: Database["storage"]["Enums"]["buckettype"];
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      buckets_vectors: {
+        Row: {
+          created_at: string;
+          id: string;
+          type: Database["storage"]["Enums"]["buckettype"];
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          id: string;
+          type?: Database["storage"]["Enums"]["buckettype"];
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          type?: Database["storage"]["Enums"]["buckettype"];
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      migrations: {
+        Row: {
+          executed_at: string | null;
+          hash: string;
+          id: number;
+          name: string;
+        };
+        Insert: {
+          executed_at?: string | null;
+          hash: string;
+          id: number;
+          name: string;
+        };
+        Update: {
+          executed_at?: string | null;
+          hash?: string;
+          id?: number;
+          name?: string;
+        };
+        Relationships: [];
+      };
+      objects: {
+        Row: {
+          bucket_id: string | null;
+          created_at: string | null;
+          id: string;
+          last_accessed_at: string | null;
+          level: number | null;
+          metadata: Json | null;
+          name: string | null;
+          owner: string | null;
+          owner_id: string | null;
+          path_tokens: string[] | null;
+          updated_at: string | null;
+          user_metadata: Json | null;
+          version: string | null;
+        };
+        Insert: {
+          bucket_id?: string | null;
+          created_at?: string | null;
+          id?: string;
+          last_accessed_at?: string | null;
+          level?: number | null;
+          metadata?: Json | null;
+          name?: string | null;
+          owner?: string | null;
+          owner_id?: string | null;
+          path_tokens?: string[] | null;
+          updated_at?: string | null;
+          user_metadata?: Json | null;
+          version?: string | null;
+        };
+        Update: {
+          bucket_id?: string | null;
+          created_at?: string | null;
+          id?: string;
+          last_accessed_at?: string | null;
+          level?: number | null;
+          metadata?: Json | null;
+          name?: string | null;
+          owner?: string | null;
+          owner_id?: string | null;
+          path_tokens?: string[] | null;
+          updated_at?: string | null;
+          user_metadata?: Json | null;
+          version?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "objects_bucketId_fkey";
+            columns: ["bucket_id"];
+            isOneToOne: false;
+            referencedRelation: "buckets";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      prefixes: {
+        Row: {
+          bucket_id: string;
+          created_at: string | null;
+          level: number;
+          name: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          bucket_id: string;
+          created_at?: string | null;
+          level?: number;
+          name: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          bucket_id?: string;
+          created_at?: string | null;
+          level?: number;
+          name?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "prefixes_bucketId_fkey";
+            columns: ["bucket_id"];
+            isOneToOne: false;
+            referencedRelation: "buckets";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      s3_multipart_uploads: {
+        Row: {
+          bucket_id: string;
+          created_at: string;
+          id: string;
+          in_progress_size: number;
+          key: string;
+          owner_id: string | null;
+          upload_signature: string;
+          user_metadata: Json | null;
+          version: string;
+        };
+        Insert: {
+          bucket_id: string;
+          created_at?: string;
+          id: string;
+          in_progress_size?: number;
+          key: string;
+          owner_id?: string | null;
+          upload_signature: string;
+          user_metadata?: Json | null;
+          version: string;
+        };
+        Update: {
+          bucket_id?: string;
+          created_at?: string;
+          id?: string;
+          in_progress_size?: number;
+          key?: string;
+          owner_id?: string | null;
+          upload_signature?: string;
+          user_metadata?: Json | null;
+          version?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "s3_multipart_uploads_bucket_id_fkey";
+            columns: ["bucket_id"];
+            isOneToOne: false;
+            referencedRelation: "buckets";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      s3_multipart_uploads_parts: {
+        Row: {
+          bucket_id: string;
+          created_at: string;
+          etag: string;
+          id: string;
+          key: string;
+          owner_id: string | null;
+          part_number: number;
+          size: number;
+          upload_id: string;
+          version: string;
+        };
+        Insert: {
+          bucket_id: string;
+          created_at?: string;
+          etag: string;
+          id?: string;
+          key: string;
+          owner_id?: string | null;
+          part_number: number;
+          size?: number;
+          upload_id: string;
+          version: string;
+        };
+        Update: {
+          bucket_id?: string;
+          created_at?: string;
+          etag?: string;
+          id?: string;
+          key?: string;
+          owner_id?: string | null;
+          part_number?: number;
+          size?: number;
+          upload_id?: string;
+          version?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "s3_multipart_uploads_parts_bucket_id_fkey";
+            columns: ["bucket_id"];
+            isOneToOne: false;
+            referencedRelation: "buckets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "s3_multipart_uploads_parts_upload_id_fkey";
+            columns: ["upload_id"];
+            isOneToOne: false;
+            referencedRelation: "s3_multipart_uploads";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      vector_indexes: {
+        Row: {
+          bucket_id: string;
+          created_at: string;
+          data_type: string;
+          dimension: number;
+          distance_metric: string;
+          id: string;
+          metadata_configuration: Json | null;
+          name: string;
+          updated_at: string;
+        };
+        Insert: {
+          bucket_id: string;
+          created_at?: string;
+          data_type: string;
+          dimension: number;
+          distance_metric: string;
+          id?: string;
+          metadata_configuration?: Json | null;
+          name: string;
+          updated_at?: string;
+        };
+        Update: {
+          bucket_id?: string;
+          created_at?: string;
+          data_type?: string;
+          dimension?: number;
+          distance_metric?: string;
+          id?: string;
+          metadata_configuration?: Json | null;
+          name?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vector_indexes_bucket_id_fkey";
+            columns: ["bucket_id"];
+            isOneToOne: false;
+            referencedRelation: "buckets_vectors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      add_prefixes: {
+        Args: { _bucket_id: string; _name: string };
+        Returns: undefined;
+      };
+      can_insert_object: {
+        Args: { bucketid: string; metadata: Json; name: string; owner: string };
+        Returns: undefined;
+      };
+      delete_leaf_prefixes: {
+        Args: { bucket_ids: string[]; names: string[] };
+        Returns: undefined;
+      };
+      delete_prefix: {
+        Args: { _bucket_id: string; _name: string };
+        Returns: boolean;
+      };
+      extension: { Args: { name: string }; Returns: string };
+      filename: { Args: { name: string }; Returns: string };
+      foldername: { Args: { name: string }; Returns: string[] };
+      get_level: { Args: { name: string }; Returns: number };
+      get_prefix: { Args: { name: string }; Returns: string };
+      get_prefixes: { Args: { name: string }; Returns: string[] };
+      get_size_by_bucket: {
+        Args: never;
+        Returns: {
+          bucket_id: string;
+          size: number;
+        }[];
+      };
+      list_multipart_uploads_with_delimiter: {
+        Args: {
+          bucket_id: string;
+          delimiter_param: string;
+          max_keys?: number;
+          next_key_token?: string;
+          next_upload_token?: string;
+          prefix_param: string;
+        };
+        Returns: {
+          created_at: string;
+          id: string;
+          key: string;
+        }[];
+      };
+      list_objects_with_delimiter: {
+        Args: {
+          bucket_id: string;
+          delimiter_param: string;
+          max_keys?: number;
+          next_token?: string;
+          prefix_param: string;
+          start_after?: string;
+        };
+        Returns: {
+          id: string;
+          metadata: Json;
+          name: string;
+          updated_at: string;
+        }[];
+      };
+      lock_top_prefixes: {
+        Args: { bucket_ids: string[]; names: string[] };
+        Returns: undefined;
+      };
+      operation: { Args: never; Returns: string };
+      search: {
+        Args: {
+          bucketname: string;
+          levels?: number;
+          limits?: number;
+          offsets?: number;
+          prefix: string;
+          search?: string;
+          sortcolumn?: string;
+          sortorder?: string;
+        };
+        Returns: {
+          created_at: string;
+          id: string;
+          last_accessed_at: string;
+          metadata: Json;
+          name: string;
+          updated_at: string;
+        }[];
+      };
+      search_legacy_v1: {
+        Args: {
+          bucketname: string;
+          levels?: number;
+          limits?: number;
+          offsets?: number;
+          prefix: string;
+          search?: string;
+          sortcolumn?: string;
+          sortorder?: string;
+        };
+        Returns: {
+          created_at: string;
+          id: string;
+          last_accessed_at: string;
+          metadata: Json;
+          name: string;
+          updated_at: string;
+        }[];
+      };
+      search_v1_optimised: {
+        Args: {
+          bucketname: string;
+          levels?: number;
+          limits?: number;
+          offsets?: number;
+          prefix: string;
+          search?: string;
+          sortcolumn?: string;
+          sortorder?: string;
+        };
+        Returns: {
+          created_at: string;
+          id: string;
+          last_accessed_at: string;
+          metadata: Json;
+          name: string;
+          updated_at: string;
+        }[];
+      };
+      search_v2: {
+        Args: {
+          bucket_name: string;
+          levels?: number;
+          limits?: number;
+          prefix: string;
+          sort_column?: string;
+          sort_column_after?: string;
+          sort_order?: string;
+          start_after?: string;
+        };
+        Returns: {
+          created_at: string;
+          id: string;
+          key: string;
+          last_accessed_at: string;
+          metadata: Json;
+          name: string;
+          updated_at: string;
+        }[];
+      };
+    };
+    Enums: {
+      buckettype: "STANDARD" | "ANALYTICS" | "VECTOR";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -4773,6 +4044,9 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       access_event: [
@@ -4789,7 +4063,7 @@ export const Constants = {
       fee_kind: ["mgmt", "perf"],
       fund_status: ["active", "inactive", "suspended"],
       notification_priority: ["low", "medium", "high"],
-      notification_type: ["deposit", "statement", "performance", "system", "support"],
+      notification_type: ["deposit", "statement", "performance", "system", "support", "daily_rate"],
       report_format: ["pdf", "excel", "csv", "json"],
       report_schedule_frequency: ["daily", "weekly", "monthly", "quarterly", "yearly"],
       report_status: ["queued", "processing", "completed", "failed", "cancelled"],
@@ -4832,6 +4106,11 @@ export const Constants = {
         "rejected",
         "cancelled",
       ],
+    },
+  },
+  storage: {
+    Enums: {
+      buckettype: ["STANDARD", "ANALYTICS", "VECTOR"],
     },
   },
 } as const;

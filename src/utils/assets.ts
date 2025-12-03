@@ -40,26 +40,18 @@ export const ASSETS: Record<string, AssetConfig> = {
     color: "#26A17B",
     decimals: 6,
   },
-  USDC: {
-    symbol: "USDC",
-    name: "Tokenized Gold",
-    logoUrl: "",
-    color: "#2775CA",
-    decimals: 6,
-  },
-  EURC: {
-    symbol: "EURC",
-    name: "Euro Coin",
-    logoUrl: "https://assets.coingecko.com/coins/images/26026/large/eurc.png",
-    color: "#3C3C3D",
-    decimals: 6,
-  },
   XRP: {
     symbol: "XRP",
     name: "XRP",
-    logoUrl:
-      "https://storage.mlcdn.com/account_image/855106/mlmOJ9qsJ3LDZaVyWnIqhffzzem0vIts6bourbHO.png",
+    logoUrl: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
     color: "#00AAE4",
+    decimals: 6,
+  },
+  XAUT: {
+    symbol: "XAUT",
+    name: "Tether Gold",
+    logoUrl: "https://assets.coingecko.com/coins/images/10481/large/Tether_Gold.png",
+    color: "#FFD700",
     decimals: 6,
   },
 };

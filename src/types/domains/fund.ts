@@ -22,7 +22,6 @@ export interface Fund {
   min_investment: number | null;
   lock_period_days: number | null;
   high_water_mark: number | null;
-  strategy: string | null;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -83,7 +82,6 @@ export function mapDbFundToFund(dbFund: DbFund): Fund {
     min_investment: dbFund.min_investment,
     lock_period_days: dbFund.lock_period_days,
     high_water_mark: dbFund.high_water_mark,
-    strategy: dbFund.strategy,
     created_at: dbFund.created_at,
     updated_at: dbFund.updated_at,
   };

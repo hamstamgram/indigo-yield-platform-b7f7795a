@@ -40,13 +40,9 @@ export default function MyPerformanceHistory() {
   const { toast } = useToast();
 
   // Available assets - could be fetched dynamically, but hardcoded for now to match Admin
-  const assets = ["USDT", "USDC", "BTC", "ETH", "SOL", "EURC"];
+  const assets = ["USDT", "USDC", "BTC", "ETH", "SOL", "XRP", "EURC"];
 
-  useEffect(() => {
-    fetchPerformanceData();
-  }, [selectedAsset]);
-
-  const fetchPerformanceData = async () => {
+  const fetchPerformanceData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -85,7 +81,11 @@ export default function MyPerformanceHistory() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedAsset, toast]);
+
+  useEffect(() => {
+    fetchPerformanceData();
+  }, [fetchPerformanceData]);
 
   if (loading) {
     return (

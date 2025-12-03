@@ -10,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -52,7 +51,6 @@ const FundConfiguration = () => {
     code: "",
     asset: "BTC",
     fund_class: "default",
-    strategy: "",
     status: "active",
     mgmt_fee_bps: 200,
     perf_fee_bps: 2000,
@@ -158,7 +156,6 @@ const FundConfiguration = () => {
       code: "",
       asset: "BTC",
       fund_class: "default",
-      strategy: "",
       status: "active",
       mgmt_fee_bps: 200,
       perf_fee_bps: 2000,
@@ -306,8 +303,9 @@ const FundConfiguration = () => {
                       <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
                       <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
                       <SelectItem value="SOL">Solana (SOL)</SelectItem>
-                      <SelectItem value="USDC">Tokenized Gold (USDC)</SelectItem>
-                      <SelectItem value="USDT">Stablecoin Fund (USDT)</SelectItem>
+                      <SelectItem value="USDT">Stablecoin (USDT)</SelectItem>
+                      <SelectItem value="XRP">XRP (XRP)</SelectItem>
+                      <SelectItem value="XAUT">Tether Gold (XAUT)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -328,17 +326,6 @@ const FundConfiguration = () => {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="strategy">Investment Strategy</Label>
-                <Textarea
-                  id="strategy"
-                  value={fundData.strategy || ""}
-                  onChange={(e) => updateField("strategy", e.target.value)}
-                  placeholder="Describe the fund's investment strategy and approach"
-                  rows={3}
-                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">

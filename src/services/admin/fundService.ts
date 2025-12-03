@@ -10,10 +10,9 @@ export interface Fund {
   code: string;
   name: string;
   asset: string;
-  asset_symbol?: string; // New field
-  total_aum?: number; // New field
+  asset_symbol?: string;
+  total_aum?: number;
   fund_class?: string;
-  strategy?: string;
   inception_date: string;
   status: "active" | "inactive" | "suspended";
   mgmt_fee_bps: number;
