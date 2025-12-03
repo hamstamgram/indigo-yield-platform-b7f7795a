@@ -158,15 +158,34 @@ export async function computeStatement(
       asset.end_balance =
         asset.begin_balance + asset.deposits - asset.withdrawals + asset.interest - asset.fees;
 
-      // Add to total summary (Assuming 1:1 USD value for simplicity or need prices)
-      // TODO: Multiply by asset price for accurate USD summary
-      summary.begin_balance += asset.begin_balance;
-      summary.additions += asset.deposits;
-      summary.redemptions += asset.withdrawals;
-      summary.net_income += asset.interest;
-      summary.fees += asset.fees;
-      summary.end_balance += asset.end_balance;
+      // NOTE: We do NOT sum up different assets into the global summary to avoid
+      // misleading "Total AUM" (e.g. 1 BTC + 1000 USD != 1001).
+      // The summary fields below will only be valid if the portfolio has a single asset type,
+      // or they should be treated as "count of operations" rather than value.
+      // For mixed portfolios, rely on the `assets` array for value breakdowns.
+
+      // Only sum up if it's USDT/USDC (Stablecoins) to give at least a partial useful total?
+      // Or better: Just don't sum mixed units.
+      // User instruction: "TOTAL AUM OF THE FUND cannot be caculated... only seperate funds"
+
+      // We will leave summary zeroed out for values to prevent confusion.
+      // Or we could sum counts? No, interface expects numbers used for display.
+
+      // Let's only populate summary if there is exactly one asset in the map?
+      // Or just leave it 0.
     });
+
+    // If there is only one asset, we can safely populate the summary
+    const assetKeys = Object.keys(assetsMap);
+    if (assetKeys.length === 1) {
+      const asset = assetsMap[assetKeys[0]];
+      summary.begin_balance = asset.begin_balance;
+      summary.additions = asset.deposits;
+      summary.redemptions = asset.withdrawals;
+      summary.net_income = asset.interest;
+      summary.fees = asset.fees;
+      summary.end_balance = asset.end_balance;
+    }
 
     // Simple ROI calc (Net Income / (Begin Balance + (Additions - Redemptions)/2))
     // This is a Modified Dietz approximation
