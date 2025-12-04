@@ -24,7 +24,7 @@ export interface StatementData {
 }
 
 export interface AssetStatement {
-  asset_id: number;
+  asset_id: number | string;
   asset_code: string;
   asset_name: string;
   begin_balance: number;
@@ -83,6 +83,11 @@ export async function computeStatement(
       throw txError;
     }
 
+    // Fetch funds information for asset mapping
+    const { data: funds } = await supabase.from("funds").select("id, name, asset_symbol, code");
+
+    const fundMap = new Map(funds?.map((f) => [f.asset_symbol, f]));
+
     const assetsMap: Record<string, AssetStatement> = {};
     const summary = {
       begin_balance: 0,
@@ -98,13 +103,15 @@ export async function computeStatement(
     };
 
     // Process transactions
-    transactions?.forEach((tx) => {
+    transactions?.forEach((transaction) => {
+      const tx = transaction as any;
       const assetCode = tx.asset;
       if (!assetsMap[assetCode]) {
+        const fund = fundMap.get(assetCode);
         assetsMap[assetCode] = {
-          asset_id: 0, // Placeholder, usually ID from assets table
+          asset_id: fund ? fund.id : 0, // Use ID from funds table if available
           asset_code: assetCode,
-          asset_name: assetCode, // Placeholder
+          asset_name: fund ? fund.name : assetCode, // Use real name
           begin_balance: 0,
           deposits: 0,
           withdrawals: 0,

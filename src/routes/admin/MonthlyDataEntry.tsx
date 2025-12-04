@@ -340,7 +340,7 @@ export default function FundManager() {
                 className="w-full h-12 text-lg font-bold"
                 disabled={!newAumInput || distributeMutation.isPending}
                 onClick={() => distributeMutation.mutate()}
-                variant={isBaselineMode ? "secondary" : "default"}
+                variant={isBaselineMode ? "secondary" : "primary"}
               >
                 {distributeMutation.isPending
                   ? "Processing..."

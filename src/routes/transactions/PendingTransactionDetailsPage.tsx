@@ -17,7 +17,8 @@ export default function PendingTransactionDetailsPage() {
       if (type === "deposit") {
         const { data, error } = await supabase.from("deposits").select("*").eq("id", id).single();
         if (error) throw error;
-        return { ...data, asset: data.asset_symbol, type: "DEPOSIT", created_at: data.created_at };
+        const d = data as any;
+        return { ...d, asset: d.asset_symbol, type: "DEPOSIT", created_at: d.created_at };
       } else if (type === "withdrawal") {
         const { data, error } = await supabase
           .from("withdrawal_requests")
@@ -30,12 +31,13 @@ export default function PendingTransactionDetailsPage() {
           .eq("id", id)
           .single();
         if (error) throw error;
+        const d = data as any;
         return {
-          ...data,
-          asset: data.funds?.asset || "Unknown",
-          amount: data.requested_amount,
+          ...d,
+          asset: d.funds?.asset || "Unknown",
+          amount: d.requested_amount,
           type: "WITHDRAWAL",
-          created_at: data.created_at,
+          created_at: d.created_at,
         };
       }
       throw new Error("Invalid transaction type");

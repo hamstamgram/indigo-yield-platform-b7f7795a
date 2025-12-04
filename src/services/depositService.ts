@@ -31,7 +31,11 @@ export class DepositService {
 
     // Fetch investors for all transactions
     const investorIds = Array.from(
-      new Set(transactions?.map((d) => d.investor_id).filter((id): id is string => id !== null))
+      new Set(
+        (transactions || [])
+          .map((d: any) => d.investor_id)
+          .filter((id): id is string => id !== null)
+      )
     );
 
     if (investorIds.length === 0) {

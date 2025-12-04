@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 
-type TransactionRow = Database["public"]["Tables"]["transactions_v2"]["Row"];
+type TransactionRow = any;
 
 export interface TransactionFilter {
   userId?: string;
@@ -82,25 +82,96 @@ export async function fetchTransactions(filter: TransactionFilter = {}): Promise
   }
 }
 
-// Simplified implementations for Phase 1 - will be enhanced in Phase 2
-export async function fetchTransactionById(_id: string): Promise<any> {
-  return null;
+// Implementations for Phase 2
+export async function fetchTransactionById(id: string): Promise<any> {
+  const { data, error } = await supabase.from("transactions_v2").select("*").eq("id", id).single();
+
+  if (error) throw error;
+  return data;
 }
-export async function createTransactionRecord(_transaction: any): Promise<any> {
-  return null;
+
+export async function createTransactionRecord(transaction: any): Promise<any> {
+  const { data, error } = await supabase
+    .from("transactions_v2")
+    .insert(transaction)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
 }
-export async function updateTransactionRecord(_id: string, _updates: any): Promise<any> {
-  return null;
+
+export async function updateTransactionRecord(id: string, updates: any): Promise<any> {
+  const { data, error } = await supabase
+    .from("transactions_v2")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
 }
-export async function deleteTransactionRecord(_id: string): Promise<void> {}
-export async function fetchTransactionSummary(_userId: string): Promise<TransactionSummary> {
-  return {
-    totalCount: 0,
-    totalDeposits: 0,
-    totalWithdrawals: 0,
-    totalFees: 0,
-    recentTransactions: [],
-  };
+
+export async function deleteTransactionRecord(id: string): Promise<void> {
+  const { error } = await supabase.from("transactions_v2").delete().eq("id", id);
+
+  if (error) throw error;
+}
+
+export async function fetchTransactionSummary(userId: string): Promise<TransactionSummary> {
+  try {
+    // Get investor ID
+    const { data: investor } = await supabase
+      .from("investors")
+      .select("id")
+      .eq("profile_id", userId)
+      .maybeSingle();
+
+    if (!investor) {
+      return {
+        totalCount: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+        totalFees: 0,
+        recentTransactions: [],
+      };
+    }
+
+    const { data: transactions, error } = await supabase
+      .from("transactions_v2")
+      .select("*")
+      .eq("investor_id", investor.id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const summary = {
+      totalCount: transactions.length,
+      totalDeposits: 0,
+      totalWithdrawals: 0,
+      totalFees: 0,
+      recentTransactions: transactions.slice(0, 5) as TransactionRow[],
+    };
+
+    transactions.forEach((t: any) => {
+      const amt = Number(t.amount || 0);
+      if (t.type === "DEPOSIT") summary.totalDeposits += amt;
+      else if (t.type === "WITHDRAWAL") summary.totalWithdrawals += amt;
+      else if (t.type === "FEE") summary.totalFees += amt;
+    });
+
+    return summary;
+  } catch (error) {
+    console.error("Error fetching transaction summary:", error);
+    return {
+      totalCount: 0,
+      totalDeposits: 0,
+      totalWithdrawals: 0,
+      totalFees: 0,
+      recentTransactions: [],
+    };
+  }
 }
 
 /**

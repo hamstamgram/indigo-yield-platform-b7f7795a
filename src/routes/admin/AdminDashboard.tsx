@@ -25,6 +25,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { supabase } from "@/integrations/supabase/client";
+import FundAUMManager from "@/components/admin/funds/FundAUMManager";
+import { FundPerformanceHistory } from "@/components/admin/funds/FundPerformanceHistory";
 
 interface AdminStats {
   totalInvestors: number;

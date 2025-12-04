@@ -121,13 +121,14 @@ export const withdrawalService = {
 
     // Record transaction_v2 (provisional) for audit trail
     if (request?.investor_id && request?.fund_id) {
+      const req = request as any;
       await supabase.from("transactions_v2").insert({
         id: uuidv4(),
-        investor_id: request.investor_id,
-        fund_id: request.fund_id,
+        investor_id: req.investor_id,
+        fund_id: req.fund_id,
         type: "WITHDRAWAL",
-        asset: request.funds?.asset_symbol || request.fund_class || request.currency,
-        fund_class: request.fund_class || request.funds?.fund_class,
+        asset: req.funds?.asset_symbol || req.fund_class || req.currency,
+        fund_class: req.fund_class || req.funds?.fund_class,
         amount: processedAmount,
         occurred_at: new Date().toISOString(),
         reference_id: withdrawalId,

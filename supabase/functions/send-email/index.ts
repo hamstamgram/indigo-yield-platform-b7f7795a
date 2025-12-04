@@ -29,7 +29,7 @@ serve(async (req) => {
     const { to, subject, html, from, reply_to }: EmailRequest = await req.json();
 
     // Default sender if not provided
-    // TODO: Configure this domain in Resend dashboard
+    // NOTE: Domain must be verified in Resend dashboard and RESEND_API_KEY set
     const sender = from || "Indigo Yield Platform <noreply@indigoyield.com>";
 
     const res = await fetch("https://api.resend.com/emails", {

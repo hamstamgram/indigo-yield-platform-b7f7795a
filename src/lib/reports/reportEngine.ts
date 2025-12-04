@@ -10,23 +10,24 @@ export class ReportEngine {
   static async generateReport(request: GenerateReportRequest): Promise<GenerateReportResponse> {
     try {
       // 1. Fetch Data
+      const req = request as any;
       const reportData = await this.fetchReportData(
-        request.userId || (await supabase.auth.getUser()).data.user?.id || "",
-        request.reportType,
-        request.filters || {},
-        request.parameters || {}
+        req.userId || (await supabase.auth.getUser()).data.user?.id || "",
+        req.reportType,
+        req.filters || {},
+        req.parameters || {}
       );
 
       // 2. Generate File
       let result;
-      if (request.format === "pdf") {
+      if (req.format === "pdf") {
         result = await generatePDFReport(reportData, {
-          includeCharts: request.parameters?.includeCharts,
-          confidential: request.parameters?.confidential,
+          includeCharts: req.parameters?.includeCharts,
+          confidential: req.parameters?.confidential,
         });
-      } else if (request.format === "excel") {
+      } else if (req.format === "excel") {
         result = await generateExcelReport(reportData, {
-          includeCharts: request.parameters?.includeCharts,
+          includeCharts: req.parameters?.includeCharts,
         });
       } else {
         return { success: false, error: "Unsupported format" };
@@ -39,7 +40,7 @@ export class ReportEngine {
       // 3. Return result (caller handles storage/upload)
       return {
         success: true,
-        reportId: request.reportId, // Pass back if needed
+        reportId: req.reportId, // Pass back if needed
         // In a real engine, we might upload here or return the buffer
         // For now, assuming the API layer handles the buffer from result.data
       };

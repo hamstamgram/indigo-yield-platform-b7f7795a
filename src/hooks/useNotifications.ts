@@ -72,7 +72,7 @@ export function useNotifications(userId?: string) {
           email_frequency: "realtime",
         };
 
-        const { data: newData, error: createError } = await supabase
+        const { data: newData, error: createError } = await (supabase as any)
           .from("notification_settings")
           .insert(defaultSettings)
           .select()
@@ -158,7 +158,7 @@ export function useNotifications(userId?: string) {
       if (!userId) return;
 
       try {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("notification_settings")
           .update(updates)
           .eq("user_id", userId);
@@ -260,7 +260,7 @@ export function usePriceAlerts(userId?: string) {
     if (!userId) return;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("price_alerts")
         .select("*")
         .eq("user_id", userId)
@@ -284,7 +284,7 @@ export function usePriceAlerts(userId?: string) {
       if (!userId) return;
 
       try {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from("price_alerts")
           .insert({ ...alert, user_id: userId })
           .select()
@@ -313,7 +313,10 @@ export function usePriceAlerts(userId?: string) {
   const updateAlert = useCallback(
     async (alertId: string, updates: Partial<PriceAlert>) => {
       try {
-        const { error } = await supabase.from("price_alerts").update(updates).eq("id", alertId);
+        const { error } = await (supabase as any)
+          .from("price_alerts")
+          .update(updates)
+          .eq("id", alertId);
 
         if (error) throw error;
 
@@ -341,7 +344,7 @@ export function usePriceAlerts(userId?: string) {
   const deleteAlert = useCallback(
     async (alertId: string) => {
       try {
-        const { error } = await supabase.from("price_alerts").delete().eq("id", alertId);
+        const { error } = await (supabase as any).from("price_alerts").delete().eq("id", alertId);
 
         if (error) throw error;
 

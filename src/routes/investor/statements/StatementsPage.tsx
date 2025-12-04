@@ -198,7 +198,7 @@ const StatementsPage = () => {
       }
 
       // Create download link
-      const blob = new Blob([result.data], { type: "application/pdf" });
+      const blob = new Blob([result.data as any], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

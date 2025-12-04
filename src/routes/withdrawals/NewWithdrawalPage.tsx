@@ -73,7 +73,7 @@ export default function NewWithdrawalPage() {
             <p className="text-muted-foreground">
               You don't have any active positions to withdraw from.
             </p>
-            <Button variant="default" asChild className="mt-4">
+            <Button variant="primary" asChild className="mt-4">
               <Link to="/dashboard">Go to Dashboard</Link>
             </Button>
           </CardContent>

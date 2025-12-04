@@ -82,7 +82,7 @@ export default function PreferencesTab() {
           emailNotifications: data.email_enabled ?? true,
           emailTransactions: data.transaction_notifications ?? true,
           emailStatements: data.document_notifications ?? true,
-          emailMarketing: false, // Not in DB schema yet
+          emailMarketing: false, // Feature pending database schema update
           pushNotifications: data.push_enabled ?? true,
           pushTransactions: data.transaction_notifications ?? true, // Reuse column or need new one? Using transaction_notifications for both email/push logic for now or separating if DB allows. DB seems to have generic flags.
           // Actually DB has: transaction_notifications, yield_notifications, security_notifications, etc.

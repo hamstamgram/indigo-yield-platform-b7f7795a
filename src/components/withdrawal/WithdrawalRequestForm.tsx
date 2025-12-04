@@ -119,8 +119,8 @@ export function WithdrawalRequestForm({
       // Here we try to verify if a code is provided.
       if (data.totpCode) {
         const { data: factors } = await supabase.auth.mfa.listFactors();
-        const totpFactor = factors?.find(
-          (f) => f.factor_type === "totp" && f.status === "verified"
+        const totpFactor = (factors as any)?.find(
+          (f: any) => f.factor_type === "totp" && f.status === "verified"
         );
 
         if (totpFactor) {

@@ -8,7 +8,7 @@ export * from "./investor";
 export * from "./transaction";
 export * from "./portfolio";
 export * from "./fund";
-// export * from "./report"; // TODO: Create report.ts file
+export * from "./report";
 export * from "./document";
 
 // Common utility types

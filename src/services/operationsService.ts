@@ -23,14 +23,7 @@ export const operationsService = {
   async getMetrics(): Promise<OperationsMetrics> {
     try {
       // Fetch all metrics in parallel
-      const [
-        withdrawalsResult,
-        depositsResult,
-        investmentsResult,
-        transactionsResult,
-        investorsResult,
-        aumResult,
-      ] = await Promise.all([
+      const results = await Promise.all([
         // Pending withdrawals
         supabase
           .from("withdrawal_requests")
@@ -66,9 +59,19 @@ export const operationsService = {
         supabase.from("investor_positions").select("current_value").gt("current_value", 0),
       ]);
 
+      const withdrawalsResult = results[0] as any;
+      const depositsResult = results[1] as any;
+      const investmentsResult = results[2] as any;
+      const transactionsResult = results[3] as any;
+      const investorsResult = results[4] as any;
+      const aumResult = results[5] as any;
+
       // Calculate total AUM
       const totalAUM =
-        aumResult.data?.reduce((sum, position) => sum + (position.current_value || 0), 0) || 0;
+        aumResult.data?.reduce(
+          (sum: number, position: any) => sum + (position.current_value || 0),
+          0
+        ) || 0;
 
       const pendingWithdrawals = withdrawalsResult.count || 0;
       const pendingDeposits = depositsResult.count || 0;
