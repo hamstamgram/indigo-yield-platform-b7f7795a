@@ -316,7 +316,7 @@ async function runComplianceChecks(
     .eq("transaction_type", "withdrawal")
     .gte("created_at", new Date(new Date().setHours(0, 0, 0, 0)).toISOString());
 
-  const todayTotal = todayWithdrawals?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
+  const todayTotal = todayWithdrawals?.reduce((sum: number, t: any) => sum + Number(t.amount), 0) || 0;
   const wouldExceedDaily = todayTotal + amount > dailyLimit;
 
   checks.push({
@@ -337,7 +337,7 @@ async function runComplianceChecks(
     .eq("transaction_type", "withdrawal")
     .gte("created_at", firstDayOfMonth.toISOString());
 
-  const monthTotal = monthWithdrawals?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
+  const monthTotal = monthWithdrawals?.reduce((sum: number, t: any) => sum + Number(t.amount), 0) || 0;
   const wouldExceedMonthly = monthTotal + amount > monthlyLimit;
 
   checks.push({

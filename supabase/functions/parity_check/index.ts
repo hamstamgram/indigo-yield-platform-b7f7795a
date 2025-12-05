@@ -206,7 +206,9 @@ serve(async (req) => {
       // Create a map for database transactions
       const txMap = new Map<string, number>();
       for (const tx of dbTransactions || []) {
-        const key = `${tx.investors.email}_${new Date(tx.tx_date).toISOString().slice(0, 10)}_${tx.asset}`;
+        const investorData = tx.investors as any;
+        const email = investorData?.email || '';
+        const key = `${email}_${new Date(tx.tx_date).toISOString().slice(0, 10)}_${tx.asset}`;
         txMap.set(key, Number(tx.amount));
       }
 

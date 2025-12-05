@@ -260,7 +260,8 @@ serve(async (req) => {
     );
   } catch (error) {
     const errorId = crypto.randomUUID();
-    console.error("Investor audit error:", { errorId, error: error.message });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Investor audit error:", { errorId, error: errorMessage });
 
     return new Response(
       JSON.stringify({

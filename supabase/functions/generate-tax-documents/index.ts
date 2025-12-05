@@ -281,24 +281,24 @@ async function collectTaxData(
     .lte('distribution_date', endDate.toISOString());
 
   const ordinaryDividends = distributions
-    ?.filter(d => d.distribution_type === 'ordinary_dividend')
-    .reduce((sum, d) => sum + Number(d.amount), 0) || 0;
+    ?.filter((d: any) => d.distribution_type === 'ordinary_dividend')
+    .reduce((sum: number, d: any) => sum + Number(d.amount), 0) || 0;
 
   const qualifiedDividends = distributions
-    ?.filter(d => d.distribution_type === 'qualified_dividend')
-    .reduce((sum, d) => sum + Number(d.amount), 0) || 0;
+    ?.filter((d: any) => d.distribution_type === 'qualified_dividend')
+    .reduce((sum: number, d: any) => sum + Number(d.amount), 0) || 0;
 
   const interestIncome = distributions
-    ?.filter(d => d.distribution_type === 'interest')
-    .reduce((sum, d) => sum + Number(d.amount), 0) || 0;
+    ?.filter((d: any) => d.distribution_type === 'interest')
+    .reduce((sum: number, d: any) => sum + Number(d.amount), 0) || 0;
 
   const capitalGainDistributions = distributions
-    ?.filter(d => d.distribution_type === 'capital_gain')
-    .reduce((sum, d) => sum + Number(d.amount), 0) || 0;
+    ?.filter((d: any) => d.distribution_type === 'capital_gain')
+    .reduce((sum: number, d: any) => sum + Number(d.amount), 0) || 0;
 
   const returnOfCapital = distributions
-    ?.filter(d => d.distribution_type === 'return_of_capital')
-    .reduce((sum, d) => sum + Number(d.amount), 0) || 0;
+    ?.filter((d: any) => d.distribution_type === 'return_of_capital')
+    .reduce((sum: number, d: any) => sum + Number(d.amount), 0) || 0;
 
   // Get realized capital gains/losses
   const { data: trades } = await supabase
@@ -364,7 +364,7 @@ async function collectTaxData(
       capitalGainDistributions,
     },
     distributions: {
-      totalDistributions: distributions?.reduce((sum, d) => sum + Number(d.amount), 0) || 0,
+      totalDistributions: distributions?.reduce((sum: number, d: any) => sum + Number(d.amount), 0) || 0,
       qualifiedDividends,
       ordinaryDividends,
       returnOfCapital,

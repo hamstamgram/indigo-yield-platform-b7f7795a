@@ -62,11 +62,22 @@ serve(async (req) => {
       throw new Error("Missing authorization header");
     }
 
-    // Set auth for regular client
-    supabase.auth.setAuth(authHeader.replace("Bearer ", ""));
+    // Verify user from token
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+    
+    if (userError || !user) {
+      throw new Error("Invalid authorization token");
+    }
 
-    // Verify admin status using our secure function
-    const { data: isAdmin, error: adminCheckError } = await supabase.rpc("is_admin_secure");
+    // Check admin status
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", user.id)
+      .single();
+    
+    const isAdmin = profile?.is_admin;
     if (adminCheckError || !isAdmin) {
       throw new Error("Admin access required");
     }
@@ -91,10 +102,11 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("Error in admin-user-management function:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: errorMessage,
       }),
       {
         status: 400,

@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { generateSecret, otpauthURL } from "https://deno.land/x/otpauth@v9.2.3/dist/otpauth.esm.js";
+import * as OTPAuth from "https://esm.sh/otpauth@9.2.3";
 
 // Secure CORS configuration
 const allowedOrigins = Deno.env.get("ALLOWED_ORIGINS")?.split(",") || [];
@@ -76,25 +76,28 @@ serve(async (req) => {
       ? `${profile.first_name} ${profile.last_name || ""}`.trim()
       : userEmail.split("@")[0];
 
-    // Generate new TOTP secret
-    const secret = generateSecret();
-
-    // Create otpauth URL
+    // Generate new TOTP secret using OTPAuth
+    const secret = new OTPAuth.Secret({ size: 20 });
     const issuer = "Indigo Investor Platform";
-    const otpauthUrl = otpauthURL({
+    
+    // Create TOTP instance
+    const totp = new OTPAuth.TOTP({
       issuer,
       label: `${issuer} (${displayName})`,
-      secret,
       algorithm: "SHA1",
       digits: 6,
       period: 30,
+      secret,
     });
+
+    // Get the otpauth URL
+    const otpauthUrl = totp.toString();
 
     // Encrypt and store the secret - FAIL if encryption fails (security requirement)
     const { data: encryptedSecret, error: encryptError } = await supabaseClient.rpc(
       "encrypt_totp_secret",
       {
-        secret_text: secret,
+        secret_text: secret.base32,
       }
     );
 
@@ -126,7 +129,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         otpauth_url: otpauthUrl,
-        secret_masked: secret.substring(0, 4) + "****",
+        secret_masked: secret.base32.substring(0, 4) + "****",
       }),
       { headers: { ...headers, "Content-Type": "application/json" } }
     );
