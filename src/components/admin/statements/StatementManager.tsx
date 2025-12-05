@@ -102,6 +102,16 @@ export const StatementManager: React.FC = () => {
 
         if (!txs) continue;
 
+        // Get Monthly Yield Data
+        const { data: monthlyReports } = await supabase
+          .from("investor_monthly_reports")
+          .select("asset_code, yield_earned")
+          .eq("investor_id", investor.id)
+          .eq("report_month", format(startDate, "yyyy-MM-01"));
+
+        const yieldMap = new Map();
+        monthlyReports?.forEach((r: any) => yieldMap.set(r.asset_code, Number(r.yield_earned)));
+
         // Calculate Balances (Multi-Asset)
         // Simple aggregator for the PDF "Positions" table
         const assetMap = new Map();
@@ -129,7 +139,7 @@ export const StatementManager: React.FC = () => {
             opening_balance: val.open,
             additions: val.in,
             withdrawals: val.out,
-            yield_earned: 0, // TODO: Implement yield
+            yield_earned: yieldMap.get(code) || 0,
             closing_balance: val.close,
           }))
           .filter((p) => p.closing_balance !== 0 || p.additions !== 0 || p.withdrawals !== 0);
