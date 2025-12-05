@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, ChevronDown, PieChart } from "lucide-react";
+import { Calendar as CalendarIcon, PieChart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -18,7 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 
 interface FundSnapshot {
-  fund_id: string; // Added ID for querying composition
+  fund_id: string;
   fund_name: string;
   asset_code: string;
   aum: number;
@@ -59,14 +60,6 @@ export const FinancialSnapshot: React.FC = () => {
       const formattedDate = format(targetDate, "yyyy-MM-dd");
       console.log("Fetching snapshot for:", formattedDate);
 
-      // RPC needs to return fund_id now.
-      // Note: previous SQL returned columns matching table definition.
-      // We need to ensure get_historical_nav returns fund_id.
-      // Wait, my SQL for get_historical_nav:
-      // SELECT f.name, f.asset ... It did NOT select f.id as fund_id.
-      // I MUST UPDATE THE RPC FIRST or I cannot link them.
-      // Assuming I update the RPC below this code block in the plan.
-
       const { data: snapshot, error } = await supabase.rpc("get_historical_nav", {
         target_date: formattedDate,
       });
@@ -89,14 +82,28 @@ export const FinancialSnapshot: React.FC = () => {
       if (!date) return;
       setLoadingComp(true);
       try {
-        const formattedDate = format(date, "yyyy-MM-dd");
-        const { data: comp, error } = await supabase.rpc("get_fund_composition", {
-          p_fund_id: fundId,
-          p_date: formattedDate,
-        });
+        // Direct query to investor_positions instead of RPC
+        const { data: positions, error } = await supabase
+          .from("investor_positions")
+          .select(`
+            current_value,
+            investors!inner(name, email)
+          `)
+          .eq("fund_id", fundId);
 
         if (error) throw error;
-        setCompositionData(comp || []);
+
+        // Calculate total for ownership percentage
+        const totalValue = positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0;
+
+        const comp: InvestorComposition[] = positions?.map((p: any) => ({
+          investor_name: p.investors?.name || "Unknown",
+          email: p.investors?.email || "",
+          balance: p.current_value || 0,
+          ownership_pct: totalValue > 0 ? ((p.current_value || 0) / totalValue) * 100 : 0,
+        })) || [];
+
+        setCompositionData(comp);
       } catch (error) {
         console.error("Error fetching composition", error);
       } finally {

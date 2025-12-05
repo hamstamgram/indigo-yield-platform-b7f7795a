@@ -41,11 +41,12 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
     setShowFeeHistory(true);
     setLoadingHistory(true);
     try {
+      // Use fee_calculations table instead of platform_fees_collected
       const { data, error } = await supabase
-        .from("platform_fees_collected")
+        .from("fee_calculations")
         .select("*")
         .eq("investor_id", investor.id)
-        .order("fee_date", { ascending: false })
+        .order("calculation_date", { ascending: false })
         .limit(50);
 
       if (error) throw error;
@@ -98,6 +99,11 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
       setIsUpdating(false);
     }
   };
+
+  // Build investor name from available fields
+  const investorName = investor.firstName
+    ? `${investor.firstName} ${investor.lastName || ""}`.trim()
+    : investor.email || "Investor";
 
   return (
     <div className="space-y-6">
@@ -218,7 +224,7 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Fee History</DialogTitle>
-            <DialogDescription>Historical fee collections for {investor.name}</DialogDescription>
+            <DialogDescription>Historical fee collections for {investorName}</DialogDescription>
           </DialogHeader>
           <div className="max-h-96 overflow-y-auto">
             {loadingHistory ? (
@@ -232,7 +238,7 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
                     <div>
                       <div className="font-medium">{fee.fee_type || "Platform Fee"}</div>
                       <div className="text-sm text-muted-foreground">
-                        {new Date(fee.fee_date).toLocaleDateString()}
+                        {new Date(fee.calculation_date).toLocaleDateString()}
                       </div>
                     </div>
                     <div className="text-right">
@@ -256,7 +262,7 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Adjust Fee Rate</DialogTitle>
-            <DialogDescription>Update the fee percentage for {investor.name}</DialogDescription>
+            <DialogDescription>Update the fee percentage for {investorName}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>

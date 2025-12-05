@@ -225,9 +225,9 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
               <TableBody>
                 {positions.map((pos) => (
                   <TableRow key={`${pos.investor_id}-${pos.fund_id}`}>
-                    <TableCell className="font-medium">{pos.funds?.name}</TableCell>
+                    <TableCell className="font-medium">{(pos.funds as any)?.name}</TableCell>
                     <TableCell className="font-mono">{Number(pos.shares).toFixed(4)}</TableCell>
-                    <TableCell>{(pos.funds?.asset_symbol || "").toUpperCase()}</TableCell>
+                    <TableCell>{((pos.funds as any)?.asset || "").toUpperCase()}</TableCell>
                     <TableCell className="text-green-600 font-mono">
                       +{Number(pos.realized_pnl || 0).toFixed(4)}
                     </TableCell>

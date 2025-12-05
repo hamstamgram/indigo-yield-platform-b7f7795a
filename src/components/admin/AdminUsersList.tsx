@@ -47,21 +47,15 @@ const AdminUsersList = () => {
     try {
       setLoading(true);
 
-      const { data, error } = await supabase.rpc("get_all_investors_with_details");
+      // Direct query to profiles table instead of RPC
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, email, first_name, last_name, is_admin, created_at")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      // Map the RPC result to our UserProfile type
-      const users = (data || []).map((user: any) => ({
-        id: user.id,
-        email: user.email,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        is_admin: false, // This RPC only returns non-admin users
-        created_at: user.created_at,
-      }));
-
-      setUsers(users);
+      setUsers(data || []);
     } catch (error) {
       console.error("Error fetching users:", error);
       toast({
@@ -76,14 +70,15 @@ const AdminUsersList = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [fetchUsers]);
+  }, []);
 
   const toggleAdminStatus = async (userId: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase.rpc("update_user_profile_secure", {
-        p_user_id: userId,
-        p_status: !currentStatus ? "Admin" : "Active",
-      });
+      // Direct update to profiles table instead of RPC
+      const { error } = await supabase
+        .from("profiles")
+        .update({ is_admin: !currentStatus })
+        .eq("id", userId);
 
       if (error) throw error;
 
