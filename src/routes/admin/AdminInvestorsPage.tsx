@@ -51,11 +51,13 @@ export default function AdminInvestorsPage() {
     },
   });
 
-  const filteredInvestors = investors?.filter((investor) => {
+  const filteredInvestors = investors?.filter((investor: any) => {
     const search = searchTerm.toLowerCase();
-    const name = investor.profiles?.full_name?.toLowerCase() || "";
+    const firstName = investor.profiles?.first_name?.toLowerCase() || "";
+    const lastName = investor.profiles?.last_name?.toLowerCase() || "";
     const email = investor.profiles?.email?.toLowerCase() || "";
-    return name.includes(search) || email.includes(search);
+    const fullName = `${firstName} ${lastName}`.toLowerCase();
+    return fullName.includes(search) || email.includes(search);
   });
 
   const getStatusColor = (status: string) => {
@@ -120,7 +122,7 @@ export default function AdminInvestorsPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredInvestors?.map((investor) => (
+                  filteredInvestors?.map((investor: any) => (
                     <TableRow key={investor.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -129,7 +131,7 @@ export default function AdminInvestorsPage() {
                           </div>
                           <div>
                             <div className="font-medium">
-                              {investor.profiles?.full_name || "Unknown"}
+                              {investor.profiles?.first_name || ""} {investor.profiles?.last_name || "Unknown"}
                             </div>
                             <div className="text-sm text-muted-foreground">
                               {investor.profiles?.email}

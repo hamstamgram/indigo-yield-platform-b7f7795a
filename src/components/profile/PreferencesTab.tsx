@@ -63,54 +63,18 @@ export default function PreferencesTab() {
   const loadPreferences = async () => {
     try {
       setLoading(true);
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from("notification_settings")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data) {
-        setPreferences((prev) => ({
-          ...prev,
-          emailNotifications: data.email_enabled ?? true,
-          emailTransactions: data.transaction_notifications ?? true,
-          emailStatements: data.document_notifications ?? true,
-          emailMarketing: false, // Feature pending database schema update
-          pushNotifications: data.push_enabled ?? true,
-          pushTransactions: data.transaction_notifications ?? true, // Reuse column or need new one? Using transaction_notifications for both email/push logic for now or separating if DB allows. DB seems to have generic flags.
-          // Actually DB has: transaction_notifications, yield_notifications, security_notifications, etc.
-          // Let's map best effort:
-          pushPriceAlerts: data.alert_notifications ?? false,
-        }));
-      } else {
-        // Create default settings if none exist
-        const { error: insertError } = await supabase.from("notification_settings").insert({
-          user_id: user.id,
-          email_enabled: true,
-          push_enabled: true,
-          transaction_notifications: true,
-          document_notifications: true,
-          alert_notifications: false,
-        });
-
-        if (insertError) {
-          console.error("Error creating default preferences:", insertError);
+      // Load from localStorage as notification_settings table may not exist
+      const saved = localStorage.getItem("user_preferences");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          setPreferences((prev) => ({ ...prev, ...parsed }));
+        } catch (e) {
+          console.warn("Failed to parse saved preferences");
         }
       }
     } catch (error) {
       console.error("Failed to load preferences:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load your preferences",
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }
@@ -119,28 +83,9 @@ export default function PreferencesTab() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      // Map local state to DB columns
-      const updates = {
-        email_enabled: preferences.emailNotifications,
-        push_enabled: preferences.pushNotifications,
-        transaction_notifications: preferences.emailTransactions, // Using this for transactions
-        document_notifications: preferences.emailStatements,
-        alert_notifications: preferences.pushPriceAlerts,
-        updated_at: new Date().toISOString(),
-      };
-
-      const { error } = await supabase
-        .from("notification_settings")
-        .update(updates)
-        .eq("user_id", user.id);
-
-      if (error) throw error;
-
+      // Save to localStorage
+      localStorage.setItem("user_preferences", JSON.stringify(preferences));
+      
       toast({
         title: "Success",
         description: "Your preferences have been saved",

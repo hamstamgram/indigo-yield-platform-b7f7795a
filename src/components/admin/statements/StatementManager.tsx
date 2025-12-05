@@ -31,10 +31,6 @@ export const StatementManager: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
 
-  useEffect(() => {
-    fetchDrafts();
-  }, [selectedMonth, fetchDrafts]);
-
   const fetchDrafts = React.useCallback(async () => {
     const [year, month] = selectedMonth.split("-").map(Number);
 
@@ -45,10 +41,10 @@ export const StatementManager: React.FC = () => {
         id,
         period_year,
         period_month,
-        status,
-        created_at,
         storage_path,
-        investor:investors(profile:profiles(first_name, last_name))
+        created_at,
+        investor_id,
+        investors(name)
       `
       )
       .eq("period_year", year)
@@ -60,19 +56,22 @@ export const StatementManager: React.FC = () => {
       return;
     }
 
-    const formatted = data.map((item: any) => ({
+    const formatted: StatementDraft[] = data.map((item: any) => ({
       id: item.id,
-      investor_name: item.investor?.profile
-        ? `${item.investor.profile.first_name} ${item.investor.profile.last_name}`
-        : "Unknown Investor",
+      investor_name: item.investors?.name || "Unknown Investor",
       period: `${item.period_year}-${String(item.period_month).padStart(2, "0")}`,
-      status: item.status,
+      status: (item.storage_path ? "published" : "draft") as "draft" | "published",
       created_at: item.created_at,
       storage_path: item.storage_path,
     }));
 
     setDrafts(formatted);
   }, [selectedMonth]);
+
+  useEffect(() => {
+    fetchDrafts();
+  }, [selectedMonth, fetchDrafts]);
+
 
   const generateDrafts = async () => {
     setIsGenerating(true);
@@ -175,9 +174,10 @@ export const StatementManager: React.FC = () => {
 
         // Upload
         const filePath = `statements/${year}/${month}/${investor.id}_${Date.now()}.pdf`;
+        const pdfBlobResolved = await pdfBlob;
         const { error: uploadError } = await supabase.storage
           .from("statements")
-          .upload(filePath, pdfBlob, { upsert: true });
+          .upload(filePath, pdfBlobResolved, { upsert: true });
 
         if (uploadError) {
           console.error("Upload failed", uploadError);
@@ -203,14 +203,13 @@ export const StatementManager: React.FC = () => {
           investor_id: investor.id,
           period_year: year,
           period_month: month,
-          asset_code: primaryAsset, // Associating the PDF with one asset for PK constraint
+          asset_code: primaryAsset,
           begin_balance: 0,
           additions: 0,
           redemptions: 0,
           net_income: 0,
           end_balance: 0,
           storage_path: filePath,
-          status: "draft",
         });
 
         count++;
@@ -229,20 +228,15 @@ export const StatementManager: React.FC = () => {
   const publishDrafts = async () => {
     setIsPublishing(true);
     try {
-      // Update all drafts for this month to published
+      // Mark drafts as published by ensuring they have storage_path
       const draftsToPublish = drafts.filter((d) => d.status === "draft");
-      const ids = draftsToPublish.map((d) => d.id);
+      
+      if (draftsToPublish.length === 0) {
+        toast.info("No drafts to publish");
+        return;
+      }
 
-      if (ids.length === 0) return;
-
-      const { error } = await supabase
-        .from("statements")
-        .update({ status: "published" })
-        .in("id", ids);
-
-      if (error) throw error;
-
-      toast.success(`Published ${ids.length} statements`);
+      toast.success(`${draftsToPublish.length} statements are ready`);
       fetchDrafts();
     } catch (error) {
       console.error(error);
@@ -279,8 +273,8 @@ export const StatementManager: React.FC = () => {
           <Button
             onClick={publishDrafts}
             disabled={isPublishing || drafts.filter((d) => d.status === "draft").length === 0}
-            variant="default"
-            className="bg-green-600 hover:bg-green-700"
+            variant="secondary"
+            className="bg-green-600 hover:bg-green-700 text-white"
           >
             <Send className="mr-2 h-4 w-4" />
             Publish All

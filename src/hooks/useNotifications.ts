@@ -44,7 +44,8 @@ export function useNotifications(userId?: string) {
     if (!userId) return;
 
     try {
-      const { data, error } = await supabase
+      // Use type assertion since notification_settings table may not exist in generated types
+      const { data, error } = await (supabase as any)
         .from("notification_settings")
         .select("*")
         .eq("user_id", userId)

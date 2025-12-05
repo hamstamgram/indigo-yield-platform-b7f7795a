@@ -88,17 +88,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      // Use secure functions to bypass RLS issues
-      const [basicProfile, adminStatus] = await Promise.all([
-        supabase.rpc("get_profile_basic", { user_id: userId }),
-        supabase.rpc("get_user_admin_status", { user_id: userId }),
-      ]);
+      // Direct query to profiles table
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("first_name, last_name, is_admin")
+        .eq("id", userId)
+        .maybeSingle();
 
-      // Try to get TOTP status (may fail if table doesn't exist yet)
+      // Try to get TOTP status
       let totpData: { enabled?: boolean; verified_at?: string | null } | null = null;
       try {
         const totpResponse = await supabase
-          .from("user_totp_settings" as any)
+          .from("user_totp_settings")
           .select("enabled, verified_at")
           .eq("user_id", userId)
           .maybeSingle();
@@ -110,55 +111,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.warn("TOTP settings not available:", e);
       }
 
-      if (basicProfile.data && basicProfile.data.length > 0) {
-        const p = basicProfile.data[0];
+      if (profileData) {
         setProfile({
           id: userId,
           email: user?.email || "",
-          first_name: p.first_name,
-          last_name: p.last_name,
-          is_admin: adminStatus.data === true,
+          first_name: profileData.first_name ?? undefined,
+          last_name: profileData.last_name ?? undefined,
+          is_admin: profileData.is_admin || false,
           totp_enabled: totpData?.enabled || false,
-          totp_verified:
-            (totpData?.verified_at !== null && totpData?.verified_at !== undefined) || false,
+          totp_verified: (totpData?.verified_at !== null && totpData?.verified_at !== undefined) || false,
         });
       } else {
+        // Fallback to minimal profile
         setProfile({
           id: userId,
           email: user?.email || "",
-          is_admin: adminStatus.data === true,
+          is_admin: user?.user_metadata?.is_admin || false,
           totp_enabled: totpData?.enabled || false,
-          totp_verified:
-            (totpData?.verified_at !== null && totpData?.verified_at !== undefined) || false,
+          totp_verified: (totpData?.verified_at !== null && totpData?.verified_at !== undefined) || false,
         });
-      }
-
-      // Log successful authentication (ignore errors)
-      try {
-        await supabase.rpc("log_security_event", {
-          event_type: "PROFILE_ACCESS",
-          details: {
-            user_id: userId,
-            has_2fa:
-              (totpData?.verified_at !== null && totpData?.verified_at !== undefined) || false,
-            timestamp: new Date().toISOString(),
-          },
-        });
-      } catch (e) {
-        console.warn("Failed to log security event:", e);
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
-
-      // Log failed profile fetch (ignore errors)
-      try {
-        await supabase.rpc("log_security_event", {
-          event_type: "PROFILE_ACCESS_FAILED",
-          details: { user_id: userId, error: (error as Error).message },
-        });
-      } catch (e) {
-        console.warn("Failed to log security event:", e);
-      }
 
       // Fallback to minimal profile with user metadata
       setProfile({

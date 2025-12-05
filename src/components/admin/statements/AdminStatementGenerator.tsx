@@ -78,7 +78,7 @@ const AdminStatementGenerator: React.FC = () => {
         };
 
         // Generate PDF
-        const pdfBlob = generatePDF(statementData);
+        const pdfBlob = await generatePDF(statementData);
 
         // Upload
         const fileName = `statement-${selectedYear}-${selectedMonth.padStart(2, "0")}-${investor.id}.pdf`;

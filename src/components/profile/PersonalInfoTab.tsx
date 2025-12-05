@@ -68,12 +68,12 @@ export default function PersonalInfoTab() {
           firstName: data.first_name || "",
           lastName: data.last_name || "",
           phone: data.phone || "",
-          dateOfBirth: data.date_of_birth || "",
-          address: data.address || "",
-          city: data.city || "",
-          state: data.state || "",
-          postalCode: data.postal_code || "",
-          country: data.country || "US",
+          dateOfBirth: "",
+          address: "",
+          city: "",
+          state: "",
+          postalCode: "",
+          country: "US",
         });
       }
     } catch (error) {
@@ -102,12 +102,6 @@ export default function PersonalInfoTab() {
           first_name: formData.firstName,
           last_name: formData.lastName,
           phone: formData.phone,
-          date_of_birth: formData.dateOfBirth || null,
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          postal_code: formData.postalCode,
-          country: formData.country,
           updated_at: new Date().toISOString(),
         })
         .eq("id", user.id);

@@ -198,13 +198,12 @@ export function SingleReportGenerator() {
       const endDate = new Date(year, month + 1, 0).toISOString(); // Last day of month
 
       const result = await ReportsApi.generateReportNow({
-        reportType: "monthly_statement", // Or 'performance_report'
+        reportType: "monthly_statement",
         format: "pdf",
-        userId: selectedInvestor, // We pass the investor PROFILE ID usually, but here we have Investor ID.
-        // The API expects Profile ID (User ID). Let's resolve it.
         filters: {
           dateFrom: startDate,
           dateTo: endDate,
+          investorId: selectedInvestor,
         },
         parameters: {
           includeCharts: true,
@@ -214,7 +213,7 @@ export function SingleReportGenerator() {
 
       if (result.success && result.data) {
         // Trigger Download
-        const blob = new Blob([result.data], { type: "application/pdf" });
+        const blob = new Blob([result.data as BlobPart], { type: "application/pdf" });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;

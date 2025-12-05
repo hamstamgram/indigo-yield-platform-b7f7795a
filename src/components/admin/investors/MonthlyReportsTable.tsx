@@ -83,9 +83,16 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, i
     }
 
     try {
-      const { error } = await supabase.rpc("generate_monthly_report_template", {
-        p_month: selectedMonth,
-        p_investor_id: investorId,
+      // Insert a new monthly report template directly
+      const { error } = await supabase.from("investor_monthly_reports").insert({
+        investor_id: investorId,
+        report_month: selectedMonth,
+        asset_code: "USDT", // Default asset
+        opening_balance: 0,
+        closing_balance: 0,
+        additions: 0,
+        withdrawals: 0,
+        yield_earned: 0,
       });
 
       if (error) throw error;

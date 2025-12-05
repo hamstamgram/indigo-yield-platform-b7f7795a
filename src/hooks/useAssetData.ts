@@ -50,33 +50,23 @@ export const useAssetData = () => {
           return;
         }
 
-        // Check if user is admin
-        const { data: profileData, error: profileError } = await supabase.rpc("get_profile_by_id", {
-          profile_id: user.id,
-        });
+        // Check if user is admin via direct query
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("is_admin, first_name, last_name")
+          .eq("id", user.id)
+          .maybeSingle();
 
-        if (profileError) {
-          // Fall back to direct query
-          const { data: directProfile, error: directError } = await supabase
-            .from("profiles")
-            .select("is_admin, first_name, last_name")
-            .eq("id", user.id)
-            .maybeSingle();
+        if (profileError) throw profileError;
 
-          if (directError) throw directError;
-
-          setIsAdmin(directProfile?.is_admin || false);
-          setUserName(`${directProfile?.first_name || ""} ${directProfile?.last_name || ""}`);
-        } else if (profileData && profileData.length > 0) {
-          setIsAdmin(profileData[0]?.is_admin || false);
-          setUserName(`${profileData[0]?.first_name || ""} ${profileData[0]?.last_name || ""}`);
-        }
+        setIsAdmin(profileData?.is_admin || false);
+        setUserName(`${profileData?.first_name || ""} ${profileData?.last_name || ""}`);
 
         // Fetch real investor positions (native token amounts)
         const { data: positions, error: positionsError } = await supabase
           .from("positions")
           .select("*")
-          .eq("user_id", user.id);
+          .eq("investor_id", user.id);
 
         if (positionsError) {
           console.error("Error fetching positions:", positionsError);

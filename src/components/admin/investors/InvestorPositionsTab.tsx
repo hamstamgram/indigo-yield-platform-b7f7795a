@@ -54,7 +54,7 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
           realized_pnl,
           fund_class,
           updated_at,
-          funds ( id, name, asset_symbol )
+          funds ( id, name, asset )
         `
         )
         .eq("investor_id", investorId);
@@ -131,7 +131,7 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
   const { data: funds } = useQuery({
     queryKey: ["active-funds"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("funds").select("id, name, asset_symbol");
+      const { data, error } = await supabase.from("funds").select("id, name, asset");
       if (error) throw error;
       return data;
     },
@@ -144,7 +144,7 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
       const { data } = await supabase
         .from("positions")
         .select("*")
-        .eq("user_id", investorId)
+        .eq("investor_id", investorId)
         .gt("current_balance", 0);
       return data || [];
     },
@@ -304,7 +304,7 @@ function AddPositionForm({ funds, onSubmit, isLoading }: any) {
           <SelectContent>
             {funds.map((f: any) => (
               <SelectItem key={f.id} value={f.id}>
-                {f.name} ({f.asset_symbol})
+                {f.name} ({f.asset})
               </SelectItem>
             ))}
           </SelectContent>

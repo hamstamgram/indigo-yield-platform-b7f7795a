@@ -63,27 +63,34 @@ function AdminSettingsContent() {
   const queryClient = useQueryClient();
   const [settings, setSettings] = useState<PlatformSettings>(defaultSettings);
 
-  // Fetch platform settings from database
+  // Fetch platform settings from system_config table instead
   const { isLoading } = useQuery({
     queryKey: ["platform-settings"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("platform_settings").select("*").single();
+      const { data, error } = await supabase
+        .from("system_config")
+        .select("key, value")
+        .eq("key", "platform_settings")
+        .maybeSingle();
 
       if (error && error.code !== "PGRST116") {
-        // PGRST116 = no rows returned
         console.error("Error fetching settings:", error);
       }
 
-      if (data) {
-        setSettings({ ...defaultSettings, ...data });
+      if (data?.value) {
+        setSettings({ ...defaultSettings, ...(data.value as any) });
       }
-      return data || defaultSettings;
+      return data?.value || defaultSettings;
     },
   });
 
   const saveMutation = useMutation({
     mutationFn: async (newSettings: PlatformSettings) => {
-      const { error } = await supabase.from("platform_settings").upsert(newSettings);
+      const { error } = await supabase.from("system_config").upsert({
+        key: "platform_settings",
+        value: newSettings as any,
+        updated_at: new Date().toISOString(),
+      });
       if (error) throw error;
       return newSettings;
     },
