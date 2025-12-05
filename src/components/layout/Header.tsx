@@ -20,16 +20,6 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
       <div className="px-4 sm:px-6 lg:px-8 py-4">
         {/* Top row - Menu, Logo, Actions */}
         <div className="flex items-center justify-between mb-2">
-          {/* Menu button */}
-          <button
-            onClick={toggleSidebar}
-            className="text-primary hover:text-primary/80 p-2 rounded-full bg-muted hover:bg-muted/80 shadow-sm border border-border flex items-center justify-center transition-colors"
-            aria-label="Toggle navigation menu"
-            type="button"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-
           {/* Logo centered in header */}
           <div className="flex-1 flex justify-center lg:justify-start lg:ml-4 lg:hidden">
             <AppLogo linkTo="/dashboard" className="h-8 w-auto" showText={false} />

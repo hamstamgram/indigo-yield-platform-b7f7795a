@@ -196,7 +196,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
 
                 return (
                   <div key={group.title} className="mb-6">
-                    <div className="w-full flex items-center justify-between px-2 py-1.5 mb-1 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider">
+                    <div className="w-full flex items-center justify-between px-2 py-1.5 mb-1 text-xs font-bold text-sidebar-foreground uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         {group.icon && <group.icon className="h-3 w-3" />}
                         <span>{group.title}</span>

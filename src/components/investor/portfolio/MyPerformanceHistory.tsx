@@ -164,40 +164,52 @@ export default function MyPerformanceHistory() {
                     <TableHead className="text-right">Additions</TableHead>
                     <TableHead className="text-right">Withdrawals</TableHead>
                     <TableHead className="text-right">Yield Earned</TableHead>
+                    <TableHead className="text-right">Rate of Return</TableHead>
                     <TableHead className="text-right font-bold">Closing Balance</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {groupedReports[assetCode].map((report) => (
-                    <TableRow key={report.id} className="hover:bg-muted/5">
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          {new Date(report.report_month).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "long",
-                          })}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right font-mono">
-                        {formatAssetValue(report.opening_balance || 0, assetCode)}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-green-600">
-                        {report.additions && report.additions > 0 ? "+" : ""}
-                        {formatAssetValue(report.additions || 0, assetCode)}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-red-600">
-                        {report.withdrawals && report.withdrawals > 0 ? "-" : ""}
-                        {formatAssetValue(report.withdrawals || 0, assetCode)}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-blue-600 font-semibold">
-                        +{formatAssetValue(report.yield_earned || 0, assetCode)}
-                      </TableCell>
-                      <TableCell className="text-right font-mono font-bold bg-muted/10">
-                        {formatAssetValue(report.closing_balance || 0, assetCode)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {groupedReports[assetCode].map((report) => {
+                    // Calculate Rate of Return (Simplified Modified Dietz)
+                    const netFlows = (report.additions || 0) - (report.withdrawals || 0);
+                    const denominator = (report.opening_balance || 0) + netFlows / 2;
+                    const rate =
+                      denominator !== 0 ? ((report.yield_earned || 0) / denominator) * 100 : 0;
+
+                    return (
+                      <TableRow key={report.id} className="hover:bg-muted/5">
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            {new Date(report.report_month).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "long",
+                            })}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-mono">
+                          {formatAssetValue(report.opening_balance || 0, assetCode)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-green-600">
+                          {report.additions && report.additions > 0 ? "+" : ""}
+                          {formatAssetValue(report.additions || 0, assetCode)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-red-600">
+                          {report.withdrawals && report.withdrawals > 0 ? "-" : ""}
+                          {formatAssetValue(report.withdrawals || 0, assetCode)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-blue-600 font-semibold">
+                          +{formatAssetValue(report.yield_earned || 0, assetCode)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono font-medium">
+                          {rate.toFixed(2)}%
+                        </TableCell>
+                        <TableCell className="text-right font-mono font-bold bg-muted/10">
+                          {formatAssetValue(report.closing_balance || 0, assetCode)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

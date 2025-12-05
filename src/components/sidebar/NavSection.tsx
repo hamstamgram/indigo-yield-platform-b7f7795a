@@ -90,7 +90,7 @@ const NavSection = ({
     <div className={cn("pb-4", className)}>
       {showTitle && title && (
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-medium text-sidebar-foreground/70 uppercase tracking-wider px-2">
+          <h3 className="text-sm font-bold text-sidebar-foreground uppercase tracking-wider px-2">
             {title}
           </h3>
         </div>
@@ -105,41 +105,24 @@ const NavSection = ({
           if (item.subNav) {
             return (
               <li key={index} role="none">
-                <button
-                  onClick={() =>
-                    setExpandedSubNavs((prev) => ({
-                      ...prev,
-                      [index]: !prev[index],
-                    }))
-                  }
+                <div
                   className={cn(
-                    "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-between space-x-3 group focus:outline-none focus:ring-2 focus:ring-sidebar-ring",
-                    isItemActive
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    "w-full text-left px-3 py-2 rounded-lg text-sm font-bold text-sidebar-foreground flex items-center space-x-3 mb-1 mt-2"
                   )}
-                  aria-expanded={isSubNavExpanded}
                 >
                   <span className="flex items-center space-x-3">
                     {item.icon}
                     <span className="flex-1 truncate">{item.title}</span>
                   </span>
-                  {isSubNavExpanded ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                </button>
-                {isSubNavExpanded && (
-                  <div className="pl-4 pt-2">
-                    <NavSection
-                      title=""
-                      items={item.subNav}
-                      onItemClick={onItemClick}
-                      showTitle={false}
-                    />
-                  </div>
-                )}
+                </div>
+                <div className="pl-0">
+                  <NavSection
+                    title=""
+                    items={item.subNav}
+                    onItemClick={onItemClick}
+                    showTitle={false}
+                  />
+                </div>
               </li>
             );
           }
