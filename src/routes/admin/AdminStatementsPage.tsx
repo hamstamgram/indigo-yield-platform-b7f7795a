@@ -87,40 +87,69 @@ export default function AdminStatementsPage() {
     mutationFn: async (params: { investorId: string; year: number; month: number }) => {
       setGeneratingStatement(params.investorId);
 
-      // First get the statement data
-      const { data: statementData, error: dataError } = await supabase.rpc(
-        "generate_statement_data",
-        {
-          p_investor_id: params.investorId,
-          p_period_year: params.year,
-          p_period_month: params.month,
-        }
-      );
+      // Fetch statement data directly from investor_monthly_reports
+      const reportMonth = `${params.year}-${params.month.toString().padStart(2, "0")}-01`;
+      
+      const { data: investor } = await supabase
+        .from("investors")
+        .select("id, name")
+        .eq("id", params.investorId)
+        .single();
+        
+      const { data: reports } = await supabase
+        .from("investor_monthly_reports")
+        .select("*")
+        .eq("investor_id", params.investorId)
+        .eq("report_month", reportMonth);
 
-      if (dataError) throw dataError;
+      const statementData = {
+        investor: {
+          name: investor?.name || "Unknown",
+          id: params.investorId,
+        },
+        period: {
+          month: params.month,
+          year: params.year,
+          start_date: reportMonth,
+          end_date: new Date(params.year, params.month, 0).toISOString().split("T")[0],
+        },
+        summary: {
+          total_aum: reports?.reduce((sum, r) => sum + Number(r.closing_balance || 0), 0) || 0,
+          total_pnl: reports?.reduce((sum, r) => sum + Number(r.yield_earned || 0), 0) || 0,
+          total_fees: 0,
+        },
+        positions: reports?.map(r => ({
+          asset_code: r.asset_code,
+          opening_balance: r.opening_balance,
+          additions: r.additions,
+          withdrawals: r.withdrawals,
+          yield_earned: r.yield_earned,
+          closing_balance: r.closing_balance,
+        })) || [],
+      };
 
       // Generate PDF using the shared library
       const mappedData = {
         investor: {
-          name: (statementData as any).investor.name,
-          id: (statementData as any).investor.id,
-          accountNumber: (statementData as any).investor.id.substring(0, 8).toUpperCase(),
+          name: statementData.investor.name,
+          id: statementData.investor.id,
+          accountNumber: statementData.investor.id.substring(0, 8).toUpperCase(),
         },
         period: {
-          month: (statementData as any).period.month,
-          year: (statementData as any).period.year,
-          start: (statementData as any).period.start_date,
-          end: (statementData as any).period.end_date,
+          month: statementData.period.month,
+          year: statementData.period.year,
+          start: statementData.period.start_date,
+          end: statementData.period.end_date,
         },
         summary: {
-          total_aum: (statementData as any).summary.total_aum,
-          total_pnl: (statementData as any).summary.total_pnl,
-          total_fees: (statementData as any).summary.total_fees,
+          total_aum: statementData.summary.total_aum,
+          total_pnl: statementData.summary.total_pnl,
+          total_fees: statementData.summary.total_fees,
         },
-        positions: (statementData as any).positions,
+        positions: statementData.positions,
       };
 
-      const pdfContent = generatePDF(mappedData);
+      const pdfContent = await generatePDF(mappedData);
 
       // Upload to storage
       const fileName = `statement-${params.year}-${params.month.toString().padStart(2, "0")}.pdf`;

@@ -80,7 +80,7 @@ export function useDashboardData() {
 
         // Fetch recent transactions
         const { data: transactions } = await supabase
-          .from("investments")
+          .from("transactions_v2")
           .select("*")
           .eq("investor_id", investors.id)
           .order("created_at", { ascending: false })

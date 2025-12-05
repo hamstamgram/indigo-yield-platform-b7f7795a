@@ -71,10 +71,18 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const logSecurityEvent = async (eventType: string, details?: any): Promise<void> => {
     try {
-      await supabase.rpc("log_security_event", {
-        event_type: eventType,
-        details: details || {},
-      });
+      // Log to console and optionally to audit_log table
+      console.log(`[Security Event] ${eventType}:`, details);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("audit_log").insert({
+          entity: "security",
+          action: eventType,
+          actor_user: user.id,
+          meta: details || {},
+        });
+      }
     } catch (error) {
       console.warn("Failed to log security event:", error);
     }

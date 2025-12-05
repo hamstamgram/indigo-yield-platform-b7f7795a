@@ -11,11 +11,10 @@ import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
 interface Transaction {
   id: string;
   investor_id: string;
-  txn_type: string | null;
   asset: string;
   amount: number;
   type: string;
-  occurred_at: string;
+  tx_date: string;
   notes?: string | null;
   tx_hash?: string | null;
   reference_id?: string | null;
@@ -59,35 +58,35 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
 
       if (investorError) throw investorError;
 
-      // Get investor's primary fund (we'll use first investment's fund_id or a default)
-      const { data: investmentData } = await supabase
-        .from("investments")
+      // Get investor's primary fund from investor_positions
+      const { data: positionData } = await supabase
+        .from("investor_positions")
         .select("fund_id")
         .eq("investor_id", investorId)
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      // Get default fund if no investments yet
+      // Get default fund if no positions yet
       const { data: defaultFund } = await supabase.from("funds").select("id").limit(1).single();
 
       setInvestor({
         ...investorData,
-        fund_id: investmentData?.fund_id || defaultFund?.id || "",
+        fund_id: positionData?.fund_id || defaultFund?.id || "",
       });
 
       // Fetch transactions
       const { data: txData, error: txError } = await supabase
         .from("transactions_v2")
         .select(
-          "id, investor_id, txn_type, asset, amount, type, occurred_at, notes, tx_hash, reference_id"
+          "id, investor_id, asset, amount, type, tx_date, notes, tx_hash, reference_id"
         )
         .eq("investor_id", investorId)
-        .order("occurred_at", { ascending: false })
+        .order("tx_date", { ascending: false })
         .limit(100);
 
       if (txError) throw txError;
 
-      setTransactions(txData || []);
+      setTransactions((txData || []) as Transaction[]);
 
       // Calculate summary
       const stats = {
@@ -97,8 +96,8 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
         totalYield: 0,
       };
 
-      txData?.forEach((tx) => {
-        const txType = (tx.txn_type || tx.type || "").toUpperCase();
+      txData?.forEach((tx: any) => {
+        const txType = (tx.type || "").toUpperCase();
         const amount = Number(tx.amount);
 
         if (txType === "DEPOSIT") {
@@ -224,7 +223,7 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
         <CardContent>
           <div className="space-y-4">
             {transactions.map((transaction) => {
-              const txType = (transaction.txn_type || transaction.type || "UNKNOWN").toUpperCase();
+              const txType = (transaction.type || "UNKNOWN").toUpperCase();
               return (
                 <div
                   key={transaction.id}
@@ -238,7 +237,7 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
                         <Badge variant="outline">{transaction.asset}</Badge>
                       </div>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>{new Date(transaction.occurred_at).toLocaleString()}</span>
+                        <span>{new Date(transaction.tx_date).toLocaleString()}</span>
                         {transaction.reference_id && (
                           <>
                             <span>•</span>

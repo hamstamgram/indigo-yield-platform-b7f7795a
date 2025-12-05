@@ -126,11 +126,45 @@ export default function AdminEmailTrackingPage() {
   const { data: stats } = useQuery<EmailStats>({
     queryKey: ["email-stats"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("email_logs").select("status, sent_at");
+      // email_logs table may not exist, return defaults
+      try {
+        const { data, error } = await (supabase as any).from("email_logs").select("status, sent_at");
 
-      // If table doesn't exist yet or empty, return zeros instead of throwing
-      if (error) {
-        console.warn("Error fetching email stats:", error);
+        if (error) {
+          console.warn("Error fetching email stats:", error);
+          return {
+            totalSent: 0,
+            delivered: 0,
+            failed: 0,
+            bounced: 0,
+            successRate: 0,
+            todayCount: 0,
+          };
+        }
+
+        const today = new Date().toISOString().split("T")[0];
+
+        const stats: EmailStats = {
+          totalSent: data?.length || 0,
+          delivered: 0,
+          failed: 0,
+          bounced: 0,
+          successRate: 0,
+          todayCount: 0,
+        };
+
+        data?.forEach((log: any) => {
+          if (log.status === "sent" || log.status === "delivered") stats.delivered++;
+          if (log.status === "failed") stats.failed++;
+          if (log.status === "bounced") stats.bounced++;
+          if (log.sent_at && log.sent_at.startsWith(today)) stats.todayCount++;
+        });
+
+        stats.successRate =
+          stats.totalSent > 0 ? Math.round((stats.delivered / stats.totalSent) * 100) : 0;
+
+        return stats;
+      } catch (e) {
         return {
           totalSent: 0,
           delivered: 0,
@@ -140,74 +174,55 @@ export default function AdminEmailTrackingPage() {
           todayCount: 0,
         };
       }
-
-      const today = new Date().toISOString().split("T")[0];
-
-      const stats: EmailStats = {
-        totalSent: data?.length || 0,
-        delivered: 0,
-        failed: 0,
-        bounced: 0,
-        successRate: 0,
-        todayCount: 0,
-      };
-
-      data?.forEach((log) => {
-        if (log.status === "sent" || log.status === "delivered") stats.delivered++;
-        if (log.status === "failed") stats.failed++;
-        if (log.status === "bounced") stats.bounced++;
-        if (log.sent_at && log.sent_at.startsWith(today)) stats.todayCount++;
-      });
-
-      stats.successRate =
-        stats.totalSent > 0 ? Math.round((stats.delivered / stats.totalSent) * 100) : 0;
-
-      return stats;
     },
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 30000,
   });
 
   // Fetch email logs
   const { data: emailLogs, isLoading: logsLoading } = useQuery<EmailLog[]>({
     queryKey: ["email-logs", filters],
     queryFn: async () => {
-      let query = supabase
-        .from("email_logs")
-        .select("*")
-        .order("sent_at", { ascending: false })
-        .limit(100);
+      try {
+        let query = (supabase as any)
+          .from("email_logs")
+          .select("*")
+          .order("sent_at", { ascending: false })
+          .limit(100);
 
-      // Apply filters
-      if (filters.emailType !== "all") {
-        query = query.eq("email_type", filters.emailType);
-      }
+        if (filters.emailType !== "all") {
+          query = query.eq("email_type", filters.emailType);
+        }
 
-      if (filters.status !== "all") {
-        query = query.eq("status", filters.status);
-      }
+        if (filters.status !== "all") {
+          query = query.eq("status", filters.status);
+        }
 
-      if (filters.search) {
-        query = query.or(
-          `recipient_email.ilike.%${filters.search}%,subject.ilike.%${filters.search}%`
-        );
-      }
+        if (filters.search) {
+          query = query.or(
+            `recipient_email.ilike.%${filters.search}%,subject.ilike.%${filters.search}%`
+          );
+        }
 
-      if (filters.dateFrom) {
-        query = query.gte("sent_at", filters.dateFrom);
-      }
+        if (filters.dateFrom) {
+          query = query.gte("sent_at", filters.dateFrom);
+        }
 
-      if (filters.dateTo) {
-        query = query.lte("sent_at", filters.dateTo);
-      }
+        if (filters.dateTo) {
+          query = query.lte("sent_at", filters.dateTo);
+        }
 
-      const { data, error } = await query;
+        const { data, error } = await query;
 
       if (error) {
         console.warn("Error fetching email logs:", error);
         return [];
       }
 
-      return (data as any[]) || [];
+        return (data as any[]) || [];
+      } catch (e) {
+        console.warn("Email logs table may not exist:", e);
+        return [];
+      }
     },
   });
 

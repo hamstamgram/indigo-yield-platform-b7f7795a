@@ -69,20 +69,44 @@ const ProfessionalStatementGenerator = () => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc("get_investor_period_summary", {
-        p_investor_id: selectedInvestor,
-        p_asset_code: selectedAsset,
-        p_as_of_date: new Date().toISOString().split("T")[0],
-      });
+      // Fetch monthly reports for this investor and asset
+      const { data: reports, error } = await supabase
+        .from("investor_monthly_reports")
+        .select("*")
+        .eq("investor_id", selectedInvestor)
+        .eq("asset_code", selectedAsset)
+        .order("report_month", { ascending: false })
+        .limit(12);
 
       if (error) throw error;
 
-      // Handle the JSON response properly
-      if (data && typeof data === "object" && !Array.isArray(data)) {
-        setStatementData(data as unknown as StatementData);
-      } else {
-        throw new Error("Invalid statement data format");
-      }
+      // Calculate period summaries from reports
+      const latestReport = reports?.[0];
+      const defaultPeriod: PeriodData = {
+        beginning_balance: 0,
+        additions: 0,
+        withdrawals: 0,
+        net_income: 0,
+        ending_balance: 0,
+        rate_of_return: 0,
+      };
+
+      const statementResult: StatementData = {
+        MTD: latestReport ? {
+          beginning_balance: Number(latestReport.opening_balance) || 0,
+          additions: Number(latestReport.additions) || 0,
+          withdrawals: Number(latestReport.withdrawals) || 0,
+          net_income: Number(latestReport.yield_earned) || 0,
+          ending_balance: Number(latestReport.closing_balance) || 0,
+          rate_of_return: latestReport.opening_balance ? 
+            ((Number(latestReport.yield_earned) || 0) / Number(latestReport.opening_balance)) * 100 : 0,
+        } : defaultPeriod,
+        QTD: defaultPeriod,
+        YTD: defaultPeriod,
+        ITD: defaultPeriod,
+      };
+
+      setStatementData(statementResult);
     } catch (error) {
       console.error("Error generating statement:", error);
       toast.error("Failed to generate statement");

@@ -63,15 +63,25 @@ const FundYieldManagerV2 = () => {
 
   const fetchYieldHistory = useCallback(async () => {
     try {
-      // Fetch recent yield applications from the database
+      // Fetch recent yield rates from the database
       const { data, error } = await supabase
-        .from("daily_yield_applications")
+        .from("yield_rates")
         .select("*")
-        .order("application_date", { ascending: false })
+        .order("date", { ascending: false })
         .limit(10);
 
       if (error) throw error;
-      setYieldHistory(data || []);
+      // Map yield_rates to display format
+      const mapped = (data || []).map((rate: any) => ({
+        id: rate.id,
+        application_date: rate.date,
+        asset_code: "YIELD",
+        daily_yield_percentage: rate.daily_yield_percentage,
+        total_aum: 0,
+        total_yield_generated: 0,
+        investors_affected: 0,
+      }));
+      setYieldHistory(mapped);
     } catch (error) {
       console.error("Error fetching yield history:", error);
     }

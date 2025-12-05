@@ -120,8 +120,8 @@ export class ReportEngine {
         transactionCount: transactions?.length || 0,
       },
       holdings:
-        positions?.map((p) => ({
-          asset: p.funds?.asset_symbol || "UNK",
+        positions?.map((p: any) => ({
+          asset: p.funds?.asset || "UNK",
           amount: p.shares,
           value: p.current_value,
           fundName: p.funds?.name,

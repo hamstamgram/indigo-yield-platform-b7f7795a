@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -103,30 +103,15 @@ const InvestorReports = () => {
         return;
       }
 
-      // Fetch investor emails
-      const { data: allInvestorEmails, error: emailsError } = await supabase
-        .from("investor_emails")
-        .select("investor_id, email, is_primary, verified")
-        .order("investor_id, is_primary", { ascending: false });
-
-      if (emailsError) {
-        console.warn("Could not fetch investor emails (table might not exist yet):", emailsError);
-      }
-
-      const emailsByInvestor = (allInvestorEmails || []).reduce(
-        (acc, emailRecord) => {
-          if (!acc[emailRecord.investor_id]) {
-            acc[emailRecord.investor_id] = [];
-          }
-          acc[emailRecord.investor_id].push({
-            email: emailRecord.email,
-            is_primary: emailRecord.is_primary,
-            verified: emailRecord.verified,
-          });
-          return acc;
-        },
-        {} as Record<string, any[]> // Using any[] to match the previous inferred type structure
-      );
+      // Fetch investor emails - use investors.email as fallback
+      const emailsByInvestor: Record<string, any[]> = {};
+      investors.forEach((inv: any) => {
+        emailsByInvestor[inv.id] = [{
+          email: inv.email,
+          is_primary: true,
+          verified: true,
+        }];
+      });
 
       // Fetch monthly reports for the selected month
       const { data: monthlyReports, error: reportsError } = await supabase
