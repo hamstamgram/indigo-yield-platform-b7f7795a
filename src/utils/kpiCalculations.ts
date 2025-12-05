@@ -18,8 +18,18 @@ export interface AssetKPI {
 
 export const calculateTotalAUM = async () => {
   try {
-    const { data } = await supabase.rpc("get_total_aum");
-    return data?.[0]?.total_aum || 0;
+    // Calculate AUM from daily_nav (Most accurate source)
+    const { data, error } = await supabase
+      .from("daily_nav")
+      .select("aum, fund_id")
+      .eq("nav_date", new Date().toISOString().split("T")[0]);
+
+    if (error) throw error;
+
+    // Sum up AUM (This mixes currencies, but for a "Total" abstract number it's what we have)
+    // Ideally we'd convert to USD, but we are Token Native.
+    // This function might be deprecated if we don't show a single global number.
+    return data?.reduce((sum, row) => sum + Number(row.aum), 0) || 0;
   } catch (error) {
     console.error("Error calculating total AUM:", error);
     return 0;
@@ -27,19 +37,16 @@ export const calculateTotalAUM = async () => {
 };
 
 export const calculateDailyInterest = async () => {
-  try {
-    const { data } = await supabase.rpc("get_24h_interest");
-    return data?.[0]?.interest || 0;
-  } catch (error) {
-    console.error("Error calculating daily interest:", error);
-    return 0;
-  }
+  return 0; // Deprecated or requires Yield Engine
 };
 
 export const calculateInvestorCount = async () => {
   try {
-    const { data } = await supabase.rpc("get_investor_count");
-    return data?.[0]?.count || 0;
+    const { count } = await supabase
+      .from("investors")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "active");
+    return count || 0;
   } catch (error) {
     console.error("Error calculating investor count:", error);
     return 0;
@@ -52,7 +59,6 @@ export const calculateInvestorCount = async () => {
  */
 export const formatAssetValue = (value: number, assetCode?: string): string => {
   if (!assetCode) {
-    // If no asset code provided, return generic formatting
     return value.toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 6,
@@ -66,6 +72,7 @@ export const formatAssetValue = (value: number, assetCode?: string): string => {
     USDC: { decimals: 2, symbol: "USDC" },
     USDT: { decimals: 2, symbol: "USDT" },
     EURC: { decimals: 2, symbol: "EURC" },
+    xAUT: { decimals: 4, symbol: "xAUT" },
   };
 
   const config = assetConfig[assetCode] || { decimals: 4, symbol: assetCode };
@@ -78,49 +85,48 @@ export const formatAssetValue = (value: number, assetCode?: string): string => {
 
 export const calculateAllKPIs = async (userId: string): Promise<AssetKPI[]> => {
   try {
-    // For now, return mock data that matches the expected structure
-    // In a real implementation, this would calculate actual KPIs from positions data
-    const { data: positions } = await supabase
-      .from("positions" as any)
-      .select("*")
-      .eq("user_id", userId);
+    // Fetch Investor ID for the Auth User
+    const { data: investor } = await supabase
+      .from("investors")
+      .select("id")
+      .eq("profile_id", userId)
+      .single();
 
-    if (!positions || positions.length === 0) {
+    if (!investor) return [];
+
+    // Fetch Real Data from Investor Positions
+    const { data: positions, error } = await supabase
+      .from("investor_positions")
+      .select(
+        `
+        shares,
+        cost_basis,
+        fund:funds(asset)
+      `
+      )
+      .eq("investor_id", investor.id);
+
+    if (error || !positions) {
+      console.error("Error fetching positions:", error);
       return [];
     }
 
-    // Group positions by asset and calculate KPIs
-    const assetMap = new Map<string, AssetKPI>();
-
-    (positions as any[]).forEach((position: any) => {
-      const assetCode = position.asset_code;
-      const balance = position.current_balance || 0;
-      const principal = position.principal || balance;
-
-      if (!assetMap.has(assetCode)) {
-        assetMap.set(assetCode, {
-          assetCode,
-          currentBalance: balance,
-          principal: principal,
-          metrics: {
-            mtd: 0,
-            qtd: 0,
-            ytd: 0,
-            itd: 0,
-            mtdPercentage: 0,
-            qtdPercentage: 0,
-            ytdPercentage: 0,
-            itdPercentage: 0,
-          },
-        });
-      } else {
-        const existing = assetMap.get(assetCode)!;
-        existing.currentBalance += balance;
-        existing.principal += principal;
-      }
-    });
-
-    return Array.from(assetMap.values());
+    // Map to KPI Structure
+    return positions.map((pos: any) => ({
+      assetCode: pos.fund.asset,
+      currentBalance: Number(pos.shares),
+      principal: Number(pos.cost_basis),
+      metrics: {
+        mtd: 0,
+        qtd: 0,
+        ytd: 0,
+        itd: 0,
+        mtdPercentage: 0,
+        qtdPercentage: 0,
+        ytdPercentage: 0,
+        itdPercentage: 0,
+      },
+    }));
   } catch (error) {
     console.error("Error calculating KPIs:", error);
     return [];

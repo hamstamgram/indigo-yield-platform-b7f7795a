@@ -22,17 +22,46 @@ interface StatementData {
   positions: any[];
 }
 
-export const generatePDF = (data: StatementData): Blob => {
+const loadImage = (url: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.src = url;
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Failed to get canvas context"));
+        return;
+      }
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = (e) => reject(e);
+  });
+};
+
+export const generatePDF = async (data: StatementData): Promise<Blob> => {
   const doc = new jsPDF();
 
-  // --- Header ---
+  // --- Header with Logo ---
+  try {
+    // Using the public icon as logo
+    const logoData = await loadImage("/icons/icon-192.png");
+    doc.addImage(logoData, "PNG", 14, 10, 12, 12);
+  } catch (e) {
+    console.warn("Failed to load logo for PDF", e);
+  }
+
   doc.setFontSize(20);
   doc.setTextColor(40, 53, 147); // Indigo
-  doc.text("INDIGO YIELD FUND", 14, 22);
+  doc.text("INDIGO YIELD FUND", 32, 18); // Shifted right for logo
 
   doc.setFontSize(10);
   doc.setTextColor(100, 100, 100);
-  doc.text("Monthly Investment Statement", 14, 28);
+  doc.text("Monthly Investment Statement", 32, 24);
 
   // --- Investor Info ---
   doc.setFontSize(12);
@@ -53,7 +82,7 @@ export const generatePDF = (data: StatementData): Blob => {
   doc.setFontSize(10);
   doc.text("Total AUM", 24, 70);
   doc.setFontSize(14);
-  doc.text(`$${data.summary.total_aum.toLocaleString()}`, 24, 80);
+  doc.text(`${data.summary.total_aum.toLocaleString()}`, 24, 80); // Token Native (no $)
 
   doc.setFontSize(10);
   doc.text("Net Income", 84, 70);
@@ -64,7 +93,7 @@ export const generatePDF = (data: StatementData): Blob => {
     data.summary.total_pnl >= 0 ? 74 : 38
   ); // Green or Red
   doc.text(
-    `${data.summary.total_pnl >= 0 ? "+" : ""}$${data.summary.total_pnl.toLocaleString()}`,
+    `${data.summary.total_pnl >= 0 ? "+" : ""}${data.summary.total_pnl.toLocaleString()}`,
     84,
     80
   );
@@ -73,7 +102,7 @@ export const generatePDF = (data: StatementData): Blob => {
   doc.setFontSize(10);
   doc.text("Fees", 144, 70);
   doc.setFontSize(14);
-  doc.text(`$${data.summary.total_fees.toLocaleString()}`, 144, 80);
+  doc.text(`${data.summary.total_fees.toLocaleString()}`, 144, 80);
 
   // --- Positions Table ---
   const tableColumn = ["Asset", "Balance", "Additions", "Withdrawals", "Yield", "Closing"];

@@ -3,6 +3,31 @@
 -- Purpose: Implement strict RLS policies per project rules
 
 -- ============================================
+-- HELPER FUNCTIONS
+-- ============================================
+
+-- Create helper function for RLS policies
+CREATE OR REPLACE FUNCTION public.is_admin_for_jwt()
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  -- Check if the user has the admin flag in their profile
+  -- This runs as security definer to bypass RLS on the profiles table itself
+  RETURN EXISTS (
+    SELECT 1
+    FROM public.profiles
+    WHERE id = auth.uid()
+    AND is_admin = true
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.is_admin_for_jwt() TO authenticated;
+
+-- ============================================
 -- PROFILES TABLE RLS POLICIES
 -- ============================================
 
@@ -65,7 +90,7 @@ ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 -- LP can only read their own transactions
 CREATE POLICY "transactions_select_own" ON transactions
     FOR SELECT
-    USING (user_id = auth.uid());
+    USING (investor_id = auth.uid());
 
 -- Admin can read all transactions
 CREATE POLICY "transactions_select_admin" ON transactions
@@ -91,40 +116,45 @@ CREATE POLICY "transactions_delete_admin" ON transactions
 -- PORTFOLIOS TABLE RLS POLICIES
 -- ============================================
 
--- Drop existing policies
-DROP POLICY IF EXISTS "portfolios_select_own" ON portfolios;
-DROP POLICY IF EXISTS "portfolios_select_admin" ON portfolios;
-DROP POLICY IF EXISTS "portfolios_insert_admin" ON portfolios;
-DROP POLICY IF EXISTS "portfolios_update_admin" ON portfolios;
-DROP POLICY IF EXISTS "portfolios_delete_admin" ON portfolios;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'portfolios' AND table_schema = 'public') THEN
+        -- Drop existing policies
+        DROP POLICY IF EXISTS "portfolios_select_own" ON portfolios;
+        DROP POLICY IF EXISTS "portfolios_select_admin" ON portfolios;
+        DROP POLICY IF EXISTS "portfolios_insert_admin" ON portfolios;
+        DROP POLICY IF EXISTS "portfolios_update_admin" ON portfolios;
+        DROP POLICY IF EXISTS "portfolios_delete_admin" ON portfolios;
 
--- Enable RLS on portfolios
-ALTER TABLE portfolios ENABLE ROW LEVEL SECURITY;
+        -- Enable RLS on portfolios
+        ALTER TABLE portfolios ENABLE ROW LEVEL SECURITY;
 
--- LP can only read their own portfolios
-CREATE POLICY "portfolios_select_own" ON portfolios
-    FOR SELECT
-    USING (profile_id = auth.uid());
+        -- LP can only read their own portfolios
+        EXECUTE 'CREATE POLICY "portfolios_select_own" ON portfolios
+            FOR SELECT
+            USING (profile_id = auth.uid())';
 
--- Admin can read all portfolios
-CREATE POLICY "portfolios_select_admin" ON portfolios
-    FOR SELECT
-    USING (public.is_admin_for_jwt());
+        -- Admin can read all portfolios
+        EXECUTE 'CREATE POLICY "portfolios_select_admin" ON portfolios
+            FOR SELECT
+            USING (public.is_admin_for_jwt())';
 
--- Only admin can insert portfolios
-CREATE POLICY "portfolios_insert_admin" ON portfolios
-    FOR INSERT
-    WITH CHECK (public.is_admin_for_jwt());
+        -- Only admin can insert portfolios
+        EXECUTE 'CREATE POLICY "portfolios_insert_admin" ON portfolios
+            FOR INSERT
+            WITH CHECK (public.is_admin_for_jwt())';
 
--- Only admin can update portfolios
-CREATE POLICY "portfolios_update_admin" ON portfolios
-    FOR UPDATE
-    USING (public.is_admin_for_jwt());
+        -- Only admin can update portfolios
+        EXECUTE 'CREATE POLICY "portfolios_update_admin" ON portfolios
+            FOR UPDATE
+            USING (public.is_admin_for_jwt())';
 
--- Only admin can delete portfolios
-CREATE POLICY "portfolios_delete_admin" ON portfolios
-    FOR DELETE
-    USING (public.is_admin_for_jwt());
+        -- Only admin can delete portfolios
+        EXECUTE 'CREATE POLICY "portfolios_delete_admin" ON portfolios
+            FOR DELETE
+            USING (public.is_admin_for_jwt())';
+    END IF;
+END $$;
 
 -- ============================================
 -- STATEMENTS TABLE RLS POLICIES
@@ -143,7 +173,7 @@ ALTER TABLE statements ENABLE ROW LEVEL SECURITY;
 -- LP can only read their own statements
 CREATE POLICY "statements_select_own" ON statements
     FOR SELECT
-    USING (user_id = auth.uid());
+    USING (investor_id = auth.uid());
 
 -- Admin can read all statements
 CREATE POLICY "statements_select_admin" ON statements
@@ -186,7 +216,7 @@ BEGIN
         -- LP can only read positions in their portfolios
         EXECUTE 'CREATE POLICY "positions_select_own" ON positions
             FOR SELECT
-            USING (portfolio_id IN (SELECT id FROM portfolios WHERE profile_id = auth.uid()))';
+            USING (investor_id = auth.uid())';
 
         -- Admin can read all positions
         EXECUTE 'CREATE POLICY "positions_select_admin" ON positions
@@ -283,7 +313,7 @@ CREATE POLICY "audit_logs_insert_system" ON audit_logs
 COMMENT ON POLICY "profiles_select_own" ON profiles IS 'LP can only view their own profile';
 COMMENT ON POLICY "profiles_select_admin" ON profiles IS 'Admin can view all profiles';
 COMMENT ON POLICY "transactions_insert_admin" ON transactions IS 'Only admin can create deposits, withdrawals, and interest entries';
-COMMENT ON POLICY "portfolios_select_own" ON portfolios IS 'LP can only view their own portfolios';
+-- COMMENT ON POLICY "portfolios_select_own" ON portfolios IS 'LP can only view their own portfolios';
 COMMENT ON POLICY "statements_insert_admin" ON statements IS 'Only admin can create statements';
 
 -- ============================================

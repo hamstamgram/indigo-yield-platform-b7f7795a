@@ -19,7 +19,6 @@ const corsHeaders = (origin: string | null) => ({
 interface PerformanceRequest {
   investorId: string;
   asOfDate?: string;
-  includeBenchmarks?: boolean;
 }
 
 interface PerformanceMetrics {
@@ -27,7 +26,6 @@ interface PerformanceMetrics {
   qtd: PerformanceData;
   ytd: PerformanceData;
   itd: PerformanceData;
-  benchmarks?: BenchmarkData;
 }
 
 interface PerformanceData {
@@ -40,12 +38,6 @@ interface PerformanceData {
   netDeposits: number;
   startDate: string;
   endDate: string;
-}
-
-interface BenchmarkData {
-  sp500: { mtd: number; qtd: number; ytd: number; itd: number };
-  nasdaq: { mtd: number; qtd: number; ytd: number; itd: number };
-  bonds: { mtd: number; qtd: number; ytd: number; itd: number };
 }
 
 serve(async (req) => {
@@ -164,16 +156,6 @@ serve(async (req) => {
       itd,
     };
 
-    // Include benchmarks if requested
-    if (performanceRequest.includeBenchmarks) {
-      metrics.benchmarks = await fetchBenchmarkData(
-        supabaseClient,
-        periods,
-        inceptionDate,
-        asOfDate
-      );
-    }
-
     // Store calculated performance
     await storePerformanceMetrics(supabaseClient, performanceRequest.investorId, asOfDate, metrics);
 
@@ -240,55 +222,61 @@ async function calculatePeriodPerformance(
   startDate: Date,
   endDate: Date
 ): Promise<PerformanceData> {
-  // Get starting balance (balance at start of period)
-  const { data: startPositions } = await supabase
-    .from("position_history")
-    .select("current_balance, as_of_date")
-    .eq("investor_id", investorId)
-    .lte("as_of_date", startDate.toISOString())
-    .order("as_of_date", { ascending: false })
-    .limit(1);
+  // Helper to get total balance for a specific date (or latest before it)
+  const getTotalBalanceAtDate = async (targetDate: Date): Promise<number> => {
+    // 1. Find the latest available date <= targetDate
+    const { data: dateData } = await supabase
+      .from("investor_daily_balances")
+      .select("nav_date")
+      .eq("investor_id", investorId)
+      .lte("nav_date", targetDate.toISOString().split("T")[0])
+      .order("nav_date", { ascending: false })
+      .limit(1)
+      .single();
 
-  const startValue = startPositions?.[0]?.current_balance || 0;
+    if (!dateData) return 0;
 
-  // Get ending balance
-  const { data: endPositions } = await supabase
-    .from("position_history")
-    .select("current_balance, as_of_date")
-    .eq("investor_id", investorId)
-    .lte("as_of_date", endDate.toISOString())
-    .order("as_of_date", { ascending: false })
-    .limit(1);
+    // 2. Sum balances for that date
+    const { data: balances } = await supabase
+      .from("investor_daily_balances")
+      .select("balance")
+      .eq("investor_id", investorId)
+      .eq("nav_date", dateData.nav_date);
 
-  const endValue = endPositions?.[0]?.current_balance || 0;
+    if (!balances) return 0;
+
+    return balances.reduce((sum: number, row: any) => sum + Number(row.balance), 0);
+  };
+
+  const startValue = await getTotalBalanceAtDate(startDate);
+  const endValue = await getTotalBalanceAtDate(endDate);
 
   // Get deposits and withdrawals during period
+  // Note: 'created_at' is timestamp, so we compare ISO strings
   const { data: transactions } = await supabase
     .from("transactions")
-    .select("amount, transaction_type")
+    .select("amount, type")
     .eq("investor_id", investorId)
     .gte("created_at", startDate.toISOString())
     .lte("created_at", endDate.toISOString())
-    .in("transaction_type", ["deposit", "withdrawal"]);
+    .in("type", ["DEPOSIT", "WITHDRAWAL"]); // Adjusted to standard types if needed, usually uppercase
 
   const deposits =
     transactions
-      ?.filter((t) => t.transaction_type === "deposit")
-      .reduce((sum, t) => sum + Number(t.amount), 0) || 0;
+      ?.filter((t: any) => t.type === "DEPOSIT")
+      .reduce((sum: number, t: any) => sum + Number(t.amount), 0) || 0;
 
   const withdrawals =
     transactions
-      ?.filter((t) => t.transaction_type === "withdrawal")
-      .reduce((sum, t) => sum + Number(t.amount), 0) || 0;
+      ?.filter((t: any) => t.type === "WITHDRAWAL")
+      .reduce((sum: number, t: any) => sum + Number(t.amount), 0) || 0;
 
   const netDeposits = deposits - withdrawals;
 
   // Calculate return using Modified Dietz method
-  // This accounts for the timing and size of cash flows
   const returnDollar = endValue - startValue - netDeposits;
 
   // Average capital: starting capital + (net deposits / 2)
-  // This is a simplified version; full Modified Dietz uses weighted average
   const avgCapital = startValue + netDeposits / 2;
 
   const returnPercent = avgCapital > 0 ? (returnDollar / avgCapital) * 100 : 0;
@@ -303,48 +291,6 @@ async function calculatePeriodPerformance(
     netDeposits: parseFloat(netDeposits.toFixed(2)),
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
-  };
-}
-
-/**
- * Fetch benchmark data for comparison
- */
-async function fetchBenchmarkData(
-  supabase: any,
-  periods: { mtdStart: Date; qtdStart: Date; ytdStart: Date },
-  inceptionDate: Date,
-  asOfDate: Date
-): Promise<BenchmarkData> {
-  // In production, this would fetch real benchmark data from market data providers
-  // For now, return placeholder data
-
-  // Get benchmark indices data from database
-  const { data: benchmarks } = await supabase
-    .from("benchmark_indices")
-    .select("symbol, returns")
-    .in("symbol", ["SPY", "QQQ", "AGG"]);
-
-  // Calculate benchmark returns for each period
-  // This is simplified - in production, you'd calculate actual returns
-  return {
-    sp500: {
-      mtd: 1.2,
-      qtd: 3.5,
-      ytd: 12.8,
-      itd: 45.2,
-    },
-    nasdaq: {
-      mtd: 1.8,
-      qtd: 4.2,
-      ytd: 18.5,
-      itd: 62.3,
-    },
-    bonds: {
-      mtd: 0.3,
-      qtd: 0.9,
-      ytd: 2.1,
-      itd: 8.7,
-    },
   };
 }
 

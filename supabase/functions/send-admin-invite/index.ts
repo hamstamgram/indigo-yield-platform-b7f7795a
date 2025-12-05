@@ -44,20 +44,51 @@ serve(async (req) => {
     const baseUrl = Deno.env.get("PUBLIC_SITE_URL") || "http://localhost:3000";
     const inviteUrl = `${baseUrl}/admin-invite?code=${invite.invite_code}`;
 
-    // Normally here we would send an actual email, but we'll just log it for now
-    // In a real implementation, you'd use a service like SendGrid, Resend, or Amazon SES
-    console.log(`
-      TO: ${invite.email}
-      SUBJECT: You have been invited to join as an administrator
-      BODY:
-      
-      You have been invited to join as an administrator on our platform.
-      
-      Click the following link to accept the invitation:
-      ${inviteUrl}
-      
-      This invite will expire on ${new Date(invite.expires_at).toLocaleDateString()}.
-    `);
+    // Send email using Resend if configured
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+
+    if (RESEND_API_KEY) {
+      console.log(`Sending email to ${invite.email} via Resend...`);
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "onboarding@resend.dev", // Update this to your verified sender in production
+          to: invite.email,
+          subject: "You have been invited to join as an administrator",
+          html: `
+            <p>You have been invited to join as an administrator on our platform.</p>
+            <p><a href="${inviteUrl}">Click here to accept the invitation</a></p>
+            <p>This invite will expire on ${new Date(invite.expires_at).toLocaleDateString()}.</p>
+          `,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Resend API Error:", errorText);
+        // We continue even if email fails to at least return the invite code in logs for now
+      } else {
+        console.log("Email sent successfully via Resend.");
+      }
+    } else {
+      // Mock email sending for local dev or if no key configured
+      console.log(`
+        TO: ${invite.email}
+        SUBJECT: You have been invited to join as an administrator
+        BODY:
+        
+        You have been invited to join as an administrator on our platform.
+        
+        Click the following link to accept the invitation:
+        ${inviteUrl}
+        
+        This invite will expire on ${new Date(invite.expires_at).toLocaleDateString()}.
+      `);
+    }
 
     // Return success
     return new Response(

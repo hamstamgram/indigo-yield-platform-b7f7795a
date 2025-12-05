@@ -25,8 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { supabase } from "@/integrations/supabase/client";
-import FundAUMManager from "@/components/admin/funds/FundAUMManager";
-import { FundPerformanceHistory } from "@/components/admin/funds/FundPerformanceHistory";
+import { FinancialSnapshot } from "@/components/admin/FinancialSnapshot";
 
 interface AdminStats {
   totalInvestors: number;
@@ -279,17 +278,9 @@ function AdminDashboardContent() {
           ))}
         </div>
       </div>
-      {/* Fund Management Section */}
+      {/* Financial Command Center */}
       <div className="space-y-6">
-        <h2 className="text-xl font-display font-bold tracking-tight">Fund Management</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="lg:col-span-2">
-            <FundAUMManager />
-          </div>
-          <div className="lg:col-span-2">
-            <FundPerformanceHistory />
-          </div>
-        </div>
+        <FinancialSnapshot />
       </div>
     </div>
   );

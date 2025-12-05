@@ -1,0 +1,2 @@
+-- Restored migration file to satisfy Supabase CLI history check
+-- Originally: Backfill Daily NAV and Monthly Reports

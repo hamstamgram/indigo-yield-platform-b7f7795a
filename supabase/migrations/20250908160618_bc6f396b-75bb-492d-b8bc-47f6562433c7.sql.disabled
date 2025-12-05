@@ -1,0 +1,30 @@
+-- PHASE 1: CRITICAL DATA EXPOSURE FIXES
+-- Fix public data exposure for indigo_users table
+
+-- Create policies for indigo_users table
+-- CREATE POLICY "Users can view their own data and admins can view all"
+-- ON public.indigo_users
+-- FOR SELECT
+-- USING (
+--   auth.uid() = user_id OR 
+--   user_id IS NULL OR 
+--   public.is_admin()
+-- );
+
+-- CREATE POLICY "Users can update their own data"
+-- ON public.indigo_users
+-- FOR UPDATE
+-- USING (auth.uid() = user_id)
+-- WITH CHECK (auth.uid() = user_id);
+
+-- Add policies for funds table - only authenticated users can see funds
+CREATE POLICY "Authenticated users can view funds"
+ON public.funds
+FOR SELECT
+USING (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Only admins can modify funds"
+ON public.funds
+FOR ALL
+USING (public.is_admin())
+WITH CHECK (public.is_admin());
