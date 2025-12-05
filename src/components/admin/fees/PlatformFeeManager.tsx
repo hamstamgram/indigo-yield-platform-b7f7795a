@@ -58,7 +58,7 @@ const PlatformFeeManager = () => {
 
       if (error) throw error;
 
-      // Get fee collection data for the selected month
+      // Get fee collection data from fee_calculations table
       const startDate = `${selectedMonth}-01`;
       const endDate = new Date(
         new Date(selectedMonth).getFullYear(),
@@ -69,11 +69,10 @@ const PlatformFeeManager = () => {
         .slice(0, 10);
 
       const { data: feeData, error: feeError } = await supabase
-        .from("platform_fees_collected")
+        .from("fee_calculations")
         .select("investor_id, fee_amount")
-        .eq("asset_code", selectedAsset)
-        .gte("fee_month", startDate)
-        .lte("fee_month", endDate);
+        .gte("calculation_date", startDate)
+        .lte("calculation_date", endDate);
 
       if (feeError) throw feeError;
 
@@ -88,7 +87,7 @@ const PlatformFeeManager = () => {
         ) || {};
 
       const formattedData: InvestorFee[] =
-        data?.map((investor) => ({
+        data?.map((investor: any) => ({
           investor_id: investor.id,
           investor_name: investor.name,
           investor_email: investor.email,
@@ -102,7 +101,7 @@ const PlatformFeeManager = () => {
       console.error("Error fetching investor fees:", error);
       toast.error("Failed to load investor fee data");
     }
-  }, [selectedAsset, selectedMonth, toast]);
+  }, [selectedAsset, selectedMonth]);
 
   const fetchFeeStats = useCallback(async () => {
     try {
@@ -115,32 +114,37 @@ const PlatformFeeManager = () => {
         .toISOString()
         .slice(0, 10);
 
+      // Query fee_calculations table for stats
       const { data, error } = await supabase
-        .from("monthly_fee_summary")
-        .select("*")
-        .eq("asset_code", selectedAsset)
-        .gte("summary_month", startDate)
-        .lte("summary_month", endDate)
-        .order("summary_month", { ascending: false });
+        .from("fee_calculations")
+        .select("fee_amount, calculation_basis, investor_id")
+        .gte("calculation_date", startDate)
+        .lte("calculation_date", endDate);
 
       if (error) throw error;
 
-      const formattedStats: FeeStats[] =
-        data?.map((stat) => ({
-          total_fees_collected: parseFloat(stat.total_fees_collected.toString()),
-          total_gross_yield: parseFloat(stat.total_gross_yield.toString()),
-          total_net_yield: parseFloat(stat.total_net_yield.toString()),
-          investor_count: stat.investor_count,
-          asset_code: stat.asset_code,
-          month: stat.summary_month,
-        })) || [];
+      // Calculate stats from fee_calculations
+      const totalFeesCollected = data?.reduce((sum, f) => sum + Number(f.fee_amount || 0), 0) || 0;
+      const totalBasis = data?.reduce((sum, f) => sum + Number(f.calculation_basis || 0), 0) || 0;
+      const uniqueInvestors = new Set(data?.map((f) => f.investor_id) || []).size;
+
+      const formattedStats: FeeStats[] = [
+        {
+          total_fees_collected: totalFeesCollected,
+          total_gross_yield: totalBasis,
+          total_net_yield: totalBasis - totalFeesCollected,
+          investor_count: uniqueInvestors,
+          asset_code: selectedAsset,
+          month: selectedMonth,
+        },
+      ];
 
       setFeeStats(formattedStats);
     } catch (error) {
       console.error("Error fetching fee stats:", error);
       toast.error("Failed to load fee statistics");
     }
-  }, [selectedAsset, selectedMonth, toast]);
+  }, [selectedAsset, selectedMonth]);
 
   useEffect(() => {
     fetchInvestorFees();

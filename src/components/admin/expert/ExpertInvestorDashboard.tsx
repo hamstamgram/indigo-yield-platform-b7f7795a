@@ -18,13 +18,13 @@ export default function ExpertInvestorDashboard() {
         .select(
           `
           *,
-          profiles ( full_name, email, phone ),
+          profiles ( first_name, last_name, email, phone ),
           investor_positions (
             shares,
             realized_pnl,
             current_value,
             fund_class,
-            funds ( name, asset_symbol )
+            funds ( name, asset )
           )
         `
         )
@@ -52,14 +52,18 @@ export default function ExpertInvestorDashboard() {
   // All positions are treated as active in the new schema
   const activePositions = totalPositions;
 
+  // Build full name from first_name and last_name
+  const fullName = investor.profiles
+    ? `${investor.profiles.first_name || ""} ${investor.profiles.last_name || ""}`.trim() ||
+      "Unknown Investor"
+    : "Unknown Investor";
+
   return (
     <div className="container mx-auto p-6 space-y-8">
       <div className="flex justify-between items-start">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-display font-bold tracking-tight">
-              {investor.profiles?.full_name || "Unknown Investor"}
-            </h1>
+            <h1 className="text-3xl font-display font-bold tracking-tight">{fullName}</h1>
             <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
               Expert View
             </Badge>
@@ -146,8 +150,7 @@ export default function ExpertInvestorDashboard() {
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Realized PnL</span>
                     <span className="font-mono font-medium text-green-600">
-                      +{Number(position.realized_pnl || 0).toFixed(4)}{" "}
-                      {position.funds?.asset_symbol}
+                      +{Number(position.realized_pnl || 0).toFixed(4)} {position.funds?.asset}
                     </span>
                   </div>
                 </div>

@@ -58,7 +58,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
     queryFn: async () => {
       const { data, error } = await supabase
         .from("funds")
-        .select("id, name, asset_symbol")
+        .select("id, name, asset")
         .order("name");
       if (error) throw error;
       return data;
@@ -136,8 +136,8 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
                 </SelectTrigger>
                 <SelectContent>
                   {funds?.map((fund) => (
-                    <SelectItem key={fund.id} value={(fund.asset_symbol || "").toUpperCase()}>
-                      {fund.name} ({(fund.asset_symbol || "").toUpperCase()})
+                    <SelectItem key={fund.id} value={(fund.asset || "").toUpperCase()}>
+                      {fund.name} ({(fund.asset || "").toUpperCase()})
                     </SelectItem>
                   ))}
                 </SelectContent>

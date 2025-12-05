@@ -26,7 +26,7 @@ import { Asset } from "@/types/investorTypes";
 
 type UserPortfolio = {
   id: string;
-  user_id: string;
+  investor_id: string;
   asset_id: number;
   asset_code: string;
   balance: number;
@@ -66,7 +66,7 @@ const AdminPortfolios = ({
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<string>("");
+  const [selectedUser, setSelectedUser] = useState("");
   const [selectedAsset, setSelectedAsset] = useState<number>(0);
   const [newBalance, setNewBalance] = useState<string>("0");
   const { toast } = useToast();
@@ -115,7 +115,7 @@ const AdminPortfolios = ({
       // Fetch all portfolios (using positions table)
       const { data: portfoliosResult, error: portfoliosError } = await supabase
         .from("positions")
-        .select("id, user_id, asset_code, current_balance, updated_at");
+        .select("id, investor_id, asset_code, current_balance, updated_at");
 
       if (portfoliosError) throw portfoliosError;
 
@@ -124,7 +124,7 @@ const AdminPortfolios = ({
 
       // Enrich portfolio data with user and asset information
       const enrichedPortfolios = portfolioData.map((portfolio) => {
-        const user = userData.find((u) => u.id === portfolio.user_id);
+        const user = userData.find((u) => u.id === portfolio.investor_id);
         const asset = assets.find((a) => a.symbol === portfolio.asset_code);
 
         const userName = user
@@ -156,7 +156,7 @@ const AdminPortfolios = ({
           // Add a skeleton portfolio entry for this user
           skeletonPortfolios.push({
             id: `skeleton-${user.id}`,
-            user_id: user.id,
+            investor_id: user.id,
             asset_id: 0, // No asset assigned yet
             asset_code: "USD",
             balance: 0,
@@ -190,7 +190,7 @@ const AdminPortfolios = ({
 
   useEffect(() => {
     fetchData();
-  }, [providedInvestors, providedAssets, fetchData]);
+  }, [providedInvestors, providedAssets]);
 
   useEffect(() => {
     if (searchTerm.trim() === "") {
@@ -302,7 +302,7 @@ const AdminPortfolios = ({
       const { data: existingEntry } = await supabase
         .from("positions")
         .select("id")
-        .eq("user_id", selectedUser)
+        .eq("investor_id", selectedUser)
         .eq("asset_code", assetSymbol)
         .maybeSingle();
 
@@ -325,7 +325,7 @@ const AdminPortfolios = ({
       } else {
         // Insert new entry
         const { error } = await supabase.from("positions").insert({
-          user_id: selectedUser,
+          investor_id: selectedUser,
           asset_code: assetSymbol,
           current_balance: balance,
           principal: balance, // Set initial principal
@@ -499,14 +499,14 @@ const AdminPortfolios = ({
                   <option value="0">Select an asset</option>
                   {assets.map((asset) => (
                     <option key={asset.id} value={asset.id}>
-                      {asset.name} ({asset.symbol})
+                      {asset.symbol} - {asset.name}
                     </option>
                   ))}
                 </select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="balance">Balance</Label>
+                <Label htmlFor="balance">Initial Balance</Label>
                 <Input
                   id="balance"
                   type="number"
@@ -514,7 +514,7 @@ const AdminPortfolios = ({
                   min="0"
                   value={newBalance}
                   onChange={(e) => setNewBalance(e.target.value)}
-                  className="h-10"
+                  placeholder="0.00000000"
                 />
               </div>
             </div>
@@ -524,14 +524,8 @@ const AdminPortfolios = ({
                 Cancel
               </Button>
               <Button onClick={addNewPortfolio} disabled={saving}>
-                {saving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  "Add Portfolio Entry"
-                )}
+                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Add Portfolio
               </Button>
             </DialogFooter>
           </DialogContent>
