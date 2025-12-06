@@ -2,8 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 interface TestUserConfig {
@@ -16,35 +16,35 @@ interface TestUserConfig {
 
 const TEST_USERS: TestUserConfig[] = [
   {
-    email: 'testadmin@indigo.fund',
-    password: 'TestAdmin123!',
-    firstName: 'Test',
-    lastName: 'Admin',
+    email: "testadmin@indigo.fund",
+    password: "TestAdmin123!",
+    firstName: "Test",
+    lastName: "Admin",
     isAdmin: true,
   },
   {
-    email: 'testinvestor@indigo.fund',
-    password: 'TestInvestor123!',
-    firstName: 'Test',
-    lastName: 'Investor',
+    email: "testinvestor@indigo.fund",
+    password: "TestInvestor123!",
+    firstName: "Test",
+    lastName: "Investor",
     isAdmin: false,
   },
 ];
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       {
         auth: {
           autoRefreshToken: false,
-          persistSession: false
-        }
+          persistSession: false,
+        },
       }
     );
 
@@ -56,7 +56,7 @@ serve(async (req) => {
       try {
         // Check if user already exists
         const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-        const existingUser = existingUsers?.users?.find(u => u.email === userConfig.email);
+        const existingUser = existingUsers?.users?.find((u) => u.email === userConfig.email);
 
         let userId: string;
 
@@ -73,7 +73,7 @@ serve(async (req) => {
               first_name: userConfig.firstName,
               last_name: userConfig.lastName,
               is_admin: userConfig.isAdmin,
-            }
+            },
           });
 
           if (createError) {
@@ -85,18 +85,19 @@ serve(async (req) => {
         }
 
         // Create/update profile
-        const { error: profileError } = await supabaseAdmin
-          .from('profiles')
-          .upsert({
+        const { error: profileError } = await supabaseAdmin.from("profiles").upsert(
+          {
             id: userId,
             email: userConfig.email,
             first_name: userConfig.firstName,
             last_name: userConfig.lastName,
             is_admin: userConfig.isAdmin,
-            status: 'Active',
+            status: "Active",
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-          }, { onConflict: 'id' });
+          },
+          { onConflict: "id" }
+        );
 
         if (profileError) {
           console.warn(`Profile upsert warning for ${userConfig.email}:`, profileError.message);
@@ -104,19 +105,20 @@ serve(async (req) => {
 
         // If investor, create investor record
         if (!userConfig.isAdmin) {
-          const { error: investorError } = await supabaseAdmin
-            .from('investors')
-            .upsert({
+          const { error: investorError } = await supabaseAdmin.from("investors").upsert(
+            {
               name: `${userConfig.firstName} ${userConfig.lastName}`,
               email: userConfig.email,
               profile_id: userId,
-              status: 'Active',
-              entity_type: 'individual',
+              status: "Active",
+              entity_type: "individual",
               accredited: true,
-              kyc_status: 'approved',
-              aml_status: 'approved',
-              onboarding_date: new Date().toISOString().split('T')[0],
-            }, { onConflict: 'email' });
+              kyc_status: "approved",
+              aml_status: "approved",
+              onboarding_date: new Date().toISOString().split("T")[0],
+            },
+            { onConflict: "email" }
+          );
 
           if (investorError) {
             console.warn(`Investor upsert warning for ${userConfig.email}:`, investorError.message);
@@ -130,7 +132,6 @@ serve(async (req) => {
         });
 
         console.log(`Successfully processed: ${userConfig.email}`);
-
       } catch (userError) {
         const errorMessage = userError instanceof Error ? userError.message : String(userError);
         console.error(`Error processing ${userConfig.email}:`, errorMessage);
@@ -143,37 +144,36 @@ serve(async (req) => {
     }
 
     // Generate summary
-    const successCount = results.filter(r => r.success).length;
-    const failCount = results.filter(r => !r.success).length;
+    const successCount = results.filter((r) => r.success).length;
+    const failCount = results.filter((r) => !r.success).length;
 
     return new Response(
       JSON.stringify({
         success: failCount === 0,
         message: `Created/updated ${successCount} user(s), ${failCount} failed`,
         results,
-        credentials: TEST_USERS.map(u => ({
+        credentials: TEST_USERS.map((u) => ({
           email: u.email,
           password: u.password,
-          role: u.isAdmin ? 'Admin' : 'Investor',
+          role: u.isAdmin ? "Admin" : "Investor",
         })),
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
       }
     );
-
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Error in setup-test-users:', errorMessage);
+    console.error("Error in setup-test-users:", errorMessage);
     return new Response(
       JSON.stringify({
         success: false,
-        error: errorMessage
+        error: errorMessage,
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
       }
     );
   }
