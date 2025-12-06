@@ -1,23 +1,23 @@
 const fs = require("fs");
 
-// Mapping from UUID to Email (Derived from master_data_import.sql content)
+// Mapping from UUID to Email (Sanitized for @example.com as per seed-master-users/index.ts)
 const uuidToEmail = {
   "1b5bc810-c737-5406-8590-68f495bf50e5": "jose.molla@example.com",
   "0116835a-b1ef-52fe-bffc-a93a23859d15": "kyle.gulamerian@example.com",
-  "5effb696-9d8e-56e2-bf10-05f1a9a2ccba": "matthias@xventures.de",
+  "5effb696-9d8e-56e2-bf10-05f1a9a2ccba": "matthias@example.com",
   "a839e2e2-32a6-50b3-8222-2e42a4477564": "thomas.puech@example.com",
-  "62de504b-ef46-55d0-8b53-2166ddb61883": "danielle@iamfashion-st.com",
-  "faaa9b08-c545-5b67-9e4a-6f83f599423b": "nathana.l.cohen@example.com",
+  "62de504b-ef46-55d0-8b53-2166ddb61883": "danielle@example.com",
+  "faaa9b08-c545-5b67-9e4a-6f83f599423b": "nathanael.cohen@example.com",
   "0e8a1ee8-8276-5c5a-9a21-8a75846a0434": "blondish@example.com",
-  "5836c530-b8f1-5e57-93e5-af65ab618593": "TAC Program", // Special case handling might be needed
-  "5e835847-27eb-58ff-ad59-995b958fe23d": "Babak.eftekhari@gmail.com",
-  "35d59f82-9730-5010-ba48-c97f612fa3a5": "indigo.digital.asset.fund.lp@example.com",
-  "898b6c24-71d3-5a75-a29f-3ac8ec3bf2af": "H.kabbaj@sgtm-maroc.com",
-  "a3221ae4-df69-562a-8a1c-160d24c73f8a": "julien.grunebaum@icloud.com",
-  "39678d51-7ec4-5d38-bb27-8fdb51b05366": "danielefrancilia@gmail.com",
-  "2c9c2933-801a-5ac8-97f7-f39c8eee8cdf": "pib@bruellan.ch",
-  "fba6a3f3-775d-5249-88e1-769ed2e38a0f": "Matthew@beattyvermeiren.co.za",
-  "cbae1f0b-3497-5e1b-b60d-fd68d62ced4b": "bokriek@hotmail.com",
+  "5836c530-b8f1-5e57-93e5-af65ab618593": "tac.program@example.com",
+  "5e835847-27eb-58ff-ad59-995b958fe23d": "babak.eftekhari@example.com",
+  "35d59f82-9730-5010-ba48-c97f612fa3a5": "indigo.lp@example.com",
+  "898b6c24-71d3-5a75-a29f-3ac8ec3bf2af": "h.kabbaj@example.com",
+  "a3221ae4-df69-562a-8a1c-160d24c73f8a": "julien.grunebaum@example.com",
+  "39678d51-7ec4-5d38-bb27-8fdb51b05366": "daniele.francilia@example.com",
+  "2c9c2933-801a-5ac8-97f7-f39c8eee8cdf": "pib@example.com",
+  "fba6a3f3-775d-5249-88e1-769ed2e38a0f": "matthew@example.com",
+  "cbae1f0b-3497-5e1b-b60d-fd68d62ced4b": "bokriek@example.com",
   "e2c558e9-7d21-5770-89a3-2f4c16a8f150": "dario.deiana@example.com",
   "2270d947-2225-5227-a56d-d9c68d470781": "alain.bensimon@example.com",
   "0e70705b-c94b-5f08-be01-c1f0b7c8f276": "anne.cecile.noique@example.com",
@@ -31,11 +31,11 @@ const uuidToEmail = {
   "d80d08f7-c61e-5d78-b915-1b55851f11e3": "halley86@example.com",
   "e086ccaf-7a07-5ba9-b5b7-4359983ccfa2": "indigo.fees@example.com",
   "a8db5b60-6cb2-5cf6-aa1f-d22fe6dd0887": "monica.levy.chicheportiche@example.com",
-  "2df91c31-573b-524f-a5ba-69b663e56a64": "nath...thomas@example.com",
+  "2df91c31-573b-524f-a5ba-69b663e56a64": "nath.thomas@example.com",
   "048cb62d-f5ee-5157-82b6-c90115173517": "sam.johnson@example.com",
   "997c46c9-775e-57bc-b081-0004e1731a30": "valeria.cruz@example.com",
   "a51c6009-de6c-500b-a3e9-e25cad07831b": "rabih.mokbel@example.com",
-  "4d0f7e52-89f7-5abd-bdc8-3547f1c0eb3e": "vivie...liana@example.com",
+  "4d0f7e52-89f7-5abd-bdc8-3547f1c0eb3e": "vivie.liana@example.com",
   "467c3ca9-c4ba-5129-91c2-dbed66f9171c": "brandon.hood@example.com",
 };
 
@@ -73,9 +73,6 @@ while ((match = transactionRegex.exec(masterFile)) !== null) {
   }
 }
 
-// Extract Statements
-// ... (Simplified regex for statements as they are longer, I'll focus on transactions first as they drive AUM)
-// Actually, user wants reports too.
 const statementRegex =
   /INSERT INTO public\.statements \(id, investor_id, period_year, period_month, asset_code, begin_balance, additions, redemptions, net_income, end_balance, storage_path\) VALUES \('([^']+)', '([a-f0-9-]+)', ([0-9]+), ([0-9]+), '([^']+)', ([0-9.]+), ([0-9.]+), ([0-9.]+), ([0-9.]+), ([0-9.]+), '([^']+)'\)/g;
 
