@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Data
+// Data (Sanitized)
 const users = [
   {
     id: "1b5bc810-c737-5406-8590-68f495bf50e5",
@@ -220,10 +220,6 @@ const users = [
   },
 ];
 
-// Note: Transactions and Statements are simplified for this example, usually I would parse the full list.
-// I will rely on the fact that `transactions` and `statements` are PUBLIC tables, so I can insert them via SQL migration
-// ONCE the users exist.
-
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -233,30 +229,43 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // 1. Fetch all existing users to map Emails to IDs
+    const {
+      data: { users: existingUsers },
+      error: listError,
+    } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+    if (listError) throw listError;
+
+    const emailToId = {};
+    existingUsers.forEach((u) => {
+      if (u.email) emailToId[u.email.toLowerCase()] = u.id;
+    });
+
     const results = [];
 
     for (const user of users) {
-      // 1. Create/Get Auth User
-      const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-        email: user.email,
-        password: "TempPassword123!", // Default password
-        email_confirm: true,
-        user_metadata: { first_name: user.first, last_name: user.last },
-      });
+      const emailLower = user.email.toLowerCase();
+      let uid = emailToId[emailLower];
+      let status = "Found";
 
-      let uid = user.id; // Default to hardcoded ID
+      // 2. Create if missing
+      if (!uid) {
+        const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+          email: user.email,
+          password: "TempPassword123!",
+          email_confirm: true,
+          user_metadata: { first_name: user.first, last_name: user.last },
+        });
 
-      // If success, use returned ID (should match, but just in case)
-      if (authUser?.user) {
+        if (authError) {
+          results.push({ email: user.email, status: "Auth Error", error: authError.message });
+          continue;
+        }
         uid = authUser.user.id;
+        status = "Created";
       }
 
-      if (authError && !authError.message.includes("already registered")) {
-        results.push({ email: user.email, status: "Error", error: authError.message });
-        continue;
-      }
-
-      // 2. Create Profile & Investor (Always run this)
+      // 3. Upsert Profile & Investor
       try {
         await supabase.from("profiles").upsert({
           id: uid,
@@ -268,7 +277,7 @@ serve(async (req) => {
 
         await supabase.from("investors").upsert(
           {
-            profile_id: uid, // Link to User
+            profile_id: uid,
             email: user.email,
             name: `${user.first} ${user.last}`,
             status: "active",
@@ -276,7 +285,7 @@ serve(async (req) => {
           { onConflict: "profile_id" }
         );
 
-        results.push({ email: user.email, status: "Ensured", id: uid });
+        results.push({ email: user.email, status: `${status} & Upserted`, id: uid });
       } catch (dbError) {
         results.push({ email: user.email, status: "DB Error", error: dbError.message });
       }

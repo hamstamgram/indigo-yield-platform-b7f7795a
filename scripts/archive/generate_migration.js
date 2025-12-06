@@ -149,5 +149,5 @@ BEGIN
 END $$;
 `;
 
-fs.writeFileSync("supabase/migrations/20251206000000_import_master_transactions_smart.sql", newSql);
+fs.writeFileSync("supabase/migrations/20251206002000_reapply_transactions.sql", newSql);
 console.log("Generated smart migration.");
