@@ -20,7 +20,6 @@ const InvestorsTableHeader: React.FC<InvestorsTableHeaderProps> = ({ assets }) =
             </div>
           </TableHead>
         ))}
-        <TableHead>Fee (%)</TableHead>
         <TableHead className="text-right">Actions</TableHead>
       </TableRow>
     </TableHeader>

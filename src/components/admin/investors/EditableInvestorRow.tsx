@@ -34,9 +34,6 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
         </TableCell>
       ))}
 
-      {/* Fee percentage */}
-      <TableCell>2.0%</TableCell>
-
       {/* Actions */}
       <TableCell className="text-right">
         <div className="flex justify-end gap-2">
