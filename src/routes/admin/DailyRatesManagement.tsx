@@ -50,12 +50,12 @@ export default function DailyRatesManagement() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const assets = [
-    { code: "BTC", name: "Bitcoin", color: "orange" },
-    { code: "ETH", name: "Ethereum", color: "blue" },
-    { code: "SOL", name: "Solana", color: "purple" },
-    { code: "USDT", name: "Stablecoin Fund", color: "green", stablecoin: true },
-    { code: "USDC", name: "Tokenized Gold", color: "blue", stablecoin: true },
-    { code: "EURC", name: "Euro Coin", color: "blue", stablecoin: true },
+    { code: "BTC", name: "Bitcoin Yield Fund", color: "orange" },
+    { code: "ETH", name: "Ethereum Yield Fund", color: "blue" },
+    { code: "SOL", name: "Solana Yield Fund", color: "purple" },
+    { code: "USDT", name: "USDT Yield Fund", color: "green", stablecoin: true },
+    { code: "USDC", name: "USDC Yield Fund", color: "blue", stablecoin: true },
+    { code: "EURC", name: "Euro Yield Fund", color: "blue", stablecoin: true },
   ];
 
   // Fetch existing rate for selected date
@@ -299,11 +299,12 @@ export default function DailyRatesManagement() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            import {CryptoIcon} from "@/components/CryptoIcons"; // ... inside component ...
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[150px]">Asset</TableHead>
-                  <TableHead className="w-[200px]">Rate (USD)</TableHead>
+                  <TableHead className="w-[250px]">Fund</TableHead>
+                  <TableHead className="w-[200px]">Daily Yield (%)</TableHead>
                   <TableHead className="w-[150px]">24h Change</TableHead>
                   <TableHead className="w-[200px]">Previous Day</TableHead>
                 </TableRow>
@@ -318,22 +319,24 @@ export default function DailyRatesManagement() {
                   return (
                     <TableRow key={asset.code}>
                       <TableCell className="font-medium">
-                        <div>
-                          <div className="font-bold">{asset.code}</div>
-                          <div className="text-sm text-muted-foreground">{asset.name}</div>
+                        <div className="flex items-center gap-3">
+                          <CryptoIcon symbol={asset.code} className="h-8 w-8" />
+                          <div>
+                            <div className="font-bold">{asset.name}</div>
+                            <div className="text-sm text-muted-foreground">{asset.code}</div>
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">$</span>
                           <Input
                             type="number"
-                            step={asset.stablecoin ? "0.01" : "0.01"}
+                            step="0.0001"
                             value={currentRate}
                             onChange={(e) => handleRateChange(fieldKey, e.target.value)}
-                            className="w-[150px]"
-                            disabled={asset.stablecoin}
+                            className="w-[120px] text-right"
                           />
+                          <span className="text-muted-foreground font-medium">%</span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -355,7 +358,7 @@ export default function DailyRatesManagement() {
                       </TableCell>
                       <TableCell>
                         <span className="text-muted-foreground">
-                          {previousRate ? `$${parseFloat(previousRate).toFixed(2)}` : "N/A"}
+                          {previousRate ? `${parseFloat(previousRate).toFixed(4)}%` : "N/A"}
                         </span>
                       </TableCell>
                     </TableRow>
@@ -363,7 +366,6 @@ export default function DailyRatesManagement() {
                 })}
               </TableBody>
             </Table>
-
             {/* Notes */}
             <div>
               <Label htmlFor="notes">Notes (Optional)</Label>
@@ -410,22 +412,22 @@ export default function DailyRatesManagement() {
                           {format(new Date(rate.rate_date), "MMM dd, yyyy")}
                         </TableCell>
                         <TableCell className="text-right">
-                          ${parseFloat(rate.btc_rate).toFixed(2)}
+                          {parseFloat(rate.btc_rate).toFixed(4)}%
                         </TableCell>
                         <TableCell className="text-right">
-                          ${parseFloat(rate.eth_rate).toFixed(2)}
+                          {parseFloat(rate.eth_rate).toFixed(4)}%
                         </TableCell>
                         <TableCell className="text-right">
-                          ${parseFloat(rate.sol_rate).toFixed(2)}
+                          {parseFloat(rate.sol_rate).toFixed(4)}%
                         </TableCell>
                         <TableCell className="text-right">
-                          ${parseFloat(rate.usdt_rate).toFixed(2)}
+                          {parseFloat(rate.usdt_rate).toFixed(4)}%
                         </TableCell>
                         <TableCell className="text-right">
-                          ${parseFloat(rate.usdc_rate).toFixed(2)}
+                          {parseFloat(rate.usdc_rate).toFixed(4)}%
                         </TableCell>
                         <TableCell className="text-right">
-                          ${parseFloat(rate.eurc_rate).toFixed(2)}
+                          {parseFloat(rate.eurc_rate).toFixed(4)}%
                         </TableCell>
                       </TableRow>
                     ))
