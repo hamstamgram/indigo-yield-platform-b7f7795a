@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,6 +16,7 @@ interface EmailRequest {
   html: string;
   from?: string;
   reply_to?: string;
+  email_type?: string; // Metadata for logs
 }
 
 serve(async (req) => {
@@ -26,10 +30,9 @@ serve(async (req) => {
       throw new Error("RESEND_API_KEY is not set");
     }
 
-    const { to, subject, html, from, reply_to }: EmailRequest = await req.json();
+    const { to, subject, html, from, reply_to, email_type }: EmailRequest = await req.json();
 
     // Default sender if not provided
-    // NOTE: Domain must be verified in Resend dashboard and RESEND_API_KEY set
     const sender = from || "Indigo Yield Platform <noreply@indigoyield.com>";
 
     const res = await fetch("https://api.resend.com/emails", {
@@ -50,9 +53,39 @@ serve(async (req) => {
     const data = await res.json();
 
     if (!res.ok) {
+      // Log failure if possible
+      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      const recipients = Array.isArray(to) ? to : [to];
+
+      for (const recipient of recipients) {
+        await supabase.from("email_logs").insert({
+          recipient: recipient,
+          subject: subject,
+          status: "failed",
+          error: JSON.stringify(data),
+          metadata: { email_type },
+          sent_at: new Date().toISOString(),
+        });
+      }
+
       return new Response(JSON.stringify({ error: data }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Log Success
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const recipients = Array.isArray(to) ? to : [to];
+
+    for (const recipient of recipients) {
+      await supabase.from("email_logs").insert({
+        recipient: recipient, // Schema uses 'recipient' not 'recipient_email' based on migration
+        subject: subject,
+        status: "sent",
+        message_id: data.id,
+        metadata: { email_type },
+        sent_at: new Date().toISOString(),
       });
     }
 

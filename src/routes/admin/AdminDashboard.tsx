@@ -188,6 +188,11 @@ function AdminDashboardContent() {
           System Operational
         </div>
       </div>
+      {/* Financial Command Center - Priority 1 */}
+      <div className="space-y-6">
+        <FinancialSnapshot />
+      </div>
+
       {/* High Contrast Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="dashboard-card border-0 shadow-lg bg-card">
@@ -277,10 +282,6 @@ function AdminDashboardContent() {
             </Link>
           ))}
         </div>
-      </div>
-      {/* Financial Command Center */}
-      <div className="space-y-6">
-        <FinancialSnapshot />
       </div>
     </div>
   );
