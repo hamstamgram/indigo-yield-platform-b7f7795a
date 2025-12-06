@@ -244,23 +244,20 @@ serve(async (req) => {
         user_metadata: { first_name: user.first, last_name: user.last },
       });
 
-      if (authError && authError.message.includes("already registered")) {
-        // User exists, fetch ID? We can't easily fetch by email via admin API without listUsers permission scope/loop
-        // But we know the ID we want to usage.
-        // Actually, createUser with specific ID is supported?
-        // No, usually we can't force ID on creation easily unless we use specific methods.
-        // BUT, if I use the SQL migration later, I need the IDs to match.
-        // If the user already exists with a DIFFERENT ID, my transactions won't link.
+      let uid = user.id; // Default to hardcoded ID
 
-        // Ideally, we should list users and check.
-        // For now, let's assume we are fixing a clean/broken state.
-        results.push({ email: user.email, status: "Exists (Skipped)" });
-      } else if (authError) {
+      // If success, use returned ID (should match, but just in case)
+      if (authUser?.user) {
+        uid = authUser.user.id;
+      }
+
+      if (authError && !authError.message.includes("already registered")) {
         results.push({ email: user.email, status: "Error", error: authError.message });
-      } else {
-        // 2. Create Profile & Investor
-        const uid = authUser.user.id;
+        continue;
+      }
 
+      // 2. Create Profile & Investor (Always run this)
+      try {
         await supabase.from("profiles").upsert({
           id: uid,
           email: user.email,
@@ -279,7 +276,9 @@ serve(async (req) => {
           { onConflict: "profile_id" }
         );
 
-        results.push({ email: user.email, status: "Created", id: uid });
+        results.push({ email: user.email, status: "Ensured", id: uid });
+      } catch (dbError) {
+        results.push({ email: user.email, status: "DB Error", error: dbError.message });
       }
     }
 

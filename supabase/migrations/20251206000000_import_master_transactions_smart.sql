@@ -1,4 +1,4 @@
--- Smart Master Data Import
+-- Smart Master Data Import (Sanitized)
 -- Uses Email lookups to link transactions/statements to investors
 -- Requires 'seed-master-users' Edge Function to be run first!
 

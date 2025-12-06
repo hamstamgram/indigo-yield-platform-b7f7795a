@@ -42,7 +42,7 @@ const uuidToEmail = {
 const masterFile = fs.readFileSync("./master_data_import.sql", "utf8");
 
 // Generate New SQL
-let newSql = `-- Smart Master Data Import
+let newSql = `-- Smart Master Data Import (Sanitized)
 -- Uses Email lookups to link transactions/statements to investors
 -- Requires 'seed-master-users' Edge Function to be run first!
 
