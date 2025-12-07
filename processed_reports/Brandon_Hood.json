@@ -1,0 +1,28 @@
+{
+    "profile": {
+        "emails": []
+    },
+    "transactions": [
+        {
+            "date": "04/12/2025",
+            "currency": "ETH",
+            "amount": 31.37,
+            "usd_value": 120970.88,
+            "original_row": {
+                "Investment Date": "04/12/2025",
+                "Investor Name": "Brandon Hood",
+                "Currency": "ETH",
+                "Amount": "31.37",
+                "USD Value": "$120,970.88",
+                "Email": "",
+                "": ""
+            }
+        }
+    ],
+    "summary": {
+        "currencies": {
+            "ETH": 31.37
+        },
+        "total_usd_value": 120970.88
+    }
+}

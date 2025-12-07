@@ -1,0 +1,75 @@
+{
+    "profile": {
+        "emails": [
+            "H.kabbaj@sgtm-maroc.com"
+        ]
+    },
+    "transactions": [
+        {
+            "date": "11/06/2025",
+            "currency": "BTC",
+            "amount": 2.0,
+            "usd_value": 214270.68,
+            "original_row": {
+                "Investment Date": "11/06/2025",
+                "Investor Name": "Kabbaj",
+                "Currency": "BTC",
+                "Amount": "2.0000",
+                "USD Value": "$214,270.68",
+                "Email": "H.kabbaj@sgtm-maroc.com",
+                "": "Hicham.kabbaj@sgtm-maroc.com "
+            }
+        },
+        {
+            "date": "11/07/2025",
+            "currency": "BTC",
+            "amount": 0.9914,
+            "usd_value": 114762.68,
+            "original_row": {
+                "Investment Date": "11/07/2025",
+                "Investor Name": "Kabbaj",
+                "Currency": "BTC",
+                "Amount": "0.9914",
+                "USD Value": "$114,762.68",
+                "Email": "",
+                "": ""
+            }
+        },
+        {
+            "date": "31/07/2025",
+            "currency": "BTC",
+            "amount": 0.6,
+            "usd_value": 69454.92,
+            "original_row": {
+                "Investment Date": "31/07/2025",
+                "Investor Name": "Kabbaj",
+                "Currency": "BTC",
+                "Amount": "0.60",
+                "USD Value": "$69,454.92",
+                "Email": "",
+                "": ""
+            }
+        },
+        {
+            "date": "25/08/2025",
+            "currency": "BTC",
+            "amount": 0.9102,
+            "usd_value": 98517.05,
+            "original_row": {
+                "Investment Date": "25/08/2025",
+                "Investor Name": "Kabbaj",
+                "Currency": "BTC",
+                "Amount": "0.9102",
+                "USD Value": "$98,517.05",
+                "Email": "",
+                "": ""
+            }
+        }
+    ],
+    "summary": {
+        "currencies": {
+            "BTC": 4.5016
+        },
+        "total_usd_value": 497005.32999999996
+    }
+}

@@ -1,0 +1,59 @@
+{
+    "profile": {
+        "emails": []
+    },
+    "transactions": [
+        {
+            "date": "13/11/2025",
+            "currency": "USDT",
+            "amount": 299915.77,
+            "usd_value": 299915.77,
+            "original_row": {
+                "Investment Date": "13/11/2025",
+                "Investor Name": "Nath & Thomas",
+                "Currency": "USDT",
+                "Amount": "299,915.77",
+                "USD Value": "$299,915.77",
+                "Email": "",
+                "": ""
+            }
+        },
+        {
+            "date": "26/11/2025",
+            "currency": "USDT",
+            "amount": -87937.0,
+            "usd_value": -87937.0,
+            "original_row": {
+                "Investment Date": "26/11/2025",
+                "Investor Name": "Nath & Thomas",
+                "Currency": "USDT",
+                "Amount": "-87,937.00",
+                "USD Value": "-$87,937.00",
+                "Email": "",
+                "": ""
+            }
+        },
+        {
+            "date": "27/11/2025",
+            "currency": "BTC",
+            "amount": 1.0,
+            "usd_value": 110191.56,
+            "original_row": {
+                "Investment Date": "27/11/2025",
+                "Investor Name": "Nath & Thomas",
+                "Currency": "BTC",
+                "Amount": "1.00",
+                "USD Value": "$110,191.56",
+                "Email": "",
+                "": ""
+            }
+        }
+    ],
+    "summary": {
+        "currencies": {
+            "USDT": 211978.77000000002,
+            "BTC": 1.0
+        },
+        "total_usd_value": 322170.33
+    }
+}

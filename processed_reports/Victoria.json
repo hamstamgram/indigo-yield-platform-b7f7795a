@@ -1,0 +1,31 @@
+{
+    "profile": {
+        "emails": [
+            "Program",
+            "TAC"
+        ]
+    },
+    "transactions": [
+        {
+            "date": "01/04/2025",
+            "currency": "BTC",
+            "amount": 0.1492,
+            "usd_value": 12316.3,
+            "original_row": {
+                "Investment Date": "01/04/2025",
+                "Investor Name": "Victoria",
+                "Currency": "BTC",
+                "Amount": "0.1492",
+                "USD Value": "$12,316.30",
+                "Email": "TAC Program",
+                "": ""
+            }
+        }
+    ],
+    "summary": {
+        "currencies": {
+            "BTC": 0.1492
+        },
+        "total_usd_value": 12316.3
+    }
+}

@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       access_logs: {
@@ -1619,13 +1644,10 @@ export type Database = {
       investors: {
         Row: {
           accredited: boolean | null
-          aml_status: string | null
           created_at: string | null
           email: string
           entity_type: string | null
           id: string
-          kyc_date: string | null
-          kyc_status: string | null
           name: string
           onboarding_date: string | null
           phone: string | null
@@ -1636,13 +1658,10 @@ export type Database = {
         }
         Insert: {
           accredited?: boolean | null
-          aml_status?: string | null
           created_at?: string | null
           email: string
           entity_type?: string | null
           id?: string
-          kyc_date?: string | null
-          kyc_status?: string | null
           name: string
           onboarding_date?: string | null
           phone?: string | null
@@ -1653,13 +1672,10 @@ export type Database = {
         }
         Update: {
           accredited?: boolean | null
-          aml_status?: string | null
           created_at?: string | null
           email?: string
           entity_type?: string | null
           id?: string
-          kyc_date?: string | null
-          kyc_status?: string | null
           name?: string
           onboarding_date?: string | null
           phone?: string | null
@@ -1747,7 +1763,6 @@ export type Database = {
       onboarding_submissions: {
         Row: {
           additional_emails: string[] | null
-          airtable_record_id: string | null
           company_name: string | null
           created_at: string | null
           created_investor_id: string | null
@@ -1766,7 +1781,6 @@ export type Database = {
         }
         Insert: {
           additional_emails?: string[] | null
-          airtable_record_id?: string | null
           company_name?: string | null
           created_at?: string | null
           created_investor_id?: string | null
@@ -1785,7 +1799,6 @@ export type Database = {
         }
         Update: {
           additional_emails?: string[] | null
-          airtable_record_id?: string | null
           company_name?: string | null
           created_at?: string | null
           created_investor_id?: string | null
@@ -3466,7 +3479,6 @@ export type Database = {
           first_investment_date: string | null
           funds_invested: number | null
           investor_id: string | null
-          kyc_status: string | null
           last_activity_date: string | null
           name: string | null
           status: string | null
@@ -3809,6 +3821,7 @@ export type Database = {
       is_2fa_required: { Args: { p_user_id: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_admin_for_jwt: { Args: never; Returns: boolean }
+      is_admin_safe: { Args: never; Returns: boolean }
       is_import_enabled: { Args: never; Returns: boolean }
       is_valid_share_token: { Args: { token_value: string }; Returns: boolean }
       is_within_edit_window: {
@@ -3923,15 +3936,7 @@ export type Database = {
         | "2fa_verify"
         | "session_revoked"
         | "password_change"
-      asset_code:
-        | "BTC"
-        | "ETH"
-        | "SOL"
-        | "USDT"
-        | "USDC"
-        | "EURC"
-        | "xAUT"
-        | "XRP"
+      asset_code: "BTC" | "ETH" | "SOL" | "USDT" | "EURC" | "xAUT" | "XRP"
       benchmark_type: "BTC" | "ETH" | "STABLE" | "CUSTOM"
       document_type: "statement" | "notice" | "terms" | "tax" | "other"
       fee_kind: "mgmt" | "perf"
@@ -4095,6 +4100,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       access_event: [
@@ -4105,7 +4113,7 @@ export const Constants = {
         "session_revoked",
         "password_change",
       ],
-      asset_code: ["BTC", "ETH", "SOL", "USDT", "USDC", "EURC", "xAUT", "XRP"],
+      asset_code: ["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"],
       benchmark_type: ["BTC", "ETH", "STABLE", "CUSTOM"],
       document_type: ["statement", "notice", "terms", "tax", "other"],
       fee_kind: ["mgmt", "perf"],

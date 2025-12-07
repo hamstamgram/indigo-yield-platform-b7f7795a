@@ -1,0 +1,63 @@
+{
+    "profile": {
+        "emails": [
+            "BTC",
+            "Fund",
+            "Out",
+            "of"
+        ]
+    },
+    "transactions": [
+        {
+            "date": "21/08/2024",
+            "currency": "BTC",
+            "amount": 0.01,
+            "usd_value": 589.7,
+            "original_row": {
+                "Investment Date": "21/08/2024",
+                "Investor Name": "Kyle Gulamerian",
+                "Currency": "BTC",
+                "Amount": "0.0100",
+                "USD Value": "$589.70",
+                "Email": "",
+                "": ""
+            }
+        },
+        {
+            "date": "21/08/2024",
+            "currency": "BTC",
+            "amount": 1.99,
+            "usd_value": 117350.1,
+            "original_row": {
+                "Investment Date": "21/08/2024",
+                "Investor Name": "Kyle Gulamerian",
+                "Currency": "BTC",
+                "Amount": "1.9900",
+                "USD Value": "$117,350.10",
+                "Email": "",
+                "": ""
+            }
+        },
+        {
+            "date": "13/05/2025",
+            "currency": "BTC",
+            "amount": -2.1101,
+            "usd_value": -220796.83,
+            "original_row": {
+                "Investment Date": "13/05/2025",
+                "Investor Name": "Kyle Gulamerian",
+                "Currency": "BTC",
+                "Amount": "-2.1101",
+                "USD Value": "-$220,796.83",
+                "Email": "Out of BTC Fund",
+                "": ""
+            }
+        }
+    ],
+    "summary": {
+        "currencies": {
+            "BTC": -0.11010000000000009
+        },
+        "total_usd_value": -102857.02999999998
+    }
+}

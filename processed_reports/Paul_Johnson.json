@@ -1,0 +1,156 @@
+{
+    "profile": {
+        "emails": [
+            "SOL",
+            "Out",
+            "of",
+            "the",
+            "Fund"
+        ]
+    },
+    "transactions": [
+        {
+            "date": "04/09/2025",
+            "currency": "SOL",
+            "amount": 234.17,
+            "usd_value": 48880.65,
+            "original_row": {
+                "Investment Date": "04/09/2025",
+                "Investor Name": "Paul Johnson",
+                "Currency": "SOL",
+                "Amount": "234.17",
+                "USD Value": "$48,880.65",
+                "Email": "",
+                "": ""
+            }
+        },
+        {
+            "date": "04/09/2025",
+            "currency": "ETH",
+            "amount": 10.44,
+            "usd_value": 43283.82,
+            "original_row": {
+                "Investment Date": "04/09/2025",
+                "Investor Name": "Paul Johnson",
+                "Currency": "ETH",
+                "Amount": "10.44",
+                "USD Value": "$43,283.82",
+                "Email": "",
+                "": ""
+            }
+        },
+        {
+            "date": "10/09/2025",
+            "currency": "ETH",
+            "amount": 4.63,
+            "usd_value": 19206.99,
+            "original_row": {
+                "Investment Date": "10/09/2025",
+                "Investor Name": "Paul Johnson",
+                "Currency": "ETH",
+                "Amount": "4.63",
+                "USD Value": "$19,206.99",
+                "Email": "",
+                "": ""
+            }
+        },
+        {
+            "date": "12/09/2025",
+            "currency": "ETH",
+            "amount": 8.96,
+            "usd_value": 37147.8,
+            "original_row": {
+                "Investment Date": "12/09/2025",
+                "Investor Name": "Paul Johnson",
+                "Currency": "ETH",
+                "Amount": "8.96",
+                "USD Value": "$37,147.80",
+                "Email": "",
+                "": ""
+            }
+        },
+        {
+            "date": "03/10/2025",
+            "currency": "BTC",
+            "amount": 0.4395,
+            "usd_value": 48149.93,
+            "original_row": {
+                "Investment Date": "03/10/2025",
+                "Investor Name": "Paul Johnson",
+                "Currency": "BTC",
+                "Amount": "0.4395",
+                "USD Value": "$48,149.93",
+                "Email": "",
+                "": ""
+            }
+        },
+        {
+            "date": "03/10/2025",
+            "currency": "SOL",
+            "amount": -236.02,
+            "usd_value": -44185.3,
+            "original_row": {
+                "Investment Date": "03/10/2025",
+                "Investor Name": "Paul Johnson",
+                "Currency": "SOL",
+                "Amount": "-236.02",
+                "USD Value": "-$44,185.30",
+                "Email": "Out of the SOL Fund",
+                "": ""
+            }
+        },
+        {
+            "date": "03/10/2025",
+            "currency": "ETH",
+            "amount": -12.0,
+            "usd_value": -46164.96,
+            "original_row": {
+                "Investment Date": "03/10/2025",
+                "Investor Name": "Paul Johnson",
+                "Currency": "ETH",
+                "Amount": "-12.00",
+                "USD Value": "-$46,164.96",
+                "Email": "",
+                "": ""
+            }
+        },
+        {
+            "date": "05/11/2025",
+            "currency": "BTC",
+            "amount": -0.4408,
+            "usd_value": -48572.44,
+            "original_row": {
+                "Investment Date": "05/11/2025",
+                "Investor Name": "Paul Johnson",
+                "Currency": "BTC",
+                "Amount": "-0.4408",
+                "USD Value": "-$48,572.44",
+                "Email": "",
+                "": ""
+            }
+        },
+        {
+            "date": "05/11/2025",
+            "currency": "ETH",
+            "amount": -12.22,
+            "usd_value": -47123.5,
+            "original_row": {
+                "Investment Date": "05/11/2025",
+                "Investor Name": "Paul Johnson",
+                "Currency": "ETH",
+                "Amount": "-12.22",
+                "USD Value": "-$47,123.50",
+                "Email": "",
+                "": ""
+            }
+        }
+    ],
+    "summary": {
+        "currencies": {
+            "SOL": -1.8500000000000227,
+            "ETH": -0.1899999999999995,
+            "BTC": -0.0013000000000000234
+        },
+        "total_usd_value": 10622.99000000002
+    }
+}

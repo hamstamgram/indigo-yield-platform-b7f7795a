@@ -1,0 +1,28 @@
+{
+    "profile": {
+        "emails": []
+    },
+    "transactions": [
+        {
+            "date": "27/11/2025",
+            "currency": "BTC",
+            "amount": 3.411,
+            "usd_value": 375863.41,
+            "original_row": {
+                "Investment Date": "27/11/2025",
+                "Investor Name": "Vivie & Liana",
+                "Currency": "BTC",
+                "Amount": "3.411",
+                "USD Value": "$375,863.41",
+                "Email": "",
+                "": ""
+            }
+        }
+    ],
+    "summary": {
+        "currencies": {
+            "BTC": 3.411
+        },
+        "total_usd_value": 375863.41
+    }
+}
