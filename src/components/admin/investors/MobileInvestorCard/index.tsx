@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Asset, Investor } from "@/types/investorTypes";
-import InvestorAssetDropdown from "../InvestorAssetDropdown"; // Updated import path
+import InvestorAssetDropdown from "../InvestorAssetDropdown";
 import InvestorInfo from "./InvestorInfo";
+import { CryptoIcon } from "@/components/CryptoIcons";
 
 interface MobileInvestorCardProps {
   investor: Investor;
@@ -138,27 +139,31 @@ const MobileInvestorCard = ({
         />
 
         <div className="space-y-3">
-          {assets.map((asset) => (
-            <div key={asset.id} className="flex justify-between items-center">
-              <div className="font-medium">{asset.symbol}</div>
-              {isEditing ? (
-                <Input
-                  type="number"
-                  step="0.00000001"
-                  value={balances[asset.symbol] || "0"}
-                  onChange={(e) => handleBalanceChange(asset.symbol, e.target.value)}
-                  className="max-w-[120px]"
-                />
-              ) : (
-                <div>
-                  {investor.portfolio_summary &&
-                  investor.portfolio_summary[asset.symbol.toUpperCase()]
-                    ? `${investor.portfolio_summary[asset.symbol.toUpperCase()].balance.toFixed(4)}`
-                    : "-"}
+          {assets.map((asset) => {
+            const balance = investor.portfolio_summary?.[asset.symbol.toUpperCase()]?.balance;
+            const hasBalance = balance && balance > 0;
+            return (
+              <div key={asset.id} className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <CryptoIcon symbol={asset.symbol} className="h-5 w-5" />
+                  <span className="font-medium">{asset.symbol}</span>
                 </div>
-              )}
-            </div>
-          ))}
+                {isEditing ? (
+                  <Input
+                    type="number"
+                    step="0.00000001"
+                    value={balances[asset.symbol] || "0"}
+                    onChange={(e) => handleBalanceChange(asset.symbol, e.target.value)}
+                    className="max-w-[120px]"
+                  />
+                ) : (
+                  <div className="font-mono">
+                    {hasBalance ? balance.toFixed(4) : "-"}
+                  </div>
+                )}
+              </div>
+            );
+          })}
 
           <div className="flex justify-between items-center border-t pt-3 mt-3">
             <div className="font-medium">Fee (%)</div>

@@ -54,6 +54,13 @@ export const ASSETS: Record<string, AssetConfig> = {
     color: "#FFD700",
     decimals: 6,
   },
+  EURC: {
+    symbol: "EURC",
+    name: "Euro Coin",
+    logoUrl: "https://cryptologos.cc/logos/euro-coin-eurc-logo.svg",
+    color: "#0052FF",
+    decimals: 6,
+  },
 };
 
 // Fallback logo

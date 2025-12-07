@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
 import { Asset } from "@/types/investorTypes";
 import { InvestorSummaryV2 } from "@/services/adminServiceV2";
+import { CryptoIcon } from "@/components/CryptoIcons";
 
 interface EditableInvestorRowProps {
   investor: InvestorSummaryV2;
@@ -25,14 +26,23 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
     <TableRow key={investor.id}>
       <TableCell className="font-medium">{name}</TableCell>
 
-      {/* Asset balances */}
-      {assets.map((asset) => (
-        <TableCell key={asset.id}>
-          {investor.portfolioDetails.assetBreakdown[asset.symbol]
-            ? `${investor.portfolioDetails.assetBreakdown[asset.symbol].toFixed(4)}`
-            : "-"}
-        </TableCell>
-      ))}
+      {/* Asset balances with logos */}
+      {assets.map((asset) => {
+        const balance = investor.portfolioDetails.assetBreakdown[asset.symbol];
+        const hasBalance = balance && balance > 0;
+        return (
+          <TableCell key={asset.id}>
+            {hasBalance ? (
+              <div className="flex items-center gap-2">
+                <CryptoIcon symbol={asset.symbol} className="h-5 w-5 flex-shrink-0" />
+                <span className="font-mono">{balance.toFixed(4)}</span>
+              </div>
+            ) : (
+              <span className="text-muted-foreground">-</span>
+            )}
+          </TableCell>
+        );
+      })}
 
       {/* Actions */}
       <TableCell className="text-right">

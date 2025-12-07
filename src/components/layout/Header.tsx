@@ -10,11 +10,15 @@ import {
 } from "@/components/ui/breadcrumb";
 import { useBreadcrumbs } from "@/hooks/useBreadcrumbs";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/lib/auth/context";
+import { FundAUMBar } from "@/components/admin/FundAUMBar";
 type HeaderProps = {
   toggleSidebar: () => void;
 };
 const Header = ({ toggleSidebar }: HeaderProps) => {
   const breadcrumbs = useBreadcrumbs();
+  const { isAdmin } = useAuth();
+
   return (
     <header className="bg-background border-b border-border shadow-sm z-10">
       <div className="px-4 sm:px-6 lg:px-8 py-4">
@@ -27,6 +31,13 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
 
           <div className="flex items-center space-x-2"></div>
         </div>
+
+        {/* Admin Fund AUM Bar - Only visible to admins */}
+        {isAdmin && (
+          <div className="mb-3">
+            <FundAUMBar />
+          </div>
+        )}
 
         {/* Breadcrumbs */}
         {breadcrumbs.length > 1 && (
