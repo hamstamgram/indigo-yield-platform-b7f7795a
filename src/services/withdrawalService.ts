@@ -7,9 +7,10 @@ export const withdrawalService = {
    * Get all withdrawal requests with optional filters
    */
   async getWithdrawals(filters?: WithdrawalFilters): Promise<Withdrawal[]> {
+    // Use JOIN to fetch investor data in single query (fixes N+1)
     let query = supabase
       .from("withdrawal_requests")
-      .select("*")
+      .select("*, investors(name, email, profile_id)")
       .order("request_date", { ascending: false });
 
     if (filters?.status && filters.status !== "all") {
@@ -24,24 +25,22 @@ export const withdrawalService = {
 
     if (error) throw error;
 
-    // Fetch investor details for each withdrawal
-    const withdrawalsWithInvestors = await Promise.all(
-      (data || []).map(async (withdrawal) => {
-        const { data: investorData } = await supabase
-          .from("investors")
-          .select("name, email, profile_id")
-          .eq("id", withdrawal.investor_id)
-          .single();
+    // Map the joined data to flat structure
+    const withdrawalsWithInvestors = (data || []).map((withdrawal) => {
+      const investor = withdrawal.investors as {
+        name?: string;
+        email?: string;
+        profile_id?: string;
+      } | null;
+      return {
+        ...withdrawal,
+        investor_name: investor?.name || "Unknown",
+        investor_email: investor?.email || "",
+        investors: undefined, // Remove nested object
+      };
+    });
 
-        return {
-          ...withdrawal,
-          investor_name: investorData?.name || "Unknown",
-          investor_email: investorData?.email || "",
-        };
-      })
-    );
-
-    // Apply search filter after fetching investor data
+    // Apply search filter
     if (filters?.search) {
       const searchLower = filters.search.toLowerCase();
       return withdrawalsWithInvestors.filter(

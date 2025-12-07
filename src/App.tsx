@@ -7,6 +7,7 @@ import { ErrorBoundary } from "./components/error/ErrorBoundary";
 import { AuthProvider } from "./lib/auth/context";
 import { SecurityProvider } from "./components/security/SecurityProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { queryClientConfig, setQueryClient } from "./utils/performance/caching";
 
 // UI Components
 import { Toaster } from "./components/ui/sonner";
@@ -18,17 +19,11 @@ import { AppRoutes } from "./routing/AppRoutes";
 import { useFocusManagement } from "./hooks/useFocusManagement";
 import { RouteSuspense } from "./routing/RouteSuspense";
 
-// This hook has been moved to src/hooks/useFocusManagement.ts
+// Create a QueryClient instance with optimized config
+const queryClient = new QueryClient(queryClientConfig);
 
-// Create a QueryClient instance
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
-    },
-  },
-});
+// Register the queryClient for cache utilities
+setQueryClient(queryClient);
 
 // Main app content with focus management
 function AppContent() {

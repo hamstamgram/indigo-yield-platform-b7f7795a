@@ -1,7 +1,10 @@
 import { QueryClient } from "@tanstack/react-query";
 
-// Query client configuration with optimized caching
-export const queryClient = new QueryClient({
+/**
+ * Optimized QueryClient configuration
+ * Use this when creating the QueryClient in App.tsx
+ */
+export const queryClientConfig = {
   defaultOptions: {
     queries: {
       // Cache for 5 minutes by default
@@ -11,7 +14,7 @@ export const queryClient = new QueryClient({
       // Retry failed requests 3 times
       retry: 3,
       // Retry with exponential backoff
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
       // Don't refetch on window focus for better performance
       refetchOnWindowFocus: false,
       // Refetch on reconnect
@@ -22,7 +25,28 @@ export const queryClient = new QueryClient({
       retry: 1,
     },
   },
-});
+};
+
+// Lazily-bound QueryClient reference - set by App.tsx
+let _queryClient: QueryClient | null = null;
+
+/**
+ * Set the QueryClient instance (call from App.tsx after creating)
+ */
+export function setQueryClient(client: QueryClient): void {
+  _queryClient = client;
+}
+
+/**
+ * Get the QueryClient instance
+ * @throws if setQueryClient hasn't been called
+ */
+function getQueryClient(): QueryClient {
+  if (!_queryClient) {
+    throw new Error("QueryClient not initialized. Call setQueryClient first.");
+  }
+  return _queryClient;
+}
 
 // Cache keys for consistent query invalidation
 export const CACHE_KEYS = {
@@ -54,7 +78,7 @@ export const CACHE_KEYS = {
 export const cacheUtils = {
   // Invalidate user-specific caches
   invalidateUserCache: (userId: string) => {
-    queryClient.invalidateQueries({
+    getQueryClient().invalidateQueries({
       predicate: (query) => {
         return (
           query.queryKey.includes(userId) ||
@@ -67,7 +91,7 @@ export const cacheUtils = {
 
   // Invalidate portfolio caches
   invalidatePortfolioCache: () => {
-    queryClient.invalidateQueries({
+    getQueryClient().invalidateQueries({
       predicate: (query) => {
         return (
           query.queryKey.includes(CACHE_KEYS.PORTFOLIO_SUMMARY) ||
@@ -80,7 +104,7 @@ export const cacheUtils = {
 
   // Invalidate transaction caches
   invalidateTransactionCache: () => {
-    queryClient.invalidateQueries({
+    getQueryClient().invalidateQueries({
       predicate: (query) => {
         return (
           query.queryKey.includes(CACHE_KEYS.TRANSACTIONS) ||
@@ -93,20 +117,20 @@ export const cacheUtils = {
 
   // Clear all caches (use sparingly)
   clearAllCaches: () => {
-    queryClient.clear();
+    getQueryClient().clear();
   },
 
   // Prefetch commonly used data
   prefetchUserData: async (userId: string) => {
     // Prefetch user profile
-    await queryClient.prefetchQuery({
+    await getQueryClient().prefetchQuery({
       queryKey: [CACHE_KEYS.USER_PROFILE, userId],
       queryFn: async () => null,
       staleTime: 10 * 60 * 1000, // 10 minutes
     });
 
     // Prefetch portfolio summary
-    await queryClient.prefetchQuery({
+    await getQueryClient().prefetchQuery({
       queryKey: [CACHE_KEYS.PORTFOLIO_SUMMARY, userId],
       queryFn: async () => null,
       staleTime: 5 * 60 * 1000, // 5 minutes

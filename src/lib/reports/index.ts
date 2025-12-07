@@ -6,9 +6,13 @@
 // Core engine
 export { ReportEngine } from "./reportEngine";
 
-// Generators
-export { PDFReportGenerator, generatePDFReport } from "./pdfGenerator";
-export { ExcelReportGenerator, generateExcelReport } from "./excelGenerator";
+// Generators - use lazy imports to reduce bundle size
+// Import directly from ./pdfGenerator or ./excelGenerator when needed
+// Or use the lazy wrappers from @/services/api/reportsApi.lazy
 
 // Re-export types
 export * from "@/types/reports";
+
+// Lazy loader utilities for dynamic imports
+export const loadPDFGenerator = () => import("./pdfGenerator");
+export const loadExcelGenerator = () => import("./excelGenerator");

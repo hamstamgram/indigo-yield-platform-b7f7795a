@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef, useCallback } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { authService } from "@/services/core";
@@ -53,7 +53,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Track profile fetch state to avoid double-fetching
+  const profileFetchedRef = useRef<string | null>(null);
+  const initializedRef = useRef(false);
+
+  // Memoized profile fetch that deduplicates requests
+  const fetchProfileOnce = useCallback((userId: string) => {
+    // Skip if already fetched for this user
+    if (profileFetchedRef.current === userId) {
+      return;
+    }
+    profileFetchedRef.current = userId;
+    fetchProfile(userId);
+  }, []);
+
   useEffect(() => {
+    // Prevent double-initialization in StrictMode
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
     // Set up auth state listener FIRST
     const {
       data: { subscription },
@@ -64,9 +82,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (session?.user) {
         // Defer profile fetching to avoid auth callback deadlock
         setTimeout(() => {
-          fetchProfile(session.user.id);
+          fetchProfileOnce(session.user.id);
         }, 0);
       } else {
+        profileFetchedRef.current = null;
         setProfile(null);
         setLoading(false);
       }
@@ -77,14 +96,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        fetchProfileOnce(session.user.id);
       } else {
         setLoading(false);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fetchProfileOnce]);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -119,7 +138,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           last_name: profileData.last_name ?? undefined,
           is_admin: profileData.is_admin || false,
           totp_enabled: totpData?.enabled || false,
-          totp_verified: (totpData?.verified_at !== null && totpData?.verified_at !== undefined) || false,
+          totp_verified:
+            (totpData?.verified_at !== null && totpData?.verified_at !== undefined) || false,
         });
       } else {
         // Fallback to minimal profile
@@ -128,7 +148,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           email: user?.email || "",
           is_admin: user?.user_metadata?.is_admin || false,
           totp_enabled: totpData?.enabled || false,
-          totp_verified: (totpData?.verified_at !== null && totpData?.verified_at !== undefined) || false,
+          totp_verified:
+            (totpData?.verified_at !== null && totpData?.verified_at !== undefined) || false,
         });
       }
     } catch (error) {

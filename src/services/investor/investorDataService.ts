@@ -142,9 +142,11 @@ export class InvestorDataService {
 
   /**
    * Get all investors with their position summaries
+   * OPTIMIZED: Uses batch queries to avoid N+1 pattern
    */
   async getAllInvestorsWithSummary(): Promise<InvestorSummary[]> {
     try {
+      // Step 1: Get all investors in one query
       const { data: investors, error } = await supabase.from("investors").select("*").order("name");
 
       if (error) {
@@ -152,35 +154,71 @@ export class InvestorDataService {
         throw error;
       }
 
-      if (!investors) return [];
+      if (!investors || investors.length === 0) return [];
 
-      // Get summaries for all investors
-      const summaries = await Promise.all(
-        investors.map(async (investor) => {
-          try {
-            const summary = await this.getInvestorSummary(investor.id);
-            return summary;
-          } catch (error) {
-            console.warn(`Failed to get summary for investor ${investor.id}:`, error);
-            return {
-              id: investor.id,
-              name: investor.name || "Unknown",
-              email: investor.email || "",
-              status: investor.status,
-              totalAUM: 0,
-              totalEarned: 0,
-              totalPrincipal: 0,
-              positionCount: 0,
-              assetBreakdown: {},
-              kycStatus: investor.kyc_status,
-              amlStatus: investor.aml_status,
-              onboardingDate: investor.onboarding_date,
-            };
+      // Step 2: Get ALL positions with fund data in one query (fixes N+1)
+      const investorIds = investors.map((inv) => inv.id);
+      const { data: allPositions } = await supabase
+        .from("investor_positions")
+        .select(
+          `
+          investor_id,
+          shares,
+          current_value,
+          cost_basis,
+          unrealized_pnl,
+          funds (asset)
+        `
+        )
+        .in("investor_id", investorIds)
+        .gt("shares", 0);
+
+      // Step 3: Group positions by investor_id for O(1) lookup
+      const positionsByInvestor = new Map<string, typeof allPositions>();
+      (allPositions || []).forEach((pos) => {
+        const existing = positionsByInvestor.get(pos.investor_id) || [];
+        existing.push(pos);
+        positionsByInvestor.set(pos.investor_id, existing);
+      });
+
+      // Step 4: Map investors with pre-fetched positions (no additional queries)
+      const summaries = investors.map((investor) => {
+        const positions = positionsByInvestor.get(investor.id) || [];
+
+        const totalAUM = positions.reduce((sum, pos) => sum + Number(pos.current_value || 0), 0);
+        const totalEarned = positions.reduce(
+          (sum, pos) => sum + Number(pos.unrealized_pnl || 0),
+          0
+        );
+        const totalPrincipal = positions.reduce((sum, pos) => sum + Number(pos.cost_basis || 0), 0);
+
+        // Calculate asset breakdown
+        const assetBreakdown: Record<string, number> = {};
+        positions.forEach((pos) => {
+          const asset = (pos.funds as { asset?: string } | null)?.asset || "Unknown";
+          if (!assetBreakdown[asset]) {
+            assetBreakdown[asset] = 0;
           }
-        })
-      );
+          assetBreakdown[asset] += Number(pos.current_value || 0);
+        });
 
-      return summaries.filter(Boolean) as InvestorSummary[];
+        return {
+          id: investor.id,
+          name: investor.name || "Unknown",
+          email: investor.email || "",
+          status: investor.status,
+          totalAUM,
+          totalEarned,
+          totalPrincipal,
+          positionCount: positions.length,
+          assetBreakdown,
+          kycStatus: investor.kyc_status,
+          amlStatus: investor.aml_status,
+          onboardingDate: investor.onboarding_date || investor.created_at,
+        };
+      });
+
+      return summaries;
     } catch (error) {
       console.error("Error in getAllInvestorsWithSummary:", error);
       throw error;

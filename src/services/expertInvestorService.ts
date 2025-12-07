@@ -302,13 +302,19 @@ class ExpertInvestorService {
 
   /**
    * Get unified position data combining positions table and investor_positions
+   * OPTIMIZED: Uses JOIN to fetch fund data in single query (fixes N+1)
    */
   private async getUnifiedPositions(investorId: string): Promise<UnifiedPositionData[]> {
     try {
-      // Get investor_positions (fund-based positions)
+      // Get investor_positions with fund data using JOIN (single query)
       const { data: fundPositions } = await supabase
         .from("investor_positions")
-        .select("*")
+        .select(
+          `
+          *,
+          funds(name, code, asset, inception_date)
+        `
+        )
         .eq("investor_id", investorId);
 
       // Get legacy positions data
@@ -320,18 +326,18 @@ class ExpertInvestorService {
 
       const unifiedPositions: UnifiedPositionData[] = [];
 
-      // Process fund positions
+      // Process fund positions using joined fund data
       if (fundPositions) {
         for (const pos of fundPositions) {
-          // Get fund data separately
-          const { data: fundData } = await supabase
-            .from("funds")
-            .select("name, code, asset, inception_date")
-            .eq("id", pos.fund_id)
-            .single();
+          const fundData = pos.funds as {
+            name?: string;
+            code?: string;
+            asset?: string;
+            inception_date?: string;
+          } | null;
 
           unifiedPositions.push({
-            id: `${pos.fund_id}-${pos.investor_id}`, // Composite key since no id field
+            id: `${pos.fund_id}-${pos.investor_id}`,
             investorId,
             fundId: pos.fund_id,
             fundName: fundData?.name || "Unknown Fund",

@@ -1,7 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import { GenerateReportRequest, GenerateReportResponse } from "@/types/reports";
-import { generatePDFReport } from "./pdfGenerator";
-import { generateExcelReport } from "./excelGenerator";
+
+// Lazy load PDF/Excel generators to reduce initial bundle size
+const loadPDFGenerator = () => import("./pdfGenerator");
+const loadExcelGenerator = () => import("./excelGenerator");
 
 export class ReportEngine {
   /**
@@ -18,14 +20,16 @@ export class ReportEngine {
         req.parameters || {}
       );
 
-      // 2. Generate File
+      // 2. Generate File (lazy load to reduce bundle size)
       let result;
       if (req.format === "pdf") {
+        const { generatePDFReport } = await loadPDFGenerator();
         result = await generatePDFReport(reportData, {
           includeCharts: req.parameters?.includeCharts,
           confidential: req.parameters?.confidential,
         });
       } else if (req.format === "excel") {
+        const { generateExcelReport } = await loadExcelGenerator();
         result = await generateExcelReport(reportData, {
           includeCharts: req.parameters?.includeCharts,
         });
