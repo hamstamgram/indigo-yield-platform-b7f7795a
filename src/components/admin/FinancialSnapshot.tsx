@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, PieChart } from "lucide-react";
+import { Calendar as CalendarIcon, PieChart, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +35,9 @@ interface InvestorComposition {
   ownership_pct: number;
 }
 
+type SortColumn = "investor_name" | "email" | "balance" | "ownership_pct";
+type SortDirection = "asc" | "desc";
+
 const formatCrypto = (value: number, symbol: string) => {
   if (!value) value = 0;
   const decimals = symbol === "BTC" ? 8 : symbol === "ETH" ? 6 : 2;
@@ -53,6 +56,58 @@ export const FinancialSnapshot: React.FC = () => {
   const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
   const [compositionData, setCompositionData] = useState<InvestorComposition[]>([]);
   const [loadingComp, setLoadingComp] = useState(false);
+
+  // Sorting State
+  const [sortColumn, setSortColumn] = useState<SortColumn>("balance");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+
+  // Handle column sort
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      // Toggle direction if same column
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      // New column, default to descending for numbers, ascending for text
+      setSortColumn(column);
+      setSortDirection(column === "balance" || column === "ownership_pct" ? "desc" : "asc");
+    }
+  };
+
+  // Get sort icon for column header
+  const getSortIcon = (column: SortColumn) => {
+    if (sortColumn !== column) {
+      return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground" />;
+    }
+    return sortDirection === "asc"
+      ? <ArrowUp className="ml-1 h-3 w-3" />
+      : <ArrowDown className="ml-1 h-3 w-3" />;
+  };
+
+  // Sorted composition data
+  const sortedCompositionData = useMemo(() => {
+    if (!compositionData.length) return [];
+
+    return [...compositionData].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortColumn) {
+        case "investor_name":
+          comparison = a.investor_name.localeCompare(b.investor_name);
+          break;
+        case "email":
+          comparison = a.email.localeCompare(b.email);
+          break;
+        case "balance":
+          comparison = a.balance - b.balance;
+          break;
+        case "ownership_pct":
+          comparison = a.ownership_pct - b.ownership_pct;
+          break;
+      }
+
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+  }, [compositionData, sortColumn, sortDirection]);
 
   const fetchData = async (targetDate: Date) => {
     setLoading(true);
@@ -264,12 +319,42 @@ export const FinancialSnapshot: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Investor Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead className="text-right">
-                      Balance ({selectedFund.asset_code})
+                    <TableHead
+                      className="cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort("investor_name")}
+                    >
+                      <div className="flex items-center">
+                        Investor Name
+                        {getSortIcon("investor_name")}
+                      </div>
                     </TableHead>
-                    <TableHead className="text-right">Ownership Share</TableHead>
+                    <TableHead
+                      className="cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort("email")}
+                    >
+                      <div className="flex items-center">
+                        Email
+                        {getSortIcon("email")}
+                      </div>
+                    </TableHead>
+                    <TableHead
+                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort("balance")}
+                    >
+                      <div className="flex items-center justify-end">
+                        Balance ({selectedFund.asset_code})
+                        {getSortIcon("balance")}
+                      </div>
+                    </TableHead>
+                    <TableHead
+                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort("ownership_pct")}
+                    >
+                      <div className="flex items-center justify-end">
+                        Ownership Share
+                        {getSortIcon("ownership_pct")}
+                      </div>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -280,7 +365,7 @@ export const FinancialSnapshot: React.FC = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    compositionData.map((investor, idx) => (
+                    sortedCompositionData.map((investor, idx) => (
                       <TableRow key={idx}>
                         <TableCell className="font-medium">{investor.investor_name}</TableCell>
                         <TableCell className="text-muted-foreground">{investor.email}</TableCell>
@@ -295,7 +380,7 @@ export const FinancialSnapshot: React.FC = () => {
                       </TableRow>
                     ))
                   )}
-                  {compositionData.length === 0 && !loadingComp && (
+                  {sortedCompositionData.length === 0 && !loadingComp && (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                         No investors found with a balance on this date.
