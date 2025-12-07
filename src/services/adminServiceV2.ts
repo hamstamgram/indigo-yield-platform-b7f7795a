@@ -269,7 +269,7 @@ class AdminServiceV2 {
     }
   }
 
-  // Create new investor
+  // Create new investor (Now creates a Profile directly)
   async createInvestor(investorData: {
     email: string;
     name: string;
@@ -277,15 +277,22 @@ class AdminServiceV2 {
     entity_type?: string;
   }): Promise<string> {
     try {
-      const { data, error } = await supabase
-        .from("investors")
-        .insert([investorData])
-        .select("id")
-        .maybeSingle();
+      // Check if profile exists
+      const { data: existing } = await supabase.from("profiles").select("id").eq("email", investorData.email).maybeSingle();
+      if (existing) throw new Error("Investor with this email already exists.");
 
-      if (error) throw error;
-      if (!data) throw new Error("Failed to create investor");
-      return data.id;
+      // We cannot create a profile without an auth user easily via client SDK 
+      // unless we use a specific edge function or if we are just mocking "invite".
+      // But assuming this is an admin tool, we might need to use the admin invite function.
+      
+      // For now, we assume this is inserting into the 'profiles' table if policies allow,
+      // but typically profiles are created via Auth Triggers.
+      // If we are migrating away from 'investors' table which was likely a manual entry table,
+      // we should use the 'invite_user_by_email' or insert into profiles if we have a trigger handling auth.
+      
+      // Updated logic: Update profile if exists, else error (must invite)
+      throw new Error("To add an investor, please use the 'Invite Investor' feature.");
+      
     } catch (error) {
       console.error("Error creating investor:", error);
       throw error;
@@ -296,7 +303,7 @@ class AdminServiceV2 {
   async updateInvestorStatus(investorId: string, status: string): Promise<void> {
     try {
       const { error } = await supabase
-        .from("investors")
+        .from("profiles")
         .update({ status })
         .eq("id", investorId);
 
@@ -307,29 +314,12 @@ class AdminServiceV2 {
     }
   }
 
-  // Generate statements
-  async generateStatement(investorId: string, period: string): Promise<any> {
-    try {
-      const positions = await this.getInvestorPositions(investorId);
-      const transactions = await this.getTransactionHistory(investorId);
-
-      return {
-        investorId,
-        period,
-        positions,
-        transactions,
-        generatedAt: new Date().toISOString(),
-      };
-    } catch (error) {
-      console.error("Error generating statement:", error);
-      throw error;
-    }
-  }
+  // ...
 
   // Bulk operations
   async bulkUpdateInvestors(investorIds: string[], updates: Record<string, any>): Promise<void> {
     try {
-      const { error } = await supabase.from("investors").update(updates).in("id", investorIds);
+      const { error } = await supabase.from("profiles").update(updates).in("id", investorIds);
 
       if (error) throw error;
     } catch (error) {

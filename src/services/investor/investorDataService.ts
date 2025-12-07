@@ -88,10 +88,10 @@ export class InvestorDataService {
    */
   async getInvestorSummary(investorId: string): Promise<InvestorSummary | null> {
     try {
-      // Get investor profile
+      // Get investor profile from PROFILES table (unified ID)
       const { data: investor, error: investorError } = await supabase
-        .from("investors")
-        .select("*")
+        .from("profiles")
+        .select("id, email, first_name, last_name, status, onboarding_date, created_at")
         .eq("id", investorId)
         .single();
 
@@ -118,11 +118,13 @@ export class InvestorDataService {
         assetBreakdown[pos.asset] += pos.currentValue;
       });
 
+      const fullName = `${investor.first_name || ""} ${investor.last_name || ""}`.trim();
+
       return {
         id: investor.id,
-        name: investor.name || "Unknown",
+        name: fullName || "Unknown",
         email: investor.email || "",
-        status: investor.status,
+        status: investor.status || "active",
         totalAUM,
         totalEarned,
         totalPrincipal,
@@ -142,8 +144,12 @@ export class InvestorDataService {
    */
   async getAllInvestorsWithSummary(): Promise<InvestorSummary[]> {
     try {
-      // Step 1: Get all investors in one query
-      const { data: investors, error } = await supabase.from("investors").select("*").order("name");
+      // Step 1: Get all investors (profiles with role=user usually, or filtering admin)
+      const { data: investors, error } = await supabase
+        .from("profiles")
+        .select("id, email, first_name, last_name, status, onboarding_date, created_at")
+        .eq("is_admin", false) // Assuming we only want investors
+        .order("created_at", { ascending: false });
 
       if (error) {
         console.error("Error fetching investors:", error);
@@ -198,11 +204,13 @@ export class InvestorDataService {
           assetBreakdown[asset] += Number(pos.current_value || 0);
         });
 
+        const fullName = `${investor.first_name || ""} ${investor.last_name || ""}`.trim();
+
         return {
           id: investor.id,
-          name: investor.name || "Unknown",
+          name: fullName || "Unknown",
           email: investor.email || "",
-          status: investor.status,
+          status: investor.status || "active",
           totalAUM,
           totalEarned,
           totalPrincipal,
@@ -221,23 +229,12 @@ export class InvestorDataService {
 
   /**
    * Get user's own positions (for investor dashboard)
-   * Note: This requires looking up the investor_id from the authenticated user_id
+   * Note: The userId IS the investor_id now (Unified ID)
    */
   async getUserPositions(userId: string): Promise<InvestorPositionDetail[]> {
     try {
-      // First resolve investor_id
-      const { data: investor, error: investorError } = await supabase
-        .from("investors")
-        .select("id")
-        .eq("profile_id", userId)
-        .single();
-
-      if (investorError || !investor) {
-        console.warn("Investor profile not found for user:", userId);
-        return [];
-      }
-
-      return await this.getInvestorPositions(investor.id);
+      // Direct call - One ID rule
+      return await this.getInvestorPositions(userId);
     } catch (error) {
       console.error("Error fetching user positions:", error);
       throw error;

@@ -33,7 +33,7 @@ export default function AdminInvestorsPage() {
   const deactivateMutation = useMutation({
     mutationFn: async (investorId: string) => {
       const { error } = await supabase
-        .from("investors")
+        .from("profiles")
         .update({ status: "inactive" })
         .eq("id", investorId);
       if (error) throw error;
@@ -58,18 +58,9 @@ export default function AdminInvestorsPage() {
     queryKey: ["admin-investors"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("investors")
-        .select(
-          `
-          id,
-          status,
-          created_at,
-          profiles (
-            full_name,
-            email
-          )
-        `
-        )
+        .from("profiles")
+        .select("id, status, created_at, email, first_name, last_name")
+        .eq("is_admin", false)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -79,9 +70,9 @@ export default function AdminInvestorsPage() {
 
   const filteredInvestors = investors?.filter((investor: any) => {
     const search = searchTerm.toLowerCase();
-    const firstName = investor.profiles?.first_name?.toLowerCase() || "";
-    const lastName = investor.profiles?.last_name?.toLowerCase() || "";
-    const email = investor.profiles?.email?.toLowerCase() || "";
+    const firstName = investor.first_name?.toLowerCase() || "";
+    const lastName = investor.last_name?.toLowerCase() || "";
+    const email = investor.email?.toLowerCase() || "";
     const fullName = `${firstName} ${lastName}`.toLowerCase();
     return fullName.includes(search) || email.includes(search);
   });
@@ -156,18 +147,18 @@ export default function AdminInvestorsPage() {
                           </div>
                           <div>
                             <div className="font-medium">
-                              {investor.profiles?.first_name || ""}{" "}
-                              {investor.profiles?.last_name || "Unknown"}
+                              {investor.first_name || ""}{" "}
+                              {investor.last_name || "Unknown"}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {investor.profiles?.email}
+                              {investor.email}
                             </div>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={getStatusColor(investor.status)}>
-                          {investor.status}
+                          {investor.status || "active"}
                         </Badge>
                       </TableCell>
                       <TableCell>

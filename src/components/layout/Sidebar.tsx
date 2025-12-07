@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Search } from "lucide-react";
+import { X, Search, Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import NavSection from "@/components/sidebar/NavSection";
@@ -15,6 +15,7 @@ type SidebarProps = {
   setSidebarOpen: (open: boolean) => void;
   isAdmin?: boolean;
 };
+
 const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps) => {
   // Temporary empty arrays for removed nav items
   const accountNav: NavItem[] = [];
@@ -22,17 +23,18 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
 
   const [userName, setUserName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  // Removed expandedGroups state as we want everything open by default
+  const [fundItems, setFundItems] = useState<NavItem[]>([]); // Dynamic Funds
+
   const navigate = useNavigate();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     const getUser = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (user) {
-        // Get profile data directly from profiles table
         const { data: profile, error } = await supabase
           .from("profiles")
           .select("first_name, last_name")
@@ -41,18 +43,38 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
         if (error) {
           console.warn("Failed to fetch profile:", error);
           setUserName(user.email?.split("@")[0] || "User");
-          return;
+        } else {
+          const first = profile?.first_name || "";
+          const last = profile?.last_name || "";
+          const name = `${first} ${last}`.trim();
+          setUserName(name.length > 0 ? name : user.email?.split("@")[0] || "User");
         }
-        const first = profile?.first_name || "";
-        const last = profile?.last_name || "";
-        const name = `${first} ${last}`.trim();
-        setUserName(name.length > 0 ? name : user.email?.split("@")[0] || "User");
       } else {
         navigate("/login");
       }
     };
+
+    // Fetch Active Funds for Dynamic Menu
+    const getFunds = async () => {
+      const { data: assets } = await supabase
+        .from("assets")
+        .select("symbol, name")
+        .eq("is_active", true)
+        .order("symbol");
+      
+      if (assets) {
+        const items: NavItem[] = assets.map(asset => ({
+          title: asset.name, // e.g. "Bitcoin"
+          href: isAdmin ? `/admin/funds/${asset.symbol}` : `/funds/${asset.symbol}`,
+          icon: <Coins className="h-4 w-4" />
+        }));
+        setFundItems(items);
+      }
+    };
+
     getUser();
-  }, [navigate]);
+    getFunds();
+  }, [navigate, isAdmin]);
 
   // Filter navigation items based on admin status and search
   const filteredMainNav = isAdmin
@@ -185,51 +207,88 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
 
           {/* Nav */}
           <nav className="flex-1 px-4 py-6 overflow-y-auto" role="menu">
-            {/* Admin Navigation - Always expanded */}
-            {isAdmin &&
-              adminNavGroups.map((group) => {
-                const filteredItems = filterNavItems(group.items, searchQuery);
-                if (filteredItems.length === 0) return null;
-
-                return (
-                  <div key={group.title} className="mb-6">
+            {/* Admin Navigation */}
+            {isAdmin && (
+              <>
+                {/* Dynamic Funds for Admin */}
+                {fundItems.length > 0 && (
+                  <div className="mb-6">
                     <div className="w-full flex items-center justify-between px-2 py-1.5 mb-1 text-xs font-bold text-sidebar-foreground uppercase tracking-wider">
                       <div className="flex items-center gap-2">
-                        {group.icon && <group.icon className="h-3 w-3" />}
-                        <span>{group.title}</span>
+                        <Coins className="h-3 w-3" />
+                        <span>Fund Management</span>
                       </div>
                     </div>
-
-                    <div id={`nav-group-${group.title}`} className="ml-0">
-                      <NavSection
-                        title=""
-                        items={filteredItems}
-                        onItemClick={handleNavigationClick}
-                        showTitle={false}
-                      />
-                    </div>
+                    <NavSection
+                      title=""
+                      items={filterNavItems(fundItems, searchQuery)}
+                      onItemClick={handleNavigationClick}
+                      showTitle={false}
+                    />
                   </div>
-                );
-              })}
+                )}
 
-            {/* Main Navigation - Only for non-admin users */}
-            {filteredMainNav.length > 0 && (
-              <NavSection
-                title="Main"
-                items={filteredMainNav}
-                onItemClick={handleNavigationClick}
-                isExpanded={true}
-              />
+                {/* Static Admin Groups */}
+                {adminNavGroups.map((group) => {
+                  const filteredItems = filterNavItems(group.items, searchQuery);
+                  if (filteredItems.length === 0) return null;
+
+                  return (
+                    <div key={group.title} className="mb-6">
+                      <div className="w-full flex items-center justify-between px-2 py-1.5 mb-1 text-xs font-bold text-sidebar-foreground uppercase tracking-wider">
+                        <div className="flex items-center gap-2">
+                          {group.icon && <group.icon className="h-3 w-3" />}
+                          <span>{group.title}</span>
+                        </div>
+                      </div>
+
+                      <div id={`nav-group-${group.title}`} className="ml-0">
+                        <NavSection
+                          title=""
+                          items={filteredItems}
+                          onItemClick={handleNavigationClick}
+                          showTitle={false}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
             )}
 
-            {/* Settings Navigation - Only for non-admin users */}
-            {!isAdmin && settingsNav.length > 0 && (
-              <NavSection
-                title="Settings"
-                items={settingsNav}
-                onItemClick={handleNavigationClick}
-                isExpanded={true}
-              />
+            {/* Investor Navigation */}
+            {!isAdmin && (
+              <>
+                {/* Main Nav */}
+                {filteredMainNav.length > 0 && (
+                  <NavSection
+                    title="Main"
+                    items={filteredMainNav}
+                    onItemClick={handleNavigationClick}
+                    isExpanded={true}
+                  />
+                )}
+
+                {/* My Funds (Dynamic) */}
+                {fundItems.length > 0 && (
+                  <NavSection
+                    title="My Funds"
+                    items={fundItems}
+                    onItemClick={handleNavigationClick}
+                    isExpanded={true}
+                  />
+                )}
+
+                {/* Settings */}
+                {settingsNav.length > 0 && (
+                  <NavSection
+                    title="Settings"
+                    items={settingsNav}
+                    onItemClick={handleNavigationClick}
+                    isExpanded={true}
+                  />
+                )}
+              </>
             )}
 
             {/* Account Navigation */}

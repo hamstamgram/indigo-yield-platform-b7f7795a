@@ -1,123 +1,51 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useInvestorPerformance, usePortfolioStats } from "@/hooks/useInvestorPerformance";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowUpRight, Calendar, Clock, Coins } from "lucide-react";
-import { Link } from "react-router-dom";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
-import { EmptyState } from "@/components/ui/empty-state"; // Import
-import { getAssetLogo } from "@/utils/assets";
-
-interface AssetPosition {
-  fundName: string;
-  assetCode: string;
-  balance: number;
-  yieldEarned: number; // All time yield
-  openingBalance?: number;
-  additions?: number;
-  withdrawals?: number;
-  mtdYield?: number;
-}
+import { Clock, Calendar, Coins } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PerformanceReportTable } from "@/components/investor/reports/PerformanceReportTable";
+import { format } from "date-fns";
 
 export default function DashboardPage() {
-  const { data: portfolio, isLoading: isLoadingPortfolio } = useQuery({
-    queryKey: ["dashboard-portfolio"],
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user");
+  // Fetch new data sources
+  const { data: performanceHistory, isLoading: isLoadingPerf } = useInvestorPerformance();
+  const { data: stats, isLoading: isLoadingStats } = usePortfolioStats();
 
-      // Fetch positions
-      const { data: positions, error } = await (supabase as any)
-        .from("investor_positions")
-        .select(
-          `
-          shares,
-          realized_pnl,
-          current_value,
-          cost_basis,
-          funds ( name, asset, code )
-        `
-        )
-        .eq("investor_id", user.id);
+  // Filter for "Latest Month" for the dashboard view
+  // We assume the API returns data sorted by date descending
+  // We want to show the top record for EACH unique fund in the latest period
+  
+  const latestPeriodId = performanceHistory?.[0]?.period_id;
+  const latestMonthData = performanceHistory?.filter(
+    (r) => r.period_id === latestPeriodId
+  ) || [];
 
-      if (error) throw error;
-
-      // Fetch reports for ledger details
-      const { data: reports } = await (supabase as any)
-        .from("investor_monthly_reports")
-        .select("*")
-        .eq("investor_id", user.id)
-        .order("report_month", { ascending: false });
-
-      return positions.map((pos: any) => {
-        const rawAssetCode = (pos.funds?.asset || "UNITS").toUpperCase();
-        const assetCode = rawAssetCode;
-        // Get latest report for this asset to show "This Month's Activity"
-        const latestReport = reports?.find((r: any) => r.asset_code === rawAssetCode);
-
-        return {
-          fundName: pos.funds?.name || "Unknown Fund",
-          assetCode: assetCode,
-          balance: Number(pos.shares) || 0,
-          yieldEarned: Number(pos.realized_pnl ?? 0) || 0,
-          // Ledger Data matching Report Columns
-          openingBalance: latestReport ? Number(latestReport.opening_balance) : 0,
-          additions: latestReport ? Number(latestReport.additions) : 0,
-          withdrawals: latestReport ? Number(latestReport.withdrawals) : 0,
-          mtdYield: latestReport ? Number(latestReport.yield_earned) : 0,
-        } as AssetPosition;
-      });
-    },
-  });
-
-  // Aggregate stats
-  const totalYieldAllTime =
-    portfolio?.reduce((acc: number, curr: AssetPosition) => acc + curr.yieldEarned, 0) || 0;
-  const totalYieldMonth =
-    portfolio?.reduce((acc: number, curr: AssetPosition) => acc + (curr.mtdYield || 0), 0) || 0;
-  const isMultiAsset = portfolio && portfolio.length > 1;
-  const yieldUnitLabel = isMultiAsset ? "Mixed Assets" : portfolio?.[0]?.assetCode || "UNITS";
+  const periodName = latestMonthData[0]?.period?.period_name || "Current Period";
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-20 p-4 md:p-0">
-      {" "}
-      {/* Added padding */}
-      {/* HERO: High Contrast Yield Display */}
+    <div className="space-y-8 max-w-6xl mx-auto pb-20 p-4 md:p-0">
       <section className="space-y-2">
         <h1 className="text-2xl font-display font-bold tracking-tight text-foreground">
           Performance
         </h1>
         <p className="text-muted-foreground">Capital Account Summary</p>
       </section>
+
+      {/* Stats Cards */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="dashboard-card border-l-4 border-l-primary bg-card shadow-sm">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  Yield (Inception)
+                  Total Yield (YTD)
                 </p>
                 <div className="flex items-baseline gap-2 mt-1">
-                  {isMultiAsset ? (
-                    <span className="text-2xl font-mono font-bold text-primary">See Breakdown</span>
-                  ) : (
-                    <>
-                      <span className="text-4xl font-mono font-bold text-primary">
-                        {totalYieldAllTime.toFixed(4)}
-                      </span>
-                      <span className="text-sm font-bold text-muted-foreground">
-                        {yieldUnitLabel.toUpperCase()}
-                      </span>
-                    </>
-                  )}
+                  <span className="text-4xl font-mono font-bold text-primary">
+                    {isLoadingStats ? "..." : stats?.totalYtdYield.toFixed(4)}
+                  </span>
+                  <span className="text-sm font-bold text-muted-foreground">
+                    AGGREGATED
+                  </span>
                 </div>
               </div>
               <div className="p-2 bg-primary/10 rounded-full">
@@ -125,7 +53,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Total accumulated earnings across all funds.
+              Total accumulated earnings across all active funds this year.
             </p>
           </CardContent>
         </Card>
@@ -135,151 +63,53 @@ export default function DashboardPage() {
             <div className="flex justify-between items-start mb-4">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  Yield (This Month)
+                  Funds Active
                 </p>
                 <div className="flex items-baseline gap-2 mt-1">
-                  {isMultiAsset ? (
-                    <span className="text-2xl font-mono font-bold text-green-600">
-                      See Breakdown
-                    </span>
-                  ) : (
-                    <>
-                      <span className="text-4xl font-mono font-bold text-green-600">
-                        +{totalYieldMonth.toFixed(4)}
-                      </span>
-                      <span className="text-sm font-bold text-muted-foreground">
-                        {yieldUnitLabel.toUpperCase()}
-                      </span>
-                    </>
-                  )}
+                  <span className="text-4xl font-mono font-bold text-green-600">
+                    {isLoadingStats ? "..." : stats?.activeFunds}
+                  </span>
+                  <span className="text-sm font-bold text-muted-foreground">
+                    ASSETS
+                  </span>
                 </div>
               </div>
               <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-full">
-                <Calendar className="h-6 w-6 text-green-600" />
+                <Coins className="h-6 w-6 text-green-600" />
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Net income generated in the current period.
+              Number of active fund positions in your portfolio.
             </p>
           </CardContent>
         </Card>
       </section>
-      {/* LEDGER: Matches the Report PDF Structure */}
+
+      {/* Main Performance Table */}
       <section className="space-y-4">
-        <h2 className="text-lg font-display font-bold tracking-tight">Asset Ledgers</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-display font-bold tracking-tight">
+            Latest Report: {periodName}
+          </h2>
+        </div>
 
-        {isLoadingPortfolio ? (
-          <div className="p-8 text-center text-muted-foreground animate-pulse">
-            Loading capital accounts...
+        {isLoadingPerf ? (
+          <div className="p-12 text-center text-muted-foreground border rounded-lg bg-muted/5">
+            Loading performance data...
           </div>
-        ) : portfolio && portfolio.length > 0 ? (
-          <div className="space-y-3">
-            {portfolio.map((asset: AssetPosition, idx: number) => (
-              <Accordion type="single" collapsible key={idx} className="w-full">
-                <AccordionItem value={`item-${idx}`} className="border-none mb-2">
-                  <Card className="dashboard-card border-0 bg-card hover:bg-accent/5 transition-all overflow-hidden">
-                    <AccordionTrigger className="hover:no-underline px-6 py-5">
-                      <div className="flex items-center justify-between w-full pr-4">
-                        <div className="flex items-center gap-4">
-                          <div className="h-10 w-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
-                            <img
-                              src={getAssetLogo(asset.assetCode)}
-                              alt={asset.assetCode}
-                              className="h-8 w-8 object-contain"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = "none";
-                                (e.target as HTMLImageElement).parentElement!.innerText =
-                                  asset.assetCode.substring(0, 1);
-                              }}
-                            />
-                          </div>
-                          <div className="text-left">
-                            <h3 className="font-bold text-base">{asset.fundName}</h3>
-                            <p className="text-sm text-muted-foreground font-mono">
-                              {asset.balance.toFixed(4)} {asset.assetCode}
-                            </p>
-                          </div>
-                        </div>
-                        <Badge
-                          variant="outline"
-                          className="font-mono bg-green-50 text-green-700 border-green-200"
-                        >
-                          +{asset.mtdYield?.toFixed(4)} Yield
-                        </Badge>
-                      </div>
-                    </AccordionTrigger>
-
-                    {/* Expanded Ledger View - Matches Report Columns */}
-                    <AccordionContent className="px-0 pb-0">
-                      <div className="bg-muted/30 border-t border-border/50 px-6 py-6">
-                        <h4 className="text-xs font-bold uppercase text-muted-foreground mb-4 tracking-wider">
-                          Capital Account Summary (MTD)
-                        </h4>
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-                          <div>
-                            <p className="text-[10px] text-muted-foreground uppercase mb-1">
-                              Beginning
-                            </p>
-                            <p className="font-mono font-medium">
-                              {asset.openingBalance?.toFixed(4)}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] text-muted-foreground uppercase mb-1">
-                              Additions
-                            </p>
-                            <p className="font-mono font-medium text-green-600">
-                              +{asset.additions?.toFixed(4)}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] text-muted-foreground uppercase mb-1">
-                              Redemptions
-                            </p>
-                            <p className="font-mono font-medium text-red-600">
-                              {asset.withdrawals ? `-${asset.withdrawals.toFixed(4)}` : "0.0000"}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] text-muted-foreground uppercase mb-1">
-                              Net Income
-                            </p>
-                            <p className="font-mono font-bold text-blue-600">
-                              +{asset.mtdYield?.toFixed(4)}
-                            </p>
-                          </div>
-                          <div className="border-l pl-4 border-border/50">
-                            <p className="text-[10px] text-foreground font-bold uppercase mb-1">
-                              Ending Balance
-                            </p>
-                            <p className="font-mono font-bold text-lg">
-                              {asset.balance.toFixed(4)}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="mt-6 pt-4 border-t border-dashed flex justify-between items-center">
-                          <p className="text-xs text-muted-foreground">
-                            Reporting Period: Current Month
-                          </p>
-                          <Button variant="ghost" size="sm" asChild className="h-8 text-xs">
-                            <Link to="/statements">
-                              View PDF Reports <ArrowUpRight className="ml-1 h-3 w-3" />
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-                    </AccordionContent>
-                  </Card>
-                </AccordionItem>
-              </Accordion>
-            ))}
-          </div>
+        ) : latestMonthData.length > 0 ? (
+          <PerformanceReportTable 
+            data={latestMonthData} 
+            onDownload={(record) => {
+              console.log("Download clicked for", record.id);
+              // TODO: Hook up to PDF generation service
+            }}
+          />
         ) : (
           <EmptyState
-            icon={Coins}
-            title="No Active Positions"
-            description="You don't have any active investments yet. Contact your administrator to get started."
+            icon={Calendar}
+            title="No Reports Yet"
+            description="Your first performance report will appear here at the end of the month."
           />
         )}
       </section>
