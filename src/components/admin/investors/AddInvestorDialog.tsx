@@ -30,7 +30,6 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({ assets, onInvesto
   const handleSubmit = async (values: InvestorFormValues) => {
     try {
       setIsLoading(true);
-      console.log("Creating investor with values:", values);
 
       // Create user or find existing one
       const userId = await createOrFindInvestorUser(values);
@@ -38,8 +37,6 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({ assets, onInvesto
       if (!userId) {
         throw new Error("Failed to create or find auth user");
       }
-
-      console.log("User created/found with ID:", userId);
 
       // Create portfolio entries for this investor
       const portfolioCreated = await createPortfolioEntries(userId, assets);

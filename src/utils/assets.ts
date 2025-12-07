@@ -85,3 +85,29 @@ export function getAssetName(symbol: string): string {
   const config = getAssetConfig(symbol);
   return config?.name || symbol;
 }
+
+/**
+ * Format an amount with the asset symbol
+ * e.g. formatAssetAmount(1500.5, 'USDT') => "1,500.50 USDT"
+ */
+export function formatAssetAmount(amount: number, symbol: string): string {
+  const config = getAssetConfig(symbol);
+  const decimals = config?.decimals || 4;
+  // For display, cap decimals at 4 for readability (except BTC which uses 8)
+  const displayDecimals = symbol.toUpperCase() === "BTC" ? 8 : Math.min(decimals, 4);
+
+  const formattedValue = amount.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: displayDecimals,
+  });
+
+  return `${formattedValue} ${symbol.toUpperCase()}`;
+}
+
+/**
+ * Get asset decimals for formatting
+ */
+export function getAssetDecimals(symbol: string): number {
+  const config = getAssetConfig(symbol);
+  return config?.decimals || 4;
+}

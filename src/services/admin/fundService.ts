@@ -10,9 +10,8 @@ export interface Fund {
   code: string;
   name: string;
   asset: string;
-  asset_symbol?: string;
-  total_aum?: number;
   fund_class?: string;
+  strategy?: string;
   inception_date: string;
   status: "active" | "inactive" | "suspended";
   mgmt_fee_bps: number;
@@ -86,7 +85,6 @@ export async function createFund(fund: Omit<Fund, "id" | "created_at" | "updated
     ...fund,
     fund_class: fund.fund_class || "default",
     asset: fund.asset || "BTC",
-    asset_symbol: fund.asset_symbol || fund.asset || "BTC", // Ensure asset_symbol is set
   };
 
   const { data, error } = await supabase
@@ -104,16 +102,9 @@ export async function createFund(fund: Omit<Fund, "id" | "created_at" | "updated
  * Update fund
  */
 export async function updateFund(fundId: string, updates: Partial<Fund>) {
-  const updatesWithSymbol = { ...updates };
-
-  // Ensure asset_symbol is synchronized if asset is updated
-  if (updates.asset && !updates.asset_symbol) {
-    updatesWithSymbol.asset_symbol = updates.asset;
-  }
-
   const { data, error } = await supabase
     .from("funds")
-    .update(updatesWithSymbol)
+    .update(updates)
     .eq("id", fundId)
     .select()
     .maybeSingle();
@@ -125,91 +116,118 @@ export async function updateFund(fundId: string, updates: Partial<Fund>) {
 
 /**
  * List daily NAV for a fund
- * @deprecated Workflow moved to Monthly Reports
+ * @deprecated Workflow moved to Monthly Reports - Use investor_monthly_reports instead
  */
-export async function listDailyNav(_fundId: string, _startDate?: string, _endDate?: string) {
-  console.warn("listDailyNav is deprecated. Use Monthly Reports.");
-  return [] as DailyNav[];
+export async function listDailyNav(
+  _fundId: string,
+  _startDate?: string,
+  _endDate?: string
+): Promise<DailyNav[]> {
+  throw new Error(
+    "listDailyNav is deprecated. Use Monthly Reports (investor_monthly_reports table) instead."
+  );
 }
 
 /**
  * Upsert daily NAV data
- * @deprecated Workflow moved to Monthly Reports
+ * @deprecated Workflow moved to Monthly Reports - Use investor_monthly_reports instead
  */
-export async function upsertDailyNav(_rows: DailyNav[]) {
-  console.warn("upsertDailyNav is deprecated. Use Monthly Reports.");
-  return [] as DailyNav[];
+export async function upsertDailyNav(_rows: DailyNav[]): Promise<DailyNav[]> {
+  throw new Error(
+    "upsertDailyNav is deprecated. Use Monthly Reports (investor_monthly_reports table) instead."
+  );
 }
 
 /**
  * Get fund KPIs
- * Note: v_fund_kpis view might be deprecated. Using basic fund data instead.
+ * Note: total_aum is calculated from investor_positions.current_value
  */
 export async function getFundKPIs() {
-  // Fallback to basic fund list if view doesn't exist or for new workflow
-  const { data, error } = await supabase.from("funds").select("id, code, name, asset, total_aum");
-
+  // Get funds
+  const { data: funds, error } = await supabase.from("funds").select("id, code, name, asset");
   if (error) throw error;
 
+  // Get AUM per fund from investor_positions
+  const { data: positions } = await supabase
+    .from("investor_positions")
+    .select("fund_id, current_value");
+
+  // Calculate AUM per fund
+  const fundAumMap: Record<string, number> = {};
+  positions?.forEach((pos) => {
+    if (!fundAumMap[pos.fund_id]) fundAumMap[pos.fund_id] = 0;
+    fundAumMap[pos.fund_id] += Number(pos.current_value) || 0;
+  });
+
   // Map funds to KPI structure
-  return data.map((f) => ({
+  return funds.map((f) => ({
     fund_id: f.id,
     code: f.code,
     name: f.name,
     asset: f.asset,
-    current_aum: f.total_aum || 0,
+    current_aum: fundAumMap[f.id] || 0,
     day_return_pct: 0,
     mtd_return: 0,
     qtd_return: 0,
     ytd_return: 0,
-    active_investors: 0, // Would need extra query, fine for now
+    active_investors: 0,
   })) as FundKPI[];
 }
 
 /**
  * Calculate fund returns for a period
- * @deprecated
+ * @deprecated Use getFundKPIs() for return calculations
  */
 export async function calculateFundReturns(
   _fundId: string,
   _startDate: string,
   _endDate: string,
   _net: boolean = true
-) {
-  return 0;
+): Promise<number> {
+  throw new Error(
+    "calculateFundReturns is deprecated. Use getFundKPIs() or getFundPerformance() instead."
+  );
 }
 
 /**
  * Get latest NAV for a fund
- * Updated to use funds.total_aum
+ * Calculates AUM from investor_positions
  */
 export async function getLatestNav(fundId: string) {
-  const { data, error } = await supabase
+  // Get fund updated_at
+  const { data: fund, error } = await supabase
     .from("funds")
-    .select("total_aum, updated_at")
+    .select("updated_at")
     .eq("id", fundId)
     .maybeSingle();
 
   if (error) throw error;
+  if (!fund) return null;
 
-  if (!data) return null;
+  // Calculate AUM from positions
+  const { data: positions } = await supabase
+    .from("investor_positions")
+    .select("current_value")
+    .eq("fund_id", fundId);
+
+  const totalAum = positions?.reduce((sum, p) => sum + (Number(p.current_value) || 0), 0) || 0;
 
   // Adapt to DailyNav interface
   return {
     fund_id: fundId,
-    nav_date: data.updated_at,
-    aum: data.total_aum || 0,
+    nav_date: fund.updated_at,
+    aum: totalAum,
     fees_accrued: 0,
     total_inflows: 0,
     total_outflows: 0,
-    investor_count: 0,
-    created_at: data.updated_at,
+    investor_count: positions?.length || 0,
+    created_at: fund.updated_at,
   } as DailyNav;
 }
 
 /**
  * Get fund performance summary
- * Updated to use funds table
+ * Calculates AUM from investor_positions
  */
 export async function getFundPerformance(fundId: string) {
   const { data: fund, error } = await supabase
@@ -221,21 +239,29 @@ export async function getFundPerformance(fundId: string) {
   if (error) throw error;
   if (!fund) throw new Error(`Fund not found: ${fundId}`);
 
+  // Calculate AUM from positions
+  const { data: positions } = await supabase
+    .from("investor_positions")
+    .select("current_value")
+    .eq("fund_id", fundId);
+
+  const totalAum = positions?.reduce((sum, p) => sum + (Number(p.current_value) || 0), 0) || 0;
+
   const kpi: FundKPI = {
     fund_id: fund.id,
     code: fund.code,
     name: fund.name,
     asset: fund.asset,
-    current_aum: fund.total_aum || 0,
+    current_aum: totalAum,
     day_return_pct: 0,
     mtd_return: 0,
     qtd_return: 0,
     ytd_return: 0,
-    active_investors: 0,
+    active_investors: positions?.length || 0,
   };
 
   return {
     kpi,
-    history: [], // No daily history available in new workflow
+    history: [],
   };
 }

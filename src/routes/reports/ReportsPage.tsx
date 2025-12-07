@@ -11,23 +11,38 @@ export default function ReportsPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ["generated_reports", searchTerm],
+    queryKey: ["investor_monthly_reports", searchTerm],
     queryFn: async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
 
-      // @ts-ignore - Type instantiation issue with generated_reports table
-      let query = supabase.from("generated_reports").select("*").eq("generated_by", user.id);
+      // Get investor ID from profile
+      const { data: investor } = await supabase
+        .from("investors")
+        .select("id")
+        .eq("profile_id", user.id)
+        .maybeSingle();
+
+      if (!investor) return [];
+
+      // Use investor_monthly_reports instead of non-existent generated_reports
+      let query = supabase
+        .from("investor_monthly_reports")
+        .select("*")
+        .eq("investor_id", investor.id);
 
       if (searchTerm) {
-        query = query.ilike("file_path", `%${searchTerm}%`);
+        query = query.ilike("report_type", `%${searchTerm}%`);
       }
 
       const { data, error } = await query.order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error("Error fetching reports:", error);
+        return [];
+      }
+      return data || [];
     },
   });
 

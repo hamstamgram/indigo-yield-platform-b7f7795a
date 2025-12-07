@@ -25,7 +25,6 @@ const DashboardLayout = () => {
   useEffect(() => {
     if (!authLoading) {
       if (!user) {
-        console.log("No user found, redirecting to login");
         navigate("/login", { replace: true });
         return;
       }
@@ -35,7 +34,6 @@ const DashboardLayout = () => {
 
       // Simple redirect logic - only redirect admin from /dashboard to /admin
       if (currentPath === "/dashboard" && userIsAdmin) {
-        console.log("Admin on regular dashboard, redirecting to admin dashboard");
         navigate("/admin", { replace: true });
       }
     }
@@ -49,7 +47,6 @@ const DashboardLayout = () => {
 
   // Function to toggle sidebar visibility
   const toggleSidebar = () => {
-    console.log("Toggle sidebar clicked, current state:", sidebarOpen);
     setSidebarOpen((prevState) => !prevState);
   };
 

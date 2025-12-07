@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { TrendingUp, TrendingDown, Save, Send, AlertCircle, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { format } from "date-fns";
+import { CryptoIcon } from "@/components/CryptoIcons";
 
 interface DailyRate {
   id?: string;
@@ -299,7 +300,6 @@ export default function DailyRatesManagement() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            import {CryptoIcon} from "@/components/CryptoIcons"; // ... inside component ...
             <Table>
               <TableHeader>
                 <TableRow>

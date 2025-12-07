@@ -18,16 +18,15 @@ export default function RequireAdmin({ children, redirectTo = "/dashboard" }: Re
   useEffect(() => {
     if (loading) return; // Wait for auth to load
 
-    // If not authenticated and no preview mode, redirect to login
-    if (!session && !import.meta.env.VITE_PREVIEW_ADMIN && !localStorage.getItem("app.role")) {
-      console.log("No session found and not in preview mode, redirecting to login");
+    // SECURITY: Only allow preview mode via environment variable, never localStorage
+    // This prevents users from bypassing admin checks by manipulating localStorage
+    if (!session && !import.meta.env.VITE_PREVIEW_ADMIN) {
       navigate("/login", { replace: true });
       return;
     }
 
-    // If not admin, redirect to LP dashboard
+    // If not admin (verified server-side via AuthContext), redirect to dashboard
     if (!isAdmin) {
-      console.log("User is not admin, redirecting to", redirectTo);
       navigate(redirectTo, { replace: true });
     }
   }, [loading, session, isAdmin, navigate, redirectTo]);

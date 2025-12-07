@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import {
   Table,
   TableBody,
@@ -26,6 +27,32 @@ import {
 export default function AdminInvestorsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const deactivateMutation = useMutation({
+    mutationFn: async (investorId: string) => {
+      const { error } = await supabase
+        .from("investors")
+        .update({ status: "inactive" })
+        .eq("id", investorId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-investors"] });
+      toast({
+        title: "Investor deactivated",
+        description: "The investor account has been deactivated.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to deactivate investor",
+        variant: "destructive",
+      });
+    },
+  });
 
   const { data: investors, isLoading } = useQuery({
     queryKey: ["admin-investors"],
@@ -88,7 +115,7 @@ export default function AdminInvestorsPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button>Add Investor</Button>
+          <Button onClick={() => navigate("/admin/investors/new")}>Add Investor</Button>
         </div>
       </div>
 
@@ -131,7 +158,8 @@ export default function AdminInvestorsPage() {
                           </div>
                           <div>
                             <div className="font-medium">
-                              {investor.profiles?.first_name || ""} {investor.profiles?.last_name || "Unknown"}
+                              {investor.profiles?.first_name || ""}{" "}
+                              {investor.profiles?.last_name || "Unknown"}
                             </div>
                             <div className="text-sm text-muted-foreground">
                               {investor.profiles?.email}
@@ -166,8 +194,19 @@ export default function AdminInvestorsPage() {
                             >
                               View Profile
                             </DropdownMenuItem>
-                            <DropdownMenuItem>Edit Details</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
+                            <DropdownMenuItem
+                              onClick={() => navigate(`/admin/investors/${investor.id}/edit`)}
+                            >
+                              Edit Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => {
+                                if (confirm("Are you sure you want to deactivate this investor?")) {
+                                  deactivateMutation.mutate(investor.id);
+                                }
+                              }}
+                            >
                               Deactivate
                             </DropdownMenuItem>
                           </DropdownMenuContent>

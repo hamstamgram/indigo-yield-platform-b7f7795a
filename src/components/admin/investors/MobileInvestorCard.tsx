@@ -61,7 +61,6 @@ const MobileInvestorCard = ({
   const handleSave = async () => {
     try {
       setIsSaving(true);
-      console.log("Saving fee:", fee, "for investor:", investor.id);
 
       // Parse fee as float for database update, ensuring it's a valid number
       const feeValue = parseFloat(fee);
@@ -70,21 +69,17 @@ const MobileInvestorCard = ({
       }
 
       // Update fee percentage in profile
-      const { data: feeData, error: feeError } = await supabase
+      const { error: feeError } = await supabase
         .from("profiles")
         .update({
           fee_percentage: feeValue,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", investor.id)
-        .select();
+        .eq("id", investor.id);
 
       if (feeError) {
-        console.error("Error updating fee:", feeError);
         throw feeError;
       }
-
-      console.log("Fee update response:", feeData);
 
       // Convert input values to portfolio entries
       const portfolioUpdates = assets
@@ -101,10 +96,8 @@ const MobileInvestorCard = ({
         })
         .filter((update) => update.balance > 0); // Only update assets with positive balances
 
-      if (portfolioUpdates.length > 0) {
-        // Temporarily disable portfolio updates
-        console.log("Portfolio updates disabled during schema migration");
-      }
+      // Portfolio updates currently disabled during schema migration
+      // When re-enabled, portfolioUpdates contains the asset updates
 
       toast({
         title: "Success",

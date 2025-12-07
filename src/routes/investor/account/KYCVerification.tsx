@@ -27,8 +27,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
 interface KYCStatus {
-  status: "not_started" | "pending" | "under_review" | "verified" | "rejected";
-  verifiedAt?: string;
+  // DB constraint: 'pending', 'approved', 'rejected', 'expired'
+  // UI also supports 'not_started' for display purposes
+  status: "not_started" | "pending" | "approved" | "rejected" | "expired";
+  approvedAt?: string;
   rejectionReason?: string;
   lastUpdated?: string;
 }
@@ -81,18 +83,19 @@ export default function KYCVerification() {
     if (!user) return;
 
     try {
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("kyc_status, kyc_verified_at, kyc_rejection_reason, updated_at")
-        .eq("id", user.id)
+      // Query investors table (which has kyc_status) via profile_id
+      const { data: investorData } = await supabase
+        .from("investors")
+        .select("kyc_status, kyc_date, updated_at")
+        .eq("profile_id", user.id)
         .maybeSingle();
 
-      if (profileData) {
+      if (investorData) {
         setKycStatus({
-          status: (profileData.kyc_status as any) || "not_started",
-          verifiedAt: profileData.kyc_verified_at || undefined,
-          rejectionReason: profileData.kyc_rejection_reason || undefined,
-          lastUpdated: profileData.updated_at,
+          status: (investorData.kyc_status as any) || "not_started",
+          approvedAt: investorData.kyc_date || undefined,
+          rejectionReason: undefined,
+          lastUpdated: investorData.updated_at || undefined,
         });
       }
 
@@ -166,14 +169,13 @@ export default function KYCVerification() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "verified":
+      case "approved":
         return (
           <Badge className="gap-1 bg-green-600">
             <CheckCircle className="h-3 w-3" />
-            Verified
+            Approved
           </Badge>
         );
-      case "under_review":
       case "pending":
         return (
           <Badge variant="secondary" className="gap-1">
@@ -199,7 +201,7 @@ export default function KYCVerification() {
   };
 
   const getCompletionPercentage = () => {
-    if (kycStatus.status === "verified") return 100;
+    if (kycStatus.status === "approved") return 100;
     const uploadedDocs = REQUIRED_DOCUMENTS.filter((req) =>
       documents.some((doc) => doc.type === req.type)
     ).length;
@@ -245,7 +247,7 @@ export default function KYCVerification() {
             <Progress value={getCompletionPercentage()} className="h-2" />
           </div>
 
-          {kycStatus.status === "verified" && kycStatus.verifiedAt && (
+          {kycStatus.status === "approved" && kycStatus.approvedAt && (
             <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg p-4">
               <div className="flex items-start gap-3">
                 <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
@@ -254,7 +256,7 @@ export default function KYCVerification() {
                     Your identity is verified
                   </p>
                   <p className="text-sm text-green-800 dark:text-green-200 mt-1">
-                    Verified on {format(new Date(kycStatus.verifiedAt), "PPP")}
+                    Approved on {format(new Date(kycStatus.approvedAt), "PPP")}
                   </p>
                 </div>
               </div>
@@ -268,7 +270,12 @@ export default function KYCVerification() {
                 <div>
                   <p className="font-medium text-destructive">Verification was rejected</p>
                   <p className="text-sm mt-1">{kycStatus.rejectionReason}</p>
-                  <Button variant="outline" size="sm" className="mt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() => setKycStatus({ ...kycStatus, status: "not_started" })}
+                  >
                     Resubmit Documents
                   </Button>
                 </div>
@@ -276,7 +283,7 @@ export default function KYCVerification() {
             </div>
           )}
 
-          {kycStatus.status === "under_review" && (
+          {kycStatus.status === "pending" && (
             <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <div className="flex items-start gap-3">
                 <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
@@ -335,11 +342,46 @@ export default function KYCVerification() {
                     <div className="flex gap-2">
                       {uploadedDoc ? (
                         <>
-                          <Button variant="ghost" size="sm">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                const { data } = await supabase.storage
+                                  .from("kyc-documents")
+                                  .createSignedUrl(
+                                    `${user?.id}/${uploadedDoc.type}_${uploadedDoc.id}`,
+                                    60
+                                  );
+                                if (data?.signedUrl) {
+                                  window.open(data.signedUrl, "_blank");
+                                }
+                              } catch (error) {
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to download document",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
+                          >
                             <Download className="h-4 w-4" />
                           </Button>
                           {uploadedDoc.status === "rejected" && (
-                            <Button size="sm">
+                            <Button
+                              size="sm"
+                              disabled={uploading}
+                              onClick={() => {
+                                const input = document.createElement("input");
+                                input.type = "file";
+                                input.accept = "image/*,.pdf";
+                                input.onchange = (e: any) => {
+                                  const file = e.target?.files?.[0];
+                                  if (file) handleFileUpload(requiredDoc.type, file);
+                                };
+                                input.click();
+                              }}
+                            >
                               <Upload className="mr-2 h-4 w-4" />
                               Reupload
                             </Button>

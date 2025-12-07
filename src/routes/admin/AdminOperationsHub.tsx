@@ -230,9 +230,9 @@ function AdminOperationsHubContent() {
     },
     {
       title: "Total AUM",
-      value: isLoadingMetrics ? "..." : `$${(metrics.totalAUM / 1_000_000).toFixed(1)}M`,
-      description: "Across all positions",
-      icon: DollarSign,
+      value: isLoadingMetrics ? "..." : `${(metrics.totalAUM / 1_000_000).toFixed(1)}M`,
+      description: "Aggregate across all assets",
+      icon: TrendingUp,
       status: "success" as const,
     },
   ];

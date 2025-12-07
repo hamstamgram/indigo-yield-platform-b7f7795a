@@ -83,7 +83,7 @@ export class ReportEngine {
     // Use investor_positions (new table) instead of positions (legacy)
     const { data: positions } = await supabase
       .from("investor_positions")
-      .select("*, funds(name, code, asset_symbol)")
+      .select("*, funds(name, code, asset)")
       .eq("investor_id", investorId);
 
     // Use transactions_v2 (new table)

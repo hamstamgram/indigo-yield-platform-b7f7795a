@@ -35,17 +35,10 @@ export class TOTPService {
     qrCode: string;
     backupCodes: string[];
   } | null> {
-    try {
-      // Simplified implementation - return mock data for now
-      return {
-        secret: "MOCK_SECRET",
-        qrCode: "data:image/png;base64,mock",
-        backupCodes: ["123456", "789012", "345678"],
-      };
-    } catch (error) {
-      console.error("Error initializing TOTP:", error);
-      return null;
-    }
+    // SECURITY: TOTP not yet implemented - return null to indicate feature unavailable
+    // TODO: Implement with speakeasy/otplib library and server-side secret storage
+    console.warn("[TOTP] Two-factor authentication setup not yet available");
+    return null;
   }
 
   static async completeTOTPSetup(
@@ -56,25 +49,18 @@ export class TOTPService {
     backupCodes?: string[];
     error?: string;
   }> {
-    try {
-      // Simplified implementation
-      return {
-        success: true,
-        backupCodes: ["123456", "789012", "345678"],
-      };
-    } catch (error) {
-      console.error("Error completing TOTP setup:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Setup failed",
-      };
-    }
+    // SECURITY: TOTP not yet implemented - always fail setup
+    // TODO: Implement proper TOTP verification with time-based codes
+    return {
+      success: false,
+      error: "Two-factor authentication is not yet available. Please try again later.",
+    };
   }
 
   static async verifyTOTP(
     _userId: string,
     _code: string,
-    isBackupCode: boolean = false
+    _isBackupCode: boolean = false
   ): Promise<{
     success: boolean;
     remaining_attempts?: number;
@@ -82,19 +68,13 @@ export class TOTPService {
     backup_code_used?: boolean;
     error?: string;
   }> {
-    try {
-      // Simplified implementation
-      return {
-        success: true,
-        backup_code_used: isBackupCode,
-      };
-    } catch (error) {
-      console.error("Error verifying TOTP:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Verification failed",
-      };
-    }
+    // SECURITY: TOTP verification not implemented - always fail
+    // This prevents bypass of 2FA if someone tries to use it
+    // TODO: Implement proper TOTP verification with otplib
+    return {
+      success: false,
+      error: "Two-factor authentication verification is not available.",
+    };
   }
 
   static async disableTOTP(userId: string): Promise<{ success: boolean; error?: string }> {
@@ -121,28 +101,17 @@ export class TOTPService {
   }
 
   static async regenerateBackupCodes(_userId: string): Promise<BackupCodeGenerationResult> {
-    try {
-      // Simplified implementation
-      return {
-        success: true,
-        codes: ["123456", "789012", "345678", "456789", "901234"],
-      };
-    } catch (error) {
-      console.error("Error regenerating backup codes:", error);
-      return {
-        success: false,
-        codes: [],
-      };
-    }
+    // SECURITY: Backup codes not implemented - return failure
+    // TODO: Generate cryptographically secure backup codes
+    return {
+      success: false,
+      codes: [],
+    };
   }
 
   static async getUserBackupCodes(_userId: string): Promise<string[]> {
-    try {
-      // Simplified implementation
-      return ["123456", "789012", "345678"];
-    } catch (error) {
-      console.error("Error fetching backup codes:", error);
-      return [];
-    }
+    // SECURITY: Backup codes not implemented - return empty
+    // TODO: Fetch from secure server-side storage
+    return [];
   }
 }

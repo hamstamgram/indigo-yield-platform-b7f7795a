@@ -10,8 +10,10 @@ export const useInvestorInvite = (onSuccess?: () => void) => {
     try {
       setIsSending(true);
 
-      // Generate a new invite code
-      const inviteCode = Math.random().toString(36).substring(2, 15);
+      // Generate a cryptographically secure invite code
+      const array = new Uint8Array(16);
+      crypto.getRandomValues(array);
+      const inviteCode = Array.from(array, (b) => b.toString(16).padStart(2, "0")).join("");
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7); // Invite expires in 7 days
 

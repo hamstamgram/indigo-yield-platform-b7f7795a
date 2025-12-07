@@ -84,9 +84,9 @@ export async function computeStatement(
     }
 
     // Fetch funds information for asset mapping
-    const { data: funds } = await supabase.from("funds").select("id, name, asset_symbol, code");
+    const { data: funds } = await supabase.from("funds").select("id, name, asset, code");
 
-    const fundMap = new Map(funds?.map((f) => [f.asset_symbol, f]));
+    const fundMap = new Map(funds?.map((f) => [f.asset, f]));
 
     const assetsMap: Record<string, AssetStatement> = {};
     const summary = {

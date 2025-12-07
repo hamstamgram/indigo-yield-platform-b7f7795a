@@ -28,7 +28,7 @@ interface MobileNavProps {
 export const MobileNav: React.FC<MobileNavProps> = ({
   isAdmin = false,
   userName = "User",
-  userEmail = "user@example.com",
+  userEmail = "",
   onLogout,
 }) => {
   const [isOpen, setIsOpen] = useState(false);

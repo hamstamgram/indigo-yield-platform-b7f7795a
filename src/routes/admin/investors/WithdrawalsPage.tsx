@@ -23,6 +23,7 @@ import {
 import { ArrowDownCircle, Clock, CheckCircle, XCircle, AlertCircle, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { formatAssetAmount } from "@/utils/assets";
 
 interface WithdrawalRequest {
   id: string;
@@ -42,6 +43,7 @@ interface WithdrawalRequest {
   funds: {
     name: string;
     code: string;
+    asset: string;
     fund_class: string;
   };
 }
@@ -54,6 +56,7 @@ interface InvestorPosition {
   funds: {
     name: string;
     code: string;
+    asset: string;
   };
 }
 
@@ -103,6 +106,7 @@ const WithdrawalsPage = () => {
           funds:fund_id (
             name,
             code,
+            asset,
             fund_class
           )
         `
@@ -116,7 +120,12 @@ const WithdrawalsPage = () => {
       const mappedData = (withdrawalsData || []).map((item: any) => ({
         ...item,
         created_at: item.created_at || new Date().toISOString(),
-        funds: item.funds || { name: "Unknown Fund", code: "N/A", fund_class: "N/A" },
+        funds: item.funds || {
+          name: "Unknown Fund",
+          code: "N/A",
+          asset: "USDT",
+          fund_class: "N/A",
+        },
       }));
 
       setWithdrawals(mappedData);
@@ -159,7 +168,8 @@ const WithdrawalsPage = () => {
           fund_class,
           funds:fund_id (
             name,
-            code
+            code,
+            asset
           )
         `
         )
@@ -226,9 +236,10 @@ const WithdrawalsPage = () => {
       if (!selectedPosition) throw new Error("Position not found");
 
       if (amount > selectedPosition.current_value) {
+        const assetSymbol = selectedPosition.funds?.asset || "USDT";
         toast({
           title: "Amount too high",
-          description: `Maximum withdrawal amount is $${selectedPosition.current_value.toLocaleString()}`,
+          description: `Maximum withdrawal amount is ${formatAssetAmount(selectedPosition.current_value, assetSymbol)}`,
           variant: "destructive",
         });
         return;
@@ -354,23 +365,31 @@ const WithdrawalsPage = () => {
                   <SelectContent>
                     {positions.map((position) => (
                       <SelectItem key={position.fund_id} value={position.fund_id}>
-                        {position.funds.name} - ${position.current_value.toLocaleString()} available
+                        {position.funds.name} -{" "}
+                        {formatAssetAmount(position.current_value, position.funds?.asset || "USDT")}{" "}
+                        available
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {selectedFund && (
-                  <p className="text-sm text-muted-foreground">
-                    Maximum withdrawal: $
-                    {positions
-                      .find((p) => p.fund_id === selectedFund)
-                      ?.current_value.toLocaleString()}
-                  </p>
-                )}
+                {selectedFund &&
+                  (() => {
+                    const pos = positions.find((p) => p.fund_id === selectedFund);
+                    return pos ? (
+                      <p className="text-sm text-muted-foreground">
+                        Maximum withdrawal:{" "}
+                        {formatAssetAmount(pos.current_value, pos.funds?.asset || "USDT")}
+                      </p>
+                    ) : null;
+                  })()}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="amount">Withdrawal Amount ($)</Label>
+                <Label htmlFor="amount">
+                  Withdrawal Amount (
+                  {positions.find((p) => p.fund_id === selectedFund)?.funds?.asset || "Select fund"}
+                  )
+                </Label>
                 <Input
                   id="amount"
                   type="number"
@@ -443,8 +462,11 @@ const WithdrawalsPage = () => {
                       {getStatusIcon(withdrawal.status)}
                       <div>
                         <div className="font-semibold">
-                          ${withdrawal.requested_amount.toLocaleString()} from{" "}
-                          {withdrawal.funds?.name}
+                          {formatAssetAmount(
+                            withdrawal.requested_amount,
+                            withdrawal.funds?.asset || "USDT"
+                          )}{" "}
+                          from {withdrawal.funds?.name}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {withdrawal.withdrawal_type} •{" "}
@@ -458,7 +480,11 @@ const WithdrawalsPage = () => {
                   {withdrawal.approved_amount &&
                     withdrawal.approved_amount !== withdrawal.requested_amount && (
                       <div className="text-sm text-muted-foreground mb-2">
-                        Approved amount: ${withdrawal.approved_amount.toLocaleString()}
+                        Approved amount:{" "}
+                        {formatAssetAmount(
+                          withdrawal.approved_amount,
+                          withdrawal.funds?.asset || "USDT"
+                        )}
                       </div>
                     )}
 

@@ -26,62 +26,56 @@ export interface InvestorPosition {
  * Get user portfolio positions
  */
 export async function getUserPortfolio(userId: string): Promise<PortfolioEntry[]> {
-  try {
-    const { data, error } = await supabase.from("positions").select("*").eq("user_id", userId);
+  const { data, error } = await supabase.from("positions").select("*").eq("user_id", userId);
 
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
+  if (error) {
     console.error("Error fetching user portfolio:", error);
-    return [];
+    throw new Error(`Failed to fetch user portfolio: ${error.message}`);
   }
+  return data || [];
 }
 
 /**
  * Get investor positions (for admin view)
  */
 export async function getInvestorPositions(investorId: string): Promise<InvestorPosition[]> {
-  try {
-    const { data, error } = await supabase
-      .from("investor_positions")
-      .select(
-        `
-        *,
-        funds:fund_id (
-          code,
-          name,
-          asset,
-          fund_class
-        )
+  const { data, error } = await supabase
+    .from("investor_positions")
+    .select(
       `
+      *,
+      funds:fund_id (
+        code,
+        name,
+        asset,
+        fund_class
       )
-      .eq("investor_id", investorId);
+    `
+    )
+    .eq("investor_id", investorId);
 
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
+  if (error) {
     console.error("Error fetching investor positions:", error);
-    return [];
+    throw new Error(`Failed to fetch investor positions: ${error.message}`);
   }
+  return data || [];
 }
 
 /**
  * Fetch active assets
  */
 export const fetchAssets = async () => {
-  try {
-    const { data, error } = await supabase
-      .from("assets")
-      .select("*")
-      .eq("is_active", true)
-      .order("name");
+  const { data, error } = await supabase
+    .from("assets")
+    .select("*")
+    .eq("is_active", true)
+    .order("name");
 
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
+  if (error) {
     console.error("Error fetching assets:", error);
-    return [];
+    throw new Error(`Failed to fetch assets: ${error.message}`);
   }
+  return data || [];
 };
 
 /**
@@ -113,11 +107,12 @@ export const enrichInvestorsWithPortfolioData = async (investors: any[]) => {
 /**
  * Create portfolio entries for a new investor
  */
-export async function createPortfolioEntries(investorId: string, assets: any[]): Promise<boolean> {
+export async function createPortfolioEntries(
+  _investorId: string,
+  _assets: any[]
+): Promise<boolean> {
   try {
-    // This would typically create positions in the investor_positions table
-    // For now, we'll just log the action
-    console.log("Creating portfolio entries for investor:", investorId, "with assets:", assets);
+    // Stub function - actual implementation would create positions in investor_positions table
     return true;
   } catch (error) {
     console.error("Error creating portfolio entries:", error);

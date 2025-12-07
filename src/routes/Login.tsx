@@ -36,8 +36,6 @@ export default function Login() {
         }
 
         // User is already authenticated, redirect based on admin status
-        console.log("User is authenticated, redirecting...");
-
         try {
           // Check admin status using the secure function
           const { data: adminStatus } = await supabase.rpc("get_user_admin_status", {
@@ -48,10 +46,8 @@ export default function Login() {
 
           // Redirect based on admin status
           if (isAdmin) {
-            console.log("Admin user detected, redirecting to admin dashboard");
             navigate("/admin", { replace: true });
           } else {
-            console.log("Regular user detected, redirecting to dashboard");
             navigate("/dashboard", { replace: true });
           }
         } catch (profileError) {
@@ -72,7 +68,6 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    console.log("Attempting login with:", email);
 
     try {
       if (isLogin) {
@@ -90,8 +85,6 @@ export default function Login() {
         if (!data.user) {
           throw new Error("No user returned from login");
         }
-
-        console.log("Login successful, user:", data.user);
 
         // Show success message
         toast({

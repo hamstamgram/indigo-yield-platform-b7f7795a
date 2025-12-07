@@ -23,11 +23,8 @@ export const checkAdminStatus = async (): Promise<{ isAdmin: boolean | null }> =
     } = await supabase.auth.getUser();
 
     if (!user) {
-      console.log("No user found, stopping check");
       return { isAdmin: false };
     }
-
-    console.log("Checking admin status for user:", user.id);
 
     // Use the get_profile_by_id function to safely check admin status
     try {
@@ -41,7 +38,6 @@ export const checkAdminStatus = async (): Promise<{ isAdmin: boolean | null }> =
 
       const isUserAdmin =
         profileData && profileData.length > 0 ? profileData[0]?.is_admin === true : false;
-      console.log("Admin status determined via function:", isUserAdmin);
       return { isAdmin: isUserAdmin };
     } catch (profileError) {
       console.error("Error checking admin status via function:", profileError);
@@ -60,7 +56,6 @@ export const checkAdminStatus = async (): Promise<{ isAdmin: boolean | null }> =
         }
 
         const isUserAdmin = profileData?.is_admin === true;
-        console.log("Admin status determined via direct query:", isUserAdmin);
         return { isAdmin: isUserAdmin };
       } catch (directError) {
         console.error("Error checking admin status directly:", directError);
@@ -95,21 +90,16 @@ export const fetchInvestors = async (): Promise<LegacyInvestor[]> => {
 
       if (directError) {
         console.error("Error fetching profiles directly:", directError);
-
-        // If both approaches fail, use sample data as a last resort
-        console.log("Using sample investors data as fallback");
-        return getSampleInvestors();
+        throw new Error(`Failed to fetch investors: ${directError.message}`);
       }
 
-      console.log("Found profiles via direct query:", directData?.length || 0);
       return mapProfilesToInvestors(directData || []);
     }
 
-    console.log("Found profiles via function:", profilesData?.length || 0);
     return mapProfilesToInvestors(profilesData || []);
   } catch (error) {
     console.error("Error fetching investors:", error);
-    return getSampleInvestors();
+    throw error;
   }
 };
 
@@ -131,39 +121,6 @@ const mapProfilesToInvestors = (profiles: any[]): LegacyInvestor[] => {
 };
 
 /**
- * Returns sample investors as a fallback when database queries fail
- */
-const getSampleInvestors = (): LegacyInvestor[] => {
-  console.log("Using sample investors data as fallback");
-  return [
-    {
-      id: "1",
-      email: "investor1@example.com",
-      first_name: "John",
-      last_name: "Doe",
-      fee_percentage: 2.0,
-      created_at: new Date().toISOString(),
-      portfolio_summary: {
-        BTC: { balance: 0.5, usd_value: 33750 },
-        ETH: { balance: 2, usd_value: 6400 },
-      },
-    },
-    {
-      id: "2",
-      email: "investor2@example.com",
-      first_name: "Jane",
-      last_name: "Smith",
-      fee_percentage: 1.5,
-      created_at: new Date().toISOString(),
-      portfolio_summary: {
-        SOL: { balance: 10, usd_value: 1480 },
-        USDC: { balance: 5000, usd_value: 5000 },
-      },
-    },
-  ];
-};
-
-/**
  * Fetches pending invites that haven't been used yet
  * @returns Array of legacy investors formed from pending invites
  */
@@ -178,8 +135,6 @@ export const fetchPendingInvites = async (): Promise<LegacyInvestor[]> => {
       console.error("Error fetching invites:", invitesError);
       return [];
     }
-
-    console.log("Found invites:", invitesData?.length || 0);
 
     if (invitesData && invitesData.length > 0) {
       return invitesData.map((invite) => ({

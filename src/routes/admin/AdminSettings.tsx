@@ -359,7 +359,7 @@ function AdminSettingsContent() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="min_deposit">Minimum Deposit (USD)</Label>
+                <Label htmlFor="min_deposit">Minimum Deposit (per asset)</Label>
                 <Input
                   id="min_deposit"
                   type="number"
@@ -370,12 +370,12 @@ function AdminSettingsContent() {
                   min={0}
                 />
                 <p className="text-sm text-muted-foreground">
-                  Minimum amount required for deposits
+                  Minimum amount required for deposits (applies to each asset type)
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="min_withdrawal">Minimum Withdrawal (USD)</Label>
+                <Label htmlFor="min_withdrawal">Minimum Withdrawal (per asset)</Label>
                 <Input
                   id="min_withdrawal"
                   type="number"
@@ -386,7 +386,7 @@ function AdminSettingsContent() {
                   min={0}
                 />
                 <p className="text-sm text-muted-foreground">
-                  Minimum amount required for withdrawals
+                  Minimum amount required for withdrawals (applies to each asset type)
                 </p>
               </div>
             </CardContent>

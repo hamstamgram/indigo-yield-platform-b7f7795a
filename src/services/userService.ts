@@ -6,8 +6,6 @@ export const createOrFindInvestorUser = async (
   values: InvestorFormValues
 ): Promise<string | null> => {
   try {
-    console.log("Starting createOrFindInvestorUser with values:", values);
-
     // Try to find if user already exists by email
     const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers({
       perPage: 100, // Get more users to search through
@@ -22,11 +20,8 @@ export const createOrFindInvestorUser = async (
 
     // If found, return existing user ID
     if (!authError && existingUser && existingUser.id) {
-      console.log("Found existing user:", existingUser.id);
       return existingUser.id;
     }
-
-    console.log("No existing user found, will create new user...");
 
     // Generate a complex password that meets Supabase requirements
     const generateStrongPassword = () => {
@@ -55,7 +50,6 @@ export const createOrFindInvestorUser = async (
     };
 
     const tempPassword = generateStrongPassword();
-    console.log(`Attempting to create new user for ${values.email} with a complex password...`);
 
     // Create the user using admin create user
     const { data: userData, error: createError } = await supabase.auth.admin.createUser({
@@ -93,8 +87,6 @@ export const createOrFindInvestorUser = async (
       }
 
       if (authData?.user) {
-        console.log("Signup response: Success - No errors");
-        console.log("New user created with ID:", authData.user.id);
         return authData.user.id;
       } else {
         console.error("User created but ID not returned");
@@ -103,7 +95,6 @@ export const createOrFindInvestorUser = async (
     }
 
     if (userData?.user) {
-      console.log("New user created with ID:", userData.user.id);
       return userData.user.id;
     } else {
       console.error("Admin user created but ID not returned");

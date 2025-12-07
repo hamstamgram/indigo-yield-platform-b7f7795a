@@ -35,9 +35,6 @@ const InvestorAssetDropdown = ({
     try {
       setIsLoading(true);
 
-      // Log the operation for debugging
-      console.log(`Adding asset ${assetId} to investor ${userId}`);
-
       // Add asset to investor portfolio
       const success = await addAssetToInvestor(userId, assetId, 0);
 

@@ -57,10 +57,9 @@ export async function getUserSessions(_userId: string): Promise<SessionInfo[]> {
 /**
  * Revoke a session
  */
-export async function revokeSession(sessionId: string): Promise<boolean> {
+export async function revokeSession(_sessionId: string): Promise<boolean> {
   try {
-    // Simplified implementation
-    console.log("Revoking session:", sessionId);
+    // Simplified implementation - actual revocation would be handled by auth service
     return true;
   } catch (error) {
     console.error("Error revoking session:", error);

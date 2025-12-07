@@ -39,19 +39,17 @@ export interface InvestorPosition {
  * Get all active funds
  */
 export async function getAllFunds(): Promise<Fund[]> {
-  try {
-    const { data, error } = await supabase
-      .from("funds")
-      .select("*")
-      .eq("status", "active")
-      .order("name");
+  const { data, error } = await supabase
+    .from("funds")
+    .select("*")
+    .eq("status", "active")
+    .order("name");
 
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
+  if (error) {
     console.error("Error fetching funds:", error);
-    return [];
+    throw new Error(`Failed to fetch funds: ${error.message}`);
   }
+  return data || [];
 }
 
 /**
@@ -100,30 +98,28 @@ export async function addFundToInvestor(
  * Get investor positions by investor ID
  */
 export async function getInvestorPositions(investorId: string): Promise<InvestorPosition[]> {
-  try {
-    const { data, error } = await supabase
-      .from("investor_positions")
-      .select(
-        `
-        *,
-        fund:funds (
-          id,
-          code,
-          name,
-          asset,
-          fund_class
-        )
+  const { data, error } = await supabase
+    .from("investor_positions")
+    .select(
       `
+      *,
+      fund:funds (
+        id,
+        code,
+        name,
+        asset,
+        fund_class
       )
-      .eq("investor_id", investorId)
-      .order("current_value", { ascending: false });
+    `
+    )
+    .eq("investor_id", investorId)
+    .order("current_value", { ascending: false });
 
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
+  if (error) {
     console.error("Error fetching investor positions:", error);
-    return [];
+    throw new Error(`Failed to fetch investor positions: ${error.message}`);
   }
+  return data || [];
 }
 
 /**
@@ -160,31 +156,32 @@ export async function updateInvestorPosition(
  * Get investor's available funds (funds they don't have positions in)
  */
 export async function getAvailableFundsForInvestor(investorId: string): Promise<Fund[]> {
-  try {
-    // Get all active funds
-    const { data: allFunds, error: fundsError } = await supabase
-      .from("funds")
-      .select("*")
-      .eq("status", "active");
+  // Get all active funds
+  const { data: allFunds, error: fundsError } = await supabase
+    .from("funds")
+    .select("*")
+    .eq("status", "active");
 
-    if (fundsError) throw fundsError;
-
-    // Get investor's current positions
-    const { data: positions, error: positionsError } = await supabase
-      .from("investor_positions")
-      .select("fund_id")
-      .eq("investor_id", investorId);
-
-    if (positionsError) throw positionsError;
-
-    const existingFundIds = new Set(positions?.map((p) => p.fund_id) || []);
-
-    // Filter out funds where investor already has positions
-    return (allFunds || []).filter((fund) => !existingFundIds.has(fund.id));
-  } catch (error) {
-    console.error("Error fetching available funds:", error);
-    return [];
+  if (fundsError) {
+    console.error("Error fetching funds:", fundsError);
+    throw new Error(`Failed to fetch available funds: ${fundsError.message}`);
   }
+
+  // Get investor's current positions
+  const { data: positions, error: positionsError } = await supabase
+    .from("investor_positions")
+    .select("fund_id")
+    .eq("investor_id", investorId);
+
+  if (positionsError) {
+    console.error("Error fetching positions:", positionsError);
+    throw new Error(`Failed to fetch investor positions: ${positionsError.message}`);
+  }
+
+  const existingFundIds = new Set(positions?.map((p) => p.fund_id) || []);
+
+  // Filter out funds where investor already has positions
+  return (allFunds || []).filter((fund) => !existingFundIds.has(fund.id));
 }
 
 /**

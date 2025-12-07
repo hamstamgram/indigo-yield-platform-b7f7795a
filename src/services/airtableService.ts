@@ -460,28 +460,20 @@ export function createAirtableService(): AirtableService {
       process.env.NEXT_PHASE === "phase-export");
 
   if (!apiKey || !baseId) {
-    if (isBuildTime) {
-      // During build, return a stub service to allow static analysis
-      console.warn("⚠️ Airtable credentials not configured - service will not be functional");
-      // Return stub service with placeholder values
-      return new AirtableService({
-        apiKey: "build-time-placeholder",
-        baseId: "build-time-placeholder",
-        tableName,
-        webhookSecret,
-      });
-    } else {
-      // Don't throw immediately to avoid breaking the app if feature is unused
-      console.warn(
-        "Missing required Airtable configuration. Set VITE_AIRTABLE_API_KEY and VITE_AIRTABLE_BASE_ID in environment variables."
-      );
-      return new AirtableService({
-        apiKey: "missing-key",
-        baseId: "missing-id",
-        tableName,
-        webhookSecret,
-      });
-    }
+    // SECURITY: Create a disabled service that will fail gracefully
+    // This prevents silent failures with invalid credentials
+    console.warn(
+      isBuildTime
+        ? "⚠️ Airtable credentials not configured - service disabled during build"
+        : "⚠️ Missing Airtable configuration. Set VITE_AIRTABLE_API_KEY and VITE_AIRTABLE_BASE_ID"
+    );
+    // Return service with empty credentials - methods will check and fail gracefully
+    return new AirtableService({
+      apiKey: "",
+      baseId: "",
+      tableName,
+      webhookSecret,
+    });
   }
 
   return new AirtableService({

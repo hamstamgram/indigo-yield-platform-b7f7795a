@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const useInvestors = () => {
   const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(false);
   const { toast } = useToast();
@@ -19,7 +20,7 @@ export const useInvestors = () => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      console.log("Fetching investor data...");
+      setError(null);
 
       // Fetch real assets from Supabase database
       const { data: assetsData, error: assetsError } = await supabase
@@ -29,22 +30,21 @@ export const useInvestors = () => {
         .order("symbol");
 
       if (assetsError) {
-        console.error("Error fetching assets:", assetsError);
-        setAssets([]);
-      } else {
-        setAssets(assetsData || []);
+        throw new Error(`Failed to fetch assets: ${assetsError.message}`);
       }
+      setAssets(assetsData || []);
 
       // Fetch investors with summary using adminServiceV2
       const investorsWithSummary = await adminServiceV2.getAllInvestorsWithSummary();
 
       setInvestors(investorsWithSummary);
-      console.log("Loaded investors with consolidated service:", investorsWithSummary.length);
-    } catch (error) {
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error("Failed to load investor data");
       console.error("Error in main investor data fetch:", error);
+      setError(error);
       toast({
         title: "Error",
-        description: "Failed to load investor data",
+        description: error.message,
         variant: "destructive",
       });
       setInvestors([]);
@@ -61,7 +61,6 @@ export const useInvestors = () => {
 
   // Provide a refetch method to refresh data
   const refetch = useCallback(() => {
-    console.log("Refetching investor data...");
     fetchData();
   }, [fetchData]);
 
@@ -71,6 +70,7 @@ export const useInvestors = () => {
     searchTerm,
     setSearchTerm,
     loading,
+    error,
     assets,
     isAdmin,
     refetch,

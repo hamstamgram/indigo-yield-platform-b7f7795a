@@ -1,241 +1,186 @@
 # indigo-yield-platform-v01 - Claude AI Context
 
-> Auto-generated Claude AI context file
-> Last updated: 2025-11-17 15:31:42
+> Last updated: 2025-12-06
+> Auto-maintained by Claude Code workflow
 
 ---
 
 ## Project Overview
 
-**Type:** Web Application (Frontend)
-**Framework:** React
-**Language:** typescript
-**Status:** Active development
+**Type:** Web Application (Frontend + Supabase Backend)
+**Framework:** React 18 + Vite
+**Language:** TypeScript (strict mode)
+**Status:** Active development - Production deployed on Vercel
 
 **Description:**
-> Multi-platform investment platform with web and native iOS applications
+Multi-platform investment platform for INDIGO Fund with web and planned iOS applications.
+Manages investor onboarding, portfolio tracking, statements, and communications.
 
 ---
 
 ## Architecture
 
 ### Technology Stack
-**Language:** typescript
-**Framework:** React
-**Database:** Supabase, Supabase
-**Testing:** Vitest
-**Package Manager:** npm
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 18, TypeScript, Vite |
+| Styling | Tailwind CSS, Radix UI, shadcn/ui |
+| State | TanStack Query, React Context |
+| Backend | Supabase (PostgreSQL, Auth, Edge Functions) |
+| Testing | Jest, Playwright, Vitest |
+| Deployment | Vercel (web), Supabase (backend) |
 
 ### Project Structure
 ```
-- architecture/
-- artifacts/
-- attached_assets/
-- audits/
-- backend/
-- coverage/
-- design-review-output/
-- docs/
-- ios/
-- mcp-servers/
+src/
+├── components/      # UI components (26 subdirs)
+├── hooks/           # Custom hooks (21 files)
+├── routes/          # Page routes (24 files)
+├── lib/             # Utilities (18 files)
+├── config/          # Configuration
+├── integrations/    # External integrations
+├── middleware/      # Request middleware
+└── features/        # Feature modules
+
+supabase/
+├── migrations/      # Database migrations
+└── functions/       # Edge Functions (archived)
 ```
 
-### Key Components
-- src/ - Source code
-- public/ - Static assets
+### Key Patterns
+- **Auth:** Supabase Auth with Row Level Security (RLS)
+- **State:** TanStack Query for server state, React Context for client state
+- **Forms:** React Hook Form + Zod validation
+- **Styling:** Tailwind with design tokens, Radix primitives
 
 ---
 
-## Development Conventions
+## Development Commands
 
-### Code Style
-ESLint configuration found - follow ESLint rules
+```bash
+# Development
+npm run dev              # Start dev server
+npm run build            # Production build
+npm run type-check       # TypeScript check
 
-### Naming Conventions
-camelCase for variables, PascalCase for components/classes
+# Testing
+npm run test             # Jest unit tests
+npm run test:e2e         # Playwright E2E tests
+npm run test:coverage    # Coverage report
 
-### File Organization
-Component-based organization in src/components
+# Linting
+npm run lint             # ESLint check
+npm run lint:fix         # Auto-fix issues
+npm run format           # Prettier format
 
----
-
-## Common Patterns
-
-### React Patterns
-- Functional components with hooks
-- Custom hooks for reusable logic
-- Context for global state
-
-### typescript Patterns
-- Use strict type checking
-- Prefer interfaces over types
-- Avoid any type
-
-### Architecture Patterns
-- Separation of concerns
-- DRY (Don't Repeat Yourself)
-- SOLID principles
-
----
-
-## Database Schema
-
-Supabase, Supabase
-
----
-
-## API Endpoints
-
-See API documentation
+# Database
+supabase db push         # Apply migrations
+supabase db pull         # Pull remote schema
+supabase migration list  # List migrations
+```
 
 ---
 
 ## Environment Variables
 
-- VITE_SUPABASE_URL
-- VITE_SUPABASE_ANON_KEY
-- VITE_PREVIEW_ADMIN
-- VITE_APP_ENV
-- GITHUB_TOKEN
-- SUPABASE_DEV_DB_URL
-- SUPABASE_PROD_DB_URL
-- VERCEL_TOKEN
-- VITE_SENTRY_DSN
-- SENTRY_DSN
-
----
-
-## Testing
-
-### Test Framework
-Vitest
-
-### Test Commands
-```bash
-npm run test
-npm run test:e2e
-npm run test:unit
+### Required
+```
+VITE_SUPABASE_URL        # Supabase project URL
+VITE_SUPABASE_ANON_KEY   # Supabase anon key
 ```
 
-### Coverage Goals
-80% minimum coverage
-
----
-
-## Build & Deploy
-
-### Development
-```bash
-npm run dev
-npm install
-npm run lint
+### Optional
+```
+VITE_PREVIEW_ADMIN       # Enable admin preview
+VITE_APP_ENV             # Environment (dev/staging/prod)
+VITE_SENTRY_DSN          # Sentry error tracking
+VERCEL_TOKEN             # Vercel deployment
 ```
 
-### Production Build
-```bash
-npm run build
-npm run start
+### Secrets (Keychain)
+Stored in macOS Keychain for security:
+- `supabase-url` (service) / `claude-ai` (account)
+- `supabase-anon-key` (service) / `claude-ai` (account)
+
+---
+
+## Code Conventions
+
+### TypeScript
+- Strict mode enabled
+- Use interfaces over types for objects
+- Explicit return types on public functions
+- No `any` - use `unknown` with type guards
+
+### React
+- Functional components only
+- Custom hooks for reusable logic
+- Memoize expensive computations
+- Use React.lazy for code splitting
+
+### Naming
+- Components: `PascalCase` (e.g., `InvestorCard.tsx`)
+- Hooks: `camelCase` with `use` prefix (e.g., `useInvestorData.ts`)
+- Utils: `camelCase` (e.g., `formatCurrency.ts`)
+- Constants: `SCREAMING_SNAKE_CASE`
+
+### File Organization
+- One component per file
+- Co-locate tests with components
+- Group by feature when possible
+
+---
+
+## Security Guidelines
+
+1. **Never hardcode secrets** - Use Keychain or env vars
+2. **Validate all inputs** - Use Zod schemas
+3. **Trust RLS** - Supabase handles auth at DB level
+4. **Sanitize outputs** - XSS prevention on user content
+5. **Use HTTPS only** - Enforced by Vercel
+
+---
+
+## Recent Changes
+
+```
+d921b02 Cleanup: Archive unused Supabase Edge Functions
+f18a069 Ultrathink Cleanup: Archive docs, delete unused migrations/scripts/components
+560004f Final: Complete Data Restoration Pipeline
+1c33852 Final: Deploy Edge Function and Migration for Master Data Import
 ```
 
-### Deployment
-Vercel, GitHub Actions
-
 ---
 
-## Common Tasks
+## Active Focus Areas
 
-### Adding a New Feature
-Follow project conventions
-
-### Debugging
-Use debugger and logs
-
-### Database Migrations
-See database migration docs
-
----
-
-## Dependencies
-
-### Package Manager
-npm
-
-### Key Dependencies
-- @fontsource/montserrat
-- @hookform/resolvers
-- @mailerlite/mailerlite-nodejs
-- @modelcontextprotocol/sdk
-- @radix-ui/react-accordion
-- @radix-ui/react-alert-dialog
-- @radix-ui/react-aspect-ratio
-- @radix-ui/react-avatar
-- @radix-ui/react-checkbox
-- @radix-ui/react-collapsible
-
-### Version Constraints
-See package.json or requirements.txt
-
----
-
-## Documentation
-
-### API Docs
-See docs/ directory
-
-### Architecture Docs
-See docs/architecture.md
-
-### Contributing Guide
-See CONTRIBUTING.md
-
----
-
-## Team Context
-
-### Current Focus
-Active development
-
-### Active Issues
-See GitHub Issues
-
-### Recent Changes
-See git log
+1. **Investor Portal** - Dashboard, statements, communications
+2. **Admin Dashboard** - Investor management, platform settings
+3. **Data Pipeline** - Import/export, reporting
+4. **Security Hardening** - RLS policies, audit logging
 
 ---
 
 ## Claude AI Instructions
 
 ### Preferred Approach
-Follow existing patterns
+1. Explore codebase before making changes
+2. Use existing patterns and abstractions
+3. Write tests for new functionality
+4. Keep changes minimal and focused
 
-### Code Generation Rules
-Match existing code style
+### Model Selection
+- **Complex planning:** Use `/ultrathink` or `/plan` (Opus)
+- **Exploration:** Use `/explore` (Sonnet)
+- **Quick fixes:** Direct implementation (default)
 
 ### Testing Requirements
-Write tests for all new features
-
-### Documentation Requirements
-Document all public APIs
-
----
-
-## External Resources
-
-### Documentation Links
-See README.md
-
-### Design Files
-None
-
-### Project Management
-GitHub Projects
+- Unit tests for utilities and hooks
+- Integration tests for critical flows
+- E2E tests for user journeys
+- Minimum 80% coverage on critical paths
 
 ---
 
-**Auto-detection enabled:** This file will be updated automatically when project structure changes.
-**Manual overrides:** Edit any section to customize Claude's behavior for this project.
-
----
-
-*Generated by Claude Universal Workflow System v2.0*
-*Template version: 2025-11-17*
+*Generated by Claude Code Workflow System*
+*Synced with ~/.claude/shared_memory.json*

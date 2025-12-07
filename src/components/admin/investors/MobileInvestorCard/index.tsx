@@ -68,7 +68,6 @@ const MobileInvestorCard = ({
   const handleSave = async () => {
     try {
       setIsSaving(true);
-      console.log("Saving fee:", fee, "for investor:", investor.id);
 
       // Parse fee as float for database update, ensuring it's a valid number
       const feeValue = parseFloat(fee);
@@ -91,8 +90,6 @@ const MobileInvestorCard = ({
         throw feeError;
       }
 
-      console.log("Fee update response:", feeData);
-
       // Convert input values to portfolio entries
       const portfolioUpdates = assets
         .map((asset) => {
@@ -108,10 +105,7 @@ const MobileInvestorCard = ({
         })
         .filter((update) => update.balance > 0); // Only update assets with positive balances
 
-      if (portfolioUpdates.length > 0) {
-        // Temporarily disable portfolio updates
-        console.log("Portfolio updates disabled during schema migration");
-      }
+      // Portfolio updates temporarily disabled during schema migration
 
       toast({
         title: "Success",

@@ -110,8 +110,6 @@ const AdminPortfolios = ({
         setUsers(userData);
       }
 
-      console.log("Fetched users:", userData.length);
-
       // Fetch all portfolios (using positions table)
       const { data: portfoliosResult, error: portfoliosError } = await supabase
         .from("positions")
@@ -120,7 +118,6 @@ const AdminPortfolios = ({
       if (portfoliosError) throw portfoliosError;
 
       const portfolioData = portfoliosResult || [];
-      console.log("Fetched portfolios:", portfolioData.length);
 
       // Enrich portfolio data with user and asset information
       const enrichedPortfolios = portfolioData.map((portfolio) => {

@@ -38,8 +38,6 @@ const FundAssetDropdown = ({ investorId, onFundAdded }: FundAssetDropdownProps) 
     try {
       setIsLoading(true);
 
-      console.log(`Adding fund ${fundId} to investor ${investorId}`);
-
       const result = await addFundToInvestor(investorId, fundId, 0);
 
       if (!result.success) {

@@ -114,8 +114,8 @@ export class DepositService {
     const assetSymbol = formData.asset_symbol.toUpperCase();
     const { data: fund } = await supabase
       .from("funds")
-      .select("id, asset_symbol, asset, fund_class")
-      .eq("asset_symbol", assetSymbol)
+      .select("id, asset, fund_class")
+      .eq("asset", assetSymbol)
       .maybeSingle();
 
     if (!fund?.id) {
@@ -144,7 +144,7 @@ export class DepositService {
           cost_basis: previousCostBasis + amount,
           current_value: previousCurrentValue + amount,
           updated_at: new Date().toISOString(),
-          fund_class: fund.fund_class || fund.asset_symbol || fund.asset,
+          fund_class: fund.fund_class || fund.asset,
         })
         .eq("investor_id", investor.id)
         .eq("fund_id", fund.id);
@@ -158,7 +158,7 @@ export class DepositService {
           shares: amount,
           cost_basis: amount,
           current_value: amount,
-          fund_class: fund.fund_class || fund.asset_symbol || fund.asset,
+          fund_class: fund.fund_class || fund.asset,
         },
       ]);
       if (insertError) throw insertError;
@@ -173,8 +173,8 @@ export class DepositService {
         investor_id: investor.id,
         fund_id: fund.id,
         type: "DEPOSIT",
-        asset: fund.asset_symbol || assetSymbol,
-        fund_class: fund.fund_class || fund.asset_symbol || fund.asset,
+        asset: fund.asset || assetSymbol,
+        fund_class: fund.fund_class || fund.asset,
         amount,
         tx_hash: formData.transaction_hash || null,
         balance_before: previousShares,

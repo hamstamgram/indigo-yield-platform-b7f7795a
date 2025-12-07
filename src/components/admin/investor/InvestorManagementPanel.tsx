@@ -39,20 +39,14 @@ export function InvestorManagementPanel({ investors, onDataChange }: InvestorMan
   useRealtimeSubscription({
     table: "investors",
     event: "UPDATE",
-    onUpdate: () => {
-      console.log("Investor data updated, refreshing...");
-      onDataChange();
-    },
+    onUpdate: onDataChange,
   });
 
   // Real-time subscription for investor positions
   useRealtimeSubscription({
     table: "investor_positions",
     event: "*",
-    onUpdate: () => {
-      console.log("Investor positions updated, refreshing...");
-      onDataChange();
-    },
+    onUpdate: onDataChange,
   });
 
   const filteredInvestors = investors.filter((investor) => {

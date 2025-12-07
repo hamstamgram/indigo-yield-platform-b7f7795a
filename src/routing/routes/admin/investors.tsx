@@ -26,8 +26,21 @@ export function InvestorRoutes() {
         }
       />
 
+      {/* New investor - redirect to onboarding */}
+      <Route path="/admin/investors/new" element={<Navigate to="/admin/onboarding" replace />} />
+
       <Route
         path="/admin/investors/:id"
+        element={
+          <AdminRoute>
+            <InvestorManagement />
+          </AdminRoute>
+        }
+      />
+
+      {/* Edit investor - same as view, InvestorManagement handles edit mode */}
+      <Route
+        path="/admin/investors/:id/edit"
         element={
           <AdminRoute>
             <InvestorManagement />

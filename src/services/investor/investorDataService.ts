@@ -52,7 +52,7 @@ export class InvestorDataService {
           funds (
             name,
             code,
-            asset_symbol,
+            asset,
             fund_class
           )
         `
@@ -69,7 +69,7 @@ export class InvestorDataService {
         fundId: fp.fund_id,
         fundName: fp.funds?.name || "Unknown Fund",
         fundCode: fp.funds?.code || "N/A",
-        asset: fp.funds?.asset_symbol || "Unknown",
+        asset: fp.funds?.asset || "Unknown",
         fundClass: fp.fund_class || fp.funds?.fund_class || "Standard",
         shares: Number(fp.shares) || 0,
         currentValue: Number(fp.current_value) || 0,

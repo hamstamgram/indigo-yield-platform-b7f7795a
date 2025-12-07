@@ -3,9 +3,9 @@
  * Implements TOTP-based 2FA with backup codes
  */
 
-import { supabase } from '@/integrations/supabase/client';
-import { securityLogger, SecurityEventType, SecuritySeverity } from './security-logger';
-import * as OTPAuth from 'otpauth';
+import { supabase } from "@/integrations/supabase/client";
+import { securityLogger, SecurityEventType, SecuritySeverity } from "./security-logger";
+import * as OTPAuth from "otpauth";
 
 interface MFASetupData {
   secret: string;
@@ -21,7 +21,7 @@ interface MFAVerificationResult {
 
 class MFAManager {
   private static instance: MFAManager;
-  private readonly APP_NAME = 'Indigo Yield Platform';
+  private readonly APP_NAME = "Indigo Yield Platform";
   private readonly BACKUP_CODE_LENGTH = 8;
   private readonly BACKUP_CODE_COUNT = 10;
 
@@ -47,8 +47,8 @@ class MFAManager {
    * Base32 encoding for TOTP secret
    */
   private base32Encode(buffer: Uint8Array): string {
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-    let result = '';
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+    let result = "";
     let bits = 0;
     let value = 0;
 
@@ -78,7 +78,7 @@ class MFAManager {
       const totp = new OTPAuth.TOTP({
         issuer: this.APP_NAME,
         label: email,
-        algorithm: 'SHA1',
+        algorithm: "SHA1",
         digits: 6,
         period: 30,
         secret: secret,
@@ -92,8 +92,8 @@ class MFAManager {
 
       return qrCodeUrl;
     } catch (error) {
-      console.error('QR code generation failed:', error);
-      throw new Error('Failed to generate QR code');
+      console.error("QR code generation failed:", error);
+      throw new Error("Failed to generate QR code");
     }
   }
 
@@ -106,7 +106,7 @@ class MFAManager {
     for (let i = 0; i < this.BACKUP_CODE_COUNT; i++) {
       const array = new Uint8Array(this.BACKUP_CODE_LENGTH / 2);
       crypto.getRandomValues(array);
-      const code = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+      const code = Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
       codes.push(code.toUpperCase());
     }
 
@@ -118,9 +118,11 @@ class MFAManager {
    */
   public async setupMFA(email: string): Promise<MFASetupData> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
-        throw new Error('User not authenticated');
+        throw new Error("User not authenticated");
       }
 
       // Generate secret and backup codes
@@ -130,19 +132,17 @@ class MFAManager {
 
       // Hash backup codes for storage
       const hashedBackupCodes = await Promise.all(
-        backupCodes.map(code => this.hashBackupCode(code))
+        backupCodes.map((code) => this.hashBackupCode(code))
       );
 
       // Store MFA settings (encrypted secret stored server-side in production)
-      const { error } = await supabase
-        .from('user_totp_settings')
-        .upsert({
-          user_id: user.id,
-          enabled: false, // Will be enabled after verification
-          mfa_method: 'TOTP',
-          backup_codes: hashedBackupCodes,
-          updated_at: new Date().toISOString(),
-        });
+      const { error } = await supabase.from("user_totp_settings").upsert({
+        user_id: user.id,
+        enabled: false, // Will be enabled after verification
+        mfa_method: "TOTP",
+        backup_codes: hashedBackupCodes,
+        updated_at: new Date().toISOString(),
+      });
 
       if (error) {
         throw error;
@@ -152,11 +152,9 @@ class MFAManager {
       await this.storeEncryptedSecret(user.id, secret);
 
       // Log MFA setup attempt
-      await securityLogger.logEvent(
-        SecurityEventType.MFA_ENABLED,
-        SecuritySeverity.MEDIUM,
-        { method: 'TOTP' }
-      );
+      await securityLogger.logEvent(SecurityEventType.MFA_ENABLED, SecuritySeverity.MEDIUM, {
+        method: "TOTP",
+      });
 
       return {
         secret,
@@ -164,123 +162,51 @@ class MFAManager {
         backupCodes,
       };
     } catch (error) {
-      console.error('MFA setup failed:', error);
-      throw new Error('Failed to setup MFA');
+      console.error("MFA setup failed:", error);
+      throw new Error("Failed to setup MFA");
     }
   }
 
   /**
-   * Store encrypted TOTP secret (should be server-side in production)
+   * Store encrypted TOTP secret
+   * SECURITY: This feature is currently disabled for security reasons.
+   * Client-side storage (sessionStorage) is vulnerable to XSS attacks.
+   * TODO: Implement server-side secret storage via Supabase Edge Function
    */
-  private async storeEncryptedSecret(userId: string, secret: string): Promise<void> {
-    // In production, this should be stored server-side with proper encryption
-    // For now, we'll use a secure client-side approach
+  private async storeEncryptedSecret(_userId: string, _secret: string): Promise<void> {
+    // SECURITY: Client-side storage of TOTP secrets is insecure
+    // This must be stored server-side with proper encryption (AES-256-GCM)
+    // Using Supabase vault or encrypted column in user_totp_settings table
 
-    try {
-      // Encrypt secret using Web Crypto API
-      const encoder = new TextEncoder();
-      const data = encoder.encode(secret);
+    console.warn(
+      "[MFA] SECURITY: Client-side TOTP secret storage is disabled. Implement server-side storage."
+    );
 
-      // Generate encryption key from user ID
-      const keyMaterial = await crypto.subtle.importKey(
-        'raw',
-        encoder.encode(userId),
-        'PBKDF2',
-        false,
-        ['deriveBits', 'deriveKey']
-      );
-
-      const key = await crypto.subtle.deriveKey(
-        {
-          name: 'PBKDF2',
-          salt: encoder.encode('mfa-secret-salt'),
-          iterations: 100000,
-          hash: 'SHA-256'
-        },
-        keyMaterial,
-        { name: 'AES-GCM', length: 256 },
-        false,
-        ['encrypt', 'decrypt']
-      );
-
-      const iv = crypto.getRandomValues(new Uint8Array(12));
-      const encryptedData = await crypto.subtle.encrypt(
-        { name: 'AES-GCM', iv },
-        key,
-        data
-      );
-
-      // Store encrypted secret (should be server-side)
-      const combined = new Uint8Array(iv.length + encryptedData.byteLength);
-      combined.set(iv);
-      combined.set(new Uint8Array(encryptedData), iv.length);
-
-      // In production, send to server
-      // await supabase.functions.invoke('store-mfa-secret', {
-      //   body: { userId, encryptedSecret: btoa(String.fromCharCode(...combined)) }
-      // });
-
-      // For now, store in sessionStorage (temporary)
-      sessionStorage.setItem(`mfa_secret_${userId}`, btoa(String.fromCharCode(...Array.from(combined))));
-    } catch (error) {
-      console.error('Failed to store encrypted secret:', error);
-      throw error;
-    }
+    // Do NOT store secrets in sessionStorage - vulnerable to XSS
+    // The secret will need to be re-generated when server-side storage is implemented
+    throw new Error("MFA setup requires server-side implementation. Please contact support.");
   }
 
   /**
    * Verify TOTP code
+   * SECURITY: Currently disabled until server-side secret storage is implemented
    */
-  public async verifyTOTP(code: string): Promise<MFAVerificationResult> {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        return { success: false, error: 'User not authenticated' };
-      }
+  public async verifyTOTP(_code: string): Promise<MFAVerificationResult> {
+    // SECURITY: TOTP verification requires server-side secret storage
+    // Client-side verification with sessionStorage is vulnerable to XSS
+    // TODO: Implement verification via Supabase Edge Function that:
+    // 1. Retrieves encrypted secret from secure server-side storage
+    // 2. Decrypts and verifies the TOTP code server-side
+    // 3. Returns only success/failure to client
 
-      // Get encrypted secret (should be from server in production)
-      const encryptedSecret = sessionStorage.getItem(`mfa_secret_${user.id}`);
-      if (!encryptedSecret) {
-        return { success: false, error: 'MFA not configured' };
-      }
+    console.warn(
+      "[MFA] SECURITY: TOTP verification is disabled until server-side implementation is complete."
+    );
 
-      // Decrypt secret
-      const secret = await this.decryptSecret(user.id, encryptedSecret);
-
-      // Create TOTP instance
-      const totp = new OTPAuth.TOTP({
-        algorithm: 'SHA1',
-        digits: 6,
-        period: 30,
-        secret: secret,
-      });
-
-      // Verify code with time window
-      const delta = totp.validate({ token: code, window: 1 });
-
-      if (delta !== null) {
-        // Log successful MFA challenge
-        await securityLogger.logEvent(
-          SecurityEventType.MFA_CHALLENGE,
-          SecuritySeverity.LOW,
-          { success: true }
-        );
-
-        return { success: true };
-      }
-
-      // Log failed MFA challenge
-      await securityLogger.logEvent(
-        SecurityEventType.MFA_CHALLENGE,
-        SecuritySeverity.MEDIUM,
-        { success: false }
-      );
-
-      return { success: false, error: 'Invalid code', requiresBackupCode: true };
-    } catch (error) {
-      console.error('TOTP verification failed:', error);
-      return { success: false, error: 'Verification failed' };
-    }
+    return {
+      success: false,
+      error: "Two-factor authentication is not yet available. Server-side implementation required.",
+    };
   }
 
   /**
@@ -292,42 +218,38 @@ class MFAManager {
       const decoder = new TextDecoder();
 
       // Convert from base64
-      const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+      const combined = Uint8Array.from(atob(encryptedData), (c) => c.charCodeAt(0));
       const iv = combined.slice(0, 12);
       const data = combined.slice(12);
 
       // Recreate encryption key
       const keyMaterial = await crypto.subtle.importKey(
-        'raw',
+        "raw",
         encoder.encode(userId),
-        'PBKDF2',
+        "PBKDF2",
         false,
-        ['deriveBits', 'deriveKey']
+        ["deriveBits", "deriveKey"]
       );
 
       const key = await crypto.subtle.deriveKey(
         {
-          name: 'PBKDF2',
-          salt: encoder.encode('mfa-secret-salt'),
+          name: "PBKDF2",
+          salt: encoder.encode("mfa-secret-salt"),
           iterations: 100000,
-          hash: 'SHA-256'
+          hash: "SHA-256",
         },
         keyMaterial,
-        { name: 'AES-GCM', length: 256 },
+        { name: "AES-GCM", length: 256 },
         false,
-        ['encrypt', 'decrypt']
+        ["encrypt", "decrypt"]
       );
 
       // Decrypt
-      const decryptedData = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv },
-        key,
-        data
-      );
+      const decryptedData = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, data);
 
       return decoder.decode(decryptedData);
     } catch (error) {
-      console.error('Failed to decrypt secret:', error);
+      console.error("Failed to decrypt secret:", error);
       throw error;
     }
   }
@@ -338,9 +260,9 @@ class MFAManager {
   private async hashBackupCode(code: string): Promise<string> {
     const encoder = new TextEncoder();
     const data = encoder.encode(code);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
   }
 
   /**
@@ -348,9 +270,11 @@ class MFAManager {
    */
   public async verifyBackupCode(code: string): Promise<MFAVerificationResult> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
-        return { success: false, error: 'User not authenticated' };
+        return { success: false, error: "User not authenticated" };
       }
 
       // Hash the provided code
@@ -358,13 +282,13 @@ class MFAManager {
 
       // Get user's backup codes
       const { data: mfaSettings, error } = await supabase
-        .from('user_totp_settings')
-        .select('backup_codes')
-        .eq('user_id', user.id)
+        .from("user_totp_settings")
+        .select("backup_codes")
+        .eq("user_id", user.id)
         .single();
 
       if (error || !mfaSettings) {
-        return { success: false, error: 'MFA not configured' };
+        return { success: false, error: "MFA not configured" };
       }
 
       // Check if code matches
@@ -372,12 +296,11 @@ class MFAManager {
       const codeIndex = backupCodes.indexOf(hashedCode);
 
       if (codeIndex === -1) {
-        await securityLogger.logEvent(
-          SecurityEventType.MFA_CHALLENGE,
-          SecuritySeverity.MEDIUM,
-          { success: false, type: 'backup_code' }
-        );
-        return { success: false, error: 'Invalid backup code' };
+        await securityLogger.logEvent(SecurityEventType.MFA_CHALLENGE, SecuritySeverity.MEDIUM, {
+          success: false,
+          type: "backup_code",
+        });
+        return { success: false, error: "Invalid backup code" };
       }
 
       // Remove used backup code
@@ -385,21 +308,20 @@ class MFAManager {
 
       // Update backup codes
       await supabase
-        .from('user_totp_settings')
+        .from("user_totp_settings")
         .update({ backup_codes: backupCodes } as any)
-        .eq('user_id', user.id);
+        .eq("user_id", user.id);
 
       // Log successful verification
-      await securityLogger.logEvent(
-        SecurityEventType.MFA_CHALLENGE,
-        SecuritySeverity.LOW,
-        { success: true, type: 'backup_code' }
-      );
+      await securityLogger.logEvent(SecurityEventType.MFA_CHALLENGE, SecuritySeverity.LOW, {
+        success: true,
+        type: "backup_code",
+      });
 
       return { success: true };
     } catch (error) {
-      console.error('Backup code verification failed:', error);
-      return { success: false, error: 'Verification failed' };
+      console.error("Backup code verification failed:", error);
+      return { success: false, error: "Verification failed" };
     }
   }
 
@@ -408,22 +330,18 @@ class MFAManager {
    */
   public async enableMFA(): Promise<void> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
-        throw new Error('User not authenticated');
+        throw new Error("User not authenticated");
       }
 
-      await supabase
-        .from('user_totp_settings')
-        .update({ enabled: true })
-        .eq('user_id', user.id);
+      await supabase.from("user_totp_settings").update({ enabled: true }).eq("user_id", user.id);
 
-      await securityLogger.logEvent(
-        SecurityEventType.MFA_ENABLED,
-        SecuritySeverity.MEDIUM
-      );
+      await securityLogger.logEvent(SecurityEventType.MFA_ENABLED, SecuritySeverity.MEDIUM);
     } catch (error) {
-      console.error('Failed to enable MFA:', error);
+      console.error("Failed to enable MFA:", error);
       throw error;
     }
   }
@@ -433,25 +351,21 @@ class MFAManager {
    */
   public async disableMFA(): Promise<void> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
-        throw new Error('User not authenticated');
+        throw new Error("User not authenticated");
       }
 
-      await supabase
-        .from('user_totp_settings')
-        .update({ enabled: false })
-        .eq('user_id', user.id);
+      await supabase.from("user_totp_settings").update({ enabled: false }).eq("user_id", user.id);
 
-      // Clear stored secret
-      sessionStorage.removeItem(`mfa_secret_${user.id}`);
+      // Note: Server-side secret cleanup would happen via Edge Function
+      // No client-side storage to clear when using proper server-side implementation
 
-      await securityLogger.logEvent(
-        SecurityEventType.MFA_DISABLED,
-        SecuritySeverity.HIGH
-      );
+      await securityLogger.logEvent(SecurityEventType.MFA_DISABLED, SecuritySeverity.HIGH);
     } catch (error) {
-      console.error('Failed to disable MFA:', error);
+      console.error("Failed to disable MFA:", error);
       throw error;
     }
   }
@@ -461,15 +375,17 @@ class MFAManager {
    */
   public async isMFAEnabled(): Promise<boolean> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         return false;
       }
 
       const { data, error } = await supabase
-        .from('user_totp_settings')
-        .select('enabled')
-        .eq('user_id', user.id)
+        .from("user_totp_settings")
+        .select("enabled")
+        .eq("user_id", user.id)
         .single();
 
       if (error || !data) {
@@ -478,7 +394,7 @@ class MFAManager {
 
       return data.enabled === true;
     } catch (error) {
-      console.error('Failed to check MFA status:', error);
+      console.error("Failed to check MFA status:", error);
       return false;
     }
   }

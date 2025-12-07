@@ -98,7 +98,7 @@ export const withdrawalService = {
     // Fetch request details
     const { data: request, error: fetchError } = await supabase
       .from("withdrawal_requests")
-      .select("*, investors(profile_id), funds(asset_symbol, fund_class)")
+      .select("*, investors(profile_id), funds(asset, fund_class)")
       .eq("id", withdrawalId)
       .single();
     if (fetchError) throw fetchError;
@@ -127,7 +127,7 @@ export const withdrawalService = {
         investor_id: req.investor_id,
         fund_id: req.fund_id,
         type: "WITHDRAWAL",
-        asset: req.funds?.asset_symbol || req.fund_class || req.currency,
+        asset: req.funds?.asset || req.fund_class || req.currency,
         fund_class: req.fund_class || req.funds?.fund_class,
         amount: processedAmount,
         occurred_at: new Date().toISOString(),
@@ -184,7 +184,7 @@ export const withdrawalService = {
     // Fetch request details
     const { data: request, error: fetchError } = await supabase
       .from("withdrawal_requests")
-      .select("*, funds(asset_symbol, fund_class)")
+      .select("*, funds(asset, fund_class)")
       .eq("id", withdrawalId)
       .single();
     if (fetchError) throw fetchError;
@@ -248,7 +248,7 @@ export const withdrawalService = {
           investor_id: request.investor_id,
           fund_id: request.fund_id,
           type: "WITHDRAWAL",
-          asset: request.funds?.asset_symbol || request.fund_class,
+          asset: request.funds?.asset || request.fund_class,
           fund_class: request.fund_class || request.funds?.fund_class,
           amount: processedAmount,
           tx_hash: txHash || request.tx_hash,

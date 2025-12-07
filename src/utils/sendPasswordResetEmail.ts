@@ -11,8 +11,3 @@ export async function sendPasswordResetEmail(email: string) {
 
   return { success: true };
 }
-
-// Send to hammadou@indigo.fund
-sendPasswordResetEmail("hammadou@indigo.fund")
-  .then(() => console.log("✅ Password reset email sent to hammadou@indigo.fund"))
-  .catch((err) => console.error("❌ Error:", err.message));

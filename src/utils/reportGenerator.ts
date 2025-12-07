@@ -258,17 +258,17 @@ export const generateInvestorReportHtml = (data: ReportData): string => {
               <table role="presentation" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="padding: 0 10px;">
-                    <a href="#" target="_blank" style="text-decoration: none; display: inline-block;">
+                    <a href="https://www.linkedin.com/company/indigo-fund" target="_blank" style="text-decoration: none; display: inline-block;">
                       <img src="https://storage.mlcdn.com/account_image/855106/ojd93cnCVRi5L51cI3iT2FVQKwbwUdZYyjU5UBly.png" alt="LinkedIn" width="24" style="border:0;">
                     </a>
                   </td>
                   <td style="padding: 0 10px;">
-                    <a href="#" target="_blank" style="text-decoration: none; display: inline-block;">
+                    <a href="https://www.instagram.com/indigofund" target="_blank" style="text-decoration: none; display: inline-block;">
                       <img src="https://storage.mlcdn.com/account_image/855106/SkcRzdNBhSZKcJsfsRWfUUqcdl09N5aF7Oprsjhl.png" alt="Instagram" width="24" style="border:0;">
                     </a>
                   </td>
                   <td style="padding: 0 10px;">
-                     <a href="#" target="_blank" style="text-decoration: none; display: inline-block;">
+                     <a href="https://x.com/indigofund" target="_blank" style="text-decoration: none; display: inline-block;">
                       <img src="https://storage.mlcdn.com/account_image/855106/gecQtGTjUytuBi3PJXEx9dvCYHKL0KpLipsB0FbU.png" alt="X" width="24" style="border:0;">
                     </a>
                   </td>
@@ -281,7 +281,7 @@ export const generateInvestorReportHtml = (data: ReportData): string => {
             <td align="center">
               <p class="mobile-footer-text" style="margin: 0 0 8px 0; font-size:12px; color: #94a3b8;">© 2025 Indigo Fund. All rights reserved.</p>
               <p class="mobile-footer-text" style="margin: 0; font-size:12px; color: #94a3b8;">
-                <a href="#" target="_blank" style="color: #94a3b8; text-decoration: underline;">Unsubscribe</a>
+                <a href="https://indigo.fund/preferences" target="_blank" style="color: #94a3b8; text-decoration: underline;">Unsubscribe</a>
               </p>
             </td>
           </tr>

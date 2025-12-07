@@ -77,8 +77,8 @@ export const depositRequestSchema = z.object({
   amount: z
     .number()
     .positive("Amount must be positive")
-    .min(100, "Minimum deposit is $100")
-    .max(10000000, "Maximum deposit is $10,000,000")
+    .min(100, "Minimum deposit is 100 units")
+    .max(10000000, "Maximum deposit is 10,000,000 units")
     .multipleOf(0.01, "Amount must have at most 2 decimal places"),
   assetCode: z.enum(["BTC", "ETH", "SOL", "USDT", "USDC", "EURC"]),
   wireReference: z
@@ -93,7 +93,7 @@ export const withdrawalRequestSchema = z.object({
   amount: z
     .number()
     .positive("Amount must be positive")
-    .min(100, "Minimum withdrawal is $100")
+    .min(100, "Minimum withdrawal is 100 units")
     .multipleOf(0.01, "Amount must have at most 2 decimal places"),
   assetCode: z.enum(["BTC", "ETH", "SOL", "USDT", "USDC", "EURC"]),
   destinationAddress: z

@@ -102,29 +102,27 @@ export async function deleteInvestorPosition(investorId: string, fundId: string)
  * Get all positions for an investor
  */
 export async function getInvestorPositions(investorId: string): Promise<InvestorPositionDetail[]> {
-  try {
-    const { data, error } = await supabase
-      .from("investor_positions")
-      .select(
-        `
-        *,
-        funds:fund_id (
-          id,
-          code,
-          name,
-          asset,
-          fund_class
-        )
+  const { data, error } = await supabase
+    .from("investor_positions")
+    .select(
       `
+      *,
+      funds:fund_id (
+        id,
+        code,
+        name,
+        asset,
+        fund_class
       )
-      .eq("investor_id", investorId);
+    `
+    )
+    .eq("investor_id", investorId);
 
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
+  if (error) {
     console.error("Error fetching investor positions:", error);
-    return [];
+    throw new Error(`Failed to fetch investor positions: ${error.message}`);
   }
+  return data || [];
 }
 
 /**
@@ -217,37 +215,35 @@ export async function removeAssetFromInvestor(
 export async function getInvestorPortfolioSummary(
   investorId: string
 ): Promise<Record<string, { balance: number; usd_value: number }>> {
-  try {
-    const { data, error } = await supabase
-      .from("positions")
-      .select(
-        `
-        asset_code,
-        current_balance,
-        assets!inner (
-          symbol,
-          name
-        )
+  const { data, error } = await supabase
+    .from("positions")
+    .select(
       `
+      asset_code,
+      current_balance,
+      assets!inner (
+        symbol,
+        name
       )
-      .eq("user_id", investorId);
+    `
+    )
+    .eq("user_id", investorId);
 
-    if (error) throw error;
-
-    const summary: Record<string, { balance: number; usd_value: number }> = {};
-
-    if (data) {
-      data.forEach((position: any) => {
-        summary[position.asset_code] = {
-          balance: Number(position.current_balance) || 0,
-          usd_value: Number(position.current_balance) || 0,
-        };
-      });
-    }
-
-    return summary;
-  } catch (error) {
+  if (error) {
     console.error("Error getting portfolio summary:", error);
-    return {};
+    throw new Error(`Failed to fetch portfolio summary: ${error.message}`);
   }
+
+  const summary: Record<string, { balance: number; usd_value: number }> = {};
+
+  if (data) {
+    data.forEach((position: any) => {
+      summary[position.asset_code] = {
+        balance: Number(position.current_balance) || 0,
+        usd_value: Number(position.current_balance) || 0,
+      };
+    });
+  }
+
+  return summary;
 }

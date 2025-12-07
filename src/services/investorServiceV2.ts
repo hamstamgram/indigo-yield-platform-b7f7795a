@@ -177,8 +177,8 @@ class InvestorServiceV2 {
       balance_before: Number(entry.balance_before || 0),
       yield_amount: Number(entry.amount),
       balance_after: Number(entry.balance_after || 0),
-      daily_rate: 0.0197, // Default daily rate (7.2% APY / 365)
-      annual_rate: 7.2,
+      daily_rate: Number(entry.daily_rate || 0),
+      annual_rate: Number(entry.annual_rate || 0),
     }));
   }
 
@@ -301,16 +301,9 @@ class InvestorServiceV2 {
 
     if (error && error.code !== "PGRST116") throw error;
 
-    // If no rates for today, return defaults based on fund configuration
+    // If no rates for today, return empty array - rates must come from database
     if (!data) {
-      return [
-        { asset_symbol: "BTC", asset_name: "Bitcoin", daily_rate: 0.0197, annual_rate: 7.2 },
-        { asset_symbol: "ETH", asset_name: "Ethereum", daily_rate: 0.0197, annual_rate: 7.2 },
-        { asset_symbol: "SOL", asset_name: "Solana", daily_rate: 0.0197, annual_rate: 7.2 },
-        { asset_symbol: "USDT", asset_name: "Stablecoin", daily_rate: 0.0274, annual_rate: 10.0 },
-        { asset_symbol: "XRP", asset_name: "XRP", daily_rate: 0.0197, annual_rate: 7.2 },
-        { asset_symbol: "XAUT", asset_name: "Tether Gold", daily_rate: 0.0137, annual_rate: 5.0 },
-      ];
+      return [];
     }
 
     return [

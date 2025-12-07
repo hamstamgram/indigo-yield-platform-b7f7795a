@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ArrowUpRight, ArrowDownLeft, Filter, Download } from "lucide-react";
+import { formatAssetAmount } from "@/utils/assets";
 
 interface Transaction {
   id: string;
@@ -62,9 +63,10 @@ export function TransactionHistory({
     );
   };
 
-  const formatAmount = (amount: number, type: Transaction["type"]) => {
+  const formatTransactionAmount = (amount: number, type: Transaction["type"], symbol?: string) => {
     const prefix = ["buy", "deposit", "dividend"].includes(type) ? "+" : "-";
-    return `${prefix}$${Math.abs(amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
+    const assetSymbol = symbol || "USDT";
+    return `${prefix}${formatAssetAmount(Math.abs(amount), assetSymbol)}`;
   };
 
   if (loading) {
@@ -139,9 +141,10 @@ export function TransactionHistory({
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {format(new Date(transaction.date), "MMM dd, yyyy HH:mm")}
-                      {transaction.quantity && (
+                      {transaction.quantity && transaction.price && (
                         <span className="ml-2">
-                          {transaction.quantity} shares @ ${transaction.price?.toFixed(2)}
+                          {transaction.quantity} {transaction.symbol || "units"} @{" "}
+                          {formatAssetAmount(transaction.price, transaction.symbol || "USDT")}
                         </span>
                       )}
                     </div>
@@ -161,11 +164,15 @@ export function TransactionHistory({
                         : "text-red-600"
                     )}
                   >
-                    {formatAmount(transaction.amount, transaction.type)}
+                    {formatTransactionAmount(
+                      transaction.amount,
+                      transaction.type,
+                      transaction.symbol
+                    )}
                   </div>
                   {transaction.fee && transaction.fee > 0 && (
                     <div className="text-xs text-muted-foreground">
-                      Fee: ${transaction.fee.toFixed(2)}
+                      Fee: {formatAssetAmount(transaction.fee, transaction.symbol || "USDT")}
                     </div>
                   )}
                 </div>

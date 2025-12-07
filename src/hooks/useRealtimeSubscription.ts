@@ -38,13 +38,13 @@ export function useRealtimeSubscription({
           ...(filter && { filter }),
         },
         (payload) => {
-          console.log(`Real-time update for ${table}:`, payload);
+          if (import.meta.env.DEV) {
+            console.log(`Real-time update for ${table}`);
+          }
           onUpdate();
         }
       )
-      .subscribe((status) => {
-        console.log(`Real-time subscription status for ${table}:`, status);
-      });
+      .subscribe();
 
     // Cleanup on unmount
     return () => {

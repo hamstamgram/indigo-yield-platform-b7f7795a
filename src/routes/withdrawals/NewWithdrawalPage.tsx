@@ -36,7 +36,7 @@ export default function NewWithdrawalPage() {
           fund_id,
           shares,
           current_value,
-          funds ( asset_symbol )
+          funds ( asset )
         `
         )
         .eq("investor_id", investor.id)
@@ -46,7 +46,7 @@ export default function NewWithdrawalPage() {
 
       return data.map((pos: any) => ({
         fund_id: pos.fund_id,
-        asset_symbol: pos.funds?.asset_symbol || "UNKNOWN",
+        asset_symbol: pos.funds?.asset || "UNKNOWN",
         amount: Number(pos.shares),
         value_usd: Number(pos.current_value),
       })) as WithdrawalPosition[];
