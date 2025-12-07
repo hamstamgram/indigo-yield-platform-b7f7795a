@@ -5,6 +5,33 @@
 
 ---
 
+## ⚠️ CRITICAL PLATFORM RULES (NEVER FORGET)
+
+### 1. ALL VALUES ARE IN NATIVE TOKENS - NEVER DOLLARS
+This is a **crypto-native platform**. All balances, AUM, transactions, and displays are in the asset's native token:
+- ✅ `41.34 BTC` (41.34 Bitcoin tokens)
+- ✅ `664.58 ETH` (664.58 Ethereum tokens)
+- ✅ `3,433,304.84 USDT` (3.4M Tether tokens)
+- ❌ NEVER display as `$41.34` or any fiat currency
+
+### 2. THE 7 CANONICAL FUNDS (No others)
+| Fund Name | Code | Asset | CDN Logo Key |
+|-----------|------|-------|--------------|
+| BTC Yield Fund | IND-BTC | BTC | `BTC YIELD FUND` |
+| ETH Yield Fund | IND-ETH | ETH | `ETH YIELD FUND` |
+| SOL Yield Fund | IND-SOL | SOL | `SOL YIELD FUND` |
+| Stablecoin Fund | IND-USDT | USDT | `Stablecoin Fund` |
+| Tokenized Gold | IND-XAUT | xAUT | `Tokenized Gold` |
+| XRP Yield Fund | IND-XRP | XRP | `XRP YIELD FUND` |
+| EURC Yield Fund | IND-EURC | EURC | `EURC YIELD FUND` |
+
+**NOT included**: USDC - this is NOT a platform fund. Remove all USDC references.
+
+### 3. USE CDN LOGOS FROM storage.mlcdn.com
+All asset/fund logos are hosted on the Indigo CDN. Never use CoinGecko or other external logo sources for official displays.
+
+---
+
 ## Project Overview
 
 **Type:** Web Application (Frontend + Supabase Backend)

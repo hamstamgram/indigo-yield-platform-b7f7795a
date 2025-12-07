@@ -18,9 +18,11 @@ const formatPercent = (value: number) => {
 
 const formatCrypto = (value: number, symbol: string) => {
   // Format crypto values with appropriate decimals
-  const decimals = symbol.toLowerCase() === "btc" ? 8 : symbol.toLowerCase() === "usdc" ? 2 : 4;
+  // 2 decimals for stablecoins (USDT, EURC), 8 for BTC, 4 for others
+  const lowerSymbol = symbol.toLowerCase();
+  const decimals = lowerSymbol === "btc" ? 8 : lowerSymbol === "usdt" || lowerSymbol === "eurc" ? 2 : 4;
 
-  // For large values like USDC, format with commas
+  // For large values like USDT/EURC, format with commas
   if (value > 10000) {
     return (
       new Intl.NumberFormat("en-US", {

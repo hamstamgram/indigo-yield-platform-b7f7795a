@@ -43,24 +43,27 @@ enum WithdrawalStatus: String, Codable {
     case rejected = "rejected"
 }
 
-// MARK: - Native Tokens
+// MARK: - Native Tokens (Platform's 7 Canonical Funds)
+// IMPORTANT: USDC is NOT a platform fund. Use USDT for stablecoin.
 
 enum NativeToken: String, Codable, CaseIterable {
     case btc = "BTC"
     case eth = "ETH"
     case sol = "SOL"
-    case usdc = "USDC"
     case usdt = "USDT"
     case eurc = "EURC"
+    case xaut = "xAUT"
+    case xrp = "XRP"
 
     var displayName: String {
         switch self {
-        case .btc: return "Bitcoin"
-        case .eth: return "Ethereum"
-        case .sol: return "Solana"
-        case .usdc: return "USD Coin"
-        case .usdt: return "Tether"
-        case .eurc: return "Euro Coin"
+        case .btc: return "BTC Yield Fund"
+        case .eth: return "ETH Yield Fund"
+        case .sol: return "SOL Yield Fund"
+        case .usdt: return "Stablecoin Fund"
+        case .eurc: return "EURC Yield Fund"
+        case .xaut: return "Tokenized Gold"
+        case .xrp: return "XRP Yield Fund"
         }
     }
 
@@ -70,7 +73,7 @@ enum NativeToken: String, Codable, CaseIterable {
 
     var isStablecoin: Bool {
         switch self {
-        case .usdc, .usdt, .eurc:
+        case .usdt, .eurc:
             return true
         default:
             return false

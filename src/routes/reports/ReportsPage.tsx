@@ -34,7 +34,7 @@ export default function ReportsPage() {
         .eq("investor_id", investor.id);
 
       if (searchTerm) {
-        query = query.ilike("report_type", `%${searchTerm}%`);
+        query = query.ilike("asset_code", `%${searchTerm}%`);
       }
 
       const { data, error } = await query.order("created_at", { ascending: false });
@@ -89,7 +89,7 @@ export default function ReportsPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="font-semibold">
-                          {item.report_type?.replace(/_/g, " ").toUpperCase() || "Report"}
+                          {item.asset_code?.replace(/_/g, " ").toUpperCase() || "Report"} - {item.report_month}
                         </h3>
                         <p className="text-sm text-muted-foreground">
                           {new Date(item.created_at).toLocaleDateString()}

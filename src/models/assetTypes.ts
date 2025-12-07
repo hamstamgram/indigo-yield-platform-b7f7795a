@@ -13,5 +13,8 @@ export interface YieldSource {
   btcYield: number;
   ethYield: number;
   solYield: number;
-  usdcYield: number;
+  usdtYield: number;
+  eurcYield: number;
+  xautYield: number;
+  xrpYield: number;
 }

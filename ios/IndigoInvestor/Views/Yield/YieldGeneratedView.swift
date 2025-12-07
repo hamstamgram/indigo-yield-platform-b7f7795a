@@ -7,7 +7,7 @@ struct YieldGeneratedView: View {
     @State private var selectedAsset = "All Assets"
 
     let timeRanges = ["7D", "30D", "90D", "1Y", "All"]
-    let assets = ["All Assets", "BTC", "ETH", "USDC", "EUROC"]
+    let assets = ["All Assets", "BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"]
 
     var body: some View {
         NavigationView {
@@ -212,19 +212,19 @@ struct YieldGeneratedView: View {
                 )
 
                 AssetPerformanceRow(
-                    asset: "USDC",
+                    asset: "USDT",
                     icon: "$",
-                    color: IndigoTheme.Colors.usdc,
-                    totalYield: "$8,888.90",
+                    color: IndigoTheme.Colors.usdt,
+                    totalYield: "8,888.90 USDT",
                     apy: "7.00%",
                     percentage: 19
                 )
 
                 AssetPerformanceRow(
-                    asset: "EUROC",
+                    asset: "EURC",
                     icon: "€",
                     color: IndigoTheme.Colors.info,
-                    totalYield: "$6,000.00",
+                    totalYield: "6,000.00 EURC",
                     apy: "6.50%",
                     percentage: 14
                 )
@@ -269,8 +269,8 @@ struct YieldGeneratedView: View {
 
                 RecentYieldRow(
                     date: Date().addingTimeInterval(-172800),
-                    asset: "USDC",
-                    amount: "$125.00",
+                    asset: "USDT",
+                    amount: "125.00 USDT",
                     apy: "7.0%"
                 )
             }

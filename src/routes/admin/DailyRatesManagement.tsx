@@ -27,8 +27,9 @@ interface DailyRate {
   eth_rate: string;
   sol_rate: string;
   usdt_rate: string;
-  usdc_rate: string;
   eurc_rate: string;
+  xaut_rate: string;
+  xrp_rate: string;
   notes?: string;
   created_by?: string;
 }
@@ -44,19 +45,21 @@ export default function DailyRatesManagement() {
     eth_rate: "0",
     sol_rate: "0",
     usdt_rate: "1.00", // Stablecoins default to 1
-    usdc_rate: "1.00",
     eurc_rate: "1.00",
+    xaut_rate: "0",
+    xrp_rate: "0",
     notes: "",
   });
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const assets = [
-    { code: "BTC", name: "Bitcoin Yield Fund", color: "orange" },
-    { code: "ETH", name: "Ethereum Yield Fund", color: "blue" },
-    { code: "SOL", name: "Solana Yield Fund", color: "purple" },
-    { code: "USDT", name: "USDT Yield Fund", color: "green", stablecoin: true },
-    { code: "USDC", name: "USDC Yield Fund", color: "blue", stablecoin: true },
-    { code: "EURC", name: "Euro Yield Fund", color: "blue", stablecoin: true },
+    { code: "BTC", name: "BTC Yield Fund", color: "orange" },
+    { code: "ETH", name: "ETH Yield Fund", color: "blue" },
+    { code: "SOL", name: "SOL Yield Fund", color: "purple" },
+    { code: "USDT", name: "Stablecoin Fund", color: "green", stablecoin: true },
+    { code: "EURC", name: "EURC Yield Fund", color: "blue", stablecoin: true },
+    { code: "xAUT", name: "Tokenized Gold", color: "yellow" },
+    { code: "XRP", name: "XRP Yield Fund", color: "gray" },
   ];
 
   // Fetch existing rate for selected date
@@ -99,8 +102,9 @@ export default function DailyRatesManagement() {
         eth_rate: existingRate.eth_rate?.toString() || "0",
         sol_rate: existingRate.sol_rate?.toString() || "0",
         usdt_rate: existingRate.usdt_rate?.toString() || "1.00",
-        usdc_rate: existingRate.usdc_rate?.toString() || "1.00",
         eurc_rate: existingRate.eurc_rate?.toString() || "1.00",
+        xaut_rate: existingRate.xaut_rate?.toString() || "0",
+        xrp_rate: existingRate.xrp_rate?.toString() || "0",
         notes: existingRate.notes || "",
       });
       setHasUnsavedChanges(false);
@@ -111,8 +115,9 @@ export default function DailyRatesManagement() {
         eth_rate: "0",
         sol_rate: "0",
         usdt_rate: "1.00",
-        usdc_rate: "1.00",
         eurc_rate: "1.00",
+        xaut_rate: "0",
+        xrp_rate: "0",
         notes: "",
       });
       setHasUnsavedChanges(false);
@@ -144,8 +149,9 @@ export default function DailyRatesManagement() {
         eth_rate: parseFloat(editingRates.eth_rate),
         sol_rate: parseFloat(editingRates.sol_rate),
         usdt_rate: parseFloat(editingRates.usdt_rate),
-        usdc_rate: parseFloat(editingRates.usdc_rate),
         eurc_rate: parseFloat(editingRates.eurc_rate),
+        xaut_rate: parseFloat(editingRates.xaut_rate),
+        xrp_rate: parseFloat(editingRates.xrp_rate),
         notes: editingRates.notes || null,
         created_by: user.id,
         updated_at: new Date().toISOString(),
@@ -184,8 +190,9 @@ export default function DailyRatesManagement() {
         p_eth_rate: parseFloat(editingRates.eth_rate),
         p_sol_rate: parseFloat(editingRates.sol_rate),
         p_usdt_rate: parseFloat(editingRates.usdt_rate),
-        p_usdc_rate: parseFloat(editingRates.usdc_rate),
         p_eurc_rate: parseFloat(editingRates.eurc_rate),
+        p_xaut_rate: parseFloat(editingRates.xaut_rate),
+        p_xrp_rate: parseFloat(editingRates.xrp_rate),
         p_notes: editingRates.notes || null,
       });
 
@@ -400,8 +407,9 @@ export default function DailyRatesManagement() {
                     <TableHead className="text-right">ETH</TableHead>
                     <TableHead className="text-right">SOL</TableHead>
                     <TableHead className="text-right">USDT</TableHead>
-                    <TableHead className="text-right">USDC</TableHead>
                     <TableHead className="text-right">EURC</TableHead>
+                    <TableHead className="text-right">xAUT</TableHead>
+                    <TableHead className="text-right">XRP</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -424,16 +432,19 @@ export default function DailyRatesManagement() {
                           {parseFloat(rate.usdt_rate).toFixed(4)}%
                         </TableCell>
                         <TableCell className="text-right">
-                          {parseFloat(rate.usdc_rate).toFixed(4)}%
+                          {parseFloat(rate.eurc_rate).toFixed(4)}%
                         </TableCell>
                         <TableCell className="text-right">
-                          {parseFloat(rate.eurc_rate).toFixed(4)}%
+                          {parseFloat(rate.xaut_rate).toFixed(4)}%
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {parseFloat(rate.xrp_rate).toFixed(4)}%
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         No historical rates found
                       </TableCell>
                     </TableRow>

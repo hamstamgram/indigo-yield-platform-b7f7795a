@@ -7,12 +7,13 @@ interface TokenConfig {
 }
 
 const TOKEN_CONFIGS: Record<string, TokenConfig> = {
-  BTC: { symbol: "BTC", decimals: 8, displayName: "Bitcoin" },
-  ETH: { symbol: "ETH", decimals: 18, displayName: "Ethereum" },
-  SOL: { symbol: "SOL", decimals: 9, displayName: "Solana" },
-  USDC: { symbol: "USD", decimals: 2, displayName: "Stablecoin (USD)" },
-  USDT: { symbol: "USD", decimals: 2, displayName: "Stablecoin (USD)" },
-  EURC: { symbol: "EURC", decimals: 6, displayName: "Euro Coin" },
+  BTC: { symbol: "BTC", decimals: 8, displayName: "BTC Yield Fund" },
+  ETH: { symbol: "ETH", decimals: 18, displayName: "ETH Yield Fund" },
+  SOL: { symbol: "SOL", decimals: 9, displayName: "SOL Yield Fund" },
+  USDT: { symbol: "USDT", decimals: 2, displayName: "Stablecoin Fund" },
+  EURC: { symbol: "EURC", decimals: 6, displayName: "EURC Yield Fund" },
+  xAUT: { symbol: "xAUT", decimals: 6, displayName: "Tokenized Gold" },
+  XRP: { symbol: "XRP", decimals: 6, displayName: "XRP Yield Fund" },
 };
 
 export function formatTokenAmount(amount: number, tokenSymbol: string): string {

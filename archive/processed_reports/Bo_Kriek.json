@@ -1,0 +1,28 @@
+{
+  "profile": {
+    "emails": ["bokriek@hotmail.com"]
+  },
+  "transactions": [
+    {
+      "date": "14/07/2025",
+      "currency": "USDT",
+      "amount": 273807.0,
+      "usd_value": 273807.0,
+      "original_row": {
+        "Investment Date": "14/07/2025",
+        "Investor Name": "Bo Kriek",
+        "Currency": "USDT",
+        "Amount": "273,807.00",
+        "USD Value": "$273,807.00",
+        "Email": "bokriek@hotmail.com",
+        "": ""
+      }
+    }
+  ],
+  "summary": {
+    "currencies": {
+      "USDT": 273807.0
+    },
+    "total_usd_value": 273807.0
+  }
+}

@@ -7,10 +7,12 @@ import type { Database } from "@/integrations/supabase/types";
 type AssetCode = Database["public"]["Enums"]["asset_code"];
 
 export interface PortfolioEntry {
-  user_id: string;
+  investor_id: string;
   asset_code: string;
   current_balance: number;
   principal: number;
+  total_earned: number;
+  updated_at: string;
 }
 
 export interface InvestorPosition {
@@ -24,9 +26,24 @@ export interface InvestorPosition {
 
 /**
  * Get user portfolio positions
+ * Note: positions table uses investor_id not user_id
  */
 export async function getUserPortfolio(userId: string): Promise<PortfolioEntry[]> {
-  const { data, error } = await supabase.from("positions").select("*").eq("user_id", userId);
+  // First get the investor ID from the profile
+  const { data: investor } = await supabase
+    .from("investors")
+    .select("id")
+    .eq("profile_id", userId)
+    .maybeSingle();
+
+  if (!investor) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("positions")
+    .select("*")
+    .eq("investor_id", investor.id);
 
   if (error) {
     console.error("Error fetching user portfolio:", error);
@@ -150,16 +167,17 @@ export async function createPortfolioEntries(
  * Update portfolio balance
  */
 export async function updatePortfolioBalance(
-  userId: string,
+  investorId: string,
   assetCode: string,
   newBalance: number
 ): Promise<boolean> {
   try {
-    const { error } = await supabase
+    // Note: positions uses investor_id not user_id
+    const { error } = await (supabase
       .from("positions")
       .update({ current_balance: newBalance, updated_at: new Date().toISOString() })
-      .eq("user_id", userId)
-      .eq("asset_code", assetCode as AssetCode);
+      .eq("investor_id", investorId)
+      .eq("asset_code", assetCode as AssetCode) as any);
 
     if (error) throw error;
     return true;

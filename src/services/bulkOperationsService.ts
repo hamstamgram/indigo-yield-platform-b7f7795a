@@ -32,7 +32,7 @@ export async function exportInvestorPositions(): Promise<Blob> {
       .from("positions")
       .select(
         `
-        user_id,
+        investor_id,
         asset_code,
         current_balance,
         principal,
@@ -45,17 +45,17 @@ export async function exportInvestorPositions(): Promise<Blob> {
     if (error) throw error;
 
     // Get user emails separately to avoid relation issues
-    const userIds = Array.from(new Set(data?.map((p) => p.user_id) || []));
+    const investorIds = Array.from(new Set(data?.map((p) => p.investor_id) || []));
     const { data: profiles } = await supabase
       .from("profiles")
       .select("id, email, first_name, last_name")
-      .in("id", userIds);
+      .in("id", investorIds);
 
     const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
 
     const csvData =
       data?.map((position) => {
-        const profile = profileMap.get(position.user_id);
+        const profile = profileMap.get(position.investor_id);
         return {
           investor_email: profile?.email || "Unknown",
           investor_name:
@@ -138,7 +138,7 @@ export async function importPositionsFromCSV(
 
         // Upsert position
         const positionData = {
-          user_id: profile.id,
+          investor_id: profile.id,
           asset_code: row.asset_symbol as AssetCode,
           current_balance: parseFloat(row.balance),
           principal: row.principal ? parseFloat(row.principal) : parseFloat(row.balance),
@@ -146,7 +146,7 @@ export async function importPositionsFromCSV(
         };
 
         const { error: upsertError } = await supabase.from("positions").upsert(positionData, {
-          onConflict: "user_id,asset_code",
+          onConflict: "investor_id,asset_code",
           ignoreDuplicates: !overwriteExisting,
         });
 
@@ -198,13 +198,13 @@ export async function bulkBalanceAdjustment(
 
   try {
     for (const adjustment of adjustments) {
-      // Get current balance
-      const { data: position, error: fetchError } = await supabase
+      // Get current balance (positions uses investor_id not user_id)
+      const { data: position, error: fetchError } = await (supabase
         .from("positions")
         .select("current_balance")
-        .eq("user_id", adjustment.investor_id)
+        .eq("investor_id", adjustment.investor_id)
         .eq("asset_code", adjustment.asset_code as AssetCode)
-        .maybeSingle();
+        .maybeSingle() as any);
 
       if (fetchError || !position) {
         result.errors.push(
@@ -224,12 +224,12 @@ export async function bulkBalanceAdjustment(
         continue;
       }
 
-      // Update balance
-      const { error: updateError } = await supabase
+      // Update balance (positions uses investor_id not user_id)
+      const { error: updateError } = await (supabase
         .from("positions")
         .update({ current_balance: newBalance })
-        .eq("user_id", adjustment.investor_id)
-        .eq("asset_code", adjustment.asset_code as AssetCode);
+        .eq("investor_id", adjustment.investor_id)
+        .eq("asset_code", adjustment.asset_code as AssetCode) as any);
 
       if (updateError) {
         result.errors.push(`Failed to update balance: ${updateError.message}`);

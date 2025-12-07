@@ -151,7 +151,7 @@ const SettingsPage = () => {
                 </Label>
                 <div className="grid grid-cols-3 gap-2">
                   <Button
-                    variant={settings.theme === "light" ? "default" : "outline"}
+                    variant={settings.theme === "light" ? "primary" : "outline"}
                     className="justify-start"
                     onClick={() => updateSetting("theme", "light")}
                   >
@@ -159,7 +159,7 @@ const SettingsPage = () => {
                     Light
                   </Button>
                   <Button
-                    variant={settings.theme === "dark" ? "default" : "outline"}
+                    variant={settings.theme === "dark" ? "primary" : "outline"}
                     className="justify-start"
                     onClick={() => updateSetting("theme", "dark")}
                   >
@@ -167,7 +167,7 @@ const SettingsPage = () => {
                     Dark
                   </Button>
                   <Button
-                    variant={settings.theme === "system" ? "default" : "outline"}
+                    variant={settings.theme === "system" ? "primary" : "outline"}
                     className="justify-start"
                     onClick={() => updateSetting("theme", "system")}
                   >

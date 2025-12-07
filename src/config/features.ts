@@ -22,7 +22,6 @@ export interface FeatureFlags {
   CUSTOM_REPORTS: boolean;
   PDF_GENERATION: boolean;
   SCHEDULED_REPORTS: boolean;
-  AIRTABLE_SYNC: boolean;
   PUSH_NOTIFICATIONS: boolean;
   TWO_FACTOR_AUTH: boolean;
   DARK_MODE: boolean;
@@ -58,7 +57,6 @@ export const FEATURE_FLAGS: FeatureFlags = {
   CUSTOM_REPORTS: false, // ⚠️ reportEngine.ts is stub - enable after full implementation
   PDF_GENERATION: false, // ⚠️ Requires PDFKit/jsPDF installation
   SCHEDULED_REPORTS: false, // ⚠️ Requires cron job or Edge Function implementation
-  AIRTABLE_SYNC: false, // ⚠️ Optional - enable when AIRTABLE_API_KEY configured
   PUSH_NOTIFICATIONS: false, // ⚠️ Requires service worker + push API setup
   TWO_FACTOR_AUTH: false, // ⚠️ TOTP implementation needs encryption key rotation
   DARK_MODE: false, // ⚠️ UI theme system not implemented
@@ -129,7 +127,6 @@ export const FEATURE_PHASES = {
     "CUSTOM_REPORTS",
     "PDF_GENERATION",
     "SCHEDULED_REPORTS",
-    "AIRTABLE_SYNC",
     "PUSH_NOTIFICATIONS",
     "TWO_FACTOR_AUTH",
     "DARK_MODE",

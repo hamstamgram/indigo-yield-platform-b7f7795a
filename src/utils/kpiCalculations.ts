@@ -69,10 +69,10 @@ export const formatAssetValue = (value: number, assetCode?: string): string => {
     BTC: { decimals: 8, symbol: "BTC" },
     ETH: { decimals: 8, symbol: "ETH" },
     SOL: { decimals: 6, symbol: "SOL" },
-    USDC: { decimals: 2, symbol: "USDC" },
     USDT: { decimals: 2, symbol: "USDT" },
     EURC: { decimals: 2, symbol: "EURC" },
     xAUT: { decimals: 4, symbol: "xAUT" },
+    XRP: { decimals: 6, symbol: "XRP" },
   };
 
   const config = assetConfig[assetCode] || { decimals: 4, symbol: assetCode };

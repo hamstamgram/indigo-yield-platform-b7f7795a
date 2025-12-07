@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,8 +18,6 @@ interface InvestorDetail {
   status: string;
   created_at: string | null;
   profile_id: string;
-  kyc_status?: string | null;
-  aml_status?: string | null;
   phone?: string | null;
 }
 
@@ -163,24 +160,6 @@ const InvestorManagement = () => {
                   </div>
                 </div>
               </div>
-
-              {investor.kyc_status && <Separator />}
-
-              {investor.kyc_status && (
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <p className="text-sm font-medium">KYC Status</p>
-                    <Badge variant="outline">{investor.kyc_status}</Badge>
-                  </div>
-
-                  {investor.aml_status && (
-                    <div>
-                      <p className="text-sm font-medium">AML Status</p>
-                      <Badge variant="outline">{investor.aml_status}</Badge>
-                    </div>
-                  )}
-                </div>
-              )}
             </CardContent>
           </Card>
         </TabsContent>

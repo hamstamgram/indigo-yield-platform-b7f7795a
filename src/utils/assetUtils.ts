@@ -6,10 +6,13 @@
  */
 export const createDefaultAssetSummaries = () => {
   const defaultAssets = [
-    { id: 1, symbol: "BTC", name: "Bitcoin" },
-    { id: 2, symbol: "ETH", name: "Ethereum" },
-    { id: 3, symbol: "SOL", name: "Solana" },
-    { id: 4, symbol: "USDC", name: "Tokenized Gold" },
+    { id: 1, symbol: "BTC", name: "BTC Yield Fund" },
+    { id: 2, symbol: "ETH", name: "ETH Yield Fund" },
+    { id: 3, symbol: "SOL", name: "SOL Yield Fund" },
+    { id: 4, symbol: "USDT", name: "Stablecoin Fund" },
+    { id: 5, symbol: "EURC", name: "EURC Yield Fund" },
+    { id: 6, symbol: "xAUT", name: "Tokenized Gold" },
+    { id: 7, symbol: "XRP", name: "XRP Yield Fund" },
   ];
 
   // Define default values for each supported asset type
@@ -17,7 +20,10 @@ export const createDefaultAssetSummaries = () => {
     BTC: { balance: 12.5, users: 18, yield: 4.8 },
     ETH: { balance: 180, users: 15, yield: 5.2 },
     SOL: { balance: 2200, users: 11, yield: 6.5 },
-    USDC: { balance: 425000, users: 22, yield: 8.1 },
+    USDT: { balance: 425000, users: 22, yield: 8.1 },
+    EURC: { balance: 100000, users: 10, yield: 5.0 },
+    xAUT: { balance: 50, users: 8, yield: 3.5 },
+    XRP: { balance: 500000, users: 15, yield: 5.5 },
   };
 
   // Create asset summaries for default assets - ensure uniqueness by symbol
@@ -54,7 +60,10 @@ export const createAssetSummariesFromDb = (assets: any[]) => {
     BTC: { balance: 12.5, users: 18, yield: 4.8 },
     ETH: { balance: 180, users: 15, yield: 5.2 },
     SOL: { balance: 2200, users: 11, yield: 6.5 },
-    USDC: { balance: 425000, users: 22, yield: 8.1 },
+    USDT: { balance: 425000, users: 22, yield: 8.1 },
+    EURC: { balance: 100000, users: 10, yield: 5.0 },
+    xAUT: { balance: 50, users: 8, yield: 3.5 },
+    XRP: { balance: 500000, users: 15, yield: 5.5 },
   };
 
   // Create asset summaries for all assets
@@ -94,7 +103,10 @@ export const createYieldSources = () => {
       btcYield: 3.2,
       ethYield: 4.8,
       solYield: 0,
-      usdcYield: 6.2,
+      usdtYield: 6.2,
+      eurcYield: 5.8,
+      xautYield: 0,
+      xrpYield: 0,
     },
     {
       id: "2",
@@ -102,7 +114,10 @@ export const createYieldSources = () => {
       btcYield: 3.5,
       ethYield: 4.5,
       solYield: 0,
-      usdcYield: 5.8,
+      usdtYield: 5.8,
+      eurcYield: 5.5,
+      xautYield: 0,
+      xrpYield: 0,
     },
     {
       id: "3",
@@ -110,7 +125,10 @@ export const createYieldSources = () => {
       btcYield: 0,
       ethYield: 0,
       solYield: 6.5,
-      usdcYield: 7.2,
+      usdtYield: 7.2,
+      eurcYield: 0,
+      xautYield: 0,
+      xrpYield: 5.0,
     },
     {
       id: "4",
@@ -118,7 +136,10 @@ export const createYieldSources = () => {
       btcYield: 4.7,
       ethYield: 5.6,
       solYield: 6.8,
-      usdcYield: 0,
+      usdtYield: 0,
+      eurcYield: 0,
+      xautYield: 3.2,
+      xrpYield: 0,
     },
     {
       id: "5",
@@ -126,7 +147,10 @@ export const createYieldSources = () => {
       btcYield: 0,
       ethYield: 0,
       solYield: 7.1,
-      usdcYield: 0,
+      usdtYield: 0,
+      eurcYield: 0,
+      xautYield: 0,
+      xrpYield: 4.5,
     },
   ];
 };

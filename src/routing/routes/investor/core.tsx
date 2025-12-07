@@ -18,7 +18,6 @@ const PendingTransactionDetailsPage = lazy(
 );
 const AccountPage = lazy(() => import("@/routes/investor/account/AccountPage"));
 const SettingsPage = lazy(() => import("@/routes/investor/account/SettingsPage"));
-const KYCVerification = lazy(() => import("@/routes/investor/account/KYCVerification"));
 
 export function CoreInvestorRoutes() {
   return (
@@ -76,14 +75,6 @@ export function CoreInvestorRoutes() {
         element={
           <ProtectedRoute>
             <AccountPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/account/kyc-verification"
-        element={
-          <ProtectedRoute>
-            <KYCVerification />
           </ProtectedRoute>
         }
       />

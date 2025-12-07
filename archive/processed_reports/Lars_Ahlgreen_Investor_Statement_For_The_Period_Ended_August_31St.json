@@ -1,0 +1,30 @@
+{
+  "profile": {
+    "emails": []
+  },
+  "transactions": [],
+  "summary": {
+    "currencies": {},
+    "total_usd_value": 0.0
+  },
+  "reports": [
+    {
+      "source_file": "Reporting_YieldFund - August 2025 (2).pdf",
+      "page": 25,
+      "period_ended": "August 31st, 2025",
+      "fund": "ETH",
+      "metrics": {
+        "net_income_mtd": 0.0103,
+        "ending_balance": 0.0103,
+        "roi_mtd": 0
+      }
+    }
+  ],
+  "balance_checks": [
+    {
+      "date": "August 31st, 2025",
+      "fund": "ETH",
+      "balance": 0.0103
+    }
+  ]
+}

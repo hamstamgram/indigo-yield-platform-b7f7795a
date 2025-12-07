@@ -80,7 +80,7 @@ export const depositRequestSchema = z.object({
     .min(100, "Minimum deposit is 100 units")
     .max(10000000, "Maximum deposit is 10,000,000 units")
     .multipleOf(0.01, "Amount must have at most 2 decimal places"),
-  assetCode: z.enum(["BTC", "ETH", "SOL", "USDT", "USDC", "EURC"]),
+  assetCode: z.enum(["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"]),
   wireReference: z
     .string()
     .min(1, "Wire reference is required")
@@ -95,7 +95,7 @@ export const withdrawalRequestSchema = z.object({
     .positive("Amount must be positive")
     .min(100, "Minimum withdrawal is 100 units")
     .multipleOf(0.01, "Amount must have at most 2 decimal places"),
-  assetCode: z.enum(["BTC", "ETH", "SOL", "USDT", "USDC", "EURC"]),
+  assetCode: z.enum(["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"]),
   destinationAddress: z
     .string()
     .min(1, "Destination address is required")
@@ -125,7 +125,7 @@ export const adminDepositSchema = z.object({
     .number()
     .positive("Amount must be positive")
     .multipleOf(0.00000001, "Invalid decimal precision"),
-  assetCode: z.enum(["BTC", "ETH", "SOL", "USDT", "USDC", "EURC"]),
+  assetCode: z.enum(["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"]),
   txHash: z.string().min(1, "Transaction hash is required").max(100, "Transaction hash too long"),
   notes: z.string().max(1000, "Notes too long").optional(),
   effectiveDate: z.date().max(new Date(), "Cannot post future deposits"),
@@ -137,7 +137,7 @@ export const adminWithdrawalSchema = z.object({
     .number()
     .positive("Amount must be positive")
     .multipleOf(0.00000001, "Invalid decimal precision"),
-  assetCode: z.enum(["BTC", "ETH", "SOL", "USDT", "USDC", "EURC"]),
+  assetCode: z.enum(["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"]),
   txHash: z.string().min(1, "Transaction hash is required").max(100, "Transaction hash too long"),
   destinationAddress: z.string().min(1, "Destination address is required"),
   fee: z.number().min(0, "Fee cannot be negative").optional(),
@@ -145,7 +145,7 @@ export const adminWithdrawalSchema = z.object({
 });
 
 export const yieldSettingsSchema = z.object({
-  assetCode: z.enum(["BTC", "ETH", "SOL", "USDT", "USDC", "EURC"]),
+  assetCode: z.enum(["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"]),
   annualYieldPercentage: z
     .number()
     .min(0, "Yield cannot be negative")

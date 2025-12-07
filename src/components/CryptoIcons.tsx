@@ -17,8 +17,12 @@ export const CryptoIcon: React.FC<CryptoIconProps> = ({ symbol, className = "h-1
     src = "https://cryptologos.cc/logos/euro-coin-eurc-logo.svg?v=035";
   } else if (lowerSymbol === "sol") {
     src = "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/sol.svg";
-  } else if (lowerSymbol === "usd") {
-    src = "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/usdc.svg";
+  } else if (lowerSymbol === "usd" || lowerSymbol === "usdt") {
+    src = "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/usdt.svg";
+  } else if (lowerSymbol === "xaut") {
+    src = "https://assets.coingecko.com/coins/images/10481/large/Tether_Gold.png";
+  } else if (lowerSymbol === "xrp") {
+    src = "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/xrp.svg";
   }
 
   if (error) {

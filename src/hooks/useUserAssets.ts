@@ -51,12 +51,13 @@ export const useUserAssets = () => {
 
       // Map asset codes to user-friendly names
       const assetNames: Record<string, string> = {
-        BTC: "Bitcoin",
-        ETH: "Ethereum",
-        SOL: "Solana",
+        BTC: "BTC Yield Fund",
+        ETH: "ETH Yield Fund",
+        SOL: "SOL Yield Fund",
         USDT: "Stablecoin Fund",
-        USDC: "Tokenized Gold",
-        EURC: "Euro Coin",
+        EURC: "EURC Yield Fund",
+        xAUT: "Tokenized Gold",
+        XRP: "XRP Yield Fund",
       };
 
       return uniqueAssetCodes.map((code) => ({

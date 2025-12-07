@@ -171,7 +171,7 @@ export async function computeStatement(
       // or they should be treated as "count of operations" rather than value.
       // For mixed portfolios, rely on the `assets` array for value breakdowns.
 
-      // Only sum up if it's USDT/USDC (Stablecoins) to give at least a partial useful total?
+      // Only sum up if it's USDT/EURC (Stablecoins) to give at least a partial useful total?
       // Or better: Just don't sum mixed units.
       // User instruction: "TOTAL AUM OF THE FUND cannot be caculated... only seperate funds"
 

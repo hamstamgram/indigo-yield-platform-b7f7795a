@@ -1,12 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { setPasswordRequestSchema, parseAndValidate } from "../_shared/validation.ts";
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -59,8 +58,13 @@ serve(async (req) => {
       });
     }
 
-    // Get email and password from request
-    const { email, password } = await req.json();
+    // Validate request body
+    const validation = await parseAndValidate(req, setPasswordRequestSchema, corsHeaders);
+    if (!validation.success) {
+      return validation.response;
+    }
+
+    const { email, password } = validation.data;
 
     // Find existing user
     const { data: users, error: listError } = await supabaseAdmin.auth.admin.listUsers();

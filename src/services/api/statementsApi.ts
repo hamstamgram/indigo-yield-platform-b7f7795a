@@ -121,7 +121,8 @@ export async function fetchPeriodInvestors(periodId: string): Promise<InvestorSt
         profiles!investor_fund_performance_user_id_fkey (
           id,
           email,
-          full_name
+          first_name,
+          last_name
         )
       `
       )
@@ -137,13 +138,14 @@ export async function fetchPeriodInvestors(periodId: string): Promise<InvestorSt
       if (!profile) continue;
 
       const existing = investorMap.get(perf.user_id);
+      const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Unknown";
       if (existing) {
         existing.fund_count++;
         existing.fund_names.push(perf.fund_name);
       } else {
         investorMap.set(perf.user_id, {
           id: perf.user_id,
-          name: profile.full_name || "Unknown",
+          name: fullName,
           email: profile.email || "",
           fund_count: 1,
           fund_names: [perf.fund_name],
@@ -250,13 +252,15 @@ export async function generateInvestorStatement(
     // Fetch investor profile
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("full_name, email")
+      .select("first_name, last_name, email")
       .eq("id", userId)
       .maybeSingle();
 
     if (!profile) throw new Error("Profile not found");
 
     if (profileError) throw profileError;
+
+    const investorFullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Investor";
 
     // Fetch fund performance data
     const { data: performances, error: perfError } = (await supabase
@@ -302,7 +306,7 @@ export async function generateInvestorStatement(
 
     // Generate HTML
     const html = generateMonthlyStatementHTML({
-      investor_name: profile.full_name || "Investor",
+      investor_name: investorFullName,
       investor_email: profile.email || "",
       period_ended: period.period_name,
       funds,
@@ -413,7 +417,7 @@ export async function sendInvestorStatement(periodId: string, userId: string): P
     // Get investor profile
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("email, full_name")
+      .select("email, first_name, last_name")
       .eq("id", userId)
       .maybeSingle();
 

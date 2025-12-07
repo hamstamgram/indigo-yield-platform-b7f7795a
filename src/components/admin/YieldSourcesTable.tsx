@@ -60,8 +60,26 @@ const YieldSourcesTable: React.FC<YieldSourcesTableProps> = ({ loading, yieldSou
                   </TableHead>
                   <TableHead>
                     <div className="flex items-center">
-                      <CryptoIcon symbol="usdc" className="h-5 w-5 mr-2" />
-                      USDC
+                      <CryptoIcon symbol="usdt" className="h-5 w-5 mr-2" />
+                      USDT
+                    </div>
+                  </TableHead>
+                  <TableHead>
+                    <div className="flex items-center">
+                      <CryptoIcon symbol="eurc" className="h-5 w-5 mr-2" />
+                      EURC
+                    </div>
+                  </TableHead>
+                  <TableHead>
+                    <div className="flex items-center">
+                      <CryptoIcon symbol="xaut" className="h-5 w-5 mr-2" />
+                      xAUT
+                    </div>
+                  </TableHead>
+                  <TableHead>
+                    <div className="flex items-center">
+                      <CryptoIcon symbol="xrp" className="h-5 w-5 mr-2" />
+                      XRP
                     </div>
                   </TableHead>
                 </TableRow>
@@ -98,9 +116,36 @@ const YieldSourcesTable: React.FC<YieldSourcesTableProps> = ({ loading, yieldSou
                       )}
                     </TableCell>
                     <TableCell>
-                      {source.usdcYield > 0 ? (
+                      {source.usdtYield > 0 ? (
                         <span className="text-indigo-600 dark:text-indigo-400 font-medium">
-                          {formatPercent(source.usdcYield)}
+                          {formatPercent(source.usdtYield)}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {source.eurcYield > 0 ? (
+                        <span className="text-indigo-600 dark:text-indigo-400 font-medium">
+                          {formatPercent(source.eurcYield)}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {source.xautYield > 0 ? (
+                        <span className="text-indigo-600 dark:text-indigo-400 font-medium">
+                          {formatPercent(source.xautYield)}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {source.xrpYield > 0 ? (
+                        <span className="text-indigo-600 dark:text-indigo-400 font-medium">
+                          {formatPercent(source.xrpYield)}
                         </span>
                       ) : (
                         <span className="text-gray-400">-</span>

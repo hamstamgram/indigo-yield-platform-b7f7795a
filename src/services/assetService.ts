@@ -3,19 +3,20 @@ import type { Asset, AssetFormData, AssetPrice, AssetPriceFormData } from "@/typ
 
 // Asset kind mapping based on symbol
 const getAssetKind = (symbol: string): "crypto" | "stablecoin" | "other" => {
-  const stablecoins = ["USDT", "USDC", "EURC", "DAI", "BUSD"];
+  const stablecoins = ["USDT", "EURC"];
   if (stablecoins.includes(symbol.toUpperCase())) return "stablecoin";
   return "crypto";
 };
 
 // Convert database row to Asset type with defaults
-const mapDbRowToAsset = (row: { id: string; symbol: string; name: string }): Asset => ({
-  asset_id: row.id,
+// Note: Database 'assets' table has id as number and symbol as enum
+const mapDbRowToAsset = (row: { id: number; symbol: string; name: string; is_active?: boolean }): Asset => ({
+  asset_id: String(row.id),
   symbol: row.symbol,
   name: row.name,
   kind: getAssetKind(row.symbol),
   decimals: row.symbol === "BTC" ? 8 : row.symbol === "ETH" ? 18 : 6,
-  is_active: true,
+  is_active: row.is_active ?? true,
   price_source: "manual",
   metadata: {},
   created_at: new Date().toISOString(),
@@ -54,7 +55,8 @@ export class AssetService {
   }
 
   async getAssetById(assetId: string): Promise<Asset> {
-    const { data, error } = await supabase.from("assets").select("*").eq("id", assetId).single();
+    const numericId = parseInt(assetId, 10);
+    const { data, error } = await supabase.from("assets").select("*").eq("id", numericId).single();
 
     if (error) throw error;
     return mapDbRowToAsset(data);

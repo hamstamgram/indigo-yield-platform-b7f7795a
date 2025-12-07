@@ -1,0 +1,30 @@
+{
+  "profile": {
+    "emails": []
+  },
+  "transactions": [],
+  "summary": {
+    "currencies": {},
+    "total_usd_value": 0.0
+  },
+  "reports": [
+    {
+      "source_file": "Reporting_YieldFund - August 2025 (2).pdf",
+      "page": 17,
+      "period_ended": "August 31st, 2025",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 0.007,
+        "ending_balance": 2.1237,
+        "roi_mtd": 0.33
+      }
+    }
+  ],
+  "balance_checks": [
+    {
+      "date": "August 31st, 2025",
+      "fund": "BTC",
+      "balance": 2.1237
+    }
+  ]
+}

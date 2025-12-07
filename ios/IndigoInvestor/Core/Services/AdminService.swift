@@ -187,14 +187,25 @@ class AdminService: AdminServiceProtocol, ObservableObject {
         }
     }
     
-    private func validateAdminRole() throws {
-        guard let user = currentUser else {
+    private func validateAdminRole() async throws {
+        guard currentUser != nil else {
             throw AdminError.unauthorized("User not authenticated")
         }
         
-        // Check if user has admin role (this should be validated by RLS policies on backend)
-        guard user.userMetadata["role"] as? String == "admin" else {
-            throw AdminError.unauthorized("Admin access required")
+        do {
+            let isAdminResponse = try await supabaseClient.database
+                .rpc("is_admin")
+                .execute()
+            
+            let decoder = JSONDecoder()
+            let isAdmin = try decoder.decode(Bool.self, from: isAdminResponse.data)
+            
+            guard isAdmin else {
+                throw AdminError.unauthorized("Admin access required")
+            }
+        } catch {
+            print("❌ Admin validation failed: \(error)")
+            throw AdminError.unauthorized("Failed to verify admin privileges")
         }
     }
 }

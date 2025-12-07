@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -11,16 +12,11 @@ interface EmailRequest {
 }
 
 serve(async (req: Request) => {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      },
-    });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   try {
@@ -146,10 +142,7 @@ serve(async (req: Request) => {
       }),
       {
         status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   } catch (error: any) {
@@ -162,10 +155,7 @@ serve(async (req: Request) => {
       }),
       {
         status: 500,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   }

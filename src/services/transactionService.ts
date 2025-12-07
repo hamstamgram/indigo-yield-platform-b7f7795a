@@ -50,18 +50,17 @@ export async function fetchUserTransactions(): Promise<Transaction[]> {
         `
         id,
         investor_id,
-        txn_type,
+        type,
         asset,
         amount,
-        type,
-        occurred_at,
+        tx_date,
         created_at,
         notes,
         investors!inner(name)
       `
       )
       .eq("investor_id", investor.id)
-      .order("occurred_at", { ascending: false })
+      .order("tx_date", { ascending: false })
       .limit(100);
 
     if (error) throw error;
@@ -69,11 +68,11 @@ export async function fetchUserTransactions(): Promise<Transaction[]> {
     return (data || []).map((tx) => ({
       id: tx.id,
       investor_id: tx.investor_id,
-      txn_type: tx.txn_type,
+      txn_type: tx.type, // Map type to txn_type for interface compatibility
       asset: tx.asset,
       amount: tx.amount,
       type: tx.type,
-      occurred_at: tx.occurred_at,
+      occurred_at: tx.tx_date, // Map tx_date to occurred_at for interface compatibility
       created_at: tx.created_at,
       notes: tx.notes,
       investor_name: (tx.investors as any)?.name,

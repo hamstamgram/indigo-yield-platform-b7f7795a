@@ -25,11 +25,20 @@ export interface PortfolioPerformance {
  */
 export async function fetchUserPositions(userId: string): Promise<Position[]> {
   try {
-    const { data, error } = await supabase
+    // Note: positions table uses investor_id, need to resolve from profile first
+    const { data: investor } = await supabase
+      .from("investors")
+      .select("id")
+      .eq("profile_id", userId)
+      .maybeSingle();
+
+    if (!investor) return [];
+
+    const { data, error } = await (supabase
       .from("positions")
       .select("*")
-      .eq("user_id", userId)
-      .gt("current_balance", 0);
+      .eq("investor_id", investor.id)
+      .gt("current_balance", 0) as any);
 
     if (error) throw error;
     return data || [];

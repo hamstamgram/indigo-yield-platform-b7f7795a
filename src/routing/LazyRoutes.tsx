@@ -25,7 +25,6 @@ export const AdminAuditLogs = lazy(() => import("@/routes/admin/AdminAuditLogs")
 export const AdminDashboard = lazy(() => import("@/routes/admin/AdminDashboard"));
 export const AdminDepositsPage = lazy(() => import("@/routes/admin/AdminDepositsPage"));
 export const AdminEmailTrackingPage = lazy(() => import("@/routes/admin/AdminEmailTrackingPage"));
-export const AdminOnboardingPage = lazy(() => import("@/routes/admin/AdminOnboardingPage"));
 export const AdminOperationsHub = lazy(() => import("@/routes/admin/AdminOperationsHub"));
 export const AdminRequestsQueuePage = lazy(() => import("@/routes/admin/AdminRequestsQueuePage"));
 export const AdminSettings = lazy(() => import("@/routes/admin/AdminSettings"));
@@ -95,7 +94,6 @@ export const NotificationSettingsPage = lazy(
   () => import("@/routes/settings/NotificationSettingsPage")
 );
 
-export const KYCVerification = lazy(() => import("@/routes/investor/account/KYCVerification"));
 
 export const CustomReport = lazy(() => import("@/routes/reports/CustomReport"));
 export const PerformanceReportPage = lazy(() => import("@/routes/reports/PerformanceReportPage"));
@@ -210,11 +208,6 @@ export const LazyAdminDeposits = () => (
 export const LazyAdminEmailTracking = () => (
   <RouteSuspense type="admin">
     <AdminEmailTrackingPage />
-  </RouteSuspense>
-);
-export const LazyAdminOnboarding = () => (
-  <RouteSuspense type="admin">
-    <AdminOnboardingPage />
   </RouteSuspense>
 );
 export const LazyAdminOperationsHub = () => (
@@ -410,11 +403,6 @@ export const LazyStatements = () => (
 export const LazyNotificationSettings = () => (
   <RouteSuspense>
     <NotificationSettingsPage />
-  </RouteSuspense>
-);
-export const LazyKYCVerification = () => (
-  <RouteSuspense>
-    <KYCVerification />
   </RouteSuspense>
 );
 export const LazyCustomReport = () => (

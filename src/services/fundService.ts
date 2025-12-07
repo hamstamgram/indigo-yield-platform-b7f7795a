@@ -31,8 +31,19 @@ export interface InvestorPosition {
   current_value: number;
   unrealized_pnl: number | null;
   realized_pnl: number | null;
-  aum_percentage: number | null;
   last_transaction_date: string | null;
+  // Note: aum_percentage is calculated, not stored in DB
+  high_water_mark: number | null;
+  lock_until_date: string | null;
+  mgmt_fees_paid: number | null;
+  perf_fees_paid: number | null;
+  fund?: {
+    id: string;
+    code: string;
+    name: string;
+    asset: string;
+    fund_class: string | null;
+  };
 }
 
 /**
@@ -69,6 +80,7 @@ export async function getFundById(fundId: string): Promise<Fund | null> {
 
 /**
  * Add fund to investor portfolio
+ * Note: add_fund_to_investor RPC doesn't exist - use direct insert
  */
 export async function addFundToInvestor(
   investorId: string,
@@ -76,11 +88,16 @@ export async function addFundToInvestor(
   initialInvestment: number = 0
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await supabase.rpc("add_fund_to_investor", {
-      p_investor_id: investorId,
-      p_fund_id: fundId,
-      p_initial_investment: initialInvestment,
-    });
+    // Insert directly into investor_positions
+    const { error } = await supabase
+      .from("investor_positions")
+      .insert({
+        investor_id: investorId,
+        fund_id: fundId,
+        cost_basis: initialInvestment,
+        current_value: initialInvestment,
+        shares: initialInvestment, // 1:1 share ratio initially
+      });
 
     if (error) throw error;
 

@@ -116,7 +116,7 @@ function AdminUserManagementContent() {
           title: "Invite Created (Email Failed)",
           description:
             "The invite was created, but the email failed to send. You can manually share the code.",
-          variant: "warning",
+          variant: "destructive",
         });
       } else {
         toast({

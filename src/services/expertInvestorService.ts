@@ -16,8 +16,6 @@ export interface UnifiedInvestorData {
   lastName: string;
   phone?: string;
   status: string;
-  kycStatus: string;
-  amlStatus: string;
   feePercentage: number;
   onboardingDate: string;
   aumByAsset: AssetBreakdown[];
@@ -120,8 +118,6 @@ class ExpertInvestorService {
         lastName: profileData?.last_name || "",
         phone: investorData.phone || undefined,
         status: investorData.status || "pending",
-        kycStatus: investorData.kyc_status || "pending",
-        amlStatus: investorData.aml_status || "pending",
         feePercentage: profileData?.fee_percentage || 0.02,
         onboardingDate: investorData.onboarding_date || investorData.created_at || "",
         aumByAsset,
@@ -217,8 +213,6 @@ class ExpertInvestorService {
           lastName: profileData?.last_name || "",
           phone: investor.phone || undefined,
           status: investor.status || "pending",
-          kycStatus: investor.kyc_status || "pending",
-          amlStatus: investor.aml_status || "pending",
           feePercentage: profileData?.fee_percentage || 0.02,
           onboardingDate: investor.onboarding_date || investor.created_at || "",
           aumByAsset,
@@ -321,7 +315,7 @@ class ExpertInvestorService {
       const { data: legacyPositions } = await supabase
         .from("positions")
         .select("*")
-        .eq("user_id", investorId)
+        .eq("investor_id", investorId)
         .gt("current_balance", 0);
 
       const unifiedPositions: UnifiedPositionData[] = [];
@@ -355,7 +349,7 @@ class ExpertInvestorService {
               pos.last_transaction_date || pos.updated_at || new Date().toISOString(),
             lockUntilDate: pos.lock_until_date || undefined,
             feeRate: 0.02,
-            aumPercentage: pos.aum_percentage || 0,
+            aumPercentage: 0, // aum_percentage column doesn't exist
           });
         }
       }
@@ -378,7 +372,7 @@ class ExpertInvestorService {
               realizedPnl: 0,
               totalEarnings: pos.total_earned || 0,
               inceptionDate: pos.updated_at,
-              lastTransactionDate: pos.last_modified_at || pos.updated_at,
+              lastTransactionDate: pos.updated_at, // last_modified_at doesn't exist
               feeRate: 0.02,
               aumPercentage: 0,
             });
@@ -413,46 +407,16 @@ class ExpertInvestorService {
 
   /**
    * Calculate fee metrics for investor
+   * Note: platform_fees_collected table doesn't exist yet
    */
-  private async calculateFeeMetrics(investorId: string) {
-    try {
-      const { data: feeData } = await supabase
-        .from("platform_fees_collected")
-        .select("fee_amount, fee_month")
-        .eq("investor_id", investorId);
-
-      const totalFeesCollected =
-        feeData?.reduce((sum, fee) => sum + Number(fee.fee_amount), 0) || 0;
-
-      const currentYear = new Date().getFullYear();
-      const currentMonth = new Date().getMonth();
-
-      const yearToDateFees =
-        feeData
-          ?.filter((fee) => new Date(fee.fee_month).getFullYear() === currentYear)
-          .reduce((sum, fee) => sum + Number(fee.fee_amount), 0) || 0;
-
-      const monthlyFees =
-        feeData
-          ?.filter((fee) => {
-            const feeDate = new Date(fee.fee_month);
-            return feeDate.getFullYear() === currentYear && feeDate.getMonth() === currentMonth;
-          })
-          .reduce((sum, fee) => sum + Number(fee.fee_amount), 0) || 0;
-
-      return {
-        totalFeesCollected,
-        monthlyFees,
-        yearToDateFees,
-      };
-    } catch (error) {
-      console.error("Error calculating fee metrics:", error);
-      return {
-        totalFeesCollected: 0,
-        monthlyFees: 0,
-        yearToDateFees: 0,
-      };
-    }
+  private async calculateFeeMetrics(_investorId: string) {
+    // platform_fees_collected table doesn't exist - return zeros
+    console.warn("calculateFeeMetrics: platform_fees_collected table not available");
+    return {
+      totalFeesCollected: 0,
+      monthlyFees: 0,
+      yearToDateFees: 0,
+    };
   }
 
   /**

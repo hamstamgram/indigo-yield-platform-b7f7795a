@@ -174,18 +174,18 @@ export async function updateUserProfile(
 
 /**
  * Check if user is admin
+ * Note: Uses profiles.is_admin column since admin_users table doesn't exist
  */
 export async function checkIsAdmin(userId: string): Promise<boolean> {
   try {
     const { data, error } = await supabase
-      .from("admin_users")
-      .select("user_id")
-      .eq("user_id", userId)
-      .is("revoked_at", null)
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", userId)
       .maybeSingle();
 
     if (error) throw error;
-    return !!data;
+    return !!data?.is_admin;
   } catch (error) {
     console.error("Error checking admin status:", error);
     return false;

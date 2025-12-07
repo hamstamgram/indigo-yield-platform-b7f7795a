@@ -1,0 +1,28 @@
+{
+  "profile": {
+    "emails": []
+  },
+  "transactions": [
+    {
+      "date": "06/10/2025",
+      "currency": "USDT",
+      "amount": 100000.0,
+      "usd_value": 100000.0,
+      "original_row": {
+        "Investment Date": "06/10/2025",
+        "Investor Name": "Sacha Oshry",
+        "Currency": "USDT",
+        "Amount": "100,000.00",
+        "USD Value": "$100,000.00",
+        "Email": "",
+        "": ""
+      }
+    }
+  ],
+  "summary": {
+    "currencies": {
+      "USDT": 100000.0
+    },
+    "total_usd_value": 100000.0
+  }
+}

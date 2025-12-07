@@ -16,12 +16,13 @@ interface AssetSummary {
 
 // Asset name mapping
 const ASSET_NAMES: Record<string, string> = {
-  BTC: "Bitcoin",
-  ETH: "Ethereum",
-  SOL: "Solana",
+  BTC: "BTC Yield Fund",
+  ETH: "ETH Yield Fund",
+  SOL: "SOL Yield Fund",
   USDT: "Stablecoin Fund",
-  USDC: "Tokenized Gold",
-  EURC: "Euro Coin",
+  EURC: "EURC Yield Fund",
+  xAUT: "Tokenized Gold",
+  XRP: "XRP Yield Fund",
 };
 
 export const useAssetData = () => {
@@ -113,11 +114,14 @@ export const useAssetData = () => {
               case "USDT":
                 currentRate = Number(rates.usdt_rate);
                 break;
-              case "USDC":
-                currentRate = Number(rates.usdc_rate);
-                break;
               case "EURC":
                 currentRate = Number(rates.eurc_rate);
+                break;
+              case "xAUT":
+                currentRate = Number(rates.xaut_rate || 0);
+                break;
+              case "XRP":
+                currentRate = Number(rates.xrp_rate || 0);
                 break;
             }
           }

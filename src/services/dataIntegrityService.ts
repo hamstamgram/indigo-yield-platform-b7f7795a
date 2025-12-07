@@ -309,29 +309,34 @@ export const dataIntegrityService = {
 
       if (positions) {
         for (const position of positions) {
-          // Get sum of investments for this investor
-          const { data: investments } = await supabase
-            .from("investments")
+          // Note: investments table doesn't exist - use transactions_v2 instead
+          const { data: deposits } = await supabase
+            .from("transactions_v2")
             .select("amount")
             .eq("investor_id", position.investor_id)
             .eq("fund_id", position.fund_id)
-            .eq("status", "active");
+            .eq("type", "DEPOSIT");
 
-          if (investments) {
-            const totalInvested = investments.reduce(
-              (sum, inv) => sum + Number(inv.amount || 0),
-              0
-            );
-            const costBasis = Number(position.cost_basis || 0);
+          const { data: withdrawals } = await supabase
+            .from("transactions_v2")
+            .select("amount")
+            .eq("investor_id", position.investor_id)
+            .eq("fund_id", position.fund_id)
+            .eq("type", "WITHDRAWAL");
 
-            // Allow for small rounding differences (< $1)
-            if (Math.abs(totalInvested - costBasis) > 1) {
-              issues.push({
-                type: "inconsistent_total",
-                severity: "warning",
-                table: "investor_positions",
-                record_id: position.investor_id,
-                description: `Investment total (${totalInvested}) doesn't match cost basis (${costBasis}) for investor ${position.investor_id}`,
+          const totalDeposits = deposits?.reduce((sum, tx) => sum + Number(tx.amount || 0), 0) || 0;
+          const totalWithdrawals = withdrawals?.reduce((sum, tx) => sum + Number(tx.amount || 0), 0) || 0;
+          const totalInvested = totalDeposits - totalWithdrawals;
+          const costBasis = Number(position.cost_basis || 0);
+
+          // Allow for small rounding differences (< $1)
+          if (Math.abs(totalInvested - costBasis) > 1) {
+            issues.push({
+              type: "inconsistent_total",
+              severity: "warning",
+              table: "investor_positions",
+              record_id: position.investor_id,
+              description: `Transaction total (${totalInvested}) doesn't match cost basis (${costBasis}) for investor ${position.investor_id}`,
                 details: {
                   investor_name: position.investor?.name,
                   total_invested: totalInvested,
@@ -342,7 +347,6 @@ export const dataIntegrityService = {
             }
           }
         }
-      }
     } catch (error) {
       console.error("Error checking inconsistent totals:", error);
     }

@@ -2,12 +2,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 
 type TransactionRow = any;
+type TxType = Database["public"]["Enums"]["tx_type"];
 
 export interface TransactionFilter {
   userId?: string;
   portfolioId?: string;
   assetId?: string;
-  txnType?: string;
+  txnType?: TxType | string;
   startDate?: string;
   endDate?: string;
   limit?: number;
@@ -51,7 +52,7 @@ export async function fetchTransactions(filter: TransactionFilter = {}): Promise
     }
 
     if (filter.txnType) {
-      query = query.eq("type", filter.txnType);
+      query = query.eq("type", filter.txnType as TxType);
     }
 
     if (filter.assetId) {

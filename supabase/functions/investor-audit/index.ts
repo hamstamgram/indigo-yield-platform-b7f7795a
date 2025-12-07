@@ -1,24 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-interface AuditRequest {
-  report_type?:
-    | "overview"
-    | "reconciliation"
-    | "compliance"
-    | "anomalies"
-    | "activity"
-    | "full_report";
-  investor_id?: string;
-  format?: "json" | "summary";
-}
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { auditRequestSchema, validateRequest } from "../_shared/validation.ts";
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -75,11 +62,20 @@ serve(async (req) => {
       });
     }
 
-    // Parse request
+    // Parse and validate request
     const url = new URL(req.url);
-    const reportType = url.searchParams.get("report_type") || "overview";
-    const investorId = url.searchParams.get("investor_id");
-    const format = url.searchParams.get("format") || "json";
+    const queryParams: Record<string, string | undefined> = {
+      report_type: url.searchParams.get("report_type") || undefined,
+      investor_id: url.searchParams.get("investor_id") || undefined,
+      format: url.searchParams.get("format") || undefined,
+    };
+
+    const validation = validateRequest(auditRequestSchema, queryParams, corsHeaders);
+    if (!validation.success) {
+      return validation.response;
+    }
+
+    const { report_type: reportType, investor_id: investorId, format } = validation.data;
 
     let result: any;
 

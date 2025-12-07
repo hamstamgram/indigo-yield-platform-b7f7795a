@@ -13,30 +13,33 @@ import Combine
 class StatementViewModel: ObservableObject {
     // MARK: - Published Properties
     
-    @Published var statements: [Statement] = []
-    @Published var filteredStatements: [Statement] = []
+    @Published var statements: [MonthlyReport] = []
+    @Published var filteredStatements: [MonthlyReport] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var availableYears: [Int] = []
     @Published var availableAssets: [AssetCode] = []
     @Published var selectedAsset: AssetCode?
 
+    // Platform's 7 canonical funds (USDC is NOT a platform fund)
     enum AssetCode: String, Codable, CaseIterable {
         case BTC = "BTC"
         case ETH = "ETH"
         case SOL = "SOL"
         case USDT = "USDT"
-        case USDC = "USDC"
         case EURC = "EURC"
+        case XAUT = "xAUT"
+        case XRP = "XRP"
 
         var displayName: String {
             switch self {
-            case .BTC: return "Bitcoin"
-            case .ETH: return "Ethereum"
-            case .SOL: return "Solana"
-            case .USDT: return "Tether"
-            case .USDC: return "USD Coin"
-            case .EURC: return "Euro Coin"
+            case .BTC: return "BTC Yield Fund"
+            case .ETH: return "ETH Yield Fund"
+            case .SOL: return "SOL Yield Fund"
+            case .USDT: return "Stablecoin Fund"
+            case .EURC: return "EURC Yield Fund"
+            case .XAUT: return "Tokenized Gold"
+            case .XRP: return "XRP Yield Fund"
             }
         }
     }
@@ -48,9 +51,9 @@ class StatementViewModel: ObservableObject {
     
     // MARK: - Computed Properties
     
-    var groupedStatements: [(key: String, value: [Statement])] {
+    var groupedStatements: [(key: String, value: [MonthlyReport])] {
         let grouped = Dictionary(grouping: filteredStatements) { statement in
-            statement.date.formatted(.dateTime.year(.defaultDigits))
+            statement.reportMonth.formatted(.dateTime.year(.defaultDigits))
         }
         
         return grouped.sorted { first, second in
@@ -136,7 +139,7 @@ class StatementViewModel: ObservableObject {
 
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
-            let fetchedStatements = try decoder.decode([MonthlyStatement].self, from: response.data)
+            let fetchedStatements = try decoder.decode([MonthlyReport].self, from: response.data)
 
             await MainActor.run {
                 self.statements = fetchedStatements
@@ -169,58 +172,29 @@ class StatementViewModel: ObservableObject {
         // Filter by year
         if let year = year {
             filtered = filtered.filter { statement in
-                Calendar.current.component(.year, from: statement.date) == year
+                Calendar.current.component(.year, from: statement.reportMonth) == year
             }
         }
         
-        // Filter by type
-        if type != .all {
-            let statementType: Statement.StatementType
-            switch type {
-            case .monthly:
-                statementType = .monthly
-            case .quarterly:
-                statementType = .quarterly
-            case .annual:
-                statementType = .annual
-            case .tax:
-                statementType = .tax
-            default:
-                statementType = .monthly
-            }
-            
-            filtered = filtered.filter { $0.type == statementType }
-        }
+        // Note: Filtering by 'type' (Monthly, Quarterly) is temporarily disabled
+        // as MonthlyReport is currently strictly monthly.
+        // Future: derive frequency from report metadata if added.
         
         filteredStatements = filtered
     }
     
     func getCount(for type: StatementViewer.StatementType) -> Int {
-        if type == .all {
+        // Simplified count for now
+        if type == .all || type == .monthly {
             return statements.count
         }
-        
-        let statementType: Statement.StatementType
-        switch type {
-        case .monthly:
-            statementType = .monthly
-        case .quarterly:
-            statementType = .quarterly
-        case .annual:
-            statementType = .annual
-        case .tax:
-            statementType = .tax
-        default:
-            return 0
-        }
-        
-        return statements.filter { $0.type == statementType }.count
+        return 0
     }
     
     // MARK: - Helper Methods
 
     private func extractAvailableYears() {
-        let years = Set(statements.map { Calendar.current.component(.year, from: $0.date) })
+        let years = Set(statements.map { Calendar.current.component(.year, from: $0.reportMonth) })
         availableYears = Array(years).sorted(by: >)
     }
 
@@ -245,51 +219,9 @@ class StatementViewModel: ObservableObject {
     }
 }
 
-// MARK: - Supporting Types
-
-struct MonthlyStatement: Identifiable, Codable {
-    let id: UUID
-    let investorId: UUID
-    let reportMonth: Date
-    let assetCode: String
-    let openingBalance: Decimal
-    let closingBalance: Decimal
-    let additions: Decimal
-    let withdrawals: Decimal
-    let yieldEarned: Decimal
-    let entryDate: Date?
-    let exitDate: Date?
-    let createdAt: Date
-    let updatedAt: Date
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case investorId = "investor_id"
-        case reportMonth = "report_month"
-        case assetCode = "asset_code"
-        case openingBalance = "opening_balance"
-        case closingBalance = "closing_balance"
-        case additions
-        case withdrawals
-        case yieldEarned = "yield_earned"
-        case entryDate = "entry_date"
-        case exitDate = "exit_date"
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
-    }
-
-    var rateOfReturn: Decimal {
-        guard openingBalance > 0 else { return 0 }
-        return (yieldEarned / openingBalance) * 100
-    }
-
-    // For compatibility with existing UI
-    var date: Date { reportMonth }
-    var title: String { "\(assetCode) Fund - \(reportMonth.formatted(.dateTime.month(.wide).year()))" }
-}
-
-// Legacy Statement type for backward compatibility
-typealias Statement = MonthlyStatement
+// Legacy Statement type alias for backward compatibility if needed,
+// but prefer using MonthlyReport directly.
+typealias Statement = MonthlyReport
 
 struct StatementUpdate {
     let type: UpdateType

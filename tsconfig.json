@@ -20,5 +20,5 @@
     "useDefineForClassFields": true
   },
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "supabase/functions", "tests", "test-reports", "vite.config.ts"]
+  "exclude": ["node_modules", "supabase/functions", "supabase/functions_archive", "tests", "test-reports", "scripts", "vite.config.ts"]
 }

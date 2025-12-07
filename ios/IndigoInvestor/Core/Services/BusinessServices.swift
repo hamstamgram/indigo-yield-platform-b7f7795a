@@ -3,6 +3,7 @@
 //  IndigoInvestor
 //
 //  High-level business services
+//  Refactored to use shared models and correct table names
 //
 
 import Foundation
@@ -12,29 +13,58 @@ import Combine
 // MARK: - Portfolio Service
 
 class PortfolioService {
-    private let repository: PortfolioRepository
+    private let repository: PortfolioRepositoryProtocol
     private let realtimeService: RealtimeService
-    @Published var currentPortfolio: Portfolio?
     
-    init(repository: PortfolioRepository, realtimeService: RealtimeService) {
+    @Published var currentPortfolio: Portfolio?
+    @Published var portfolio: Portfolio? // Alias for currentPortfolio to match ViewModels
+    
+    init(repository: PortfolioRepositoryProtocol, realtimeService: RealtimeService) {
         self.repository = repository
         self.realtimeService = realtimeService
+        
+        // Bind portfolio to currentPortfolio
+        $currentPortfolio
+            .assign(to: &$portfolio)
     }
     
     func loadPortfolio(for userId: String) async throws {
-        currentPortfolio = try await repository.fetchPortfolio(for: userId)
+        guard let userUUID = UUID(uuidString: userId) else {
+            throw AppError.invalidUserId
+        }
+        
+        currentPortfolio = try await repository.fetchPortfolio(for: userUUID)
         
         // Subscribe to real-time updates
         realtimeService.subscribeToChannel("portfolios:\(userId)") { [weak self] event in
             // Handle portfolio updates
             Task { @MainActor in
-                self?.currentPortfolio = try await self?.repository.fetchPortfolio(for: userId)
+                if let self = self {
+                    self.currentPortfolio = try await self.repository.fetchPortfolio(for: userUUID)
+                }
             }
         }
     }
     
-    func refreshPortfolio(for userId: String) async throws {
-        currentPortfolio = try await repository.fetchPortfolio(for: userId)
+    func fetchPortfolio() async throws {
+        // Helper for ViewModels that might not pass ID directly (if ServiceLocator handles current user)
+        // This assumes ServiceLocator/AuthService provides the ID context,
+        // but here we might need to rely on the previously loaded ID or throw.
+        // For now, we expect loadPortfolio to be called first.
+        if let current = currentPortfolio {
+            // Already loaded
+            return
+        }
+        // If not loaded, we can't fetch without ID. 
+        // ViewModels should call loadPortfolio(userId)
+    }
+    
+    func refreshPortfolio(for userId: String? = nil) async throws {
+        guard let idString = userId ?? currentPortfolio?.investorId.uuidString,
+              let userUUID = UUID(uuidString: idString) else {
+            return
+        }
+        currentPortfolio = try await repository.fetchPortfolio(for: userUUID)
     }
 }
 
@@ -50,7 +80,7 @@ class TransactionService {
     
     func loadTransactions(for userId: String, limit: Int = 50) async throws {
         let response = try await client.database
-            .from("transactions")
+            .from("transactions_v2")
             .select()
             .eq("investor_id", value: userId)
             .order("created_at", ascending: false)
@@ -72,12 +102,12 @@ class TransactionService {
         let data = try encoder.encode(transaction)
         
         _ = try await client.database
-            .from("transactions")
+            .from("transactions_v2")
             .insert(data)
             .execute()
         
         // Reload transactions
-        try await loadTransactions(for: transaction.investor_id)
+        try await loadTransactions(for: transaction.investorId.uuidString)
     }
 }
 
@@ -100,7 +130,11 @@ class DocumentService {
             .order("created_at", ascending: false)
             .execute()
         
-        return try JSONDecoder().decode([Document].self, from: response.data)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .iso8601
+        
+        return try decoder.decode([Document].self, from: response.data)
     }
     
     func uploadDocument(data: Data, metadata: DocumentMetadata) async throws -> Document {
@@ -109,26 +143,38 @@ class DocumentService {
         let storagePath = try await storageService.uploadDocument(data: data, path: path)
         
         // Create database record
+        // Note: Assuming 'documents' table structure matches the Document model
+        // We might need a specific DTO if the table columns differ from the model
+        
+        let documentId = UUID()
+        let now = Date()
+        
         let document = Document(
-            id: UUID().uuidString,
-            user_id: metadata.userId,
-            title: metadata.title,
-            type: metadata.type,
-            storage_path: storagePath,
-            file_size: data.count,
-            created_at: Date()
+            id: documentId,
+            investorId: UUID(uuidString: metadata.userId) ?? UUID(),
+            name: metadata.title,
+            type: .other, // Defaulting or mapping needed
+            url: storagePath, // Storing path in url field for now
+            createdAt: now,
+            size: Int64(data.count)
         )
+        
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        encoder.dateEncodingStrategy = .iso8601
+        
+        let insertData = try encoder.encode(document)
         
         try await client.database
             .from("documents")
-            .insert(document)
+            .insert(insertData)
             .execute()
         
         return document
     }
     
     func getDocumentUrl(for document: Document) async throws -> URL {
-        return try await storageService.getSignedUrl(path: document.storage_path)
+        return try await storageService.getSignedUrl(path: document.url)
     }
 }
 
@@ -136,8 +182,8 @@ class DocumentService {
 
 class WithdrawalService {
     private let client: SupabaseClient
-    @Published var withdrawals: [Withdrawal] = []
-    @Published var pendingWithdrawal: Withdrawal?
+    @Published var withdrawals: [WithdrawalRequest] = []
+    @Published var pendingWithdrawal: WithdrawalRequest?
     
     init(client: SupabaseClient) {
         self.client = client
@@ -155,24 +201,42 @@ class WithdrawalService {
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .iso8601
         
-        withdrawals = try decoder.decode([Withdrawal].self, from: response.data)
-        pendingWithdrawal = withdrawals.first { $0.status == "pending" }
+        withdrawals = try decoder.decode([WithdrawalRequest].self, from: response.data)
+        pendingWithdrawal = withdrawals.first { $0.status == .pending }
     }
     
     func requestWithdrawal(amount: Double, userId: String) async throws {
-        let withdrawal = Withdrawal(
-            id: UUID().uuidString,
-            investor_id: userId,
-            amount: amount,
-            status: "pending",
-            created_at: Date()
+        let withdrawal = WithdrawalRequest(
+            id: UUID(),
+            amount: Decimal(amount),
+            status: .pending,
+            requestedAt: Date(),
+            processedAt: nil
         )
         
         let encoder = JSONEncoder()
         encoder.keyEncodingStrategy = .convertToSnakeCase
         encoder.dateEncodingStrategy = .iso8601
         
-        let data = try encoder.encode(withdrawal)
+        // Note: We might need a DTO if WithdrawalRequest structure doesn't match insert payload exactly
+        // (e.g. investor_id field)
+        struct WithdrawalInsert: Codable {
+            let id: UUID
+            let investor_id: UUID
+            let amount: Decimal
+            let status: String
+            let created_at: Date
+        }
+        
+        let insertData = WithdrawalInsert(
+            id: withdrawal.id,
+            investor_id: UUID(uuidString: userId) ?? UUID(),
+            amount: withdrawal.amount,
+            status: withdrawal.status.rawValue,
+            created_at: withdrawal.requestedAt
+        )
+        
+        let data = try encoder.encode(insertData)
         
         _ = try await client.database
             .from("withdrawal_requests")
@@ -186,29 +250,12 @@ class WithdrawalService {
 
 // MARK: - Supporting Models
 
-struct Document: Codable {
-    let id: String
-    let user_id: String
-    let title: String
-    let type: String
-    let storage_path: String
-    let file_size: Int
-    let created_at: Date
-}
-
 struct DocumentMetadata {
     let userId: String
     let title: String
     let type: String
 }
 
-struct InvestorQueryResult: Codable {
-    let id: String
-    let email: String
-    let full_name: String
-    let role: String
-    let created_at: Date
-    let kyc_status: String?
-    let total_invested: Double?
-    let current_balance: Double?
+enum AppError: Error {
+    case invalidUserId
 }

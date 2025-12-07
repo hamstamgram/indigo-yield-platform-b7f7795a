@@ -175,7 +175,6 @@ if (result.success) {
 - `aum_report` - Assets Under Management
 - `investor_activity` - Investor engagement metrics
 - `transaction_volume` - Transaction analysis
-- `compliance_report` - KYC/AML status
 - `fund_performance` - Multi-fund performance
 - `fee_analysis` - Fee breakdown and analysis
 - `audit_trail` - Complete system audit log

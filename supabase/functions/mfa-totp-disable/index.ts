@@ -1,13 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { TOTP } from "https://deno.land/x/otpauth@v9.2.3/dist/otpauth.esm.js";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { mfaDisableRequestSchema, parseAndValidate } from "../_shared/validation.ts";
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -20,15 +19,13 @@ serve(async (req) => {
   }
 
   try {
-    const body = await req.json();
-    const { code } = body;
-
-    if (!code || !/^\d{6}$/.test(code)) {
-      return new Response(JSON.stringify({ error: "Invalid code format" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Validate request body with Zod
+    const validation = await parseAndValidate(req, mfaDisableRequestSchema, corsHeaders);
+    if (!validation.success) {
+      return validation.response;
     }
+
+    const { code } = validation.data;
 
     // Create Supabase client
     const supabaseClient = createClient(

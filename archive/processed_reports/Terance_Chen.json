@@ -1,0 +1,28 @@
+{
+  "profile": {
+    "emails": []
+  },
+  "transactions": [
+    {
+      "date": "23/07/2025",
+      "currency": "USDT",
+      "amount": 219747.0,
+      "usd_value": 219747.0,
+      "original_row": {
+        "Investment Date": "23/07/2025",
+        "Investor Name": "Terance Chen",
+        "Currency": "USDT",
+        "Amount": "219,747.00",
+        "USD Value": "$219,747.00",
+        "Email": "",
+        "": ""
+      }
+    }
+  ],
+  "summary": {
+    "currencies": {
+      "USDT": 219747.0
+    },
+    "total_usd_value": 219747.0
+  }
+}

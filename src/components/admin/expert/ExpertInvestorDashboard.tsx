@@ -99,11 +99,13 @@ export default function ExpertInvestorDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">KYC Status</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Account Status
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold capitalize">{investor.kyc_status}</div>
+            <div className="text-2xl font-bold capitalize">{investor.status}</div>
             <p className="text-xs text-muted-foreground">
               Last updated:{" "}
               {investor.updated_at ? new Date(investor.updated_at).toLocaleDateString() : "N/A"}

@@ -195,13 +195,13 @@ struct NewDashboardView: View {
 
                 AssetRowView(
                     icon: "$",
-                    name: "USD Coin",
-                    symbol: "USDC",
+                    name: "Stablecoin Fund",
+                    symbol: "USDT",
                     amount: "50,000",
-                    value: "$50,000.00",
+                    value: "50,000 USDT",
                     percentage: 20.0,
                     change: 0.0,
-                    color: IndigoTheme.Colors.usdc
+                    color: IndigoTheme.Colors.usdt
                 )
             }
         }
@@ -238,8 +238,8 @@ struct NewDashboardView: View {
                 ActivityRowView(
                     type: .deposit,
                     title: "Deposit Received",
-                    subtitle: "100,000 USDC",
-                    amount: "+$100,000.00",
+                    subtitle: "100,000 USDT",
+                    amount: "+100,000 USDT",
                     date: Date().addingTimeInterval(-86400)
                 )
 

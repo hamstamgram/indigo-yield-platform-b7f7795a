@@ -30,9 +30,10 @@ const FUND_NAMES = [
   "BTC YIELD FUND",
   "ETH YIELD FUND",
   "SOL YIELD FUND",
-  "USDT YIELD FUND",
-  "USDC YIELD FUND",
+  "STABLECOIN FUND",
   "EURC YIELD FUND",
+  "TOKENIZED GOLD",
+  "XRP YIELD FUND",
 ] as const;
 
 // Validation schema for performance data

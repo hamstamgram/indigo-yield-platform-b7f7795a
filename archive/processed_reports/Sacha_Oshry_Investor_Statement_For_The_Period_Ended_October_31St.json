@@ -1,0 +1,30 @@
+{
+  "profile": {
+    "emails": []
+  },
+  "transactions": [],
+  "summary": {
+    "currencies": {},
+    "total_usd_value": 0.0
+  },
+  "reports": [
+    {
+      "source_file": "Reporting_YieldFund - October 2025.pdf",
+      "page": 31,
+      "period_ended": "October 31st, 2025",
+      "fund": "USDT",
+      "metrics": {
+        "net_income_mtd": 714.8172,
+        "ending_balance": 100714.82,
+        "roi_mtd": 0.71
+      }
+    }
+  ],
+  "balance_checks": [
+    {
+      "date": "October 31st, 2025",
+      "fund": "USDT",
+      "balance": 100714.82
+    }
+  ]
+}

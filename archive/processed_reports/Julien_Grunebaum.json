@@ -1,0 +1,28 @@
+{
+  "profile": {
+    "emails": ["julien.grunebaum@icloud.com"]
+  },
+  "transactions": [
+    {
+      "date": "14/07/2025",
+      "currency": "USDT",
+      "amount": 109392.0,
+      "usd_value": 109392.0,
+      "original_row": {
+        "Investment Date": "14/07/2025",
+        "Investor Name": "Julien Grunebaum",
+        "Currency": "USDT",
+        "Amount": "109,392.00",
+        "USD Value": "$109,392.00",
+        "Email": "julien.grunebaum@icloud.com",
+        "": ""
+      }
+    }
+  ],
+  "summary": {
+    "currencies": {
+      "USDT": 109392.0
+    },
+    "total_usd_value": 109392.0
+  }
+}

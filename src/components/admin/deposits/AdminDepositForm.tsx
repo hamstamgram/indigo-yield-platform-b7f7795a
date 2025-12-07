@@ -49,7 +49,7 @@ const AdminDepositForm: React.FC<AdminDepositFormProps> = ({ investors, assets, 
       // Map the selected asset to its symbol
       const selectedAsset = assets.find((a) => a.id === parseInt(formData.asset_id));
       const assetSymbol =
-        (selectedAsset?.symbol as "BTC" | "ETH" | "SOL" | "USDT" | "USDC" | "EURC") || "USDT";
+        (selectedAsset?.symbol as "BTC" | "ETH" | "SOL" | "USDT" | "EURC" | "xAUT" | "XRP") || "USDT";
 
       await depositService.createDeposit({
         user_id: formData.investor_id,

@@ -28,8 +28,6 @@ export interface InvestorSummary {
   totalPrincipal: number;
   positionCount: number;
   assetBreakdown: Record<string, number>;
-  kycStatus?: string | null;
-  amlStatus?: string | null;
   onboardingDate?: string | null;
 }
 
@@ -130,8 +128,6 @@ export class InvestorDataService {
         totalPrincipal,
         positionCount: positions.length,
         assetBreakdown,
-        kycStatus: investor.kyc_status,
-        amlStatus: investor.aml_status,
         onboardingDate: investor.onboarding_date || investor.created_at,
       };
     } catch (error) {
@@ -212,8 +208,6 @@ export class InvestorDataService {
           totalPrincipal,
           positionCount: positions.length,
           assetBreakdown,
-          kycStatus: investor.kyc_status,
-          amlStatus: investor.aml_status,
           onboardingDate: investor.onboarding_date || investor.created_at,
         };
       });

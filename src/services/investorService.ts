@@ -26,41 +26,23 @@ export const checkAdminStatus = async (): Promise<{ isAdmin: boolean | null }> =
       return { isAdmin: false };
     }
 
-    // Use the get_profile_by_id function to safely check admin status
+    // Direct query to check admin status (get_profile_by_id RPC doesn't exist)
     try {
-      const { data: profileData, error: profileError } = await supabase.rpc("get_profile_by_id", {
-        profile_id: user.id,
-      });
+      const { data: profileData, error: directError } = await supabase
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", user.id)
+        .maybeSingle();
 
-      if (profileError) {
-        throw profileError;
+      if (directError) {
+        throw directError;
       }
 
-      const isUserAdmin =
-        profileData && profileData.length > 0 ? profileData[0]?.is_admin === true : false;
+      const isUserAdmin = profileData?.is_admin === true;
       return { isAdmin: isUserAdmin };
-    } catch (profileError) {
-      console.error("Error checking admin status via function:", profileError);
-
-      // Direct admin check as fallback
-      try {
-        // Fallback to direct query
-        const { data: profileData, error: directError } = await supabase
-          .from("profiles")
-          .select("is_admin")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        if (directError) {
-          throw directError;
-        }
-
-        const isUserAdmin = profileData?.is_admin === true;
-        return { isAdmin: isUserAdmin };
-      } catch (directError) {
-        console.error("Error checking admin status directly:", directError);
-        return { isAdmin: false };
-      }
+    } catch (directError) {
+      console.error("Error checking admin status:", directError);
+      return { isAdmin: false };
     }
   } catch (error) {
     console.error("Error in checkAdminStatus:", error);
@@ -74,29 +56,18 @@ export const checkAdminStatus = async (): Promise<{ isAdmin: boolean | null }> =
  */
 export const fetchInvestors = async (): Promise<LegacyInvestor[]> => {
   try {
-    // Try to use our new security definer function to avoid RLS issues
-    const { data: profilesData, error: functionError } = await supabase.rpc(
-      "get_all_non_admin_profiles"
-    );
+    // Direct query (get_all_non_admin_profiles RPC doesn't exist)
+    const { data: directData, error: directError } = await supabase
+      .from("profiles")
+      .select("id, email, first_name, last_name, created_at, fee_percentage")
+      .eq("is_admin", false);
 
-    if (functionError) {
-      console.error("Error fetching profiles via function:", functionError);
-
-      // Fall back to direct query if function fails
-      const { data: directData, error: directError } = await supabase
-        .from("profiles")
-        .select("id, email, first_name, last_name, created_at, fee_percentage")
-        .eq("is_admin", false);
-
-      if (directError) {
-        console.error("Error fetching profiles directly:", directError);
-        throw new Error(`Failed to fetch investors: ${directError.message}`);
-      }
-
-      return mapProfilesToInvestors(directData || []);
+    if (directError) {
+      console.error("Error fetching profiles:", directError);
+      throw new Error(`Failed to fetch investors: ${directError.message}`);
     }
 
-    return mapProfilesToInvestors(profilesData || []);
+    return mapProfilesToInvestors(directData || []);
   } catch (error) {
     console.error("Error fetching investors:", error);
     throw error;

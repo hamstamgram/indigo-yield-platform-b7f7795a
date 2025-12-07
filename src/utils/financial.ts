@@ -165,7 +165,7 @@ export function calculateNetAmount(
  * This function has been removed because it violated the platform's fundamental requirement:
  * ALL ASSETS MUST BE DISPLAYED IN THEIR NATIVE CURRENCY.
  *
- * This function was aggregating different asset types (BTC, ETH, SOL, USDC, etc.) into a single
+ * This function was aggregating different asset types (BTC, ETH, SOL, USDT, etc.) into a single
  * USD value, which is strictly prohibited. Each asset must be tracked and displayed separately
  * in its native denomination.
  *

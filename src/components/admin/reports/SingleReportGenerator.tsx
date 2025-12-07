@@ -72,8 +72,8 @@ export function SingleReportGenerator() {
       investorName: investor.name,
       reportDate: format(parseISO(`${targetMonth}-01`), "MMMM d, yyyy"),
       funds: reports.map((r) => {
-        let fundName = `${r.asset_code} YIELD FUND`;
-        if (r.asset_code === "USDC") fundName = "Tokenized Gold";
+        let fundName = `${r.asset_code} Yield Fund`;
+        if (r.asset_code === "xAUT") fundName = "Tokenized Gold";
         if (r.asset_code === "USDT") fundName = "Stablecoin Fund";
 
         return {

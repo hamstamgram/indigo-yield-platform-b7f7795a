@@ -10,12 +10,12 @@ export default function PerformanceReportDetailsPage() {
   const { id } = useParams<{ id: string }>();
 
   const { data: item, isLoading } = useQuery({
-    queryKey: ["generated_reports", id],
+    queryKey: ["investor_monthly_reports", id],
     queryFn: async () => {
       if (!id) throw new Error("No ID provided");
 
       const { data, error } = await supabase
-        .from("generated_reports")
+        .from("investor_monthly_reports")
         .select("*")
         .eq("id", id)
         .maybeSingle();
@@ -77,13 +77,13 @@ export default function PerformanceReportDetailsPage() {
           <div className="flex items-start justify-between">
             <div>
               <CardTitle className="text-2xl">
-                {item.report_type?.replace(/_/g, " ").toUpperCase() || "Report"}
+                {item.asset_code?.replace(/_/g, " ").toUpperCase() || "Report"} - {item.report_month}
               </CardTitle>
               <CardDescription>
                 Created {new Date(item.created_at).toLocaleDateString()}
               </CardDescription>
             </div>
-            <Badge>{item.status || "Active"}</Badge>
+            <Badge>Active</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -94,7 +94,7 @@ export default function PerformanceReportDetailsPage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Status</p>
-              <p className="capitalize">{item.status || "Active"}</p>
+              <p className="capitalize">Active</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Created</p>

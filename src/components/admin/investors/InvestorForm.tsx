@@ -29,7 +29,7 @@ const formSchema = z.object({
   btc_balance: z.string().optional(),
   eth_balance: z.string().optional(),
   sol_balance: z.string().optional(),
-  usdc_balance: z.string().optional(),
+  usdt_balance: z.string().optional(),
 });
 
 export type InvestorFormValues = z.infer<typeof formSchema>;
@@ -56,7 +56,7 @@ const InvestorForm: React.FC<InvestorFormProps> = ({
       btc_balance: "0",
       eth_balance: "0",
       sol_balance: "0",
-      usdc_balance: "0",
+      usdt_balance: "0",
       ...defaultValues,
     },
   });
@@ -162,13 +162,13 @@ const InvestorForm: React.FC<InvestorFormProps> = ({
               />
             )}
 
-            {assetSymbols.includes("usdc") && (
+            {assetSymbols.includes("usdt") && (
               <FormField
                 control={form.control}
-                name="usdc_balance"
+                name="usdt_balance"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>USDC Balance</FormLabel>
+                    <FormLabel>USDT Balance</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.01" {...field} />
                     </FormControl>

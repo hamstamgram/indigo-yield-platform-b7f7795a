@@ -63,7 +63,6 @@ export default function AdminInvestorsPage() {
           `
           id,
           status,
-          kyc_status,
           created_at,
           profiles (
             full_name,
@@ -103,7 +102,7 @@ export default function AdminInvestorsPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-display font-bold tracking-tight">Investors</h1>
-          <p className="text-muted-foreground">Manage investor accounts and verification status</p>
+          <p className="text-muted-foreground">Manage investor accounts and portfolios</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="relative w-64">
@@ -130,7 +129,6 @@ export default function AdminInvestorsPage() {
                 <TableRow>
                   <TableHead>Investor</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>KYC</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -138,13 +136,13 @@ export default function AdminInvestorsPage() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
+                    <TableCell colSpan={4} className="text-center py-8">
                       Loading investors...
                     </TableCell>
                   </TableRow>
                 ) : filteredInvestors?.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                       No investors found
                     </TableCell>
                   </TableRow>
@@ -171,9 +169,6 @@ export default function AdminInvestorsPage() {
                         <Badge variant="outline" className={getStatusColor(investor.status)}>
                           {investor.status}
                         </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{investor.kyc_status}</Badge>
                       </TableCell>
                       <TableCell>
                         {investor.created_at

@@ -10,7 +10,7 @@
  *
  * @example
  * formatAssetWithSymbol(1.5, 'BTC') → "1.50000000 BTC"
- * formatAssetWithSymbol(50000, 'USDC') → "50,000.00 USDC"
+ * formatAssetWithSymbol(50000, 'USDT') → "50,000.00 USDT"
  */
 export const formatAssetWithSymbol = (amount: number, symbol: string): string => {
   const decimals = getDecimalsForAsset(symbol);
@@ -29,9 +29,9 @@ export const getDecimalsForAsset = (symbol: string): number => {
     BTC: 8,
     ETH: 8,
     SOL: 6,
-    USDC: 2,
     USDT: 2,
     EURC: 2,
+    xAUT: 4,
     XRP: 6,
   };
 
@@ -55,13 +55,13 @@ export const formatAssetAmount = (amount: number, symbol: string): string => {
  */
 export const getAssetDisplayName = (symbol: string): string => {
   const names: Record<string, string> = {
-    BTC: "Bitcoin",
-    ETH: "Ethereum",
-    SOL: "Solana",
-    USDC: "Tokenized Gold",
+    BTC: "BTC Yield Fund",
+    ETH: "ETH Yield Fund",
+    SOL: "SOL Yield Fund",
     USDT: "Stablecoin Fund",
-    EURC: "Euro Coin",
-    XRP: "XRP",
+    EURC: "EURC Yield Fund",
+    xAUT: "Tokenized Gold",
+    XRP: "XRP Yield Fund",
   };
 
   return names[symbol] || symbol;

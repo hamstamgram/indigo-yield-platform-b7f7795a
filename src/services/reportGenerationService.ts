@@ -391,7 +391,7 @@ export async function fetchInvestorReportData(
         const assetCode = pos.funds?.asset_code;
 
         // Normalize fund names for branding
-        if (assetCode === "USDC") fundName = "Tokenized Gold";
+        if (assetCode === "xAUT") fundName = "Tokenized Gold";
         if (assetCode === "USDT") fundName = "Stablecoin Fund";
 
         return {

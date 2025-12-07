@@ -1,0 +1,30 @@
+{
+  "profile": {
+    "emails": []
+  },
+  "transactions": [],
+  "summary": {
+    "currencies": {},
+    "total_usd_value": 0.0
+  },
+  "reports": [
+    {
+      "source_file": "Reporting_YieldFund - October 2025.pdf",
+      "page": 29,
+      "period_ended": "October 31st, 2025",
+      "fund": "ETH",
+      "metrics": {
+        "net_income_mtd": 0.6729,
+        "ending_balance": 151.1144,
+        "roi_mtd": 1.07
+      }
+    }
+  ],
+  "balance_checks": [
+    {
+      "date": "October 31st, 2025",
+      "fund": "ETH",
+      "balance": 151.1144
+    }
+  ]
+}

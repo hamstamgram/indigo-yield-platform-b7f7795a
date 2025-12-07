@@ -25,9 +25,9 @@ const REQUIRED_DOCUMENTS = [
     downloadUrl: "#", // Would be actual signed URL
   },
   {
-    id: "kyc_requirements",
-    title: "KYC Requirements & Privacy Policy",
-    description: "Know Your Customer requirements and how we protect your data",
+    id: "privacy_policy",
+    title: "Privacy Policy",
+    description: "How we collect, use, and protect your personal data",
     size: "1.2 MB",
     pages: 4,
     required: true,

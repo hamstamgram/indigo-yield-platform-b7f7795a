@@ -20,11 +20,17 @@ import * as path from "path";
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "https://nkfimvovosdehmyyjubn.supabase.co";
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
 
-// Test user credentials
-const TEST_USER_EMAIL = "test-investor@indigoyield.com";
-const TEST_USER_PASSWORD = "TestPassword123!";
-const TEST_ADMIN_EMAIL = "test-admin@indigoyield.com";
-const TEST_ADMIN_PASSWORD = "AdminPassword123!";
+// Test user credentials - loaded from environment variables
+// See .env.test.template for setup instructions
+const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL || "";
+const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD || "";
+const TEST_ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "";
+const TEST_ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "";
+
+// Validate required credentials are set
+if (!TEST_USER_EMAIL || !TEST_USER_PASSWORD) {
+  console.warn("WARNING: Test credentials not set. Set TEST_USER_EMAIL and TEST_USER_PASSWORD in .env.test.local");
+}
 
 // Initialize Supabase client
 let supabase: SupabaseClient;

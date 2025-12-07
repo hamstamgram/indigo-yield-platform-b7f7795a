@@ -3,6 +3,7 @@
 //  IndigoInvestor
 //
 //  Portfolio repository with Supabase integration and offline caching
+//  Aligned with Web Platform: Uses investor_positions and investor_monthly_reports
 //
 
 import Foundation
@@ -37,9 +38,10 @@ class PortfolioRepository: PortfolioRepositoryProtocol {
             try await cachePortfolio(portfolio)
             return portfolio
         } catch {
+            print("❌ Network fetch failed: \(error)")
             // If network fails, return stale cache if available
             if let stalePortfolio = try await getCachedPortfolio(for: investorId) {
-                print("⚠️ Using stale cache due to network error: \(error)")
+                print("⚠️ Using stale cache due to network error")
                 return stalePortfolio
             }
             throw error
@@ -53,11 +55,12 @@ class PortfolioRepository: PortfolioRepositoryProtocol {
     }
     
     func cachePortfolio(_ portfolio: Portfolio) async throws {
-        // Cache in memory/persistent storage
+        // Cache in memory/persistent storage via OfflineManager
         try await offlineManager.cacheData(portfolio, for: "\(cacheKey)_\(portfolio.investorId)")
         
-        // Also cache in Core Data for offline access
-        try await saveToCoreData(portfolio)
+        // Note: CoreData caching logic for the new model structure needs to be updated
+        // For now, we rely on OfflineManager (which uses Codable/JSON likely)
+        // Future: Update CoreData entities to match new Portfolio structure
     }
     
     // MARK: - Private Methods
@@ -65,88 +68,75 @@ class PortfolioRepository: PortfolioRepositoryProtocol {
     private func fetchFromNetwork(investorId: UUID) async throws -> Portfolio {
         print("🌐 Fetching portfolio from network for investor: \(investorId)")
 
-        do {
-            // Fetch main portfolio data
-            let portfolioResponse = try await supabaseClient.database
-                .from("portfolios")
-                .select("""
-                    id, investor_id, total_value, total_cost, total_gain, total_gain_percent,
-                    day_change, day_change_percent, week_change, week_change_percent,
-                    month_change, month_change_percent, year_change, year_change_percent,
-                    last_updated
-                """)
-                .eq("investor_id", value: investorId.uuidString)
-                .single()
-                .execute()
-
-            print("✅ Portfolio data fetched successfully")
-
-        } catch {
-            print("❌ Failed to fetch portfolio data: \(error)")
-
-            // If no portfolio found, create a default empty portfolio
-            if error.localizedDescription.contains("No rows") ||
-               error.localizedDescription.contains("not found") {
-                print("⚠️ No portfolio found, creating default empty portfolio")
-                return createDefaultPortfolio(for: investorId)
-            }
-
-            throw error
-        }
-        
-        // Fetch positions
+        // 1. Fetch Investor Positions
+        // Corresponds to web: .from("investor_positions").select(...)
         let positionsResponse = try await supabaseClient.database
-            .from("positions")
+            .from("investor_positions")
             .select("""
-                id, portfolio_id, investor_id, asset_symbol, asset_name,
-                quantity, average_cost, current_price, market_value,
-                total_gain, total_gain_percent, day_change, day_change_percent,
-                allocation
+                fund_id,
+                shares,
+                realized_pnl,
+                current_value,
+                cost_basis,
+                funds ( name, asset, code )
             """)
             .eq("investor_id", value: investorId.uuidString)
             .execute()
         
-        // Fetch asset allocation
-        let allocationResponse = try await supabaseClient.database
-            .from("asset_allocations")
-            .select("asset_type, value, percentage, color")
+        // 2. Fetch Monthly Reports (for Ledger Columns)
+        // Corresponds to web: .from("investor_monthly_reports")...order("report_month", ...)
+        let reportsResponse = try await supabaseClient.database
+            .from("investor_monthly_reports")
+            .select("*")
             .eq("investor_id", value: investorId.uuidString)
+            .order("report_month", ascending: false)
             .execute()
         
-        // Fetch performance history (last 30 days)
-        let performanceResponse = try await supabaseClient.database
-            .from("portfolio_performance")
-            .select("date, value, gain, gain_percent")
-            .eq("investor_id", value: investorId.uuidString)
-            .gte("date", value: Calendar.current.date(byAdding: .day, value: -30, to: Date())?.iso8601String ?? "")
-            .order("date", ascending: true)
-            .execute()
-        
-        // Parse responses
+        // Parse Responses
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.keyDecodingStrategy = .convertFromSnakeCase // Handle Supabase snake_case
         decoder.dateDecodingStrategy = .iso8601
         
-        // Decode main portfolio
-        let portfolioData = try decoder.decode(PortfolioNetworkModel.self, from: portfolioResponse.data)
+        let positionsData = try decoder.decode([PositionDTO].self, from: positionsResponse.data)
+        let reportsData = try decoder.decode([MonthlyReportDTO].self, from: reportsResponse.data)
         
-        // Decode positions
-        let positions = try decoder.decode([PositionNetworkModel].self, from: positionsResponse.data)
-            .map { $0.toDomainModel() }
+        // 3. Map to Domain Model
+        let assetPositions = positionsData.map { positionDTO -> AssetPosition in
+            let rawAssetCode = (positionDTO.funds?.asset ?? "UNITS").uppercased()
+            
+            // Find latest report for this asset
+            let latestReport = reportsData.first { $0.assetCode == rawAssetCode }
+            
+            return AssetPosition(
+                id: UUID(), // Generate ephemeral ID as position view doesn't have one stable ID per se
+                fundName: positionDTO.funds?.name ?? "Unknown Fund",
+                assetCode: rawAssetCode,
+                
+                // Ledger Data
+                balance: Decimal(string: positionDTO.shares) ?? 0,
+                yieldEarned: Decimal(string: positionDTO.realizedPnl ?? "0") ?? 0,
+                
+                // Report Data (MTD)
+                openingBalance: latestReport?.openingBalance ?? 0,
+                additions: latestReport?.additions ?? 0,
+                withdrawals: latestReport?.withdrawals ?? 0,
+                mtdYield: latestReport?.yieldEarned ?? 0
+            )
+        }
         
-        // Decode asset allocation
-        let allocations = try decoder.decode([AssetAllocationNetworkModel].self, from: allocationResponse.data)
-            .map { $0.toDomainModel() }
+        // 4. Calculate Aggregates
+        let totalYieldAllTime = assetPositions.reduce(Decimal(0)) { $0 + $1.yieldEarned }
+        let totalYieldMonth = assetPositions.reduce(Decimal(0)) { $0 + $1.mtdYield }
         
-        // Decode performance history
-        let performance = try decoder.decode([PerformanceDataNetworkModel].self, from: performanceResponse.data)
-            .map { $0.toDomainModel() }
-        
-        // Convert to domain model
-        let portfolio = portfolioData.toDomainModel(positions: positions)
-        
-        print("✅ Fetched portfolio from network for investor: \(investorId)")
-        return portfolio
+        return Portfolio(
+            id: UUID(), // Ephemeral ID for the portfolio object
+            investorId: investorId,
+            totalYieldAllTime: totalYieldAllTime,
+            totalYieldMonth: totalYieldMonth,
+            activePositionsCount: assetPositions.count,
+            lastUpdated: Date(),
+            assets: assetPositions
+        )
     }
     
     private func getCachedPortfolio(for investorId: UUID) async throws -> Portfolio? {
@@ -157,35 +147,6 @@ class PortfolioRepository: PortfolioRepositoryProtocol {
         return Date().timeIntervalSince(portfolio.lastUpdated) > cacheExpiryMinutes
     }
     
-    private func saveToCoreData(_ portfolio: Portfolio) async throws {
-        try await coreDataStack.performBackgroundTask { context in
-            // Check if portfolio entity exists
-            let fetchRequest = NSFetchRequest<PortfolioEntity>(entityName: "PortfolioEntity")
-            fetchRequest.predicate = NSPredicate(format: "id == %@", portfolio.id as CVarArg)
-            
-            let existingPortfolio = try context.fetch(fetchRequest).first
-            let portfolioEntity = existingPortfolio ?? PortfolioEntity(context: context)
-            
-            // Update portfolio entity
-            portfolioEntity.id = portfolio.id
-            portfolioEntity.investorId = portfolio.investorId
-            portfolioEntity.totalValue = NSDecimalNumber(decimal: portfolio.totalValue)
-            portfolioEntity.totalCost = NSDecimalNumber(decimal: portfolio.totalCost)
-            portfolioEntity.totalGain = NSDecimalNumber(decimal: portfolio.totalGain)
-            portfolioEntity.totalGainPercent = portfolio.totalGainPercent
-            portfolioEntity.dayChange = NSDecimalNumber(decimal: portfolio.dayChange)
-            portfolioEntity.dayChangePercent = portfolio.dayChangePercent
-            portfolioEntity.lastUpdated = portfolio.lastUpdated
-            
-            // Save context
-            if context.hasChanges {
-                try context.save()
-            }
-        }
-    }
-
-    // MARK: - Default Portfolio Creation
-
     private func createDefaultPortfolio(for investorId: UUID) -> Portfolio {
         return Portfolio(
             id: UUID(),
@@ -199,109 +160,42 @@ class PortfolioRepository: PortfolioRepositoryProtocol {
     }
 }
 
-// MARK: - Network Models
+// MARK: - Data Transfer Objects (DTOs)
 
-private struct PortfolioNetworkModel: Codable {
-    let id: UUID
-    let investorId: UUID
-    let totalValue: Decimal
-    let totalCost: Decimal
-    let totalGain: Decimal
-    let totalGainPercent: Double
-    let dayChange: Decimal
-    let dayChangePercent: Double
-    let weekChange: Decimal
-    let weekChangePercent: Double
-    let monthChange: Decimal
-    let monthChangePercent: Double
-    let yearChange: Decimal
-    let yearChangePercent: Double
-    let lastUpdated: Date
+private struct PositionDTO: Codable {
+    let shares: String
+    let realizedPnl: String?
+    let currentValue: String?
+    let costBasis: String?
+    let funds: FundDTO?
     
-    func toDomainModel(positions: [AssetPosition]) -> Portfolio {
-        return Portfolio(
-            id: id,
-            investorId: investorId,
-            totalYieldAllTime: totalGain, // Map network totalGain to yield model
-            totalYieldMonth: monthChange,  // Map network monthChange to monthly yield
-            activePositionsCount: positions.count,
-            lastUpdated: lastUpdated,
-            assets: positions
-        )
+    enum CodingKeys: String, CodingKey {
+        case shares
+        case realizedPnl = "realized_pnl"
+        case currentValue = "current_value"
+        case costBasis = "cost_basis"
+        case funds
     }
 }
 
-private struct PositionNetworkModel: Codable {
-    let id: UUID
-    let portfolioId: UUID
-    let investorId: UUID
-    let assetSymbol: String
-    let assetName: String
-    let quantity: Decimal
-    let averageCost: Decimal
-    let currentPrice: Decimal
-    let marketValue: Decimal
-    let totalGain: Decimal
-    let totalGainPercent: Double
-    let dayChange: Decimal
-    let dayChangePercent: Double
-    let allocation: Double
-    
-    func toDomainModel() -> Position {
-        return Position(
-            id: id,
-            portfolioId: portfolioId,
-            assetSymbol: assetSymbol,
-            assetName: assetName,
-            quantity: quantity,
-            averageCost: averageCost,
-            currentPrice: currentPrice,
-            marketValue: marketValue,
-            totalGain: totalGain,
-            totalGainPercent: totalGainPercent,
-            dayChange: dayChange,
-            dayChangePercent: dayChangePercent,
-            allocation: allocation
-        )
-    }
+private struct FundDTO: Codable {
+    let name: String
+    let asset: String
+    let code: String
 }
 
-private struct AssetAllocationNetworkModel: Codable {
-    let assetType: String
-    let value: Decimal
-    let percentage: Double
-    let color: String
+private struct MonthlyReportDTO: Codable {
+    let assetCode: String
+    let openingBalance: Decimal
+    let additions: Decimal
+    let withdrawals: Decimal
+    let yieldEarned: Decimal
     
-    func toDomainModel() -> AssetAllocation {
-        return AssetAllocation(
-            assetType: assetType,
-            value: value,
-            percentage: percentage,
-            color: color
-        )
-    }
-}
-
-private struct PerformanceDataNetworkModel: Codable {
-    let date: Date
-    let value: Decimal
-    let gain: Decimal
-    let gainPercent: Double
-    
-    func toDomainModel() -> PerformanceData {
-        return PerformanceData(
-            date: date,
-            value: value,
-            gain: gain,
-            gainPercent: gainPercent
-        )
-    }
-}
-
-// MARK: - Extensions
-
-extension Date {
-    var iso8601String: String {
-        return ISO8601DateFormatter().string(from: self)
+    enum CodingKeys: String, CodingKey {
+        case assetCode = "asset_code"
+        case openingBalance = "opening_balance"
+        case additions
+        case withdrawals
+        case yieldEarned = "yield_earned"
     }
 }

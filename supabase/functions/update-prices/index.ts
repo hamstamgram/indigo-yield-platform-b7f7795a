@@ -13,30 +13,22 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 // CoinGecko API configuration
 const COINGECKO_API_BASE = "https://api.coingecko.com/api/v3";
 const COINGECKO_API_KEY = Deno.env.get("COINGECKO_API_KEY"); // Optional (Pro tier)
 
-// Symbol mapping (your platform symbol → CoinGecko ID)
+// Symbol mapping (platform symbol → CoinGecko ID)
+// Platform funds: BTC, ETH, SOL, USDT, EURC, xAUT, XRP
 const SYMBOL_TO_COINGECKO_ID: Record<string, string> = {
   BTC: "bitcoin",
   ETH: "ethereum",
-  USDC: "usd-coin",
-  USDT: "tether",
   SOL: "solana",
-  BNB: "binancecoin",
-  ADA: "cardano",
-  DOT: "polkadot",
-  MATIC: "matic-network",
-  AVAX: "avalanche-2",
-  LINK: "chainlink",
-  UNI: "uniswap",
-  AAVE: "aave",
-  ATOM: "cosmos",
+  USDT: "tether",
+  EURC: "euro-coin",
+  XAUT: "tether-gold",
   XRP: "ripple",
-  DOGE: "dogecoin",
-  // Add more as needed
 };
 
 interface AssetPrice {
@@ -53,16 +45,12 @@ interface CoinGeckoPriceResponse {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+
   try {
     // CORS headers for browser requests
     if (req.method === "OPTIONS") {
-      return new Response(null, {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        },
-      });
+      return new Response(null, { headers: corsHeaders });
     }
 
     console.log("🔄 Starting price update...");
@@ -224,10 +212,7 @@ serve(async (req) => {
       }),
       {
         status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   } catch (error) {
@@ -241,10 +226,7 @@ serve(async (req) => {
       }),
       {
         status: 500,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   }

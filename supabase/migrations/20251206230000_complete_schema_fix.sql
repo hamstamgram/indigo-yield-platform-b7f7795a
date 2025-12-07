@@ -1,5 +1,5 @@
 -- =====================================================
--- COMPLETE SCHEMA FIX MIGRATION
+-- COMPLETE SCHEMA FIX MIGRATION (IDEMPOTENT)
 -- Generated: 2025-12-06
 -- Purpose: Add all missing tables and RPC functions
 -- =====================================================
@@ -26,13 +26,21 @@ CREATE INDEX IF NOT EXISTS idx_fund_daily_aum_fund_date ON public.fund_daily_aum
 
 ALTER TABLE public.fund_daily_aum ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Admins can manage fund_daily_aum" ON public.fund_daily_aum
-  FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
-  );
+-- Policy: Admins can manage fund_daily_aum
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Admins can manage fund_daily_aum" ON public.fund_daily_aum;
+  CREATE POLICY "Admins can manage fund_daily_aum" ON public.fund_daily_aum
+    FOR ALL USING (
+      EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+END $$;
 
-CREATE POLICY "Users can view fund_daily_aum" ON public.fund_daily_aum
-  FOR SELECT USING (auth.uid() IS NOT NULL);
+-- Policy: Users can view fund_daily_aum
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Users can view fund_daily_aum" ON public.fund_daily_aum;
+  CREATE POLICY "Users can view fund_daily_aum" ON public.fund_daily_aum
+    FOR SELECT USING (auth.uid() IS NOT NULL);
+END $$;
 
 -- Table: generated_reports (used by PerformanceReportPage.tsx)
 CREATE TABLE IF NOT EXISTS public.generated_reports (
@@ -56,13 +64,21 @@ CREATE INDEX IF NOT EXISTS idx_generated_reports_month ON public.generated_repor
 
 ALTER TABLE public.generated_reports ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Admins can manage generated_reports" ON public.generated_reports
-  FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
-  );
+-- Policy: Admins can manage generated_reports
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Admins can manage generated_reports" ON public.generated_reports;
+  CREATE POLICY "Admins can manage generated_reports" ON public.generated_reports
+    FOR ALL USING (
+      EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+END $$;
 
-CREATE POLICY "Users can view own reports" ON public.generated_reports
-  FOR SELECT USING (investor_id = auth.uid());
+-- Policy: Users can view own reports
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Users can view own reports" ON public.generated_reports;
+  CREATE POLICY "Users can view own reports" ON public.generated_reports
+    FOR SELECT USING (investor_id = auth.uid());
+END $$;
 
 -- Table: investments (used by AdminDashboard.tsx, AdminOperationsHub.tsx)
 CREATE TABLE IF NOT EXISTS public.investments (
@@ -85,13 +101,21 @@ CREATE INDEX IF NOT EXISTS idx_investments_date ON public.investments(investment
 
 ALTER TABLE public.investments ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Admins can manage investments" ON public.investments
-  FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
-  );
+-- Policy: Admins can manage investments
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Admins can manage investments" ON public.investments;
+  CREATE POLICY "Admins can manage investments" ON public.investments
+    FOR ALL USING (
+      EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+END $$;
 
-CREATE POLICY "Users can view own investments" ON public.investments
-  FOR SELECT USING (investor_id = auth.uid());
+-- Policy: Users can view own investments
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Users can view own investments" ON public.investments;
+  CREATE POLICY "Users can view own investments" ON public.investments
+    FOR SELECT USING (investor_id = auth.uid());
+END $$;
 
 -- Table: reports (used by reports feature)
 CREATE TABLE IF NOT EXISTS public.reports (
@@ -109,10 +133,14 @@ CREATE TABLE IF NOT EXISTS public.reports (
 
 ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Admins can manage reports" ON public.reports
-  FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
-  );
+-- Policy: Admins can manage reports
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Admins can manage reports" ON public.reports;
+  CREATE POLICY "Admins can manage reports" ON public.reports
+    FOR ALL USING (
+      EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+END $$;
 
 -- Table: report_definitions
 CREATE TABLE IF NOT EXISTS public.report_definitions (
@@ -128,10 +156,14 @@ CREATE TABLE IF NOT EXISTS public.report_definitions (
 
 ALTER TABLE public.report_definitions ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Admins can manage report_definitions" ON public.report_definitions
-  FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
-  );
+-- Policy: Admins can manage report_definitions
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Admins can manage report_definitions" ON public.report_definitions;
+  CREATE POLICY "Admins can manage report_definitions" ON public.report_definitions
+    FOR ALL USING (
+      EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+END $$;
 
 -- Table: report_schedules
 CREATE TABLE IF NOT EXISTS public.report_schedules (
@@ -148,10 +180,14 @@ CREATE TABLE IF NOT EXISTS public.report_schedules (
 
 ALTER TABLE public.report_schedules ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Admins can manage report_schedules" ON public.report_schedules
-  FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
-  );
+-- Policy: Admins can manage report_schedules
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Admins can manage report_schedules" ON public.report_schedules;
+  CREATE POLICY "Admins can manage report_schedules" ON public.report_schedules
+    FOR ALL USING (
+      EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+END $$;
 
 -- Table: report_access_logs
 CREATE TABLE IF NOT EXISTS public.report_access_logs (
@@ -168,10 +204,14 @@ CREATE INDEX IF NOT EXISTS idx_report_access_logs_user ON public.report_access_l
 
 ALTER TABLE public.report_access_logs ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Admins can view report_access_logs" ON public.report_access_logs
-  FOR SELECT USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
-  );
+-- Policy: Admins can view report_access_logs
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Admins can view report_access_logs" ON public.report_access_logs;
+  CREATE POLICY "Admins can view report_access_logs" ON public.report_access_logs
+    FOR SELECT USING (
+      EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+END $$;
 
 -- Table: investment_summary (aggregated view)
 CREATE TABLE IF NOT EXISTS public.investment_summary (
@@ -187,13 +227,21 @@ CREATE TABLE IF NOT EXISTS public.investment_summary (
 
 ALTER TABLE public.investment_summary ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Admins can manage investment_summary" ON public.investment_summary
-  FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
-  );
+-- Policy: Admins can manage investment_summary
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Admins can manage investment_summary" ON public.investment_summary;
+  CREATE POLICY "Admins can manage investment_summary" ON public.investment_summary
+    FOR ALL USING (
+      EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+END $$;
 
-CREATE POLICY "Users can view own investment_summary" ON public.investment_summary
-  FOR SELECT USING (investor_id = auth.uid());
+-- Policy: Users can view own investment_summary
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Users can view own investment_summary" ON public.investment_summary;
+  CREATE POLICY "Users can view own investment_summary" ON public.investment_summary
+    FOR SELECT USING (investor_id = auth.uid());
+END $$;
 
 -- Table: price_alerts
 CREATE TABLE IF NOT EXISTS public.price_alerts (
@@ -209,48 +257,60 @@ CREATE TABLE IF NOT EXISTS public.price_alerts (
 
 ALTER TABLE public.price_alerts ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can manage own price_alerts" ON public.price_alerts
-  FOR ALL USING (user_id = auth.uid());
+-- Policy: Users can manage own price_alerts
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Users can manage own price_alerts" ON public.price_alerts;
+  CREATE POLICY "Users can manage own price_alerts" ON public.price_alerts
+    FOR ALL USING (user_id = auth.uid());
+END $$;
 
 -- Table: platform_fees_collected
-CREATE TABLE IF NOT EXISTS public.platform_fees_collected (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  fee_date DATE NOT NULL,
-  fund_id TEXT,
-  fee_type TEXT NOT NULL,
-  amount NUMERIC NOT NULL,
-  description TEXT,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
+-- CREATE TABLE IF NOT EXISTS public.platform_fees_collected (
+--   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--   fee_date DATE NOT NULL,
+--   fund_id TEXT,
+--   fee_type TEXT NOT NULL,
+--   amount NUMERIC NOT NULL,
+--   description TEXT,
+--   created_at TIMESTAMPTZ DEFAULT now()
+-- );
 
-CREATE INDEX IF NOT EXISTS idx_platform_fees_date ON public.platform_fees_collected(fee_date DESC);
+-- CREATE INDEX IF NOT EXISTS idx_platform_fees_date ON public.platform_fees_collected(fee_date DESC);
 
-ALTER TABLE public.platform_fees_collected ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.platform_fees_collected ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Admins can manage platform_fees_collected" ON public.platform_fees_collected
-  FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
-  );
+-- POLICY: Admins can manage platform_fees_collected
+-- DO $$ BEGIN
+--   DROP POLICY IF EXISTS "Admins can manage platform_fees_collected" ON public.platform_fees_collected;
+--   CREATE POLICY "Admins can manage platform_fees_collected" ON public.platform_fees_collected
+--     FOR ALL USING (
+--       EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
+--     );
+-- END $$;
 
 -- Table: monthly_fee_summary
-CREATE TABLE IF NOT EXISTS public.monthly_fee_summary (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  year INTEGER NOT NULL,
-  month INTEGER NOT NULL CHECK (month >= 1 AND month <= 12),
-  fund_id TEXT,
-  total_management_fees NUMERIC DEFAULT 0,
-  total_performance_fees NUMERIC DEFAULT 0,
-  total_fees NUMERIC DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(year, month, fund_id)
-);
+-- CREATE TABLE IF NOT EXISTS public.monthly_fee_summary (
+--   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--   year INTEGER NOT NULL,
+--   month INTEGER NOT NULL CHECK (month >= 1 AND month <= 12),
+--   fund_id TEXT,
+--   total_management_fees NUMERIC DEFAULT 0,
+--   total_performance_fees NUMERIC DEFAULT 0,
+--   total_fees NUMERIC DEFAULT 0,
+--   created_at TIMESTAMPTZ DEFAULT now(),
+--   UNIQUE(year, month, fund_id)
+-- );
 
-ALTER TABLE public.monthly_fee_summary ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.monthly_fee_summary ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Admins can manage monthly_fee_summary" ON public.monthly_fee_summary
-  FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
-  );
+-- Policy: Admins can manage monthly_fee_summary
+-- DO $$ BEGIN
+--   DROP POLICY IF EXISTS "Admins can manage monthly_fee_summary" ON public.monthly_fee_summary;
+--   CREATE POLICY "Admins can manage monthly_fee_summary" ON public.monthly_fee_summary
+--     FOR ALL USING (
+--       EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
+--     );
+-- END $$;
 
 -- =====================================================
 -- SECTION 2: MISSING RPC FUNCTIONS

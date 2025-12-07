@@ -177,8 +177,8 @@ class InvestorServiceV2 {
       balance_before: Number(entry.balance_before || 0),
       yield_amount: Number(entry.amount),
       balance_after: Number(entry.balance_after || 0),
-      daily_rate: Number(entry.daily_rate || 0),
-      annual_rate: Number(entry.annual_rate || 0),
+      daily_rate: 0, // daily_rate column doesn't exist in transactions_v2
+      annual_rate: 0, // annual_rate column doesn't exist in transactions_v2
     }));
   }
 
@@ -289,49 +289,25 @@ class InvestorServiceV2 {
     return data || [];
   }
 
-  // Get current yield rates for all assets (from daily_rates table)
+  // Get current yield rates for all assets
+  // Note: daily_rates table doesn't exist - yield_settings has different schema
   async getCurrentYieldRates(): Promise<any[]> {
-    const today = new Date().toISOString().split("T")[0];
-
     const { data, error } = await supabase
-      .from("daily_rates")
-      .select("*")
-      .eq("rate_date", today)
-      .maybeSingle();
+      .from("yield_settings")
+      .select("id, rate_bps, frequency, effective_from");
 
-    if (error && error.code !== "PGRST116") throw error;
-
-    // If no rates for today, return empty array - rates must come from database
-    if (!data) {
+    if (error) {
+      console.warn("getCurrentYieldRates: Error fetching yield settings:", error);
       return [];
     }
 
-    return [
-      {
-        asset_symbol: "BTC",
-        asset_name: "Bitcoin",
-        daily_rate: data.btc_rate,
-        annual_rate: data.btc_rate * 365,
-      },
-      {
-        asset_symbol: "ETH",
-        asset_name: "Ethereum",
-        daily_rate: data.eth_rate,
-        annual_rate: data.eth_rate * 365,
-      },
-      {
-        asset_symbol: "SOL",
-        asset_name: "Solana",
-        daily_rate: data.sol_rate,
-        annual_rate: data.sol_rate * 365,
-      },
-      {
-        asset_symbol: "USDT",
-        asset_name: "Stablecoin",
-        daily_rate: data.usdc_rate,
-        annual_rate: data.usdc_rate * 365,
-      },
-    ];
+    // Convert rate_bps (basis points) to annual rate percentage
+    return (data || []).map((setting) => ({
+      asset_symbol: "USD", // Default since no asset_code column
+      asset_name: "USD Yield",
+      daily_rate: (setting.rate_bps || 0) / 10000 / 365, // bps to percentage to daily
+      annual_rate: (setting.rate_bps || 0) / 100, // bps to percentage
+    }));
   }
 
   // Get investor documents (statements, etc.)
@@ -366,8 +342,9 @@ class InvestorServiceV2 {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    const { data, error } = await supabase
-      .from("portfolio_history")
+    // Break type chain to avoid TS2589
+    const queryBuilder: any = supabase.from("portfolio_history");
+    const { data, error } = await queryBuilder
       .select("*")
       .eq("investor_id", investor.id)
       .gte("snapshot_date", startDate.toISOString().split("T")[0])

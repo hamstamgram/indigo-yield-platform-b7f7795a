@@ -293,7 +293,7 @@ const AdminPortfolios = ({
       // Find the asset symbol for the selected asset (ensure it's a valid asset code)
       const selectedAssetData = assets.find((a) => a.id === selectedAsset);
       const assetSymbol =
-        (selectedAssetData?.symbol as "BTC" | "ETH" | "SOL" | "USDT" | "USDC" | "EURC") || "USDT";
+        (selectedAssetData?.symbol as "BTC" | "ETH" | "SOL" | "USDT" | "EURC" | "xAUT" | "XRP") || "USDT";
 
       // Check if this user-asset combination already exists
       const { data: existingEntry } = await supabase

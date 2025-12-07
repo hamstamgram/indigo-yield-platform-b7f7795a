@@ -31,12 +31,13 @@ const ASSET_LOGOS: Record<string, string> = {
 };
 
 const ASSET_NAMES: Record<string, string> = {
-  BTC: "Bitcoin Yield Fund",
-  ETH: "Ethereum Yield Fund",
-  USDT: "USDT Yield Fund",
-  USDC: "USDC Yield Fund",
-  SOL: "Solana Yield Fund",
-  EURC: "Euro Yield Fund",
+  BTC: "BTC Yield Fund",
+  ETH: "ETH Yield Fund",
+  SOL: "SOL Yield Fund",
+  USDT: "Stablecoin Fund",
+  EURC: "EURC Yield Fund",
+  xAUT: "Tokenized Gold",
+  XRP: "XRP Yield Fund",
 };
 
 export default function MyPerformanceHistory() {

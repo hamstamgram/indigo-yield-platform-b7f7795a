@@ -36,7 +36,6 @@ interface PlatformSettings {
   maintenance_mode: boolean;
   allow_new_registrations: boolean;
   require_email_verification: boolean;
-  require_kyc: boolean;
   enable_2fa: boolean;
   min_deposit: number;
   min_withdrawal: number;
@@ -49,7 +48,6 @@ const defaultSettings: PlatformSettings = {
   maintenance_mode: false,
   allow_new_registrations: true,
   require_email_verification: true,
-  require_kyc: true,
   enable_2fa: false,
   min_deposit: 1000,
   min_withdrawal: 100,
@@ -278,19 +276,6 @@ function AdminSettingsContent() {
                   onCheckedChange={(checked) =>
                     setSettings({ ...settings, require_email_verification: checked })
                   }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Require KYC Verification</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Users must complete KYC before making transactions
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.require_kyc}
-                  onCheckedChange={(checked) => setSettings({ ...settings, require_kyc: checked })}
                 />
               </div>
 

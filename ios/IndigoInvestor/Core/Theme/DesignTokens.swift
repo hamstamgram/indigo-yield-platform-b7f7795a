@@ -16,16 +16,26 @@ public struct DesignTokens {
 
     public struct Colors {
 
-        // MARK: Brand Colors
-        // Deep Indigo Premium Branding
-        public static let indigoPrimary = Color(hex: "#283593") // Deep Indigo (Web: --indigo-deep)
-        public static let indigoSecondary = Color(hex: "#3F51B5") // Brand Indigo
-        public static let indigoAccent = Color(hex: "#00C853") // Yield Green (Web: --yield-green)
-        public static let indigoDark = Color(hex: "#1A237E") // Ultra Deep
-        public static let indigoLight = Color(hex: "#E8EAF6") // Soft Tint
+        // MARK: Brand Core - Matches src/index.css HSL values
+        
+        // Primary Brand (231 48% 48%) -> #3F51B5
+        public static let indigoPrimary = Color(hex: "#3F51B5")
+        
+        // Deep Indigo (231 53% 35%) -> #2A3693 (Corrected from #283593 to match HSL closer)
+        public static let indigoDeep = Color(hex: "#2A3693")
+        
+        // Soft Tint (231 44% 96%) -> #E8EAF6
+        public static let indigoSoft = Color(hex: "#E8EAF6")
+
+        // Yield Green (150 100% 39%) -> #00C752
+        public static let indigoAccent = Color(hex: "#00C752")
+        
+        // Legacy Alias
+        public static let indigoSecondary = indigoDeep
+        public static let indigoLight = indigoSoft
 
         // MARK: Financial Data Colors
-        public static let positiveGreen = Color(hex: "#22C55E")
+        public static let positiveGreen = indigoAccent // Use brand yield green
         public static let negativeRed = Color(hex: "#EF4444")
         public static let neutralGray = Color(hex: "#6B7280")
 
@@ -49,7 +59,7 @@ public struct DesignTokens {
         public static let textPlaceholder = Color(.placeholderText)
 
         // MARK: Status Colors
-        public static let successGreen = Color(.systemGreen)
+        public static let successGreen = positiveGreen
         public static let warningOrange = Color(.systemOrange)
         public static let errorRed = Color(.systemRed)
         public static let infoBlue = Color(.systemBlue)
@@ -60,13 +70,12 @@ public struct DesignTokens {
         public static let opaqueSeparator = Color(.opaqueSeparator)
         
         // MARK: Component Color Aliases
-        // Semantic color mappings for components
         public static let cardBackground = backgroundSecondary
         public static let buttonPrimary = indigoPrimary
         public static let inputBackground = backgroundSecondary
         public static let inputFocusBorder = indigoPrimary
         public static let inputBorder = separatorGray
-        public static let warningAmber = warningOrange  // Alias for consistency
+        public static let warningAmber = warningOrange
 
         // MARK: Chart Colors
         public static let chartColors: [Color] = [
@@ -82,7 +91,7 @@ public struct DesignTokens {
 
         // MARK: Gradient Definitions
         public static let indigoGradient = LinearGradient(
-            colors: [indigoPrimary, indigoSecondary],
+            colors: [indigoPrimary, indigoDeep],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
@@ -104,25 +113,30 @@ public struct DesignTokens {
 
     public struct Typography {
 
-        // MARK: Display Text (Headlines, Titles)
+        // MARK: Display Text (Montserrat - "The Display Layer")
+        // Matches CSS: font-family: "Montserrat", sans-serif;
         static let largeTitle = Font.custom("Montserrat-Bold", size: 34)
         static let title1 = Font.custom("Montserrat-Bold", size: 28)
         static let title2 = Font.custom("Montserrat-SemiBold", size: 22)
         static let title3 = Font.custom("Montserrat-SemiBold", size: 20)
 
-        // MARK: Body Text
-        static let headline = Font.headline.weight(.semibold)
-        static let subheadline = Font.subheadline.weight(.medium)
-        static let body = Font.body
-        static let bodyEmphasized = Font.body.weight(.medium)
-        static let callout = Font.callout
-        static let calloutEmphasized = Font.callout.weight(.medium)
+        // MARK: Body Text (Inter - "The UI Layer")
+        // Matches CSS: font-family: "Inter", sans-serif;
+        // Using System font with specific design traits to approximate Inter on iOS
+        // or fallback to system if custom font not loaded
+        static let headline = Font.system(.headline, design: .default).weight(.semibold)
+        static let subheadline = Font.system(.subheadline, design: .default).weight(.medium)
+        static let body = Font.system(.body, design: .default)
+        static let bodyEmphasized = Font.system(.body, design: .default).weight(.medium)
+        static let callout = Font.system(.callout, design: .default)
+        static let calloutEmphasized = Font.system(.callout, design: .default).weight(.medium)
 
-        // MARK: Financial Numbers (Rounded Design)
-        static let financialLarge = Font.system(size: 32, weight: .bold, design: .rounded)
-        static let financialMedium = Font.system(size: 24, weight: .semibold, design: .rounded)
-        static let financialSmall = Font.system(size: 16, weight: .medium, design: .rounded)
-        static let financialCaption = Font.system(size: 12, weight: .medium, design: .rounded)
+        // MARK: Financial Numbers (JetBrains Mono - "The Precision Layer")
+        // Matches CSS: font-family: "JetBrains Mono", monospace;
+        static let financialLarge = Font.system(size: 32, weight: .bold, design: .monospaced)
+        static let financialMedium = Font.system(size: 24, weight: .semibold, design: .monospaced)
+        static let financialSmall = Font.system(size: 16, weight: .medium, design: .monospaced)
+        static let financialCaption = Font.system(size: 12, weight: .medium, design: .monospaced)
 
         // MARK: Small Text
         static let footnote = Font.footnote
@@ -131,7 +145,7 @@ public struct DesignTokens {
         static let caption1Emphasized = Font.caption.weight(.medium)
         static let caption2 = Font.caption2
 
-        // MARK: Monospace (For Codes, IDs)
+        // MARK: Monospace (Strict)
         static let monospaceBody = Font.body.monospaced()
         static let monospaceSmall = Font.footnote.monospaced()
     }

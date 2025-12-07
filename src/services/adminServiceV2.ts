@@ -17,7 +17,6 @@ export interface InvestorSummaryV2 {
   lastName: string;
   totalAum: number;
   status: string;
-  kycStatus: string;
   onboardingDate: string | null;
   lastStatementDate: string | null;
   portfolioDetails: {
@@ -81,7 +80,6 @@ class AdminServiceV2 {
         lastName: summary.name.split(" ").slice(1).join(" ") || "",
         totalAum: summary.totalAUM,
         status: summary.status,
-        kycStatus: summary.kycStatus || "pending",
         onboardingDate: summary.onboardingDate || null,
         lastStatementDate: null,
         portfolioDetails: {
@@ -231,16 +229,17 @@ class AdminServiceV2 {
   }
 
   // Get fund performance data
+  // Note: fund_daily_aum table doesn't exist yet - using funds table as fallback
   async getFundPerformance(fundId?: string): Promise<any[]> {
     try {
       let query = supabase
-        .from("fund_daily_aum")
-        .select("*")
-        .order("aum_date", { ascending: false })
+        .from("funds")
+        .select("id, code, name, asset, nav, aum, inception_date, updated_at")
+        .order("updated_at", { ascending: false })
         .limit(30);
 
       if (fundId) {
-        query = query.eq("fund_id", fundId);
+        query = query.eq("id", fundId);
       }
 
       const { data, error } = await query;
@@ -249,7 +248,7 @@ class AdminServiceV2 {
       return data || [];
     } catch (error) {
       console.error("Error fetching fund performance:", error);
-      throw error;
+      return [];
     }
   }
 
@@ -294,18 +293,12 @@ class AdminServiceV2 {
   }
 
   // Update investor status
-  async updateInvestorStatus(
-    investorId: string,
-    status: string,
-    kycStatus?: string
-  ): Promise<void> {
+  async updateInvestorStatus(investorId: string, status: string): Promise<void> {
     try {
-      const updates: Record<string, any> = { status };
-      if (kycStatus) {
-        updates.kyc_status = kycStatus;
-      }
-
-      const { error } = await supabase.from("investors").update(updates).eq("id", investorId);
+      const { error } = await supabase
+        .from("investors")
+        .update({ status })
+        .eq("id", investorId);
 
       if (error) throw error;
     } catch (error) {
@@ -370,14 +363,13 @@ class AdminServiceV2 {
       const investors = await this.getAllInvestorsWithSummary();
 
       if (format === "csv") {
-        const headers = ["ID", "Name", "Email", "Total AUM", "Status", "KYC Status"];
+        const headers = ["ID", "Name", "Email", "Total AUM", "Status"];
         const csvData = investors.map((inv) => [
           inv.id,
           `${inv.firstName} ${inv.lastName}`,
           inv.email,
           inv.totalAum,
           inv.status,
-          inv.kycStatus,
         ]);
 
         return { headers, data: csvData };

@@ -1,25 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { sendEmailRequestSchema, parseAndValidate } from "../_shared/validation.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-interface EmailRequest {
-  to: string | string[];
-  subject: string;
-  html: string;
-  from?: string;
-  reply_to?: string;
-  email_type?: string; // Metadata for logs
-}
-
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -30,7 +20,13 @@ serve(async (req) => {
       throw new Error("RESEND_API_KEY is not set");
     }
 
-    const { to, subject, html, from, reply_to, email_type }: EmailRequest = await req.json();
+    // Validate request body
+    const validation = await parseAndValidate(req, sendEmailRequestSchema, corsHeaders);
+    if (!validation.success) {
+      return validation.response;
+    }
+
+    const { to, subject, html, from, reply_to, email_type } = validation.data;
 
     // Default sender if not provided
     const sender = from || "Indigo Yield Platform <noreply@indigoyield.com>";

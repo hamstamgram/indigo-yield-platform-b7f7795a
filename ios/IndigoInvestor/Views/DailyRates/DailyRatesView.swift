@@ -45,13 +45,15 @@ struct DailyRatesCard: View {
     let rate: DailyRate
     let previousRate: DailyRate?
 
+    // Platform's 7 Canonical Funds (USDC is NOT a platform fund)
     private let assets: [(code: String, name: String, color: Color)] = [
-        ("BTC", "Bitcoin", .orange),
-        ("ETH", "Ethereum", .blue),
-        ("SOL", "Solana", .purple),
-        ("USDT", "Tether", .green),
-        ("USDC", "USD Coin", .blue),
-        ("EURC", "Euro Coin", .blue)
+        ("BTC", "BTC Yield Fund", .orange),
+        ("ETH", "ETH Yield Fund", .blue),
+        ("SOL", "SOL Yield Fund", .purple),
+        ("USDT", "Stablecoin Fund", .green),
+        ("EURC", "EURC Yield Fund", .blue),
+        ("xAUT", "Tokenized Gold", .yellow),
+        ("XRP", "XRP Yield Fund", .gray)
     ]
 
     var body: some View {

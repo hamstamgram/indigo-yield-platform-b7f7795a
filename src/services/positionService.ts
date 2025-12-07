@@ -171,7 +171,7 @@ export async function addAssetToInvestor(
     const { error: positionError } = await supabase
       .from("positions")
       .upsert({
-        user_id: investorId,
+        investor_id: investorId,
         asset_code: asset.symbol,
         current_balance: initialBalance,
         principal: initialBalance,
@@ -195,11 +195,12 @@ export async function removeAssetFromInvestor(
   assetSymbol: string
 ): Promise<boolean> {
   try {
-    const { error } = await supabase
+    // Note: positions uses investor_id not user_id
+    const { error } = await (supabase
       .from("positions")
       .delete()
-      .eq("user_id", investorId)
-      .eq("asset_code", assetSymbol as AssetCode);
+      .eq("investor_id", investorId)
+      .eq("asset_code", assetSymbol as AssetCode) as any);
 
     if (error) throw error;
     return true;

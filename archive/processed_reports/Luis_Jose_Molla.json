@@ -1,0 +1,222 @@
+{
+  "profile": {
+    "emails": []
+  },
+  "transactions": [],
+  "summary": {
+    "currencies": {},
+    "total_usd_value": 0.0
+  },
+  "reports": [
+    {
+      "source_file": "Reporting_YieldFund - August 2025 (2).pdf",
+      "page": 1,
+      "period_ended": "August 31st, 2025",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 0.0107,
+        "ending_balance": 3.6864,
+        "roi_mtd": 0.29
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund - February.pdf",
+      "page": 1,
+      "period_ended": "February 28th, 2025",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 0.0111,
+        "ending_balance": 3.5912,
+        "roi_mtd": 0.31
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund - May 2025 (1).pdf",
+      "page": 1,
+      "period_ended": "May 30th, 2025",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 0.0173,
+        "ending_balance": 3.6504,
+        "roi_mtd": 0.48
+      }
+    },
+    {
+      "source_file": "Jose MOLLA_Reporting_YieldFund - October 2024.pdf",
+      "page": 1,
+      "period_ended": "October 31st, 2024",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 0.0142,
+        "ending_balance": 3.5281,
+        "roi_mtd": 0.4
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund.Novembre (1).pdf",
+      "page": 1,
+      "period_ended": "November 30th, 2025",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 0.0098,
+        "ending_balance": 4.8133,
+        "roi_mtd": 0.26
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund - October 2025.pdf",
+      "page": 1,
+      "period_ended": "October 31st, 2025",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 0.0101,
+        "ending_balance": 3.7688,
+        "roi_mtd": 0.27
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund - January 2025.pdf",
+      "page": 1,
+      "period_ended": "January 31st, 2025",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 0.0251,
+        "ending_balance": 3.5884,
+        "roi_mtd": 0.7
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund - July 2025.pdf",
+      "page": 1,
+      "period_ended": "July 31st, 2025",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 0.0141,
+        "ending_balance": 3.6757,
+        "roi_mtd": 0.39
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund - June 2025.pdf",
+      "page": 1,
+      "period_ended": "June 30th, 2025",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 0.0112,
+        "ending_balance": 3.6615,
+        "roi_mtd": 0.31
+      }
+    },
+    {
+      "source_file": "Reporting_September 2025.pdf",
+      "page": 1,
+      "period_ended": "September 30th, 2025",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 0.0103,
+        "ending_balance": 3.6967,
+        "roi_mtd": 0.28
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund April 2025.pdf",
+      "page": 1,
+      "period_ended": "April 30th, 2025",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 0.0307,
+        "ending_balance": 3.633,
+        "roi_mtd": 0.85
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund - March 2025.pdf",
+      "page": 1,
+      "period_ended": "March 31st, 2025",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 0.0111,
+        "ending_balance": 3.6023,
+        "roi_mtd": 0.31
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund_Jose_MOLLA.pdf",
+      "page": 1,
+      "period_ended": "September 30th, 2024",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 0.0152,
+        "ending_balance": 3.5139,
+        "roi_mtd": 0.43
+      }
+    }
+  ],
+  "balance_checks": [
+    {
+      "date": "August 31st, 2025",
+      "fund": "BTC",
+      "balance": 3.6864
+    },
+    {
+      "date": "February 28th, 2025",
+      "fund": "BTC",
+      "balance": 3.5912
+    },
+    {
+      "date": "May 30th, 2025",
+      "fund": "BTC",
+      "balance": 3.6504
+    },
+    {
+      "date": "October 31st, 2024",
+      "fund": "BTC",
+      "balance": 3.5281
+    },
+    {
+      "date": "November 30th, 2025",
+      "fund": "BTC",
+      "balance": 4.8133
+    },
+    {
+      "date": "October 31st, 2025",
+      "fund": "BTC",
+      "balance": 3.7688
+    },
+    {
+      "date": "January 31st, 2025",
+      "fund": "BTC",
+      "balance": 3.5884
+    },
+    {
+      "date": "July 31st, 2025",
+      "fund": "BTC",
+      "balance": 3.6757
+    },
+    {
+      "date": "June 30th, 2025",
+      "fund": "BTC",
+      "balance": 3.6615
+    },
+    {
+      "date": "September 30th, 2025",
+      "fund": "BTC",
+      "balance": 3.6967
+    },
+    {
+      "date": "April 30th, 2025",
+      "fund": "BTC",
+      "balance": 3.633
+    },
+    {
+      "date": "March 31st, 2025",
+      "fund": "BTC",
+      "balance": 3.6023
+    },
+    {
+      "date": "September 30th, 2024",
+      "fund": "BTC",
+      "balance": 3.5139
+    }
+  ]
+}

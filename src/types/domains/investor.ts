@@ -31,11 +31,6 @@ export interface Investor {
   updated_at: string;
   phone: string | null;
   onboarding_date: string | null;
-  kyc_status: string | null;
-  aml_status: string | null;
-  accredited: boolean | null;
-  entity_type: string | null;
-  tax_id: string | null;
 }
 
 /**
@@ -116,11 +111,6 @@ export function mapDbInvestorToInvestor(dbInvestor: DbInvestor): Investor {
     updated_at: dbInvestor.updated_at || new Date().toISOString(),
     phone: dbInvestor.phone,
     onboarding_date: dbInvestor.onboarding_date,
-    kyc_status: dbInvestor.kyc_status,
-    aml_status: dbInvestor.aml_status,
-    accredited: dbInvestor.accredited,
-    entity_type: dbInvestor.entity_type,
-    tax_id: dbInvestor.tax_id,
   };
 }
 
@@ -138,13 +128,13 @@ export function mapDbPositionToInvestorPosition(dbPosition: DbInvestorPosition):
     unrealized_pnl: Number(dbPosition.unrealized_pnl) || 0,
     realized_pnl: Number(dbPosition.realized_pnl) || 0,
     high_water_mark: dbPosition.high_water_mark ? Number(dbPosition.high_water_mark) : null,
-    aum_percentage: dbPosition.aum_percentage ? Number(dbPosition.aum_percentage) : null,
+    aum_percentage: null, // Column doesn't exist in current schema
     mgmt_fees_paid: dbPosition.mgmt_fees_paid ? Number(dbPosition.mgmt_fees_paid) : null,
     perf_fees_paid: dbPosition.perf_fees_paid ? Number(dbPosition.perf_fees_paid) : null,
     lock_until_date: dbPosition.lock_until_date,
     last_transaction_date: dbPosition.last_transaction_date,
-    last_modified_at: dbPosition.last_modified_at,
-    last_modified_by: dbPosition.last_modified_by,
+    last_modified_at: dbPosition.updated_at, // Use updated_at as fallback
+    last_modified_by: null, // Column doesn't exist in current schema
     updated_at: dbPosition.updated_at,
   };
 }

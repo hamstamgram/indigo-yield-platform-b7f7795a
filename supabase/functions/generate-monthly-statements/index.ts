@@ -1,16 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { STATEMENT_TEMPLATE } from "./template.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-interface RequestBody {
-  investor_id: string;
-  report_date: string; // Format: YYYY-MM-DD (usually 1st of month)
-}
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { monthlyStatementRequestSchema, parseAndValidate } from "../_shared/validation.ts";
 
 // Helper to format numbers with commas and decimals
 const formatNum = (num: number, decimals: number = 4) => {
@@ -21,6 +13,8 @@ const formatNum = (num: number, decimals: number = 4) => {
 };
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+
   // Handle CORS
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -32,7 +26,13 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { investor_id, report_date } = (await req.json()) as RequestBody;
+    // Validate request body
+    const validation = await parseAndValidate(req, monthlyStatementRequestSchema, corsHeaders);
+    if (!validation.success) {
+      return validation.response;
+    }
+
+    const { investor_id, report_date } = validation.data;
 
     if (!investor_id || !report_date) {
       throw new Error("Missing investor_id or report_date");

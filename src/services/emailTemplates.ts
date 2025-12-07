@@ -228,7 +228,7 @@ export function generatePlatformInvitationEmail(data: PlatformInvitationData): s
           Accept this invitation to gain access to:
         </p>
         <ul style="font-family: 'Montserrat', Arial, sans-serif; font-size: 14px; color: #6b7280; line-height: 1.8; margin: 0 0 24px 0; padding-left: 20px;">
-          <li>Professional-grade yield funds (BTC, ETH, SOL, USDC, USDT, EURC)</li>
+          <li>Professional-grade yield funds (BTC, ETH, SOL, USDT, EURC, xAUT, XRP)</li>
           <li>Real-time portfolio tracking and analytics</li>
           <li>Monthly performance reports and statements</li>
           <li>Secure withdrawals and deposits</li>
@@ -274,7 +274,7 @@ export function generateWelcomeEmail(data: WelcomeEmailData): string {
         <div style="background-color: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 20px; margin: 24px 0;">
           <h3 style="font-family: 'Montserrat', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #166534; margin: 0 0 12px 0;">Getting Started</h3>
           <ol style="font-family: 'Montserrat', Arial, sans-serif; font-size: 14px; color: #166534; line-height: 1.8; margin: 0; padding-left: 20px;">
-            <li>Complete your profile and verify your identity (KYC)</li>
+            <li>Complete your profile and account settings</li>
             <li>Review available yield funds and investment strategies</li>
             <li>Make your first deposit</li>
             <li>Monitor your portfolio performance in real-time</li>

@@ -3,6 +3,7 @@
 //  IndigoInvestor
 //
 //  Main tab navigation for the app
+//  Modern 4-tab structure: Home, Invest, Activity, Account
 //
 
 import SwiftUI
@@ -17,7 +18,7 @@ struct MainTabView: View {
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            // Dashboard
+            // Tab 1: Home (Dashboard)
             NavigationStack(path: $navigationState.dashboardPath) {
                 DashboardView()
                     .navigationDestination(for: DashboardDestination.self) { destination in
@@ -32,20 +33,11 @@ struct MainTabView: View {
                     }
             }
             .tabItem {
-                Label("Dashboard", systemImage: "chart.pie.fill")
+                Label("Home", systemImage: "house.fill")
             }
             .tag(0)
 
-            // Daily Rates
-            NavigationView {
-                DailyRatesView()
-            }
-            .tabItem {
-                Label("Daily Rates", systemImage: "dollarsign.circle.fill")
-            }
-            .tag(1)
-
-            // Portfolio
+            // Tab 2: Invest (Portfolio + Markets)
             NavigationStack(path: $navigationState.portfolioPath) {
                 PortfolioView()
                     .navigationDestination(for: PortfolioDestination.self) { destination in
@@ -58,11 +50,11 @@ struct MainTabView: View {
                     }
             }
             .tabItem {
-                Label("Portfolio", systemImage: "briefcase.fill")
+                Label("Invest", systemImage: "chart.line.uptrend.xyaxis")
             }
-            .tag(2)
+            .tag(1)
 
-            // Transactions
+            // Tab 3: Activity (Transactions)
             NavigationStack(path: $navigationState.transactionsPath) {
                 TransactionsView()
                     .navigationDestination(for: TransactionDestination.self) { destination in
@@ -77,28 +69,11 @@ struct MainTabView: View {
                     }
             }
             .tabItem {
-                Label("Transactions", systemImage: "arrow.left.arrow.right")
+                Label("Activity", systemImage: "clock.arrow.circlepath")
             }
-            .tag(3)
+            .tag(2)
 
-            // Documents
-            NavigationStack(path: $navigationState.documentsPath) {
-                DocumentsVaultView()
-                    .navigationDestination(for: DocumentDestination.self) { destination in
-                        switch destination {
-                        case .viewer(let id):
-                            DocumentViewerView(documentId: id)
-                        case .statement(let id):
-                            StatementView(statementId: id)
-                        }
-                    }
-            }
-            .tabItem {
-                Label("Documents", systemImage: "doc.text.fill")
-            }
-            .tag(4)
-
-            // Account
+            // Tab 4: Account (Profile, Settings, Docs)
             NavigationStack(path: $navigationState.accountPath) {
                 AccountView()
                     .navigationDestination(for: AccountDestination.self) { destination in
@@ -113,13 +88,15 @@ struct MainTabView: View {
                             WithdrawalHistoryView()
                         case .support:
                             SupportView()
+                        case .documents:
+                            DocumentsVaultView() // Moved Documents here
                         }
                     }
             }
             .tabItem {
-                Label("Account", systemImage: "person.circle.fill")
+                Label("Account", systemImage: "person.fill")
             }
-            .tag(5)
+            .tag(3)
         }
         .onChange(of: selectedTab) { newValue in
             handleTabChange(from: previousTab, to: newValue)
@@ -144,14 +121,19 @@ struct MainTabView: View {
     }
     
     private func setupAppearance() {
-        // Tab bar appearance
+        // Modern minimal tab bar
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = UIColor.systemBackground
         
+        // Remove shadow line for cleaner look
+        appearance.shadowImage = UIImage()
+        appearance.shadowColor = .clear
+        
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
-        UITabBar.appearance().tintColor = UIColor(IndigoTheme.Colors.primary)
+        UITabBar.appearance().tintColor = UIColor(DesignTokens.Colors.indigoPrimary)
+        UITabBar.appearance().unselectedItemTintColor = UIColor.gray
     }
     
     private func registerForDeepLinks() {
@@ -174,25 +156,26 @@ struct MainTabView: View {
         switch components.path {
         case "/statement":
             if let statementId = components.queryItems?.first(where: { $0.name == "id" })?.value {
-                selectedTab = 4 // Documents tab
-                navigationState.documentsPath.append(.statement(statementId))
+                selectedTab = 3 // Account tab
+                navigationState.accountPath.append(.documents)
+                // Then navigate to specific statement if possible, or let vault handle it
             }
         case "/transaction":
             if let transactionId = components.queryItems?.first(where: { $0.name == "id" })?.value {
-                selectedTab = 3 // Transactions tab
+                selectedTab = 2 // Activity tab
                 navigationState.transactionsPath.append(.detail(transactionId))
             }
         case "/withdraw":
             showingWithdrawalSheet = true
-        case "/rates":
-            selectedTab = 1 // Daily Rates tab
+        case "/invest":
+            selectedTab = 1 // Invest tab
         default:
             break
         }
     }
     
     private func trackTabSwitch(to tab: Int) {
-        let tabName = ["dashboard", "daily_rates", "portfolio", "transactions", "documents", "account"][tab]
+        let tabName = ["home", "invest", "activity", "account"][tab]
         // Analytics.track("tab_switched", properties: ["tab": tabName])
     }
 }
@@ -245,6 +228,7 @@ enum AccountDestination: Hashable {
     case notifications
     case withdrawals
     case support
+    case documents
 }
 
 // MARK: - Notification Extension

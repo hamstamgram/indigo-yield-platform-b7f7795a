@@ -9,30 +9,40 @@ import type { PortfolioPosition, PortfolioSummary, PortfolioData } from "@/types
 export class PortfolioService extends ApiClient {
   /**
    * Get portfolio summary for investor
+   * Note: get_investor_portfolio_summary RPC doesn't exist - calculate from positions
    */
   async getPortfolioSummary(investorId: string): Promise<ApiResponse<PortfolioSummary>> {
     return this.execute(async () => {
-      const { data, error } = await this.supabase.rpc("get_investor_portfolio_summary", {
-        p_investor_id: investorId,
-      });
+      // RPC doesn't exist - calculate summary from investor_positions directly
+      const { data: positions, error } = await this.supabase
+        .from("investor_positions")
+        .select("cost_basis, current_value, unrealized_pnl, realized_pnl")
+        .eq("investor_id", investorId);
 
       if (error) {
         return { data: null, error };
       }
 
-      // Ensure proper structure even if RPC returns null or unexpected format
-      if (data && typeof data === "object" && !Array.isArray(data) && "total_value" in data) {
-        return { data: data as unknown as PortfolioSummary, error: null };
+      // Calculate summary from positions
+      let totalValue = 0;
+      let totalCostBasis = 0;
+      let totalUnrealizedGain = 0;
+      let totalRealizedGain = 0;
+
+      for (const pos of positions || []) {
+        totalValue += Number(pos.current_value) || 0;
+        totalCostBasis += Number(pos.cost_basis) || 0;
+        totalUnrealizedGain += Number(pos.unrealized_pnl) || 0;
+        totalRealizedGain += Number(pos.realized_pnl) || 0;
       }
 
-      // Fallback to default structure
       const summary: PortfolioSummary = {
-        total_value: 0,
-        total_cost_basis: 0,
-        total_unrealized_gain: 0,
-        total_unrealized_gain_percent: 0,
-        total_realized_gain: 0,
-        position_count: 0,
+        total_value: totalValue,
+        total_cost_basis: totalCostBasis,
+        total_unrealized_gain: totalUnrealizedGain,
+        total_unrealized_gain_percent: totalCostBasis > 0 ? (totalUnrealizedGain / totalCostBasis) * 100 : 0,
+        total_realized_gain: totalRealizedGain,
+        position_count: positions?.length || 0,
         last_updated: new Date().toISOString(),
       };
 
@@ -79,7 +89,7 @@ export class PortfolioService extends ApiClient {
           Number(pos.cost_basis) > 0
             ? ((Number(pos.unrealized_pnl) || 0) / Number(pos.cost_basis)) * 100
             : 0,
-        percentage_of_portfolio: Number(pos.aum_percentage) || 0,
+        percentage_of_portfolio: 0, // aum_percentage column doesn't exist
       }));
 
       return { data: positions, error: null };
@@ -88,20 +98,11 @@ export class PortfolioService extends ApiClient {
 
   /**
    * Get complete portfolio data
+   * Note: get_investor_portfolio_summary RPC doesn't exist - calculate from positions
    */
   async getCompletePortfolio(investorId: string): Promise<ApiResponse<PortfolioData>> {
     return this.execute(async () => {
-      // Get summary
-      const { data: summaryData, error: summaryError } = await this.supabase.rpc(
-        "get_investor_portfolio_summary",
-        { p_investor_id: investorId }
-      );
-
-      if (summaryError) {
-        return { data: null, error: summaryError };
-      }
-
-      // Get positions
+      // Get positions (also used for summary calculation)
       const { data: positionsData, error: positionsError } = await this.supabase
         .from("investor_positions")
         .select(
@@ -121,6 +122,19 @@ export class PortfolioService extends ApiClient {
         return { data: null, error: positionsError };
       }
 
+      // Calculate summary from positions
+      let totalValue = 0;
+      let totalCostBasis = 0;
+      let totalUnrealizedGain = 0;
+      let totalRealizedGain = 0;
+
+      for (const pos of positionsData || []) {
+        totalValue += Number(pos.current_value) || 0;
+        totalCostBasis += Number(pos.cost_basis) || 0;
+        totalUnrealizedGain += Number(pos.unrealized_pnl) || 0;
+        totalRealizedGain += Number(pos.realized_pnl) || 0;
+      }
+
       // Transform positions
       const positions: PortfolioPosition[] = (positionsData || []).map((pos: any) => ({
         fund_id: pos.fund_id,
@@ -136,29 +150,19 @@ export class PortfolioService extends ApiClient {
           Number(pos.cost_basis) > 0
             ? ((Number(pos.unrealized_pnl) || 0) / Number(pos.cost_basis)) * 100
             : 0,
-        percentage_of_portfolio: Number(pos.aum_percentage) || 0,
+        percentage_of_portfolio: 0, // aum_percentage column doesn't exist
       }));
 
-      // Determine summary structure
-      let summary: PortfolioSummary;
-      if (
-        summaryData &&
-        typeof summaryData === "object" &&
-        !Array.isArray(summaryData) &&
-        "total_value" in summaryData
-      ) {
-        summary = summaryData as unknown as PortfolioSummary;
-      } else {
-        summary = {
-          total_value: 0,
-          total_cost_basis: 0,
-          total_unrealized_gain: 0,
-          total_unrealized_gain_percent: 0,
-          total_realized_gain: 0,
-          position_count: 0,
-          last_updated: new Date().toISOString(),
-        };
-      }
+      // Build summary
+      const summary: PortfolioSummary = {
+        total_value: totalValue,
+        total_cost_basis: totalCostBasis,
+        total_unrealized_gain: totalUnrealizedGain,
+        total_unrealized_gain_percent: totalCostBasis > 0 ? (totalUnrealizedGain / totalCostBasis) * 100 : 0,
+        total_realized_gain: totalRealizedGain,
+        position_count: positions.length,
+        last_updated: new Date().toISOString(),
+      };
 
       // Combine data
       const portfolioData: PortfolioData = {
@@ -231,7 +235,7 @@ export class PortfolioService extends ApiClient {
           Number(data.cost_basis) > 0
             ? ((Number(data.unrealized_pnl) || 0) / Number(data.cost_basis)) * 100
             : 0,
-        percentage_of_portfolio: Number(data.aum_percentage) || 0,
+        percentage_of_portfolio: 0, // aum_percentage column doesn't exist
       };
 
       return { data: position, error: null };

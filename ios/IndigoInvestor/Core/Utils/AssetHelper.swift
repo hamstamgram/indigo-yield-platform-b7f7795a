@@ -1,50 +1,111 @@
+//
+//  AssetHelper.swift
+//  IndigoInvestor
+//
+//  Asset Icon Helper using CoinGecko assets matching web platform
+//  Updated to match src/utils/assets.ts
+//
+
 import SwiftUI
 
 struct AssetHelper {
-    static func iconURL(for assetCode: String) -> URL? {
-        let lowerCode = assetCode.lowercased()
+    
+    // MARK: - Asset Config Definition
+    
+    struct AssetConfig {
+        let symbol: String
+        let name: String
+        let logoUrl: String
+        let colorHex: String
+        let decimals: Int
         
-        // Special cases
-        if lowerCode == "eurc" || lowerCode == "euroc" {
-            return URL(string: "https://cryptologos.cc/logos/euro-coin-eurc-logo.png?v=035")
+        var color: Color {
+            Color(hex: colorHex)
         }
-        
-        // Standard map for spothq repo
-        // Mappings for edge cases if needed, otherwise direct
-        let symbolMap: [String: String] = [
-            "bitcoin": "btc",
-            "ethereum": "eth",
-            "solana": "sol",
-            "tether": "usdt",
-            "usd": "usdc"
-        ]
-        
-        let normalized = symbolMap[lowerCode] ?? lowerCode
-        return URL(string: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/\(normalized).png")
     }
     
-    static func fallbackIconName(for assetCode: String) -> String {
-        switch assetCode.uppercased() {
-        case "BTC": return "bitcoinsign.circle.fill"
-        case "ETH": return "diamond.circle.fill" // Generic
-        case "SOL": return "s.circle.fill"
-        case "USDC": return "dollarsign.circle.fill"
-        case "USDT": return "t.circle.fill"
-        case "EURC": return "eurosign.circle.fill"
-        default: return "circle.fill"
+    // MARK: - Asset Registry (Source of Truth)
+    // Matches src/utils/assets.ts
+    
+    private static let assets: [String: AssetConfig] = [
+        "BTC": AssetConfig(
+            symbol: "BTC",
+            name: "Bitcoin",
+            logoUrl: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
+            colorHex: "#F7931A",
+            decimals: 8
+        ),
+        "ETH": AssetConfig(
+            symbol: "ETH",
+            name: "Ethereum",
+            logoUrl: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
+            colorHex: "#627EEA",
+            decimals: 18
+        ),
+        "SOL": AssetConfig(
+            symbol: "SOL",
+            name: "Solana",
+            logoUrl: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
+            colorHex: "#14F195",
+            decimals: 9
+        ),
+        "USDT": AssetConfig(
+            symbol: "USDT",
+            name: "Stablecoin Fund",
+            logoUrl: "https://assets.coingecko.com/coins/images/325/large/Tether.png",
+            colorHex: "#26A17B",
+            decimals: 6
+        ),
+        "XRP": AssetConfig(
+            symbol: "XRP",
+            name: "XRP",
+            logoUrl: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
+            colorHex: "#00AAE4",
+            decimals: 6
+        ),
+        "XAUT": AssetConfig(
+            symbol: "XAUT",
+            name: "Tether Gold",
+            logoUrl: "https://assets.coingecko.com/coins/images/10481/large/Tether_Gold.png",
+            colorHex: "#FFD700",
+            decimals: 6
+        ),
+        // EURC Yield Fund
+        "EURC": AssetConfig(
+            symbol: "EURC",
+            name: "Euro Coin",
+            logoUrl: "https://assets.coingecko.com/coins/images/26057/large/EURC.png",
+            colorHex: "#0045A6",
+            decimals: 6
+        )
+    ]
+    
+    // MARK: - Public Methods
+    
+    static func getConfig(for assetCode: String) -> AssetConfig? {
+        return assets[assetCode.uppercased()]
+    }
+    
+    static func iconURL(for assetCode: String) -> URL? {
+        guard let config = getConfig(for: assetCode) else {
+            // Fallback generation
+            let code = assetCode.uppercased()
+            return URL(string: "https://ui-avatars.com/api/?name=\(code)&background=eff6ff&color=1e40af")
         }
+        return URL(string: config.logoUrl)
     }
     
     static func color(for assetCode: String) -> Color {
-        switch assetCode.uppercased() {
-        case "BTC": return .orange
-        case "ETH": return .purple
-        case "SOL": return .blue
-        case "USDC": return .blue
-        case "USDT": return .green
-        case "EURC": return .indigo
-        default: return .gray
-        }
+        return getConfig(for: assetCode)?.color ?? .gray
+    }
+    
+    static func name(for assetCode: String) -> String {
+        return getConfig(for: assetCode)?.name ?? assetCode.uppercased()
+    }
+    
+    static func fallbackIconName(for assetCode: String) -> String {
+        // Keeping generic fallback
+        return "circle.fill"
     }
 }
 
@@ -65,17 +126,24 @@ struct AssetIconView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
             case .failure, .empty:
-                // Fallback to SF Symbol
-                Image(systemName: AssetHelper.fallbackIconName(for: assetCode))
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .foregroundColor(AssetHelper.color(for: assetCode))
+                // Fallback to generated avatar or initial
+                ZStack {
+                    Circle()
+                        .fill(Color(.secondarySystemBackground))
+                    
+                    Text(assetCode.prefix(1).uppercased())
+                        .font(.system(size: size * 0.5, weight: .bold))
+                        .foregroundColor(.primary)
+                }
             @unknown default:
                 EmptyView()
             }
         }
         .frame(width: size, height: size)
-        .background(Color.white)
         .clipShape(Circle())
+        .overlay(
+            Circle()
+                .stroke(Color.gray.opacity(0.1), lineWidth: 1)
+        )
     }
 }

@@ -7,7 +7,6 @@ import {
   Settings,
   User,
   Calendar,
-  UserPlus,
   Scale,
   Mail,
   Gauge,
@@ -80,19 +79,13 @@ export const adminNavGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Investor Management", // Renamed
+    title: "Investor Management",
     icon: Users,
     items: [
       {
         title: "Investors",
         href: "/admin/investors",
         icon: <Users className="h-5 w-5" />,
-        adminOnly: true,
-      }, // Renamed
-      {
-        title: "Onboarding",
-        href: "/admin/onboarding",
-        icon: <UserPlus className="h-5 w-5" />,
         adminOnly: true,
       },
     ],

@@ -1,0 +1,94 @@
+{
+  "profile": {
+    "emails": []
+  },
+  "transactions": [],
+  "summary": {
+    "currencies": {},
+    "total_usd_value": 0.0
+  },
+  "reports": [
+    {
+      "source_file": "Reporting_YieldFund - August 2025 (2).pdf",
+      "page": 15,
+      "period_ended": "August 31st, 2025",
+      "fund": "USDT",
+      "metrics": {
+        "net_income_mtd": 986.03,
+        "ending_balance": 110874.27,
+        "roi_mtd": 0.9
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund.Novembre (1).pdf",
+      "page": 15,
+      "period_ended": "November 30th, 2025",
+      "fund": "USDT",
+      "metrics": {
+        "net_income_mtd": 863.97,
+        "ending_balance": 113551.93,
+        "roi_mtd": 0.77
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund - October 2025.pdf",
+      "page": 15,
+      "period_ended": "October 31st, 2025",
+      "fund": "USDT",
+      "metrics": {
+        "net_income_mtd": 939.5291,
+        "ending_balance": 112687.95,
+        "roi_mtd": 0.84
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund - July 2025.pdf",
+      "page": 15,
+      "period_ended": "July 31st, 2025",
+      "fund": "USDT",
+      "metrics": {
+        "net_income_mtd": 496.23,
+        "ending_balance": 109888.23,
+        "roi_mtd": 0.45
+      }
+    },
+    {
+      "source_file": "Reporting_September 2025.pdf",
+      "page": 14,
+      "period_ended": "September 30th, 2025",
+      "fund": "USDT",
+      "metrics": {
+        "net_income_mtd": 874.15,
+        "ending_balance": 111748.42,
+        "roi_mtd": 0.79
+      }
+    }
+  ],
+  "balance_checks": [
+    {
+      "date": "August 31st, 2025",
+      "fund": "USDT",
+      "balance": 110874.27
+    },
+    {
+      "date": "November 30th, 2025",
+      "fund": "USDT",
+      "balance": 113551.93
+    },
+    {
+      "date": "October 31st, 2025",
+      "fund": "USDT",
+      "balance": 112687.95
+    },
+    {
+      "date": "July 31st, 2025",
+      "fund": "USDT",
+      "balance": 109888.23
+    },
+    {
+      "date": "September 30th, 2025",
+      "fund": "USDT",
+      "balance": 111748.42
+    }
+  ]
+}

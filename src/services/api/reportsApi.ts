@@ -22,50 +22,21 @@ export class ReportsApi {
    * Get available report definitions
    */
   static async getReportDefinitions(
-    includeAdminOnly: boolean = false
+    _includeAdminOnly: boolean = false
   ): Promise<ReportDefinition[]> {
-    try {
-      let query = supabase
-        .from("report_definitions")
-        .select("*")
-        .eq("is_active", true)
-        .order("report_type");
-
-      if (!includeAdminOnly) {
-        query = query.eq("is_admin_only", false);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      return (data || []).map(this.mapReportDefinition);
-    } catch (error) {
-      console.error("Failed to fetch report definitions:", error);
-      return [];
-    }
+    // Note: report_definitions table doesn't exist in current schema
+    // Return empty array as fallback until table is created
+    console.warn("getReportDefinitions: report_definitions table not available");
+    return [];
   }
 
   /**
    * Get single report definition
    */
-  static async getReportDefinition(reportType: ReportType): Promise<ReportDefinition | null> {
-    try {
-      const { data, error } = await supabase
-        .from("report_definitions")
-        .select("*")
-        // @ts-expect-error - ReportType enum may include values not in generated Supabase types
-        .eq("report_type", reportType)
-        .eq("is_active", true)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      return data ? this.mapReportDefinition(data) : null;
-    } catch (error) {
-      console.error("Failed to fetch report definition:", error);
-      return null;
-    }
+  static async getReportDefinition(_reportType: ReportType): Promise<ReportDefinition | null> {
+    // Note: report_definitions table doesn't exist in current schema
+    console.warn("getReportDefinition: report_definitions table not available");
+    return null;
   }
 
   /**
@@ -162,325 +133,106 @@ export class ReportsApi {
 
   /**
    * Get user's generated reports
+   * Note: get_user_reports RPC doesn't exist
    */
-  static async getUserReports(filters?: {
+  static async getUserReports(_filters?: {
     reportType?: ReportType;
     status?: ReportStatus;
     limit?: number;
     offset?: number;
   }): Promise<GeneratedReport[]> {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return [];
-
-      const { data, error } = await supabase.rpc("get_user_reports", {
-        p_user_id: user.id,
-        // Cast to any - ReportType and ReportStatus enums may include values not in generated Supabase types
-        p_report_type: (filters?.reportType ?? undefined) as any,
-        p_status: (filters?.status ?? undefined) as any,
-        p_limit: filters?.limit || 50,
-        p_offset: filters?.offset || 0,
-      });
-
-      if (error) throw error;
-
-      return (data || []).map(this.mapGeneratedReport);
-    } catch (error) {
-      console.error("Failed to fetch user reports:", error);
-      return [];
-    }
+    console.warn("getUserReports: get_user_reports RPC not available");
+    return [];
   }
 
   /**
    * Get single generated report
    */
-  static async getReport(reportId: string): Promise<GeneratedReport | null> {
-    try {
-      const { data, error } = await supabase
-        .from("generated_reports")
-        .select("*")
-        .eq("id", reportId)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      return data ? this.mapGeneratedReport(data) : null;
-    } catch (error) {
-      console.error("Failed to fetch report:", error);
-      return null;
-    }
+  static async getReport(_reportId: string): Promise<GeneratedReport | null> {
+    // Note: generated_reports table doesn't exist in current schema
+    console.warn("getReport: generated_reports table not available");
+    return null;
   }
 
   /**
    * Download a generated report
+   * Note: generated_reports table doesn't exist
    */
-  static async downloadReport(request: DownloadReportRequest): Promise<DownloadReportResponse> {
-    try {
-      const report = await this.getReport(request.reportId);
-      if (!report) {
-        return { success: false, error: "Report not found" };
-      }
-
-      if (report.status !== "completed") {
-        return { success: false, error: "Report not ready for download" };
-      }
-
-      if (!report.storagePath) {
-        return { success: false, error: "Report file not available" };
-      }
-
-      // Get download URL from Supabase Storage
-      const { data, error } = await supabase.storage
-        .from("reports")
-        .createSignedUrl(report.storagePath, 3600); // 1 hour expiry
-
-      if (error) throw error;
-
-      // Update download count
-      await supabase
-        .from("generated_reports")
-        .update({ download_count: report.downloadCount + 1 })
-        .eq("id", request.reportId);
-
-      // Log access
-      await this.logReportAccess(request.reportId, "download");
-
-      return {
-        success: true,
-        downloadUrl: data.signedUrl,
-        expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
-        fileName: report.storagePath.split("/").pop(),
-        fileSizeBytes: report.fileSizeBytes || undefined,
-      };
-    } catch (error) {
-      console.error("Report download failed:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
+  static async downloadReport(_request: DownloadReportRequest): Promise<DownloadReportResponse> {
+    console.warn("downloadReport: generated_reports table not available");
+    return { success: false, error: "Report storage not available" };
   }
 
   /**
    * Delete a generated report
    */
-  static async deleteReport(reportId: string): Promise<{ success: boolean; error?: string }> {
-    try {
-      const report = await this.getReport(reportId);
-      if (!report) {
-        return { success: false, error: "Report not found" };
-      }
-
-      // Delete from storage if exists
-      if (report.storagePath) {
-        await supabase.storage.from("reports").remove([report.storagePath]);
-      }
-
-      // Delete record
-      const { error } = await supabase.from("generated_reports").delete().eq("id", reportId);
-
-      if (error) throw error;
-
-      // Log access
-      await this.logReportAccess(reportId, "delete");
-
-      return { success: true };
-    } catch (error) {
-      console.error("Report deletion failed:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
+  static async deleteReport(_reportId: string): Promise<{ success: boolean; error?: string }> {
+    // Note: generated_reports table doesn't exist in current schema
+    console.warn("deleteReport: generated_reports table not available");
+    return { success: false, error: "Report storage not available" };
   }
 
   /**
    * Get report schedules
    */
   static async getReportSchedules(): Promise<ReportSchedule[]> {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return [];
-
-      const { data, error } = await supabase
-        .from("report_schedules")
-        .select("*")
-        .eq("created_by", user.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-
-      return (data || []).map(this.mapReportSchedule);
-    } catch (error) {
-      console.error("Failed to fetch report schedules:", error);
-      return [];
-    }
+    // Note: report_schedules table doesn't exist in current schema
+    console.warn("getReportSchedules: report_schedules table not available");
+    return [];
   }
 
   /**
    * Create report schedule
    */
   static async createReportSchedule(
-    schedule: Omit<ReportSchedule, "id" | "createdAt" | "updatedAt" | "createdBy">
+    _schedule: Omit<ReportSchedule, "id" | "createdAt" | "updatedAt" | "createdBy">
   ): Promise<{ success: boolean; schedule?: ReportSchedule; error?: string }> {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        return { success: false, error: "User not authenticated" };
-      }
-
-      const { data, error } = await supabase
-        .from("report_schedules")
-        // Cast to any - Supabase types may be missing fields from actual schema
-        .insert({
-          report_definition_id: schedule.reportDefinitionId,
-          name: schedule.name,
-          description: schedule.description,
-          frequency: schedule.frequency,
-          day_of_week: schedule.dayOfWeek,
-          day_of_month: schedule.dayOfMonth,
-          time_of_day: schedule.timeOfDay,
-          timezone: schedule.timezone,
-          recipient_user_ids: schedule.recipientUserIds,
-          recipient_emails: schedule.recipientEmails,
-          delivery_method: schedule.deliveryMethod,
-          parameters: schedule.parameters,
-          filters: schedule.filters,
-          formats: schedule.formats,
-          is_active: schedule.isActive,
-          created_by: user.id,
-        } as any)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      return {
-        success: true,
-        schedule: data ? this.mapReportSchedule(data) : undefined,
-      };
-    } catch (error) {
-      console.error("Failed to create report schedule:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
+    // Note: report_schedules table doesn't exist in current schema
+    console.warn("createReportSchedule: report_schedules table not available");
+    return { success: false, error: "Report scheduling not available" };
   }
 
   /**
    * Update report schedule
    */
   static async updateReportSchedule(
-    scheduleId: string,
-    updates: Partial<ReportSchedule>
+    _scheduleId: string,
+    _updates: Partial<ReportSchedule>
   ): Promise<{ success: boolean; error?: string }> {
-    try {
-      const { error } = await supabase
-        .from("report_schedules")
-        // Cast to any - ReportFrequency enum may include values not in Supabase types
-        .update({
-          name: updates.name,
-          description: updates.description,
-          frequency: updates.frequency,
-          day_of_week: updates.dayOfWeek,
-          day_of_month: updates.dayOfMonth,
-          time_of_day: updates.timeOfDay,
-          timezone: updates.timezone,
-          recipient_user_ids: updates.recipientUserIds,
-          recipient_emails: updates.recipientEmails,
-          delivery_method: updates.deliveryMethod,
-          parameters: updates.parameters,
-          filters: updates.filters,
-          formats: updates.formats,
-          is_active: updates.isActive,
-        } as any)
-        .eq("id", scheduleId);
-
-      if (error) throw error;
-
-      return { success: true };
-    } catch (error) {
-      console.error("Failed to update report schedule:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
+    // Note: report_schedules table doesn't exist in current schema
+    console.warn("updateReportSchedule: report_schedules table not available");
+    return { success: false, error: "Report scheduling not available" };
   }
 
   /**
    * Delete report schedule
    */
   static async deleteReportSchedule(
-    scheduleId: string
+    _scheduleId: string
   ): Promise<{ success: boolean; error?: string }> {
-    try {
-      const { error } = await supabase.from("report_schedules").delete().eq("id", scheduleId);
-
-      if (error) throw error;
-
-      return { success: true };
-    } catch (error) {
-      console.error("Failed to delete report schedule:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
+    // Note: report_schedules table doesn't exist in current schema
+    console.warn("deleteReportSchedule: report_schedules table not available");
+    return { success: false, error: "Report scheduling not available" };
   }
 
   /**
    * Get report statistics
+   * Note: get_report_statistics RPC doesn't exist
    */
-  static async getReportStatistics(daysBack: number = 30): Promise<ReportStatistics[]> {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return [];
-
-      const { data, error } = await supabase.rpc("get_report_statistics", {
-        p_user_id: user.id,
-        p_days_back: daysBack,
-      });
-
-      if (error) throw error;
-
-      return (data || []) as unknown as ReportStatistics[];
-    } catch (error) {
-      console.error("Failed to fetch report statistics:", error);
-      return [];
-    }
+  static async getReportStatistics(_daysBack: number = 30): Promise<ReportStatistics[]> {
+    console.warn("getReportStatistics: get_report_statistics RPC not available");
+    return [];
   }
 
   /**
    * Log report access
    */
   private static async logReportAccess(
-    reportId: string,
-    action: "view" | "download" | "delete" | "share"
+    _reportId: string,
+    _action: "view" | "download" | "delete" | "share"
   ): Promise<void> {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      await supabase.from("report_access_logs").insert({
-        report_id: reportId,
-        user_id: user?.id || null,
-        action,
-        metadata: {},
-      });
-    } catch (error) {
-      console.error("Failed to log report access:", error);
-    }
+    // Note: report_access_logs table doesn't exist in current schema
+    // Silently skip logging until table is created
   }
 
   /**

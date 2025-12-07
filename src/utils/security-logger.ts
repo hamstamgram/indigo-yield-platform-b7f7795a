@@ -134,13 +134,16 @@ class SecurityLogger {
 
   /**
    * Persist event to database with retries
+   * Note: log_security_event RPC doesn't exist, using audit_log table directly
    */
   private async persistEvent(event: SecurityEventData, retryCount = 0): Promise<void> {
     try {
-      const { error } = await supabase.rpc("log_security_event", {
-        event_type: event.event_type,
-        user_id_param: event.user_id,
-        details: {
+      const { error } = await supabase.from("audit_log").insert({
+        action: event.event_type,
+        actor_user: event.user_id || null,
+        entity: "security_event",
+        entity_id: null,
+        meta: {
           severity: event.severity,
           ip_address: event.ip_address,
           user_agent: event.user_agent,

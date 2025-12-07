@@ -45,9 +45,10 @@ const NotificationSettingsPage = () => {
           .single();
 
         if (data?.preferences?.notifications) {
+          const notifications = data.preferences.notifications as Partial<NotificationPreferences>;
           setPreferences((prev) => ({
             ...prev,
-            ...data.preferences.notifications,
+            ...notifications,
           }));
         }
       } catch (error) {
@@ -212,7 +213,7 @@ const NotificationSettingsPage = () => {
               {(["daily", "weekly", "monthly"] as const).map((freq) => (
                 <Button
                   key={freq}
-                  variant={preferences.digestFrequency === freq ? "default" : "outline"}
+                  variant={preferences.digestFrequency === freq ? "primary" : "outline"}
                   onClick={() => updatePreference("digestFrequency", freq)}
                   className="capitalize"
                 >

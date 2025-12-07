@@ -1,10 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { z, uuidSchema } from "../_shared/validation.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+// Query parameter validation schema
+const queryParamsSchema = z.object({
+  user_id: uuidSchema.optional(),
+});
 
 interface PortfolioPosition {
   asset_id: string;
@@ -30,6 +32,8 @@ interface PortfolioSummary {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -77,7 +81,23 @@ serve(async (req) => {
     }
 
     const url = new URL(req.url);
-    const userId = url.searchParams.get("user_id") || user.id;
+
+    // Validate query parameters
+    const userIdParam = url.searchParams.get("user_id");
+    if (userIdParam) {
+      const validation = queryParamsSchema.safeParse({ user_id: userIdParam });
+      if (!validation.success) {
+        return new Response(
+          JSON.stringify({
+            error: "Invalid user_id parameter",
+            details: validation.error.issues.map(i => ({ path: i.path.join("."), message: i.message })),
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    const userId = userIdParam || user.id;
 
     // Verify user has permission to access this portfolio
     if (userId !== user.id) {

@@ -44,7 +44,7 @@ const FUND_PERFORMANCE_DATA: Record<
     monthly_yield: 0.52,
     volatility: 2.1,
     min_investment: 100,
-    currency_symbol: "USDC",
+    currency_symbol: "USDT",
   },
 };
 

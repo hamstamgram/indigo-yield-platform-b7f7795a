@@ -21,8 +21,6 @@ interface ProfileData {
   country?: string;
   dateOfBirth?: string;
   accountCreated?: string;
-  kycStatus?: string;
-  kycVerifiedAt?: string;
   twoFactorEnabled?: boolean;
   emailVerified?: boolean;
   phoneVerified?: boolean;
@@ -78,8 +76,6 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
           country: undefined,
           dateOfBirth: undefined,
           accountCreated: data.created_at,
-          kycStatus: data.status ?? undefined,
-          kycVerifiedAt: undefined,
           twoFactorEnabled: profile?.totp_verified || false,
           emailVerified: user.email_confirmed_at != null,
           phoneVerified: false,
@@ -120,7 +116,6 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
       profileData.phone,
       profileData.address,
       profileData.dateOfBirth,
-      profileData.kycStatus === "verified",
       profileData.twoFactorEnabled,
       profileData.emailVerified,
     ];
@@ -166,7 +161,7 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
               </div>
 
               <div className="flex gap-2">
-                {profileData?.kycStatus === "verified" && (
+                {profileData?.emailVerified && (
                   <Badge variant="outline" className="gap-1">
                     <CheckCircle className="h-3 w-3" />
                     Verified

@@ -7,6 +7,9 @@
 
 import Foundation
 
+// Platform's 7 Canonical Funds: BTC, ETH, SOL, USDT, EURC, xAUT, XRP
+// NOTE: USDC is NOT a platform fund
+
 struct DailyRate: Identifiable, Codable {
     let id: UUID
     let rateDate: Date
@@ -14,8 +17,9 @@ struct DailyRate: Identifiable, Codable {
     let ethRate: Decimal
     let solRate: Decimal
     let usdtRate: Decimal
-    let usdcRate: Decimal
     let eurcRate: Decimal
+    let xautRate: Decimal
+    let xrpRate: Decimal
     let notes: String?
     let createdBy: UUID?
     let createdAt: Date
@@ -28,8 +32,9 @@ struct DailyRate: Identifiable, Codable {
         case ethRate = "eth_rate"
         case solRate = "sol_rate"
         case usdtRate = "usdt_rate"
-        case usdcRate = "usdc_rate"
         case eurcRate = "eurc_rate"
+        case xautRate = "xaut_rate"
+        case xrpRate = "xrp_rate"
         case notes
         case createdBy = "created_by"
         case createdAt = "created_at"
@@ -43,8 +48,9 @@ struct DailyRate: Identifiable, Codable {
         case "ETH": return ethRate
         case "SOL": return solRate
         case "USDT": return usdtRate
-        case "USDC": return usdcRate
         case "EURC": return eurcRate
+        case "XAUT": return xautRate
+        case "XRP": return xrpRate
         default: return 0
         }
     }

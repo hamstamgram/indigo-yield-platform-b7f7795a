@@ -1,0 +1,217 @@
+{
+  "profile": {
+    "emails": []
+  },
+  "transactions": [],
+  "summary": {
+    "currencies": {},
+    "total_usd_value": 0.0
+  },
+  "reports": [
+    {
+      "source_file": "Reporting_YieldFund - August 2025 (2).pdf",
+      "page": 7,
+      "period_ended": "August 31st, 2025",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 1.0309,
+        "ending_balance": 121.3701,
+        "roi_mtd": 0.86
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund - February.pdf",
+      "page": 7,
+      "period_ended": "February 28th, 2025",
+      "fund": "ETH",
+      "metrics": {
+        "net_income_mtd": 1.4964,
+        "ending_balance": 122.1702,
+        "roi_mtd": 1.24
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund.docx.pdf",
+      "page": 7,
+      "period_ended": null,
+      "fund": null,
+      "metrics": {
+        "net_income_mtd": 0.0,
+        "ending_balance": 0,
+        "roi_mtd": 0
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund - May 2025 (1).pdf",
+      "page": 7,
+      "period_ended": "May 30th, 2025",
+      "fund": "ETH",
+      "metrics": {
+        "net_income_mtd": 0.2937,
+        "ending_balance": 124.277,
+        "roi_mtd": 0.24
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund.Novembre (1).pdf",
+      "page": 7,
+      "period_ended": "November 30th, 2025",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 0.7334,
+        "ending_balance": 128.6925,
+        "roi_mtd": 0.6
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund - October 2025.pdf",
+      "page": 7,
+      "period_ended": "October 31st, 2025",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 0.9176,
+        "ending_balance": 123.1652,
+        "roi_mtd": 0.75
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund - January 2025.pdf",
+      "page": 7,
+      "period_ended": "January 31st, 2025",
+      "fund": "ETH",
+      "metrics": {
+        "net_income_mtd": 0.6738,
+        "ending_balance": 120.6738,
+        "roi_mtd": 0.56
+      }
+    },
+    {
+      "source_file": "Vivie-Ann Bakos_Reporting_YieldFund - October 2024.pdf",
+      "page": 1,
+      "period_ended": "October 31st, 2024",
+      "fund": "ETH",
+      "metrics": {
+        "net_income_mtd": 0.0,
+        "ending_balance": 120.0,
+        "roi_mtd": 0.0
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund - July 2025.pdf",
+      "page": 7,
+      "period_ended": "July 31st, 2025",
+      "fund": "ETH",
+      "metrics": {
+        "net_income_mtd": 0.0,
+        "ending_balance": 120.3392,
+        "roi_mtd": -3.39
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund - June 2025.pdf",
+      "page": 6,
+      "period_ended": "June 30th, 2025",
+      "fund": "ETH",
+      "metrics": {
+        "net_income_mtd": 0.2815,
+        "ending_balance": 124.5585,
+        "roi_mtd": 0.23
+      }
+    },
+    {
+      "source_file": "Reporting_September 2025.pdf",
+      "page": 6,
+      "period_ended": "September 30th, 2025",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 0.8774,
+        "ending_balance": 122.2475,
+        "roi_mtd": 0.72
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund April 2025.pdf",
+      "page": 7,
+      "period_ended": "April 30th, 2025",
+      "fund": "ETH",
+      "metrics": {
+        "net_income_mtd": 1.4652,
+        "ending_balance": 123.9832,
+        "roi_mtd": 1.2
+      }
+    },
+    {
+      "source_file": "Reporting_YieldFund - March 2025.pdf",
+      "page": 7,
+      "period_ended": "March 31st, 2025",
+      "fund": "ETH",
+      "metrics": {
+        "net_income_mtd": 0.3479,
+        "ending_balance": 122.5181,
+        "roi_mtd": 0.28
+      }
+    }
+  ],
+  "balance_checks": [
+    {
+      "date": "August 31st, 2025",
+      "fund": "BTC",
+      "balance": 121.3701
+    },
+    {
+      "date": "February 28th, 2025",
+      "fund": "ETH",
+      "balance": 122.1702
+    },
+    {
+      "date": "May 30th, 2025",
+      "fund": "ETH",
+      "balance": 124.277
+    },
+    {
+      "date": "November 30th, 2025",
+      "fund": "BTC",
+      "balance": 128.6925
+    },
+    {
+      "date": "October 31st, 2025",
+      "fund": "BTC",
+      "balance": 123.1652
+    },
+    {
+      "date": "January 31st, 2025",
+      "fund": "ETH",
+      "balance": 120.6738
+    },
+    {
+      "date": "October 31st, 2024",
+      "fund": "ETH",
+      "balance": 120.0
+    },
+    {
+      "date": "July 31st, 2025",
+      "fund": "ETH",
+      "balance": 120.3392
+    },
+    {
+      "date": "June 30th, 2025",
+      "fund": "ETH",
+      "balance": 124.5585
+    },
+    {
+      "date": "September 30th, 2025",
+      "fund": "BTC",
+      "balance": 122.2475
+    },
+    {
+      "date": "April 30th, 2025",
+      "fund": "ETH",
+      "balance": 123.9832
+    },
+    {
+      "date": "March 31st, 2025",
+      "fund": "ETH",
+      "balance": 122.5181
+    }
+  ]
+}

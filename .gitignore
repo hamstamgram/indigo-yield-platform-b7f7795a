@@ -58,3 +58,14 @@ security-scan-results/
 # Test artifacts
 test-results/
 test-reports/playwright/
+
+# SECURITY: Credential files - NEVER commit these
+**/credentials*.json
+**/test-credentials*.json
+**/auth-credentials*.json
+**/secrets*.json
+**/.env.test.local
+
+# SECURITY: Test user setup files
+**/setup-test-users*
+**/create-test-users*

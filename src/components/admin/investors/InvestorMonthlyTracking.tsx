@@ -63,7 +63,7 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const assets = ["SOL", "BTC", "ETH", "USDC", "USDT", "EURC"];
+  const assets = ["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"];
 
   const loadInvestorData = useCallback(async () => {
     try {

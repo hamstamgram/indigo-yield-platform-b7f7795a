@@ -170,9 +170,9 @@ const FAQ = () => {
               <p className="text-gray-600">
                 The investment process begins with an initial consultation to understand your
                 objectives and determine suitability. Following this, we provide detailed
-                information on available strategies and assist with the onboarding process,
-                including KYC/AML procedures and investment documentation. Contact us through our
-                website to schedule an initial consultation.
+                information on available strategies and assist with the onboarding process
+                and investment documentation. Contact us through our website to schedule an
+                initial consultation.
               </p>
             </div>
           </div>

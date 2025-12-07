@@ -1,0 +1,30 @@
+{
+  "profile": {
+    "emails": []
+  },
+  "transactions": [],
+  "summary": {
+    "currencies": {},
+    "total_usd_value": 0.0
+  },
+  "reports": [
+    {
+      "source_file": "Reporting_YieldFund.Novembre (1).pdf",
+      "page": 33,
+      "period_ended": "November 30th, 2025",
+      "fund": "BTC",
+      "metrics": {
+        "net_income_mtd": 0.0011,
+        "ending_balance": 5.5011,
+        "roi_mtd": 0.03
+      }
+    }
+  ],
+  "balance_checks": [
+    {
+      "date": "November 30th, 2025",
+      "fund": "BTC",
+      "balance": 5.5011
+    }
+  ]
+}

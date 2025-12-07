@@ -9,7 +9,6 @@ import { AdminRoute } from "../../AdminRoute";
 
 const AdminInvestorsPage = lazy(() => import("@/routes/admin/investors/InvestorsListPage"));
 const InvestorManagement = lazy(() => import("@/routes/admin/investors/InvestorManagement"));
-const AdminOnboardingPage = lazy(() => import("@/routes/admin/AdminOnboardingPage"));
 const ExpertInvestorDashboard = lazy(
   () => import("@/components/admin/expert/ExpertInvestorDashboard")
 );
@@ -26,8 +25,8 @@ export function InvestorRoutes() {
         }
       />
 
-      {/* New investor - redirect to onboarding */}
-      <Route path="/admin/investors/new" element={<Navigate to="/admin/onboarding" replace />} />
+      {/* New investor - redirect to investors list */}
+      <Route path="/admin/investors/new" element={<Navigate to="/admin/investors" replace />} />
 
       <Route
         path="/admin/investors/:id"
@@ -44,15 +43,6 @@ export function InvestorRoutes() {
         element={
           <AdminRoute>
             <InvestorManagement />
-          </AdminRoute>
-        }
-      />
-
-      <Route
-        path="/admin/onboarding"
-        element={
-          <AdminRoute>
-            <AdminOnboardingPage />
           </AdminRoute>
         }
       />

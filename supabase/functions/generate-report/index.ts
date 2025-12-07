@@ -7,20 +7,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { STATEMENT_TEMPLATE } from "../generate-monthly-statements/template.ts"; // Reuse the template!
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-csrf-token",
-};
-
-interface GenerateReportRequest {
-  reportId: string;
-  reportType: string;
-  format: string;
-  filters?: Record<string, any>;
-  parameters?: Record<string, any>;
-}
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { generateReportRequestSchema, parseAndValidate } from "../_shared/validation.ts";
 
 // Helper to format numbers with commas and decimals
 const formatNum = (num: number, decimals: number = 4) => {
@@ -31,6 +19,8 @@ const formatNum = (num: number, decimals: number = 4) => {
 };
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+
   // Handle CORS
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -43,9 +33,13 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Parse request
-    const { reportId, reportType, format, filters, parameters } =
-      (await req.json()) as GenerateReportRequest;
+    // Validate request body
+    const validation = await parseAndValidate(req, generateReportRequestSchema, corsHeaders);
+    if (!validation.success) {
+      return validation.response;
+    }
+
+    const { reportId, reportType, format, filters, parameters } = validation.data;
 
     console.log("Generating report:", { reportId, reportType, format });
 

@@ -1,0 +1,24 @@
+{
+  "profile": {
+    "emails": []
+  },
+  "transactions": [],
+  "summary": {
+    "currencies": {},
+    "total_usd_value": 0.0
+  },
+  "reports": [
+    {
+      "source_file": "Reporting_YieldFund - July 2025.pdf",
+      "page": 24,
+      "period_ended": "July 31st, 2025 XXX YIELD FUND",
+      "fund": null,
+      "metrics": {
+        "net_income_mtd": 0,
+        "ending_balance": 0,
+        "roi_mtd": 0
+      }
+    }
+  ],
+  "balance_checks": []
+}
