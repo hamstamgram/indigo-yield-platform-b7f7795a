@@ -57,7 +57,7 @@ export const ASSETS: Record<string, AssetConfig> = {
   EURC: {
     symbol: "EURC",
     name: "Euro Coin",
-    logoUrl: "https://cryptologos.cc/logos/euro-coin-eurc-logo.svg",
+    logoUrl: "https://storage.mlcdn.com/account_image/855106/uMETwk1Sdg02jRsgQ9fdO4Xe16KUaslLsJEYVFBY.png",
     color: "#0052FF",
     decimals: 6,
   },
