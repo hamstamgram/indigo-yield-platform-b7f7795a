@@ -80,24 +80,50 @@ export const fetchAssets = async () => {
 
 /**
  * Enrich investors with portfolio data
+ * Optimized: Uses batch query to avoid N+1 pattern
  */
 export const enrichInvestorsWithPortfolioData = async (investors: any[]) => {
   try {
-    const enrichedInvestors = await Promise.all(
-      investors.map(async (investor) => {
-        const positions = await getInvestorPositions(investor.id);
-        const totalValue = positions.reduce((sum, pos) => sum + pos.current_value, 0);
+    if (investors.length === 0) return investors;
 
-        return {
-          ...investor,
-          totalValue,
-          positionCount: positions.length,
-          positions,
-        };
-      })
-    );
+    // Batch fetch ALL positions for ALL investors in ONE query
+    const investorIds = investors.map((inv) => inv.id);
+    const { data: allPositions, error } = await supabase
+      .from("investor_positions")
+      .select(
+        `
+        *,
+        funds:fund_id (
+          code,
+          name,
+          asset,
+          fund_class
+        )
+      `
+      )
+      .in("investor_id", investorIds);
 
-    return enrichedInvestors;
+    if (error) throw error;
+
+    // Group positions by investor_id for O(1) lookup
+    const positionsByInvestor = new Map<string, typeof allPositions>();
+    (allPositions || []).forEach((pos) => {
+      const existing = positionsByInvestor.get(pos.investor_id) || [];
+      existing.push(pos);
+      positionsByInvestor.set(pos.investor_id, existing);
+    });
+
+    // Enrich investors with their positions
+    return investors.map((investor) => {
+      const positions = positionsByInvestor.get(investor.id) || [];
+      const totalValue = positions.reduce((sum, pos) => sum + (pos.current_value || 0), 0);
+      return {
+        ...investor,
+        totalValue,
+        positionCount: positions.length,
+        positions,
+      };
+    });
   } catch (error) {
     console.error("Error enriching investors with portfolio data:", error);
     return investors;

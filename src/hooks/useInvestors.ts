@@ -1,78 +1,75 @@
-import { useState, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Asset } from "@/types/investorTypes";
 import { adminServiceV2, InvestorSummaryV2 } from "@/services/adminServiceV2";
 import { useInvestorSearch } from "./useInvestorSearch";
 import { supabase } from "@/integrations/supabase/client";
+import { CACHE_KEYS } from "@/utils/performance/caching";
+import { useEffect } from "react";
 
+/**
+ * useInvestors hook - optimized with React Query for caching and deduplication
+ * Returns the same interface as before for backward compatibility
+ */
 export const useInvestors = () => {
-  const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [assets, setAssets] = useState<Asset[]>([]);
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(false);
   const { toast } = useToast();
 
-  // Set up search functionality
-  const { searchTerm, setSearchTerm, filteredInvestors } = useInvestorSearch(investors);
-
-  // Define fetchData outside of useEffect to use with refetch
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Fetch real assets from Supabase database
-      const { data: assetsData, error: assetsError } = await supabase
+  // Fetch assets with React Query (assets change rarely, longer staleTime)
+  const { data: assets = [], error: assetsError } = useQuery<Asset[]>({
+    queryKey: ["assets-active"],
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from("assets")
         .select("*")
         .eq("is_active", true)
         .order("symbol");
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes - assets rarely change
+  });
 
-      if (assetsError) {
-        throw new Error(`Failed to fetch assets: ${assetsError.message}`);
-      }
-      setAssets(assetsData || []);
+  // Fetch investors with React Query
+  const {
+    data: investors = [],
+    isLoading: loading,
+    error: investorsError,
+    refetch,
+  } = useQuery<InvestorSummaryV2[]>({
+    queryKey: [CACHE_KEYS.ADMIN_USERS, "investors-summary"],
+    queryFn: async () => {
+      return await adminServiceV2.getAllInvestorsWithSummary();
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes for investor data
+  });
 
-      // Fetch investors with summary using adminServiceV2
-      const investorsWithSummary = await adminServiceV2.getAllInvestorsWithSummary();
+  // Combine errors
+  const error = investorsError || assetsError;
 
-      setInvestors(investorsWithSummary);
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error("Failed to load investor data");
-      console.error("Error in main investor data fetch:", error);
-      setError(error);
+  // Show error toast if query fails (only once per error)
+  useEffect(() => {
+    if (error) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Failed to load investor data",
         variant: "destructive",
       });
-      setInvestors([]);
-      setIsAdmin(false);
-    } finally {
-      setLoading(false);
     }
-  }, [toast]);
+  }, [error, toast]);
 
-  // Initial data fetch
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  // Search functionality (same as before)
+  const { searchTerm, setSearchTerm, filteredInvestors } = useInvestorSearch(investors);
 
-  // Provide a refetch method to refresh data
-  const refetch = useCallback(() => {
-    fetchData();
-  }, [fetchData]);
-
+  // Return the same interface for backward compatibility
   return {
     investors,
     filteredInvestors,
     searchTerm,
     setSearchTerm,
     loading,
-    error,
+    error: error ? (error instanceof Error ? error : new Error("Unknown error")) : null,
     assets,
-    isAdmin,
+    isAdmin: true, // This hook is only used in admin context
     refetch,
   };
 };

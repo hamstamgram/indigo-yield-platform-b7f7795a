@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { OperationsStats } from "@/components/admin/operations/OperationsStats";
 import { QuickLinksGrid, QuickLink } from "@/components/admin/operations/QuickLinksGrid";
@@ -47,12 +47,25 @@ function AdminOperationsHubContent() {
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(true);
   const [systemStatus, setSystemStatus] = useState<SystemHealth[]>([]);
 
+  // Ref for debounce timer to prevent cascading real-time updates
+  const metricsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounced metrics loader to prevent cascading queries from real-time updates
+  const debouncedLoadMetrics = useCallback(() => {
+    if (metricsTimerRef.current) {
+      clearTimeout(metricsTimerRef.current);
+    }
+    metricsTimerRef.current = setTimeout(() => {
+      loadMetrics();
+    }, 1000); // 1 second debounce
+  }, []);
+
   useEffect(() => {
     loadRecentActivities();
     loadMetrics();
     loadSystemHealth();
 
-    // Set up real-time subscriptions for automatic updates
+    // Set up real-time subscriptions for automatic updates (debounced)
     const channel = supabase
       .channel("operations-updates")
       .on(
@@ -63,7 +76,7 @@ function AdminOperationsHubContent() {
           table: "withdrawal_requests",
         },
         () => {
-          loadMetrics();
+          debouncedLoadMetrics();
         }
       )
       .on(
@@ -74,7 +87,7 @@ function AdminOperationsHubContent() {
           table: "deposits",
         },
         () => {
-          loadMetrics();
+          debouncedLoadMetrics();
         }
       )
       .on(
@@ -85,7 +98,7 @@ function AdminOperationsHubContent() {
           table: "investments",
         },
         () => {
-          loadMetrics();
+          debouncedLoadMetrics();
         }
       )
       .on(
@@ -96,7 +109,7 @@ function AdminOperationsHubContent() {
           table: "transactions_v2",
         },
         () => {
-          loadMetrics();
+          debouncedLoadMetrics();
         }
       )
       .on(
@@ -107,7 +120,7 @@ function AdminOperationsHubContent() {
           table: "investors",
         },
         () => {
-          loadMetrics();
+          debouncedLoadMetrics();
         }
       )
       .on(
@@ -118,16 +131,19 @@ function AdminOperationsHubContent() {
           table: "investor_positions",
         },
         () => {
-          loadMetrics();
+          debouncedLoadMetrics();
         }
       )
       .subscribe();
 
-    // Cleanup subscription on unmount
+    // Cleanup subscription and timer on unmount
     return () => {
+      if (metricsTimerRef.current) {
+        clearTimeout(metricsTimerRef.current);
+      }
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [debouncedLoadMetrics]);
 
   const loadMetrics = async () => {
     setIsLoadingMetrics(true);

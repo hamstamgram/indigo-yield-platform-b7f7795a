@@ -153,29 +153,30 @@ class AuditLogService {
         }
       });
 
-      // Get top actors with profile info
+      // Get top actors with profile info (batch fetch to avoid N+1)
       const topActorIds = Object.entries(actorCounts)
         .sort(([, a], [, b]) => b - a)
         .slice(0, 5)
         .map(([userId]) => userId);
 
-      const topActors = await Promise.all(
-        topActorIds.map(async (userId) => {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("first_name, last_name, email")
-            .eq("id", userId)
-            .single();
+      // Batch fetch all profiles in one query
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, email")
+        .in("id", topActorIds);
 
-          return {
-            user_id: userId,
-            name: profile
-              ? `${profile.first_name} ${profile.last_name}`.trim() || profile.email
-              : "Unknown",
-            count: actorCounts[userId],
-          };
-        })
-      );
+      const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
+
+      const topActors = topActorIds.map((userId) => {
+        const profile = profileMap.get(userId);
+        return {
+          user_id: userId,
+          name: profile
+            ? `${profile.first_name} ${profile.last_name}`.trim() || profile.email
+            : "Unknown",
+          count: actorCounts[userId],
+        };
+      });
 
       return {
         totalEntries: data?.length || 0,
