@@ -9,6 +9,7 @@ import { adminNavGroups, mainNav } from "@/config/navigation";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { NavItem } from "@/types/navigation";
+import { getAssetLogo } from "@/utils/assets";
 
 type SidebarProps = {
   sidebarOpen: boolean;
@@ -66,11 +67,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
       if (assets) {
         console.log("Fetched assets for funds:", assets);
         const items: NavItem[] = assets.map(asset => ({
-
-          title: asset.name, // e.g. "Bitcoin"
+          title: asset.name,
           href: isAdmin ? `/admin/funds/${asset.symbol}` : `/funds/${asset.symbol}`,
-import { getAssetLogo } from "@/utils/assets";
-// ...
           icon: asset.icon_url ? (
             <img 
               src={getAssetLogo(asset.symbol)} 
