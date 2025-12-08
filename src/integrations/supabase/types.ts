@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       access_logs: {
@@ -210,6 +185,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
         ]
       }
       balance_adjustments: {
@@ -348,25 +330,18 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "daily_nav_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "daily_nav_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_nav_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_kpis"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "daily_nav_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "withdrawal_queue"
-            referencedColumns: ["fund_id"]
           },
         ]
       }
@@ -427,6 +402,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "daily_rates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
         ]
       }
       data_edit_audit: {
@@ -479,6 +461,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_edit_audit_edited_by_fkey"
+            columns: ["edited_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
           {
             foreignKeyName: "data_edit_audit_import_id_fkey"
@@ -663,6 +652,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "excel_import_log_imported_by_fkey"
+            columns: ["imported_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
         ]
       }
       fee_calculations: {
@@ -720,46 +716,18 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fee_calculations_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "funds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fee_calculations_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_kpis"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fee_calculations_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "withdrawal_queue"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fee_calculations_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "investors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fee_calculations_investor_id_fkey"
-            columns: ["investor_id"]
+            foreignKeyName: "fee_calculations_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
           {
-            foreignKeyName: "fee_calculations_investor_id_fkey"
-            columns: ["investor_id"]
+            foreignKeyName: "fee_calculations_fund_id_fkey"
+            columns: ["fund_id"]
             isOneToOne: false
-            referencedRelation: "withdrawal_queue"
-            referencedColumns: ["investor_id"]
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "fee_calculations_posted_transaction_id_fkey"
@@ -856,34 +824,40 @@ export type Database = {
       }
       fund_daily_aum: {
         Row: {
+          as_of_date: string | null
           aum_date: string
           created_at: string | null
           created_by: string | null
           fund_id: string
           id: string
           nav_per_share: number | null
+          source: string | null
           total_aum: number
           total_shares: number | null
           updated_at: string | null
         }
         Insert: {
+          as_of_date?: string | null
           aum_date: string
           created_at?: string | null
           created_by?: string | null
           fund_id: string
           id?: string
           nav_per_share?: number | null
+          source?: string | null
           total_aum?: number
           total_shares?: number | null
           updated_at?: string | null
         }
         Update: {
+          as_of_date?: string | null
           aum_date?: string
           created_at?: string | null
           created_by?: string | null
           fund_id?: string
           id?: string
           nav_per_share?: number | null
+          source?: string | null
           total_aum?: number
           total_shares?: number | null
           updated_at?: string | null
@@ -895,6 +869,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_daily_aum_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
         ]
       }
@@ -1045,11 +1026,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "generated_reports_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "generated_reports_investor_id_fkey"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_reports_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
         ]
       }
@@ -1093,6 +1088,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "generated_statements_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "generated_statements_period_id_fkey"
             columns: ["period_id"]
             isOneToOne: false
@@ -1105,6 +1107,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_statements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
         ]
       }
@@ -1158,11 +1167,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "import_locks_locked_by_fkey"
+            columns: ["locked_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "import_locks_unlocked_by_fkey"
             columns: ["unlocked_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_locks_unlocked_by_fkey"
+            columns: ["unlocked_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
         ]
       }
@@ -1201,6 +1224,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investment_summary_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: true
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
         ]
       }
@@ -1253,11 +1283,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "investments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "investments_investor_id_fkey"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investments_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
         ]
       }
@@ -1266,7 +1310,7 @@ export type Database = {
           created_at: string | null
           email: string
           id: string
-          investor_id: string
+          investor_id: string | null
           is_primary: boolean | null
           updated_at: string | null
           verified: boolean | null
@@ -1275,7 +1319,7 @@ export type Database = {
           created_at?: string | null
           email: string
           id?: string
-          investor_id: string
+          investor_id?: string | null
           is_primary?: boolean | null
           updated_at?: string | null
           verified?: boolean | null
@@ -1284,31 +1328,76 @@ export type Database = {
           created_at?: string | null
           email?: string
           id?: string
-          investor_id?: string
+          investor_id?: string | null
           is_primary?: boolean | null
           updated_at?: string | null
           verified?: boolean | null
         }
         Relationships: [
           {
-            foreignKeyName: "investor_emails_investor_id_fkey"
+            foreignKeyName: "fk_investor_emails_profile"
             columns: ["investor_id"]
             isOneToOne: false
-            referencedRelation: "investors"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "investor_emails_investor_id_fkey"
+            foreignKeyName: "fk_investor_emails_profile"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
+        ]
+      }
+      investor_fee_schedule: {
+        Row: {
+          created_at: string
+          effective_date: string
+          fee_pct: number
+          fund_id: string | null
+          id: string
+          investor_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          effective_date: string
+          fee_pct: number
+          fund_id?: string | null
+          id?: string
+          investor_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          effective_date?: string
+          fee_pct?: number
+          fund_id?: string | null
+          id?: string
+          investor_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
           {
-            foreignKeyName: "investor_emails_investor_id_fkey"
+            foreignKeyName: "investor_fee_schedule_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_fee_schedule_investor_id_fkey"
             columns: ["investor_id"]
             isOneToOne: false
-            referencedRelation: "withdrawal_queue"
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_fee_schedule_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
         ]
@@ -1318,6 +1407,7 @@ export type Database = {
           created_at: string | null
           fund_name: string
           id: string
+          investor_id: string
           itd_additions: number | null
           itd_beginning_balance: number | null
           itd_ending_balance: number | null
@@ -1338,7 +1428,6 @@ export type Database = {
           qtd_rate_of_return: number | null
           qtd_redemptions: number | null
           updated_at: string | null
-          user_id: string
           ytd_additions: number | null
           ytd_beginning_balance: number | null
           ytd_ending_balance: number | null
@@ -1350,6 +1439,7 @@ export type Database = {
           created_at?: string | null
           fund_name: string
           id?: string
+          investor_id: string
           itd_additions?: number | null
           itd_beginning_balance?: number | null
           itd_ending_balance?: number | null
@@ -1370,7 +1460,6 @@ export type Database = {
           qtd_rate_of_return?: number | null
           qtd_redemptions?: number | null
           updated_at?: string | null
-          user_id: string
           ytd_additions?: number | null
           ytd_beginning_balance?: number | null
           ytd_ending_balance?: number | null
@@ -1382,6 +1471,7 @@ export type Database = {
           created_at?: string | null
           fund_name?: string
           id?: string
+          investor_id?: string
           itd_additions?: number | null
           itd_beginning_balance?: number | null
           itd_ending_balance?: number | null
@@ -1402,7 +1492,6 @@ export type Database = {
           qtd_rate_of_return?: number | null
           qtd_redemptions?: number | null
           updated_at?: string | null
-          user_id?: string
           ytd_additions?: number | null
           ytd_beginning_balance?: number | null
           ytd_ending_balance?: number | null
@@ -1412,17 +1501,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "investor_fund_performance_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_fund_performance_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "investor_fund_performance_period_id_fkey"
             columns: ["period_id"]
             isOneToOne: false
             referencedRelation: "statement_periods"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "investor_fund_performance_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1465,6 +1561,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_invites_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
         ]
       }
@@ -1520,29 +1623,7 @@ export type Database = {
           withdrawals?: number | null
           yield_earned?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "investor_monthly_reports_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "investors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "investor_monthly_reports_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "v_investor_kpis"
-            referencedColumns: ["investor_id"]
-          },
-          {
-            foreignKeyName: "investor_monthly_reports_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "withdrawal_queue"
-            referencedColumns: ["investor_id"]
-          },
-        ]
+        Relationships: []
       }
       investor_positions: {
         Row: {
@@ -1552,7 +1633,7 @@ export type Database = {
           fund_class: string | null
           fund_id: string
           high_water_mark: number | null
-          investor_id: string
+          investor_id: string | null
           last_transaction_date: string | null
           lock_until_date: string | null
           mgmt_fees_paid: number | null
@@ -1569,7 +1650,7 @@ export type Database = {
           fund_class?: string | null
           fund_id: string
           high_water_mark?: number | null
-          investor_id: string
+          investor_id?: string | null
           last_transaction_date?: string | null
           lock_until_date?: string | null
           mgmt_fees_paid?: number | null
@@ -1586,7 +1667,7 @@ export type Database = {
           fund_class?: string | null
           fund_id?: string
           high_water_mark?: number | null
-          investor_id?: string
+          investor_id?: string | null
           last_transaction_date?: string | null
           lock_until_date?: string | null
           mgmt_fees_paid?: number | null
@@ -1598,98 +1679,24 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "investor_positions_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "funds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "investor_positions_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_kpis"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "investor_positions_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "withdrawal_queue"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "investor_positions_investor_id_fkey"
+            foreignKeyName: "fk_investor_positions_profile"
             columns: ["investor_id"]
             isOneToOne: false
-            referencedRelation: "investors"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "investor_positions_investor_id_fkey"
+            foreignKeyName: "fk_investor_positions_profile"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
           {
-            foreignKeyName: "investor_positions_investor_id_fkey"
-            columns: ["investor_id"]
+            foreignKeyName: "investor_positions_fund_id_fkey"
+            columns: ["fund_id"]
             isOneToOne: false
-            referencedRelation: "withdrawal_queue"
-            referencedColumns: ["investor_id"]
-          },
-        ]
-      }
-      investors: {
-        Row: {
-          accredited: boolean | null
-          created_at: string | null
-          email: string
-          entity_type: string | null
-          id: string
-          name: string
-          onboarding_date: string | null
-          phone: string | null
-          profile_id: string | null
-          status: string
-          tax_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          accredited?: boolean | null
-          created_at?: string | null
-          email: string
-          entity_type?: string | null
-          id?: string
-          name: string
-          onboarding_date?: string | null
-          phone?: string | null
-          profile_id?: string | null
-          status?: string
-          tax_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          accredited?: boolean | null
-          created_at?: string | null
-          email?: string
-          entity_type?: string | null
-          id?: string
-          name?: string
-          onboarding_date?: string | null
-          phone?: string | null
-          profile_id?: string | null
-          status?: string
-          tax_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "investors_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "funds"
             referencedColumns: ["id"]
           },
         ]
@@ -1769,6 +1776,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          investor_id: string | null
           jotform_submission_id: string | null
           notes: string | null
           phone: string | null
@@ -1787,6 +1795,7 @@ export type Database = {
           email: string
           full_name: string
           id?: string
+          investor_id?: string | null
           jotform_submission_id?: string | null
           notes?: string | null
           phone?: string | null
@@ -1805,6 +1814,7 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          investor_id?: string | null
           jotform_submission_id?: string | null
           notes?: string | null
           phone?: string | null
@@ -1817,24 +1827,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "onboarding_submissions_created_investor_id_fkey"
-            columns: ["created_investor_id"]
+            foreignKeyName: "onboarding_submissions_investor_id_fkey"
+            columns: ["investor_id"]
             isOneToOne: false
-            referencedRelation: "investors"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "onboarding_submissions_created_investor_id_fkey"
-            columns: ["created_investor_id"]
+            foreignKeyName: "onboarding_submissions_investor_id_fkey"
+            columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
-            referencedColumns: ["investor_id"]
-          },
-          {
-            foreignKeyName: "onboarding_submissions_created_investor_id_fkey"
-            columns: ["created_investor_id"]
-            isOneToOne: false
-            referencedRelation: "withdrawal_queue"
             referencedColumns: ["investor_id"]
           },
         ]
@@ -1880,36 +1883,6 @@ export type Database = {
           },
         ]
       }
-      positions: {
-        Row: {
-          asset_code: Database["public"]["Enums"]["asset_code"]
-          current_balance: number
-          id: string
-          investor_id: string
-          principal: number
-          total_earned: number
-          updated_at: string
-        }
-        Insert: {
-          asset_code: Database["public"]["Enums"]["asset_code"]
-          current_balance?: number
-          id?: string
-          investor_id: string
-          principal?: number
-          total_earned?: number
-          updated_at?: string
-        }
-        Update: {
-          asset_code?: Database["public"]["Enums"]["asset_code"]
-          current_balance?: number
-          id?: string
-          investor_id?: string
-          principal?: number
-          total_earned?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
       price_alerts: {
         Row: {
           alert_type: string
@@ -1949,6 +1922,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "price_alerts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
         ]
       }
       profiles: {
@@ -1956,11 +1936,14 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           email: string
+          entity_type: string | null
           fee_percentage: number | null
           first_name: string | null
           id: string
           is_admin: boolean
+          kyc_status: string | null
           last_name: string | null
+          onboarding_date: string | null
           phone: string | null
           preferences: Json | null
           status: string | null
@@ -1972,11 +1955,14 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email: string
+          entity_type?: string | null
           fee_percentage?: number | null
           first_name?: string | null
           id: string
           is_admin?: boolean
+          kyc_status?: string | null
           last_name?: string | null
+          onboarding_date?: string | null
           phone?: string | null
           preferences?: Json | null
           status?: string | null
@@ -1988,11 +1974,14 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string
+          entity_type?: string | null
           fee_percentage?: number | null
           first_name?: string | null
           id?: string
           is_admin?: boolean
+          kyc_status?: string | null
           last_name?: string | null
+          onboarding_date?: string | null
           phone?: string | null
           preferences?: Json | null
           status?: string | null
@@ -2066,25 +2055,18 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "reconciliation_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_kpis"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "reconciliation_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "withdrawal_queue"
-            referencedColumns: ["fund_id"]
-          },
-          {
             foreignKeyName: "reconciliation_reconciled_by_fkey"
             columns: ["reconciled_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reconciliation_reconciled_by_fkey"
+            columns: ["reconciled_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
         ]
       }
@@ -2120,6 +2102,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_access_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
         ]
       }
@@ -2245,6 +2234,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "reports_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
         ]
       }
       secure_shares: {
@@ -2354,6 +2350,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "statement_email_delivery_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
         ]
       }
       statement_metadata: {
@@ -2408,11 +2411,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "statement_metadata_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "statement_metadata_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "statement_metadata_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
         ]
       }
@@ -2468,11 +2485,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "statement_periods_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "statement_periods_finalized_by_fkey"
             columns: ["finalized_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "statement_periods_finalized_by_fkey"
+            columns: ["finalized_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
         ]
       }
@@ -2644,52 +2675,14 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "system_config_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
         ]
-      }
-      transactions: {
-        Row: {
-          amount: number
-          asset_code: Database["public"]["Enums"]["asset_code"]
-          confirmed_at: string | null
-          created_at: string
-          created_by: string | null
-          fund_id: string | null
-          id: string
-          investor_id: string
-          note: string | null
-          status: Database["public"]["Enums"]["transaction_status"]
-          tx_hash: string | null
-          type: Database["public"]["Enums"]["transaction_type"]
-        }
-        Insert: {
-          amount: number
-          asset_code: Database["public"]["Enums"]["asset_code"]
-          confirmed_at?: string | null
-          created_at?: string
-          created_by?: string | null
-          fund_id?: string | null
-          id?: string
-          investor_id: string
-          note?: string | null
-          status?: Database["public"]["Enums"]["transaction_status"]
-          tx_hash?: string | null
-          type: Database["public"]["Enums"]["transaction_type"]
-        }
-        Update: {
-          amount?: number
-          asset_code?: Database["public"]["Enums"]["asset_code"]
-          confirmed_at?: string | null
-          created_at?: string
-          created_by?: string | null
-          fund_id?: string | null
-          id?: string
-          investor_id?: string
-          note?: string | null
-          status?: Database["public"]["Enums"]["transaction_status"]
-          tx_hash?: string | null
-          type?: Database["public"]["Enums"]["transaction_type"]
-        }
-        Relationships: []
       }
       transactions_v2: {
         Row: {
@@ -2704,7 +2697,7 @@ export type Database = {
           fund_class: string | null
           fund_id: string
           id: string
-          investor_id: string
+          investor_id: string | null
           notes: string | null
           reference_id: string | null
           tx_date: string
@@ -2724,7 +2717,7 @@ export type Database = {
           fund_class?: string | null
           fund_id: string
           id?: string
-          investor_id: string
+          investor_id?: string | null
           notes?: string | null
           reference_id?: string | null
           tx_date?: string
@@ -2744,7 +2737,7 @@ export type Database = {
           fund_class?: string | null
           fund_id?: string
           id?: string
-          investor_id?: string
+          investor_id?: string | null
           notes?: string | null
           reference_id?: string | null
           tx_date?: string
@@ -2754,11 +2747,32 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_transactions_v2_profile"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_v2_profile"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "transactions_v2_approved_by_fkey"
             columns: ["approved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_v2_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
           {
             foreignKeyName: "transactions_v2_created_by_fkey"
@@ -2768,46 +2782,18 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "transactions_v2_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "funds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transactions_v2_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_kpis"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "transactions_v2_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "withdrawal_queue"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "transactions_v2_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "investors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transactions_v2_investor_id_fkey"
-            columns: ["investor_id"]
+            foreignKeyName: "transactions_v2_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
           {
-            foreignKeyName: "transactions_v2_investor_id_fkey"
-            columns: ["investor_id"]
+            foreignKeyName: "transactions_v2_fund_id_fkey"
+            columns: ["fund_id"]
             isOneToOne: false
-            referencedRelation: "withdrawal_queue"
-            referencedColumns: ["investor_id"]
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -3075,11 +3061,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "withdrawal_audit_logs_request_id_fkey"
-            columns: ["request_id"]
+            foreignKeyName: "withdrawal_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
             isOneToOne: false
-            referencedRelation: "withdrawal_queue"
-            referencedColumns: ["id"]
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
           {
             foreignKeyName: "withdrawal_audit_logs_request_id_fkey"
@@ -3104,7 +3090,7 @@ export type Database = {
           fund_class: string | null
           fund_id: string
           id: string
-          investor_id: string
+          investor_id: string | null
           notes: string | null
           processed_amount: number | null
           processed_at: string | null
@@ -3133,7 +3119,7 @@ export type Database = {
           fund_class?: string | null
           fund_id: string
           id?: string
-          investor_id: string
+          investor_id?: string | null
           notes?: string | null
           processed_amount?: number | null
           processed_at?: string | null
@@ -3162,7 +3148,7 @@ export type Database = {
           fund_class?: string | null
           fund_id?: string
           id?: string
-          investor_id?: string
+          investor_id?: string | null
           notes?: string | null
           processed_amount?: number | null
           processed_at?: string | null
@@ -3180,11 +3166,32 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_withdrawal_requests_profile"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_withdrawal_requests_profile"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "withdrawal_requests_approved_by_fkey"
             columns: ["approved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
           {
             foreignKeyName: "withdrawal_requests_cancelled_by_fkey"
@@ -3194,11 +3201,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "withdrawal_requests_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "withdrawal_requests_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
           {
             foreignKeyName: "withdrawal_requests_fund_id_fkey"
@@ -3208,46 +3229,18 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "withdrawal_requests_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_kpis"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "withdrawal_requests_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "withdrawal_queue"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "withdrawal_requests_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "investors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "withdrawal_requests_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "v_investor_kpis"
-            referencedColumns: ["investor_id"]
-          },
-          {
-            foreignKeyName: "withdrawal_requests_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "withdrawal_queue"
-            referencedColumns: ["investor_id"]
-          },
-          {
             foreignKeyName: "withdrawal_requests_rejected_by_fkey"
             columns: ["rejected_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
         ]
       }
@@ -3348,44 +3341,6 @@ export type Database = {
         }
         Relationships: []
       }
-      investor_positions_by_class: {
-        Row: {
-          fund_class: string | null
-          fund_count: number | null
-          investor_id: string | null
-          latest_transaction: string | null
-          total_cost_basis: number | null
-          total_current_value: number | null
-          total_mgmt_fees: number | null
-          total_perf_fees: number | null
-          total_realized_pnl: number | null
-          total_shares: number | null
-          total_unrealized_pnl: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "investor_positions_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "investors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "investor_positions_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "v_investor_kpis"
-            referencedColumns: ["investor_id"]
-          },
-          {
-            foreignKeyName: "investor_positions_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "withdrawal_queue"
-            referencedColumns: ["investor_id"]
-          },
-        ]
-      }
       monthly_fee_summary: {
         Row: {
           asset_code: string | null
@@ -3407,70 +3362,6 @@ export type Database = {
           id: string | null
           investor_id: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fee_calculations_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "investors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fee_calculations_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "v_investor_kpis"
-            referencedColumns: ["investor_id"]
-          },
-          {
-            foreignKeyName: "fee_calculations_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "withdrawal_queue"
-            referencedColumns: ["investor_id"]
-          },
-        ]
-      }
-      v_fund_kpis: {
-        Row: {
-          active_investors: number | null
-          asset: string | null
-          code: string | null
-          current_aum: number | null
-          day_return_pct: number | null
-          fund_id: string | null
-          itd_return: number | null
-          mtd_return: number | null
-          name: string | null
-          qtd_return: number | null
-          ytd_return: number | null
-        }
-        Insert: {
-          active_investors?: never
-          asset?: string | null
-          code?: string | null
-          current_aum?: never
-          day_return_pct?: never
-          fund_id?: string | null
-          itd_return?: never
-          mtd_return?: never
-          name?: string | null
-          qtd_return?: never
-          ytd_return?: never
-        }
-        Update: {
-          active_investors?: never
-          asset?: string | null
-          code?: string | null
-          current_aum?: never
-          day_return_pct?: never
-          fund_id?: string | null
-          itd_return?: never
-          mtd_return?: never
-          name?: string | null
-          qtd_return?: never
-          ytd_return?: never
-        }
         Relationships: []
       }
       v_investor_kpis: {
@@ -3479,6 +3370,7 @@ export type Database = {
           first_investment_date: string | null
           funds_invested: number | null
           investor_id: string | null
+          kyc_status: string | null
           last_activity_date: string | null
           name: string | null
           status: string | null
@@ -3504,63 +3396,40 @@ export type Database = {
             referencedRelation: "funds"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      v_live_investor_balances: {
+        Row: {
+          fund_name: string | null
+          investor_id: string | null
+          last_reported_balance: number | null
+          live_balance: number | null
+          recent_deposits: number | null
+          recent_withdrawals: number | null
+        }
+        Relationships: [
           {
-            foreignKeyName: "daily_nav_fund_id_fkey"
-            columns: ["fund_id"]
+            foreignKeyName: "investor_fund_performance_investor_id_fkey"
+            columns: ["investor_id"]
             isOneToOne: false
-            referencedRelation: "v_fund_kpis"
-            referencedColumns: ["fund_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "daily_nav_fund_id_fkey"
-            columns: ["fund_id"]
+            foreignKeyName: "investor_fund_performance_investor_id_fkey"
+            columns: ["investor_id"]
             isOneToOne: false
-            referencedRelation: "withdrawal_queue"
-            referencedColumns: ["fund_id"]
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
         ]
       }
-      withdrawal_queue: {
-        Row: {
-          admin_notes: string | null
-          approved_amount: number | null
-          approved_at: string | null
-          approved_by_email: string | null
-          approved_by_name: string | null
-          cancellation_reason: string | null
-          cancelled_at: string | null
-          cancelled_by_email: string | null
-          cancelled_by_name: string | null
-          current_position_value: number | null
-          current_shares: number | null
-          expected_withdrawal: number | null
-          fund_class: string | null
-          fund_code: string | null
-          fund_id: string | null
-          fund_name: string | null
-          id: string | null
-          investor_email: string | null
-          investor_id: string | null
-          investor_name: string | null
-          notes: string | null
-          processed_amount: number | null
-          processed_at: string | null
-          rejected_at: string | null
-          rejected_by_email: string | null
-          rejected_by_name: string | null
-          rejection_reason: string | null
-          request_date: string | null
-          requested_amount: number | null
-          settlement_date: string | null
-          status: Database["public"]["Enums"]["withdrawal_status"] | null
-          tx_hash: string | null
-          updated_at: string | null
-          withdrawal_type: string | null
-        }
-        Relationships: []
-      }
     }
     Functions: {
+      _resolve_investor_fee_pct: {
+        Args: { p_date: string; p_fund_id: string; p_investor_id: string }
+        Returns: number
+      }
       add_fund_to_investor: {
         Args: {
           p_cost_basis?: number
@@ -3581,10 +3450,29 @@ export type Database = {
         }
         Returns: string
       }
-      apply_daily_yield_to_fund: {
-        Args: { p_daily_rate: number; p_fund_id: string; p_rate_date: string }
-        Returns: number
-      }
+      apply_daily_yield_to_fund:
+        | {
+            Args: {
+              p_daily_rate: number
+              p_fund_id: string
+              p_rate_date: string
+            }
+            Returns: number
+          }
+        | {
+            Args: {
+              p_admin_id: string
+              p_date: string
+              p_fund_id: string
+              p_gross_amount: number
+            }
+            Returns: {
+              fee_amount: number
+              gross_amount: number
+              investor_id: string
+              net_amount: number
+            }[]
+          }
       apply_daily_yield_with_fees: {
         Args: {
           p_fee_rate?: number
@@ -3651,6 +3539,15 @@ export type Database = {
           p_year: number
         }
         Returns: number
+      }
+      distribute_yield_v2: {
+        Args: {
+          p_admin_id: string
+          p_fund_name: string
+          p_gross_yield_amount: number
+          p_period_id: string
+        }
+        Returns: Json
       }
       encrypt_totp_secret: { Args: { secret_text: string }; Returns: string }
       ensure_admin: { Args: never; Returns: undefined }
@@ -3940,7 +3837,7 @@ export type Database = {
       benchmark_type: "BTC" | "ETH" | "STABLE" | "CUSTOM"
       document_type: "statement" | "notice" | "terms" | "tax" | "other"
       fee_kind: "mgmt" | "perf"
-      fund_status: "active" | "inactive" | "suspended"
+      fund_status: "active" | "inactive" | "suspended" | "deprecated"
       notification_priority: "low" | "medium" | "high"
       notification_type:
         | "deposit"
@@ -4100,9 +3997,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       access_event: [
@@ -4117,7 +4011,7 @@ export const Constants = {
       benchmark_type: ["BTC", "ETH", "STABLE", "CUSTOM"],
       document_type: ["statement", "notice", "terms", "tax", "other"],
       fee_kind: ["mgmt", "perf"],
-      fund_status: ["active", "inactive", "suspended"],
+      fund_status: ["active", "inactive", "suspended", "deprecated"],
       notification_priority: ["low", "medium", "high"],
       notification_type: [
         "deposit",
