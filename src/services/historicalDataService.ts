@@ -86,6 +86,35 @@ export async function getHistoricalReports(filters?: {
 }
 
 /**
+ * Get historical data for a specific entity.
+ */
+export async function getHistoricalData(entityId: string, type: "fund" | "investor") {
+  if (type === "fund") {
+    const { data, error } = await supabase
+      .from("fund_daily_aum")
+      .select("*")
+      .eq("fund_id", entityId)
+      .order("aum_date", { ascending: false });
+    if (error) {
+      console.error("Error fetching fund historical data:", error);
+      return [];
+    }
+    return data;
+  } else {
+    const { data, error } = await supabase
+      .from("investor_fund_performance")
+      .select("*")
+      .eq("investor_id", entityId)
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.error("Error fetching investor historical data:", error);
+      return [];
+    }
+    return data;
+  }
+}
+
+/**
  * Generate monthly report templates for missing periods
  */
 export async function generateMissingTemplates(options: BulkGenerateOptions): Promise<{

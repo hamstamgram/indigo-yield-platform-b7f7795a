@@ -20,6 +20,45 @@ export async function adjustPosition(
   return { success: true, data };
 }
 
+export async function createAdjustment(
+  investorId: string,
+  fundId: string,
+  amount: number,
+  type: "Credit" | "Debit",
+  notes: string
+) {
+  const { data: fund, error: fundError } = await supabase
+    .from("funds")
+    .select("asset")
+    .eq("id", fundId)
+    .single();
+
+  if (fundError || !fund) {
+    console.error("Error fetching fund for adjustment:", fundError?.message || "Fund not found");
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("transactions_v2")
+    .insert([
+      {
+        investor_id: investorId,
+        fund_id: fundId,
+        asset: fund.asset,
+        amount: type === "Credit" ? amount : -amount,
+        type: "ADJUSTMENT",
+        notes: notes,
+      },
+    ])
+    .select();
+
+  if (error) {
+    console.error("Error creating adjustment:", error);
+    return null;
+  }
+  return data;
+}
+
 // Simple fetch for a position to adjust
 export async function getPositionForAdjustment(investorId: string, fundId: string) {
   const { data, error } = await supabase

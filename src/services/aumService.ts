@@ -177,6 +177,41 @@ export async function setFundDailyAUM(
 }
 
 /**
+ * Get AUM history grouped by month.
+ */
+export async function getMonthlyAUM() {
+  const { data, error } = await (supabase.rpc as any)("get_monthly_aum_summary");
+  if (error) {
+    console.error("Error fetching monthly AUM:", error);
+    return [];
+  }
+  return data;
+}
+
+/**
+ * Get daily AUM for the last 30 days.
+ */
+export async function getDailyAUM() {
+  const { data, error } = await supabase
+    .from("fund_daily_aum")
+    .select("*")
+    .order("aum_date", { ascending: false })
+    .limit(30);
+  if (error) {
+    console.error("Error fetching daily AUM:", error);
+    return [];
+  }
+  return data;
+}
+
+/**
+ * Get historical AUM for a specific fund.
+ */
+export async function getFundHistoricalAUM(fundId: string) {
+  return getFundAUMHistory(fundId);
+}
+
+/**
  * Get fund AUM history (from fund_daily_aum; fallback to live positions)
  */
 export async function getFundAUMHistory(

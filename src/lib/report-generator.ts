@@ -16,6 +16,11 @@ interface InvestorData {
   funds: FundData[];
 }
 
+interface StatementPeriod {
+  id: number;
+  period_end_date: string;
+}
+
 const masterHtmlTemplate = `<!DOCTYPE html>
 <html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 ...
@@ -48,21 +53,22 @@ export async function generateReportForInvestor(
   const year = reportDateObj.getFullYear();
   const month = reportDateObj.getMonth() + 1; // 1-indexed
 
-  const { data: period } = await supabase
+  const { data: period, error: periodError } = await supabase
     .from("statement_periods")
     .select("id, period_end_date")
     .eq("year", year)
     .eq("month", month)
-    .single();
+    .single<StatementPeriod>();
 
-  if (!period) throw new Error(`No statement period found for ${reportMonth}`);
+  if (periodError || !period)
+    throw periodError || new Error(`No statement period found for ${reportMonth}`);
 
   // 3. Fetch Performance Data (V2 Source of Truth)
   const { data: performanceData, error: perfError } = await supabase
     .from("investor_fund_performance")
     .select("*")
-    .eq("user_id", investorId)
-    .eq("period_id", period.id);
+    .eq("investor_id", investorId)
+    .eq("period_id", period.id.toString());
 
   if (perfError) throw perfError;
 

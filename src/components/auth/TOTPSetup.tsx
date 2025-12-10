@@ -51,7 +51,7 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
-  const [backupCodes, setBackupCodes] = useState<BackupCodeGenerationResult | null>(null);
+  const [factorId, setFactorId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [steps, setSteps] = useState<SetupStep[]>([
@@ -71,12 +71,6 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
       id: "verify",
       title: "Verify Setup",
       description: "Enter a code from your authenticator app",
-      completed: false,
-    },
-    {
-      id: "backup",
-      title: "Save Backup Codes",
-      description: "Download and securely store your backup codes",
       completed: false,
     },
   ]);
@@ -102,10 +96,11 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
 
     try {
       // Generate secret and initialize TOTP
-      const result = await TOTPService.initializeTOTP(user.id);
+      const result = await TOTPService.enroll();
       if (!result || !result.secret) {
         throw new Error("Failed to generate TOTP secret");
       }
+      setFactorId(result.id);
 
       // Generate QR code
       const qrCode = await generateQRCode(user.email!, result.secret);
@@ -142,25 +137,10 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
 
     try {
       // Complete TOTP setup with verification
-      const result = await TOTPService.completeTOTPSetup(user.id, verificationCode);
+      await TOTPService.verifySetup(factorId, verificationCode);
 
-      if (result.success && result.backupCodes) {
-        setBackupCodes({
-          success: true,
-          codes: result.backupCodes,
-        });
-      } else {
-        setBackupCodes({
-          success: false,
-          codes: [],
-        });
-      }
       updateStepCompletion(2, true);
-      setCurrentStep(3);
-
-      toast.success("2FA Verified", {
-        description: "Your authenticator app is working correctly",
-      });
+      finishSetup();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Verification failed";
       setError(errorMessage);
@@ -169,58 +149,6 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
       });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const downloadBackupCodes = () => {
-    if (!backupCodes) return;
-
-    const content = [
-      "Indigo Yield Platform - 2FA Backup Codes",
-      "==========================================",
-      "",
-      "These backup codes can be used to access your account if you lose",
-      "access to your authenticator app. Each code can only be used once.",
-      "",
-      "Store these codes in a safe place!",
-      "",
-      "Generated on: " + new Date().toLocaleDateString(),
-      "",
-      "Backup Codes:",
-      ...backupCodes.codes.map((code, index) => `${index + 1}. ${code}`),
-      "",
-      "⚠️  Keep these codes secure and do not share them with anyone.",
-    ].join("\n");
-
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `indigo-2fa-backup-codes-${new Date().getTime()}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    updateStepCompletion(3, true);
-    toast.success("Backup Codes Downloaded", {
-      description: "Store these codes in a secure location",
-    });
-  };
-
-  const copyBackupCodes = async () => {
-    if (!backupCodes) return;
-
-    const codes = backupCodes.codes.join("\n");
-    try {
-      await navigator.clipboard.writeText(codes);
-      toast.success("Copied to Clipboard", {
-        description: "Backup codes copied successfully",
-      });
-    } catch (err) {
-      toast.error("Copy Failed", {
-        description: "Could not copy to clipboard",
-      });
     }
   };
 
@@ -236,7 +164,6 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
     setCurrentStep(0);
     setQrCodeUrl("");
     setVerificationCode("");
-    setBackupCodes(null);
     setError(null);
     setSteps((prev) => prev.map((step) => ({ ...step, completed: false })));
   };
@@ -347,65 +274,6 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
                 ) : (
                   "Verify Code"
                 )}
-              </Button>
-            </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <Key className="h-12 w-12 mx-auto text-green-600 mb-4" />
-              <h3 className="text-lg font-medium mb-2">Save Your Backup Codes</h3>
-              <p className="text-gray-600 mb-6">
-                These backup codes can be used to access your account if you lose your authenticator
-                app. Each code can only be used once.
-              </p>
-            </div>
-
-            <Alert>
-              <Shield className="h-4 w-4" />
-              <AlertDescription>
-                Store these codes in a secure location. Treat them like passwords.
-              </AlertDescription>
-            </Alert>
-
-            {backupCodes && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Backup Codes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-2 font-mono text-sm">
-                    {backupCodes.codes.map((code, index) => (
-                      <div key={index} className="p-2 bg-gray-50 rounded border text-center">
-                        {code}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-                <CardFooter className="flex justify-between">
-                  <Button variant="outline" onClick={copyBackupCodes} className="flex-1 mr-2">
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copy Codes
-                  </Button>
-                  <Button onClick={downloadBackupCodes} className="flex-1">
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Codes
-                  </Button>
-                </CardFooter>
-              </Card>
-            )}
-
-            <div className="flex justify-end">
-              <Button
-                onClick={finishSetup}
-                disabled={!steps[3]?.completed}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Complete Setup
               </Button>
             </div>
           </div>
