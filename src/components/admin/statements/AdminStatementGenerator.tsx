@@ -57,7 +57,7 @@ const AdminStatementGenerator: React.FC = () => {
         const { data: reports } = await supabase
           .from("investor_fund_performance")
           .select("fund_name, mtd_beginning_balance, mtd_additions, mtd_redemptions, mtd_net_income, mtd_ending_balance, mtd_rate_of_return")
-          .eq("user_id", investor.id)
+          .eq("investor_id", investor.id)
           .eq("period_id", period.id);
 
         // Prepare statement data

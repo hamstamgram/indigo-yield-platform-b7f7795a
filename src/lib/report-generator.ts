@@ -64,7 +64,8 @@ export async function generateReportForInvestor(
     throw periodError || new Error(`No statement period found for ${reportMonth}`);
 
   // 3. Fetch Performance Data (V2 Source of Truth)
-  const { data: performanceData, error: perfError } = await supabase
+  // Cast to any to avoid "Type instantiation is excessively deep" error
+  const { data: performanceData, error: perfError } = await (supabase as any)
     .from("investor_fund_performance")
     .select("*")
     .eq("investor_id", investorId)

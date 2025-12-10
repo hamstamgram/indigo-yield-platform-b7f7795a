@@ -91,7 +91,8 @@ export class ReportEngine {
       .order("created_at", { ascending: false });
 
     // Use investor_fund_performance (V2) for statements with investor_id
-    const { data: performanceStatements } = await supabase
+    // Cast to any to avoid "Type instantiation is excessively deep" error
+    const { data: performanceStatements } = await (supabase as any)
       .from("investor_fund_performance")
       .select(`
         *,

@@ -74,10 +74,11 @@ export function SingleReportGenerator() {
     if (!period) throw new Error(`No statement period found for ${reportDate}`);
 
     // 3. Fetch Performance Reports (V2)
-    const { data: reports, error } = await supabase
+    // Cast to any to avoid "Type instantiation is excessively deep" error
+    const { data: reports, error } = await (supabase as any)
       .from("investor_fund_performance")
       .select("*")
-      .eq("user_id", selectedInvestor)
+      .eq("investor_id", selectedInvestor) // Was user_id, fixing to investor_id as well if needed, but schema uses investor_id. Previous code used user_id, which is wrong based on schema.
       .eq("period_id", period.id);
 
     if (error) throw error;

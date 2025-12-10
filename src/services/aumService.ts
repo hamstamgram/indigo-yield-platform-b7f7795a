@@ -181,30 +181,10 @@ export async function setFundDailyAUM(
  */
 export async function getMonthlyAUM() {
   try {
-    // RPC get_monthly_aum_summary might be missing, so we aggregate manually
-    const { data, error } = await supabase
-      .from("fund_daily_aum")
-      .select("aum_date, total_aum")
-      .order("aum_date", { ascending: true });
+    const { data, error } = await (supabase.rpc as any)('get_monthly_platform_aum');
 
     if (error) throw error;
-
-    if (!data || data.length === 0) return [];
-
-    // Group by month (YYYY-MM) and take the latest entry for each month
-    const monthlyMap = new Map<string, number>();
-    
-    data.forEach(entry => {
-      const monthKey = entry.aum_date.substring(0, 7); // YYYY-MM
-      // Since data is sorted ascending, we overwrite with the latest value for the month
-      monthlyMap.set(monthKey, entry.total_aum);
-    });
-
-    // Convert map to array
-    return Array.from(monthlyMap.entries()).map(([month, aum]) => ({
-      month,
-      total_aum: aum
-    }));
+    return data;
   } catch (error) {
     console.error("Error fetching monthly AUM:", error);
     return [];

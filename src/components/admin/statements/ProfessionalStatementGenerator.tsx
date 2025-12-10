@@ -75,7 +75,8 @@ const ProfessionalStatementGenerator = () => {
     setLoading(true);
     try {
       // Find the latest period for this investor and asset
-      const { data: latestPerformance, error: perfError } = await supabase
+      // Cast to any to avoid "Type instantiation is excessively deep" error
+      const { data: latestPerformance, error: perfError } = await (supabase as any)
         .from("investor_fund_performance")
         .select(`
           *,

@@ -96,6 +96,7 @@ export interface GeneratedReport {
   id: string;
   reportDefinitionId: string | null;
   reportType: ReportType;
+  reportName: string; // Added field
   format: ReportFormat;
   status: ReportStatus;
   generatedForUserId: string | null;
@@ -133,6 +134,8 @@ export interface DownloadReportResponse {
   fileName?: string;
   fileSizeBytes?: number;
   error?: string;
+  data?: Uint8Array; // Added field
+  contentType?: string; // Added field
 }
 
 // Report Schedule (automated report generation)

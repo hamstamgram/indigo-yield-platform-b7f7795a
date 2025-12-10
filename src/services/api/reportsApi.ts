@@ -22,21 +22,42 @@ export class ReportsApi {
    * Get available report definitions
    */
   static async getReportDefinitions(
-    _includeAdminOnly: boolean = false
+    includeAdminOnly: boolean = false
   ): Promise<ReportDefinition[]> {
-    // Note: report_definitions table doesn't exist in current schema
-    // Return empty array as fallback until table is created
-    console.warn("getReportDefinitions: report_definitions table not available");
-    return [];
+    // Cast to any to avoid "Type instantiation is excessively deep" error
+    let query = (supabase as any).from("report_definitions").select("*").eq("is_active", true);
+
+    if (!includeAdminOnly) {
+      query = query.eq("is_admin_only", false);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Error fetching report definitions:", error);
+      return [];
+    }
+
+    return (data || []).map(this.mapReportDefinition);
   }
 
   /**
    * Get single report definition
    */
-  static async getReportDefinition(_reportType: ReportType): Promise<ReportDefinition | null> {
-    // Note: report_definitions table doesn't exist in current schema
-    console.warn("getReportDefinition: report_definitions table not available");
-    return null;
+  static async getReportDefinition(reportType: ReportType): Promise<ReportDefinition | null> {
+    // Cast to any to avoid "Type instantiation is excessively deep" error
+    const { data, error } = await (supabase as any)
+      .from("report_definitions")
+      .select("*")
+      .eq("report_type", reportType)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching report definition:", error);
+      return null;
+    }
+
+    return data ? this.mapReportDefinition(data) : null;
   }
 
   /**
@@ -133,43 +154,109 @@ export class ReportsApi {
 
   /**
    * Get user's generated reports
-   * Note: get_user_reports RPC doesn't exist
    */
-  static async getUserReports(_filters?: {
+  static async getUserReports(filters?: {
     reportType?: ReportType;
     status?: ReportStatus;
     limit?: number;
     offset?: number;
   }): Promise<GeneratedReport[]> {
-    console.warn("getUserReports: get_user_reports RPC not available");
-    return [];
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    let query = supabase
+      .from("generated_reports")
+      .select("*")
+      .eq("investor_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (filters?.reportType) {
+      query = query.eq("report_type", filters.reportType);
+    }
+
+    if (filters?.status) {
+      query = query.eq("status", filters.status);
+    }
+
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    }
+
+    if (filters?.offset) {
+      query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Error fetching user reports:", error);
+      return [];
+    }
+
+    return (data || []).map(this.mapGeneratedReport);
   }
 
   /**
    * Get single generated report
    */
-  static async getReport(_reportId: string): Promise<GeneratedReport | null> {
-    // Note: generated_reports table doesn't exist in current schema
-    console.warn("getReport: generated_reports table not available");
-    return null;
+  static async getReport(reportId: string): Promise<GeneratedReport | null> {
+    const { data, error } = await supabase
+      .from("generated_reports")
+      .select("*")
+      .eq("id", reportId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching report:", error);
+      return null;
+    }
+
+    return this.mapGeneratedReport(data);
   }
 
   /**
    * Download a generated report
-   * Note: generated_reports table doesn't exist
    */
-  static async downloadReport(_request: DownloadReportRequest): Promise<DownloadReportResponse> {
-    console.warn("downloadReport: generated_reports table not available");
-    return { success: false, error: "Report storage not available" };
+  static async downloadReport(request: DownloadReportRequest): Promise<DownloadReportResponse> {
+    try {
+      const report = await this.getReport(request.reportId);
+      if (!report) return { success: false, error: "Report not found" };
+
+      if (!report.storagePath) return { success: false, error: "Report file not found" };
+
+      const { data, error } = await supabase.storage
+        .from("reports") // Assuming 'reports' bucket exists
+        .download(report.storagePath);
+
+      if (error) throw error;
+
+      return {
+        success: true,
+        data: new Uint8Array(await data.arrayBuffer()),
+        fileName: `${report.reportName}.${report.format}`,
+        contentType: data.type,
+      };
+    } catch (error) {
+      console.error("Error downloading report:", error);
+      return { success: false, error: "Failed to download report" };
+    }
   }
 
   /**
    * Delete a generated report
    */
-  static async deleteReport(_reportId: string): Promise<{ success: boolean; error?: string }> {
-    // Note: generated_reports table doesn't exist in current schema
-    console.warn("deleteReport: generated_reports table not available");
-    return { success: false, error: "Report storage not available" };
+  static async deleteReport(reportId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { error } = await supabase.from("generated_reports").delete().eq("id", reportId);
+
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      console.error("Error deleting report:", error);
+      return { success: false, error: "Failed to delete report" };
+    }
   }
 
   /**
@@ -281,6 +368,7 @@ export class ReportsApi {
       id: data.id as string,
       reportDefinitionId: data.report_definition_id as string | null,
       reportType: data.report_type as ReportType,
+      reportName: data.report_name as string, // Added mapping
       format: data.format as any,
       status: data.status as ReportStatus,
       generatedForUserId: data.generated_for_user_id as string | null,
