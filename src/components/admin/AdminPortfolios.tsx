@@ -28,7 +28,6 @@ type UserPortfolio = {
   id: string;
   investor_id: string;
   asset_id: number;
-  asset_code: string;
   balance: number;
   current_balance: number;
   updated_at: string;
@@ -36,6 +35,11 @@ type UserPortfolio = {
   user_name?: string;
   asset_symbol?: string;
   asset_name?: string;
+  fund_id?: string;
+  fund_code?: string;
+  fund_class?: string;
+  shares?: number;
+  asset_code?: string; // legacy compatibility
 };
 
 type UserProfile = {
@@ -110,67 +114,55 @@ const AdminPortfolios = ({
         setUsers(userData);
       }
 
-      // Fetch all portfolios (using positions table)
+      // Fetch investor positions (V2)
       const { data: portfoliosResult, error: portfoliosError } = await supabase
-        .from("positions")
-        .select("id, investor_id, asset_code, current_balance, updated_at");
+        .from("investor_positions")
+        .select("investor_id, fund_id, current_value, shares, updated_at, fund_class");
 
       if (portfoliosError) throw portfoliosError;
 
       const portfolioData = portfoliosResult || [];
 
+      // Fetch fund metadata for asset mapping
+      const fundIds = Array.from(new Set(portfolioData.map((p) => p.fund_id)));
+      const { data: fundMeta } = await supabase
+        .from("funds")
+        .select("id, code, asset, name, fund_class")
+        .in("id", fundIds.length ? fundIds : ["00000000-0000-0000-0000-000000000000"]);
+      const fundMap = new Map((fundMeta || []).map((f) => [f.id, f]));
+
       // Enrich portfolio data with user and asset information
       const enrichedPortfolios = portfolioData.map((portfolio) => {
         const user = userData.find((u) => u.id === portfolio.investor_id);
-        const asset = assets.find((a) => a.symbol === portfolio.asset_code);
+        const fund = fundMap.get(portfolio.fund_id);
+        const asset = assets.find((a) => a.symbol === fund?.asset);
 
         const userName = user
           ? `${user.first_name || ""} ${user.last_name || ""}`.trim() || user.email.split("@")[0]
           : "";
 
         return {
-          ...portfolio,
+          id: `${portfolio.investor_id}-${portfolio.fund_id}`,
+          investor_id: portfolio.investor_id,
           asset_id: asset?.id || 0,
-          balance: portfolio.current_balance,
+          balance: portfolio.current_value,
+          current_balance: portfolio.current_value,
+          updated_at: portfolio.updated_at,
           user_email: user?.email || "",
           user_name: userName,
-          asset_symbol: (asset?.symbol || portfolio.asset_code || "").toUpperCase(),
-          asset_name: asset?.name || "",
+          asset_symbol: (asset?.symbol || fund?.asset || "").toUpperCase(),
+          asset_name: asset?.name || fund?.name || "",
+          fund_id: portfolio.fund_id,
+          fund_code: fund?.code,
+          fund_class: portfolio.fund_class || fund?.fund_class,
+          shares: portfolio.shares,
         };
       });
 
       setPortfolios(enrichedPortfolios);
       setFilteredPortfolios(enrichedPortfolios);
 
-      // If we have users but no portfolios, create empty portfolios for the users
-      if (userData.length > 0 && portfolioData.length === 0) {
-        // Create skeleton portfolios for UI display
-        const skeletonPortfolios: UserPortfolio[] = [];
-        userData.forEach((user) => {
-          const userName =
-            `${user.first_name || ""} ${user.last_name || ""}`.trim() || user.email.split("@")[0];
-
-          // Add a skeleton portfolio entry for this user
-          skeletonPortfolios.push({
-            id: `skeleton-${user.id}`,
-            investor_id: user.id,
-            asset_id: 0, // No asset assigned yet
-            asset_code: "USD",
-            balance: 0,
-            current_balance: 0,
-            updated_at: new Date().toISOString(),
-            user_email: user.email,
-            user_name: userName,
-            asset_symbol: "-",
-            asset_name: "No assets yet",
-          });
-        });
-
-        if (skeletonPortfolios.length > 0) {
-          setPortfolios(skeletonPortfolios);
-          setFilteredPortfolios(skeletonPortfolios);
-        }
-      }
+      // Skeleton portfolios no longer needed (investor_positions is authoritative)
     } catch (error) {
       toast({
         title: "Error",
@@ -237,12 +229,13 @@ const AdminPortfolios = ({
       }
 
       const { error } = await supabase
-        .from("positions")
+        .from("investor_positions")
         .update({
-          current_balance: portfolioToUpdate.balance,
+          current_value: portfolioToUpdate.balance,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", portfolioId);
+        .eq("investor_id", portfolioToUpdate.investor_id)
+        .eq("fund_id", portfolioToUpdate.fund_id);
 
       if (error) throw error;
 
@@ -297,21 +290,22 @@ const AdminPortfolios = ({
 
       // Check if this user-asset combination already exists
       const { data: existingEntry } = await supabase
-        .from("positions")
-        .select("id")
+        .from("investor_positions")
+        .select("investor_id, fund_id")
         .eq("investor_id", selectedUser)
-        .eq("asset_code", assetSymbol)
+        .eq("fund_class", assetSymbol)
         .maybeSingle();
 
       if (existingEntry) {
         // Update existing entry
         const { error } = await supabase
-          .from("positions")
+          .from("investor_positions")
           .update({
-            current_balance: balance,
+            current_value: balance,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", existingEntry.id);
+          .eq("investor_id", selectedUser)
+          .eq("fund_id", existingEntry.fund_id || "");
 
         if (error) throw error;
 
@@ -321,12 +315,22 @@ const AdminPortfolios = ({
         });
       } else {
         // Insert new entry
-        const { error } = await supabase.from("positions").insert({
+        // Need fund_id for this asset symbol
+        const { data: fundRow, error: fundErr } = await supabase
+          .from("funds")
+          .select("id")
+          .eq("asset", assetSymbol)
+          .maybeSingle();
+
+        if (fundErr || !fundRow) throw fundErr || new Error("Fund not found for asset");
+
+        const { error } = await supabase.from("investor_positions").insert({
           investor_id: selectedUser,
-          asset_code: assetSymbol,
-          current_balance: balance,
-          principal: balance, // Set initial principal
-          total_earned: 0,
+          fund_id: fundRow.id,
+          fund_class: assetSymbol,
+          current_value: balance,
+          shares: balance,
+          cost_basis: balance,
           updated_at: new Date().toISOString(),
         });
 

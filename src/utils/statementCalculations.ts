@@ -51,17 +51,19 @@ export async function computeStatement(
   period_month: number
 ): Promise<StatementData | null> {
   try {
-    // Get investor profile
+    // Get investor profile (from PROFILES, One ID)
     const { data: investor, error: investorError } = await supabase
-      .from("investors")
-      .select("id, name, email, profile_id")
+      .from("profiles")
+      .select("id, first_name, last_name, email")
       .eq("id", investor_id)
       .maybeSingle();
 
     if (investorError || !investor) {
-      console.error("Investor not found:", investorError);
+      console.error("Investor profile not found:", investorError);
       return null;
     }
+
+    const investorName = `${investor.first_name || ""} ${investor.last_name || ""}`.trim() || investor.email;
 
     // Calculate period dates
     const period_start = new Date(period_year, period_month - 1, 1);
@@ -74,7 +76,7 @@ export async function computeStatement(
     const { data: transactions, error: txError } = await supabase
       .from("transactions_v2")
       .select("*")
-      .eq("investor_id", investor_id)
+      .eq("investor_id", investor_id) // Unified ID
       .lte("tx_date", period_end_str)
       .order("tx_date", { ascending: true });
 
@@ -164,22 +166,6 @@ export async function computeStatement(
     Object.values(assetsMap).forEach((asset) => {
       asset.end_balance =
         asset.begin_balance + asset.deposits - asset.withdrawals + asset.interest - asset.fees;
-
-      // NOTE: We do NOT sum up different assets into the global summary to avoid
-      // misleading "Total AUM" (e.g. 1 BTC + 1000 USD != 1001).
-      // The summary fields below will only be valid if the portfolio has a single asset type,
-      // or they should be treated as "count of operations" rather than value.
-      // For mixed portfolios, rely on the `assets` array for value breakdowns.
-
-      // Only sum up if it's USDT/EURC (Stablecoins) to give at least a partial useful total?
-      // Or better: Just don't sum mixed units.
-      // User instruction: "TOTAL AUM OF THE FUND cannot be caculated... only seperate funds"
-
-      // We will leave summary zeroed out for values to prevent confusion.
-      // Or we could sum counts? No, interface expects numbers used for display.
-
-      // Let's only populate summary if there is exactly one asset in the map?
-      // Or just leave it 0.
     });
 
     // If there is only one asset, we can safely populate the summary
@@ -195,7 +181,6 @@ export async function computeStatement(
     }
 
     // Simple ROI calc (Net Income / (Begin Balance + (Additions - Redemptions)/2))
-    // This is a Modified Dietz approximation
     const denominator = summary.begin_balance + (summary.additions - summary.redemptions) / 2;
     if (denominator > 0) {
       summary.rate_of_return_mtd = ((summary.net_income - summary.fees) / denominator) * 100;
@@ -203,7 +188,7 @@ export async function computeStatement(
 
     return {
       investor_id,
-      investor_name: investor.name,
+      investor_name: investorName,
       investor_email: investor.email,
       period_year,
       period_month,
@@ -218,10 +203,27 @@ export async function computeStatement(
   }
 }
 
+/**
+ * Format amount in native tokens (not fiat currency)
+ * @param amount - The token amount
+ * @param asset - The asset symbol (BTC, ETH, USDT, SOL, XRP)
+ * @param decimals - Number of decimal places (auto-determined by asset if not specified)
+ */
+export function formatTokenAmount(amount: number, asset?: string, decimals?: number): string {
+  const assetDecimals = decimals ?? (asset === "BTC" ? 8 : asset === "ETH" ? 6 : 2);
+  const formatted = new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: assetDecimals,
+  }).format(amount);
+  return asset ? `${formatted} ${asset}` : formatted;
+}
+
+/**
+ * @deprecated Use formatTokenAmount instead - this platform uses native tokens, not fiat
+ */
 export function formatCurrency(amount: number, decimals: number = 2): string {
+  // Removed USD currency formatting - platform uses native tokens
   return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(amount);

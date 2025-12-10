@@ -11,7 +11,7 @@
 import { Database } from "@/integrations/supabase/types";
 
 // Base types from database
-type DbInvestor = Database["public"]["Tables"]["investors"]["Row"];
+type DbInvestor = Database["public"]["Tables"]["profiles"]["Row"];
 type DbInvestorPosition = Database["public"]["Tables"]["investor_positions"]["Row"];
 
 // Status mapping
@@ -103,9 +103,9 @@ export interface InvestorSummary extends Investor {
 export function mapDbInvestorToInvestor(dbInvestor: DbInvestor): Investor {
   return {
     id: dbInvestor.id,
-    name: dbInvestor.name,
+    name: `${dbInvestor.first_name || ""} ${dbInvestor.last_name || ""}`.trim() || dbInvestor.email,
     email: dbInvestor.email,
-    profile_id: dbInvestor.profile_id,
+    profile_id: dbInvestor.id,
     status: (dbInvestor.status || "pending") as InvestorStatus,
     created_at: dbInvestor.created_at || new Date().toISOString(),
     updated_at: dbInvestor.updated_at || new Date().toISOString(),

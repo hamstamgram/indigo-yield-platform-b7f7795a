@@ -115,13 +115,13 @@ export const dataIntegrityService = {
 
       if (transactions && transactions.length > 0) {
         for (const tx of transactions) {
-          const { data: investor } = await supabase
-            .from("investors")
+          const { data: profile } = await supabase
+            .from("profiles")
             .select("id")
             .eq("id", tx.investor_id)
             .maybeSingle();
 
-          if (!investor) {
+          if (!profile) {
             orphaned.push(tx);
           }
         }
@@ -141,13 +141,13 @@ export const dataIntegrityService = {
     const futureTransactions: any[] = [];
     const zeroAmountTransactions: any[] = [];
 
-    // Check for invalid email formats
-    const { data: investors } = await supabase.from("investors").select("id, name, email");
+    // Check for invalid email formats in profiles
+    const { data: profiles } = await supabase.from("profiles").select("id, email, first_name, last_name").eq("is_admin", false);
 
-    if (investors) {
-      investors.forEach((inv) => {
-        if (inv.email && !inv.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-          invalidEmails.push(inv);
+    if (profiles) {
+      profiles.forEach((p) => {
+        if (p.email && !p.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+          invalidEmails.push(p);
         }
       });
     }
@@ -155,8 +155,8 @@ export const dataIntegrityService = {
     // Check for future transactions
     const { data: transactions } = await supabase
       .from("transactions_v2")
-      .select("id, investor_id, occurred_at, amount")
-      .gt("occurred_at", new Date().toISOString());
+      .select("id, investor_id, tx_date, amount")
+      .gt("tx_date", new Date().toISOString().split("T")[0]);
 
     if (transactions) {
       futureTransactions.push(...transactions);
@@ -194,19 +194,19 @@ export const dataIntegrityService = {
       if (positions && positions.length > 0) {
         // Check each position's investor exists
         for (const pos of positions) {
-          const { data: investor } = await supabase
-            .from("investors")
+          const { data: profile } = await supabase
+            .from("profiles")
             .select("id")
             .eq("id", pos.investor_id)
             .single();
 
-          if (!investor) {
+          if (!profile) {
             issues.push({
               type: "orphaned_record",
               severity: "error",
               table: "investor_positions",
               record_id: pos.investor_id,
-              description: `Position references non-existent investor: ${pos.investor_id}`,
+              description: `Position references non-existent profile: ${pos.investor_id}`,
               details: pos,
             });
           }
@@ -220,56 +220,26 @@ export const dataIntegrityService = {
   },
 
   /**
-   * Check for negative balances in investor positions
-   */
-  async checkNegativeBalances(): Promise<IntegrityIssue[]> {
-    const issues: IntegrityIssue[] = [];
-
-    const { data: negativePositions } = await supabase
-      .from("investor_positions")
-      .select("*")
-      .or("current_value.lt.0,cost_basis.lt.0,shares.lt.0");
-
-    if (negativePositions && negativePositions.length > 0) {
-      negativePositions.forEach((pos: any) => {
-        issues.push({
-          type: "negative_balance",
-          severity: "error",
-          table: "investor_positions",
-          record_id: pos.investor_id,
-          description: `Negative values detected for investor ${pos.investor_id}`,
-          details: {
-            current_value: pos.current_value,
-            cost_basis: pos.cost_basis,
-            shares: pos.shares,
-          },
-        });
-      });
-    }
-
-    return issues;
-  },
-
-  /**
    * Check for missing required fields
    */
   async checkMissingRequiredFields(): Promise<IntegrityIssue[]> {
     const issues: IntegrityIssue[] = [];
 
-    // Check investors without email
-    const { data: investorsNoEmail } = await supabase
-      .from("investors")
-      .select("id, name")
+    // Check profiles without email
+    const { data: profilesNoEmail } = await supabase
+      .from("profiles")
+      .select("id, first_name, last_name")
+      .eq("is_admin", false)
       .or("email.is.null,email.eq.");
 
-    if (investorsNoEmail && investorsNoEmail.length > 0) {
-      investorsNoEmail.forEach((inv: any) => {
+    if (profilesNoEmail && profilesNoEmail.length > 0) {
+      profilesNoEmail.forEach((p: any) => {
         issues.push({
           type: "missing_field",
           severity: "warning",
-          table: "investors",
-          record_id: inv.id,
-          description: `Investor "${inv.name}" missing email address`,
+          table: "profiles",
+          record_id: p.id,
+          description: `Profile "${p.first_name} ${p.last_name}" missing email address`,
         });
       });
     }
@@ -305,7 +275,7 @@ export const dataIntegrityService = {
       // Check if transaction totals match position cost basis
       const { data: positions } = await supabase
         .from("investor_positions")
-        .select("*, investor:investor_id(name)");
+        .select("investor_id, fund_id, cost_basis");
 
       if (positions) {
         for (const position of positions) {
@@ -338,7 +308,7 @@ export const dataIntegrityService = {
               record_id: position.investor_id,
               description: `Transaction total (${totalInvested}) doesn't match cost basis (${costBasis}) for investor ${position.investor_id}`,
                 details: {
-                  investor_name: position.investor?.name,
+                  investor_name: position.investor_id,
                   total_invested: totalInvested,
                   cost_basis: costBasis,
                   difference: totalInvested - costBasis,

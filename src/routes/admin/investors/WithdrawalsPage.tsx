@@ -87,16 +87,8 @@ const WithdrawalsPage = () => {
       } = await supabase.auth.getUser();
       if (userError || !user) throw new Error("Not authenticated");
 
-      // Get investor record
-      const { data: investorData, error: investorError } = await supabase
-        .from("investors")
-        .select("id")
-        .eq("profile_id", user.id)
-        .maybeSingle();
-
-      if (!investorData) throw new Error("Investor profile not found");
-
-      if (investorError || !investorData) throw new Error("Investor profile not found");
+      // Get investor_id (One ID: it's the user.id)
+      const investorId = user.id;
 
       const { data: withdrawalsData, error: withdrawalsError } = await supabase
         .from("withdrawal_requests")
@@ -111,7 +103,7 @@ const WithdrawalsPage = () => {
           )
         `
         )
-        .eq("investor_id", investorData.id)
+        .eq("investor_id", investorId)
         .order("created_at", { ascending: false });
 
       if (withdrawalsError) throw withdrawalsError;
@@ -147,16 +139,8 @@ const WithdrawalsPage = () => {
       } = await supabase.auth.getUser();
       if (userError || !user) throw new Error("Not authenticated");
 
-      // Get investor record
-      const { data: investorData, error: investorError } = await supabase
-        .from("investors")
-        .select("id")
-        .eq("profile_id", user.id)
-        .maybeSingle();
-
-      if (!investorData) throw new Error("Investor profile not found");
-
-      if (investorError || !investorData) throw new Error("Investor profile not found");
+      // Get investor_id (One ID: it's the user.id)
+      const investorId = user.id;
 
       const { data: positionsData, error: positionsError } = await supabase
         .from("investor_positions")
@@ -173,7 +157,7 @@ const WithdrawalsPage = () => {
           )
         `
         )
-        .eq("investor_id", investorData.id)
+        .eq("investor_id", investorId)
         .gt("current_value", 0);
 
       if (positionsError) throw positionsError;
@@ -211,51 +195,42 @@ const WithdrawalsPage = () => {
       return;
     }
 
-    try {
-      setSubmitting(true);
-
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error("Not authenticated");
-
-      // Get investor record
-      const { data: investorData, error: investorError } = await supabase
-        .from("investors")
-        .select("id")
-        .eq("profile_id", user.id)
-        .maybeSingle();
-
-      if (!investorData) throw new Error("Investor profile not found");
-
-      if (investorError || !investorData) throw new Error("Investor profile not found");
-
-      // Check if amount is valid for the selected position
-      const selectedPosition = positions.find((p) => p.fund_id === selectedFund);
-      if (!selectedPosition) throw new Error("Position not found");
-
-      if (amount > selectedPosition.current_value) {
-        const assetSymbol = selectedPosition.funds?.asset || "USDT";
-        toast({
-          title: "Amount too high",
-          description: `Maximum withdrawal amount is ${formatAssetAmount(selectedPosition.current_value, assetSymbol)}`,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Create withdrawal request using the database function
-      const { data: _data, error } = await supabase.rpc("create_withdrawal_request", {
-        p_investor_id: investorData.id,
-        p_fund_id: selectedFund,
-        p_amount: amount,
-        p_type: withdrawalType,
-        p_notes: withdrawalNotes || undefined,
-      });
-
-      if (error) throw error;
-
+          try {
+          setSubmitting(true);
+    
+          const {
+            data: { user },
+            error: userError,
+          } = await supabase.auth.getUser();
+          if (userError || !user) throw new Error("Not authenticated");
+    
+          // Get investor_id (One ID: it's the user.id)
+          const investorId = user.id;
+    
+          // Check if amount is valid for the selected position
+          const selectedPosition = positions.find((p) => p.fund_id === selectedFund);
+          if (!selectedPosition) throw new Error("Position not found");
+    
+          if (amount > selectedPosition.current_value) {
+            const assetSymbol = selectedPosition.funds?.asset || "USDT";
+            toast({
+              title: "Amount too high",
+              description: `Maximum withdrawal amount is ${formatAssetAmount(selectedPosition.current_value, assetSymbol)}`,
+              variant: "destructive",
+            });
+            return;
+          }
+    
+          // Create withdrawal request using the database function
+          const { data: _data, error } = await supabase.rpc("create_withdrawal_request", {
+            p_investor_id: investorId, // Use investorId (profile.id)
+            p_fund_id: selectedFund,
+            p_amount: amount,
+            p_type: withdrawalType,
+            p_notes: withdrawalNotes || undefined,
+          });
+    
+          if (error) throw error;
       toast({
         title: "Withdrawal request submitted",
         description: "Your withdrawal request has been submitted for review",

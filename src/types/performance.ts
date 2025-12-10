@@ -6,7 +6,7 @@
 export interface PerformanceRecord {
   id: string;
   period_id: string;
-  user_id: string;
+  investor_id: string;
   fund_name: string; // 'BTC', 'ETH', 'SOL', etc.
   
   // Month-to-Date

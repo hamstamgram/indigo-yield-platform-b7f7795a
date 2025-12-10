@@ -19,7 +19,9 @@
       "mcp__xcodebuild__clean",
       "mcp__xcodebuild__build_sim",
       "mcp__sequential-thinking__sequentialthinking",
-      "mcp__filesystem__list_directory"
+      "mcp__filesystem__list_directory",
+      "Skill(xlsx)",
+      "mcp__filesystem__directory_tree"
     ],
     "deny": [],
     "ask": []

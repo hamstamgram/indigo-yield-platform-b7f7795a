@@ -20,13 +20,8 @@ export default function NewWithdrawalPage() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
 
-      const { data: investor } = await supabase
-        .from("investors")
-        .select("id")
-        .eq("profile_id", user.id)
-        .maybeSingle();
-
-      if (!investor) return [];
+      // Get investor_id (One ID: it's the user.id)
+      const investorId = user.id;
 
       // Fetch positions with fund details
       const { data, error } = await supabase
@@ -39,7 +34,7 @@ export default function NewWithdrawalPage() {
           funds ( asset )
         `
         )
-        .eq("investor_id", investor.id)
+        .eq("investor_id", investorId)
         .gt("shares", 0);
 
       if (error) throw error;

@@ -9,6 +9,7 @@ import { Asset, Investor } from "@/types/investorTypes";
 import InvestorAssetDropdown from "../InvestorAssetDropdown";
 import InvestorInfo from "./InvestorInfo";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import { getAllFunds, updateInvestorPosition } from "@/services/fundService";
 
 interface MobileInvestorCardProps {
   investor: Investor;
@@ -77,36 +78,60 @@ const MobileInvestorCard = ({
       }
 
       // Update fee percentage in profile
-      const { data: feeData, error: feeError } = await supabase
+      const { error: feeError } = await supabase
         .from("profiles")
         .update({
           fee_percentage: feeValue,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", investor.id)
-        .select();
+        .eq("id", investor.id);
 
       if (feeError) {
         console.error("Error updating fee:", feeError);
         throw feeError;
       }
 
-      // Convert input values to portfolio entries
-      const portfolioUpdates = assets
-        .map((asset) => {
-          const symbol = asset.symbol;
-          const balance = parseFloat(balances[symbol] || "0");
+      // Process portfolio updates
+      // 1. Fetch funds to map assets to funds
+      const funds = await getAllFunds();
 
-          return {
-            user_id: investor.id,
-            asset_id: asset.id,
-            balance: balance,
-            updated_at: new Date().toISOString(),
-          };
-        })
-        .filter((update) => update.balance > 0); // Only update assets with positive balances
+      // 2. Iterate through assets and update positions
+      const updatePromises = assets.map(async (asset) => {
+        const symbol = asset.symbol;
+        const newBalance = parseFloat(balances[symbol] || "0");
+        
+        // Only update if we have a valid balance
+        if (isNaN(newBalance)) return;
 
-      // Portfolio updates temporarily disabled during schema migration
+        // Find the fund for this asset
+        const fund = funds.find(f => f.asset === symbol);
+        if (!fund) {
+          console.warn(`No fund found for asset ${symbol}`);
+          return;
+        }
+
+        // Check if user has this position (balance > 0 or existed before)
+        const hasExistingPosition = investor.portfolio_summary && 
+                                   investor.portfolio_summary[symbol.toUpperCase()];
+        
+        if (newBalance > 0 || hasExistingPosition) {
+          const result = await updateInvestorPosition(investor.id, fund.id, {
+            current_value: newBalance,
+            // Also update cost basis if it's a new position or we want to sync it
+            // For simplicity in this quick editor, we might just update current value
+            // But usually cost basis should track deposits. 
+            // Let's update shares too to keep 1:1 parity if that's the model
+            shares: newBalance 
+          });
+
+          if (!result.success) {
+            console.error(`Failed to update position for ${symbol}:`, result.error);
+            // We don't throw here to allow partial success, but could log errors
+          }
+        }
+      });
+
+      await Promise.all(updatePromises);
 
       toast({
         title: "Success",

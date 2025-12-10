@@ -36,6 +36,12 @@ export default function AdminRequestsQueuePage() {
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const queryClient = useQueryClient();
 
+  const getInvestorName = (profile?: { first_name?: string | null; last_name?: string | null; email?: string | null }) => {
+    if (!profile) return "Unknown";
+    const name = `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
+    return name || profile.email || "Unknown";
+  };
+
   // Fetch pending withdrawal requests
   const { data: withdrawalRequests, isLoading: withdrawalsLoading } = useQuery({
     queryKey: ["withdrawal-requests-admin"],
@@ -45,7 +51,7 @@ export default function AdminRequestsQueuePage() {
         .select(
           `
           *,
-          investors!inner(name, email),
+          profile:profiles!investor_id(first_name, last_name, email),
           funds!inner(name, fund_class)
         `
         )
@@ -223,16 +229,16 @@ export default function AdminRequestsQueuePage() {
                     No withdrawal requests found
                   </div>
                 ) : (
-                  withdrawalRequests?.map((request) => (
-                    <div key={request.id} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold">{request.investors.name}</span>
-                          <span className="text-sm text-muted-foreground">
-                            ({request.investors.email})
-                          </span>
-                          {getStatusBadge(request.status)}
-                        </div>
+                      withdrawalRequests?.map((request) => (
+                        <div key={request.id} className="border rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold">{getInvestorName(request.profile)}</span>
+                              <span className="text-sm text-muted-foreground">
+                                ({request.profile?.email || "unknown"})
+                              </span>
+                              {getStatusBadge(request.status)}
+                            </div>
                         <div className="text-right">
                           <div className="font-semibold">
                             $
@@ -287,14 +293,14 @@ export default function AdminRequestsQueuePage() {
                                 Approve
                               </Button>
                             </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Approve Withdrawal Request</DialogTitle>
-                                <DialogDescription>
-                                  Review and approve the withdrawal request for{" "}
-                                  {request.investors.name}
-                                </DialogDescription>
-                              </DialogHeader>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Approve Withdrawal Request</DialogTitle>
+                                  <DialogDescription>
+                                    Review and approve the withdrawal request for{" "}
+                                    {getInvestorName(request.profile)}
+                                  </DialogDescription>
+                                </DialogHeader>
                               <div className="space-y-4">
                                 <div>
                                   <Label>Approved Amount ($)</Label>
@@ -345,14 +351,14 @@ export default function AdminRequestsQueuePage() {
                                 Reject
                               </Button>
                             </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Reject Withdrawal Request</DialogTitle>
-                                <DialogDescription>
-                                  Provide a reason for rejecting {request.investors.name}'s
-                                  withdrawal request
-                                </DialogDescription>
-                              </DialogHeader>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Reject Withdrawal Request</DialogTitle>
+                                  <DialogDescription>
+                                    Provide a reason for rejecting {getInvestorName(request.profile)}'s
+                                    withdrawal request
+                                  </DialogDescription>
+                                </DialogHeader>
                               <div className="space-y-4">
                                 <div>
                                   <Label>Rejection Reason *</Label>

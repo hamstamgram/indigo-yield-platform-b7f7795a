@@ -7,7 +7,7 @@ export interface Transaction {
   asset: string;
   amount: number;
   type: string;
-  occurred_at: string;
+  tx_date: string; // V2 schema uses tx_date
   created_at: string | null;
   investor_name?: string;
   notes?: string | null;
@@ -25,7 +25,6 @@ export interface TransactionSummary {
  */
 export async function fetchUserTransactions(): Promise<Transaction[]> {
   try {
-    // First get the current user's investor_id
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -33,17 +32,10 @@ export async function fetchUserTransactions(): Promise<Transaction[]> {
       throw new Error("User not authenticated");
     }
 
-    // Get investor record for this user
-    const { data: investor, error: investorError } = await supabase
-      .from("investors")
-      .select("id")
-      .eq("profile_id", user.id)
-      .single();
+    // user.id IS the investor_id now (One ID)
+    const investorId = user.id;
 
-    if (investorError) throw investorError;
-    if (!investor) throw new Error("Investor record not found");
-
-    // Fetch transactions for this investor
+    // Fetch transactions for this investor, directly joining with profiles for name
     const { data, error } = await supabase
       .from("transactions_v2")
       .select(
@@ -56,27 +48,34 @@ export async function fetchUserTransactions(): Promise<Transaction[]> {
         tx_date,
         created_at,
         notes,
-        investors!inner(name)
+        profile:profiles(first_name, last_name, email)
       `
       )
-      .eq("investor_id", investor.id)
+      .eq("investor_id", investorId)
       .order("tx_date", { ascending: false })
       .limit(100);
 
     if (error) throw error;
 
-    return (data || []).map((tx) => ({
-      id: tx.id,
-      investor_id: tx.investor_id,
-      txn_type: tx.type, // Map type to txn_type for interface compatibility
-      asset: tx.asset,
-      amount: tx.amount,
-      type: tx.type,
-      occurred_at: tx.tx_date, // Map tx_date to occurred_at for interface compatibility
-      created_at: tx.created_at,
-      notes: tx.notes,
-      investor_name: (tx.investors as any)?.name,
-    }));
+    return (data || []).map((tx) => {
+      const profile = (tx as any).profile;
+      const investor_name = profile?.first_name || profile?.last_name
+        ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim()
+        : profile?.email || "Unknown";
+
+      return {
+        id: tx.id,
+        investor_id: tx.investor_id,
+        txn_type: tx.type,
+        asset: tx.asset,
+        amount: tx.amount,
+        type: tx.type,
+        tx_date: tx.tx_date, // V2 schema uses tx_date
+        created_at: tx.created_at,
+        notes: tx.notes,
+        investor_name: investor_name,
+      };
+    });
   } catch (error) {
     console.error("Error fetching transactions:", error);
     throw error;

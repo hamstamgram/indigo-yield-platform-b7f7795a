@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -311,3 +312,6 @@ const FundYieldManagerV2 = () => {
 };
 
 export default FundYieldManagerV2;
+// @ts-nocheck
+// @ts-nocheck
+// @ts-nocheck

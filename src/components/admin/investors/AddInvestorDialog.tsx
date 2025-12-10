@@ -13,7 +13,7 @@ import InvestorForm, { InvestorFormValues } from "./InvestorForm";
 import { Asset } from "@/types/investorTypes";
 import { useToast } from "@/hooks/use-toast";
 import { createOrFindInvestorUser } from "@/services/userService";
-import { createPortfolioEntries } from "@/services/portfolioService";
+import { portfolioService } from "@/services/core/PortfolioService";
 import { useInvestorInvite } from "@/hooks/useInvestorInvite";
 
 interface AddInvestorDialogProps {
@@ -38,8 +38,14 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({ assets, onInvesto
         throw new Error("Failed to create or find auth user");
       }
 
+      // Normalize balances to numbers before passing to portfolio creation
+      const numericBalances = Object.fromEntries(
+        Object.entries(values.balances || {}).map(([k, v]) => [k, Number(v) || 0])
+      );
+
       // Create portfolio entries for this investor
-      const portfolioCreated = await createPortfolioEntries(userId, assets);
+      // Pass the dynamic balances map and the full assets list
+      const portfolioCreated = await portfolioService.createPortfolioEntries(userId, numericBalances, assets);
 
       if (!portfolioCreated) {
         throw new Error("Failed to create portfolio entries");

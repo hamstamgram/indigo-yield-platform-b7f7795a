@@ -31,18 +31,23 @@ export function SingleReportGenerator() {
   const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
 
-  // Fetch Active Investors
+  // Fetch Active Investors (Profiles)
   const { data: investors, isLoading: isLoadingInvestors } = useQuery({
     queryKey: ["active-investors"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("investors")
-        .select("id, name, email")
+        .from("profiles")
+        .select("id, first_name, last_name, email")
         .eq("status", "active")
-        .order("name");
+        .eq("is_admin", false)
+        .order("first_name");
 
       if (error) throw error;
-      return data as Investor[];
+      return data.map((p) => ({
+        id: p.id,
+        name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
+        email: p.email,
+      })) as Investor[];
     },
   });
 
@@ -54,61 +59,76 @@ export function SingleReportGenerator() {
     const investor = investors?.find((i) => i.id === selectedInvestor);
     if (!investor) throw new Error("Investor not found");
 
-    const targetMonth = reportDate.substring(0, 7); // YYYY-MM
+    const [yearStr, monthStr] = reportDate.split("-");
+    const year = parseInt(yearStr);
+    const month = parseInt(monthStr);
 
-    // 2. Fetch Monthly Reports
+    // 2. Get Statement Period
+    const { data: period } = await supabase
+      .from("statement_periods")
+      .select("id, period_end_date")
+      .eq("year", year)
+      .eq("month", month)
+      .maybeSingle();
+
+    if (!period) throw new Error(`No statement period found for ${reportDate}`);
+
+    // 3. Fetch Performance Reports (V2)
     const { data: reports, error } = await supabase
-      .from("investor_monthly_reports")
+      .from("investor_fund_performance")
       .select("*")
-      .eq("investor_id", selectedInvestor)
-      .eq("report_month", `${targetMonth}-01`);
+      .eq("user_id", selectedInvestor)
+      .eq("period_id", period.id);
 
     if (error) throw error;
     if (!reports || reports.length === 0)
-      throw new Error(`No report data found for ${targetMonth}`);
+      throw new Error(`No report data found for ${reportDate}`);
 
-    // 3. Map to ReportData structure
+    // 4. Map to ReportData structure
     const reportData: ReportData = {
       investorName: investor.name,
-      reportDate: format(parseISO(`${targetMonth}-01`), "MMMM d, yyyy"),
+      reportDate: format(parseISO(period.period_end_date), "MMMM d, yyyy"),
       funds: reports.map((r) => {
-        let fundName = `${r.asset_code} Yield Fund`;
-        if (r.asset_code === "xAUT") fundName = "Tokenized Gold";
-        if (r.asset_code === "USDT") fundName = "Stablecoin Fund";
+        let fundName = r.fund_name;
+        // Simple normalization for display if needed, or use fund_name directly
+        if (fundName === "xAUT") fundName = "Tokenized Gold";
+        if (fundName === "USDT") fundName = "Stablecoin Fund";
+        if (fundName === "BTC") fundName = "BTC YIELD FUND";
+        if (fundName === "ETH") fundName = "ETH YIELD FUND";
 
         return {
           fundName: fundName,
-          currency: r.asset_code,
+          currency: r.fund_name, // Asset code
           metrics: {
-            begin_balance_mtd: r.opening_balance?.toString() || "0",
-            begin_balance_qtd: "-",
-            begin_balance_ytd: "-",
-            begin_balance_itd: "-",
+            begin_balance_mtd: r.mtd_beginning_balance?.toString() || "0",
+            begin_balance_qtd: r.qtd_beginning_balance?.toString() || "-",
+            begin_balance_ytd: r.ytd_beginning_balance?.toString() || "-",
+            begin_balance_itd: r.itd_beginning_balance?.toString() || "-",
 
-            additions_mtd: r.additions?.toString() || "0",
-            additions_qtd: "-",
-            additions_ytd: "-",
-            additions_itd: "-",
+            additions_mtd: r.mtd_additions?.toString() || "0",
+            additions_qtd: r.qtd_additions?.toString() || "-",
+            additions_ytd: r.ytd_additions?.toString() || "-",
+            additions_itd: r.itd_additions?.toString() || "-",
 
-            redemptions_mtd: r.withdrawals?.toString() || "0",
-            redemptions_qtd: "-",
-            redemptions_ytd: "-",
-            redemptions_itd: "-",
+            redemptions_mtd: r.mtd_redemptions?.toString() || "0",
+            redemptions_qtd: r.qtd_redemptions?.toString() || "-",
+            redemptions_ytd: r.ytd_redemptions?.toString() || "-",
+            redemptions_itd: r.itd_redemptions?.toString() || "-",
 
-            net_income_mtd: r.yield_earned?.toString() || "0",
-            net_income_qtd: "-",
-            net_income_ytd: "-",
-            net_income_itd: "-",
+            net_income_mtd: r.mtd_net_income?.toString() || "0",
+            net_income_qtd: r.qtd_net_income?.toString() || "-",
+            net_income_ytd: r.ytd_net_income?.toString() || "-",
+            net_income_itd: r.itd_net_income?.toString() || "-",
 
-            ending_balance_mtd: r.closing_balance?.toString() || "0",
-            ending_balance_qtd: "-",
-            ending_balance_ytd: "-",
-            ending_balance_itd: "-",
+            ending_balance_mtd: r.mtd_ending_balance?.toString() || "0",
+            ending_balance_qtd: r.qtd_ending_balance?.toString() || "-",
+            ending_balance_ytd: r.ytd_ending_balance?.toString() || "-",
+            ending_balance_itd: r.itd_ending_balance?.toString() || "-",
 
-            return_rate_mtd: "0",
-            return_rate_qtd: "-",
-            return_rate_ytd: "-",
-            return_rate_itd: "-",
+            return_rate_mtd: r.mtd_rate_of_return ? (Number(r.mtd_rate_of_return) * 100).toFixed(2) : "0",
+            return_rate_qtd: r.qtd_rate_of_return ? (Number(r.qtd_rate_of_return) * 100).toFixed(2) : "-",
+            return_rate_ytd: r.ytd_rate_of_return ? (Number(r.ytd_rate_of_return) * 100).toFixed(2) : "-",
+            return_rate_itd: r.itd_rate_of_return ? (Number(r.itd_rate_of_return) * 100).toFixed(2) : "-",
           },
         };
       }),

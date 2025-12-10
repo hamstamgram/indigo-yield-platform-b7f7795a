@@ -43,9 +43,10 @@ export const calculateDailyInterest = async () => {
 export const calculateInvestorCount = async () => {
   try {
     const { count } = await supabase
-      .from("investors")
+      .from("profiles")
       .select("*", { count: "exact", head: true })
-      .eq("status", "active");
+      .eq("status", "active")
+      .eq("is_admin", false); // Only count non-admin profiles
     return count || 0;
   } catch (error) {
     console.error("Error calculating investor count:", error);
@@ -85,14 +86,8 @@ export const formatAssetValue = (value: number, assetCode?: string): string => {
 
 export const calculateAllKPIs = async (userId: string): Promise<AssetKPI[]> => {
   try {
-    // Fetch Investor ID for the Auth User
-    const { data: investor } = await supabase
-      .from("investors")
-      .select("id")
-      .eq("profile_id", userId)
-      .single();
-
-    if (!investor) return [];
+    // userId IS the investor.id (One ID)
+    const investorId = userId;
 
     // Fetch Real Data from Investor Positions with fund details
     const { data: positions, error } = await supabase
@@ -106,7 +101,7 @@ export const calculateAllKPIs = async (userId: string): Promise<AssetKPI[]> => {
         fund:funds(id, asset)
       `
       )
-      .eq("investor_id", investor.id);
+      .eq("investor_id", investorId);
 
     if (error || !positions) {
       console.error("Error fetching positions:", error);

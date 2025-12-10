@@ -36,6 +36,7 @@ export const AuditLogViewer = lazy(() => import("@/routes/admin/AuditLogViewer")
 export const DailyRatesManagement = lazy(() => import("@/routes/admin/DailyRatesManagement"));
 export const InvestorReports = lazy(() => import("@/routes/admin/InvestorReports"));
 export const MonthlyDataEntry = lazy(() => import("@/routes/admin/MonthlyDataEntry"));
+export const FundOperationsPage = lazy(() => import("@/routes/admin/FundOperationsPage"));
 
 // Admin Sub-pages
 export const FundManagement = lazy(() => import("@/routes/admin/funds/FundManagement"));
@@ -99,9 +100,7 @@ export const CustomReport = lazy(() => import("@/routes/reports/CustomReport"));
 export const PerformanceReportPage = lazy(() => import("@/routes/reports/PerformanceReportPage"));
 export const ReportsPage = lazy(() => import("@/routes/reports/ReportsPage"));
 
-export const SettingsNotificationsPage = lazy(
-  () => import("@/routes/settings/NotificationSettingsPage")
-);
+// SettingsNotificationsPage is the same as NotificationSettingsPage - use that instead
 
 export const PendingTransactionsPage = lazy(
   () => import("@/routes/transactions/PendingTransactionsPage")
@@ -112,7 +111,7 @@ export const PendingTransactionDetailsPage = lazy(
 export const TransactionDetailsPage = lazy(
   () => import("@/routes/transactions/TransactionDetailsPage")
 );
-export const TransactionsPageV2 = TransactionsPage;
+// TransactionsPageV2 alias removed - use TransactionsPage directly
 
 export const WithdrawalHistoryPage = lazy(
   () => import("@/routes/withdrawals/WithdrawalHistoryPage")
@@ -263,6 +262,11 @@ export const LazyInvestorReports = () => (
 export const LazyMonthlyDataEntry = () => (
   <RouteSuspense type="admin">
     <MonthlyDataEntry />
+  </RouteSuspense>
+);
+export const LazyFundOperations = () => (
+  <RouteSuspense type="admin">
+    <FundOperationsPage />
   </RouteSuspense>
 );
 
@@ -422,7 +426,7 @@ export const LazyReportsPage = () => (
 );
 export const LazySettingsNotifications = () => (
   <RouteSuspense>
-    <SettingsNotificationsPage />
+    <NotificationSettingsPage />
   </RouteSuspense>
 );
 export const LazyPendingTransactions = () => (
@@ -442,7 +446,7 @@ export const LazyTransactionDetails = () => (
 );
 export const LazyTransactionsV2 = () => (
   <RouteSuspense>
-    <TransactionsPageV2 />
+    <TransactionsPage />
   </RouteSuspense>
 );
 export const LazyWithdrawalHistory = () => (

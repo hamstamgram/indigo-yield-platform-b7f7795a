@@ -19,11 +19,12 @@ const AdminStatementGenerator: React.FC = () => {
     setIsGenerating(true);
     setProgress(0);
     try {
-      // 1. Fetch all active investors
+      // 1. Fetch all active investors (profiles)
       const { data: investors, error: investorsError } = await supabase
-        .from("investors")
-        .select("id, name, email, profile_id")
-        .eq("status", "active");
+        .from("profiles")
+        .select("id, first_name, last_name, email, status")
+        .eq("status", "active")
+        .eq("is_admin", false); // Only non-admin profiles
 
       if (investorsError) throw investorsError;
       if (!investors || investors.length === 0) {
@@ -34,22 +35,35 @@ const AdminStatementGenerator: React.FC = () => {
       const total = investors.length;
       let successCount = 0;
 
+      // Resolve period_id for the selected month/year
+      const { data: period, error: periodError } = await supabase
+        .from("statement_periods")
+        .select("id, period_end_date")
+        .eq("year", parseInt(selectedYear))
+        .eq("month", parseInt(selectedMonth))
+        .maybeSingle();
+
+      if (periodError || !period) {
+        toast({ title: "Error", description: "Statement period not found for selected date.", variant: "destructive" });
+        return;
+      }
+
       // 2. Loop and generate
       for (let i = 0; i < total; i++) {
         const investor = investors[i];
+        const investorFullName = `${investor.first_name || ""} ${investor.last_name || ""}`.trim() || investor.email;
 
-        // Fetch report data via RPC or simple query
-        // Using query for simplicity as RPC might need params
+        // Fetch report data from investor_fund_performance (V2)
         const { data: reports } = await supabase
-          .from("investor_monthly_reports")
-          .select("*")
-          .eq("investor_id", investor.id)
-          .eq("report_month", `${selectedYear}-${selectedMonth.padStart(2, "0")}-01`);
+          .from("investor_fund_performance")
+          .select("fund_name, mtd_beginning_balance, mtd_additions, mtd_redemptions, mtd_net_income, mtd_ending_balance, mtd_rate_of_return")
+          .eq("user_id", investor.id)
+          .eq("period_id", period.id);
 
         // Prepare statement data
         const statementData = {
           investor: {
-            name: investor.name,
+            name: investorFullName,
             id: investor.id,
             accountNumber: investor.id.substring(0, 8).toUpperCase(),
           },
@@ -57,23 +71,22 @@ const AdminStatementGenerator: React.FC = () => {
             month: parseInt(selectedMonth),
             year: parseInt(selectedYear),
             start: `${selectedYear}-${selectedMonth.padStart(2, "0")}-01`,
-            end: new Date(parseInt(selectedYear), parseInt(selectedMonth), 0)
-              .toISOString()
-              .split("T")[0],
+            end: period.period_end_date,
           },
           summary: {
-            total_aum: reports?.reduce((sum, r) => sum + Number(r.closing_balance), 0) || 0,
-            total_pnl: reports?.reduce((sum, r) => sum + Number(r.yield_earned), 0) || 0,
-            total_fees: 0, // Fees tracked separately if needed
+            total_aum: reports?.reduce((sum, r) => sum + Number(r.mtd_ending_balance || 0), 0) || 0,
+            total_pnl: reports?.reduce((sum, r) => sum + Number(r.mtd_net_income || 0), 0) || 0,
+            total_fees: 0, // Fees tracked separately
           },
           positions:
             reports?.map((r) => ({
-              asset_code: r.asset_code,
-              opening_balance: Number(r.opening_balance),
-              additions: Number(r.additions),
-              withdrawals: Number(r.withdrawals),
-              yield_earned: Number(r.yield_earned),
-              closing_balance: Number(r.closing_balance),
+              asset_code: r.fund_name,
+              opening_balance: Number(r.mtd_beginning_balance || 0),
+              additions: Number(r.mtd_additions || 0),
+              withdrawals: Number(r.mtd_redemptions || 0),
+              yield_earned: Number(r.mtd_net_income || 0),
+              closing_balance: Number(r.mtd_ending_balance || 0),
+              rate_of_return: Number(r.mtd_rate_of_return || 0),
             })) || [],
         };
 
@@ -89,22 +102,23 @@ const AdminStatementGenerator: React.FC = () => {
             upsert: true,
           });
 
-        if (!uploadError) {
-          // Log Document
-          const currentUser = await supabase.auth.getUser();
-          await supabase.from("documents").insert({
-            user_id: investor.profile_id || investor.id,
-            type: "statement",
-            title: `Monthly Statement - ${selectedMonth}/${selectedYear}`,
-            storage_path: uploadData?.path || "",
-            period_start: statementData.period.start,
-            period_end: statementData.period.end,
-            created_by: currentUser.data.user?.id,
-          });
-          successCount++;
+        if (uploadError) {
+          console.error("Upload failed", uploadError);
+          continue;
         }
 
-        setProgress(Math.round(((i + 1) / total) * 100));
+        // Save document record
+        const currentUser = await supabase.auth.getUser();
+        await supabase.from("documents").insert({
+          user_id: investor.id, // Unified ID
+          type: "statement",
+          title: `Monthly Statement - ${selectedMonth}/${selectedYear}`,
+          storage_path: uploadData?.path || "",
+          period_start: statementData.period.start,
+          period_end: statementData.period.end,
+          created_by: currentUser.data.user?.id,
+        });
+        successCount++;
       }
 
       toast({

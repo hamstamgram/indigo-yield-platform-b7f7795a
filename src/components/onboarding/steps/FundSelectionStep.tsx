@@ -104,11 +104,14 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
     return { level: "High", color: "text-red-600", bg: "bg-red-100" };
   };
 
-  const formatCurrency = (amount: number, currency?: string) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currency || "USD",
+  // Format in native tokens (no fiat currency - platform uses crypto tokens)
+  const formatTokenAmount = (amount: number, symbol?: string) => {
+    const decimals = symbol === "BTC" ? 8 : symbol === "ETH" ? 6 : 2;
+    const formatted = new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: decimals,
     }).format(amount);
+    return symbol ? `${formatted} ${symbol}` : formatted;
   };
 
   const formatPercentage = (value: number) => {
@@ -210,7 +213,7 @@ const FundSelectionStep: React.FC<FundSelectionStepProps> = ({
                           <div className="text-center">
                             <p className="text-xs text-muted-foreground">Min Investment</p>
                             <p className="font-semibold text-gray-900 dark:text-white">
-                              {formatCurrency(performanceData.min_investment)}
+                              {formatTokenAmount(performanceData.min_investment, performanceData.currency_symbol)}
                             </p>
                           </div>
                         </div>

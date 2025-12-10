@@ -11,38 +11,42 @@ export default function ReportsPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ["investor_monthly_reports", searchTerm],
+    queryKey: ["investor_fund_performance", searchTerm],
     queryFn: async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
 
-      // Get investor ID from profile
-      const { data: investor } = await supabase
-        .from("investors")
-        .select("id")
-        .eq("profile_id", user.id)
-        .maybeSingle();
+      // Get investor ID (One ID: it's the user.id)
+      const investorId = user.id;
 
-      if (!investor) return [];
-
-      // Use investor_monthly_reports instead of non-existent generated_reports
+      // Query investor_fund_performance (V2) with investor_id
       let query = supabase
-        .from("investor_monthly_reports")
-        .select("*")
-        .eq("investor_id", investor.id);
+        .from("investor_fund_performance")
+        .select(`
+          id,
+          fund_name,
+          period:statement_periods(period_end_date, year, month),
+          created_at
+        `)
+        .eq("investor_id", investorId);
 
       if (searchTerm) {
-        query = query.ilike("asset_code", `%${searchTerm}%`);
+        query = query.ilike("fund_name", `%${searchTerm}%`);
       }
 
-      const { data, error } = await query.order("created_at", { ascending: false });
+      const { data, error } = await query.order("period(period_end_date)", { ascending: false });
       if (error) {
         console.error("Error fetching reports:", error);
         return [];
       }
-      return data || [];
+      return data.map(item => ({
+        id: item.id,
+        asset_code: item.fund_name,
+        report_month: `${item.period?.year}-${String(item.period?.month).padStart(2, '0')}`,
+        created_at: item.created_at,
+      }));
     },
   });
 

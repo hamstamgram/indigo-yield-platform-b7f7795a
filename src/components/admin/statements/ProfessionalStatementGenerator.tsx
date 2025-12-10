@@ -48,13 +48,18 @@ const ProfessionalStatementGenerator = () => {
   const fetchInvestors = async () => {
     try {
       const { data, error } = await supabase
-        .from("investors")
-        .select("id, name, email")
+        .from("profiles")
+        .select("id, first_name, last_name, email, status")
         .eq("status", "active")
-        .order("name");
+        .eq("is_admin", false)
+        .order("first_name");
 
       if (error) throw error;
-      setInvestors(data || []);
+      setInvestors(data.map(p => ({
+        id: p.id,
+        name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
+        email: p.email
+      })) || []);
     } catch (error) {
       console.error("Error fetching investors:", error);
       toast.error("Failed to load investors");
@@ -69,41 +74,50 @@ const ProfessionalStatementGenerator = () => {
 
     setLoading(true);
     try {
-      // Fetch monthly reports for this investor and asset
-      const { data: reports, error } = await supabase
-        .from("investor_monthly_reports")
-        .select("*")
-        .eq("investor_id", selectedInvestor)
-        .eq("asset_code", selectedAsset)
-        .order("report_month", { ascending: false })
-        .limit(12);
-
-      if (error) throw error;
+      // Find the latest period for this investor and asset
+      const { data: latestPerformance, error: perfError } = await supabase
+        .from("investor_fund_performance")
+        .select(`
+          *,
+          period:statement_periods(period_end_date)
+        `)
+        .eq("investor_id", selectedInvestor) // Use profile id
+        .eq("fund_name", selectedAsset)
+        .order("period(period_end_date)", { ascending: false })
+        .limit(1)
+        .single();
+        
+      if (perfError || !latestPerformance) throw new Error("No performance data found for this investor/asset/period.");
 
       // Calculate period summaries from reports
-      const latestReport = reports?.[0];
-      const defaultPeriod: PeriodData = {
-        beginning_balance: 0,
-        additions: 0,
-        withdrawals: 0,
-        net_income: 0,
-        ending_balance: 0,
-        rate_of_return: 0,
-      };
-
       const statementResult: StatementData = {
-        MTD: latestReport ? {
-          beginning_balance: Number(latestReport.opening_balance) || 0,
-          additions: Number(latestReport.additions) || 0,
-          withdrawals: Number(latestReport.withdrawals) || 0,
-          net_income: Number(latestReport.yield_earned) || 0,
-          ending_balance: Number(latestReport.closing_balance) || 0,
-          rate_of_return: latestReport.opening_balance ? 
-            ((Number(latestReport.yield_earned) || 0) / Number(latestReport.opening_balance)) * 100 : 0,
-        } : defaultPeriod,
-        QTD: defaultPeriod,
-        YTD: defaultPeriod,
-        ITD: defaultPeriod,
+        MTD: {
+          beginning_balance: Number(latestPerformance.mtd_beginning_balance || 0),
+          additions: Number(latestPerformance.mtd_additions || 0),
+          withdrawals: Number(latestPerformance.mtd_redemptions || 0),
+          net_income: Number(latestPerformance.mtd_net_income || 0),
+          ending_balance: Number(latestPerformance.mtd_ending_balance || 0),
+          rate_of_return: Number(latestPerformance.mtd_rate_of_return || 0) * 100,
+        },
+        QTD: {
+          beginning_balance: Number(latestPerformance.qtd_beginning_balance || 0),
+          additions: Number(latestPerformance.qtd_additions || 0),
+          withdrawals: Number(latestPerformance.qtd_redemptions || 0),
+          net_income: Number(latestPerformance.qtd_net_income || 0),
+          ending_balance: Number(latestPerformance.qtd_ending_balance || 0),
+          rate_of_return: Number(latestPerformance.qtd_rate_of_return || 0) * 100,
+        },
+        YTD: {
+          beginning_balance: Number(latestPerformance.ytd_beginning_balance || 0),
+          additions: Number(latestPerformance.ytd_additions || 0),
+          withdrawals: Number(latestPerformance.ytd_redemptions || 0),
+          net_income: Number(latestPerformance.ytd_net_income || 0),
+          ending_balance: Number(latestPerformance.ytd_ending_balance || 0),
+          rate_of_return: Number(latestPerformance.ytd_rate_of_return || 0) * 100,
+        },
+        ITD: { // ITD not explicitly in schema. Can derive or use YTD as fallback
+          beginning_balance: 0, additions: 0, withdrawals: 0, net_income: 0, ending_balance: 0, rate_of_return: 0,
+        },
       };
 
       setStatementData(statementResult);
@@ -115,13 +129,14 @@ const ProfessionalStatementGenerator = () => {
     }
   };
 
-  const formatCurrency = (amount: number) => {
+  // Format in native tokens (no fiat currency - platform uses crypto tokens)
+  const formatTokenAmount = (amount: number) => {
+    // Determine decimals based on selected asset
+    const decimals = selectedAsset === "BTC" ? 8 : selectedAsset === "ETH" ? 6 : 2;
     return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
+      maximumFractionDigits: decimals,
+    }).format(amount) + ` ${selectedAsset}`;
   };
 
   const formatPercentage = (rate: number) => {
@@ -253,19 +268,19 @@ const ProfessionalStatementGenerator = () => {
                     <tr key={period} className="hover:bg-gray-50">
                       <td className="border border-gray-300 px-4 py-3 font-medium">{period}</td>
                       <td className="border border-gray-300 px-4 py-3 text-right">
-                        {formatCurrency(data.beginning_balance)}
+                        {formatTokenAmount(data.beginning_balance)}
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-right">
-                        {formatCurrency(data.additions)}
+                        {formatTokenAmount(data.additions)}
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-right">
-                        {formatCurrency(data.withdrawals)}
+                        {formatTokenAmount(data.withdrawals)}
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-right">
-                        {formatCurrency(data.net_income)}
+                        {formatTokenAmount(data.net_income)}
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-right font-semibold">
-                        {formatCurrency(data.ending_balance)}
+                        {formatTokenAmount(data.ending_balance)}
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-right font-semibold">
                         {formatPercentage(data.rate_of_return)}

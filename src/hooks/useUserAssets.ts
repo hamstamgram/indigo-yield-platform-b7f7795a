@@ -14,54 +14,30 @@ export const useUserAssets = () => {
   return useQuery<UserAsset[]>({
     queryKey: ["user-assets"],
     queryFn: async () => {
-      // Get current user
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+      const { data: authData } = await supabase.auth.getUser();
+      const user = authData?.user;
+      if (!user) return [];
 
-      if (userError || !user) {
+      const { data: reports, error } = await supabase
+        .from("investor_fund_performance")
+        .select("fund_name")
+        .eq("investor_id", user.id);
+
+      if (error || !reports) {
         return [];
       }
 
-      // Get investor_id from profiles -> investors
-      const { data: investorData, error: investorError } = await supabase
-        .from("investors")
-        .select("id")
-        .eq("profile_id", user.id)
-        .maybeSingle();
-
-      if (investorError || !investorData) {
-        return [];
-      }
-
-      // Get unique assets from monthly reports
-      const { data: reports, error: reportsError } = await supabase
-        .from("investor_monthly_reports")
-        .select("asset_code")
-        .eq("investor_id", investorData.id)
-        .order("asset_code", { ascending: true });
-
-      if (reportsError || !reports) {
-        return [];
-      }
-
-      // Get unique asset codes
-      const uniqueAssetCodes = Array.from(new Set(reports.map((r) => r.asset_code)));
-
-      // Map asset codes to user-friendly names
+      const uniqueAssetCodes = Array.from(new Set((reports as any[]).map((r) => r.fund_name)));
       const assetNames: Record<string, string> = {
         BTC: "BTC Yield Fund",
         ETH: "ETH Yield Fund",
         SOL: "SOL Yield Fund",
-        USDT: "Stablecoin Fund",
-        EURC: "EURC Yield Fund",
-        xAUT: "Tokenized Gold",
+        USDT: "USDT Yield Fund",
         XRP: "XRP Yield Fund",
       };
 
       return uniqueAssetCodes.map((code) => ({
-        symbol: code.toLowerCase(),
+        symbol: String(code).toLowerCase(),
         name: assetNames[code] || code,
       }));
     },

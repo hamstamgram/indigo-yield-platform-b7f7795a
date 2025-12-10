@@ -111,14 +111,15 @@ export async function createStatementPeriod(data: {
  */
 export async function fetchPeriodInvestors(periodId: string): Promise<InvestorStatementSummary[]> {
   try {
-    // Get all investors with fund performance data for this period
+    // V2: Get all investors with fund performance data for this period
+    // investor_id = profiles.id (One ID architecture)
     const { data: performances, error: perfError } = (await supabase
       .from("investor_fund_performance" as any)
       .select(
         `
-        user_id,
+        investor_id,
         fund_name,
-        profiles!investor_fund_performance_user_id_fkey (
+        profiles!investor_fund_performance_investor_id_fkey (
           id,
           email,
           first_name,
@@ -137,14 +138,14 @@ export async function fetchPeriodInvestors(periodId: string): Promise<InvestorSt
       const profile = perf.profiles as any;
       if (!profile) continue;
 
-      const existing = investorMap.get(perf.user_id);
+      const existing = investorMap.get(perf.investor_id);
       const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Unknown";
       if (existing) {
         existing.fund_count++;
         existing.fund_names.push(perf.fund_name);
       } else {
-        investorMap.set(perf.user_id, {
-          id: perf.user_id,
+        investorMap.set(perf.investor_id, {
+          id: perf.investor_id,
           name: fullName,
           email: profile.email || "",
           fund_count: 1,
@@ -262,12 +263,12 @@ export async function generateInvestorStatement(
 
     const investorFullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Investor";
 
-    // Fetch fund performance data
+    // V2: Fetch fund performance data using investor_id
     const { data: performances, error: perfError } = (await supabase
       .from("investor_fund_performance" as any)
       .select("*")
       .eq("period_id", periodId)
-      .eq("user_id", userId)) as any;
+      .eq("investor_id", userId)) as any;
 
     if (perfError) throw perfError;
 
@@ -557,11 +558,12 @@ export async function saveInvestorFundPerformance(
   data: Partial<InvestorFundPerformance>
 ): Promise<InvestorFundPerformance> {
   try {
+    // V2 Architecture: investor_id = profiles.id (One ID)
     const { data: performance, error } = (await supabase
       .from("investor_fund_performance" as any)
       .upsert({
         period_id: periodId,
-        user_id: userId,
+        investor_id: userId,
         fund_name: fundName,
         ...data,
       })
@@ -584,12 +586,12 @@ export async function fetchInvestorFundPerformance(
   userId: string
 ): Promise<InvestorFundPerformance[]> {
   try {
-    // Cast supabase to any to avoid excessive type depth inference in query builder
+    // V2 Architecture: investor_id = profiles.id (One ID)
     const result = await (supabase as any)
       .from("investor_fund_performance")
       .select("*")
       .eq("period_id", periodId)
-      .eq("user_id", userId);
+      .eq("investor_id", userId);
 
     const { data, error } = result as { data: InvestorFundPerformance[] | null; error: any };
     if (error) throw error;

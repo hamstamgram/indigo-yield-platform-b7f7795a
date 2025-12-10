@@ -17,14 +17,8 @@ export default function PortfolioPage() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
 
-      // Resolve investor_id from profile_id
-      const { data: investor } = await supabase
-        .from("investors")
-        .select("id")
-        .eq("profile_id", user.id)
-        .maybeSingle();
-
-      if (!investor) return [];
+      // Resolve investor_id (One ID)
+      const investorId = user.id;
 
       const { data, error } = await (supabase as any)
         .from("investor_positions")
@@ -42,7 +36,7 @@ export default function PortfolioPage() {
           )
         `
         )
-        .eq("investor_id", investor.id);
+        .eq("investor_id", investorId);
 
       if (error) {
         // Fallback if 'investor_positions' view/table issue, try 'positions' table if it was legacy

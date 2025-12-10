@@ -229,23 +229,39 @@ class AdminServiceV2 {
   }
 
   // Get fund performance data
-  // Note: fund_daily_aum table doesn't exist yet - using funds table as fallback
   async getFundPerformance(fundId?: string): Promise<any[]> {
     try {
-      let query = supabase
-        .from("funds")
-        .select("id, code, name, asset, nav, aum, inception_date, updated_at")
-        .order("updated_at", { ascending: false })
+      // Fetch latest AUM snapshots from fund_daily_aum
+      let aumQuery = supabase
+        .from("fund_daily_aum")
+        .select("fund_id, total_aum, as_of_date, aum_date, created_at")
+        .order("as_of_date", { ascending: false })
         .limit(30);
 
       if (fundId) {
-        query = query.eq("id", fundId);
+        aumQuery = aumQuery.eq("fund_id", fundId);
       }
 
-      const { data, error } = await query;
+      const [{ data: aumData, error: aumError }, { data: funds }] = await Promise.all([
+        aumQuery,
+        supabase.from("funds").select("id, code, name, asset, inception_date"),
+      ]);
 
-      if (error) throw error;
-      return data || [];
+      if (aumError) throw aumError;
+
+      const fundMap = new Map<string, any>();
+      (funds || []).forEach((f) => fundMap.set(f.id, f));
+
+      return (aumData || []).map((row) => {
+        const meta = fundMap.get(row.fund_id) || {};
+        return {
+          ...row,
+          fund_code: meta.code,
+          fund_name: meta.name,
+          fund_asset: meta.asset,
+          inception_date: meta.inception_date,
+        };
+      });
     } catch (error) {
       console.error("Error fetching fund performance:", error);
       return [];

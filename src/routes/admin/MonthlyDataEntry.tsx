@@ -73,7 +73,7 @@ export default function FundManager() {
   // Derived selected fund
   const selectedFund = funds?.find((f) => f.id === selectedFundId);
 
-  // 1.5 Fetch Net Flows
+  // 1.5 Fetch Net Flows (Direct Query)
   const { data: flowData } = useQuery({
     queryKey: ["fund-flows", selectedFundId, selectedMonth],
     enabled: !!selectedFundId && !!selectedMonth,
@@ -82,15 +82,19 @@ export default function FundManager() {
       const date = new Date(selectedMonth + "-01");
       const end = new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString();
 
-      // Using any cast to bypass strict type check on new RPC
-      const { data, error } = await (supabase as any).rpc("get_fund_net_flows", {
-        p_fund_id: selectedFundId,
-        p_start_date: start,
-        p_end_date: end,
-      });
+      const { data, error } = await supabase
+        .from("transactions_v2")
+        .select("type, amount")
+        .eq("fund_id", selectedFundId)
+        .gte("tx_date", start)
+        .lte("tx_date", end);
 
       if (error) throw error;
-      return data[0] || { total_deposits: 0, total_withdrawals: 0 };
+
+      const deposits = data?.filter(t => t.type === 'DEPOSIT').reduce((sum, t) => sum + Number(t.amount), 0) || 0;
+      const withdrawals = data?.filter(t => t.type === 'WITHDRAWAL').reduce((sum, t) => sum + Number(t.amount), 0) || 0;
+
+      return { total_deposits: deposits, total_withdrawals: withdrawals };
     },
   });
 
@@ -169,19 +173,60 @@ export default function FundManager() {
       if (!user) throw new Error("Unauthorized");
 
       if (isBaselineMode) {
-        const { data, error } = await supabase.rpc("update_fund_aum_baseline" as any, {
-          p_fund_id: selectedFundId,
-          p_new_aum: parseFloat(newAumInput),
-          p_admin_id: user.id,
-        });
+        // Direct update to funds table
+        const { data, error } = await supabase
+          .from("funds")
+          .update({ 
+            total_aum: parseFloat(newAumInput),
+            updated_at: new Date().toISOString() 
+          })
+          .eq("id", selectedFundId)
+          .select();
+          
         if (error) throw error;
         return data;
       } else {
-        // Call the RPC function we defined in the migration
-        const { data, error } = await supabase.rpc("distribute_monthly_yield" as any, {
-          p_fund_id: selectedFundId,
-          p_report_month: `${selectedMonth}-01`,
-          p_new_aum: parseFloat(newAumInput),
+        // 1. Get or Create Period ID
+        const [year, month] = selectedMonth.split("-").map(Number);
+        let periodId;
+        
+        const { data: period } = await supabase
+          .from("statement_periods")
+          .select("id")
+          .eq("year", year)
+          .eq("month", month)
+          .maybeSingle();
+          
+        if (period) {
+          periodId = period.id;
+        } else {
+          // Create period
+          const date = new Date(year, month - 1);
+          const periodName = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+          const endDate = new Date(year, month, 0).toISOString().split('T')[0]; // Last day
+          
+          const { data: newPeriod, error: periodError } = await supabase
+            .from("statement_periods")
+            .insert({
+              year,
+              month,
+              period_name: periodName,
+              period_end_date: endDate,
+              created_by: user.id,
+              status: 'FINALIZED'
+            })
+            .select("id")
+            .single();
+            
+          if (periodError) throw periodError;
+          periodId = newPeriod.id;
+        }
+
+        // 2. Call V2 Yield Distribution RPC
+        const { data, error } = await supabase.rpc("distribute_yield_v2", {
+          p_period_id: periodId,
+          p_fund_name: selectedFund?.asset_symbol,
+          p_gross_yield_amount: preview.yieldPot,
           p_admin_id: user.id,
         });
 

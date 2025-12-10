@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Search, Coins, ChevronDown, ChevronRight } from "lucide-react";
+import { X, Search, Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import NavSection from "@/components/sidebar/NavSection";
@@ -25,7 +25,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
   const [userName, setUserName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [fundItems, setFundItems] = useState<NavItem[]>([]); // Dynamic Funds
-  const [isFundsExpanded, setIsFundsExpanded] = useState(true);
 
   const navigate = useNavigate();
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -65,7 +64,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
         .order("symbol");
       
       if (assets) {
-        console.log("Fetched assets for funds:", assets);
         const items: NavItem[] = assets.map(asset => ({
           title: asset.name,
           href: isAdmin ? `/admin/funds/${asset.symbol}` : `/funds/${asset.symbol}`,
@@ -224,24 +222,18 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                 {/* Dynamic Funds for Admin */}
                 {fundItems.length > 0 && (
                   <div className="mb-6">
-                    <div 
-                      className="w-full flex items-center justify-between px-2 py-1.5 mb-1 text-xs font-bold text-sidebar-foreground uppercase tracking-wider cursor-pointer hover:text-sidebar-primary transition-colors"
-                      onClick={() => setIsFundsExpanded(!isFundsExpanded)}
-                    >
+                    <div className="w-full flex items-center justify-between px-2 py-1.5 mb-1 text-xs font-bold text-sidebar-foreground uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <Coins className="h-3 w-3" />
                         <span>Fund Management</span>
                       </div>
-                      {isFundsExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
                     </div>
-                    {isFundsExpanded && (
-                      <NavSection
-                        title=""
-                        items={filterNavItems(fundItems, searchQuery)}
-                        onItemClick={handleNavigationClick}
-                        showTitle={false}
-                      />
-                    )}
+                    <NavSection
+                      title=""
+                      items={filterNavItems(fundItems, searchQuery)}
+                      onItemClick={handleNavigationClick}
+                      showTitle={false}
+                    />
                   </div>
                 )}
 
@@ -288,24 +280,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
 
                 {/* My Funds (Dynamic) */}
                 {fundItems.length > 0 && (
-                  <div className="mb-6">
-                    <div 
-                      className="w-full flex items-center justify-between px-2 py-1.5 mb-1 text-xs font-bold text-sidebar-foreground uppercase tracking-wider cursor-pointer hover:text-sidebar-primary transition-colors"
-                      onClick={() => setIsFundsExpanded(!isFundsExpanded)}
-                    >
-                      <span>My Funds</span>
-                      {isFundsExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                    </div>
-                    {isFundsExpanded && (
-                      <NavSection
-                        title=""
-                        items={fundItems}
-                        onItemClick={handleNavigationClick}
-                        showTitle={false}
-                        isExpanded={true}
-                      />
-                    )}
-                  </div>
+                  <NavSection
+                    title="My Funds"
+                    items={fundItems}
+                    onItemClick={handleNavigationClick}
+                    isExpanded={true}
+                  />
                 )}
 
                 {/* Settings */}

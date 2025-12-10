@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { formatAssetValue } from "@/utils/kpiCalculations";
+import { formatAssetAmount, getAssetLogo, getAssetName } from "@/utils/assets"; // Import utilities
 import { Loader2, TrendingUp, Calendar, Coins } from "lucide-react";
 
 interface MonthlyReport {
@@ -23,22 +23,6 @@ interface MonthlyReport {
   withdrawals: number | null;
   yield_earned: number | null;
 }
-
-const ASSET_LOGOS: Record<string, string> = {
-  BTC: "https://storage.mlcdn.com/account_image/855106/HqTafY3UXNLyQctbIqje0qAv7BYiDI4MRVUhOKiT.png",
-  ETH: "https://storage.mlcdn.com/account_image/855106/1LGif7hOOerx0K9BWZh0vRgg2QfRBoxBibwrQGW5.png",
-  USDT: "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
-};
-
-const ASSET_NAMES: Record<string, string> = {
-  BTC: "BTC Yield Fund",
-  ETH: "ETH Yield Fund",
-  SOL: "SOL Yield Fund",
-  USDT: "Stablecoin Fund",
-  EURC: "EURC Yield Fund",
-  xAUT: "Tokenized Gold",
-  XRP: "XRP Yield Fund",
-};
 
 export default function MyPerformanceHistory() {
   const [groupedReports, setGroupedReports] = useState<Record<string, MonthlyReport[]>>({});
@@ -55,27 +39,35 @@ export default function MyPerformanceHistory() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // 2. Get Investor ID
-      const { data: investor } = await supabase
-        .from("investors")
-        .select("id")
-        .eq("profile_id", user.id)
-        .single();
-
-      if (!investor) throw new Error("Investor profile not found");
-
-      // 3. Fetch Monthly Reports (ALL assets)
+      // 2. Fetch Performance Data (V2 with investor_id)
       const { data, error } = await supabase
-        .from("investor_monthly_reports")
-        .select("*")
-        .eq("investor_id", investor.id)
-        .order("report_month", { ascending: false });
+        .from("investor_fund_performance")
+        .select(`
+          *,
+          period:statement_periods (
+            period_end_date
+          )
+        `)
+        .eq("investor_id", user.id)
+        .order("period(period_end_date)", { ascending: false });
 
       if (error) throw error;
 
+      // 3. Map to MonthlyReport format
+      const reports = (data || []).map((r: any) => ({
+        id: r.id,
+        report_month: r.period?.period_end_date,
+        asset_code: r.fund_name,
+        opening_balance: Number(r.mtd_beginning_balance || 0),
+        closing_balance: Number(r.mtd_ending_balance || 0),
+        additions: Number(r.mtd_additions || 0),
+        withdrawals: Number(r.mtd_redemptions || 0),
+        yield_earned: Number(r.mtd_net_income || 0),
+      }));
+
       // 4. Group by Asset
-      const grouped = (data || []).reduce(
-        (acc, report) => {
+      const grouped = reports.reduce(
+        (acc: any, report: any) => {
           const asset = report.asset_code;
           if (!acc[asset]) acc[asset] = [];
           acc[asset].push(report);
@@ -136,20 +128,17 @@ export default function MyPerformanceHistory() {
         >
           <CardHeader className="bg-muted/5 pb-4">
             <div className="flex items-center gap-3">
-              {ASSET_LOGOS[assetCode] ? (
-                <img
-                  src={ASSET_LOGOS[assetCode]}
-                  alt={assetCode}
-                  className="h-8 w-8 object-contain"
-                />
-              ) : (
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Coins className="h-4 w-4 text-primary" />
-                </div>
-              )}
+              <img
+                src={getAssetLogo(assetCode)}
+                alt={assetCode}
+                className="h-8 w-8 object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none";
+                }}
+              />
               <div>
                 <CardTitle className="text-xl font-bold text-primary">
-                  {ASSET_NAMES[assetCode] || `${assetCode} Yield Fund`}
+                  {getAssetName(assetCode) || `${assetCode} Yield Fund`}
                 </CardTitle>
                 <p className="text-sm text-muted-foreground font-mono">{assetCode}</p>
               </div>
@@ -189,24 +178,24 @@ export default function MyPerformanceHistory() {
                           </div>
                         </TableCell>
                         <TableCell className="text-right font-mono">
-                          {formatAssetValue(report.opening_balance || 0, assetCode)}
+                          {formatAssetAmount(report.opening_balance || 0, assetCode)}
                         </TableCell>
                         <TableCell className="text-right font-mono text-green-600">
                           {report.additions && report.additions > 0 ? "+" : ""}
-                          {formatAssetValue(report.additions || 0, assetCode)}
+                          {formatAssetAmount(report.additions || 0, assetCode)}
                         </TableCell>
                         <TableCell className="text-right font-mono text-red-600">
                           {report.withdrawals && report.withdrawals > 0 ? "-" : ""}
-                          {formatAssetValue(report.withdrawals || 0, assetCode)}
+                          {formatAssetAmount(report.withdrawals || 0, assetCode)}
                         </TableCell>
                         <TableCell className="text-right font-mono text-blue-600 font-semibold">
-                          +{formatAssetValue(report.yield_earned || 0, assetCode)}
+                          +{formatAssetAmount(report.yield_earned || 0, assetCode)}
                         </TableCell>
                         <TableCell className="text-right font-mono font-medium">
                           {rate.toFixed(2)}%
                         </TableCell>
                         <TableCell className="text-right font-mono font-bold bg-muted/10">
-                          {formatAssetValue(report.closing_balance || 0, assetCode)}
+                          {formatAssetAmount(report.closing_balance || 0, assetCode)}
                         </TableCell>
                       </TableRow>
                     );

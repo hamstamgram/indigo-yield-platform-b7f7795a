@@ -55,10 +55,10 @@ export const PerformanceDashboard: React.FC = () => {
           .select("nav_date, aum")
           .order("nav_date", { ascending: true });
 
-        // Fetch transactions for Flows
+        // Fetch transactions for Flows (V2 table)
         const { data: transactions } = await supabase
-          .from("transactions")
-          .select("amount, type, created_at");
+          .from("transactions_v2")
+          .select("amount, type, tx_date");
 
         const totalDeposits =
           transactions

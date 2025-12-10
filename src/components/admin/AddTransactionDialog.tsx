@@ -114,7 +114,7 @@ export function AddTransactionDialog({
         return;
       }
 
-      // Create the transaction
+      // Create the transaction (V2 schema uses tx_date, not occurred_at)
       const { error } = await supabase.from("transactions_v2").insert({
         investor_id: investorId,
         fund_id: fundId,
@@ -122,9 +122,8 @@ export function AddTransactionDialog({
         txn_type: data.txn_type,
         asset: data.asset,
         amount: Number(data.amount),
-        tx_date: data.tx_date,
+        tx_date: data.tx_date, // Main date column
         value_date: data.tx_date,
-        occurred_at: new Date(data.tx_date).toISOString(),
         reference_id: data.reference_id || null,
         tx_hash: data.tx_hash || null,
         notes: data.notes || null,

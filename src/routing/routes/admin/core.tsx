@@ -13,6 +13,7 @@ const AdminTransactionsPage = lazy(
 );
 const MonthlyReportsPage = lazy(() => import("@/routes/admin/reports/MonthlyReportsPage"));
 const AdminFundDetailsPage = lazy(() => import("@/routes/admin/funds/AdminFundDetailsPage"));
+const FundOperationsPage = lazy(() => import("@/routes/admin/FundOperationsPage"));
 
 export function CoreAdminRoutes() {
   return (
@@ -47,6 +48,15 @@ export function CoreAdminRoutes() {
         element={
           <AdminRoute>
             <MonthlyReportsPage />
+          </AdminRoute>
+        }
+      />
+      {/* Fund Operations Center - Yield Distribution & Position Adjustments */}
+      <Route
+        path="/admin/fund-operations"
+        element={
+          <AdminRoute>
+            <FundOperationsPage />
           </AdminRoute>
         }
       />

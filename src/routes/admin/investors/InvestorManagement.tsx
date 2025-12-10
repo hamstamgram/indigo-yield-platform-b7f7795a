@@ -17,7 +17,7 @@ interface InvestorDetail {
   email: string;
   status: string;
   created_at: string | null;
-  profile_id: string;
+  profile_id: string; // Keeping for interface compat, but it's same as id
   phone?: string | null;
 }
 
@@ -36,7 +36,7 @@ const InvestorManagement = () => {
   const fetchInvestorDetails = async () => {
     try {
       const { data, error } = await supabase
-        .from("investors")
+        .from("profiles")
         .select("*")
         .eq("id", id || "")
         .maybeSingle();
@@ -48,7 +48,18 @@ const InvestorManagement = () => {
       }
 
       if (error) throw error;
-      setInvestor(data as InvestorDetail);
+      
+      const fullName = `${data.first_name || ""} ${data.last_name || ""}`.trim();
+      
+      setInvestor({
+        id: data.id,
+        name: fullName,
+        email: data.email,
+        status: data.status || "active",
+        created_at: data.created_at,
+        profile_id: data.id, // Same ID
+        phone: data.phone
+      });
     } catch (error) {
       console.error("Error fetching investor details:", error);
       toast({

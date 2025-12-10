@@ -21,22 +21,11 @@ export default function TransactionsPage() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
 
-      // 1. Get Investor ID
-      const { data: investor, error: investorError } = await supabase
-        .from("investors")
-        .select("id")
-        .eq("profile_id", user.id)
-        .single();
-
-      if (investorError) {
-        console.warn("No investor profile found for user:", user.id);
-        return [];
-      }
-
-      if (!investor) return [];
+      // 1. Get Investor ID (One ID: it's the user.id)
+      const investorId = user.id;
 
       // 2. Query transactions_v2
-      let query = supabase.from("transactions_v2").select("*").eq("investor_id", investor.id);
+      let query = supabase.from("transactions_v2").select("*").eq("investor_id", investorId);
 
       if (searchTerm) {
         // Note: notes search might need exact match or text search index if simple ILIKE fails on large datasets,

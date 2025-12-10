@@ -22,7 +22,7 @@ const StatementsPage = () => {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Fetch user's statements from investor_monthly_reports
+  // Fetch user's statements from investor_fund_performance (V2)
   const {
     data: statements,
     isLoading,
@@ -35,116 +35,95 @@ const StatementsPage = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No authenticated user");
 
-      // Get investor record
-      const { data: investor } = await supabase
-        .from("investors")
-        .select("id")
-        .eq("profile_id", user.id)
-        .maybeSingle();
-
-      if (!investor) throw new Error("No investor record found");
-
+      // Query V2 Performance Table joined with Periods
       let query = supabase
-        .from("investor_monthly_reports")
-        .select("*")
-        .eq("investor_id", investor.id)
-        .gte("report_month", `${selectedYear}-01-01`)
-        .lte("report_month", `${selectedYear}-12-31`)
-        .order("report_month", { ascending: false });
+        .from("investor_fund_performance")
+        .select(`
+          id,
+          fund_name,
+          mtd_beginning_balance,
+          mtd_additions,
+          mtd_redemptions,
+          mtd_net_income,
+          mtd_ending_balance,
+          mtd_rate_of_return,
+          period:statement_periods!inner(
+            year,
+            month,
+            period_end_date
+          )
+        `)
+        .eq("investor_id", user.id)
+        .eq("period.year", parseInt(selectedYear))
+        .order("period(period_end_date)", { ascending: false });
 
       if (selectedAsset !== "all") {
-        query = query.eq("asset_code", selectedAsset);
+        query = query.eq("fund_name", selectedAsset);
       }
 
       const { data, error } = await query;
       if (error) throw error;
 
-      // Transform data to match old format
-      return (data || []).map((record) => ({
+      // Transform data to match UI
+      return (data || []).map((record: any) => ({
         id: record.id,
-        period_year: parseInt(record.report_month.substring(0, 4)),
-        period_month: parseInt(record.report_month.substring(5, 7)),
-        asset_code: record.asset_code,
-        begin_balance: record.opening_balance?.toString() || "0",
-        additions: record.additions?.toString() || "0",
-        redemptions: record.withdrawals?.toString() || "0",
-        net_income: record.yield_earned?.toString() || "0",
-        end_balance: record.closing_balance?.toString() || "0",
-        rate_of_return_mtd:
-          record.yield_earned && record.opening_balance
-            ? (
-                (parseFloat(record.yield_earned.toString()) /
-                  parseFloat(record.opening_balance.toString())) *
-                100
-              ).toFixed(4)
-            : "0",
-        report_month: record.report_month, // Needed for report generation date range
+        period_year: record.period.year,
+        period_month: record.period.month,
+        asset_code: record.fund_name,
+        begin_balance: record.mtd_beginning_balance?.toString() || "0",
+        additions: record.mtd_additions?.toString() || "0",
+        redemptions: record.mtd_redemptions?.toString() || "0",
+        net_income: record.mtd_net_income?.toString() || "0",
+        end_balance: record.mtd_ending_balance?.toString() || "0",
+        rate_of_return_mtd: record.mtd_rate_of_return?.toString() || "0",
+        report_month: record.period.period_end_date, // YYYY-MM-DD
       }));
     },
   });
 
-  // Fetch available years from investor_monthly_reports
+  // Fetch available years
   const { data: availableYears } = useQuery({
     queryKey: ["statement-years"],
     queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [new Date().getFullYear()];
 
-      // Get investor record
-      const { data: investor } = await supabase
-        .from("investors")
-        .select("id")
-        .eq("profile_id", user.id)
-        .maybeSingle();
-
-      if (!investor) return [new Date().getFullYear()];
-
-      const { data, error } = await supabase
-        .from("investor_monthly_reports")
-        .select("report_month")
-        .eq("investor_id", investor.id)
-        .order("report_month", { ascending: false });
-
-      if (error) throw error;
-
-      // Extract unique years from report_month (YYYY-MM-DD)
-      const uniqueYears = Array.from(
-        new Set(data?.map((s) => parseInt(s.report_month.substring(0, 4))) || [])
-      );
-      return uniqueYears.length > 0 ? uniqueYears : [new Date().getFullYear()];
+      // Get distinct years from periods linked to user performance
+      // Supabase doesn't support distinct on joined columns easily in one go via JS client usually
+      // Fetch all periods for user
+      const { data } = await supabase
+        .from("investor_fund_performance")
+        .select("period:statement_periods(year)")
+        .eq("investor_id", user.id);
+      
+      const years = new Set<number>();
+      data?.forEach((d: any) => {
+        if (d.period?.year) years.add(d.period.year);
+      });
+      
+      const sorted = Array.from(years).sort((a, b) => b - a);
+      return sorted.length > 0 ? sorted : [new Date().getFullYear()];
     },
   });
 
-  // Fetch available assets from investor_monthly_reports
+  // Fetch available assets
   const { data: availableAssets } = useQuery({
     queryKey: ["statement-assets"],
     queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
 
-      // Get investor record
-      const { data: investor } = await supabase
-        .from("investors")
-        .select("id")
-        .eq("profile_id", user.id)
-        .maybeSingle();
+      const { data } = await supabase
+        .from("investor_fund_performance")
+        .select("fund_name") // distinct not directly supported in select string easily without rpc sometimes
+        .eq("investor_id", user.id);
 
-      if (!investor) return [];
-
-      const { data, error } = await supabase
-        .from("investor_monthly_reports")
-        .select("asset_code")
-        .eq("investor_id", investor.id);
-
-      if (error) throw error;
-
-      // Get unique asset codes
-      const uniqueAssets = Array.from(new Set(data?.map((s) => s.asset_code) || []));
-      return uniqueAssets;
+      const assets = new Set<string>();
+      data?.forEach((d: any) => {
+        if (d.fund_name) assets.add(d.fund_name);
+      });
+      
+      return Array.from(assets).sort();
     },
   });
 

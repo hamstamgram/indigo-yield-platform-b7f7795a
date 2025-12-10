@@ -44,8 +44,9 @@ const NotificationSettingsPage = () => {
           .eq("id", user.id)
           .single();
 
-        if (data?.preferences?.notifications) {
-          const notifications = data.preferences.notifications as Partial<NotificationPreferences>;
+        const prefs = data?.preferences as Record<string, unknown> | null;
+        if (prefs && typeof prefs === "object" && "notifications" in prefs) {
+          const notifications = (prefs as any).notifications as Partial<NotificationPreferences>;
           setPreferences((prev) => ({
             ...prev,
             ...notifications,

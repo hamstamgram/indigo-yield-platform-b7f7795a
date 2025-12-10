@@ -10,20 +10,33 @@ export default function PerformanceReportDetailsPage() {
   const { id } = useParams<{ id: string }>();
 
   const { data: item, isLoading } = useQuery({
-    queryKey: ["investor_monthly_reports", id],
+    queryKey: ["investor_fund_performance", id],
     queryFn: async () => {
       if (!id) throw new Error("No ID provided");
 
       const { data, error } = await supabase
-        .from("investor_monthly_reports")
-        .select("*")
+        .from("investor_fund_performance")
+        .select(`
+          *,
+          period:statement_periods (
+            period_end_date
+          )
+        `)
         .eq("id", id)
         .maybeSingle();
 
       if (!data) throw new Error("Report not found");
 
       if (error) throw error;
-      return data;
+      
+      // Map to legacy structure for display
+      return {
+        id: data.id,
+        asset_code: data.fund_name,
+        report_month: data.period?.period_end_date,
+        created_at: data.created_at,
+        updated_at: data.updated_at
+      };
     },
   });
 

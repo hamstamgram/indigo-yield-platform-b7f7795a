@@ -27,15 +27,11 @@ export default function PendingTransactionsPage() {
 
       if (depositError) throw depositError;
 
-      // 2. Get Investor ID for Withdrawals
-      const { data: investor } = await supabase
-        .from("investors")
-        .select("id")
-        .eq("profile_id", user.id)
-        .single();
+      // 2. Get Investor ID for Withdrawals (One ID: it's the user.id)
+      const investorId = user.id;
 
       let withdrawals: any[] = [];
-      if (investor) {
+      if (investorId) {
         const { data: withdrawalData, error: withdrawalError } = await supabase
           .from("withdrawal_requests")
           .select(
@@ -44,7 +40,7 @@ export default function PendingTransactionsPage() {
             funds ( name, code, asset )
           `
           )
-          .eq("investor_id", investor.id)
+          .eq("investor_id", investorId)
           .eq("status", "pending");
 
         if (withdrawalError) throw withdrawalError;

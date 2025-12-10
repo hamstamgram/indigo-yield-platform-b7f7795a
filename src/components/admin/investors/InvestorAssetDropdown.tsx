@@ -10,7 +10,7 @@ import { Plus } from "lucide-react";
 import { Asset } from "@/types/investorTypes";
 
 import { useToast } from "@/hooks/use-toast";
-import { addAssetToInvestor } from "@/services/positionService";
+import { addFundToInvestor, getAllFunds } from "@/services/fundService";
 
 interface InvestorAssetDropdownProps {
   userId: string;
@@ -31,20 +31,29 @@ const InvestorAssetDropdown = ({
   // Filter out assets that the investor already has
   const availableAssets = assets.filter((asset) => !existingAssets.includes(asset.id));
 
-  const handleAddAsset = async (assetId: number) => {
+  const handleAddAsset = async (asset: Asset) => {
     try {
       setIsLoading(true);
 
-      // Add asset to investor portfolio
-      const success = await addAssetToInvestor(userId, assetId, 0);
+      // 1. Find the fund associated with this asset
+      const funds = await getAllFunds();
+      const matchingFund = funds.find((f) => f.asset === asset.symbol);
 
-      if (!success) {
-        throw new Error("Failed to add asset to investor portfolio");
+      if (!matchingFund) {
+        throw new Error(`No active fund found for asset: ${asset.symbol}`);
+      }
+
+      // 2. Add the fund to the investor
+      // userId is the investor_id in this context
+      const result = await addFundToInvestor(userId, matchingFund.id, 0);
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to add asset to investor portfolio");
       }
 
       toast({
         title: "✅ Asset Added",
-        description: `Successfully added asset to investor's portfolio`,
+        description: `Successfully added ${asset.symbol} to investor's portfolio`,
         duration: 5000,
       });
 
@@ -59,8 +68,6 @@ const InvestorAssetDropdown = ({
         variant: "destructive",
         duration: 7000,
       });
-
-      // No external error tracking configured
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +89,7 @@ const InvestorAssetDropdown = ({
         {availableAssets.map((asset) => (
           <DropdownMenuItem
             key={asset.id}
-            onClick={() => handleAddAsset(asset.id)}
+            onClick={() => handleAddAsset(asset)}
             className="cursor-pointer"
           >
             {asset.name} ({asset.symbol})

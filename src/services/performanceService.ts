@@ -6,6 +6,7 @@ export const performanceService = {
    * Fetch performance history for an investor
    */
   async getInvestorPerformance(filters: PerformanceFilters): Promise<PerformanceRecord[]> {
+    // V2 Architecture: investor_id = profiles.id (One ID)
     let query = supabase
       .from("investor_fund_performance")
       .select(`
@@ -17,17 +18,12 @@ export const performanceService = {
           month
         )
       `)
-      .eq("user_id", filters.userId);
+      .eq("investor_id", filters.userId);
 
     if (filters.assetCode && filters.assetCode !== "all") {
       query = query.eq("fund_name", filters.assetCode);
     }
 
-    // Order by date descending (newest first)
-    // We need to order by the joined table, which Supabase supports if defined correctly,
-    // otherwise we might need to sort client side. 
-    // Let's try client-side sorting to be safe if the relationship sort is tricky.
-    
     const { data, error } = await query;
 
     if (error) {
@@ -35,8 +31,11 @@ export const performanceService = {
       throw error;
     }
 
+    // Cast to unknown first to break deep type instantiation chain from Supabase inference
+    const rawData = data as unknown as any[];
+
     // Sort by period_end_date descending
-    const sortedData = (data as any[]).sort((a, b) => {
+    const sortedData = rawData.sort((a, b) => {
       const dateA = new Date(a.period?.period_end_date || 0).getTime();
       const dateB = new Date(b.period?.period_end_date || 0).getTime();
       return dateB - dateA;

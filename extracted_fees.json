@@ -1,0 +1,437 @@
+[
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Jose Molla",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Kyle Gulamerian",
+    "fee_rate": 0.15
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Matthias Reiser",
+    "fee_rate": 0.1
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Thomas Puech",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Danielle Richetta",
+    "fee_rate": 0.1
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Kabbaj",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Victoria Pariente-Cohen",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Nathana\u00ebl Cohen",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Blondish",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Oliver Loisel",
+    "fee_rate": 0.1
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Paul Johnson",
+    "fee_rate": 0.135
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Alex\u00a0Jacobs",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Sam Johnson",
+    "fee_rate": 0.18
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Ryan Van Der Wall",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Nath & Thomas",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Vivie & Liana",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Jose",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Kyle",
+    "fee_rate": 0.15
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Mathias",
+    "fee_rate": 0.1
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Thomas Puech",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Danielle Richetta",
+    "fee_rate": 0.1
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Kabbaj Fam",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Victoria",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Nathanael Cohen",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Blondish",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "oliver loisel",
+    "fee_rate": 0.1
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Paul Johnson",
+    "fee_rate": 0.135
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Alex\u00a0Jacobs",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Sam Johnson",
+    "fee_rate": 0.18
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Ryan Van Der Wall",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Nath & Thomas",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "BTC Yield Fund",
+    "investor_name": "Vivie & Liana",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "ETH Yield Fund",
+    "investor_name": "Babak Eftekhari",
+    "fee_rate": 0.18
+  },
+  {
+    "fund_sheet": "ETH Yield Fund",
+    "investor_name": "Lars Ahlgreen",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "ETH Yield Fund",
+    "investor_name": "INDIGO DIGITAL ASSET FUND LP",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "ETH Yield Fund",
+    "investor_name": "Nathana\u00ebl Cohen",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "ETH Yield Fund",
+    "investor_name": "Jose Molla",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "ETH Yield Fund",
+    "investor_name": "Blondish",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "ETH Yield Fund",
+    "investor_name": "Advantage Blockchain",
+    "fee_rate": 0.18
+  },
+  {
+    "fund_sheet": "ETH Yield Fund",
+    "investor_name": "Alec Beckman",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "ETH Yield Fund",
+    "investor_name": "Paul Johnson",
+    "fee_rate": 0.135
+  },
+  {
+    "fund_sheet": "ETH Yield Fund",
+    "investor_name": "Alex Jacobs",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "ETH Yield Fund",
+    "investor_name": "Tomer Zur",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "ETH Yield Fund",
+    "investor_name": "Sam Johnson",
+    "fee_rate": 0.18
+  },
+  {
+    "fund_sheet": "ETH Yield Fund",
+    "investor_name": "Ryan Van Der Wall",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "ETH Yield Fund",
+    "investor_name": "Brandon Hood",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "DONE - BTC Boosted Program",
+    "investor_name": "Kyle Gulamerian",
+    "fee_rate": 0.15
+  },
+  {
+    "fund_sheet": "DONE - BTC Boosted Program",
+    "investor_name": "Matthias Reiser",
+    "fee_rate": 0.1
+  },
+  {
+    "fund_sheet": "DONE - BTC Boosted Program",
+    "investor_name": "Danielle Richetta",
+    "fee_rate": 0.1
+  },
+  {
+    "fund_sheet": "DONE - BTC TAC Program",
+    "investor_name": "Victoria",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "DONE - BTC TAC Program",
+    "investor_name": "Nathanael Cohen",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "DONE - BTC TAC Program",
+    "investor_name": "Thomas Puech",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "DONE - BTC TAC Program",
+    "investor_name": "Blondish",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "Done - ETH TAC Program",
+    "investor_name": "Jose Molla",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "Done - ETH TAC Program",
+    "investor_name": "Nathanael Cohen",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "Done - ETH TAC Program",
+    "investor_name": "Blondish",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Babak Eftekhari",
+    "fee_rate": 0.18
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Julien Grunebaum",
+    "fee_rate": 0.1
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Daniele Francilia",
+    "fee_rate": 0.1
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Pierre Bezen\u00e7on",
+    "fee_rate": 0.1
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Matthew Beatty",
+    "fee_rate": 0.1
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Bo De kriek",
+    "fee_rate": 0.1
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Dario Deiana",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Alain Bensimon",
+    "fee_rate": 0.1
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Anne Cecile Noique",
+    "fee_rate": 0.1
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Terance Chen",
+    "fee_rate": 0.1
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "INDIGO Ventures",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "INDIGO DIGITAL ASSET FUND LP",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Lars Ahlgreen",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Sacha Oshry",
+    "fee_rate": 0.15
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "HALLEY86",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Jose Molla",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Monica Levy Chicheportiche",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Nath & Thomas",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Sam Johnson",
+    "fee_rate": 0.18
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Ryan Van Der Wall",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Valeria Cruz",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Rabih Mokbel",
+    "fee_rate": 0.18
+  },
+  {
+    "fund_sheet": "USDT Yield Fund",
+    "investor_name": "Joel\u00a0Barbeau",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "SOL Yield Fund",
+    "investor_name": "INDIGO DIGITAL ASSET FUND LP",
+    "fee_rate": 0
+  },
+  {
+    "fund_sheet": "SOL Yield Fund",
+    "investor_name": "Paul Johnson",
+    "fee_rate": 0.135
+  },
+  {
+    "fund_sheet": "SOL Yield Fund",
+    "investor_name": "Alex Jacobs",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "SOL Yield Fund",
+    "investor_name": "Jose Molla",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "SOL Yield Fund",
+    "investor_name": "Sam Johnson",
+    "fee_rate": 0.18
+  },
+  {
+    "fund_sheet": "SOL Yield Fund",
+    "investor_name": "Ryan Van Der Wall",
+    "fee_rate": 0.2
+  },
+  {
+    "fund_sheet": "XRP Yield Fund",
+    "investor_name": "Sam Johnson",
+    "fee_rate": 0.18
+  },
+  {
+    "fund_sheet": "XRP Yield Fund",
+    "investor_name": "Ryan Van Der Wall",
+    "fee_rate": 0.2
+  }
+]

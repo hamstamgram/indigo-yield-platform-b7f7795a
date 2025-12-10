@@ -297,13 +297,13 @@ class GDPRComplianceManager {
       );
     }
 
-    // Transactions
+    // Transactions (V2 table)
     // Cast supabase to any to avoid excessive type depth inference in query builder
     const transactionsResult = await (supabase as any)
-      .from('transactions')
+      .from('transactions_v2')
       .select('*')
       .eq('investor_id', userId)
-      .order('transaction_date', { ascending: false });
+      .order('tx_date', { ascending: false });
 
     const { data: transactions } = transactionsResult as { data: any; error: any };
 

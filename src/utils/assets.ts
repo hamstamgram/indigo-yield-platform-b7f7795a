@@ -33,13 +33,6 @@ export const ASSETS: Record<string, AssetConfig> = {
     color: "#14F195",
     decimals: 9,
   },
-  USDT: {
-    symbol: "USDT",
-    name: "Stablecoin Fund",
-    logoUrl: "https://assets.coingecko.com/coins/images/325/large/Tether.png",
-    color: "#26A17B",
-    decimals: 6,
-  },
   XRP: {
     symbol: "XRP",
     name: "XRP",
@@ -52,6 +45,13 @@ export const ASSETS: Record<string, AssetConfig> = {
     name: "Tether Gold",
     logoUrl: "https://assets.coingecko.com/coins/images/10481/large/Tether_Gold.png",
     color: "#FFD700",
+    decimals: 6,
+  },
+  USDT: {
+    symbol: "USDT",
+    name: "Stablecoin Fund",
+    logoUrl: "https://assets.coingecko.com/coins/images/325/large/Tether.png",
+    color: "#26A17B",
     decimals: 6,
   },
   EURC: {

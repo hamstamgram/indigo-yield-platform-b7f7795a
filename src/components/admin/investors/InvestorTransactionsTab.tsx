@@ -49,20 +49,22 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
     try {
       setLoading(true);
 
-      // Fetch investor info with fund_id
-      const { data: investorData, error: investorError } = await supabase
-        .from("investors")
-        .select("id, name, email")
+      // Fetch investor profile info (from PROFILES, One ID)
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, email")
         .eq("id", investorId)
         .single();
 
-      if (investorError) throw investorError;
+      if (profileError) throw profileError;
+
+      const investorName = `${profileData?.first_name || ""} ${profileData?.last_name || ""}`.trim() || profileData?.email;
 
       // Get investor's primary fund from investor_positions
       const { data: positionData } = await supabase
         .from("investor_positions")
         .select("fund_id")
-        .eq("investor_id", investorId)
+        .eq("investor_id", investorId) // Use investorId (profile.id)
         .limit(1)
         .maybeSingle();
 
@@ -70,7 +72,9 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
       const { data: defaultFund } = await supabase.from("funds").select("id").limit(1).single();
 
       setInvestor({
-        ...investorData,
+        id: investorId, // Use investorId as the ID
+        name: investorName,
+        email: profileData?.email,
         fund_id: positionData?.fund_id || defaultFund?.id || "",
       });
 
@@ -80,7 +84,7 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
         .select(
           "id, investor_id, asset, amount, type, tx_date, notes, tx_hash, reference_id"
         )
-        .eq("investor_id", investorId)
+        .eq("investor_id", investorId) // Use investorId (profile.id)
         .order("tx_date", { ascending: false })
         .limit(100);
 

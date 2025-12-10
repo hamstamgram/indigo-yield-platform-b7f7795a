@@ -18,14 +18,8 @@ export default function WithdrawalHistoryPage() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
 
-      // Get investor record
-      const { data: investor } = await supabase
-        .from("investors")
-        .select("id")
-        .eq("profile_id", user.id)
-        .maybeSingle();
-
-      if (!investor) throw new Error("No investor record found");
+      // Resolve investor_id (One ID)
+      const investorId = user.id;
 
       let query = supabase
         .from("withdrawal_requests")
@@ -35,7 +29,7 @@ export default function WithdrawalHistoryPage() {
           funds:fund_id(name, code)
         `
         )
-        .eq("investor_id", investor.id);
+        .eq("investor_id", investorId);
 
       if (searchTerm) {
         query = query.ilike("notes", `%${searchTerm}%`);

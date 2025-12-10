@@ -10,7 +10,7 @@ export const withdrawalService = {
     // Use JOIN to fetch investor data in single query (fixes N+1)
     let query = supabase
       .from("withdrawal_requests")
-      .select("*, investors(name, email, profile_id)")
+      .select("*, profile:profiles(first_name, last_name, email)") // Join profiles
       .order("request_date", { ascending: false });
 
     if (filters?.status && filters.status !== "all") {
@@ -26,24 +26,28 @@ export const withdrawalService = {
     if (error) throw error;
 
     // Map the joined data to flat structure
-    const withdrawalsWithInvestors = (data || []).map((withdrawal) => {
-      const investor = withdrawal.investors as {
-        name?: string;
+    const withdrawalsWithProfiles = (data || []).map((withdrawal) => {
+      const profile = withdrawal.profile as {
+        first_name?: string;
+        last_name?: string;
         email?: string;
-        profile_id?: string;
       } | null;
+      const investor_name = profile?.first_name || profile?.last_name
+        ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim()
+        : profile?.email || "Unknown";
+      
       return {
         ...withdrawal,
-        investor_name: investor?.name || "Unknown",
-        investor_email: investor?.email || "",
-        investors: undefined, // Remove nested object
+        investor_name: investor_name,
+        investor_email: profile?.email || "",
+        profile: undefined, // Remove nested object
       };
     });
 
     // Apply search filter
     if (filters?.search) {
       const searchLower = filters.search.toLowerCase();
-      return withdrawalsWithInvestors.filter(
+      return withdrawalsWithProfiles.filter(
         (w) =>
           w.investor_name?.toLowerCase().includes(searchLower) ||
           w.investor_email?.toLowerCase().includes(searchLower) ||
@@ -51,7 +55,7 @@ export const withdrawalService = {
       );
     }
 
-    return withdrawalsWithInvestors;
+    return withdrawalsWithProfiles;
   },
 
   /**
@@ -97,7 +101,7 @@ export const withdrawalService = {
     // Fetch request details
     const { data: request, error: fetchError } = await supabase
       .from("withdrawal_requests")
-      .select("*, investors(profile_id), funds(asset, fund_class)")
+      .select("*, funds(asset, fund_class)") // fund asset needed for transactions_v2
       .eq("id", withdrawalId)
       .single();
     if (fetchError) throw fetchError;
@@ -119,17 +123,18 @@ export const withdrawalService = {
     if (error) throw error;
 
     // Record transaction_v2 (provisional) for audit trail
+    // request.investor_id is now profile.id
     if (request?.investor_id && request?.fund_id) {
       const req = request as any;
       await supabase.from("transactions_v2").insert({
         id: uuidv4(),
-        investor_id: req.investor_id,
+        investor_id: req.investor_id, // This is profile.id
         fund_id: req.fund_id,
         type: "WITHDRAWAL",
         asset: req.funds?.asset || req.fund_class || req.currency,
         fund_class: req.fund_class || req.funds?.fund_class,
         amount: processedAmount,
-        occurred_at: new Date().toISOString(),
+        tx_date: new Date().toISOString().split("T")[0], // Column is tx_date, not occurred_at
         reference_id: withdrawalId,
         notes: adminNotes,
       });
@@ -251,7 +256,7 @@ export const withdrawalService = {
           fund_class: request.fund_class || request.funds?.fund_class,
           amount: processedAmount,
           tx_hash: txHash || request.tx_hash,
-          occurred_at: new Date().toISOString(),
+          tx_date: new Date().toISOString().split("T")[0], // Column is tx_date, not occurred_at
           reference_id: withdrawalId,
           notes: adminNotes,
         });

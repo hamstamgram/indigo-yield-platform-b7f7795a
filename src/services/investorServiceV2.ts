@@ -70,14 +70,19 @@ class InvestorServiceV2 {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) return null;
 
-    // Get investor record
-    const { data: investor } = await supabase
-      .from("investors")
-      .select("id, name")
-      .eq("profile_id", user.user.id)
-      .maybeSingle();
+    // The user.user.id IS the investor_id now (One ID)
+    const investorId = user.user.id;
 
-    if (!investor) return null;
+    // Get profile details directly for name
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("first_name, last_name, email")
+      .eq("id", investorId)
+      .single();
+
+    if (profileError || !profile) return null;
+
+    const investorName = `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email;
 
     // Get all positions for this investor
     const { data: positions, error } = await supabase
@@ -96,7 +101,7 @@ class InvestorServiceV2 {
         funds!inner(name, asset)
       `
       )
-      .eq("investor_id", investor.id);
+      .eq("investor_id", investorId);
 
     if (error) throw error;
 
@@ -134,8 +139,8 @@ class InvestorServiceV2 {
     };
 
     return {
-      portfolio_id: investor.id,
-      portfolio_name: investor.name || "Portfolio",
+      portfolio_id: investorId,
+      portfolio_name: investorName || "Portfolio",
       total_value: totalValue,
       total_pnl: totalPnL,
       positions: portfolioPositions,
@@ -148,14 +153,8 @@ class InvestorServiceV2 {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) return [];
 
-    // Get investor record
-    const { data: investor } = await supabase
-      .from("investors")
-      .select("id")
-      .eq("profile_id", user.user.id)
-      .maybeSingle();
-
-    if (!investor) return [];
+    // The user.user.id IS the investor_id now (One ID)
+    const investorId = user.user.id;
 
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
@@ -164,7 +163,7 @@ class InvestorServiceV2 {
     const { data, error } = await supabase
       .from("transactions_v2")
       .select("*")
-      .eq("investor_id", investor.id)
+      .eq("investor_id", investorId)
       .eq("type", "INTEREST")
       .gte("tx_date", startDate.toISOString().split("T")[0])
       .order("tx_date", { ascending: false });
@@ -187,14 +186,8 @@ class InvestorServiceV2 {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) return [];
 
-    // Get investor record
-    const { data: investor } = await supabase
-      .from("investors")
-      .select("id")
-      .eq("profile_id", user.user.id)
-      .maybeSingle();
-
-    if (!investor) return [];
+    // The user.user.id IS the investor_id now (One ID)
+    const investorId = user.user.id;
 
     const { data, error } = await supabase
       .from("withdrawal_requests")
@@ -204,7 +197,7 @@ class InvestorServiceV2 {
         funds!inner(name, asset, fund_class)
       `
       )
-      .eq("investor_id", investor.id)
+      .eq("investor_id", investorId)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -239,19 +232,11 @@ class InvestorServiceV2 {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error("Not authenticated");
 
-    // Get investor record
-    const { data: investor } = await supabase
-      .from("investors")
-      .select("id")
-      .eq("profile_id", user.user.id)
-      .maybeSingle();
-
-    if (!investor) throw new Error("Investor profile not found");
-
-    if (!investor) throw new Error("Investor profile not found");
+    // The user.user.id IS the investor_id now (One ID)
+    const investorId = user.user.id;
 
     const { data, error } = await supabase.rpc("create_withdrawal_request", {
-      p_investor_id: investor.id,
+      p_investor_id: investorId,
       p_fund_id: fundId,
       p_amount: amount,
       p_type: withdrawalType,
@@ -330,14 +315,8 @@ class InvestorServiceV2 {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) return [];
 
-    // Get investor record
-    const { data: investor } = await supabase
-      .from("investors")
-      .select("id")
-      .eq("profile_id", user.user.id)
-      .maybeSingle();
-
-    if (!investor) return [];
+    // The user.user.id IS the investor_id now (One ID)
+    const investorId = user.user.id;
 
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
@@ -346,7 +325,7 @@ class InvestorServiceV2 {
     const queryBuilder: any = supabase.from("portfolio_history");
     const { data, error } = await queryBuilder
       .select("*")
-      .eq("investor_id", investor.id)
+      .eq("investor_id", investorId) // Use investorId (which is profile.id)
       .gte("snapshot_date", startDate.toISOString().split("T")[0])
       .order("snapshot_date", { ascending: true });
 

@@ -100,19 +100,14 @@ export function WithdrawalRequestForm({
         throw new Error("Insufficient balance");
       }
 
-      // 2. Get User & Investor
+      // 2. Get User (Unified ID)
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      const { data: investor } = await supabase
-        .from("investors")
-        .select("id")
-        .eq("profile_id", user.id)
-        .maybeSingle();
-
-      if (!investor) throw new Error("Investor profile not found");
+      // user.id IS the investor.id
+      const investorId = user.id;
 
       // 3. Verify TOTP (if code provided)
       // Note: In a strict environment, we'd enforce MFA enabled check first.
@@ -145,7 +140,7 @@ export function WithdrawalRequestForm({
       const { data: request, error: insertError } = await supabase
         .from("withdrawal_requests")
         .insert({
-          investor_id: investor.id,
+          investor_id: investorId,
           fund_id: availableBalance.fund_id,
           requested_amount: requested.toNumber(),
           requested_shares: requested.toNumber(),

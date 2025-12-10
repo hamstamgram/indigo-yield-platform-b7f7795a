@@ -142,7 +142,7 @@ export const FinancialSnapshot: React.FC = () => {
           .from("investor_positions")
           .select(`
             current_value,
-            investors!inner(name, email)
+            profile:profiles!investor_id(first_name, last_name, email)
           `)
           .eq("fund_id", fundId);
 
@@ -152,8 +152,11 @@ export const FinancialSnapshot: React.FC = () => {
         const totalValue = positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0;
 
         const comp: InvestorComposition[] = positions?.map((p: any) => ({
-          investor_name: p.investors?.name || "Unknown",
-          email: p.investors?.email || "",
+          investor_name:
+            `${p.profile?.first_name || ""} ${p.profile?.last_name || ""}`.trim() ||
+            p.profile?.email ||
+            "Unknown",
+          email: p.profile?.email || "",
           balance: p.current_value || 0,
           ownership_pct: totalValue > 0 ? ((p.current_value || 0) / totalValue) * 100 : 0,
         })) || [];

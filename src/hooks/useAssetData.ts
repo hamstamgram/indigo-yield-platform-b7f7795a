@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
 
 // Asset summary type with per-asset yield information
 interface AssetSummary {
@@ -65,8 +66,8 @@ export const useAssetData = () => {
 
         // Fetch real investor positions (native token amounts)
         const { data: positions, error: positionsError } = await supabase
-          .from("positions")
-          .select("*")
+          .from("investor_positions")
+          .select("fund_id, fund_class, current_value, cost_basis, shares")
           .eq("investor_id", user.id);
 
         if (positionsError) {
@@ -76,7 +77,6 @@ export const useAssetData = () => {
 
         // Fetch latest daily rates (most recent date)
         const { data: dailyRates, error: ratesError } = await supabase
-          // @ts-expect-error - daily_rates table exists in migration but types need regeneration from DB
           .from("daily_rates")
           .select("*")
           .order("rate_date", { ascending: false })
@@ -91,16 +91,15 @@ export const useAssetData = () => {
 
         // Calculate asset summaries with per-asset yield
         const summaries: AssetSummary[] = (positions || []).map((position) => {
-          const symbol = position.asset_code;
-          const balance = position.current_balance;
-          const principal = position.principal;
-          const totalEarned = position.total_earned;
+          const symbol = (position.fund_class || "").toUpperCase();
+          const balance = Number(position.current_value || 0);
+          const principal = Number(position.cost_basis || balance);
+          const totalEarned = 0; // not tracked in investor_positions
 
           // Get current rate for this asset
           let currentRate = 0;
           if (dailyRates) {
-            // Cast to any since daily_rates table exists in migration but types need regeneration from DB
-            const rates = dailyRates as any;
+            const rates: Database["public"]["Tables"]["daily_rates"]["Row"] = dailyRates;
             switch (symbol) {
               case "BTC":
                 currentRate = Number(rates.btc_rate);
@@ -154,7 +153,7 @@ export const useAssetData = () => {
         setYieldSources([
           {
             source: "Supabase Database",
-            tables: ["positions", "daily_rates"],
+            tables: ["investor_positions", "daily_rates"],
             realData: true,
           },
         ]);
@@ -180,4 +179,4 @@ export const useAssetData = () => {
 };
 
 // Native token system - no price fetching needed
-// All data comes from Supabase: positions table + daily_rates table
+// All data comes from Supabase: investor_positions + daily_rates tables

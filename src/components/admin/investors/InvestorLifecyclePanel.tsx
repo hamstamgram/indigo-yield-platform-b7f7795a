@@ -18,19 +18,19 @@ const InvestorLifecyclePanel = () => {
   const { toast } = useToast();
 
   const handleUpdateInvestorStatus = async (
-    investorId: string,
+    investorId: string, // This is profile.id
     status: "active" | "inactive" | "suspended" | "exited"
   ) => {
     try {
       setIsProcessing(true);
 
       const { error } = await supabase
-        .from("investors")
+        .from("profiles") // Update profiles table
         .update({
           status,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", investorId);
+        .eq("id", investorId); // Use profile id
 
       if (error) throw error;
 
@@ -81,62 +81,64 @@ const InvestorLifecyclePanel = () => {
     try {
       setIsProcessing(true);
 
-      // Get investors with zero balance and inactive for 90+ days
-      const { data: inactiveInvestors, error: fetchError } = await supabase
-        .from("investors")
+      // Get profiles with zero balance and inactive for 90+ days
+      const { data: inactiveProfiles, error: fetchError } = await supabase
+        .from("profiles")
         .select(
           `
           id,
-          name,
+          first_name,
+          last_name,
           email,
           updated_at,
-          investor_positions!inner (
+          investor_positions!left (
             current_value
           )
         `
         )
         .eq("status", "inactive")
+        .eq("is_admin", false) // Exclude admins
         .lt("updated_at", new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString());
 
       if (fetchError) throw fetchError;
 
-      const investorsToCleanup =
-        inactiveInvestors?.filter((investor) =>
-          investor.investor_positions.every((pos: any) => pos.current_value <= 0)
+      const profilesToCleanup =
+        inactiveProfiles?.filter((profile) =>
+          profile.investor_positions.every((pos: any) => pos.current_value <= 0)
         ) || [];
 
-      if (investorsToCleanup.length === 0) {
+      if (profilesToCleanup.length === 0) {
         toast({
           title: "No Cleanup Needed",
-          description: "No inactive investors found for cleanup",
+          description: "No inactive profiles found for cleanup",
         });
         return;
       }
 
-      // Archive positions instead of deleting
-      for (const investor of investorsToCleanup) {
+      // Archive profiles instead of deleting (update status)
+      for (const profile of profilesToCleanup) {
         const { error } = await supabase
-          .from("investors")
+          .from("profiles")
           .update({
             status: "archived",
             updated_at: new Date().toISOString(),
           })
-          .eq("id", investor.id);
+          .eq("id", profile.id);
 
         if (error) {
-          console.error(`Failed to archive investor ${investor.id}:`, error);
+          console.error(`Failed to archive profile ${profile.id}:`, error);
         }
       }
 
       toast({
         title: "Cleanup Complete",
-        description: `Archived ${investorsToCleanup.length} inactive investors`,
+        description: `Archived ${profilesToCleanup.length} inactive profiles`,
       });
     } catch (error) {
       console.error("Error during cleanup:", error);
       toast({
         title: "Cleanup Failed",
-        description: "Failed to cleanup inactive investors",
+        description: "Failed to cleanup inactive profiles",
         variant: "destructive",
       });
     } finally {

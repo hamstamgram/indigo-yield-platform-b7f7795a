@@ -9,21 +9,20 @@ export default function AdminTransactionsPage() {
   const { data: transactions, isLoading } = useQuery({
     queryKey: ["admin-all-transactions"],
     queryFn: async () => {
+      // V2 Architecture: investor_id = profiles.id directly (One ID)
       const { data, error } = await supabase
         .from("transactions_v2")
         .select(
           `
           *,
-          investors (
-            profiles (
-              email,
-              first_name,
-              last_name
-            )
+          profiles!investor_id (
+            email,
+            first_name,
+            last_name
           )
         `
         )
-        .order("occurred_at", { ascending: false })
+        .order("tx_date", { ascending: false })
         .limit(100);
 
       if (error) throw error;
@@ -34,7 +33,7 @@ export default function AdminTransactionsPage() {
   const columns = [
     {
       header: "Date",
-      cell: (item: any) => new Date(item.occurred_at).toLocaleDateString(),
+      cell: (item: any) => new Date(item.tx_date).toLocaleDateString(),
     },
     {
       header: "Type",
@@ -43,7 +42,8 @@ export default function AdminTransactionsPage() {
     {
       header: "Investor",
       cell: (item: any) => {
-        const profile = item.investors?.profiles;
+        // V2: profiles directly linked via investor_id
+        const profile = item.profiles;
         return profile
           ? `${profile.first_name || ""} ${profile.last_name || ""} (${profile.email})`
           : "Unknown";

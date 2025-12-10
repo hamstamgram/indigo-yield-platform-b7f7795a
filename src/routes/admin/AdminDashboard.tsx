@@ -55,24 +55,35 @@ function AdminDashboardContent() {
 
   const loadAdminStats = async () => {
     try {
-      const investorsResult = await (supabase as any).from("investors").select("id, status");
+      // Fetch investor profiles (is_admin = false)
+      const { data: investors, error: invError } = await supabase
+        .from("profiles")
+        .select("id, status")
+        .eq("is_admin", false);
+      
+      if (invError) throw invError;
+
       // investor_positions does not expose a status column; count all positions
       const positionsResult = await (supabase as any)
         .from("investor_positions")
         .select("investor_id, fund_id");
+        
       const withdrawalsResult = await (supabase as any)
         .from("withdrawal_requests")
         .select("id")
         .eq("status", "pending");
+        
+      // Use transactions_v2 for recent activity instead of 'investments' if it doesn't exist
+      // Or assuming investments table exists? Let's try transactions_v2 for safety as it's the V2 standard
       const recentActivityResult = await (supabase as any)
-        .from("investments")
+        .from("transactions_v2")
         .select("id")
         .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
       setStats({
-        totalInvestors: investorsResult.data?.length || 0,
+        totalInvestors: investors?.length || 0,
         activeInvestors:
-          investorsResult.data?.filter((i: any) => i.status === "active").length || 0,
+          investors?.filter((i: any) => i.status === "active").length || 0,
         activePositionsCount: positionsResult.data?.length || 0,
         pendingWithdrawals: withdrawalsResult.data?.length || 0,
         recentActivity: recentActivityResult.data?.length || 0,

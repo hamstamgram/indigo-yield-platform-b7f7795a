@@ -5,9 +5,18 @@ export class DepositService {
   async getDeposits(filters?: DepositFilters): Promise<Deposit[]> {
     let query = supabase
       .from("transactions_v2")
-      .select("*")
+      .select(
+        `
+        *,
+        profile:profiles (
+          first_name,
+          last_name,
+          email
+        )
+      `
+      )
       .eq("type", "DEPOSIT")
-      .order("occurred_at", { ascending: false });
+      .order("tx_date", { ascending: false });
 
     if (filters?.asset_symbol) {
       query = query.eq("asset", filters.asset_symbol);
@@ -18,96 +27,76 @@ export class DepositService {
     }
 
     if (filters?.start_date) {
-      query = query.gte("occurred_at", filters.start_date);
+      query = query.gte("tx_date", filters.start_date);
     }
 
     if (filters?.end_date) {
-      query = query.lte("occurred_at", filters.end_date);
+      query = query.lte("tx_date", filters.end_date);
     }
 
     const { data: transactions, error } = await query;
 
     if (error) throw error;
 
-    // Fetch investors for all transactions
-    const investorIds = Array.from(
-      new Set(
-        (transactions || [])
-          .map((d: any) => d.investor_id)
-          .filter((id): id is string => id !== null)
-      )
-    );
-
-    if (investorIds.length === 0) {
-      return (transactions || []).map((tx) => this.mapTransactionToDeposit(tx)) as Deposit[];
-    }
-
-    const { data: investors, error: investorsError } = await supabase
-      .from("investors")
-      .select("id, name, email, profile_id")
-      .in("id", investorIds);
-
-    if (investorsError) {
-      console.error("Error fetching investors:", investorsError);
-      return (transactions || []).map((tx) => this.mapTransactionToDeposit(tx)) as Deposit[];
-    }
-
-    const investorMap = new Map(investors?.map((i) => [i.id, i]) || []);
-
-    return (transactions || []).map((tx) => {
-      const investor = tx.investor_id ? investorMap.get(tx.investor_id) : undefined;
-      return this.mapTransactionToDeposit(tx, investor);
-    }) as Deposit[];
+    return (transactions || []).map((tx) =>
+      this.mapTransactionToDeposit(tx, (tx as any).profile)
+    ) as Deposit[];
   }
 
-  private mapTransactionToDeposit(tx: any, investor?: any): Deposit {
+  private mapTransactionToDeposit(tx: any, profile?: any): Deposit {
+    const userName =
+      profile?.first_name || profile?.last_name
+        ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim()
+        : profile?.email;
+
     return {
       id: tx.id,
-      user_id: investor?.profile_id, // Map back to user_id if possible
-      investor_id: tx.investor_id,
+      user_id: tx.investor_id, // investor_id is now profile.id
+      investor_id: tx.investor_id, // keep for backward compatibility if needed
       amount: tx.amount,
       asset_symbol: tx.asset,
       status: "completed",
       transaction_hash: tx.tx_hash,
-      created_at: tx.occurred_at || tx.created_at,
+      created_at: tx.tx_date || tx.created_at,
       updated_at: tx.updated_at,
-      user_name: investor?.name,
-      user_email: investor?.email,
+      user_name: userName,
+      user_email: profile?.email,
     };
   }
 
   async getDepositById(id: string): Promise<Deposit> {
     const { data: tx, error } = await supabase
       .from("transactions_v2")
-      .select("*")
+      .select(
+        `
+        *,
+        profile:profiles (
+          first_name,
+          last_name,
+          email
+        )
+      `
+      )
       .eq("id", id)
       .single();
 
     if (error) throw error;
-
-    let investor;
-    if (tx.investor_id) {
-      const { data: inv } = await supabase
-        .from("investors")
-        .select("id, name, email, profile_id")
-        .eq("id", tx.investor_id)
-        .single();
-      investor = inv;
-    }
-
-    return this.mapTransactionToDeposit(tx, investor);
+    return this.mapTransactionToDeposit(tx, (tx as any).profile);
   }
 
   async createDeposit(formData: DepositFormData): Promise<Deposit> {
-    // Resolve investor_id from user_id (profile_id)
-    const { data: investor } = await supabase
-      .from("investors")
+    // Resolve investor_id (which is now profile_id) from user_id
+    const profileId = formData.user_id; // user_id is already the profile_id
+
+    // Check if profile exists
+    const { data: profile } = await supabase
+      .from("profiles")
       .select("id")
-      .eq("profile_id", formData.user_id)
+      .eq("id", profileId)
       .maybeSingle();
 
-    if (!investor?.id) {
-      throw new Error("Investor not found for user_id");
+    if (!profile?.id) {
+      throw new Error("Profile not found for user_id. Please ensure the investor has a profile.");
     }
 
     // Resolve fund by asset symbol
@@ -126,7 +115,7 @@ export class DepositService {
     const { data: existingPosition } = await supabase
       .from("investor_positions")
       .select("shares, cost_basis, current_value")
-      .eq("investor_id", investor.id)
+      .eq("investor_id", profileId) // Use profileId
       .eq("fund_id", fund.id)
       .maybeSingle();
 
@@ -146,14 +135,14 @@ export class DepositService {
           updated_at: new Date().toISOString(),
           fund_class: fund.fund_class || fund.asset,
         })
-        .eq("investor_id", investor.id)
+        .eq("investor_id", profileId) // Use profileId
         .eq("fund_id", fund.id);
 
       if (updateError) throw updateError;
     } else {
       const { error: insertError } = await supabase.from("investor_positions").insert([
         {
-          investor_id: investor.id,
+          investor_id: profileId, // Use profileId
           fund_id: fund.id,
           shares: amount,
           cost_basis: amount,
@@ -164,13 +153,13 @@ export class DepositService {
       if (insertError) throw insertError;
     }
 
-    const occurredAt = new Date().toISOString();
+    const txDate = new Date().toISOString().split("T")[0];
 
     // Record transaction
     const { data, error } = await supabase
       .from("transactions_v2")
       .insert({
-        investor_id: investor.id,
+        investor_id: profileId, // Use profileId
         fund_id: fund.id,
         type: "DEPOSIT",
         asset: fund.asset || assetSymbol,
@@ -179,7 +168,8 @@ export class DepositService {
         tx_hash: formData.transaction_hash || null,
         balance_before: previousShares,
         balance_after: previousShares + amount,
-        occurred_at: occurredAt,
+        tx_date: txDate,
+        value_date: txDate,
       })
       .select()
       .single();

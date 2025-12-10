@@ -32,28 +32,8 @@ export function useDashboardData() {
       try {
         setState((prev) => ({ ...prev, loading: true, error: null }));
 
-        // Get investor ID from user
-        const { data: investors } = await supabase
-          .from("investors")
-          .select("id")
-          .eq("profile_id", user.id)
-          .single();
-
-        if (!investors) {
-          setState({
-            data: {
-              totalValue: 0,
-              totalGain: 0,
-              totalGainPercent: 0,
-              positions: [],
-              recentTransactions: [],
-              topPerformers: [],
-            },
-            loading: false,
-            error: null,
-          });
-          return;
-        }
+        // Get investor ID (One ID: it's the user.id)
+        const investorId = user.id;
 
         // Fetch investor positions
         const { data: positions } = await supabase
@@ -69,7 +49,7 @@ export function useDashboardData() {
             funds (*)
           `
           )
-          .eq("investor_id", investors.id);
+          .eq("investor_id", investorId);
 
         const totalValue =
           positions?.reduce((sum, pos) => sum + Number(pos.current_value || 0), 0) || 0;
@@ -82,7 +62,7 @@ export function useDashboardData() {
         const { data: transactions } = await supabase
           .from("transactions_v2")
           .select("*")
-          .eq("investor_id", investors.id)
+          .eq("investor_id", investorId)
           .order("created_at", { ascending: false })
           .limit(5);
 

@@ -51,44 +51,45 @@ export default function AdminManualTransaction() {
   });
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch Investors directly from investors table
-        const { data: investorsData, error: investorsError } = await supabase
-          .from("investors")
-          .select("id, email, name")
-          .eq("status", "active");
-
-        if (investorsError) throw investorsError;
-
-        // Fetch Funds
-        const { data: fundsData, error: fundsError } = await supabase
-          .from("funds")
-          .select("id, name, code")
-          .eq("status", "active");
-
-        if (fundsError) throw fundsError;
-
-        if (investorsData) {
-          setInvestors(
-            investorsData.map((i) => ({
-              id: i.id,
-              name: i.name || i.email,
-              email: i.email,
-            }))
-          );
+      const fetchData = async () => {
+        try {
+          // Fetch Investors directly from profiles table
+          const { data: profilesData, error: profilesError } = await supabase
+            .from("profiles")
+            .select("id, first_name, last_name, email")
+            .eq("status", "active")
+            .eq("is_admin", false)
+            .order("first_name");
+    
+          if (profilesError) throw profilesError;
+    
+          // Fetch Funds
+          const { data: fundsData, error: fundsError } = await supabase
+            .from("funds")
+            .select("id, name, code")
+            .eq("status", "active");
+    
+          if (fundsError) throw fundsError;
+    
+          if (profilesData) {
+            setInvestors(
+              profilesData.map((p) => ({
+                id: p.id,
+                name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
+                email: p.email,
+              }))
+            );
+          }
+    
+          if (fundsData) {
+            setFunds(fundsData);
+          }
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        } finally {
+          setIsLoading(false);
         }
-
-        if (fundsData) {
-          setFunds(fundsData);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
+      };    fetchData();
   }, []);
 
   const onSubmit = async (data: TransactionFormValues) => {

@@ -1,0 +1,78 @@
+{
+  "Jose Molla": {
+    "holdings": [
+      {
+        "fund": "Done - ETH TAC Program",
+        "balance": 63.48963943,
+        "currency": "ETH",
+        "date": "2025-02-01T00:00:00"
+      },
+      {
+        "fund": "BTC Yield Fund",
+        "balance": 3.580091008,
+        "currency": "BTC",
+        "date": "2025-02-01T00:00:00"
+      }
+    ]
+  },
+  "Nathanael Cohen": {
+    "holdings": [
+      {
+        "fund": "Done - ETH TAC Program",
+        "balance": 17.17844933,
+        "currency": "ETH",
+        "date": "2025-02-01T00:00:00"
+      }
+    ]
+  },
+  "Vivie-Ann Bakos": {
+    "holdings": [
+      {
+        "fund": "Done - ETH TAC Program",
+        "balance": 120.6737744,
+        "currency": "ETH",
+        "date": "2025-02-01T00:00:00"
+      }
+    ]
+  },
+  "Kyle Gulamerian": {
+    "holdings": [
+      {
+        "fund": "DONE - BTC Boosted Program",
+        "balance": 2.057782154,
+        "currency": "BTC",
+        "date": "2025-02-01T00:00:00"
+      }
+    ]
+  },
+  "Matthias Reiser": {
+    "holdings": [
+      {
+        "fund": "DONE - BTC Boosted Program",
+        "balance": 4.730528271,
+        "currency": "BTC",
+        "date": "2025-02-01T00:00:00"
+      }
+    ]
+  },
+  "Danielle Richetta": {
+    "holdings": [
+      {
+        "fund": "DONE - BTC Boosted Program",
+        "balance": 4.924034693,
+        "currency": "BTC",
+        "date": "2025-02-01T00:00:00"
+      }
+    ]
+  },
+  "Thomas Puech": {
+    "holdings": [
+      {
+        "fund": "BTC Yield Fund",
+        "balance": 6.673066696,
+        "currency": "BTC",
+        "date": "2025-02-01T00:00:00"
+      }
+    ]
+  }
+}

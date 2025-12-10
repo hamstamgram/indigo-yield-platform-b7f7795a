@@ -4,8 +4,14 @@ import { Clock, Calendar, Coins } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PerformanceReportTable } from "@/components/investor/reports/PerformanceReportTable";
 import { format } from "date-fns";
+import { useState } from "react";
+import { ReportsApi } from "@/services/api/reportsApi";
+import { useToast } from "@/hooks/use-toast";
 
 export default function DashboardPage() {
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const { toast } = useToast();
+
   // Fetch new data sources
   const { data: performanceHistory, isLoading: isLoadingPerf } = useInvestorPerformance();
   const { data: stats, isLoading: isLoadingStats } = usePortfolioStats();
@@ -20,6 +26,64 @@ export default function DashboardPage() {
   ) || [];
 
   const periodName = latestMonthData[0]?.period?.period_name || "Current Period";
+
+  const handleDownload = async (record: any) => {
+    try {
+      setDownloadingId(record.id);
+
+      const dateStr = record.period?.period_end_date;
+      if (!dateStr) throw new Error("Missing period date");
+
+      const date = new Date(dateStr);
+      const year = date.getFullYear();
+      const month = date.getMonth();
+
+      const startDate = new Date(year, month, 1).toISOString();
+      const endDate = new Date(year, month + 1, 0).toISOString();
+
+      const result = await ReportsApi.generateReportNow({
+        reportType: "monthly_statement",
+        format: "pdf",
+        filters: {
+          dateFrom: startDate,
+          dateTo: endDate,
+          asset: record.fund_name,
+        },
+        parameters: {
+          includeCharts: true,
+          confidential: true,
+        },
+      });
+
+      if (!result.success || !result.data) {
+        throw new Error(result.error || "Failed to generate PDF");
+      }
+
+      const blob = new Blob([result.data as any], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = result.filename || `Statement_${record.fund_name}_${year}_${month + 1}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Success",
+        description: "Statement downloaded successfully",
+      });
+    } catch (error) {
+      console.error("Download failed:", error);
+      toast({
+        title: "Error",
+        description: "Failed to download statement",
+        variant: "destructive",
+      });
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-20 p-4 md:p-0">
@@ -100,10 +164,8 @@ export default function DashboardPage() {
         ) : latestMonthData.length > 0 ? (
           <PerformanceReportTable 
             data={latestMonthData} 
-            onDownload={(record) => {
-              console.log("Download clicked for", record.id);
-              // TODO: Hook up to PDF generation service
-            }}
+            onDownload={handleDownload}
+            downloadingId={downloadingId}
           />
         ) : (
           <EmptyState

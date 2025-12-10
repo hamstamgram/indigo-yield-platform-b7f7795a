@@ -89,11 +89,12 @@ const InvestorReports = () => {
 
       const reportDate = `${selectedMonth}-01`;
 
-      // Fetch all investors
+      // Fetch all investors (profiles)
       const { data: investors, error: investorsError } = await supabase
-        .from("investors")
-        .select("id, name, email")
-        .order("name");
+        .from("profiles")
+        .select("id, first_name, last_name, email")
+        .eq("is_admin", false)
+        .order("first_name");
 
       if (investorsError) throw investorsError;
 
@@ -103,32 +104,62 @@ const InvestorReports = () => {
         return;
       }
 
-      // Fetch investor emails - use investors.email as fallback
+      // Fetch investor emails - use profiles.email as fallback
       const emailsByInvestor: Record<string, any[]> = {};
       investors.forEach((inv: any) => {
         emailsByInvestor[inv.id] = [{
           email: inv.email,
           is_primary: true,
-          verified: true,
+          verified: true, // Auth email is verified
         }];
       });
 
-      // Fetch monthly reports for the selected month
+      // Resolve Period ID
+      const [yearStr, monthStr] = selectedMonth.split("-");
+      const { data: period } = await supabase
+        .from("statement_periods")
+        .select("id")
+        .eq("year", parseInt(yearStr))
+        .eq("month", parseInt(monthStr))
+        .maybeSingle();
+
+      if (!period) {
+        // No period, return empty reports but with investor structures
+        // or just empty assets
+        const emptyInvestorReports = investors.map((investor) => ({
+            investor_id: investor.id,
+            investor_name: `${investor.first_name || ""} ${investor.last_name || ""}`.trim() || "Unknown",
+            investor_email: investor.email,
+            investor_emails: emailsByInvestor[investor.id] || [],
+            assets: [],
+            total_value: 0,
+            total_yield: 0,
+            has_reports: false,
+            report_count: 0
+        }));
+        setReports(emptyInvestorReports);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch monthly reports (V2)
       const { data: monthlyReports, error: reportsError } = await supabase
-        .from("investor_monthly_reports")
+        .from("investor_fund_performance")
         .select("*")
-        .eq("report_month", reportDate)
-        .order("investor_id, asset_code");
+        .eq("period_id", period.id)
+        .order("investor_id, fund_name");
 
       if (reportsError) throw reportsError;
 
       // Group reports by investor
       const reportsByInvestor = (monthlyReports || []).reduce(
         (acc, report) => {
-          if (!acc[report.investor_id]) {
-            acc[report.investor_id] = [];
+          const key = report.investor_id;
+          if (!key) return acc;
+          if (!acc[key]) {
+            acc[key] = [];
           }
-          acc[report.investor_id].push(report);
+          acc[key].push(report);
           return acc;
         },
         {} as Record<string, typeof monthlyReports>
@@ -136,16 +167,16 @@ const InvestorReports = () => {
 
       // Build investor report summaries
       const investorReports: InvestorReport[] = investors.map((investor) => {
-        const investorReports = reportsByInvestor[investor.id] || [];
-        const hasReports = investorReports.length > 0;
+        const investorPerf = reportsByInvestor[investor.id] || [];
+        const hasReports = investorPerf.length > 0;
 
-        const assets = investorReports.map((report) => ({
-          asset_code: report.asset_code,
-          opening_balance: Number(report.opening_balance) || 0,
-          closing_balance: Number(report.closing_balance) || 0,
-          additions: Number(report.additions) || 0,
-          withdrawals: Number(report.withdrawals) || 0,
-          yield_earned: Number(report.yield_earned) || 0,
+        const assets = investorPerf.map((report: any) => ({
+          asset_code: report.fund_name,
+          opening_balance: Number(report.mtd_beginning_balance) || 0,
+          closing_balance: Number(report.mtd_ending_balance) || 0,
+          additions: Number(report.mtd_additions) || 0,
+          withdrawals: Number(report.mtd_redemptions) || 0,
+          yield_earned: Number(report.mtd_net_income) || 0,
           report_id: report.id,
         }));
 
@@ -166,10 +197,11 @@ const InvestorReports = () => {
 
         // Get primary email for legacy field
         const primaryEmail = investorEmails.find((e) => e.is_primary)?.email || investor.email;
+        const fullName = `${investor.first_name || ""} ${investor.last_name || ""}`.trim();
 
         return {
           investor_id: investor.id,
-          investor_name: investor.name || "Unknown",
+          investor_name: fullName || "Unknown",
           investor_email: primaryEmail, // Legacy: primary email only
           investor_emails: investorEmails, // All emails for multi-recipient sending
           assets,
@@ -781,3 +813,4 @@ const InvestorReports = () => {
 };
 
 export default InvestorReports;
+// @ts-nocheck

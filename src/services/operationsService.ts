@@ -30,11 +30,9 @@ export const operationsService = {
           .select("id", { count: "exact", head: true })
           .in("status", ["pending", "approved"]),
 
-        // Pending deposits (from transactions_v2) - use any to break type chain
-        (async () => {
-          const builder: any = supabase.from("transactions_v2");
-          return builder.select("id", { count: "exact", head: true }).eq("type", "DEPOSIT").eq("status", "pending");
-        })(),
+        // Pending deposits - transactions_v2 doesn't have status column, deposits are immediately confirmed
+        // Return 0 as all deposits in transactions_v2 are already completed
+        Promise.resolve({ count: 0 } as any),
 
         // Pending investments - Note: "INVESTMENT" type doesn't exist, investments are tracked via DEPOSIT
         // Return 0 for now as there's no separate investment tracking
@@ -44,13 +42,14 @@ export const operationsService = {
         supabase
           .from("transactions_v2")
           .select("id", { count: "exact", head: true })
-          .gte("txn_date", new Date().toISOString().split("T")[0]),
+          .gte("tx_date", new Date().toISOString().split("T")[0]),
 
         // Active investors
         supabase
-          .from("investors")
+          .from("profiles")
           .select("id", { count: "exact", head: true })
-          .eq("status", "active"),
+          .eq("status", "active")
+          .eq("is_admin", false),
 
         // Total AUM from investor positions
         supabase.from("investor_positions").select("current_value").gt("current_value", 0),
@@ -103,8 +102,8 @@ export const operationsService = {
       const { count, error } = await supabase
         .from("transactions_v2")
         .select("id", { count: "exact", head: true })
-        .gte("txn_date", yesterdayDate)
-        .lt("txn_date", today);
+        .gte("tx_date", yesterdayDate)
+        .lt("tx_date", today);
 
       if (error) throw error;
       return count || 0;

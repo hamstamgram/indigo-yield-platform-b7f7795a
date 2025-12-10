@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { getAssetLogo } from "@/utils/assets";
 
 interface CryptoIconProps {
   symbol: string;
@@ -7,23 +8,9 @@ interface CryptoIconProps {
 
 export const CryptoIcon: React.FC<CryptoIconProps> = ({ symbol, className = "h-10 w-10" }) => {
   const [error, setError] = useState(false);
-  const lowerSymbol = symbol.toLowerCase();
-
-  // Determine image source
-  let src = `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/${lowerSymbol}.svg`;
-
-  // Special cases
-  if (lowerSymbol === "eurc" || lowerSymbol === "euroc") {
-    src = "https://storage.mlcdn.com/account_image/855106/uMETwk1Sdg02jRsgQ9fdO4Xe16KUaslLsJEYVFBY.png";
-  } else if (lowerSymbol === "sol") {
-    src = "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/sol.svg";
-  } else if (lowerSymbol === "usd" || lowerSymbol === "usdt") {
-    src = "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/usdt.svg";
-  } else if (lowerSymbol === "xaut") {
-    src = "https://assets.coingecko.com/coins/images/10481/large/Tether_Gold.png";
-  } else if (lowerSymbol === "xrp") {
-    src = "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/xrp.svg";
-  }
+  
+  // Use the centralized utility to get the logo URL
+  const src = getAssetLogo(symbol);
 
   if (error) {
     return (

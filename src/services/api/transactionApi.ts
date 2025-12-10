@@ -35,20 +35,10 @@ export async function fetchTransactions(filter: TransactionFilter = {}): Promise
 
     // Apply filters
 
-    // 1. User Filter (Resolve profile_id -> investor_id)
+    // 1. User Filter (userId IS profile_id / investor_id now)
     if (filter.userId) {
-      const { data: investor } = await supabase
-        .from("investors")
-        .select("id")
-        .eq("profile_id", filter.userId)
-        .maybeSingle();
-
-      if (investor) {
-        query = query.eq("investor_id", investor.id);
-      } else {
-        // If no investor profile found for this user, return empty
-        return { data: [], count: 0 };
-      }
+      // No need to lookup investor.id from investors table anymore
+      query = query.eq("investor_id", filter.userId);
     }
 
     if (filter.txnType) {
@@ -122,27 +112,13 @@ export async function deleteTransactionRecord(id: string): Promise<void> {
 
 export async function fetchTransactionSummary(userId: string): Promise<TransactionSummary> {
   try {
-    // Get investor ID
-    const { data: investor } = await supabase
-      .from("investors")
-      .select("id")
-      .eq("profile_id", userId)
-      .maybeSingle();
-
-    if (!investor) {
-      return {
-        totalCount: 0,
-        totalDeposits: 0,
-        totalWithdrawals: 0,
-        totalFees: 0,
-        recentTransactions: [],
-      };
-    }
+    // userId IS the investor_id now (One ID)
+    const investorId = userId;
 
     const { data: transactions, error } = await supabase
       .from("transactions_v2")
       .select("*")
-      .eq("investor_id", investor.id)
+      .eq("investor_id", investorId)
       .order("created_at", { ascending: false });
 
     if (error) throw error;

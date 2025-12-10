@@ -5,8 +5,82 @@
 
 import { ApiClient, ApiResponse } from "./ApiClient";
 import type { PortfolioPosition, PortfolioSummary, PortfolioData } from "@/types/domains/portfolio";
+import { supabase } from "@/integrations/supabase/client";
+
+// Helper to fetch funds (internal use or imported)
+async function getAllFunds() {
+  const { data, error } = await supabase.from("funds").select("*");
+  if (error) throw error;
+  return data || [];
+}
 
 export class PortfolioService extends ApiClient {
+  /**
+   * Create investor positions and seed initial DEPOSIT transactions for each funded asset.
+   * Balances are expected as native token amounts keyed by asset symbol (e.g., BTC, ETH).
+   */
+  async createPortfolioEntries(
+    investorId: string,
+    balances: Record<string, number>,
+    _assets: any[]
+  ): Promise<boolean> {
+    try {
+      const funds = await getAllFunds();
+      const today = new Date().toISOString().split("T")[0];
+
+      for (const [assetSymbolRaw, amountRaw] of Object.entries(balances || {})) {
+        const amount = Number(amountRaw) || 0;
+        if (amount <= 0) continue;
+
+        const assetSymbol = assetSymbolRaw.toUpperCase();
+        const fund = funds.find((f) => (f.asset || "").toUpperCase() === assetSymbol);
+        if (!fund) {
+          console.warn(`No fund found for asset ${assetSymbol}, skipping initial position.`);
+          continue;
+        }
+
+        // Upsert investor position
+        const { error: posError } = await supabase
+          .from("investor_positions")
+          .upsert(
+            {
+              investor_id: investorId,
+              fund_id: fund.id,
+              fund_class: fund.fund_class,
+              shares: amount,
+              cost_basis: amount,
+              current_value: amount,
+              last_transaction_date: today,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "investor_id,fund_id" }
+          );
+        if (posError) throw posError;
+
+        // Seed a DEPOSIT transaction
+        const { error: txError } = await supabase.from("transactions_v2").insert({
+          investor_id: investorId,
+          fund_id: fund.id,
+          fund_class: fund.fund_class,
+          asset: assetSymbol,
+          amount,
+          type: "DEPOSIT",
+          tx_date: today,
+          value_date: today,
+          notes: "Initial funding on investor creation",
+          balance_before: 0,
+          balance_after: amount,
+        });
+        if (txError) throw txError;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("createPortfolioEntries error", error);
+      return false;
+    }
+  }
+
   /**
    * Get portfolio summary for investor
    * Note: get_investor_portfolio_summary RPC doesn't exist - calculate from positions

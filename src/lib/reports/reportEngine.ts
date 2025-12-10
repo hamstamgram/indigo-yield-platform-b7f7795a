@@ -71,20 +71,11 @@ export class ReportEngine {
       ? new Date(filters.dateRangeStart)
       : new Date(endDate.getFullYear(), endDate.getMonth(), 1);
 
-    // Resolve investor_id from user_id if possible
-    let investorId = userId;
-    const { data: investor } = await supabase
-      .from("investors")
-      .select("id")
-      .eq("profile_id", userId)
-      .maybeSingle();
-
-    if (investor) {
-      investorId = investor.id;
-    }
+    // userId IS the investorId (One ID)
+    const investorId = userId;
 
     // Fetch basic data
-    // Use investor_positions (new table) instead of positions (legacy)
+    // Use investor_positions (new table)
     const { data: positions } = await supabase
       .from("investor_positions")
       .select("*, funds(name, code, asset)")
@@ -99,13 +90,33 @@ export class ReportEngine {
       .lte("created_at", endDate.toISOString())
       .order("created_at", { ascending: false });
 
-    // Use investor_monthly_reports (new table)
-    const { data: statements } = await supabase
-      .from("investor_monthly_reports")
-      .select("*")
+    // Use investor_fund_performance (V2) for statements with investor_id
+    const { data: performanceStatements } = await supabase
+      .from("investor_fund_performance")
+      .select(`
+        *,
+        period:statement_periods(period_end_date, year, month)
+      `)
       .eq("investor_id", investorId)
-      .order("report_month", { ascending: false })
-      .limit(12);
+      .gte("period.period_end_date", startDate.toISOString().split('T')[0])
+      .lte("period.period_end_date", endDate.toISOString().split('T')[0])
+      .order("period(period_end_date)", { ascending: false })
+      .limit(12); // Limit to last 12 months for report
+
+    // Map V2 performance data to legacy statements structure for compatibility
+    const statements = performanceStatements?.map((r: any) => ({
+      id: r.id,
+      investor_id: r.investor_id,
+      report_month: r.period?.period_end_date,
+      asset_code: r.fund_name,
+      opening_balance: Number(r.mtd_beginning_balance || 0),
+      closing_balance: Number(r.mtd_ending_balance || 0),
+      additions: Number(r.mtd_additions || 0),
+      withdrawals: Number(r.mtd_redemptions || 0),
+      yield_earned: Number(r.mtd_net_income || 0),
+      rate_of_return: Number(r.mtd_rate_of_return || 0),
+    })) || [];
+
 
     // Build report data structure matching what generators expect
     return {

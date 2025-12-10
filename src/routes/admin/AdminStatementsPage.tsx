@@ -57,13 +57,21 @@ export default function AdminStatementsPage() {
   const { data: investors, isLoading: investorsLoading } = useQuery({
     queryKey: ["investors-all"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("investors")
-        .select("id, name, email")
+      // Cast to any to avoid "excessively deep" type error with complex Supabase types
+      const query = (supabase as any)
+        .from("profiles")
+        .select("id, email, first_name, last_name")
+        .eq("role", "investor")
         .eq("status", "active")
-        .order("name");
+        .order("last_name");
+
+      const { data, error } = await query;
       if (error) throw error;
-      return data;
+      return (data as any[])?.map(p => ({
+        id: p.id,
+        email: p.email,
+        name: `${p.first_name || ''} ${p.last_name || ''}`.trim() || p.email
+      })) || [];
     },
   });
 
@@ -90,12 +98,16 @@ export default function AdminStatementsPage() {
       // Fetch statement data directly from investor_monthly_reports
       const reportMonth = `${params.year}-${params.month.toString().padStart(2, "0")}-01`;
       
-      const { data: investor } = await supabase
-        .from("investors")
-        .select("id, name")
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, email")
         .eq("id", params.investorId)
         .single();
         
+      const investorName = profile 
+        ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.email
+        : "Unknown";
+
       const { data: reports } = await supabase
         .from("investor_monthly_reports")
         .select("*")
@@ -104,7 +116,7 @@ export default function AdminStatementsPage() {
 
       const statementData = {
         investor: {
-          name: investor?.name || "Unknown",
+          name: investorName,
           id: params.investorId,
         },
         period: {
@@ -164,7 +176,7 @@ export default function AdminStatementsPage() {
 
       // Save document record
       const { data: docData, error: docError } = await supabase.from("documents").insert({
-        user_id: (statementData as any).investor.profile_id,
+        user_id: params.investorId,
         type: "statement",
         title: `Statement - ${months.find((m) => m.value === params.month.toString())?.label} ${params.year}`,
         storage_path: uploadData.path,

@@ -12,10 +12,8 @@ import {
   Gauge,
   FileSpreadsheet,
   Activity,
-  Cog,
   FilePlus,
   TrendingUp,
-  MessageSquare,
 } from "lucide-react";
 import { NavItem } from "@/types/navigation";
 
@@ -147,17 +145,6 @@ export const adminNavGroups: NavGroup[] = [
         href: "/admin/email-tracking",
         icon: <Mail className="h-5 w-5" />,
         adminOnly: true,
-      },
-    ],
-  },
-  {
-    title: "System", // New group
-    icon: Cog,
-    items: [
-      {
-        title: "Support",
-        href: "/admin/support",
-        icon: <MessageSquare className="h-4 w-4" />,
       },
     ],
   },

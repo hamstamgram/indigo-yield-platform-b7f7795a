@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Asset } from "@/types/investorTypes";
+import { getAssetLogo } from "@/utils/assets";
 
 // Define the schema for our form
 const formSchema = z.object({
@@ -25,11 +26,8 @@ const formSchema = z.object({
   last_name: z.string().min(1, {
     message: "Last name is required",
   }),
-  // Add additional fields for asset balances
-  btc_balance: z.string().optional(),
-  eth_balance: z.string().optional(),
-  sol_balance: z.string().optional(),
-  usdt_balance: z.string().optional(),
+  // Dynamic balances record: key is asset symbol, value is balance string
+  balances: z.record(z.string()),
 });
 
 export type InvestorFormValues = z.infer<typeof formSchema>;
@@ -53,16 +51,10 @@ const InvestorForm: React.FC<InvestorFormProps> = ({
       email: "",
       first_name: "",
       last_name: "",
-      btc_balance: "0",
-      eth_balance: "0",
-      sol_balance: "0",
-      usdt_balance: "0",
+      balances: {},
       ...defaultValues,
     },
   });
-
-  // Get the asset symbols for our supported assets
-  const assetSymbols = assets.map((asset) => asset.symbol.toLowerCase());
 
   return (
     <Form {...form}>
@@ -113,70 +105,36 @@ const InvestorForm: React.FC<InvestorFormProps> = ({
 
         <div className="pt-4 border-t">
           <h3 className="text-lg font-medium mb-4">Initial Balances</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            {assetSymbols.includes("btc") && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {assets.map((asset) => (
               <FormField
+                key={asset.id}
                 control={form.control}
-                name="btc_balance"
+                name={`balances.${asset.symbol}`}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>BTC Balance</FormLabel>
+                    <FormLabel className="flex items-center gap-2">
+                      <img
+                        src={getAssetLogo(asset.symbol)}
+                        alt={asset.symbol}
+                        className="w-4 h-4 rounded-full"
+                      />
+                      {asset.name} ({asset.symbol})
+                    </FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.00000001" {...field} />
+                      <Input
+                        type="number"
+                        step="0.00000001"
+                        placeholder="0.00"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value)} // Handle number input as string
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            )}
-
-            {assetSymbols.includes("eth") && (
-              <FormField
-                control={form.control}
-                name="eth_balance"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ETH Balance</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="0.00000001" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {assetSymbols.includes("sol") && (
-              <FormField
-                control={form.control}
-                name="sol_balance"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>SOL Balance</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="0.00000001" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {assetSymbols.includes("usdt") && (
-              <FormField
-                control={form.control}
-                name="usdt_balance"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>USDT Balance</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="0.01" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            ))}
           </div>
         </div>
 

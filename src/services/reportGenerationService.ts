@@ -310,99 +310,105 @@ export async function fetchInvestorReportData(
   reportMonth: string // YYYY-MM format
 ): Promise<InvestorReportData | null> {
   try {
-    // Fetch investor details
-    // Cast supabase to any - investors table schema doesn't match generated types
-    const investorResult = await (supabase as any)
-      .from("investors")
-      .select("id, name, email")
+    // 1. Fetch Investor Profile (Unified ID)
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, first_name, last_name, email")
       .eq("id", investorId)
       .single();
 
-    const { data: investor, error: investorError } = investorResult as { data: any; error: any };
-
-    if (investorError || !investor) {
-      console.error("Error fetching investor:", investorError);
+    if (profileError || !profile) {
+      console.error("Error fetching investor profile:", profileError);
       return null;
     }
 
-    // Fetch all emails for the investor
-    // Cast supabase to any to avoid excessive type depth inference in query builder
-    const result = await (supabase as any)
+    const investorName = `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || "Valued Investor";
+
+    // 2. Fetch Emails (using relinked investor_emails table)
+    const { data: emailRecords } = await supabase
       .from("investor_emails")
       .select("email, is_primary, verified")
       .eq("investor_id", investorId)
-      .order("is_primary", { ascending: false }); // Primary email first
+      .order("is_primary", { ascending: false });
 
-    const { data: emailRecords } = result as { data: any; error: any };
-
-    // Fallback to legacy email if no emails found
     const emails = (emailRecords || []).map((e: any) => ({
       email: e.email,
       isPrimary: e.is_primary,
       verified: e.verified,
     }));
 
-    // If no emails found in investor_emails table, use legacy email from investors table
-    if (emails.length === 0 && investor.email) {
+    if (emails.length === 0 && profile.email) {
       emails.push({
-        email: investor.email,
+        email: profile.email,
         isPrimary: true,
-        verified: false,
+        verified: true, // Auth email is verified
       });
     }
 
-    // Fetch monthly report data
-    const { data: positions, error: positionsError } = await supabase
-      .from("investor_monthly_reports")
-      .select(
-        `
-        *,
-        funds:fund_id (
-          name,
-          asset_code
-        )
-      `
-      )
-      .eq("investor_id", investorId)
-      .eq("report_month", reportMonth + "-01");
+    // 3. Resolve Report Period
+    const [yearStr, monthStr] = reportMonth.split("-");
+    const year = parseInt(yearStr);
+    const month = parseInt(monthStr);
 
-    if (positionsError) {
-      console.error("Error fetching positions:", positionsError);
+    const { data: period } = await supabase
+      .from("statement_periods")
+      .select("id")
+      .eq("year", year)
+      .eq("month", month)
+      .maybeSingle();
+
+    if (!period) {
+      console.warn(`No statement period found for ${reportMonth}`);
       return null;
     }
 
-    if (!positions || positions.length === 0) {
-      console.warn(`No positions found for investor ${investorId} in ${reportMonth}`);
+    // 4. Fetch Performance Data (V2 Source of Truth)
+    const { data: performanceData, error: perfError } = await supabase
+      .from("investor_fund_performance")
+      .select("*")
+      .eq("period_id", period.id)
+      .eq("investor_id", investorId);
+
+    if (perfError) {
+      console.error("Error fetching performance data:", perfError);
       return null;
     }
 
-    // Get primary email for backward compatibility
-    const primaryEmail = emails.find((e: any) => e.isPrimary)?.email || investor.email || "";
+    if (!performanceData || performanceData.length === 0) {
+      console.warn(`No performance data found for investor ${investorId} in ${reportMonth}`);
+      return null;
+    }
 
-    // Transform data for report
+    const primaryEmail = emails.find((e) => e.isPrimary)?.email || profile.email || "";
+
+    // 5. Transform Data
     const reportData: InvestorReportData = {
-      investorId: investor.id,
-      investorName: investor.name || "Unknown Investor",
-      email: primaryEmail, // Legacy field: primary email only
-      emails: emails, // All emails for multi-recipient sending
+      investorId: profile.id,
+      investorName,
+      email: primaryEmail,
+      emails,
       reportMonth,
-      positions: positions.map((pos: any) => {
-        let fundName = pos.funds?.name || "Unknown Fund";
-        const assetCode = pos.funds?.asset_code;
+      positions: performanceData.map((rec: any) => {
+        // Map Asset Code to Display Name
+        let fundName = rec.fund_name || "Unknown Fund";
+        const assetCode = rec.fund_name; // Assuming fund_name holds 'BTC', 'ETH' etc.
 
-        // Normalize fund names for branding
+        // Branding Logic
+        if (assetCode === "BTC") fundName = "BTC YIELD FUND";
+        if (assetCode === "ETH") fundName = "ETH YIELD FUND";
+        if (assetCode === "SOL") fundName = "SOL YIELD FUND";
+        if (assetCode === "USDT") fundName = "USDT YIELD FUND";
         if (assetCode === "xAUT") fundName = "Tokenized Gold";
-        if (assetCode === "USDT") fundName = "Stablecoin Fund";
 
         return {
           fundName,
           currencyName: assetCode || "Unknown",
-          openingBalance: pos.opening_balance || 0,
-          additions: pos.additions || 0,
-          withdrawals: pos.withdrawals || 0,
-          yield: pos.yield || 0,
-          closingBalance: pos.closing_balance || 0,
-          rateOfReturn: pos.rate_of_return || 0,
+          openingBalance: Number(rec.mtd_beginning_balance || 0),
+          additions: Number(rec.mtd_additions || 0),
+          withdrawals: Number(rec.mtd_redemptions || 0),
+          yield: Number(rec.mtd_net_income || 0),
+          closingBalance: Number(rec.mtd_ending_balance || 0),
+          rateOfReturn: Number(rec.mtd_rate_of_return || 0) * 100, // Convert decimal to %
         };
       }),
     };
@@ -439,11 +445,12 @@ export async function generateReportsForAllInvestors(
   reportMonth: string
 ): Promise<Array<{ html: string; data: InvestorReportData }>> {
   try {
-    // Fetch all active investors
+    // Fetch all active investors (from PROFILES)
     const { data: investors, error } = await supabase
-      .from("investors")
+      .from("profiles")
       .select("id")
-      .eq("status", "active");
+      .eq("status", "active")
+      .eq("is_admin", false);
 
     if (error || !investors) {
       console.error("Error fetching investors:", error);

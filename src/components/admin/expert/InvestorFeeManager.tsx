@@ -1,5 +1,5 @@
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,26 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { DollarSign, TrendingUp, Calendar, History, FileText, Percent } from "lucide-react";
-import { UnifiedInvestorData } from "@/services/expertInvestorService";
+import { ExpertInvestor } from "@/services/expertInvestorService";
 import { formatAssetValue } from "@/utils/kpiCalculations";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+type FeeScheduleRow = {
+  fund_code: string;
+  fee_pct: number;
+  effective_date: string;
+};
+
+type FeeHistoryRow = {
+  id: string;
+  fee_type: string | null;
+  calculation_date: string;
+  fee_amount: number;
+};
+
 interface InvestorFeeManagerProps {
-  investor: UnifiedInvestorData;
+  investor: ExpertInvestor;
   fees: {
     totalFeesCollected: number;
     monthlyFees: number;
@@ -32,10 +45,48 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
   const { toast } = useToast();
   const [showFeeHistory, setShowFeeHistory] = useState(false);
   const [showAdjustRate, setShowAdjustRate] = useState(false);
-  const [newFeeRate, setNewFeeRate] = useState((investor.feePercentage * 100).toFixed(2));
+  const [newFeeRate, setNewFeeRate] = useState("0.00");
   const [isUpdating, setIsUpdating] = useState(false);
-  const [feeHistory, setFeeHistory] = useState<any[]>([]);
+  const [feeHistory, setFeeHistory] = useState<FeeHistoryRow[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [feeSchedule, setFeeSchedule] = useState<FeeScheduleRow[]>([]);
+
+  const blendedFeePct = useMemo(() => {
+    if (!feeSchedule.length) return 0;
+    const sum = feeSchedule.reduce((s, f) => s + Number(f.fee_pct || 0), 0);
+    return sum / feeSchedule.length;
+  }, [feeSchedule]);
+
+  const totalAum = useMemo(
+    () => (investor.positions || []).reduce((s, p) => s + Number(p.current_value || 0), 0),
+    [investor.positions]
+  );
+
+  useEffect(() => {
+    setNewFeeRate(blendedFeePct.toFixed(2));
+  }, [blendedFeePct]);
+
+  useEffect(() => {
+    const loadFeeSchedule = async () => {
+      const { data, error } = await supabase
+        .from("investor_fee_schedule")
+        .select("fee_pct, effective_date, fund_id, funds(code)")
+        .eq("investor_id", investor.id)
+        .order("effective_date", { ascending: false });
+      if (error) {
+        console.error("loadFeeSchedule", error);
+        return;
+      }
+      setFeeSchedule(
+        (data || []).map((row: any) => ({
+          fund_code: row.funds?.code || row.fund_id,
+          fee_pct: Number(row.fee_pct || 0),
+          effective_date: row.effective_date as string,
+        }))
+      );
+    };
+    loadFeeSchedule();
+  }, [investor.id]);
 
   const handleViewFeeHistory = async () => {
     setShowFeeHistory(true);
@@ -44,13 +95,13 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
       // Use fee_calculations table instead of platform_fees_collected
       const { data, error } = await supabase
         .from("fee_calculations")
-        .select("*")
+        .select("id, fee_type, calculation_date, fee_amount")
         .eq("investor_id", investor.id)
         .order("calculation_date", { ascending: false })
         .limit(50);
 
       if (error) throw error;
-      setFeeHistory(data || []);
+      setFeeHistory((data as FeeHistoryRow[]) || []);
     } catch (error) {
       toast({
         title: "Error",
@@ -72,21 +123,30 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
   const handleAdjustFeeRate = async () => {
     setIsUpdating(true);
     try {
-      const newRate = parseFloat(newFeeRate) / 100;
-      if (isNaN(newRate) || newRate < 0 || newRate > 1) {
+      const newRatePct = parseFloat(newFeeRate);
+      if (isNaN(newRatePct) || newRatePct < 0 || newRatePct > 100) {
         throw new Error("Invalid fee rate. Must be between 0% and 100%");
       }
 
-      const { error } = await supabase
-        .from("profiles")
-        .update({ fee_percentage: newRate })
-        .eq("id", investor.profileId);
+      const today = new Date().toISOString().split("T")[0];
+      const fundIds = (investor.positions || []).map((p) => p.fund_id);
 
-      if (error) throw error;
+      for (const fundId of fundIds) {
+        const { error } = await supabase.from("investor_fee_schedule").upsert(
+          {
+            investor_id: investor.id,
+            fund_id: fundId,
+            fee_pct: newRatePct,
+            effective_date: today,
+          },
+          { onConflict: "investor_id,fund_id,effective_date" }
+        );
+        if (error) throw error;
+      }
 
       toast({
         title: "Success",
-        description: `Fee rate updated to ${newFeeRate}%`,
+        description: `Fee rate updated to ${newRatePct.toFixed(2)}%`,
       });
       setShowAdjustRate(false);
     } catch (error) {
@@ -101,9 +161,8 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
   };
 
   // Build investor name from available fields
-  const investorName = investor.firstName
-    ? `${investor.firstName} ${investor.lastName || ""}`.trim()
-    : investor.email || "Investor";
+  const investorName =
+    `${investor.first_name || ""} ${investor.last_name || ""}`.trim() || investor.email || "Investor";
 
   return (
     <div className="space-y-6">
@@ -156,9 +215,7 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
             <div>
               <Label htmlFor="current-fee-rate">Current Fee Rate</Label>
               <div className="mt-2 p-3 bg-muted rounded-lg">
-                <div className="text-2xl font-bold">
-                  {(investor.feePercentage * 100).toFixed(2)}%
-                </div>
+                <div className="text-2xl font-bold">{blendedFeePct.toFixed(2)}%</div>
                 <p className="text-sm text-muted-foreground">Applied to gross yield</p>
               </div>
             </div>
@@ -167,7 +224,7 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
               <Label htmlFor="estimated-monthly">Estimated Monthly Fee</Label>
               <div className="mt-2 p-3 bg-muted rounded-lg">
                 <div className="text-2xl font-bold">
-                  {formatAssetValue((investor.totalAum * investor.feePercentage * 0.072) / 12)}
+                  {formatAssetValue((totalAum * (blendedFeePct / 100) * 0.072) / 12)}
                 </div>
                 <p className="text-sm text-muted-foreground">Based on 7.2% APY assumption</p>
               </div>
@@ -182,31 +239,63 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
             <div className="space-y-3 text-sm">
               <div className="flex justify-between p-2 bg-muted/50 rounded">
                 <span>Total AUM:</span>
-                <span className="font-mono">{formatAssetValue(investor.totalAum)}</span>
+                <span className="font-mono">{formatAssetValue(totalAum)}</span>
               </div>
               <div className="flex justify-between p-2 bg-muted/50 rounded">
                 <span>Fee Rate:</span>
-                <span className="font-mono">{(investor.feePercentage * 100).toFixed(2)}%</span>
+                <span className="font-mono">{blendedFeePct.toFixed(2)}%</span>
               </div>
               <div className="flex justify-between p-2 bg-muted/50 rounded">
                 <span>Estimated Annual Yield (7.2%):</span>
-                <span className="font-mono">{formatAssetValue(investor.totalAum * 0.072)}</span>
+                <span className="font-mono">{formatAssetValue(totalAum * 0.072)}</span>
               </div>
               <div className="flex justify-between p-2 bg-primary/10 rounded font-medium">
                 <span>Estimated Annual Fee:</span>
                 <span className="font-mono">
-                  {formatAssetValue(investor.totalAum * 0.072 * investor.feePercentage)}
+                  {formatAssetValue(totalAum * 0.072 * (blendedFeePct / 100))}
                 </span>
               </div>
             </div>
           </div>
 
+          <Separator />
+
+          {/* Per-Fund Fee Schedule */}
+          <div>
+            <h4 className="font-medium mb-4">Per-Fund Fee Schedule</h4>
+            {feeSchedule.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No fee schedule found for this investor.</p>
+            ) : (
+              <div className="space-y-2">
+                {feeSchedule.map((row) => (
+                  <div
+                    key={`${row.fund_code}-${row.effective_date}`}
+                    className="flex items-center justify-between p-2 bg-muted/50 rounded"
+                  >
+                    <div>
+                      <div className="font-medium">{row.fund_code}</div>
+                      <div className="text-xs text-muted-foreground">
+                        Effective {new Date(row.effective_date).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div className="font-mono text-sm">
+                      {Number(row.fee_pct || 0).toFixed(2)}%
+                      {Number(row.fee_pct || 0) === 0 && (
+                        <span className="text-xs text-green-600 ml-2">waived</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Actions */}
-          <div className="flex space-x-2 pt-4">
-            <Button variant="outline" onClick={handleViewFeeHistory}>
-              <History className="h-4 w-4 mr-2" />
-              View Fee History
-            </Button>
+            <div className="flex space-x-2 pt-4">
+              <Button variant="outline" onClick={handleViewFeeHistory}>
+                <History className="h-4 w-4 mr-2" />
+                View Fee History
+              </Button>
             <Button variant="outline" onClick={handleGenerateFeeStatement}>
               <FileText className="h-4 w-4 mr-2" />
               Generate Fee Statement
@@ -278,7 +367,7 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
                 placeholder="e.g., 10.00"
               />
               <p className="text-sm text-muted-foreground mt-1">
-                Current rate: {(investor.feePercentage * 100).toFixed(2)}%
+                Current blended rate: {blendedFeePct.toFixed(2)}%
               </p>
             </div>
           </div>
