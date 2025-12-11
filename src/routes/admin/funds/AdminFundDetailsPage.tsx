@@ -26,13 +26,14 @@ export default function AdminFundDetailsPage() {
       if (!latestPeriodId) return { investors: [], totalAum: 0, totalYield: 0 };
 
       // Fetch performance records for this period + fund
-      const { data: records, error } = await supabase
+      // Cast to any to avoid type depth issues
+      const { data: records, error } = await (supabase as any)
         .from("investor_fund_performance")
         .select(`
           mtd_ending_balance,
           mtd_net_income,
           mtd_rate_of_return,
-          user_id,
+          investor_id,
           profiles:profiles (
             first_name,
             last_name,
@@ -44,14 +45,14 @@ export default function AdminFundDetailsPage() {
 
       if (error) throw error;
 
-      const investors = records.map((r: any) => ({
-        id: r.user_id,
+      const investors = (records || []).map((r: any) => ({
+        id: r.investor_id,
         name: `${r.profiles?.first_name || ""} ${r.profiles?.last_name || ""}`.trim() || r.profiles?.email,
         email: r.profiles?.email,
         balance: Number(r.mtd_ending_balance || 0),
         yield: Number(r.mtd_net_income || 0),
         roi: Number(r.mtd_rate_of_return || 0)
-      })).sort((a, b) => b.balance - a.balance); // Sort by whale size
+      })).sort((a: any, b: any) => b.balance - a.balance); // Sort by whale size
 
       const totalAum = investors.reduce((sum, i) => sum + i.balance, 0);
       const totalYield = investors.reduce((sum, i) => sum + i.yield, 0);

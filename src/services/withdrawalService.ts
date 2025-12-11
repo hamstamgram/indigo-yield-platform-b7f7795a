@@ -222,9 +222,25 @@ export const withdrawalService = {
         .maybeSingle();
 
       if (position) {
-        const newShares = Math.max(0, Number(position.shares || 0) - processedAmount);
-        const newCostBasis = Math.max(0, Number(position.cost_basis || 0) - processedAmount);
-        const newCurrentValue = Math.max(0, Number(position.current_value || 0) - processedAmount);
+        const currentShares = Number(position.shares || 0);
+        const currentCost = Number(position.cost_basis || 0);
+        const currentValue = Number(position.current_value || 0);
+        
+        let newShares = currentShares;
+        let newCostBasis = currentCost;
+        let newCurrentValue = currentValue;
+
+        if (currentShares > 0) {
+            // Calculate proportional reduction
+            const withdrawalRatio = Math.min(1, processedAmount / currentShares);
+            
+            newShares = Math.max(0, currentShares - processedAmount);
+            newCostBasis = Math.max(0, currentCost - (currentCost * withdrawalRatio));
+            newCurrentValue = Math.max(0, currentValue - (currentValue * withdrawalRatio));
+        } else {
+            // Edge case: shares are 0 but maybe value remains? Just zero out if full withdrawal intended or warn
+            console.warn("Withdrawal processed for position with 0 shares");
+        }
 
         await supabase
           .from("investor_positions")

@@ -6,23 +6,6 @@ export const createOrFindInvestorUser = async (
   values: InvestorFormValues
 ): Promise<string | null> => {
   try {
-    // Try to find if user already exists by email
-    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers({
-      perPage: 100, // Get more users to search through
-      page: 1,
-    });
-
-    // Use proper typing for users array and add null checks
-    const users = authUsers?.users as User[] | null;
-    const existingUser = users?.find(
-      (user) => user && typeof user.email === "string" && user.email === values.email
-    );
-
-    // If found, return existing user ID
-    if (!authError && existingUser && existingUser.id) {
-      return existingUser.id;
-    }
-
     // Generate a complex password that meets Supabase requirements
     const generateStrongPassword = () => {
       const lowercase = "abcdefghijklmnopqrstuvwxyz";
@@ -51,57 +34,40 @@ export const createOrFindInvestorUser = async (
 
     const tempPassword = generateStrongPassword();
 
-    // Create the user using admin create user
-    const { data: userData, error: createError } = await supabase.auth.admin.createUser({
-      email: values.email,
-      password: tempPassword,
-      email_confirm: true,
-      user_metadata: {
-        first_name: values.first_name,
-        last_name: values.last_name,
-        is_investor: true,
-        is_admin: false,
+    // Call Edge Function to create user securely
+    const { data, error } = await supabase.functions.invoke("admin-user-management", {
+      body: {
+        action: "create_user",
+        email: values.email,
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: {
+          first_name: values.first_name,
+          last_name: values.last_name,
+          is_investor: true,
+          is_admin: false,
+        },
       },
     });
 
-    if (createError) {
-      console.error("Admin signup error:", createError);
-
-      // Fall back to regular signup if admin fails
-      const { data: authData, error: signupError } = await supabase.auth.signUp({
-        email: values.email,
-        password: tempPassword,
-        options: {
-          data: {
-            first_name: values.first_name,
-            last_name: values.last_name,
-            is_investor: true,
-            is_admin: false,
-          },
-        },
-      });
-
-      if (signupError) {
-        console.error("Signup error:", signupError);
-        throw new Error(`Signup failed: ${signupError.message}`);
-      }
-
-      if (authData?.user) {
-        return authData.user.id;
-      } else {
-        console.error("User created but ID not returned");
-        throw new Error("User created but ID not returned");
-      }
+    if (error) {
+      console.error("Error creating user via Edge Function:", error);
+      throw new Error(error.message || "Failed to create user");
     }
 
-    if (userData?.user) {
-      return userData.user.id;
+    if (data?.user?.id) {
+      return data.user.id;
+    } else if (data?.id) {
+      return data.id;
+    } else if (data?.error) {
+       // Handle "User already exists" gracefully if possible, or throw
+       throw new Error(data.error);
     } else {
-      console.error("Admin user created but ID not returned");
-      throw new Error("User created but ID not returned");
+      throw new Error("User created but no ID returned from Edge Function");
     }
+
   } catch (error) {
     console.error("Error in createOrFindInvestorUser:", error);
-    throw error; // Re-throw to be handled by the caller
+    throw error;
   }
 };
