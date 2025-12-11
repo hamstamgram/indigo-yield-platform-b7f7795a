@@ -9,26 +9,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import {
   Shield,
   Smartphone,
-  Download,
-  Copy,
   CheckCircle,
   AlertCircle,
-  Key,
   QrCode,
   RefreshCw,
   X,
 } from "lucide-react";
 
-import { useTOTP } from "@/lib/auth/totp";
 import { TOTPService } from "@/lib/auth/totp-service";
-import { BackupCodeGenerationResult } from "@/lib/auth/totp";
 import { useAuth } from "@/lib/auth/context";
 
 interface TOTPSetupProps {
@@ -46,7 +40,6 @@ interface SetupStep {
 
 export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
   const { user } = useAuth();
-  const { generateQRCode } = useTOTP();
 
   const [currentStep, setCurrentStep] = useState(0);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
@@ -102,9 +95,12 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
       }
       setFactorId(result.id);
 
-      // Generate QR code
-      const qrCode = await generateQRCode(user.email!, result.secret);
-      setQrCodeUrl(qrCode);
+      // Use the QR code provided by Supabase
+      if (result.qrCode) {
+        setQrCodeUrl(result.qrCode);
+      } else {
+        throw new Error("Failed to generate QR code");
+      }
 
       // Mark first step as completed
       updateStepCompletion(0, true);
@@ -118,7 +114,7 @@ export function TOTPSetup({ open, onOpenChange, onComplete }: TOTPSetupProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [user, generateQRCode]);
+  }, [user]);
 
   useEffect(() => {
     if (open && currentStep === 0) {
