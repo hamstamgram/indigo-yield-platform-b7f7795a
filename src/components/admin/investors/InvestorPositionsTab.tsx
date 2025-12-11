@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -138,19 +137,6 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
     },
   });
 
-  // Check for legacy data
-  const { data: legacyPositions } = useQuery({
-    queryKey: ["legacy-positions", investorId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("positions")
-        .select("*")
-        .eq("investor_id", investorId)
-        .gt("current_balance", 0);
-      return data || [];
-    },
-  });
-
   const handleEdit = (position: any) => {
     setSelectedPosition(position);
     setIsEditOpen(true);
@@ -164,28 +150,8 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
     );
   }
 
-  const showMigrationWarning =
-    (!positions || positions.length === 0) && legacyPositions && legacyPositions.length > 0;
-
   return (
     <div className="space-y-6">
-      {showMigrationWarning && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <AlertCircle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-yellow-700">
-                <strong>Legacy Data Detected:</strong> This investor has {legacyPositions?.length}{" "}
-                active assets in the old system that have not been migrated. The detailed view only
-                shows the new system. Please run the migration script to move these assets.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Asset Positions</h2>
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -332,7 +331,7 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
             <div className="flex-1">
               <Label>Current Fee Percentage</Label>
               <div className="text-2xl font-bold">
-                {((investor?.profile?.fee_percentage || 0.02) * 100).toFixed(1)}%
+                {((investor?.fee_percentage || 0.02) * 100).toFixed(1)}%
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -559,4 +558,3 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
 };
 
 export default InvestorMonthlyTracking;
-// @ts-nocheck

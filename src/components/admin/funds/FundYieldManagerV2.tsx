@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,8 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getAllFundsWithAUM, getFundAUMHistory } from "@/services/aumService";
-import { feeService } from "@/services/feeService";
+import { getAllFundsWithAUM, getFundAUMHistory, applyDailyYieldToFund } from "@/services/aumService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TrendingUp } from "lucide-react";
@@ -44,7 +42,7 @@ const FundYieldManagerV2 = () => {
     try {
       const data = await getAllFundsWithAUM();
       // Map to match FundWithAUM interface
-      const mappedData = data.map((fund) => ({
+      const mappedData = data.map((fund: any) => ({
         id: fund.id,
         code: fund.code,
         name: fund.name,
@@ -60,27 +58,36 @@ const FundYieldManagerV2 = () => {
       console.error("Error fetching funds:", error);
       toast.error("Failed to load funds");
     }
-  }, [selectedFund, toast]);
+  }, [selectedFund]);
 
   const fetchYieldHistory = useCallback(async () => {
     try {
-      // Fetch recent yield rates from the database
+      // Fetch recent yield rates from fund_daily_aum (V2 source)
       const { data, error } = await supabase
-        .from("yield_rates")
-        .select("*")
-        .order("date", { ascending: false })
+        .from("fund_daily_aum")
+        .select(`
+          id,
+          aum_date,
+          yield_percentage,
+          total_aum,
+          gross_yield,
+          investor_count,
+          funds(code)
+        `)
+        .gt("yield_percentage", 0)
+        .order("aum_date", { ascending: false })
         .limit(10);
 
       if (error) throw error;
-      // Map yield_rates to display format
+      // Map to display format
       const mapped = (data || []).map((rate: any) => ({
         id: rate.id,
-        application_date: rate.date,
-        asset_code: "YIELD",
-        daily_yield_percentage: rate.daily_yield_percentage,
-        total_aum: 0,
-        total_yield_generated: 0,
-        investors_affected: 0,
+        application_date: rate.aum_date,
+        asset_code: rate.funds?.code || "UNKNOWN",
+        daily_yield_percentage: rate.yield_percentage,
+        total_aum: rate.total_aum,
+        total_yield_generated: rate.gross_yield,
+        investors_affected: rate.investor_count,
       }));
       setYieldHistory(mapped);
     } catch (error) {
@@ -136,17 +143,16 @@ const FundYieldManagerV2 = () => {
 
     setLoading(true);
     try {
-      // Use the new fee-aware function
-      const result = await feeService.applyDailyYieldWithFees(
+      // Use aumService
+      const result = await applyDailyYieldToFund(
         selectedFund,
         yieldValue,
         applicationDate
       );
 
-      if (result.success) {
+      if (result.success && result.data) {
         toast.success(
-          `Yield applied successfully! ${result.investors_affected} investors affected.
-          Gross: ${result.total_gross_yield?.toFixed(6)} | Fees: ${result.total_platform_fees?.toFixed(6)} | Net: ${result.total_net_yield?.toFixed(6)} ${result.asset_code}`
+          `Yield applied successfully! ${result.data.investors_affected} investors affected.`
         );
         setYieldPercentage("");
         setFeePreview(null);
@@ -312,6 +318,3 @@ const FundYieldManagerV2 = () => {
 };
 
 export default FundYieldManagerV2;
-// @ts-nocheck
-// @ts-nocheck
-// @ts-nocheck
