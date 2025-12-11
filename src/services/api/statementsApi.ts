@@ -536,12 +536,27 @@ export async function finalizePeriod(periodId: string): Promise<void> {
     } = await supabase.auth.getUser();
     if (!user) throw new Error("Not authenticated");
 
-    const { error } = await supabase.rpc("finalize_statement_period" as any, {
-      p_period_id: periodId,
-      p_admin_id: user.id,
-    });
+    // Direct update instead of RPC
+    const { error: updateError } = await supabase
+      .from("statement_periods")
+      .update({
+        status: "finalized",
+        finalized_at: new Date().toISOString(),
+        finalized_by: user.id,
+      } as any)
+      .eq("id", periodId);
 
-    if (error) throw error;
+    if (updateError) throw updateError;
+
+    // Log audit event
+    await supabase.from("audit_logs").insert({
+      action: "FINALIZE_PERIOD",
+      table_name: "statement_periods",
+      record_id: periodId,
+      user_id: user.id,
+      changes: { status: "finalized" },
+    } as any);
+
   } catch (error) {
     console.error("Error finalizing period:", error);
     throw new Error("Failed to finalize period");

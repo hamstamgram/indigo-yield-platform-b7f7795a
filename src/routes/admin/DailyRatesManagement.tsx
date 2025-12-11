@@ -183,25 +183,42 @@ export default function DailyRatesManagement() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No authenticated user");
 
-      // Call the database function to send notifications
-      const { data, error } = await supabase.rpc("send_daily_rate_notifications" as any, {
-        p_rate_date: editingRates.rate_date,
-        p_btc_rate: parseFloat(editingRates.btc_rate),
-        p_eth_rate: parseFloat(editingRates.eth_rate),
-        p_sol_rate: parseFloat(editingRates.sol_rate),
-        p_usdt_rate: parseFloat(editingRates.usdt_rate),
-        p_eurc_rate: parseFloat(editingRates.eurc_rate),
-        p_xaut_rate: parseFloat(editingRates.xaut_rate),
-        p_xrp_rate: parseFloat(editingRates.xrp_rate),
-        p_notes: editingRates.notes || null,
-      });
+      // 1. Get all active investors who have daily rates enabled (or all active if settings missing)
+      // Since we can't easily join in client query without complex types, we'll fetch active profiles
+      // and filter.
+      const { data: investors, error: investorsError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("status", "active")
+        .eq("is_admin", false);
 
-      if (error) throw error;
+      if (investorsError) throw investorsError;
+      if (!investors || investors.length === 0) return { count: 0 };
 
-      return data;
+      // 2. Create notification records
+      const notifications = investors.map((inv) => ({
+        user_id: inv.id,
+        type: "system", // Use 'system' as 'daily_rate' might not be in enum or caused issues
+        title: "Daily Rate Update",
+        body: `New daily rates have been published for ${format(new Date(editingRates.rate_date), "MMM dd, yyyy")}`,
+        data_jsonb: {
+          rates: editingRates,
+          date: editingRates.rate_date,
+        },
+        created_at: new Date().toISOString(),
+      }));
+
+      // 3. Bulk insert
+      const { error: insertError } = await supabase
+        .from("notifications" as any)
+        .insert(notifications);
+
+      if (insertError) throw insertError;
+
+      return { count: notifications.length };
     },
     onSuccess: (data: any) => {
-      const count = data?.[0]?.notifications_sent || 0;
+      const count = data.count || 0;
       toast.success(`Daily rates sent to ${count} investors via notification`);
     },
     onError: (error: any) => {

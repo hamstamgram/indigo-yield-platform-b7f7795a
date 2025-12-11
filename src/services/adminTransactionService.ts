@@ -11,13 +11,19 @@ export interface CreateTransactionParams {
 
 export const adminTransactionService = {
   async createTransaction(params: CreateTransactionParams) {
-    const { data, error } = await (supabase as any).rpc("admin_create_transaction", {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+
+    const delta = params.type === "DEPOSIT" ? params.amount : -params.amount;
+    const note = params.description || `${params.type} transaction`;
+
+    // Use the robust adjustment RPC which handles position updates and transaction logging
+    const { data, error } = await (supabase.rpc as any)("adjust_investor_position", {
       p_investor_id: params.investorId,
-      p_type: params.type,
-      p_amount: params.amount,
       p_fund_id: params.fundId,
-      p_description: params.description,
-      p_tx_hash: params.txHash,
+      p_delta: delta,
+      p_note: note,
+      p_admin_id: user.id
     });
 
     if (error) throw error;

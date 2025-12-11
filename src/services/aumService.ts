@@ -371,55 +371,23 @@ export async function getFundInvestorPositions(fundId: string) {
  */
 export async function getAllFundsWithAUM() {
   try {
-    const { data: funds, error: fundsError } = await supabase
-      .from("funds")
-      .select("*")
-      .eq("status", "active")
-      .order("name");
+    // Use optimized RPC to avoid N+1 queries
+    const { data: funds, error } = await (supabase.rpc as any)("get_funds_with_aum");
 
-    if (fundsError) throw fundsError;
+    if (error) throw error;
 
-    // Get latest AUM for each fund (prefer fund_daily_aum; fallback to positions)
-    const fundsWithAUM = await Promise.all(
-      (funds || []).map(async (fund) => {
-        let totalAUM = 0;
-        let latestDate: string | null = null;
-        const { data: aumRows } = await supabase
-          .from("fund_daily_aum")
-          .select("total_aum, as_of_date, aum_date")
-          .eq("fund_id", fund.id)
-          .order("as_of_date", { ascending: false })
-          .limit(1);
-        if (aumRows && aumRows.length) {
-          totalAUM = Number(aumRows[0].total_aum || 0);
-          latestDate = aumRows[0].as_of_date || aumRows[0].aum_date || null;
-        } else {
-          const { data: positions } = await supabase
-            .from("investor_positions")
-            .select("current_value, investor_id")
-            .eq("fund_id", fund.id)
-            .gt("current_value", 0);
-          totalAUM = positions?.reduce((sum, pos) => sum + (pos.current_value || 0), 0) || 0;
-          latestDate = null;
-        }
-
-        const { data: posForCount } = await supabase
-          .from("investor_positions")
-          .select("investor_id")
-          .eq("fund_id", fund.id)
-          .gt("current_value", 0);
-        const investorCount = posForCount?.length || 0;
-
-        return {
-          ...fund,
-          latest_aum: totalAUM,
-          latest_aum_date: latestDate,
-          investor_count: investorCount,
-        };
-      })
-    );
-
-    return fundsWithAUM;
+    return (funds || []).map((fund: any) => ({
+      id: fund.id,
+      code: fund.code,
+      name: fund.name,
+      asset: fund.asset,
+      fund_class: fund.fund_class,
+      inception_date: fund.inception_date,
+      status: fund.status,
+      latest_aum: Number(fund.latest_aum || 0),
+      latest_aum_date: fund.latest_aum_date,
+      investor_count: Number(fund.investor_count || 0),
+    }));
   } catch (error) {
     console.error("Error fetching funds with AUM:", error);
     return [];

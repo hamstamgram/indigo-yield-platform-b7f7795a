@@ -117,7 +117,7 @@ function AdminOperationsHubContent() {
         {
           event: "*",
           schema: "public",
-          table: "investors",
+          table: "profiles",
         },
         () => {
           debouncedLoadMetrics();
