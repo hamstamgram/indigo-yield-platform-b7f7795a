@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -277,9 +276,9 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
               );
 
               return Object.entries(assetGroups).map(([asset, assetPositions]) => {
-                const totalValue = assetPositions.reduce((sum, p) => sum + p.currentValue, 0);
-                const totalCost = assetPositions.reduce((sum, p) => sum + p.costBasis, 0);
-                const totalEarnings = assetPositions.reduce((sum, p) => sum + p.totalEarnings, 0);
+                const totalValue = assetPositions.reduce((sum, p) => sum + p.current_value, 0);
+                const totalCost = assetPositions.reduce((sum, p) => sum + p.cost_basis, 0);
+                const totalEarnings = assetPositions.reduce((sum, p) => sum + p.total_earnings, 0);
                 const totalPnL = totalValue - totalCost;
                 const pnlPercent = totalCost > 0 ? ((totalValue - totalCost) / totalCost) * 100 : 0;
 
@@ -327,4 +326,3 @@ const ExpertPositionsTable: React.FC<ExpertPositionsTableProps> = ({
 };
 
 export default ExpertPositionsTable;
-// @ts-nocheck

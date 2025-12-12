@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -56,7 +55,7 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, i
   const fetchReports = useCallback(async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("investor_fund_performance")
         .select(`
           *,
@@ -64,7 +63,7 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, i
             period_end_date
           )
         `)
-        .eq("user_id", investorId)
+        .eq("investor_id", investorId)
         .order("period(period_end_date)", { ascending: false })
         .order("fund_name", { ascending: true });
 
@@ -72,7 +71,7 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, i
 
       const reports: MonthlyReport[] = (data || []).map((r: any) => ({
         id: r.id,
-        investor_id: r.user_id,
+        investor_id: r.investor_id,
         report_month: r.period?.period_end_date,
         asset_code: r.fund_name,
         opening_balance: r.mtd_beginning_balance,
@@ -141,8 +140,8 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, i
       }
 
       // 2. Insert V2 Record
-      const { error } = await supabase.from("investor_fund_performance").insert({
-        user_id: investorId,
+      const { error } = await (supabase as any).from("investor_fund_performance").insert({
+        investor_id: investorId,
         period_id: periodId,
         fund_name: "USDT", // Default asset
         mtd_beginning_balance: 0,
@@ -380,5 +379,3 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, i
 };
 
 export default MonthlyReportsTable;
-// @ts-nocheck
-// @ts-nocheck

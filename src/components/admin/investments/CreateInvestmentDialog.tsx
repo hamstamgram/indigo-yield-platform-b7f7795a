@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -267,4 +266,3 @@ export function CreateInvestmentDialog({
     </Dialog>
   );
 }
-// @ts-nocheck
