@@ -10,17 +10,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import {
   getAllFundsWithAUM,
   updateInvestorAUMPercentages,
   processDailyAUMWithYield,
   previewDailyYieldCalculation,
+  previewInvestorYieldDistribution,
   type YieldCalculationResult,
+  type InvestorYieldPreview,
 } from "@/services/aumService";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, TrendingUp, Users, RefreshCw } from "lucide-react";
+import { Loader2, TrendingUp, Users, RefreshCw, AlertTriangle } from "lucide-react";
 import { formatAssetValue } from "@/utils/kpiCalculations";
 import { getAssetLogo } from "@/utils/assets";
 
@@ -44,6 +62,9 @@ export default function FundAUMManager() {
   const [isUpdatingPercentages, setIsUpdatingPercentages] = useState(false);
   const [yieldPreview, setYieldPreview] = useState<YieldCalculationResult | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [investorPreview, setInvestorPreview] = useState<InvestorYieldPreview[]>([]);
+  const [investorTotals, setInvestorTotals] = useState<{ gross: number; fees: number; net: number } | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { toast } = useToast();
 
   const fetchFunds = useCallback(async () => {
@@ -83,8 +104,25 @@ export default function FundAUMManager() {
 
       if (result.success && result.preview) {
         setYieldPreview(result.preview);
+        
+        // If there's positive yield, fetch investor breakdown
+        if (result.preview.calculated_yield > 0) {
+          const investorResult = await previewInvestorYieldDistribution(
+            selectedFund,
+            result.preview.calculated_yield
+          );
+          if (investorResult.success) {
+            setInvestorPreview(investorResult.investors || []);
+            setInvestorTotals(investorResult.totals || null);
+          }
+        } else {
+          setInvestorPreview([]);
+          setInvestorTotals(null);
+        }
       } else {
         setYieldPreview(null);
+        setInvestorPreview([]);
+        setInvestorTotals(null);
         if (result.error) {
           console.error("Preview error:", result.error);
         }
@@ -92,6 +130,8 @@ export default function FundAUMManager() {
     } catch (error) {
       console.error("Error previewing yield:", error);
       setYieldPreview(null);
+      setInvestorPreview([]);
+      setInvestorTotals(null);
     } finally {
       setIsLoadingPreview(false);
     }
@@ -104,11 +144,15 @@ export default function FundAUMManager() {
       return () => clearTimeout(timeoutId);
     } else {
       setYieldPreview(null);
+      setInvestorPreview([]);
+      setInvestorTotals(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFund, aumAmount, aumDate, handlePreviewYield]);
 
-  const handleSetAUM = async () => {
+  const handleApplyConfirmed = async () => {
+    setShowConfirmDialog(false);
+    
     if (!selectedFund || !aumAmount) {
       toast({
         title: "Validation Error",
@@ -154,6 +198,8 @@ export default function FundAUMManager() {
       await fetchFunds();
       setAumAmount("");
       setYieldPreview(null);
+      setInvestorPreview([]);
+      setInvestorTotals(null);
     } catch (error) {
       console.error("Error processing daily AUM:", error);
 
@@ -167,6 +213,17 @@ export default function FundAUMManager() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSetAUM = async () => {
+    // If there's yield to distribute, show confirmation dialog
+    if (yieldPreview && yieldPreview.calculated_yield > 0 && investorPreview.length > 0) {
+      setShowConfirmDialog(true);
+      return;
+    }
+    
+    // Otherwise, apply directly
+    await handleApplyConfirmed();
   };
 
   const handleRecalculatePercentages = async () => {
@@ -472,6 +529,89 @@ export default function FundAUMManager() {
             </div>
           )}
 
+          {/* Investor Yield Distribution Preview */}
+          {investorPreview.length > 0 && yieldPreview && yieldPreview.calculated_yield > 0 && (
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-muted/50 px-4 py-3 border-b">
+                <h4 className="font-semibold flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Investor Yield Distribution Preview
+                  <Badge variant="secondary">{investorPreview.length} investors</Badge>
+                </h4>
+              </div>
+              <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background">
+                    <TableRow>
+                      <TableHead>Investor</TableHead>
+                      <TableHead className="text-right">Current Balance</TableHead>
+                      <TableHead className="text-right">Ownership %</TableHead>
+                      <TableHead className="text-right">Gross Yield</TableHead>
+                      <TableHead className="text-right">Fee Rate</TableHead>
+                      <TableHead className="text-right">Net Yield</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {investorPreview.map((inv) => (
+                      <TableRow key={inv.investor_id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{inv.investor_name}</div>
+                            <div className="text-xs text-muted-foreground">{inv.email}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-mono">
+                          {formatAssetValue(inv.current_balance, selectedFundData?.asset || "")}
+                        </TableCell>
+                        <TableCell className="text-right font-mono">
+                          {inv.ownership_pct.toFixed(2)}%
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-green-600">
+                          +{formatAssetValue(inv.gross_yield, selectedFundData?.asset || "")}
+                        </TableCell>
+                        <TableCell className="text-right font-mono">
+                          {inv.fee_rate.toFixed(2)}%
+                        </TableCell>
+                        <TableCell className="text-right font-mono font-semibold text-green-600">
+                          +{formatAssetValue(inv.net_yield, selectedFundData?.asset || "")}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              
+              {/* Totals row */}
+              {investorTotals && (
+                <div className="bg-muted/30 px-4 py-3 border-t">
+                  <div className="flex justify-end gap-8 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Total Gross:</span>
+                      <span className="ml-2 font-mono font-semibold text-green-600">
+                        +{formatAssetValue(investorTotals.gross, selectedFundData?.asset || "")}{" "}
+                        {selectedFundData?.asset}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Total Fees:</span>
+                      <span className="ml-2 font-mono font-semibold text-orange-600">
+                        -{formatAssetValue(investorTotals.fees, selectedFundData?.asset || "")}{" "}
+                        {selectedFundData?.asset}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Total Net:</span>
+                      <span className="ml-2 font-mono font-semibold text-green-600">
+                        +{formatAssetValue(investorTotals.net, selectedFundData?.asset || "")}{" "}
+                        {selectedFundData?.asset}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <Separator />
 
           <div className="flex justify-end">
@@ -482,12 +622,97 @@ export default function FundAUMManager() {
             >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {yieldPreview && yieldPreview.calculated_yield > 0
-                ? "Process AUM & Distribute Yield"
+                ? "Review & Apply Yield"
                 : "Set Daily AUM"}
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Confirm Yield Distribution
+            </DialogTitle>
+            <DialogDescription>
+              Please review the yield distribution details before applying. This action will update
+              all investor balances.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Summary */}
+            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Fund:</span>
+                <span className="font-medium">{selectedFundData?.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Date:</span>
+                <span className="font-medium">{aumDate}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">New AUM:</span>
+                <span className="font-mono font-medium">
+                  {formatAssetValue(parseFloat(aumAmount) || 0, selectedFundData?.asset || "")}{" "}
+                  {selectedFundData?.asset}
+                </span>
+              </div>
+              <Separator />
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Total Yield:</span>
+                <span className="font-mono font-semibold text-green-600">
+                  +{formatAssetValue(yieldPreview?.calculated_yield || 0, selectedFundData?.asset || "")}{" "}
+                  {selectedFundData?.asset}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Investors Affected:</span>
+                <span className="font-medium">{investorPreview.length}</span>
+              </div>
+            </div>
+
+            {/* Investor breakdown in dialog */}
+            {investorPreview.length > 0 && (
+              <div className="border rounded-lg overflow-hidden max-h-[250px] overflow-y-auto">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background">
+                    <TableRow>
+                      <TableHead>Investor</TableHead>
+                      <TableHead className="text-right">Net Yield</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {investorPreview.map((inv) => (
+                      <TableRow key={inv.investor_id}>
+                        <TableCell>
+                          <div className="font-medium text-sm">{inv.investor_name}</div>
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-green-600">
+                          +{formatAssetValue(inv.net_yield, selectedFundData?.asset || "")}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleApplyConfirmed} disabled={isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Confirm & Apply
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
