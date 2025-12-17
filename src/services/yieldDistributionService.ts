@@ -182,10 +182,29 @@ export async function applyYieldDistribution(
 ): Promise<YieldCalculationResult> {
   const { fundId, targetDate, newTotalAUM } = input;
 
+  // First, calculate the gross yield (new AUM - current AUM)
+  const { data: positions, error: posError } = await supabase
+    .from("investor_positions")
+    .select("current_value")
+    .eq("fund_id", fundId)
+    .gt("current_value", 0);
+
+  if (posError) {
+    throw new Error(`Failed to fetch current positions: ${posError.message}`);
+  }
+
+  const currentAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
+  const grossYieldAmount = Math.max(newTotalAUM - currentAUM, 0);
+
+  if (grossYieldAmount <= 0) {
+    throw new Error("New AUM must be greater than current AUM to distribute yield");
+  }
+
+  // The RPC expects p_gross_amount as the yield to distribute, not new total AUM
   const { data, error } = await supabase.rpc("apply_daily_yield_to_fund", {
     p_fund_id: fundId,
     p_date: formatDate(targetDate),
-    p_gross_amount: newTotalAUM,
+    p_gross_amount: grossYieldAmount,
     p_admin_id: adminId,
   });
 
@@ -216,12 +235,12 @@ export async function applyYieldDistribution(
     fundCode: "",
     fundAsset: "",
     yieldDate: targetDate,
-    currentAUM: 0,
-    newAUM: 0,
+    currentAUM,
+    newAUM: newTotalAUM,
     grossYield,
     netYield,
     totalFees,
-    yieldPercentage: 0,
+    yieldPercentage: currentAUM > 0 ? (grossYield / currentAUM) * 100 : 0,
     investorCount: distributions.length,
     distributions,
     status: "applied",
