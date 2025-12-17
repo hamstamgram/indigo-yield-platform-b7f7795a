@@ -50,7 +50,24 @@ export const createOrFindInvestorUser = async (
 
     if (error) {
       console.error("Error creating user via Edge Function:", error);
-      throw new Error(error.message || "Failed to create user");
+      // Try to extract error message from FunctionsHttpError context
+      let errorMessage = "Failed to create user";
+      try {
+        if (error.context && typeof error.context.json === 'function') {
+          const errorBody = await error.context.json();
+          errorMessage = errorBody?.error || errorMessage;
+        } else {
+          errorMessage = error.message || errorMessage;
+        }
+      } catch {
+        errorMessage = error.message || errorMessage;
+      }
+      throw new Error(errorMessage);
+    }
+
+    // Check for error in successful response (edge function returned 200 but with error)
+    if (data?.success === false && data?.error) {
+      throw new Error(data.error);
     }
 
     if (data?.user?.id) {
@@ -59,8 +76,6 @@ export const createOrFindInvestorUser = async (
       return data.user_id;
     } else if (data?.id) {
       return data.id;
-    } else if (data?.error) {
-       throw new Error(data.error);
     } else {
       throw new Error("User created but no ID returned from Edge Function");
     }
