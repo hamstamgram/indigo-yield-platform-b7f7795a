@@ -4,12 +4,14 @@ import { format } from "date-fns";
 
 // Fund icons and branding URLs (same as shared template)
 const FUND_ICONS: Record<string, string> = {
-  BTC: "https://storage.mlcdn.com/account_image/855106/HqTafY3UXNLyQctbIqje0qAv7BYiDI4MRVUhOKiT.png",
-  ETH: "https://storage.mlcdn.com/account_image/855106/1LGif7hOOerx0K9BWZh0vRgg2QfRBoxBibwrQGW5.png",
-  USDC: "https://storage.mlcdn.com/account_image/855106/w0V5YkYqj0Jb5K61Hl27zBw32mB8X0lT2Fh5G1i9.png",
-  USDT: "https://storage.mlcdn.com/account_image/855106/f0Z74sL9p2jI7u0O2j3y0f9J0l7b7U5n9f2T3t4f.png",
-  SOL: "https://storage.mlcdn.com/account_image/855106/r5N3D0u2n9k8A1n8w6n8d6C8k0V6i9n3f1o0W9s7.png",
-  EURC: "https://storage.mlcdn.com/account_image/855106/u5D1G0v2g9r8j1y8c6a8z6n8r0z6w9w3t1f0l9v7.png",
+  BTC: "https://storage.mlcdn.com/account_image/855106/8Pf2dtBl6QjlVu34Pcqvyr6rUU6MWwYdN9qTrClW.png",
+  ETH: "https://storage.mlcdn.com/account_image/855106/iuulK6xRS80ItnV4gq2VY7voxoWe7AMvPA5roO16.png",
+  USDC: "https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png",
+  USDT: "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
+  SOL: "https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFSQ.png",
+  EURC: "https://storage.mlcdn.com/account_image/855106/kwV87oiC7c4dnG6zkl95MnV5yafAxWlFbQgjmaIm.png",
+  XRP: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
+  XAUT: "https://assets.coingecko.com/coins/images/10481/large/Tether_Gold.png",
 };
 
 const COMPANY_LOGO = "https://storage.mlcdn.com/account_image/855106/T7spejaxgKvLqaFJArUJu6YSxacSpADGPyWIrbRq.png";
