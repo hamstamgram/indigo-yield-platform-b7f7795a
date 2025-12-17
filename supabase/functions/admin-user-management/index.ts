@@ -264,10 +264,15 @@ async function deleteUser(userId: string, adminUserId: string): Promise<any> {
     throw new Error("Cannot delete your own account");
   }
 
-  // Verify user exists
-  const { data: userData, error: getUserError } = await supabaseAdmin.auth.admin.getUserById(userId);
-  if (getUserError || !userData.user) {
-    throw new Error("User not found");
+  // Check if user exists in profiles table first
+  const { data: profile, error: profileError } = await supabaseAdmin
+    .from("profiles")
+    .select("id, email")
+    .eq("id", userId)
+    .single();
+
+  if (profileError || !profile) {
+    throw new Error("User not found in profiles");
   }
 
   // Check for active positions that would block deletion
@@ -281,10 +286,27 @@ async function deleteUser(userId: string, adminUserId: string): Promise<any> {
     throw new Error("Cannot delete investor with active fund positions. Please redeem all positions first.");
   }
 
-  // Delete the auth user (profile will be deleted via cascade or trigger)
-  const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
-  if (deleteError) {
-    throw new Error(`Failed to delete user: ${deleteError.message}`);
+  // Check if auth user exists
+  const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
+  
+  // Delete auth user if it exists
+  if (userData?.user) {
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    if (deleteError) {
+      console.warn(`Failed to delete auth user: ${deleteError.message}`);
+    }
+  } else {
+    console.log(`No auth user found for ${userId}, cleaning up profile only`);
+  }
+
+  // Manually delete profile if cascade didn't handle it
+  const { error: profileDeleteError } = await supabaseAdmin
+    .from("profiles")
+    .delete()
+    .eq("id", userId);
+
+  if (profileDeleteError) {
+    throw new Error(`Failed to delete profile: ${profileDeleteError.message}`);
   }
 
   console.log(`Successfully deleted user ${userId}`);
