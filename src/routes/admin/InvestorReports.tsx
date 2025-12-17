@@ -61,6 +61,31 @@ interface InvestorReport {
     withdrawals: number;
     yield_earned: number;
     report_id: string;
+    // Full performance data
+    mtd_beginning_balance: number;
+    mtd_additions: number;
+    mtd_redemptions: number;
+    mtd_net_income: number;
+    mtd_ending_balance: number;
+    mtd_rate_of_return: number;
+    qtd_beginning_balance: number;
+    qtd_additions: number;
+    qtd_redemptions: number;
+    qtd_net_income: number;
+    qtd_ending_balance: number;
+    qtd_rate_of_return: number;
+    ytd_beginning_balance: number;
+    ytd_additions: number;
+    ytd_redemptions: number;
+    ytd_net_income: number;
+    ytd_ending_balance: number;
+    ytd_rate_of_return: number;
+    itd_beginning_balance: number;
+    itd_additions: number;
+    itd_redemptions: number;
+    itd_net_income: number;
+    itd_ending_balance: number;
+    itd_rate_of_return: number;
   }>;
   total_value: number;
   total_yield: number;
@@ -178,6 +203,31 @@ const InvestorReports = () => {
           withdrawals: Number(report.mtd_redemptions) || 0,
           yield_earned: Number(report.mtd_net_income) || 0,
           report_id: report.id,
+          // Full performance data
+          mtd_beginning_balance: Number(report.mtd_beginning_balance) || 0,
+          mtd_additions: Number(report.mtd_additions) || 0,
+          mtd_redemptions: Number(report.mtd_redemptions) || 0,
+          mtd_net_income: Number(report.mtd_net_income) || 0,
+          mtd_ending_balance: Number(report.mtd_ending_balance) || 0,
+          mtd_rate_of_return: Number(report.mtd_rate_of_return) || 0,
+          qtd_beginning_balance: Number(report.qtd_beginning_balance) || 0,
+          qtd_additions: Number(report.qtd_additions) || 0,
+          qtd_redemptions: Number(report.qtd_redemptions) || 0,
+          qtd_net_income: Number(report.qtd_net_income) || 0,
+          qtd_ending_balance: Number(report.qtd_ending_balance) || 0,
+          qtd_rate_of_return: Number(report.qtd_rate_of_return) || 0,
+          ytd_beginning_balance: Number(report.ytd_beginning_balance) || 0,
+          ytd_additions: Number(report.ytd_additions) || 0,
+          ytd_redemptions: Number(report.ytd_redemptions) || 0,
+          ytd_net_income: Number(report.ytd_net_income) || 0,
+          ytd_ending_balance: Number(report.ytd_ending_balance) || 0,
+          ytd_rate_of_return: Number(report.ytd_rate_of_return) || 0,
+          itd_beginning_balance: Number(report.itd_beginning_balance) || 0,
+          itd_additions: Number(report.itd_additions) || 0,
+          itd_redemptions: Number(report.itd_redemptions) || 0,
+          itd_net_income: Number(report.itd_net_income) || 0,
+          itd_ending_balance: Number(report.itd_ending_balance) || 0,
+          itd_rate_of_return: Number(report.itd_rate_of_return) || 0,
         }));
 
         const total_value = assets.reduce((sum, asset) => sum + asset.closing_balance, 0);
@@ -248,35 +298,35 @@ const InvestorReports = () => {
         fundName: getFundDisplayName(asset.asset_code),
         currency: asset.asset_code,
         metrics: {
-          begin_balance_mtd: asset.opening_balance.toString(),
-          begin_balance_qtd: "-",
-          begin_balance_ytd: "-",
-          begin_balance_itd: "-",
+          begin_balance_mtd: asset.mtd_beginning_balance.toString(),
+          begin_balance_qtd: asset.qtd_beginning_balance.toString(),
+          begin_balance_ytd: asset.ytd_beginning_balance.toString(),
+          begin_balance_itd: asset.itd_beginning_balance.toString(),
 
-          additions_mtd: asset.additions.toString(),
-          additions_qtd: "-",
-          additions_ytd: "-",
-          additions_itd: "-",
+          additions_mtd: asset.mtd_additions.toString(),
+          additions_qtd: asset.qtd_additions.toString(),
+          additions_ytd: asset.ytd_additions.toString(),
+          additions_itd: asset.itd_additions.toString(),
 
-          redemptions_mtd: asset.withdrawals.toString(),
-          redemptions_qtd: "-",
-          redemptions_ytd: "-",
-          redemptions_itd: "-",
+          redemptions_mtd: asset.mtd_redemptions.toString(),
+          redemptions_qtd: asset.qtd_redemptions.toString(),
+          redemptions_ytd: asset.ytd_redemptions.toString(),
+          redemptions_itd: asset.itd_redemptions.toString(),
 
-          net_income_mtd: asset.yield_earned.toString(),
-          net_income_qtd: "-",
-          net_income_ytd: "-",
-          net_income_itd: "-",
+          net_income_mtd: asset.mtd_net_income.toString(),
+          net_income_qtd: asset.qtd_net_income.toString(),
+          net_income_ytd: asset.ytd_net_income.toString(),
+          net_income_itd: asset.itd_net_income.toString(),
 
-          ending_balance_mtd: asset.closing_balance.toString(),
-          ending_balance_qtd: "-",
-          ending_balance_ytd: "-",
-          ending_balance_itd: "-",
+          ending_balance_mtd: asset.mtd_ending_balance.toString(),
+          ending_balance_qtd: asset.qtd_ending_balance.toString(),
+          ending_balance_ytd: asset.ytd_ending_balance.toString(),
+          ending_balance_itd: asset.itd_ending_balance.toString(),
 
-          return_rate_mtd: "0",
-          return_rate_qtd: "-",
-          return_rate_ytd: "-",
-          return_rate_itd: "-",
+          return_rate_mtd: asset.mtd_rate_of_return.toString(),
+          return_rate_qtd: asset.qtd_rate_of_return.toString(),
+          return_rate_ytd: asset.ytd_rate_of_return.toString(),
+          return_rate_itd: asset.itd_rate_of_return.toString(),
         },
       })),
     };
@@ -337,35 +387,35 @@ const InvestorReports = () => {
             fundName: getFundDisplayName(asset.asset_code),
             currency: asset.asset_code,
             metrics: {
-              begin_balance_mtd: asset.opening_balance.toString(),
-              begin_balance_qtd: "-",
-              begin_balance_ytd: "-",
-              begin_balance_itd: "-",
+              begin_balance_mtd: asset.mtd_beginning_balance.toString(),
+              begin_balance_qtd: asset.qtd_beginning_balance.toString(),
+              begin_balance_ytd: asset.ytd_beginning_balance.toString(),
+              begin_balance_itd: asset.itd_beginning_balance.toString(),
 
-              additions_mtd: asset.additions.toString(),
-              additions_qtd: "-",
-              additions_ytd: "-",
-              additions_itd: "-",
+              additions_mtd: asset.mtd_additions.toString(),
+              additions_qtd: asset.qtd_additions.toString(),
+              additions_ytd: asset.ytd_additions.toString(),
+              additions_itd: asset.itd_additions.toString(),
 
-              redemptions_mtd: asset.withdrawals.toString(),
-              redemptions_qtd: "-",
-              redemptions_ytd: "-",
-              redemptions_itd: "-",
+              redemptions_mtd: asset.mtd_redemptions.toString(),
+              redemptions_qtd: asset.qtd_redemptions.toString(),
+              redemptions_ytd: asset.ytd_redemptions.toString(),
+              redemptions_itd: asset.itd_redemptions.toString(),
 
-              net_income_mtd: asset.yield_earned.toString(),
-              net_income_qtd: "-",
-              net_income_ytd: "-",
-              net_income_itd: "-",
+              net_income_mtd: asset.mtd_net_income.toString(),
+              net_income_qtd: asset.qtd_net_income.toString(),
+              net_income_ytd: asset.ytd_net_income.toString(),
+              net_income_itd: asset.itd_net_income.toString(),
 
-              ending_balance_mtd: asset.closing_balance.toString(),
-              ending_balance_qtd: "-",
-              ending_balance_ytd: "-",
-              ending_balance_itd: "-",
+              ending_balance_mtd: asset.mtd_ending_balance.toString(),
+              ending_balance_qtd: asset.qtd_ending_balance.toString(),
+              ending_balance_ytd: asset.ytd_ending_balance.toString(),
+              ending_balance_itd: asset.itd_ending_balance.toString(),
 
-              return_rate_mtd: "0",
-              return_rate_qtd: "-",
-              return_rate_ytd: "-",
-              return_rate_itd: "-",
+              return_rate_mtd: asset.mtd_rate_of_return.toString(),
+              return_rate_qtd: asset.qtd_rate_of_return.toString(),
+              return_rate_ytd: asset.ytd_rate_of_return.toString(),
+              return_rate_itd: asset.itd_rate_of_return.toString(),
             },
           })),
         };
