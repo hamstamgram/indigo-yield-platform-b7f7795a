@@ -132,14 +132,18 @@ async function createUser(params: CreateUserRequest): Promise<any> {
 
   console.log(`Created user with ID: ${newUser.user.id}`);
 
-  // Create profile record using secure RPC
-  const { error: profileError } = await supabase.rpc("create_investor_profile", {
-    p_email: email,
-    p_first_name: firstName,
-    p_last_name: lastName,
-    p_phone: phone,
-    p_send_invite: sendWelcomeEmail,
-  });
+  // Create profile record directly using admin client (bypasses RLS)
+  const { error: profileError } = await supabaseAdmin
+    .from("profiles")
+    .insert({
+      id: newUser.user.id,
+      email: email,
+      first_name: firstName,
+      last_name: lastName,
+      phone: phone || null,
+      is_admin: role === "admin",
+      status: "active",
+    });
 
   if (profileError) {
     // Clean up the auth user if profile creation fails
