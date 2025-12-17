@@ -27,7 +27,6 @@ const formatWithStyle = (num: number, decimals: number = 4, isPercent: boolean =
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req.headers.get("origin"));
 
-  // Handle CORS
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -45,23 +44,14 @@ serve(async (req) => {
       throw new Error("Missing investor_id or report_date");
     }
 
-    // 1. Calculate Dates
     const currentDate = new Date(report_date);
     const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth(); // 0-based
-
-    // Period definitions
-    const mtdStart = new Date(currentYear, currentMonth, 1);
-    const mtdEnd = new Date(currentYear, currentMonth + 1, 0); // End of current month
-
-    const quarterStartMonth = Math.floor(currentMonth / 3) * 3;
-    const qtdStart = new Date(currentYear, quarterStartMonth, 1);
-
-    const ytdStart = new Date(currentYear, 0, 1);
+    const currentMonth = currentDate.getMonth();
+    const mtdEnd = new Date(currentYear, currentMonth + 1, 0);
 
     console.log(`Generating statement for Investor ${investor_id} for period ending ${mtdEnd.toISOString()}`);
 
-    // 2. Fetch Investor Details from profiles table
+    // Fetch Investor Profile
     const { data: profile, error: profileError } = await supabaseClient
       .from("profiles")
       .select("id, first_name, last_name, email")
@@ -79,31 +69,20 @@ serve(async (req) => {
     
     const investorEmail = profile.email || "";
 
-    // 3. Fetch Monthly Reports
-    const { data: reports, error: reportsError } = await supabaseClient
-      .from("investor_monthly_reports")
-      .select("*")
-      .eq("investor_id", investor_id)
-      .lte("report_month", mtdEnd.toISOString());
-
-    if (reportsError) {
-      console.error("Reports fetch error:", reportsError);
-    }
-
-    // 4. Also fetch from investor_fund_performance for more complete data
-    const { data: fundPerformance } = await supabaseClient
+    // Fetch from investor_fund_performance (single source of truth)
+    const { data: fundPerformance, error: perfError } = await supabaseClient
       .from("investor_fund_performance")
       .select("*")
       .eq("investor_id", investor_id);
 
-    // 5. Aggregation Logic - find which assets this investor has
-    const investorAssets = new Set<string>();
-    
-    if (reports && reports.length > 0) {
-      reports.forEach(r => {
-        if (r.asset_code) investorAssets.add(r.asset_code);
-      });
+    if (perfError) {
+      console.error("Fund performance fetch error:", perfError);
     }
+
+    console.log(`Found ${fundPerformance?.length || 0} fund performance records`);
+
+    // Determine which assets this investor has
+    const investorAssets = new Set<string>();
     
     if (fundPerformance && fundPerformance.length > 0) {
       fundPerformance.forEach(fp => {
@@ -115,10 +94,14 @@ serve(async (req) => {
       });
     }
 
-    // If no assets found, include all supported assets with zero values
     const assetsToShow = investorAssets.size > 0 
       ? Array.from(investorAssets).filter(a => SUPPORTED_ASSETS.includes(a))
-      : SUPPORTED_ASSETS;
+      : [];
+
+    if (assetsToShow.length === 0) {
+      console.log("No fund positions found for investor");
+      throw new Error("No fund positions found for this investor");
+    }
 
     const templateData: Record<string, string> = {
       INVESTOR_NAME: investorName,
@@ -129,74 +112,30 @@ serve(async (req) => {
     // Generate fund sections HTML
     let fundSectionsHtml = "";
 
-    assetsToShow.forEach((asset) => {
-      // Filter reports for this asset
-      const assetReports = (reports || [])
-        .filter((r) => r.asset_code === asset)
-        .sort((a, b) => new Date(a.report_month).getTime() - new Date(b.report_month).getTime());
+    // Helper to extract metrics from fund performance data
+    const getMetrics = (performance: typeof fundPerformance[0] | undefined, prefix: string) => {
+      if (!performance) return { begin: 0, add: 0, redeem: 0, income: 0, end: 0, rate: 0 };
+      return {
+        begin: Number(performance[`${prefix}_beginning_balance`]) || 0,
+        add: Number(performance[`${prefix}_additions`]) || 0,
+        redeem: Number(performance[`${prefix}_redemptions`]) || 0,
+        income: Number(performance[`${prefix}_net_income`]) || 0,
+        end: Number(performance[`${prefix}_ending_balance`]) || 0,
+        rate: Number(performance[`${prefix}_rate_of_return`]) || 0,
+      };
+    };
 
-      // Check fund performance data
-      const assetPerformance = (fundPerformance || []).find(fp => 
+    assetsToShow.forEach((asset) => {
+      // Find performance data for this asset
+      const assetPerformance = fundPerformance?.find(fp => 
         fp.fund_name?.toUpperCase().startsWith(asset)
       );
 
-      // Define Aggregation Helper
-      const aggregate = (startDate: Date, endDate: Date) => {
-        const periodReports = assetReports.filter((r) => {
-          const d = new Date(r.report_month);
-          return d >= startDate && d <= endDate;
-        });
-
-        if (periodReports.length === 0 && !assetPerformance) {
-          return { begin: 0, add: 0, redeem: 0, income: 0, end: 0, rate: 0 };
-        }
-
-        if (periodReports.length > 0) {
-          const begin = Number(periodReports[0].opening_balance) || 0;
-          const end = Number(periodReports[periodReports.length - 1].closing_balance) || 0;
-          const add = periodReports.reduce((sum, r) => sum + (Number(r.additions) || 0), 0);
-          const redeem = periodReports.reduce((sum, r) => sum + (Number(r.withdrawals) || 0), 0);
-          const income = periodReports.reduce((sum, r) => sum + (Number(r.yield_earned) || 0), 0);
-
-          const netFlows = add - redeem;
-          const denominator = begin + netFlows / 2;
-          let rate = 0;
-          if (denominator !== 0) {
-            rate = (income / denominator) * 100;
-          }
-
-          return { begin, add, redeem, income, end, rate };
-        }
-
-        return { begin: 0, add: 0, redeem: 0, income: 0, end: 0, rate: 0 };
-      };
-
-      // Use fund performance data if available
-      const getFromPerformance = (prefix: string) => {
-        if (!assetPerformance) return { begin: 0, add: 0, redeem: 0, income: 0, end: 0, rate: 0 };
-        return {
-          begin: Number(assetPerformance[`${prefix}_beginning_balance`]) || 0,
-          add: Number(assetPerformance[`${prefix}_additions`]) || 0,
-          redeem: Number(assetPerformance[`${prefix}_redemptions`]) || 0,
-          income: Number(assetPerformance[`${prefix}_net_income`]) || 0,
-          end: Number(assetPerformance[`${prefix}_ending_balance`]) || 0,
-          rate: Number(assetPerformance[`${prefix}_rate_of_return`]) || 0,
-        };
-      };
-
-      // Calculate Metrics for each Period
-      let mtd = aggregate(mtdStart, mtdEnd);
-      let qtd = aggregate(qtdStart, mtdEnd);
-      let ytd = aggregate(ytdStart, mtdEnd);
-      let itd = aggregate(new Date("2000-01-01"), mtdEnd);
-
-      // Override with fund performance data if available
-      if (assetPerformance) {
-        mtd = getFromPerformance("mtd");
-        qtd = getFromPerformance("qtd");
-        ytd = getFromPerformance("ytd");
-        itd = getFromPerformance("itd");
-      }
+      // Get metrics for each period directly from fund_performance
+      const mtd = getMetrics(assetPerformance, "mtd");
+      const qtd = getMetrics(assetPerformance, "qtd");
+      const ytd = getMetrics(assetPerformance, "ytd");
+      const itd = getMetrics(assetPerformance, "itd");
 
       // Map to Template Keys
       const mapKeys = (periodName: string, data: typeof mtd) => {
@@ -215,11 +154,10 @@ serve(async (req) => {
       mapKeys("YTD", ytd);
       mapKeys("ITD", itd);
 
-      // Add fund section HTML
       fundSectionsHtml += generateFundSectionHtml(asset);
     });
 
-    // 6. Inject into Template
+    // Inject into Template
     let htmlContent = STATEMENT_TEMPLATE.replace("{{FUND_SECTIONS}}", fundSectionsHtml);
     
     Object.entries(templateData).forEach(([key, value]) => {
@@ -227,7 +165,6 @@ serve(async (req) => {
       htmlContent = htmlContent.replace(regex, value);
     });
 
-    // 7. Return HTML
     return new Response(
       JSON.stringify({
         success: true,
