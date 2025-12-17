@@ -39,6 +39,7 @@ import {
   Coins,
   FilePlus,
   Mail,
+  Pencil,
 } from "lucide-react";
 import { StatementManager } from "@/components/admin/statements/StatementManager";
 import { useToast } from "@/hooks/use-toast";
@@ -47,6 +48,7 @@ import { format, subMonths, parseISO } from "date-fns";
 import { generateInvestorReportHtml, ReportData } from "@/utils/reportGenerator";
 import { formatAssetWithSymbol } from "@/utils/assetFormatting";
 import { SingleReportGenerator } from "@/components/admin/reports/SingleReportGenerator";
+import { PerformanceDataEditor } from "@/components/admin/reports/PerformanceDataEditor";
 
 interface InvestorReport {
   investor_id: string;
@@ -109,6 +111,9 @@ const InvestorReports = () => {
   const [selectedInvestor, setSelectedInvestor] = useState<InvestorReport | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [generatorOpen, setGeneratorOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingInvestor, setEditingInvestor] = useState<InvestorReport | null>(null);
+  const [currentPeriodId, setCurrentPeriodId] = useState<string>("");
   const { toast } = useToast();
 
   // Fetch real reports from database
@@ -153,6 +158,7 @@ const InvestorReports = () => {
         .maybeSingle();
 
       if (!period) {
+        setCurrentPeriodId("");
         // No period, return empty reports but with investor structures
         // or just empty assets
         const emptyInvestorReports = investors.map((investor) => ({
@@ -170,6 +176,8 @@ const InvestorReports = () => {
         setLoading(false);
         return;
       }
+
+      setCurrentPeriodId(period.id);
 
       // Fetch monthly reports (V2)
       const { data: monthlyReports, error: reportsError } = await supabase
@@ -477,6 +485,12 @@ const InvestorReports = () => {
     setDetailsOpen(true);
   };
 
+  // Edit performance data
+  const handleEditData = (investor: InvestorReport) => {
+    setEditingInvestor(investor);
+    setEditorOpen(true);
+  };
+
   // Use native token formatting from assetFormatting utility
   const formatAmount = (amount: number, assetCode: string) => {
     return formatAssetWithSymbol(amount, assetCode);
@@ -744,6 +758,14 @@ const InvestorReports = () => {
                         <Button
                           size="sm"
                           variant="outline"
+                          onClick={() => handleEditData(report)}
+                          title="Edit Performance Data"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={() => handlePreviewReport(report)}
                           disabled={!report.has_reports}
                           title="Preview HTML Report"
@@ -874,6 +896,23 @@ const InvestorReports = () => {
               )}
             </DialogContent>
           </Dialog>
+
+          {/* Performance Data Editor */}
+          {editingInvestor && (
+            <PerformanceDataEditor
+              open={editorOpen}
+              onOpenChange={setEditorOpen}
+              investorId={editingInvestor.investor_id}
+              investorName={editingInvestor.investor_name}
+              periodId={currentPeriodId}
+              periodName={format(parseISO(`${selectedMonth}-01`), "MMMM yyyy")}
+              assets={editingInvestor.assets}
+              onSaved={() => {
+                fetchReports();
+                setEditorOpen(false);
+              }}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="pdf-statements" className="mt-6">
