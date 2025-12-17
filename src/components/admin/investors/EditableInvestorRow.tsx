@@ -1,26 +1,51 @@
-import React from "react";
+import React, { useState } from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Send } from "lucide-react";
+import { Send, Trash2 } from "lucide-react";
 import { Asset } from "@/types/investorTypes";
 import { InvestorSummaryV2 } from "@/services/adminServiceV2";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface EditableInvestorRowProps {
   investor: InvestorSummaryV2;
   assets: Asset[];
   onSendEmail: (email: string) => void;
+  onDelete?: (investorId: string) => void;
 }
 
 const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
   investor,
   assets,
   onSendEmail,
+  onDelete,
 }) => {
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const name =
     investor.firstName && investor.lastName
       ? `${investor.firstName} ${investor.lastName}`
       : investor.email.split("@")[0];
+
+  const handleDelete = async () => {
+    if (!onDelete) return;
+    setIsDeleting(true);
+    try {
+      await onDelete(investor.id);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <TableRow key={investor.id}>
@@ -54,6 +79,34 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
           <Button variant="ghost" size="sm" asChild>
             <a href={`/admin/investors/${investor.id}`}>Manage</a>
           </Button>
+          {onDelete && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Investor</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete <strong>{name}</strong> ({investor.email})? 
+                    This action cannot be undone and will remove all associated data.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {isDeleting ? "Deleting..." : "Delete"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
       </TableCell>
     </TableRow>

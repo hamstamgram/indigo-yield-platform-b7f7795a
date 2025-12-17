@@ -81,6 +81,9 @@ serve(async (req) => {
       case "updateUser":
         result = await updateUser(params as UpdateUserRequest);
         break;
+      case "deleteUser":
+        result = await deleteUser(params.userId as string, user.id);
+        break;
       default:
         throw new Error(`Unknown action: ${action}`);
     }
@@ -250,5 +253,45 @@ async function updateUser(params: UpdateUserRequest): Promise<any> {
     success: true,
     user_id: userId,
     message: "User updated successfully",
+  };
+}
+
+async function deleteUser(userId: string, adminUserId: string): Promise<any> {
+  console.log(`Deleting user ${userId} by admin ${adminUserId}`);
+
+  // Prevent self-deletion
+  if (userId === adminUserId) {
+    throw new Error("Cannot delete your own account");
+  }
+
+  // Verify user exists
+  const { data: userData, error: getUserError } = await supabaseAdmin.auth.admin.getUserById(userId);
+  if (getUserError || !userData.user) {
+    throw new Error("User not found");
+  }
+
+  // Check for active positions that would block deletion
+  const { data: positions } = await supabaseAdmin
+    .from("investor_positions")
+    .select("id, current_value")
+    .eq("investor_id", userId);
+
+  const activePositions = positions?.filter(p => p.current_value > 0) || [];
+  if (activePositions.length > 0) {
+    throw new Error("Cannot delete investor with active fund positions. Please redeem all positions first.");
+  }
+
+  // Delete the auth user (profile will be deleted via cascade or trigger)
+  const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+  if (deleteError) {
+    throw new Error(`Failed to delete user: ${deleteError.message}`);
+  }
+
+  console.log(`Successfully deleted user ${userId}`);
+
+  return {
+    success: true,
+    user_id: userId,
+    message: "User deleted successfully",
   };
 }

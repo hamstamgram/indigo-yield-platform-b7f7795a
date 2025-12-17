@@ -15,6 +15,7 @@ interface InvestorsTableProps {
   searchTerm: string;
   onSendEmail: (email: string) => void;
   onRefresh: () => void;
+  onDelete?: (investorId: string) => void;
 }
 
 const InvestorsTable: React.FC<InvestorsTableProps> = ({
@@ -24,6 +25,7 @@ const InvestorsTable: React.FC<InvestorsTableProps> = ({
   searchTerm,
   onSendEmail,
   onRefresh,
+  onDelete,
 }) => {
   const isMobile = useIsMobile();
 
@@ -77,6 +79,7 @@ const InvestorsTable: React.FC<InvestorsTableProps> = ({
                 investor={investor}
                 assets={assets}
                 onSendEmail={onSendEmail}
+                onDelete={onDelete}
               />
             ))
           )}

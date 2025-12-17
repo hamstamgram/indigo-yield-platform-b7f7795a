@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Percent, TrendingUp, Edit2, Save, X } from "lucide-react";
+import { Calendar, Percent, TrendingUp, Edit2, Save, X, Plus, History } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { formatAssetValue } from "@/utils/kpiCalculations";
@@ -38,6 +38,16 @@ interface MonthlyReport {
   exit_date?: string | null;
 }
 
+interface FeeScheduleEntry {
+  id: string;
+  investor_id: string;
+  fund_id: string | null;
+  fee_pct: number;
+  effective_date: string;
+  created_at: string;
+  fund?: { name: string } | null;
+}
+
 interface InvestorData {
   id: string;
   name: string;
@@ -47,6 +57,11 @@ interface InvestorData {
   fee_percentage?: number | null;
 }
 
+interface Fund {
+  id: string;
+  name: string;
+}
+
 interface InvestorMonthlyTrackingProps {
   investorId: string;
 }
@@ -54,11 +69,20 @@ interface InvestorMonthlyTrackingProps {
 const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ investorId }) => {
   const [investor, setInvestor] = useState<InvestorData | null>(null);
   const [monthlyReports, setMonthlyReports] = useState<MonthlyReport[]>([]);
+  const [feeSchedule, setFeeSchedule] = useState<FeeScheduleEntry[]>([]);
+  const [funds, setFunds] = useState<Fund[]>([]);
   const [selectedAsset, setSelectedAsset] = useState<string>("SOL");
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7));
   const [editingReport, setEditingReport] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<MonthlyReport>>({});
   const [loading, setLoading] = useState(true);
+  
+  // New fee form state
+  const [newFeeFundId, setNewFeeFundId] = useState<string>("all");
+  const [newFeePercent, setNewFeePercent] = useState<string>("");
+  const [newFeeEffectiveDate, setNewFeeEffectiveDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [isAddingFee, setIsAddingFee] = useState(false);
+  
   const { toast } = useToast();
 
   const assets = ["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"];
@@ -139,10 +163,41 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
     }
   }, [investorId, selectedAsset, toast]);
 
+  const loadFeeSchedule = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from("investor_fee_schedule")
+        .select("*, fund:funds(name)")
+        .eq("investor_id", investorId)
+        .order("effective_date", { ascending: false });
+
+      if (error) throw error;
+      setFeeSchedule((data || []) as FeeScheduleEntry[]);
+    } catch (error) {
+      console.error("Error loading fee schedule:", error);
+    }
+  }, [investorId]);
+
+  const loadFunds = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from("funds")
+        .select("id, name")
+        .order("name");
+
+      if (error) throw error;
+      setFunds(data || []);
+    } catch (error) {
+      console.error("Error loading funds:", error);
+    }
+  }, []);
+
   useEffect(() => {
     loadInvestorData();
     loadMonthlyReports();
-  }, [investorId, selectedAsset, loadInvestorData, loadMonthlyReports]);
+    loadFeeSchedule();
+    loadFunds();
+  }, [investorId, selectedAsset, loadInvestorData, loadMonthlyReports, loadFeeSchedule, loadFunds]);
 
   const handleEdit = (report: MonthlyReport) => {
     setEditingReport(report.id);
@@ -273,31 +328,57 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
     }
   };
 
-  const updateFeePercentage = async (newFeePercentage: number) => {
-    if (!investor?.id) return;
+  const addFeeScheduleEntry = async () => {
+    if (!newFeePercent || isNaN(parseFloat(newFeePercent))) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid fee percentage",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    setIsAddingFee(true);
     try {
       const { error } = await supabase
-        .from("profiles") // Update profiles table
-        .update({ fee_percentage: newFeePercentage / 100 }) // Normalize to decimal
-        .eq("id", investor.id); // Use profile id
+        .from("investor_fee_schedule")
+        .insert({
+          investor_id: investorId,
+          fund_id: newFeeFundId === "all" ? null : newFeeFundId,
+          fee_pct: parseFloat(newFeePercent) / 100, // Convert to decimal
+          effective_date: newFeeEffectiveDate,
+        });
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Fee percentage updated successfully",
+        description: "Fee schedule entry added successfully",
       });
 
-      loadInvestorData();
+      // Reset form
+      setNewFeePercent("");
+      setNewFeeFundId("all");
+      setNewFeeEffectiveDate(new Date().toISOString().split('T')[0]);
+      
+      loadFeeSchedule();
     } catch (error) {
-      console.error("Error updating fee percentage:", error);
+      console.error("Error adding fee schedule:", error);
       toast({
         title: "Error",
-        description: "Failed to update fee percentage",
+        description: "Failed to add fee schedule entry",
         variant: "destructive",
       });
+    } finally {
+      setIsAddingFee(false);
     }
+  };
+
+  // Get current active fee (most recent by effective_date that is <= today)
+  const getCurrentFee = () => {
+    const today = new Date().toISOString().split('T')[0];
+    const activeFees = feeSchedule.filter(f => f.effective_date <= today);
+    return activeFees.length > 0 ? activeFees[0] : null;
   };
 
   if (loading) {
@@ -318,42 +399,144 @@ const InvestorMonthlyTracking: React.FC<InvestorMonthlyTrackingProps> = ({ inves
         </p>
       </div>
 
-      {/* Investor Fee Management */}
+      {/* Fee Schedule Management */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Percent className="h-5 w-5" />
-            Investor Fee Structure
+            Fee Schedule Management
           </CardTitle>
+          <CardDescription>
+            Manage fee percentages by fund with effective dates
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <Label>Current Fee Percentage</Label>
-              <div className="text-2xl font-bold">
-                {((investor?.fee_percentage || 0.02) * 100).toFixed(1)}%
+        <CardContent className="space-y-6">
+          {/* Current Active Fee Display */}
+          <div className="p-4 bg-muted/50 rounded-lg">
+            <Label className="text-sm text-muted-foreground">Current Active Fee</Label>
+            <div className="text-2xl font-bold mt-1">
+              {getCurrentFee() 
+                ? `${(getCurrentFee()!.fee_pct * 100).toFixed(2)}%`
+                : `${((investor?.fee_percentage || 0.02) * 100).toFixed(1)}% (default)`
+              }
+              {getCurrentFee()?.fund && (
+                <span className="text-sm font-normal text-muted-foreground ml-2">
+                  ({getCurrentFee()!.fund!.name})
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Add New Fee Entry Form */}
+          <div className="border rounded-lg p-4 space-y-4">
+            <div className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              <span className="font-medium">Add New Fee Entry</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <Label>Fund</Label>
+                <Select value={newFeeFundId} onValueChange={setNewFeeFundId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select fund" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Funds</SelectItem>
+                    {funds.map((fund) => (
+                      <SelectItem key={fund.id} value={fund.id}>
+                        {fund.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Fee Percentage</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    placeholder="2.00"
+                    value={newFeePercent}
+                    onChange={(e) => setNewFeePercent(e.target.value)}
+                  />
+                  <span className="text-muted-foreground">%</span>
+                </div>
+              </div>
+              <div>
+                <Label>Effective Date</Label>
+                <Input
+                  type="date"
+                  value={newFeeEffectiveDate}
+                  onChange={(e) => setNewFeeEffectiveDate(e.target.value)}
+                />
+              </div>
+              <div className="flex items-end">
+                <Button onClick={addFeeScheduleEntry} disabled={isAddingFee} className="w-full">
+                  {isAddingFee ? "Adding..." : "Add Fee"}
+                </Button>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                step="0.1"
-                min="0"
-                max="100"
-                placeholder="New fee %"
-                className="w-24"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    const value = parseFloat((e.target as HTMLInputElement).value);
-                    if (!isNaN(value)) {
-                      updateFeePercentage(value);
-                      (e.target as HTMLInputElement).value = "";
-                    }
-                  }
-                }}
-              />
-              <span className="text-sm text-muted-foreground">%</span>
+          </div>
+
+          {/* Fee History Table */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <History className="h-4 w-4" />
+              <span className="font-medium">Fee History</span>
             </div>
+            {feeSchedule.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Fund</TableHead>
+                    <TableHead>Fee %</TableHead>
+                    <TableHead>Effective Date</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {feeSchedule.map((entry) => {
+                    const isActive = entry.effective_date <= new Date().toISOString().split('T')[0];
+                    const isCurrent = getCurrentFee()?.id === entry.id;
+                    return (
+                      <TableRow key={entry.id}>
+                        <TableCell>
+                          {entry.fund?.name || <span className="text-muted-foreground">All Funds</span>}
+                        </TableCell>
+                        <TableCell className="font-mono">
+                          {(entry.fee_pct * 100).toFixed(2)}%
+                        </TableCell>
+                        <TableCell>
+                          {new Date(entry.effective_date).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
+                          {new Date(entry.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {isCurrent ? (
+                            <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+                              Active
+                            </Badge>
+                          ) : isActive ? (
+                            <Badge variant="secondary">Superseded</Badge>
+                          ) : (
+                            <Badge variant="outline">Pending</Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-6 text-muted-foreground">
+                No fee schedule entries. Using default fee from profile.
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
