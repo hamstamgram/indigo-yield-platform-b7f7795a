@@ -58,10 +58,8 @@ const formatValue = (val: string | number): string => {
   const numVal = typeof val === "string" ? parseFloat(val.replace(/,/g, "")) : val;
   if (isNaN(numVal) || numVal === 0) return "-";
 
-  return numVal.toLocaleString("en-US", {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4,
-  });
+  // Simple format with 4 decimals, no thousands separator (matches archive format)
+  return numVal.toFixed(4);
 };
 
 const formatReturnRate = (val: string | number): string => {
@@ -73,17 +71,28 @@ const formatReturnRate = (val: string | number): string => {
   return `${numVal.toFixed(0)}%`;
 };
 
+// Convert "BTC YIELD FUND" to "BTC Yield Fund" (title case with asset uppercase)
+const formatFundName = (name: string): string => {
+  // Handle names like "BTC YIELD FUND" -> "BTC Yield Fund"
+  const parts = name.split(" ");
+  if (parts.length >= 3) {
+    return `${parts[0]} ${parts.slice(1).map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(" ")}`;
+  }
+  return name;
+};
+
 export const generateInvestorReportHtml = (data: ReportData): string => {
   const fundBlocks = data.funds
     .map((fund) => {
       const iconUrl = FUND_ICONS[fund.fundName.toUpperCase()] || FUND_ICONS["DEFAULT"];
+      const displayName = formatFundName(fund.fundName);
 
       return `
-    <!-- ${fund.fundName} Section -->
+    <!-- ${displayName} Section -->
     <div style="background:#f8fafc;border-radius:10px;padding:20px;margin:16px;margin-top:24px;">
       <div style="display:flex;align-items:center;margin-bottom:20px;">
         <img src="${iconUrl}" height="32" style="margin-right:12px;" alt="${fund.currency}">
-        <span style="font-size:18px;font-weight:bold;color:#0f172a;">${fund.fundName}</span>
+        <span style="font-size:18px;font-weight:bold;color:#0f172a;">${displayName}</span>
       </div>
       
       <table style="width:100%;border-collapse:collapse;">
