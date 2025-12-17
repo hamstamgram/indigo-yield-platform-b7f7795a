@@ -36,10 +36,8 @@ export const AuditLogViewer = lazy(() => import("@/routes/admin/AuditLogViewer")
 export const DailyRatesManagement = lazy(() => import("@/routes/admin/DailyRatesManagement"));
 export const InvestorReports = lazy(() => import("@/routes/admin/InvestorReports"));
 export const MonthlyDataEntry = lazy(() => import("@/routes/admin/MonthlyDataEntry"));
-export const FundOperationsPage = lazy(() => import("@/routes/admin/FundOperationsPage"));
 
 // Admin Sub-pages
-export const FundManagement = lazy(() => import("@/routes/admin/funds/FundManagement"));
 export const InvestorManagement = lazy(() => import("@/routes/admin/investors/InvestorManagement"));
 export const WithdrawalsPage = lazy(() => import("@/routes/admin/investors/WithdrawalsPage"));
 export const MonthlyReportsPage = lazy(() => import("@/routes/admin/reports/MonthlyReportsPage"));
@@ -264,18 +262,8 @@ export const LazyMonthlyDataEntry = () => (
     <MonthlyDataEntry />
   </RouteSuspense>
 );
-export const LazyFundOperations = () => (
-  <RouteSuspense type="admin">
-    <FundOperationsPage />
-  </RouteSuspense>
-);
 
 // Admin Sub-pages
-export const LazyFundManagement = () => (
-  <RouteSuspense type="admin">
-    <FundManagement />
-  </RouteSuspense>
-);
 export const LazyInvestorManagement = () => (
   <RouteSuspense type="admin">
     <InvestorManagement />

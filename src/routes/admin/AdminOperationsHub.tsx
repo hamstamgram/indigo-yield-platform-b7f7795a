@@ -284,13 +284,6 @@ function AdminOperationsHubContent() {
       icon: Settings,
       category: "Data Entry & Management",
     },
-    {
-      title: "Fund Management",
-      description: "Configure funds and fee structures",
-      href: "/admin/funds",
-      icon: Building2,
-      category: "Data Entry & Management",
-    },
 
     // Request Management
     {
