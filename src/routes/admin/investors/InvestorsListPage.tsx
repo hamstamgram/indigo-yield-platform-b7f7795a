@@ -9,12 +9,15 @@ import { adminServiceV2 } from "@/services/adminServiceV2";
 import { assetService } from "@/services/assetService";
 import { Asset } from "@/types/investorTypes";
 import { InvestorSummaryV2 } from "@/services/adminServiceV2";
+import { deleteInvestorUser } from "@/services/userService";
+import { useToast } from "@/hooks/use-toast";
 
 export default function InvestorsListPage() {
   const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const { toast } = useToast();
 
   const loadData = async () => {
     setIsLoading(true);
@@ -41,6 +44,24 @@ export default function InvestorsListPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleDeleteInvestor = async (investorId: string) => {
+    try {
+      await deleteInvestorUser(investorId);
+      toast({
+        title: "Investor deleted",
+        description: "The investor has been successfully removed.",
+      });
+      loadData(); // Refresh the list
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to delete investor";
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      });
+    }
+  };
 
   const filteredInvestors = investors.filter((inv) => {
     const search = searchTerm.toLowerCase();
@@ -87,6 +108,7 @@ export default function InvestorsListPage() {
             searchTerm={searchTerm}
             onSendEmail={() => {}}
             onRefresh={loadData}
+            onDelete={handleDeleteInvestor}
           />
         </CardContent>
       </Card>
