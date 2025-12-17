@@ -25,7 +25,7 @@ serve(async (req: Request) => {
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Unauthorized - No authorization header" }), {
         status: 401,
-        headers: { "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -48,7 +48,7 @@ serve(async (req: Request) => {
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized - Invalid token" }), {
         status: 401,
-        headers: { "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -62,7 +62,7 @@ serve(async (req: Request) => {
     if (profileError || !profile?.is_admin) {
       return new Response(JSON.stringify({ error: "Forbidden - Admin access required" }), {
         status: 403,
-        headers: { "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -77,7 +77,19 @@ serve(async (req: Request) => {
         }),
         {
           status: 400,
-          headers: { "Content-Type": "application/json" },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Check if RESEND_API_KEY is configured
+    if (!RESEND_API_KEY) {
+      console.error("RESEND_API_KEY not configured");
+      return new Response(
+        JSON.stringify({ error: "Email service not configured" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
@@ -97,6 +109,8 @@ serve(async (req: Request) => {
       text: `Dear ${investorName},\n\nPlease view this email in an HTML-compatible email client to see your investment report for ${reportDate}.\n\nThank you for trusting us with your investments.\n\nBest regards,\nIndigo Yield Team`,
     };
 
+    console.log(`Sending email to ${to} for report month ${reportMonth}`);
+
     const resendResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -113,19 +127,26 @@ serve(async (req: Request) => {
     }
 
     const resendResult = await resendResponse.json();
+    console.log("Email sent successfully:", resendResult);
 
-    // Log email send to database
-    // Ensure table exists or this might fail silently if not caught
-    const { error: logError } = await supabaseClient.from("email_logs").insert({
-      recipient_email: to,
-      recipient_name: investorName,
+    // Log email send to database using correct column names
+    const serviceClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    const { error: logError } = await serviceClient.from("email_logs").insert({
+      recipient: to,
       subject: `Your Investment Report - ${reportDate}`,
-      email_type: "investor_report",
-      report_month: reportMonth + "-01",
-      sent_by: user.id,
+      template: "investor_report",
+      metadata: {
+        investor_name: investorName,
+        report_month: reportMonth,
+        sent_by: user.id,
+      },
       sent_at: new Date().toISOString(),
       status: "sent",
-      external_id: resendResult.id || null,
+      message_id: resendResult.id || null,
     });
 
     if (logError) {
@@ -145,13 +166,14 @@ serve(async (req: Request) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
-  } catch (error: any) {
-    console.error("Error in send-investor-report:", error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    console.error("Error in send-investor-report:", errorMessage);
 
     return new Response(
       JSON.stringify({
         error: "Failed to send email",
-        message: error.message || "Unknown error occurred",
+        message: errorMessage,
       }),
       {
         status: 500,
