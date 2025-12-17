@@ -50,8 +50,9 @@ export const createOrFindInvestorUser = async (
 
     if (error) {
       console.error("Error creating user via Edge Function:", error);
-      // Try to extract error message from FunctionsHttpError context
       let errorMessage = "Failed to create user";
+      
+      // Extract error message from various sources
       try {
         if (error.context && typeof error.context.json === 'function') {
           const errorBody = await error.context.json();
@@ -62,11 +63,39 @@ export const createOrFindInvestorUser = async (
       } catch {
         errorMessage = error.message || errorMessage;
       }
+
+      // If user already exists, try to find them and return their ID
+      if (errorMessage.includes("already") && errorMessage.includes("registered")) {
+        const { data: existingProfile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("email", values.email)
+          .maybeSingle();
+        
+        if (existingProfile?.id) {
+          console.log("Found existing user by email, returning their ID:", existingProfile.id);
+          return existingProfile.id;
+        }
+      }
+      
       throw new Error(errorMessage);
     }
 
     // Check for error in successful response (edge function returned 200 but with error)
     if (data?.success === false && data?.error) {
+      // Also try to find existing user for this error case
+      if (data.error.includes("already") && data.error.includes("registered")) {
+        const { data: existingProfile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("email", values.email)
+          .maybeSingle();
+        
+        if (existingProfile?.id) {
+          console.log("Found existing user by email, returning their ID:", existingProfile.id);
+          return existingProfile.id;
+        }
+      }
       throw new Error(data.error);
     }
 

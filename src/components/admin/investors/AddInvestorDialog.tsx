@@ -24,10 +24,12 @@ interface AddInvestorDialogProps {
 const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({ assets, onInvestorAdded }) => {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { toast } = useToast();
   const { createInvite } = useInvestorInvite();
 
   const handleSubmit = async (values: InvestorFormValues) => {
+    setErrorMessage(null);
     try {
       setIsLoading(true);
 
@@ -68,9 +70,11 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({ assets, onInvesto
       }, 1000);
     } catch (error) {
       console.error("Error adding investor:", error);
+      const message = error instanceof Error ? error.message : "Unknown error";
+      setErrorMessage(message);
       toast({
         title: "Error",
-        description: `Failed to add investor: ${error instanceof Error ? error.message : "Unknown error"}`,
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -81,6 +85,9 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({ assets, onInvesto
   const handleOpenChange = (newOpen: boolean) => {
     // Only allow closing if not currently loading
     if (isLoading && !newOpen) return;
+    if (newOpen) {
+      setErrorMessage(null);
+    }
     setOpen(newOpen);
   };
 
@@ -99,6 +106,11 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({ assets, onInvesto
             Create a new investor account and set initial portfolio balances.
           </DialogDescription>
         </DialogHeader>
+        {errorMessage && (
+          <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-md text-sm">
+            {errorMessage}
+          </div>
+        )}
         <InvestorForm onSubmit={handleSubmit} isLoading={isLoading} assets={assets} />
       </DialogContent>
     </Dialog>
