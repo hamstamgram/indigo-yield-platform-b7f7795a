@@ -15,11 +15,11 @@ export default function AdminTransactionsPage() {
         .select(
           `
           *,
-          profiles!investor_id (
-            email,
-            first_name,
-            last_name
-          )
+        profiles!fk_transactions_v2_profile (
+          email,
+          first_name,
+          last_name
+        )
         `
         )
         .order("tx_date", { ascending: false })
