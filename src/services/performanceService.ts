@@ -45,9 +45,10 @@ export const performanceService = {
   },
 
   /**
-   * Get aggregated performance stats (e.g., Total AUM, YTD Yield)
+   * Get per-asset stats for an investor (latest period data per fund)
+   * Returns individual fund stats - NO aggregation across different assets
    */
-  async getAggregatedStats(userId: string) {
+  async getPerAssetStats(userId: string) {
     const records = await this.getInvestorPerformance({ userId });
     
     // Get latest record for each unique fund
@@ -59,17 +60,34 @@ export const performanceService = {
       }
     });
 
-    let totalEndingBalance = 0;
-    let totalYtdNetIncome = 0;
-
-    latestByFund.forEach(rec => {
-        totalEndingBalance += Number(rec.mtd_ending_balance || 0);
-        totalYtdNetIncome += Number(rec.ytd_net_income || 0);
-    });
+    // Return per-asset data (no aggregation)
+    const perAssetStats = Array.from(latestByFund.values()).map(rec => ({
+      fundName: rec.fund_name,
+      periodName: rec.period?.period_name || "Current",
+      mtd: {
+        netIncome: Number(rec.mtd_net_income || 0),
+        endingBalance: Number(rec.mtd_ending_balance || 0),
+        rateOfReturn: Number(rec.mtd_rate_of_return || 0),
+      },
+      qtd: {
+        netIncome: Number(rec.qtd_net_income || 0),
+        endingBalance: Number(rec.qtd_ending_balance || 0),
+        rateOfReturn: Number(rec.qtd_rate_of_return || 0),
+      },
+      ytd: {
+        netIncome: Number(rec.ytd_net_income || 0),
+        endingBalance: Number(rec.ytd_ending_balance || 0),
+        rateOfReturn: Number(rec.ytd_rate_of_return || 0),
+      },
+      itd: {
+        netIncome: Number(rec.itd_net_income || 0),
+        endingBalance: Number(rec.itd_ending_balance || 0),
+        rateOfReturn: Number(rec.itd_rate_of_return || 0),
+      },
+    }));
 
     return {
-      totalAum: totalEndingBalance,
-      totalYtdYield: totalYtdNetIncome,
+      assets: perAssetStats,
       activeFunds: latestByFund.size
     };
   }

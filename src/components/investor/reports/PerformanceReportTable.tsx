@@ -92,6 +92,14 @@ export function PerformanceReportTable({
               Year to Date (YTD)
             </TableHead>
 
+            {/* ITD Group */}
+            <TableHead
+              colSpan={3}
+              className="text-center font-bold uppercase text-muted-foreground border-r bg-purple-50/50 dark:bg-purple-900/10"
+            >
+              Inception to Date (ITD)
+            </TableHead>
+
             <TableHead className="text-right">Action</TableHead>
           </TableRow>
           
@@ -113,6 +121,11 @@ export function PerformanceReportTable({
             <TableHead className="text-right bg-yellow-50/30 dark:bg-yellow-900/5">Net Income</TableHead>
             <TableHead className="text-right bg-yellow-50/30 dark:bg-yellow-900/5">End Bal</TableHead>
             <TableHead className="text-right border-r bg-yellow-50/30 dark:bg-yellow-900/5">% Ret</TableHead>
+
+            {/* ITD Columns */}
+            <TableHead className="text-right bg-purple-50/30 dark:bg-purple-900/5">Net Income</TableHead>
+            <TableHead className="text-right bg-purple-50/30 dark:bg-purple-900/5">End Bal</TableHead>
+            <TableHead className="text-right border-r bg-purple-50/30 dark:bg-purple-900/5">% Ret</TableHead>
             
             <TableHead className="text-right"></TableHead>
           </TableRow>
@@ -177,6 +190,17 @@ export function PerformanceReportTable({
                 </TableCell>
                 <TableCell className={cn("text-right font-mono border-r bg-yellow-50/30 dark:bg-yellow-900/5", record.ytd_rate_of_return >= 0 ? "text-green-600" : "text-red-600")}>
                   {formatPct(record.ytd_rate_of_return)}
+                </TableCell>
+
+                {/* ITD Data */}
+                <TableCell className={cn("text-right font-mono bg-purple-50/30 dark:bg-purple-900/5", (record.itd_net_income || 0) >= 0 ? "text-green-600" : "text-red-600")}>
+                  {formatVal(record.itd_net_income || 0, record.fund_name, true)}
+                </TableCell>
+                <TableCell className="text-right font-mono bg-purple-50/30 dark:bg-purple-900/5">
+                  {formatVal(record.itd_ending_balance || 0, record.fund_name)}
+                </TableCell>
+                <TableCell className={cn("text-right font-mono border-r bg-purple-50/30 dark:bg-purple-900/5", (record.itd_rate_of_return || 0) >= 0 ? "text-green-600" : "text-red-600")}>
+                  {formatPct(record.itd_rate_of_return || 0)}
                 </TableCell>
 
                 {/* Action */}

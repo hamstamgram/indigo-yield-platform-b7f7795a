@@ -1,25 +1,24 @@
-import { useInvestorPerformance, usePortfolioStats } from "@/hooks/useInvestorPerformance";
+import { useInvestorPerformance, usePerAssetStats } from "@/hooks/useInvestorPerformance";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, Calendar, Coins } from "lucide-react";
+import { Calendar, Coins } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PerformanceReportTable } from "@/components/investor/reports/PerformanceReportTable";
-import { format } from "date-fns";
 import { useState } from "react";
 import { ReportsApi } from "@/services/api/reportsApi";
 import { useToast } from "@/hooks/use-toast";
+import { AssetPerformanceCard } from "@/components/shared/AssetPerformanceCard";
+import { useNavigate } from "react-router-dom";
 
 export default function DashboardPage() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  // Fetch new data sources
+  // Fetch performance data
   const { data: performanceHistory, isLoading: isLoadingPerf } = useInvestorPerformance();
-  const { data: stats, isLoading: isLoadingStats } = usePortfolioStats();
+  const { data: assetStats, isLoading: isLoadingStats } = usePerAssetStats();
 
   // Filter for "Latest Month" for the dashboard view
-  // We assume the API returns data sorted by date descending
-  // We want to show the top record for EACH unique fund in the latest period
-  
   const latestPeriodId = performanceHistory?.[0]?.period_id;
   const latestMonthData = performanceHistory?.filter(
     (r) => r.period_id === latestPeriodId
@@ -94,47 +93,21 @@ export default function DashboardPage() {
         <p className="text-muted-foreground">Capital Account Summary</p>
       </section>
 
-      {/* Stats Cards */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="dashboard-card border-l-4 border-l-primary bg-card shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  Total Yield (YTD)
-                </p>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-4xl font-mono font-bold text-primary">
-                    {isLoadingStats ? "..." : stats?.totalYtdYield.toFixed(4)}
-                  </span>
-                  <span className="text-sm font-bold text-muted-foreground">
-                    AGGREGATED
-                  </span>
-                </div>
-              </div>
-              <div className="p-2 bg-primary/10 rounded-full">
-                <Clock className="h-6 w-6 text-primary" />
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Total accumulated earnings across all active funds this year.
-            </p>
-          </CardContent>
-        </Card>
-
+      {/* Active Funds Count Card */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="dashboard-card border-l-4 border-l-green-500 bg-card shadow-sm">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  Funds Active
+                  Active Positions
                 </p>
                 <div className="flex items-baseline gap-2 mt-1">
                   <span className="text-4xl font-mono font-bold text-green-600">
-                    {isLoadingStats ? "..." : stats?.activeFunds}
+                    {isLoadingStats ? "..." : assetStats?.activeFunds || 0}
                   </span>
                   <span className="text-sm font-bold text-muted-foreground">
-                    ASSETS
+                    FUNDS
                   </span>
                 </div>
               </div>
@@ -148,6 +121,25 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </section>
+
+      {/* Per-Asset Position Cards */}
+      {!isLoadingStats && assetStats?.assets && assetStats.assets.length > 0 && (
+        <section className="space-y-4">
+          <h2 className="text-lg font-display font-bold tracking-tight">
+            My Positions
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {assetStats.assets.map((asset) => (
+              <AssetPerformanceCard
+                key={asset.fundName}
+                data={asset}
+                compact
+                onClick={() => navigate(`/funds/${asset.fundName}`)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Main Performance Table */}
       <section className="space-y-4">
