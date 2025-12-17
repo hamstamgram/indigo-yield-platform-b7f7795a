@@ -55,10 +55,11 @@ export const createOrFindInvestorUser = async (
 
     if (data?.user?.id) {
       return data.user.id;
+    } else if (data?.user_id) {
+      return data.user_id;
     } else if (data?.id) {
       return data.id;
     } else if (data?.error) {
-       // Handle "User already exists" gracefully if possible, or throw
        throw new Error(data.error);
     } else {
       throw new Error("User created but no ID returned from Edge Function");
