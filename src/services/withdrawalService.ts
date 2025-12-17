@@ -10,7 +10,7 @@ export const withdrawalService = {
     // Use JOIN to fetch investor data in single query (fixes N+1)
     let query = supabase
       .from("withdrawal_requests")
-      .select("*, profile:profiles(first_name, last_name, email)") // Join profiles
+      .select("*, profile:profiles!fk_withdrawal_requests_profile(first_name, last_name, email)") // Join profiles
       .order("request_date", { ascending: false });
 
     if (filters?.status && filters.status !== "all") {
