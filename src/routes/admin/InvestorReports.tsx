@@ -289,9 +289,8 @@ const InvestorReports = () => {
   }, [fetchReports]);
 
   const getFundDisplayName = (assetCode: string) => {
-    if (assetCode === "xAUT") return "Tokenized Gold";
-    if (assetCode === "USDT") return "Stablecoin Fund";
-    return `${assetCode} Yield Fund`;
+    // Must match FUND_ICONS keys in reportGenerator.ts (uppercase)
+    return `${assetCode.toUpperCase()} YIELD FUND`;
   };
 
   const handlePreviewReport = (investor: InvestorReport) => {
