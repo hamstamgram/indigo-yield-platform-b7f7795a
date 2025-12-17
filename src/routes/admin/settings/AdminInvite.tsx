@@ -179,8 +179,9 @@ const AdminInvite = () => {
       }
 
       // 5. Insert admin role into user_roles table (primary role storage)
+      // Using type assertion since the table exists but types may not be regenerated yet
       const { error: roleError } = await supabase
-        .from("user_roles")
+        .from("user_roles" as any)
         .insert({ 
           user_id: userId,
           role: 'admin'

@@ -2995,6 +2995,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_sessions: {
         Row: {
           created_at: string
@@ -3983,6 +4004,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_2fa_required: { Args: { p_user_id: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_admin_for_jwt: { Args: never; Returns: boolean }
@@ -4110,6 +4138,7 @@ export type Database = {
         | "2fa_verify"
         | "session_revoked"
         | "password_change"
+      app_role: "admin" | "moderator" | "user"
       asset_code: "BTC" | "ETH" | "SOL" | "USDT" | "EURC" | "xAUT" | "XRP"
       benchmark_type: "BTC" | "ETH" | "STABLE" | "CUSTOM"
       document_type: "statement" | "notice" | "terms" | "tax" | "other"
@@ -4284,6 +4313,7 @@ export const Constants = {
         "session_revoked",
         "password_change",
       ],
+      app_role: ["admin", "moderator", "user"],
       asset_code: ["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"],
       benchmark_type: ["BTC", "ETH", "STABLE", "CUSTOM"],
       document_type: ["statement", "notice", "terms", "tax", "other"],
