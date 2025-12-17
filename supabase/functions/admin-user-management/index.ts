@@ -273,7 +273,7 @@ async function deleteUser(userId: string, adminUserId: string): Promise<any> {
   // Check for active positions that would block deletion
   const { data: positions } = await supabaseAdmin
     .from("investor_positions")
-    .select("id, current_value")
+    .select("fund_id, current_value")
     .eq("investor_id", userId);
 
   const activePositions = positions?.filter(p => p.current_value > 0) || [];
