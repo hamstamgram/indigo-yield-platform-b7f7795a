@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Search, Coins } from "lucide-react";
+import { X, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import NavSection from "@/components/sidebar/NavSection";
@@ -9,7 +9,6 @@ import { adminNavGroups, mainNav } from "@/config/navigation";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { NavItem } from "@/types/navigation";
-import { getAssetLogo } from "@/utils/assets";
 
 type SidebarProps = {
   sidebarOpen: boolean;
@@ -24,7 +23,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
 
   const [userName, setUserName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [fundItems, setFundItems] = useState<NavItem[]>([]); // Dynamic Funds
 
   const navigate = useNavigate();
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -55,34 +53,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
       }
     };
 
-    // Fetch Active Funds for Dynamic Menu
-    const getFunds = async () => {
-      const { data: assets } = await supabase
-        .from("assets")
-        .select("symbol, name, icon_url")
-        .eq("is_active", true)
-        .order("symbol");
-      
-      if (assets) {
-        const items: NavItem[] = assets.map(asset => ({
-          title: asset.name,
-          href: isAdmin ? `/admin/funds/${asset.symbol}` : `/funds/${asset.symbol}`,
-          icon: asset.icon_url ? (
-            <img 
-              src={getAssetLogo(asset.symbol)} 
-              alt={asset.name} 
-              className="h-4 w-4 rounded-full object-cover" 
-            />
-          ) : (
-            <Coins className="h-4 w-4" />
-          )
-        }));
-        setFundItems(items);
-      }
-    };
-
     getUser();
-    getFunds();
   }, [navigate, isAdmin]);
 
   // Filter navigation items based on admin status and search
@@ -219,24 +190,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
             {/* Admin Navigation */}
             {isAdmin && (
               <>
-                {/* Dynamic Funds for Admin */}
-                {fundItems.length > 0 && (
-                  <div className="mb-6">
-                    <div className="w-full flex items-center justify-between px-2 py-1.5 mb-1 text-xs font-bold text-sidebar-foreground uppercase tracking-wider">
-                      <div className="flex items-center gap-2">
-                        <Coins className="h-3 w-3" />
-                        <span>Fund Management</span>
-                      </div>
-                    </div>
-                    <NavSection
-                      title=""
-                      items={filterNavItems(fundItems, searchQuery)}
-                      onItemClick={handleNavigationClick}
-                      showTitle={false}
-                    />
-                  </div>
-                )}
-
                 {/* Static Admin Groups */}
                 {adminNavGroups.map((group) => {
                   const filteredItems = filterNavItems(group.items, searchQuery);
@@ -273,16 +226,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                   <NavSection
                     title="Main"
                     items={filteredMainNav}
-                    onItemClick={handleNavigationClick}
-                    isExpanded={true}
-                  />
-                )}
-
-                {/* My Funds (Dynamic) */}
-                {fundItems.length > 0 && (
-                  <NavSection
-                    title="My Funds"
-                    items={fundItems}
                     onItemClick={handleNavigationClick}
                     isExpanded={true}
                   />
