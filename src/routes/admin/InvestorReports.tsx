@@ -105,6 +105,7 @@ const InvestorReports = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sendingReports, setSendingReports] = useState(false);
+  const [generatingReports, setGeneratingReports] = useState(false);
   const [selectedInvestor, setSelectedInvestor] = useState<InvestorReport | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -346,6 +347,40 @@ const InvestorReports = () => {
     }
   };
 
+  // Generate reports from transactions and positions
+  const handleGenerateReports = async () => {
+    setGeneratingReports(true);
+    try {
+      const [yearStr, monthStr] = selectedMonth.split("-");
+      
+      const { data, error } = await supabase.functions.invoke("generate-fund-performance", {
+        body: {
+          periodYear: parseInt(yearStr),
+          periodMonth: parseInt(monthStr),
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Reports Generated",
+        description: data.message || `Generated ${data.recordsCreated} performance records`,
+      });
+
+      // Refresh the data
+      await fetchReports();
+    } catch (error: any) {
+      console.error("Error generating reports:", error);
+      toast({
+        title: "Generation Failed",
+        description: error.message || "Failed to generate performance data",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingReports(false);
+    }
+  };
+
   // Send reports via email (placeholder for email integration)
   const handleSendReports = async () => {
     setSendingReports(true);
@@ -556,9 +591,16 @@ const InvestorReports = () => {
               Refresh
             </Button>
             <Button
+              onClick={handleGenerateReports}
+              disabled={generatingReports}
+              variant="outline"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              {generatingReports ? "Generating..." : "Generate Reports"}
+            </Button>
+            <Button
               onClick={handleSendReports}
               disabled={sendingReports || stats.reportsGenerated === 0}
-              variant="primary"
             >
               <Send className="h-4 w-4 mr-2" />
               {sendingReports ? "Sending..." : `Send Reports (${stats.reportsGenerated})`}

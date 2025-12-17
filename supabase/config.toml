@@ -53,3 +53,6 @@ verify_jwt = false
 
 [functions.setup-test-users]
 verify_jwt = false
+
+[functions.generate-fund-performance]
+verify_jwt = true
