@@ -92,8 +92,21 @@ export default function Login() {
           description: "You've successfully logged in.",
         });
 
-        // Redirect to dashboard - admin check will be done in the dashboard component
-        navigate("/dashboard", { replace: true });
+        // Check admin status BEFORE redirect to prevent flash
+        try {
+          const { data: adminStatus } = await supabase.rpc("get_user_admin_status", {
+            user_id: data.user.id,
+          });
+          
+          if (adminStatus === true) {
+            navigate("/admin", { replace: true });
+          } else {
+            navigate("/dashboard", { replace: true });
+          }
+        } catch {
+          // Default to dashboard if admin check fails
+          navigate("/dashboard", { replace: true });
+        }
       } else {
         // Since this is invitation-only, restrict self registration
         setError("This platform requires an invitation. Please contact the administrator.");

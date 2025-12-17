@@ -37,16 +37,14 @@ export const createOrFindInvestorUser = async (
     // Call Edge Function to create user securely
     const { data, error } = await supabase.functions.invoke("admin-user-management", {
       body: {
-        action: "create_user",
+        action: "createUser",
         email: values.email,
-        password: tempPassword,
-        email_confirm: true,
-        user_metadata: {
-          first_name: values.first_name,
-          last_name: values.last_name,
-          is_investor: true,
-          is_admin: false,
-        },
+        firstName: values.first_name,
+        lastName: values.last_name,
+        phone: "",
+        role: "LP",
+        selectedFunds: [],
+        sendWelcomeEmail: true,
       },
     });
 

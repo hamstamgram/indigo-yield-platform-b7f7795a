@@ -71,14 +71,14 @@ serve(async (req) => {
     }
 
     // Check admin status
-    const { data: profile } = await supabaseAdmin
+    const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")
       .select("is_admin")
       .eq("id", user.id)
       .single();
     
     const isAdmin = profile?.is_admin;
-    if (adminCheckError || !isAdmin) {
+    if (profileError || !isAdmin) {
       throw new Error("Admin access required");
     }
 
