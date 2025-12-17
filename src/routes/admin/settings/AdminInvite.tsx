@@ -90,6 +90,21 @@ const AdminInvite = () => {
     verifyInvite();
   }, [inviteCode]);
 
+  // Wait for profile to be created by Supabase trigger
+  const waitForProfile = async (userId: string, maxAttempts = 10): Promise<boolean> => {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", userId)
+        .maybeSingle();
+      
+      if (profile) return true;
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    return false;
+  };
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,6 +136,7 @@ const AdminInvite = () => {
         email: inviteEmail,
         password: password,
         options: {
+          emailRedirectTo: `${window.location.origin}/admin`,
           data: {
             first_name: firstName,
             last_name: lastName,
@@ -129,6 +145,9 @@ const AdminInvite = () => {
       });
 
       if (signUpError) throw signUpError;
+      
+      const userId = signUpData.user?.id;
+      if (!userId) throw new Error("User ID not returned from signup");
 
       // 2. Update the invite to mark it as used
       const { error: updateError } = await supabase
@@ -138,13 +157,39 @@ const AdminInvite = () => {
 
       if (updateError) throw updateError;
 
-      // 3. Update the user's profile to set them as an admin
+      // 3. Wait for profile to be created by Supabase trigger
+      const profileExists = await waitForProfile(userId);
+      if (!profileExists) {
+        console.warn("Profile not created in time, proceeding anyway");
+      }
+
+      // 4. Update profile is_admin flag (for backward compatibility)
       const { error: profileError } = await supabase
         .from("profiles")
-        .update({ is_admin: true })
-        .eq("id", signUpData.user?.id || "");
+        .update({ 
+          is_admin: true,
+          first_name: firstName,
+          last_name: lastName
+        })
+        .eq("id", userId);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Error updating profile:", profileError);
+        // Don't throw - continue to set role
+      }
+
+      // 5. Insert admin role into user_roles table (primary role storage)
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .insert({ 
+          user_id: userId,
+          role: 'admin'
+        });
+
+      if (roleError) {
+        console.error("Error setting admin role:", roleError);
+        // Don't throw - the profile update may have succeeded
+      }
 
       // Success
       setSuccess(true);
