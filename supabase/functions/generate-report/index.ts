@@ -6,7 +6,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { STATEMENT_TEMPLATE } from "../generate-monthly-statements/template.ts"; // Reuse the template!
+import { STATEMENT_TEMPLATE } from "../_shared/statement-template.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { generateReportRequestSchema, parseAndValidate } from "../_shared/validation.ts";
 
