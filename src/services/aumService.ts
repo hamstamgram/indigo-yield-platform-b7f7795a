@@ -39,6 +39,17 @@ export interface DailyTransactionsSummary {
   net_flow: number;
 }
 
+export interface InvestorYieldPreview {
+  investor_id: string;
+  investor_name: string;
+  email: string;
+  current_balance: number;
+  ownership_pct: number;
+  gross_yield: number;
+  fee_rate: number;
+  net_yield: number;
+}
+
 export interface YieldCalculationResult {
   previous_aum: number;
   current_aum: number;
@@ -501,6 +512,112 @@ export async function previewDailyYieldCalculation(
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to preview yield calculation",
+    };
+  }
+}
+
+/**
+ * Preview investor-level yield distribution before applying
+ * Shows each investor's expected gross yield, fee rate, and net yield
+ */
+export async function previewInvestorYieldDistribution(
+  fundId: string,
+  grossYield: number
+): Promise<{
+  success: boolean;
+  investors?: InvestorYieldPreview[];
+  totals?: { gross: number; fees: number; net: number };
+  error?: string;
+}> {
+  try {
+    // Get all investor positions for this fund
+    const { data: positions, error: posError } = await supabase
+      .from("investor_positions")
+      .select(`
+        investor_id,
+        current_value,
+        profile:profiles (
+          first_name,
+          last_name,
+          email,
+          fee_percentage
+        )
+      `)
+      .eq("fund_id", fundId)
+      .gt("current_value", 0);
+
+    if (posError) throw posError;
+    if (!positions || positions.length === 0) {
+      return { success: true, investors: [], totals: { gross: 0, fees: 0, net: 0 } };
+    }
+
+    // Calculate total AUM for percentage calculation
+    const totalAUM = positions.reduce((sum, pos) => sum + Number(pos.current_value || 0), 0);
+
+    // Get fee schedules for all investors
+    const investorIds = positions.map(p => p.investor_id).filter(Boolean);
+    const { data: feeSchedules } = await supabase
+      .from("investor_fee_schedule")
+      .select("investor_id, fee_pct, effective_date")
+      .in("investor_id", investorIds)
+      .order("effective_date", { ascending: false });
+
+    // Build fee lookup map (latest effective fee per investor)
+    const feeMap = new Map<string, number>();
+    feeSchedules?.forEach(fs => {
+      if (!feeMap.has(fs.investor_id)) {
+        feeMap.set(fs.investor_id, Number(fs.fee_pct));
+      }
+    });
+
+    let totalGross = 0;
+    let totalFees = 0;
+    let totalNet = 0;
+
+    const investors: InvestorYieldPreview[] = positions.map(pos => {
+      const profile = pos.profile as any;
+      const currentBalance = Number(pos.current_value || 0);
+      const ownershipPct = totalAUM > 0 ? (currentBalance / totalAUM) * 100 : 0;
+      const investorGrossYield = grossYield * (ownershipPct / 100);
+      
+      // Fee priority: schedule > profile > 0%
+      let feeRate = feeMap.get(pos.investor_id!) ?? 0;
+      if (feeRate === 0 && profile?.fee_percentage) {
+        feeRate = Number(profile.fee_percentage) * 100; // profile stores as decimal (0.02 = 2%)
+      }
+      
+      const feeAmount = investorGrossYield * (feeRate / 100);
+      const netYield = investorGrossYield - feeAmount;
+
+      totalGross += investorGrossYield;
+      totalFees += feeAmount;
+      totalNet += netYield;
+
+      return {
+        investor_id: pos.investor_id!,
+        investor_name: [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Unknown",
+        email: profile?.email || "",
+        current_balance: currentBalance,
+        ownership_pct: ownershipPct,
+        gross_yield: investorGrossYield,
+        fee_rate: feeRate,
+        net_yield: netYield,
+      };
+    });
+
+    // Sort by current balance descending
+    investors.sort((a, b) => b.current_balance - a.current_balance);
+
+    return {
+      success: true,
+      investors,
+      totals: { gross: totalGross, fees: totalFees, net: totalNet },
+    };
+  } catch (error) {
+    console.error("Error previewing investor yield distribution:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to preview investor distribution",
     };
   }
 }
