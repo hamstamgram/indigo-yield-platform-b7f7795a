@@ -131,7 +131,10 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
   const { data: funds } = useQuery({
     queryKey: ["active-funds"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("funds").select("id, name, asset");
+      const { data, error } = await supabase
+        .from("funds")
+        .select("id, name, asset")
+        .eq("status", "active");
       if (error) throw error;
       return data;
     },
