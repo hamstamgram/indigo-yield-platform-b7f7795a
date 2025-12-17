@@ -40,7 +40,6 @@ export const MonthlyDataEntry = lazy(() => import("@/routes/admin/MonthlyDataEnt
 // Admin Sub-pages
 export const InvestorManagement = lazy(() => import("@/routes/admin/investors/InvestorManagement"));
 export const WithdrawalsPage = lazy(() => import("@/routes/admin/investors/WithdrawalsPage"));
-export const MonthlyReportsPage = lazy(() => import("@/routes/admin/reports/MonthlyReportsPage"));
 export const AdminAudit = lazy(() => import("@/routes/admin/settings/AdminAudit"));
 export const AdminInvite = lazy(() => import("@/routes/admin/settings/AdminInvite"));
 export const AdminOperations = lazy(() => import("@/routes/admin/settings/AdminOperations"));
@@ -272,11 +271,6 @@ export const LazyInvestorManagement = () => (
 export const LazyAdminWithdrawalsView = () => (
   <RouteSuspense type="admin">
     <WithdrawalsPage />
-  </RouteSuspense>
-);
-export const LazyAdminMonthlyReports = () => (
-  <RouteSuspense type="admin">
-    <MonthlyReportsPage />
   </RouteSuspense>
 );
 export const LazyAdminAudit = () => (

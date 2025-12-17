@@ -11,7 +11,6 @@ const AdminDashboard = lazy(() => import("@/routes/admin/AdminDashboard"));
 const AdminTransactionsPage = lazy(
   () => import("@/routes/admin/transactions/AdminTransactionsPage")
 );
-const MonthlyReportsPage = lazy(() => import("@/routes/admin/reports/MonthlyReportsPage"));
 
 export function CoreAdminRoutes() {
   return (
@@ -32,14 +31,8 @@ export function CoreAdminRoutes() {
           </AdminRoute>
         }
       />
-      <Route
-        path="/admin/reports/monthly"
-        element={
-          <AdminRoute>
-            <MonthlyReportsPage />
-          </AdminRoute>
-        }
-      />
+      {/* Redirect old monthly reports route to unified investor reports page */}
+      <Route path="/admin/reports/monthly" element={<Navigate to="/admin/investor-reports" replace />} />
       <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />
       {/* Redirect old fund routes to monthly data entry */}
       <Route path="/admin/funds/:assetId" element={<Navigate to="/admin/monthly-data-entry" replace />} />
