@@ -105,7 +105,8 @@ export class DepositService {
       .from("funds")
       .select("id, asset, fund_class")
       .eq("asset", assetSymbol)
-      .maybeSingle();
+      .eq("status", "active")
+      .single();
 
     if (!fund?.id) {
       throw new Error(`Fund not found for asset symbol ${assetSymbol}`);

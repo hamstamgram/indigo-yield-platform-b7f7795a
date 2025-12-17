@@ -59,6 +59,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
       const { data, error } = await supabase
         .from("funds")
         .select("id, name, asset")
+        .eq("status", "active")
         .order("name");
       if (error) throw error;
       return data;
