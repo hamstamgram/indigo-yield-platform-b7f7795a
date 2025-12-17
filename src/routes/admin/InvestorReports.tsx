@@ -37,17 +37,14 @@ import {
   CheckCircle2,
   Eye,
   Coins,
-  FilePlus,
   Mail,
   Pencil,
 } from "lucide-react";
-import { StatementManager } from "@/components/admin/statements/StatementManager";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format, subMonths, parseISO } from "date-fns";
 import { generateInvestorReportHtml, ReportData } from "@/utils/reportGenerator";
 import { formatAssetWithSymbol } from "@/utils/assetFormatting";
-import { SingleReportGenerator } from "@/components/admin/reports/SingleReportGenerator";
 import { PerformanceDataEditor } from "@/components/admin/reports/PerformanceDataEditor";
 
 interface InvestorReport {
@@ -110,7 +107,6 @@ const InvestorReports = () => {
   const [sendingReports, setSendingReports] = useState(false);
   const [selectedInvestor, setSelectedInvestor] = useState<InvestorReport | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [generatorOpen, setGeneratorOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingInvestor, setEditingInvestor] = useState<InvestorReport | null>(null);
   const [currentPeriodId, setCurrentPeriodId] = useState<string>("");
@@ -544,25 +540,17 @@ const InvestorReports = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="email-reports" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="email-reports" className="flex items-center gap-2">
+      <Tabs defaultValue="html-reports" className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-1">
+          <TabsTrigger value="html-reports" className="flex items-center gap-2">
             <Mail className="h-4 w-4" />
-            Email Reports
-          </TabsTrigger>
-          <TabsTrigger value="pdf-statements" className="flex items-center gap-2">
-            <FilePlus className="h-4 w-4" />
-            PDF Statements
+            HTML Reports
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="email-reports" className="mt-6 space-y-6">
-          {/* Email Reports Tab Content */}
+        <TabsContent value="html-reports" className="mt-6 space-y-6">
+          {/* HTML Reports Tab Content */}
           <div className="flex justify-end gap-2">
-            <Button onClick={() => setGeneratorOpen(true)} variant="outline">
-              <FileText className="h-4 w-4 mr-2" />
-              Single PDF
-            </Button>
             <Button onClick={fetchReports} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
@@ -576,12 +564,6 @@ const InvestorReports = () => {
               {sendingReports ? "Sending..." : `Send Reports (${stats.reportsGenerated})`}
             </Button>
           </div>
-
-          <Dialog open={generatorOpen} onOpenChange={setGeneratorOpen}>
-            <DialogContent className="sm:max-w-[500px]">
-              <SingleReportGenerator />
-            </DialogContent>
-          </Dialog>
 
           {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -914,14 +896,9 @@ const InvestorReports = () => {
             />
           )}
         </TabsContent>
-
-        <TabsContent value="pdf-statements" className="mt-6">
-          <StatementManager />
-        </TabsContent>
       </Tabs>
     </div>
   );
 };
 
 export default InvestorReports;
-// @ts-nocheck
