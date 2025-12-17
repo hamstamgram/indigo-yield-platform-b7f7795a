@@ -25,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   FileText,
   Send,
@@ -36,7 +37,10 @@ import {
   CheckCircle2,
   Eye,
   Coins,
+  FilePlus,
+  Mail,
 } from "lucide-react";
+import { StatementManager } from "@/components/admin/statements/StatementManager";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format, subMonths, parseISO } from "date-fns";
@@ -520,40 +524,53 @@ const InvestorReports = () => {
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Monthly Investor Reports</h1>
-          <p className="text-muted-foreground">
-            View and manage monthly investor reports (entered via Monthly Data Entry)
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setGeneratorOpen(true)} variant="outline">
-            <FileText className="h-4 w-4 mr-2" />
-            Single PDF
-          </Button>
-          <Button onClick={fetchReports} variant="outline">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          <Button
-            onClick={handleSendReports}
-            disabled={sendingReports || stats.reportsGenerated === 0}
-            variant="primary"
-          >
-            <Send className="h-4 w-4 mr-2" />
-            {sendingReports ? "Sending..." : `Send Reports (${stats.reportsGenerated})`}
-          </Button>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold">Investor Reports</h1>
+        <p className="text-muted-foreground">
+          View, generate, and send monthly statements to investors.
+        </p>
       </div>
 
-      <Dialog open={generatorOpen} onOpenChange={setGeneratorOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <SingleReportGenerator />
-        </DialogContent>
-      </Dialog>
+      <Tabs defaultValue="email-reports" className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="email-reports" className="flex items-center gap-2">
+            <Mail className="h-4 w-4" />
+            Email Reports
+          </TabsTrigger>
+          <TabsTrigger value="pdf-statements" className="flex items-center gap-2">
+            <FilePlus className="h-4 w-4" />
+            PDF Statements
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Summary Cards */}
+        <TabsContent value="email-reports" className="mt-6 space-y-6">
+          {/* Email Reports Tab Content */}
+          <div className="flex justify-end gap-2">
+            <Button onClick={() => setGeneratorOpen(true)} variant="outline">
+              <FileText className="h-4 w-4 mr-2" />
+              Single PDF
+            </Button>
+            <Button onClick={fetchReports} variant="outline">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+            <Button
+              onClick={handleSendReports}
+              disabled={sendingReports || stats.reportsGenerated === 0}
+              variant="primary"
+            >
+              <Send className="h-4 w-4 mr-2" />
+              {sendingReports ? "Sending..." : `Send Reports (${stats.reportsGenerated})`}
+            </Button>
+          </div>
+
+          <Dialog open={generatorOpen} onOpenChange={setGeneratorOpen}>
+            <DialogContent className="sm:max-w-[500px]">
+              <SingleReportGenerator />
+            </DialogContent>
+          </Dialog>
+
+          {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -752,112 +769,118 @@ const InvestorReports = () => {
         </CardContent>
       </Card>
 
-      {/* Report Details Dialog */}
-      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Report Details - {selectedInvestor?.investor_name}</DialogTitle>
-            <DialogDescription>
-              {selectedInvestor?.investor_email} |{" "}
-              {format(parseISO(`${selectedMonth}-01`), "MMMM yyyy")}
-            </DialogDescription>
-          </DialogHeader>
+          {/* Report Details Dialog */}
+          <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Report Details - {selectedInvestor?.investor_name}</DialogTitle>
+                <DialogDescription>
+                  {selectedInvestor?.investor_email} |{" "}
+                  {format(parseISO(`${selectedMonth}-01`), "MMMM yyyy")}
+                </DialogDescription>
+              </DialogHeader>
 
-          {selectedInvestor && (
-            <div className="space-y-6">
-              {/* Summary - Show per-asset values in native tokens */}
-              <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Positions</p>
-                  <p className="text-2xl font-bold">{selectedInvestor.assets.length}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Asset Types</p>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {selectedInvestor.assets.map((a) => (
-                      <Badge key={a.asset_code} variant="secondary">
-                        {a.asset_code}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Email Recipients */}
-              {selectedInvestor.investor_emails.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-semibold mb-2">
-                    Report Recipients ({selectedInvestor.investor_emails.length})
-                  </h3>
-                  <div className="space-y-2">
-                    {selectedInvestor.investor_emails.map((emailObj, index) => (
-                      <div
-                        key={index}
-                        className={`flex items-center gap-2 p-2 rounded ${
-                          emailObj.is_primary ? "bg-indigo-50 border border-indigo-200" : "bg-muted"
-                        }`}
-                      >
-                        <span className="text-sm flex-1">{emailObj.email}</span>
-                        {emailObj.is_primary && (
-                          <Badge variant="default" className="bg-indigo-600 text-xs">
-                            Primary
+              {selectedInvestor && (
+                <div className="space-y-6">
+                  {/* Summary - Show per-asset values in native tokens */}
+                  <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Positions</p>
+                      <p className="text-2xl font-bold">{selectedInvestor.assets.length}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Asset Types</p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {selectedInvestor.assets.map((a) => (
+                          <Badge key={a.asset_code} variant="secondary">
+                            {a.asset_code}
                           </Badge>
-                        )}
-                        {emailObj.verified && (
-                          <Badge variant="outline" className="text-xs">
-                            Verified
-                          </Badge>
-                        )}
+                        ))}
                       </div>
-                    ))}
+                    </div>
+                  </div>
+
+                  {/* Email Recipients */}
+                  {selectedInvestor.investor_emails.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-semibold mb-2">
+                        Report Recipients ({selectedInvestor.investor_emails.length})
+                      </h3>
+                      <div className="space-y-2">
+                        {selectedInvestor.investor_emails.map((emailObj, index) => (
+                          <div
+                            key={index}
+                            className={`flex items-center gap-2 p-2 rounded ${
+                              emailObj.is_primary ? "bg-indigo-50 border border-indigo-200" : "bg-muted"
+                            }`}
+                          >
+                            <span className="text-sm flex-1">{emailObj.email}</span>
+                            {emailObj.is_primary && (
+                              <Badge variant="default" className="bg-indigo-600 text-xs">
+                                Primary
+                              </Badge>
+                            )}
+                            {emailObj.verified && (
+                              <Badge variant="outline" className="text-xs">
+                                Verified
+                              </Badge>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Per-Asset Breakdown */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Asset Breakdown</h3>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Asset</TableHead>
+                          <TableHead className="text-right">Opening</TableHead>
+                          <TableHead className="text-right">Additions</TableHead>
+                          <TableHead className="text-right">Withdrawals</TableHead>
+                          <TableHead className="text-right">Yield</TableHead>
+                          <TableHead className="text-right">Closing</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedInvestor.assets.map((asset) => (
+                          <TableRow key={asset.asset_code}>
+                            <TableCell className="font-medium">
+                              <Badge>{asset.asset_code}</Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {formatAmount(asset.opening_balance, asset.asset_code)}
+                            </TableCell>
+                            <TableCell className="text-right text-green-600">
+                              {formatAmount(asset.additions, asset.asset_code)}
+                            </TableCell>
+                            <TableCell className="text-right text-red-600">
+                              {formatAmount(asset.withdrawals, asset.asset_code)}
+                            </TableCell>
+                            <TableCell className="text-right text-green-600 font-medium">
+                              {formatAmount(asset.yield_earned, asset.asset_code)}
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              {formatAmount(asset.closing_balance, asset.asset_code)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 </div>
               )}
+            </DialogContent>
+          </Dialog>
+        </TabsContent>
 
-              {/* Per-Asset Breakdown */}
-              <div>
-                <h3 className="text-lg font-semibold mb-3">Asset Breakdown</h3>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Asset</TableHead>
-                      <TableHead className="text-right">Opening</TableHead>
-                      <TableHead className="text-right">Additions</TableHead>
-                      <TableHead className="text-right">Withdrawals</TableHead>
-                      <TableHead className="text-right">Yield</TableHead>
-                      <TableHead className="text-right">Closing</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {selectedInvestor.assets.map((asset) => (
-                      <TableRow key={asset.asset_code}>
-                        <TableCell className="font-medium">
-                          <Badge>{asset.asset_code}</Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatAmount(asset.opening_balance, asset.asset_code)}
-                        </TableCell>
-                        <TableCell className="text-right text-green-600">
-                          {formatAmount(asset.additions, asset.asset_code)}
-                        </TableCell>
-                        <TableCell className="text-right text-red-600">
-                          {formatAmount(asset.withdrawals, asset.asset_code)}
-                        </TableCell>
-                        <TableCell className="text-right text-green-600 font-medium">
-                          {formatAmount(asset.yield_earned, asset.asset_code)}
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          {formatAmount(asset.closing_balance, asset.asset_code)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+        <TabsContent value="pdf-statements" className="mt-6">
+          <StatementManager />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

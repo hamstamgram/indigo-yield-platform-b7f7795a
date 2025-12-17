@@ -12,7 +12,6 @@ import {
   Gauge,
   FileSpreadsheet,
   Activity,
-  FilePlus,
   TrendingUp,
 } from "lucide-react";
 import { NavItem } from "@/types/navigation";
@@ -113,7 +112,7 @@ export const adminNavGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Reporting", // Renamed
+    title: "Reporting",
     icon: FileSpreadsheet,
     items: [
       {
@@ -126,12 +125,6 @@ export const adminNavGroups: NavGroup[] = [
         title: "Data Entry",
         href: "/admin/monthly-data-entry",
         icon: <Calendar className="h-5 w-5" />,
-        adminOnly: true,
-      }, // Renamed
-      {
-        title: "Monthly Reports",
-        href: "/admin/reports/monthly",
-        icon: <FilePlus className="h-5 w-5" />,
         adminOnly: true,
       },
     ],
