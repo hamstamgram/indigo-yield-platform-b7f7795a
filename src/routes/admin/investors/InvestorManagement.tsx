@@ -9,7 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import InvestorMonthlyTracking from "@/components/admin/investors/InvestorMonthlyTracking";
 import InvestorPositionsTab from "@/components/admin/investors/InvestorPositionsTab";
 import InvestorTransactionsTab from "@/components/admin/investors/InvestorTransactionsTab";
-import { User, Mail, Calendar, Activity, Loader2, ArrowLeft } from "lucide-react";
+import { User, Mail, Calendar, Activity, Loader2, ArrowLeft, Coins } from "lucide-react";
+import { useInvestorAssetStats } from "@/hooks/useInvestorPerformance";
+import { AssetPerformanceCard } from "@/components/shared/AssetPerformanceCard";
 
 interface InvestorDetail {
   id: string;
@@ -17,7 +19,7 @@ interface InvestorDetail {
   email: string;
   status: string;
   created_at: string | null;
-  profile_id: string; // Keeping for interface compat, but it's same as id
+  profile_id: string;
   phone?: string | null;
 }
 
@@ -26,6 +28,9 @@ const InvestorManagement = () => {
   const [investor, setInvestor] = useState<InvestorDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+
+  // Fetch per-asset performance stats for this investor
+  const { data: assetStats, isLoading: isLoadingStats } = useInvestorAssetStats(id);
 
   useEffect(() => {
     if (id) {
@@ -57,7 +62,7 @@ const InvestorManagement = () => {
         email: data.email,
         status: data.status || "active",
         created_at: data.created_at,
-        profile_id: data.id, // Same ID
+        profile_id: data.id,
         phone: data.phone
       });
     } catch (error) {
@@ -125,7 +130,48 @@ const InvestorManagement = () => {
           <TabsTrigger value="activity">Monthly Activity</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="profile" className="space-y-4">
+        <TabsContent value="profile" className="space-y-6">
+          {/* Summary Stats Card */}
+          <Card className="border-l-4 border-l-primary">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary/10 rounded-full">
+                  <Coins className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Active Fund Positions</p>
+                  <p className="text-3xl font-bold">
+                    {isLoadingStats ? "..." : assetStats?.activeFunds || 0}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Per-Asset Performance Cards */}
+          {!isLoadingStats && assetStats?.assets && assetStats.assets.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Fund Performance (Latest Period)</h3>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {assetStats.assets.map((asset) => (
+                  <AssetPerformanceCard
+                    key={asset.fundName}
+                    data={asset}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!isLoadingStats && (!assetStats?.assets || assetStats.assets.length === 0) && (
+            <Card className="bg-muted/30">
+              <CardContent className="p-6 text-center">
+                <p className="text-muted-foreground">No fund positions found for this investor.</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Personal Information Card */}
           <Card>
             <CardHeader>
               <CardTitle>Personal Information</CardTitle>
