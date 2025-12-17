@@ -15,8 +15,9 @@ import NotFound from "@/routes/NotFound";
 const ForgotPassword = lazy(() => import("@/routes/ForgotPassword"));
 const ResetPassword = lazy(() => import("@/routes/ResetPassword"));
 
-// Admin invite (public access for new admin setup)
+// Invite pages (public access for new user setup)
 const AdminInvite = lazy(() => import("@/routes/admin/settings/AdminInvite"));
+const InvestorInvite = lazy(() => import("@/routes/InvestorInvite"));
 
 // Public info pages
 const Terms = lazy(() => import("@/routes/Terms"));
@@ -41,6 +42,7 @@ export function PublicRoutes() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/admin-invite" element={<AdminInvite />} />
+      <Route path="/investor-invite" element={<InvestorInvite />} />
 
       {/* Public Info Pages */}
       <Route path="/health" element={<Health />} />
