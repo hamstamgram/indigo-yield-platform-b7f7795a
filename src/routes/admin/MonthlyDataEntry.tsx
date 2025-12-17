@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { ChevronDown, ChevronUp, ArrowUpDown, Users, TrendingUp } from "lucide-react";
+import { ChevronDown, ChevronUp, ArrowUpDown, Users, TrendingUp, Plus, CheckCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Table,
@@ -14,6 +14,22 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth/context";
+import {
+  previewYieldDistribution,
+  applyYieldDistribution,
+  YieldCalculationResult,
+} from "@/services/yieldDistributionService";
 
 interface Fund {
   id: string;
@@ -44,6 +60,16 @@ export default function MonthlyDataEntry() {
   const [loadingInvestors, setLoadingInvestors] = useState(false);
   const [sortField, setSortField] = useState<SortField>("current_value");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+
+  // AUM Dialog state
+  const [showAUMDialog, setShowAUMDialog] = useState(false);
+  const [newAUM, setNewAUM] = useState<string>("");
+  const [yieldPreview, setYieldPreview] = useState<YieldCalculationResult | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [applyLoading, setApplyLoading] = useState(false);
+
+  const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     loadFunds();
@@ -179,6 +205,95 @@ export default function MonthlyDataEntry() {
 
   const selectedFund = funds.find((f) => f.id === selectedFundId);
 
+  // AUM Dialog handlers
+  const handleOpenAUMDialog = () => {
+    setNewAUM("");
+    setYieldPreview(null);
+    setShowAUMDialog(true);
+  };
+
+  const handlePreviewYield = async () => {
+    if (!selectedFundId || !newAUM || !selectedFund) return;
+
+    const newAUMValue = parseFloat(newAUM);
+    if (isNaN(newAUMValue) || newAUMValue <= 0) {
+      toast({
+        title: "Invalid AUM",
+        description: "Please enter a valid positive number.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newAUMValue <= selectedFund.total_aum) {
+      toast({
+        title: "Invalid AUM",
+        description: "New AUM must be greater than current AUM to distribute yield.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPreviewLoading(true);
+    try {
+      const result = await previewYieldDistribution({
+        fundId: selectedFundId,
+        targetDate: new Date(),
+        newTotalAUM: newAUMValue,
+      });
+      setYieldPreview(result);
+    } catch (error) {
+      console.error("Error previewing yield:", error);
+      toast({
+        title: "Preview Failed",
+        description: error instanceof Error ? error.message : "Failed to preview yield distribution.",
+        variant: "destructive",
+      });
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const handleApplyYield = async () => {
+    if (!selectedFundId || !newAUM || !user || !yieldPreview) return;
+
+    setApplyLoading(true);
+    try {
+      await applyYieldDistribution(
+        {
+          fundId: selectedFundId,
+          targetDate: new Date(),
+          newTotalAUM: parseFloat(newAUM),
+        },
+        user.id
+      );
+
+      toast({
+        title: "Yield Distributed",
+        description: `Successfully distributed ${formatValue(yieldPreview.grossYield, selectedFund?.asset || "")} ${selectedFund?.asset} yield to ${yieldPreview.investorCount} investors.`,
+      });
+
+      setShowAUMDialog(false);
+      setYieldPreview(null);
+      setNewAUM("");
+
+      // Refresh data
+      await loadFunds();
+      if (selectedFundId) {
+        await loadInvestorComposition(selectedFundId);
+      }
+    } catch (error) {
+      console.error("Error applying yield:", error);
+      toast({
+        title: "Apply Failed",
+        description: error instanceof Error ? error.message : "Failed to apply yield distribution.",
+        variant: "destructive",
+      });
+    } finally {
+      setApplyLoading(false);
+    }
+  };
+
   const SortButton = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
     <Button
       variant="ghost"
@@ -265,10 +380,18 @@ export default function MonthlyDataEntry() {
       {selectedFundId && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {selectedFund && <CryptoIcon symbol={selectedFund.asset} className="h-6 w-6" />}
-              Investor Composition - {selectedFund?.name}
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                {selectedFund && <CryptoIcon symbol={selectedFund.asset} className="h-6 w-6" />}
+                Investor Composition - {selectedFund?.name}
+              </CardTitle>
+              {selectedFund && selectedFund.investor_count > 0 && (
+                <Button onClick={handleOpenAUMDialog}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add AUM Entry
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {loadingInvestors ? (
@@ -328,6 +451,177 @@ export default function MonthlyDataEntry() {
           </CardContent>
         </Card>
       )}
+
+      {/* AUM Entry Dialog */}
+      <Dialog open={showAUMDialog} onOpenChange={setShowAUMDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedFund && <CryptoIcon symbol={selectedFund.asset} className="h-6 w-6" />}
+              Add AUM Entry - {selectedFund?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Enter the new total AUM to calculate and distribute yield to all investors.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* AUM Input Section */}
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Current AUM</Label>
+                <div className="text-2xl font-mono font-semibold">
+                  {formatValue(selectedFund?.total_aum || 0, selectedFund?.asset || "")} {selectedFund?.asset}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-aum">New AUM ({selectedFund?.asset})</Label>
+                <Input
+                  id="new-aum"
+                  type="number"
+                  step="any"
+                  value={newAUM}
+                  onChange={(e) => setNewAUM(e.target.value)}
+                  placeholder={`Enter new total AUM in ${selectedFund?.asset}`}
+                  className="font-mono"
+                />
+              </div>
+            </div>
+
+            {/* Preview Button */}
+            <Button
+              onClick={handlePreviewYield}
+              disabled={!newAUM || previewLoading}
+              variant="secondary"
+              className="w-full"
+            >
+              {previewLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Calculating...
+                </>
+              ) : (
+                "Preview Distribution"
+              )}
+            </Button>
+
+            {/* Preview Results */}
+            {yieldPreview && (
+              <div className="space-y-4 border-t pt-4">
+                {/* Summary Cards */}
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="rounded-lg bg-muted/50 p-3 text-center">
+                    <div className="text-xs text-muted-foreground">Current AUM</div>
+                    <div className="font-mono font-semibold">
+                      {formatValue(yieldPreview.currentAUM, selectedFund?.asset || "")}
+                    </div>
+                  </div>
+                  <div className="rounded-lg bg-muted/50 p-3 text-center">
+                    <div className="text-xs text-muted-foreground">New AUM</div>
+                    <div className="font-mono font-semibold">
+                      {formatValue(yieldPreview.newAUM, selectedFund?.asset || "")}
+                    </div>
+                  </div>
+                  <div className="rounded-lg bg-green-500/10 p-3 text-center">
+                    <div className="text-xs text-muted-foreground">Gross Yield</div>
+                    <div className="font-mono font-semibold text-green-600">
+                      +{formatValue(yieldPreview.grossYield, selectedFund?.asset || "")}
+                    </div>
+                  </div>
+                  <div className="rounded-lg bg-green-500/10 p-3 text-center">
+                    <div className="text-xs text-muted-foreground">Yield %</div>
+                    <div className="font-mono font-semibold text-green-600">
+                      +{yieldPreview.yieldPercentage.toFixed(4)}%
+                    </div>
+                  </div>
+                </div>
+
+                {/* Per-Investor Distribution Table */}
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Investor</TableHead>
+                        <TableHead className="text-right">Current Balance</TableHead>
+                        <TableHead className="text-right">Ownership %</TableHead>
+                        <TableHead className="text-right">Gross Yield</TableHead>
+                        <TableHead className="text-right">Fee %</TableHead>
+                        <TableHead className="text-right">Net Yield</TableHead>
+                        <TableHead className="text-right">New Balance</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {yieldPreview.distributions.map((d) => (
+                        <TableRow key={d.investorId}>
+                          <TableCell className="font-medium">{d.investorName}</TableCell>
+                          <TableCell className="text-right font-mono">
+                            {formatValue(d.currentBalance, selectedFund?.asset || "")}
+                          </TableCell>
+                          <TableCell className="text-right font-mono">
+                            {d.allocationPercentage.toFixed(2)}%
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-green-600">
+                            +{formatValue(d.grossYield, selectedFund?.asset || "")}
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-muted-foreground">
+                            {d.feePercentage.toFixed(2)}%
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-green-600">
+                            +{formatValue(d.netYield, selectedFund?.asset || "")}
+                          </TableCell>
+                          <TableCell className="text-right font-mono font-semibold">
+                            {formatValue(d.newBalance, selectedFund?.asset || "")}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {/* Totals Row */}
+                      <TableRow className="bg-muted/50 font-semibold">
+                        <TableCell>TOTAL ({yieldPreview.investorCount} investors)</TableCell>
+                        <TableCell className="text-right font-mono">
+                          {formatValue(yieldPreview.currentAUM, selectedFund?.asset || "")}
+                        </TableCell>
+                        <TableCell className="text-right">100%</TableCell>
+                        <TableCell className="text-right font-mono text-green-600">
+                          +{formatValue(yieldPreview.grossYield, selectedFund?.asset || "")}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-muted-foreground">
+                          {formatValue(yieldPreview.totalFees, selectedFund?.asset || "")}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-green-600">
+                          +{formatValue(yieldPreview.netYield, selectedFund?.asset || "")}
+                        </TableCell>
+                        <TableCell className="text-right font-mono">
+                          {formatValue(yieldPreview.newAUM, selectedFund?.asset || "")}
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-3 pt-2">
+                  <Button variant="outline" onClick={() => setShowAUMDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleApplyYield} disabled={applyLoading}>
+                    {applyLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Applying...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Apply Distribution
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
