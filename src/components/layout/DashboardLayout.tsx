@@ -5,6 +5,7 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import ContentArea from "./ContentArea";
 import { useAuth } from "@/lib/auth/context";
+import { GlobalShortcuts } from "@/components/global/GlobalShortcuts";
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -60,6 +61,9 @@ const DashboardLayout = () => {
 
   return (
     <div className="flex h-screen w-full bg-gray-100 dark:bg-gray-900">
+      {/* Global Shortcuts & Action Bar */}
+      <GlobalShortcuts />
+
       {/* Sidebar */}
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} isAdmin={isAdmin} />
 
@@ -68,8 +72,8 @@ const DashboardLayout = () => {
         {/* Top Header */}
         <Header toggleSidebar={toggleSidebar} />
 
-        {/* Content Area */}
-        <ContentArea>
+        {/* Content Area - Add bottom padding for Action Bar */}
+        <ContentArea className="pb-14">
           <Outlet />
         </ContentArea>
       </div>
