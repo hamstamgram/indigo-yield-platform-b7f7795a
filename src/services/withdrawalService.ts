@@ -59,12 +59,12 @@ export const withdrawalService = {
   },
 
   /**
-   * Get withdrawal statistics
+   * Get withdrawal statistics with per-asset pending breakdown
    */
   async getStats(): Promise<WithdrawalStats> {
     const { data, error } = await supabase
       .from("withdrawal_requests")
-      .select("status, requested_amount");
+      .select("status, requested_amount, fund:funds(asset)");
 
     if (error) throw error;
 
@@ -74,18 +74,27 @@ export const withdrawalService = {
       processing: 0,
       completed: 0,
       rejected: 0,
-      total_pending_amount: 0,
+      pending_by_asset: [],
     };
 
+    const assetAmounts: Record<string, number> = {};
+
     data?.forEach((withdrawal) => {
-      const status = withdrawal.status as keyof WithdrawalStats;
-      if (typeof stats[status] === "number") {
-        stats[status]++;
+      const status = withdrawal.status as string;
+      if (status in stats && typeof stats[status as keyof WithdrawalStats] === "number") {
+        (stats as any)[status]++;
       }
+      // Group pending amounts by asset
       if (withdrawal.status === "pending" || withdrawal.status === "approved") {
-        stats.total_pending_amount += withdrawal.requested_amount || 0;
+        const asset = (withdrawal.fund as { asset?: string } | null)?.asset || "Unknown";
+        assetAmounts[asset] = (assetAmounts[asset] || 0) + (withdrawal.requested_amount || 0);
       }
     });
+
+    // Convert to array sorted by asset name
+    stats.pending_by_asset = Object.entries(assetAmounts)
+      .map(([asset, amount]) => ({ asset, amount }))
+      .sort((a, b) => a.asset.localeCompare(b.asset));
 
     return stats;
   },

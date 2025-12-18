@@ -39,11 +39,16 @@ export interface WithdrawalFilters {
   fund_id?: string;
 }
 
+export interface PendingByAsset {
+  asset: string;
+  amount: number;
+}
+
 export interface WithdrawalStats {
   pending: number;
   approved: number;
   processing: number;
   completed: number;
   rejected: number;
-  total_pending_amount: number;
+  pending_by_asset: PendingByAsset[];
 }

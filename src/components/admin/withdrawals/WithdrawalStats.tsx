@@ -1,10 +1,20 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WithdrawalStats } from "@/types/withdrawal";
-import { AlertCircle, CheckCircle2, Clock, DollarSign, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, Clock, Coins, XCircle } from "lucide-react";
 
 interface WithdrawalStatsProps {
   stats: WithdrawalStats;
   isLoading: boolean;
+}
+
+// Format amount based on asset type (4 decimals for crypto, 2 for stablecoins)
+function formatAssetAmount(amount: number, asset: string): string {
+  const stablecoins = ["USDT", "USDC", "EURC"];
+  const decimals = stablecoins.includes(asset.toUpperCase()) ? 2 : 4;
+  return amount.toLocaleString(undefined, { 
+    minimumFractionDigits: decimals, 
+    maximumFractionDigits: decimals 
+  });
 }
 
 export function WithdrawalStatsComponent({ stats, isLoading }: WithdrawalStatsProps) {
@@ -39,12 +49,6 @@ export function WithdrawalStatsComponent({ stats, isLoading }: WithdrawalStatsPr
       icon: XCircle,
       color: "text-red-600",
     },
-    {
-      title: "Pending Amount",
-      value: `$${stats.total_pending_amount.toLocaleString()}`,
-      icon: DollarSign,
-      color: "text-primary",
-    },
   ];
 
   return (
@@ -64,6 +68,30 @@ export function WithdrawalStatsComponent({ stats, isLoading }: WithdrawalStatsPr
           </CardContent>
         </Card>
       ))}
+      
+      {/* Per-Asset Pending Amounts Card */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Pending by Asset</CardTitle>
+          <Coins className="h-4 w-4 text-primary" />
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="h-7 w-20 animate-pulse bg-muted rounded" />
+          ) : stats.pending_by_asset.length === 0 ? (
+            <div className="text-sm text-muted-foreground">No pending</div>
+          ) : (
+            <div className="space-y-1">
+              {stats.pending_by_asset.map(({ asset, amount }) => (
+                <div key={asset} className="flex justify-between text-sm">
+                  <span className="font-medium text-muted-foreground">{asset}:</span>
+                  <span className="font-bold">{formatAssetAmount(amount, asset)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
