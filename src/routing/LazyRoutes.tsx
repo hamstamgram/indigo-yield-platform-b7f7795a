@@ -29,7 +29,7 @@ export const AdminOperationsHub = lazy(() => import("@/routes/admin/AdminOperati
 export const AdminRequestsQueuePage = lazy(() => import("@/routes/admin/AdminRequestsQueuePage"));
 export const AdminSettings = lazy(() => import("@/routes/admin/AdminSettings"));
 export const AdminStatementsPage = lazy(() => import("@/routes/admin/AdminStatementsPage"));
-export const AdminTransactions = lazy(() => import("@/routes/admin/AdminTransactions"));
+
 export const AdminUserManagement = lazy(() => import("@/routes/admin/AdminUserManagement"));
 export const AdminWithdrawalsPage = lazy(() => import("@/routes/admin/AdminWithdrawalsPage"));
 export const AuditLogViewer = lazy(() => import("@/routes/admin/AuditLogViewer"));
@@ -224,11 +224,6 @@ export const LazyAdminSettings = () => (
 export const LazyAdminStatements = () => (
   <RouteSuspense type="admin">
     <AdminStatementsPage />
-  </RouteSuspense>
-);
-export const LazyAdminTransactions = () => (
-  <RouteSuspense type="admin">
-    <AdminTransactions />
   </RouteSuspense>
 );
 export const LazyAdminUserManagement = () => (

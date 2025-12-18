@@ -12,6 +12,8 @@ import {
   FileSpreadsheet,
   Activity,
   TrendingUp,
+  Settings,
+  Shield,
 } from "lucide-react";
 import { NavItem } from "@/types/navigation";
 
@@ -135,6 +137,36 @@ export const adminNavGroups: NavGroup[] = [
         title: "Email Logs",
         href: "/admin/email-tracking",
         icon: <Mail className="h-5 w-5" />,
+        adminOnly: true,
+      },
+    ],
+  },
+  {
+    title: "System",
+    icon: Settings,
+    items: [
+      {
+        title: "Audit Logs",
+        href: "/admin/audit-logs",
+        icon: <Shield className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
+        title: "User Management",
+        href: "/admin/users",
+        icon: <Users className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
+        title: "System Health",
+        href: "/admin/system-health",
+        icon: <Activity className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
+        title: "Settings",
+        href: "/admin/settings-platform",
+        icon: <Settings className="h-5 w-5" />,
         adminOnly: true,
       },
     ],
