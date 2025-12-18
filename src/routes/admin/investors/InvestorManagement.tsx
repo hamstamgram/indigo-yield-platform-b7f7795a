@@ -6,10 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import InvestorMonthlyTracking from "@/components/admin/investors/InvestorMonthlyTracking";
+import { InvestorYieldManager } from "@/components/admin/investors/InvestorYieldManager";
 import InvestorPositionsTab from "@/components/admin/investors/InvestorPositionsTab";
 import InvestorTransactionsTab from "@/components/admin/investors/InvestorTransactionsTab";
-import { User, Mail, Calendar, Activity, Loader2, ArrowLeft, Coins } from "lucide-react";
+import { User, Mail, Calendar, Activity, Loader2, ArrowLeft, Coins, TrendingUp } from "lucide-react";
 import { useInvestorAssetStats } from "@/hooks/useInvestorPerformance";
 import { AssetPerformanceCard } from "@/components/shared/AssetPerformanceCard";
 
@@ -122,14 +122,23 @@ const InvestorManagement = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="profile" className="space-y-4">
+      <Tabs defaultValue="yield" className="space-y-4">
         <TabsList>
+          <TabsTrigger value="yield" className="gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Yield Management
+          </TabsTrigger>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="positions">Positions</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
-          <TabsTrigger value="activity">Monthly Activity</TabsTrigger>
         </TabsList>
 
+        {/* Yield Management Tab - NEW PRIMARY TAB */}
+        <TabsContent value="yield" className="space-y-4">
+          <InvestorYieldManager investorId={id!} investorName={investor.name} />
+        </TabsContent>
+
+        {/* Profile Tab */}
         <TabsContent value="profile" className="space-y-6">
           {/* Summary Stats Card */}
           <Card className="border-l-4 border-l-primary">
@@ -221,16 +230,14 @@ const InvestorManagement = () => {
           </Card>
         </TabsContent>
 
+        {/* Positions Tab */}
         <TabsContent value="positions" className="space-y-4">
           <InvestorPositionsTab investorId={id!} />
         </TabsContent>
 
+        {/* Transactions Tab */}
         <TabsContent value="transactions" className="space-y-4">
           <InvestorTransactionsTab investorId={id!} />
-        </TabsContent>
-
-        <TabsContent value="activity" className="space-y-4">
-          <InvestorMonthlyTracking investorId={id!} />
         </TabsContent>
       </Tabs>
     </div>
