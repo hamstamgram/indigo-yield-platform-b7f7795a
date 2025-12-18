@@ -3,18 +3,20 @@
  * All admin-protected routes organized by functional area
  *
  * Module Structure:
- * - Core: Main dashboard and portfolio overview (3 routes)
- * - Investors: Investor management and tracking (14 routes)
- * - Operations: Day-to-day operations and data entry (18 routes)
- * - Reports: Reporting and analytics (5 routes)
- * - System: Settings, audit, users, compliance (9 routes)
+ * - Core: Dashboard, transactions (3 routes)
+ * - Investors: Investor management and profiles (6 routes)
+ * - Deposits: Deposit management (1 route)
+ * - Withdrawals: Withdrawal requests (2 routes)
+ * - Operations: Data entry, rates, reports, email tracking (6 routes)
+ * - Reports: Historical reports (1 route)
+ * - System: Settings, audit, users, health (5 routes)
+ * - Transactions: Manual transaction entry (1 route)
  *
- * Total: 49 admin routes
+ * Total: ~25 admin routes
  */
 
 import { CoreAdminRoutes } from "./admin/core";
 import { InvestorRoutes } from "./admin/investors";
-import { InvestmentRoutes } from "./admin/investments";
 import { DepositRoutes } from "./admin/deposits";
 import { WithdrawalRoutes } from "./admin/withdrawals";
 import { OperationsRoutes } from "./admin/operations";
@@ -31,7 +33,6 @@ export function AdminRoutes() {
     <>
       {CoreAdminRoutes()}
       {InvestorRoutes()}
-      {InvestmentRoutes()}
       {DepositRoutes()}
       {WithdrawalRoutes()}
       {OperationsRoutes()}
