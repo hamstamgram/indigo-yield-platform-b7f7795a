@@ -17,7 +17,6 @@ const PendingTransactionDetailsPage = lazy(
   () => import("@/routes/transactions/PendingTransactionDetailsPage")
 );
 const AccountPage = lazy(() => import("@/routes/investor/account/AccountPage"));
-const SettingsPage = lazy(() => import("@/routes/investor/account/SettingsPage"));
 const FundDetailsPage = lazy(() => import("@/routes/investor/funds/FundDetailsPage"));
 
 export function CoreInvestorRoutes() {
@@ -31,7 +30,7 @@ export function CoreInvestorRoutes() {
           </ProtectedRoute>
         }
       />
-      {/* New Fund Details Route */}
+      {/* Fund Details Route */}
       <Route
         path="/funds/:assetId"
         element={
@@ -85,14 +84,6 @@ export function CoreInvestorRoutes() {
         element={
           <ProtectedRoute>
             <AccountPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <ProtectedRoute>
-            <SettingsPage />
           </ProtectedRoute>
         }
       />

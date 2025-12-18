@@ -4,7 +4,6 @@ import {
   CreditCard,
   ArrowLeftRight,
   Users,
-  Settings,
   User,
   Calendar,
   Scale,
@@ -40,7 +39,6 @@ export const activityNav: NavItem[] = [
 ];
 
 export const profileAndSettingsNav: NavItem[] = [
-  { title: "Settings", href: "/settings", icon: <Settings className="h-5 w-5" /> },
   { title: "Account", href: "/account", icon: <User className="h-5 w-5" /> },
 ];
 
@@ -88,7 +86,7 @@ export const adminNavGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Financials", // New group
+    title: "Financials",
     icon: Scale,
     items: [
       {

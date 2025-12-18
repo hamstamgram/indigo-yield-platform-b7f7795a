@@ -9,9 +9,6 @@ import { AdminRoute } from "../../AdminRoute";
 
 const AdminInvestorsPage = lazy(() => import("@/routes/admin/investors/InvestorsListPage"));
 const InvestorManagement = lazy(() => import("@/routes/admin/investors/InvestorManagement"));
-const ExpertInvestorDashboard = lazy(
-  () => import("@/components/admin/expert/ExpertInvestorDashboard")
-);
 
 export function InvestorRoutes() {
   return (
@@ -47,17 +44,8 @@ export function InvestorRoutes() {
         }
       />
 
-      <Route
-        path="/admin/expert-investor/:id"
-        element={
-          <AdminRoute>
-            <ExpertInvestorDashboard />
-          </AdminRoute>
-        }
-      />
-
-      {/* Legacy redirect */}
-      <Route path="/admin-investors" element={<Navigate to="/admin/investors" replace />} />
+      {/* Redirect expert-investor to consolidated investors view */}
+      <Route path="/admin/expert-investor/:id" element={<Navigate to="/admin/investors/:id" replace />} />
     </>
   );
 }
