@@ -32,7 +32,6 @@ export const AdminStatementsPage = lazy(() => import("@/routes/admin/AdminStatem
 
 export const AdminUserManagement = lazy(() => import("@/routes/admin/AdminUserManagement"));
 export const AdminWithdrawalsPage = lazy(() => import("@/routes/admin/AdminWithdrawalsPage"));
-export const AuditLogViewer = lazy(() => import("@/routes/admin/AuditLogViewer"));
 export const DailyRatesManagement = lazy(() => import("@/routes/admin/DailyRatesManagement"));
 export const InvestorReports = lazy(() => import("@/routes/admin/InvestorReports"));
 export const MonthlyDataEntry = lazy(() => import("@/routes/admin/MonthlyDataEntry"));
@@ -40,10 +39,7 @@ export const MonthlyDataEntry = lazy(() => import("@/routes/admin/MonthlyDataEnt
 // Admin Sub-pages
 export const InvestorManagement = lazy(() => import("@/routes/admin/investors/InvestorManagement"));
 export const WithdrawalsPage = lazy(() => import("@/routes/admin/investors/WithdrawalsPage"));
-export const AdminAudit = lazy(() => import("@/routes/admin/settings/AdminAudit"));
 export const AdminInvite = lazy(() => import("@/routes/admin/settings/AdminInvite"));
-export const AdminOperations = lazy(() => import("@/routes/admin/settings/AdminOperations"));
-export const AdminTools = lazy(() => import("@/routes/admin/settings/AdminTools"));
 export const SystemHealthPage = lazy(() => import("@/routes/admin/system-health/SystemHealthPage"));
 export const AdminTransactionsPage = lazy(
   () => import("@/routes/admin/transactions/AdminTransactionsPage")
@@ -236,11 +232,6 @@ export const LazyAdminWithdrawals = () => (
     <AdminWithdrawalsPage />
   </RouteSuspense>
 );
-export const LazyAuditLogViewer = () => (
-  <RouteSuspense type="admin">
-    <AuditLogViewer />
-  </RouteSuspense>
-);
 export const LazyDailyRatesManagement = () => (
   <RouteSuspense type="admin">
     <DailyRatesManagement />
@@ -268,24 +259,9 @@ export const LazyAdminWithdrawalsView = () => (
     <WithdrawalsPage />
   </RouteSuspense>
 );
-export const LazyAdminAudit = () => (
-  <RouteSuspense type="admin">
-    <AdminAudit />
-  </RouteSuspense>
-);
 export const LazyAdminInvite = () => (
   <RouteSuspense type="admin">
     <AdminInvite />
-  </RouteSuspense>
-);
-export const LazyAdminOperations = () => (
-  <RouteSuspense type="admin">
-    <AdminOperations />
-  </RouteSuspense>
-);
-export const LazyAdminTools = () => (
-  <RouteSuspense type="admin">
-    <AdminTools />
   </RouteSuspense>
 );
 export const LazySystemHealth = () => (
