@@ -1,6 +1,6 @@
 import { useInvestorPerformance, usePerAssetStats } from "@/hooks/useInvestorPerformance";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Coins } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PerformanceReportTable } from "@/components/investor/reports/PerformanceReportTable";
 import { useState } from "react";
@@ -8,6 +8,8 @@ import { ReportsApi } from "@/services/api/reportsApi";
 import { useToast } from "@/hooks/use-toast";
 import { AssetPerformanceCard } from "@/components/shared/AssetPerformanceCard";
 import { useNavigate } from "react-router-dom";
+import { QuickActionsBar } from "@/components/investor/QuickActionsBar";
+import { PortfolioHero } from "@/components/investor/PortfolioHero";
 
 export default function DashboardPage() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -25,6 +27,17 @@ export default function DashboardPage() {
   ) || [];
 
   const periodName = latestMonthData[0]?.period?.period_name || "Current Period";
+  const periodEndDate = latestMonthData[0]?.period?.period_end_date;
+
+  // Calculate totals for hero section
+  const totalBalance = assetStats?.assets?.reduce((sum, a) => {
+    // For now, just show the count - actual USD conversion would need rates
+    return sum + (a.mtd.endingBalance || 0);
+  }, 0) || 0;
+
+  const avgYtdReturn = assetStats?.assets?.length 
+    ? assetStats.assets.reduce((sum, a) => sum + (a.ytd.rateOfReturn || 0), 0) / assetStats.assets.length
+    : 0;
 
   const handleDownload = async (record: any) => {
     try {
@@ -85,42 +98,37 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto pb-20 p-4 md:p-0">
-      <section className="space-y-2">
-        <h1 className="text-2xl font-display font-bold tracking-tight text-foreground">
-          Performance
+    <div className="space-y-6 max-w-6xl mx-auto pb-20 px-4 md:px-6 lg:px-0">
+      {/* Header */}
+      <section className="space-y-1 pt-2">
+        <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight text-foreground">
+          Dashboard
         </h1>
-        <p className="text-muted-foreground">Capital Account Summary</p>
+        <p className="text-muted-foreground text-sm md:text-base">
+          Your portfolio performance at a glance
+        </p>
       </section>
 
-      {/* Active Funds Count Card */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="dashboard-card border-l-4 border-l-green-500 bg-card shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  Active Positions
-                </p>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-4xl font-mono font-bold text-green-600">
-                    {isLoadingStats ? "..." : assetStats?.activeFunds || 0}
-                  </span>
-                  <span className="text-sm font-bold text-muted-foreground">
-                    FUNDS
-                  </span>
-                </div>
-              </div>
-              <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-full">
-                <Coins className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Number of active fund positions in your portfolio.
-            </p>
-          </CardContent>
-        </Card>
-      </section>
+      {/* Portfolio Hero - Shows total value and key metrics */}
+      <PortfolioHero
+        totalBalance={totalBalance}
+        totalYtdReturn={avgYtdReturn}
+        activeFunds={assetStats?.activeFunds || 0}
+        lastUpdated={periodEndDate ? new Date(periodEndDate).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric"
+        }) : undefined}
+        isLoading={isLoadingStats}
+      />
+
+      {/* Quick Actions - Mobile scrollable, Desktop grid */}
+      <div className="block md:hidden">
+        <QuickActionsBar compact />
+      </div>
+      <div className="hidden md:block">
+        <QuickActionsBar />
+      </div>
 
       {/* Per-Asset Position Cards */}
       {!isLoadingStats && assetStats?.assets && assetStats.assets.length > 0 && (
@@ -128,7 +136,7 @@ export default function DashboardPage() {
           <h2 className="text-lg font-display font-bold tracking-tight">
             My Positions
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {assetStats.assets.map((asset) => (
               <AssetPerformanceCard
                 key={asset.fundName}
@@ -150,15 +158,19 @@ export default function DashboardPage() {
         </div>
 
         {isLoadingPerf ? (
-          <div className="p-12 text-center text-muted-foreground border rounded-lg bg-muted/5">
-            Loading performance data...
-          </div>
+          <Card>
+            <CardContent className="p-12 text-center text-muted-foreground">
+              Loading performance data...
+            </CardContent>
+          </Card>
         ) : latestMonthData.length > 0 ? (
-          <PerformanceReportTable 
-            data={latestMonthData} 
-            onDownload={handleDownload}
-            downloadingId={downloadingId}
-          />
+          <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+            <PerformanceReportTable 
+              data={latestMonthData} 
+              onDownload={handleDownload}
+              downloadingId={downloadingId}
+            />
+          </div>
         ) : (
           <EmptyState
             icon={Calendar}
