@@ -6,24 +6,19 @@ import { RecentActivityFeed, ActivityItem } from "@/components/admin/operations/
 import { SystemStatus } from "@/components/admin/operations/SystemStatus";
 import { PendingItemsBreakdown } from "@/components/admin/operations/PendingItemsBreakdown";
 import {
-  Building2,
   TrendingUp,
   Users,
   DollarSign,
   FileText,
   Calendar,
   BarChart3,
-  Settings,
   Upload,
   AlertCircle,
   CheckCircle,
   Clock,
-  FileSpreadsheet,
   ArrowDownToLine,
-  HelpCircle,
   FileCheck,
   Database,
-  TestTube,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -256,14 +251,6 @@ function AdminOperationsHubContent() {
   const quickLinks: QuickLink[] = [
     // Data Entry & Management
     {
-      title: "Investment Management",
-      description: "Create, approve, and track investments",
-      href: "/admin/investments",
-      icon: TrendingUp,
-      category: "Investment Operations",
-      badge: { text: "New", variant: "default" },
-    },
-    {
       title: "Monthly Data Entry",
       description: "Enter monthly NAV and AUM data",
       href: "/admin/monthly-data-entry",
@@ -275,13 +262,6 @@ function AdminOperationsHubContent() {
       description: "Manage daily yield rates",
       href: "/admin/daily-rates",
       icon: BarChart3,
-      category: "Data Entry & Management",
-    },
-    {
-      title: "Balance Adjustments",
-      description: "Adjust investor balances",
-      href: "/admin/balances/adjust",
-      icon: Settings,
       category: "Data Entry & Management",
     },
 
@@ -300,13 +280,6 @@ function AdminOperationsHubContent() {
               variant: "secondary" as const,
             },
     },
-    {
-      title: "Support Queue",
-      description: "Manage support tickets",
-      href: "/admin/support",
-      icon: HelpCircle,
-      category: "Request Management",
-    },
 
     // Reports & Analytics
     {
@@ -317,10 +290,10 @@ function AdminOperationsHubContent() {
       category: "Reports & Analytics",
     },
     {
-      title: "Batch Reports",
-      description: "Generate multiple reports at once",
-      href: "/admin/batch-reports",
-      icon: FileSpreadsheet,
+      title: "Email Tracking",
+      description: "Track sent emails and delivery status",
+      href: "/admin/email-tracking",
+      icon: FileText,
       category: "Reports & Analytics",
     },
     {
@@ -331,27 +304,20 @@ function AdminOperationsHubContent() {
       category: "Reports & Analytics",
     },
 
-    // Advanced Operations
+    // System
     {
       title: "All Transactions",
       description: "View all system transactions",
-      href: "/admin/transactions-all",
+      href: "/admin/transactions",
       icon: DollarSign,
-      category: "Advanced Operations",
+      category: "System",
     },
     {
-      title: "Excel Import",
-      description: "First-run data import",
-      href: "/admin/excel-first-run",
-      icon: Upload,
-      category: "Advanced Operations",
-    },
-    {
-      title: "Test Utilities",
-      description: "Testing and debugging tools",
-      href: "/admin/test-yield",
-      icon: TestTube,
-      category: "Advanced Operations",
+      title: "Audit Logs",
+      description: "View system audit trail",
+      href: "/admin/audit-logs",
+      icon: Database,
+      category: "System",
     },
   ];
 

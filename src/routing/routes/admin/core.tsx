@@ -31,12 +31,6 @@ export function CoreAdminRoutes() {
           </AdminRoute>
         }
       />
-      {/* Redirect old monthly reports route to unified investor reports page */}
-      <Route path="/admin/reports/monthly" element={<Navigate to="/admin/investor-reports" replace />} />
-      <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />
-      {/* Redirect old fund routes to monthly data entry */}
-      <Route path="/admin/funds/:assetId" element={<Navigate to="/admin/monthly-data-entry" replace />} />
-      <Route path="/admin/fund-operations" element={<Navigate to="/admin/monthly-data-entry" replace />} />
     </>
   );
 }
