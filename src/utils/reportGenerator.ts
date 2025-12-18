@@ -285,7 +285,7 @@ export function generateInvestorReportHtml(data: InvestorReportData | ReportData
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Monthly Report - ${data.investor_name}</title>
+  <title>Monthly Report - ${investorName}</title>
 </head>
 <body style="margin:0;padding:0;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background-color:#f7f7ff;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f7f7ff">
@@ -318,11 +318,11 @@ export function generateInvestorReportHtml(data: InvestorReportData | ReportData
                       <tr>
                         <td>
                           <div style="font-size:14px;color:#94a3b8;margin-bottom:4px;">Investor</div>
-                          <div style="font-size:24px;font-weight:700;color:#ffffff;">${data.investor_name}</div>
+                          <div style="font-size:24px;font-weight:700;color:#ffffff;">${investorName}</div>
                         </td>
                         <td style="text-align:right;">
                           <div style="font-size:14px;color:#94a3b8;margin-bottom:4px;">Statement Period</div>
-                          <div style="font-size:18px;font-weight:600;color:#ffffff;">${data.statement_period}</div>
+                          <div style="font-size:18px;font-weight:600;color:#ffffff;">${statementPeriod}</div>
                         </td>
                       </tr>
                     </table>
