@@ -12,23 +12,12 @@ const AdminStatementsPage = lazy(() => import("@/routes/admin/AdminStatementsPag
 const MonthlyDataEntry = lazy(() => import("@/routes/admin/MonthlyDataEntry"));
 const DailyRatesManagement = lazy(() => import("@/routes/admin/DailyRatesManagement"));
 const InvestorReports = lazy(() => import("@/routes/admin/InvestorReports"));
-const AdminTransactions = lazy(() => import("@/routes/admin/AdminTransactions"));
 const AdminOperationsHub = lazy(() => import("@/routes/admin/AdminOperationsHub"));
 const AdminEmailTrackingPage = lazy(() => import("@/routes/admin/AdminEmailTrackingPage"));
 
 export function OperationsRoutes() {
   return (
     <>
-      {/* Transaction management */}
-      <Route
-        path="/admin/transactions-all"
-        element={
-          <AdminRoute>
-            <AdminTransactions />
-          </AdminRoute>
-        }
-      />
-
       {/* Monthly data & rates */}
       <Route
         path="/admin/monthly-data-entry"
