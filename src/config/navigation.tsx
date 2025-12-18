@@ -6,7 +6,6 @@ import {
   Users,
   User,
   Calendar,
-  Scale,
   Mail,
   Gauge,
   FileSpreadsheet,
@@ -60,7 +59,7 @@ export const mainNav: NavItem[] = [
   },
 ];
 
-// Admin Platform Navigation (Redesigned)
+// Admin Platform Navigation (Consolidated to 4 sections)
 
 export const adminNavGroups: NavGroup[] = [
   {
@@ -76,21 +75,15 @@ export const adminNavGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Investor Management",
+    title: "Investors",
     icon: Users,
     items: [
       {
-        title: "Investors",
+        title: "All Investors",
         href: "/admin/investors",
         icon: <Users className="h-5 w-5" />,
         adminOnly: true,
       },
-    ],
-  },
-  {
-    title: "Financials",
-    icon: Scale,
-    items: [
       {
         title: "Transactions",
         href: "/admin/transactions",
@@ -101,12 +94,6 @@ export const adminNavGroups: NavGroup[] = [
         title: "Withdrawals",
         href: "/admin/withdrawals",
         icon: <ArrowLeftRight className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "Daily Rates",
-        href: "/admin/daily-rates",
-        icon: <Gauge className="h-5 w-5" />,
         adminOnly: true,
       },
     ],
@@ -122,17 +109,17 @@ export const adminNavGroups: NavGroup[] = [
         adminOnly: true,
       },
       {
-        title: "Data Entry",
+        title: "Fund Data Entry",
         href: "/admin/monthly-data-entry",
         icon: <Calendar className="h-5 w-5" />,
         adminOnly: true,
       },
-    ],
-  },
-  {
-    title: "Communications",
-    icon: Mail,
-    items: [
+      {
+        title: "Daily Rates",
+        href: "/admin/daily-rates",
+        icon: <Gauge className="h-5 w-5" />,
+        adminOnly: true,
+      },
       {
         title: "Email Logs",
         href: "/admin/email-tracking",
