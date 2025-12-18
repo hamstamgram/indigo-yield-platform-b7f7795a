@@ -1,0 +1,253 @@
+/**
+ * Quick Yield Entry Widget
+ * Fast data entry for recording yields without navigating away
+ */
+
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Calculator, TrendingUp, ArrowRight, Zap } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { CryptoIcon } from "@/components/CryptoIcons";
+
+interface Fund {
+  id: string;
+  name: string;
+  asset: string;
+  currentAUM: number;
+}
+
+export function QuickYieldEntry() {
+  const navigate = useNavigate();
+  const [funds, setFunds] = useState<Fund[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedFund, setSelectedFund] = useState<string>("");
+  const [newAUM, setNewAUM] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const fetchFunds = async () => {
+    setLoading(true);
+    try {
+      // Fetch active funds with current AUM from positions
+      const { data: fundsData } = await supabase
+        .from("funds")
+        .select("id, name, asset")
+        .eq("status", "active")
+        .order("name");
+
+      if (fundsData) {
+        // Get current AUM for each fund
+        const fundsWithAUM = await Promise.all(
+          fundsData.map(async (fund) => {
+            const { data: positions } = await supabase
+              .from("investor_positions")
+              .select("current_value")
+              .eq("fund_id", fund.id);
+
+            const totalAUM = positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0;
+
+            return {
+              id: fund.id,
+              name: fund.name,
+              asset: fund.asset,
+              currentAUM: totalAUM,
+            };
+          })
+        );
+
+        setFunds(fundsWithAUM);
+      }
+    } catch (error) {
+      console.error("Failed to fetch funds:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFunds();
+  }, []);
+
+  const selectedFundData = funds.find((f) => f.id === selectedFund);
+
+  const calculateYield = () => {
+    if (!selectedFundData || !newAUM) return null;
+    const newAUMNum = parseFloat(newAUM);
+    if (isNaN(newAUMNum)) return null;
+
+    const yieldAmount = newAUMNum - selectedFundData.currentAUM;
+    const yieldPct = selectedFundData.currentAUM > 0
+      ? (yieldAmount / selectedFundData.currentAUM) * 100
+      : 0;
+
+    return {
+      amount: yieldAmount,
+      percentage: yieldPct,
+    };
+  };
+
+  const yieldCalc = calculateYield();
+
+  const handleQuickEntry = () => {
+    if (!selectedFund) {
+      toast.error("Please select a fund");
+      return;
+    }
+
+    // Navigate to Monthly Data Entry with pre-selected fund
+    navigate(`/admin/monthly-data-entry?fund=${selectedFund}&aum=${newAUM}`);
+  };
+
+  const formatCrypto = (value: number, decimals: number = 4) => {
+    return new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    }).format(value);
+  };
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-semibold flex items-center gap-2">
+          <Zap className="h-5 w-5 text-amber-500" />
+          Quick Yield Entry
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {loading ? (
+          <>
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-20 w-full" />
+          </>
+        ) : (
+          <>
+            {/* Fund Selector */}
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                Select Fund
+              </Label>
+              <Select value={selectedFund} onValueChange={setSelectedFund}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a fund..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {funds.map((fund) => (
+                    <SelectItem key={fund.id} value={fund.id}>
+                      <div className="flex items-center gap-2">
+                        <CryptoIcon symbol={fund.asset} className="h-4 w-4" />
+                        <span>{fund.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Current AUM Display */}
+            {selectedFundData && (
+              <div className="p-3 rounded-lg bg-muted/50 border">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Current AUM</span>
+                  <CryptoIcon symbol={selectedFundData.asset} className="h-4 w-4" />
+                </div>
+                <div className="text-xl font-mono font-bold mt-1">
+                  {formatCrypto(selectedFundData.currentAUM)}{" "}
+                  <span className="text-sm text-muted-foreground font-normal">
+                    {selectedFundData.asset}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* New AUM Input */}
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                New Total AUM
+              </Label>
+              <Input
+                type="number"
+                step="any"
+                placeholder="Enter new AUM..."
+                value={newAUM}
+                onChange={(e) => setNewAUM(e.target.value)}
+                className="font-mono"
+                disabled={!selectedFund}
+              />
+            </div>
+
+            {/* Yield Preview */}
+            {yieldCalc && (
+              <div className="p-3 rounded-lg border bg-card">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                  <span className="text-xs font-medium uppercase tracking-wider">
+                    Calculated Yield
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Amount</p>
+                    <p
+                      className={`text-lg font-mono font-bold ${
+                        yieldCalc.amount >= 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {yieldCalc.amount >= 0 ? "+" : ""}
+                      {formatCrypto(yieldCalc.amount)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Percentage</p>
+                    <Badge
+                      variant={yieldCalc.percentage >= 0 ? "default" : "destructive"}
+                      className="font-mono"
+                    >
+                      {yieldCalc.percentage >= 0 ? "+" : ""}
+                      {yieldCalc.percentage.toFixed(2)}%
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-2">
+              <Button
+                variant="primary"
+                className="flex-1 gap-2"
+                onClick={handleQuickEntry}
+                disabled={!selectedFund || !newAUM}
+              >
+                <Calculator className="h-4 w-4" />
+                Preview Distribution
+              </Button>
+            </div>
+
+            <Button
+              variant="ghost"
+              className="w-full text-xs"
+              onClick={() => navigate("/admin/monthly-data-entry")}
+            >
+              Open Full Data Entry
+              <ArrowRight className="h-3 w-3 ml-1" />
+            </Button>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
