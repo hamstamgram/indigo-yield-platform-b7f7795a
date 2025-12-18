@@ -142,11 +142,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             (totpData?.verified_at !== null && totpData?.verified_at !== undefined) || false,
         });
       } else {
-        // Fallback to minimal profile
+        // SECURITY: Fail closed - never trust user_metadata for admin status
+        // Admin status MUST come from the profiles table (server-verified)
+        console.warn("Profile not found in database, defaulting to non-admin");
         setProfile({
           id: userId,
           email: user?.email || "",
-          is_admin: user?.user_metadata?.is_admin || false,
+          is_admin: false, // Always default to false for security
           totp_enabled: totpData?.enabled || false,
           totp_verified:
             (totpData?.verified_at !== null && totpData?.verified_at !== undefined) || false,
@@ -155,11 +157,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error("Error fetching profile:", error);
 
-      // Fallback to minimal profile with user metadata
+      // SECURITY: Fail closed - no admin access if profile can't be loaded
+      // Never use user_metadata.is_admin as it can be manipulated client-side
       setProfile({
         id: userId,
         email: user?.email || "",
-        is_admin: user?.user_metadata?.is_admin || false,
+        is_admin: false, // Always default to false for security
         totp_enabled: false,
         totp_verified: false,
       });

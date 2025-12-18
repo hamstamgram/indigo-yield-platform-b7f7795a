@@ -61,6 +61,19 @@ const ChartContainer = React.forwardRef<
 });
 ChartContainer.displayName = "Chart";
 
+// SECURITY: Sanitize CSS identifier to prevent injection
+const sanitizeCssIdentifier = (str: string): string => {
+  // Only allow alphanumeric, hyphens, and underscores
+  return str.replace(/[^a-zA-Z0-9_-]/g, "");
+};
+
+// SECURITY: Validate CSS color value to prevent injection
+const isValidCssColor = (color: string): boolean => {
+  // Allow hex colors, rgb/rgba, hsl/hsla, and named colors
+  const colorPattern = /^(#[0-9a-fA-F]{3,8}|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\)|[a-zA-Z]+)$/;
+  return colorPattern.test(color.trim());
+};
+
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(([_, config]) => config.theme || config.color);
 
@@ -68,26 +81,34 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null;
   }
 
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
-    return color ? `  --color-${key}: ${color};` : null;
-  })
-  .join("\n")}
-}
-`
-          )
-          .join("\n"),
-      }}
-    />
-  );
+  // SECURITY: Sanitize the chart ID to prevent CSS injection
+  const safeId = sanitizeCssIdentifier(id);
+
+  // Generate safe CSS without dangerouslySetInnerHTML
+  const cssRules = Object.entries(THEMES)
+    .map(([theme, prefix]) => {
+      const cssVars = colorConfig
+        .map(([key, itemConfig]) => {
+          const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
+          // SECURITY: Validate color values and sanitize keys
+          if (color && isValidCssColor(color)) {
+            const safeKey = sanitizeCssIdentifier(key);
+            return `--color-${safeKey}: ${color}`;
+          }
+          return null;
+        })
+        .filter(Boolean)
+        .join("; ");
+      return cssVars ? `${prefix} [data-chart="${safeId}"] { ${cssVars} }` : "";
+    })
+    .filter(Boolean)
+    .join(" ");
+
+  // Use a style element with textContent instead of dangerouslySetInnerHTML
+  // This is safer as React handles escaping
+  return React.createElement("style", {
+    children: cssRules,
+  });
 };
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
