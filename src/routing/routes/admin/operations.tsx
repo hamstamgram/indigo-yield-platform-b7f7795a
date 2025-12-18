@@ -14,6 +14,7 @@ const DailyRatesManagement = lazy(() => import("@/routes/admin/DailyRatesManagem
 const InvestorReports = lazy(() => import("@/routes/admin/InvestorReports"));
 const AdminTransactions = lazy(() => import("@/routes/admin/AdminTransactions"));
 const AdminOperationsHub = lazy(() => import("@/routes/admin/AdminOperationsHub"));
+const AdminEmailTrackingPage = lazy(() => import("@/routes/admin/AdminEmailTrackingPage"));
 
 export function OperationsRoutes() {
   return (
@@ -85,7 +86,16 @@ export function OperationsRoutes() {
           </AdminRoute>
         }
       />
-      <Route path="/admin-operations" element={<Navigate to="/admin/operations" replace />} />
+
+      {/* Email tracking */}
+      <Route
+        path="/admin/email-tracking"
+        element={
+          <AdminRoute>
+            <AdminEmailTrackingPage />
+          </AdminRoute>
+        }
+      />
     </>
   );
 }
