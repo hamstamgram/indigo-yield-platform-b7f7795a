@@ -74,7 +74,7 @@ export const NotificationsPage = lazy(() => import("@/routes/investor/account/No
 export const SessionManagementPage = lazy(
   () => import("@/routes/investor/account/SessionManagementPage")
 );
-export const SettingsPage = lazy(() => import("@/routes/investor/account/SettingsPage"));
+// SettingsPage removed - merged into AccountPage
 export const PortfolioAnalyticsPage = lazy(
   () => import("@/routes/investor/portfolio/PortfolioAnalyticsPage")
 );
@@ -359,11 +359,7 @@ export const LazySessionManagement = () => (
     <SessionManagementPage />
   </RouteSuspense>
 );
-export const LazySettings = () => (
-  <RouteSuspense>
-    <SettingsPage />
-  </RouteSuspense>
-);
+// LazySettings removed - Settings merged into AccountPage
 export const LazyPortfolioAnalytics = () => (
   <RouteSuspense>
     <PortfolioAnalyticsPage />
