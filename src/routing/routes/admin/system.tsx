@@ -1,17 +1,14 @@
 /**
  * Admin System Routes
- * System administration: settings, audit, users, compliance
+ * System administration: settings, audit logs
  */
 
 import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const AdminInvite = lazy(() => import("@/routes/admin/settings/AdminInvite"));
 const AdminSettingsNew = lazy(() => import("@/routes/admin/AdminSettings"));
 const AdminAuditLogs = lazy(() => import("@/routes/admin/AdminAuditLogs"));
-const AdminUserManagement = lazy(() => import("@/routes/admin/AdminUserManagement"));
-const SystemHealthPage = lazy(() => import("@/routes/admin/system-health/SystemHealthPage"));
 
 export function SystemRoutes() {
   return (
@@ -26,7 +23,7 @@ export function SystemRoutes() {
         }
       />
 
-      {/* Audit & compliance */}
+      {/* Audit logs */}
       <Route
         path="/admin/audit-logs"
         element={
@@ -35,38 +32,12 @@ export function SystemRoutes() {
           </AdminRoute>
         }
       />
-      
-      {/* Redirect old audit route to consolidated audit-logs */}
+
+      {/* Redirects for consolidated/removed pages */}
       <Route path="/admin/audit" element={<Navigate to="/admin/audit-logs" replace />} />
-
-      {/* System Health */}
-      <Route
-        path="/admin/system-health"
-        element={
-          <AdminRoute>
-            <SystemHealthPage />
-          </AdminRoute>
-        }
-      />
-
-      {/* User management */}
-      <Route
-        path="/admin/users"
-        element={
-          <AdminRoute>
-            <AdminUserManagement />
-          </AdminRoute>
-        }
-      />
-
-      <Route
-        path="/admin/invite"
-        element={
-          <AdminRoute>
-            <AdminInvite />
-          </AdminRoute>
-        }
-      />
+      <Route path="/admin/users" element={<Navigate to="/admin/settings-platform" replace />} />
+      <Route path="/admin/system-health" element={<Navigate to="/admin" replace />} />
+      <Route path="/admin/invite" element={<Navigate to="/admin/investors" replace />} />
     </>
   );
 }

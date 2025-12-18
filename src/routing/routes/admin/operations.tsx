@@ -1,40 +1,30 @@
 /**
  * Admin Operations Routes
- * Day-to-day operational routes: requests, statements, support, documents
+ * Yield operations and reporting
  */
 
 import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const AdminRequestsQueuePage = lazy(() => import("@/routes/admin/AdminRequestsQueuePage"));
-const AdminStatementsPage = lazy(() => import("@/routes/admin/AdminStatementsPage"));
-const MonthlyDataEntry = lazy(() => import("@/routes/admin/MonthlyDataEntry"));
-const DailyRatesManagement = lazy(() => import("@/routes/admin/DailyRatesManagement"));
+const YieldOperationsPage = lazy(() => import("@/routes/admin/YieldOperationsPage"));
 const InvestorReports = lazy(() => import("@/routes/admin/InvestorReports"));
-const AdminOperationsHub = lazy(() => import("@/routes/admin/AdminOperationsHub"));
-const AdminEmailTrackingPage = lazy(() => import("@/routes/admin/AdminEmailTrackingPage"));
+const DailyRatesManagement = lazy(() => import("@/routes/admin/DailyRatesManagement"));
 
 export function OperationsRoutes() {
   return (
     <>
-      {/* Monthly data & rates */}
+      {/* Main yield operations page */}
       <Route
-        path="/admin/monthly-data-entry"
+        path="/admin/yield"
         element={
           <AdminRoute>
-            <MonthlyDataEntry />
+            <YieldOperationsPage />
           </AdminRoute>
         }
       />
-      <Route
-        path="/admin/daily-rates"
-        element={
-          <AdminRoute>
-            <DailyRatesManagement />
-          </AdminRoute>
-        }
-      />
+
+      {/* Reports */}
       <Route
         path="/admin/investor-reports"
         element={
@@ -44,47 +34,24 @@ export function OperationsRoutes() {
         }
       />
 
-      {/* Request & document management */}
+      {/* Daily rates (kept for now) */}
       <Route
-        path="/admin/requests"
+        path="/admin/daily-rates"
         element={
           <AdminRoute>
-            <AdminRequestsQueuePage />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/admin/statements"
-        element={
-          <AdminRoute>
-            <AdminStatementsPage />
+            <DailyRatesManagement />
           </AdminRoute>
         }
       />
 
-      {/* Redirects for removed fund management */}
-      <Route path="/admin/funds" element={<Navigate to="/admin/monthly-data-entry" replace />} />
-      <Route path="/admin/yield-settings" element={<Navigate to="/admin/monthly-data-entry" replace />} />
-
-      {/* Operations page */}
-      <Route
-        path="/admin/operations"
-        element={
-          <AdminRoute>
-            <AdminOperationsHub />
-          </AdminRoute>
-        }
-      />
-
-      {/* Email tracking */}
-      <Route
-        path="/admin/email-tracking"
-        element={
-          <AdminRoute>
-            <AdminEmailTrackingPage />
-          </AdminRoute>
-        }
-      />
+      {/* Redirects for consolidated pages */}
+      <Route path="/admin/monthly-data-entry" element={<Navigate to="/admin/yield" replace />} />
+      <Route path="/admin/operations" element={<Navigate to="/admin/yield" replace />} />
+      <Route path="/admin/funds" element={<Navigate to="/admin/yield" replace />} />
+      <Route path="/admin/yield-settings" element={<Navigate to="/admin/yield" replace />} />
+      <Route path="/admin/requests" element={<Navigate to="/admin/withdrawals" replace />} />
+      <Route path="/admin/statements" element={<Navigate to="/admin/investor-reports" replace />} />
+      <Route path="/admin/email-tracking" element={<Navigate to="/admin/investor-reports" replace />} />
     </>
   );
 }

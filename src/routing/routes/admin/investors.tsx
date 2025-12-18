@@ -1,30 +1,29 @@
 /**
  * Admin Investor Routes
- * All investor management and tracking routes
+ * Unified investor management with slide-out drawer
  */
 
 import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const AdminInvestorsPage = lazy(() => import("@/routes/admin/investors/InvestorsListPage"));
+const UnifiedInvestorsPage = lazy(() => import("@/routes/admin/UnifiedInvestorsPage"));
 const InvestorManagement = lazy(() => import("@/routes/admin/investors/InvestorManagement"));
 
 export function InvestorRoutes() {
   return (
     <>
+      {/* Main unified investors page */}
       <Route
         path="/admin/investors"
         element={
           <AdminRoute>
-            <AdminInvestorsPage />
+            <UnifiedInvestorsPage />
           </AdminRoute>
         }
       />
 
-      {/* New investor - redirect to investors list */}
-      <Route path="/admin/investors/new" element={<Navigate to="/admin/investors" replace />} />
-
+      {/* Individual investor profile (still accessible via drawer link) */}
       <Route
         path="/admin/investors/:id"
         element={
@@ -34,17 +33,9 @@ export function InvestorRoutes() {
         }
       />
 
-      {/* Edit investor - same as view, InvestorManagement handles edit mode */}
-      <Route
-        path="/admin/investors/:id/edit"
-        element={
-          <AdminRoute>
-            <InvestorManagement />
-          </AdminRoute>
-        }
-      />
-
-      {/* Redirect expert-investor to consolidated investors view */}
+      {/* Redirects for old routes */}
+      <Route path="/admin/investors/new" element={<Navigate to="/admin/investors" replace />} />
+      <Route path="/admin/investors/:id/edit" element={<Navigate to="/admin/investors/:id" replace />} />
       <Route path="/admin/expert-investor/:id" element={<Navigate to="/admin/investors/:id" replace />} />
     </>
   );

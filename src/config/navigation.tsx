@@ -59,15 +59,15 @@ export const mainNav: NavItem[] = [
   },
 ];
 
-// Admin Platform Navigation (Consolidated to 4 sections)
+// Admin Platform Navigation - Ultra Simple (4 core items)
 
 export const adminNavGroups: NavGroup[] = [
   {
-    title: "Dashboard",
+    title: "Command Center",
     icon: BarChart3,
     items: [
       {
-        title: "Overview",
+        title: "Command Center",
         href: "/admin",
         icon: <BarChart3 className="h-5 w-5" />,
         adminOnly: true,
@@ -79,15 +79,9 @@ export const adminNavGroups: NavGroup[] = [
     icon: Users,
     items: [
       {
-        title: "All Investors",
+        title: "Investors",
         href: "/admin/investors",
         icon: <Users className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "Transactions",
-        href: "/admin/transactions",
-        icon: <CreditCard className="h-5 w-5" />,
         adminOnly: true,
       },
       {
@@ -99,31 +93,19 @@ export const adminNavGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Reporting",
-    icon: FileSpreadsheet,
+    title: "Yield Operations",
+    icon: TrendingUp,
     items: [
       {
-        title: "Investor Reports",
+        title: "Yield Operations",
+        href: "/admin/yield",
+        icon: <TrendingUp className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
+        title: "Reports",
         href: "/admin/investor-reports",
         icon: <FileSpreadsheet className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "Fund Data Entry",
-        href: "/admin/monthly-data-entry",
-        icon: <Calendar className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "Daily Rates",
-        href: "/admin/daily-rates",
-        icon: <Gauge className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "Email Logs",
-        href: "/admin/email-tracking",
-        icon: <Mail className="h-5 w-5" />,
         adminOnly: true,
       },
     ],
@@ -136,18 +118,6 @@ export const adminNavGroups: NavGroup[] = [
         title: "Audit Logs",
         href: "/admin/audit-logs",
         icon: <Shield className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "User Management",
-        href: "/admin/users",
-        icon: <Users className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "System Health",
-        href: "/admin/system-health",
-        icon: <Activity className="h-5 w-5" />,
         adminOnly: true,
       },
       {
