@@ -15,7 +15,7 @@ export default function AdminWithdrawalsPage() {
     processing: 0,
     completed: 0,
     rejected: 0,
-    total_pending_amount: 0,
+    pending_by_asset: [],
   });
   const [filters, setFilters] = useState<WithdrawalFilters>({
     status: "all",
