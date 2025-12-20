@@ -1,6 +1,6 @@
 /**
  * Enhanced Investor Management Drawer
- * Full-featured inline management with tabs for Yield, Positions, Transactions
+ * Full-featured inline management with unified 6-tab structure
  */
 
 import { useState, useEffect } from "react";
@@ -39,15 +39,21 @@ import {
   FileText,
   Trash2,
   AlertTriangle,
+  ArrowDownToLine,
+  Settings,
+  Plus,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { InvestorSummaryV2, forceDeleteInvestorUser } from "@/services/admin";
 import { InvestorYieldManager } from "./InvestorYieldManager";
 import InvestorPositionsTab from "./InvestorPositionsTab";
 import InvestorTransactionsTab from "./InvestorTransactionsTab";
+import InvestorWithdrawalsTab from "./InvestorWithdrawalsTab";
+import InvestorReportsTab from "./InvestorReportsTab";
+import InvestorSettingsTab from "./InvestorSettingsTab";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface InvestorPosition {
   fund_id: string;
