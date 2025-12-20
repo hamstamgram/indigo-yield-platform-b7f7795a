@@ -5,7 +5,7 @@ import { FileText, Loader2, Shield, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { generatePDF } from "@/lib/pdf/statementGenerator";
-import { checkStatementExists } from "@/services/reportUpsertService";
+import { checkStatementExists } from "@/services/core/reportUpsertService";
 import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 

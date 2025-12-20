@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, Edit, TrendingUp } from "lucide-react";
-import { assetService } from "@/services/assetService";
+import { assetService } from "@/services/shared/assetService";
 import { EditAssetDialog } from "./EditAssetDialog";
 import { AssetPriceDialog } from "./AssetPriceDialog";
 import type { Asset } from "@/types/asset";

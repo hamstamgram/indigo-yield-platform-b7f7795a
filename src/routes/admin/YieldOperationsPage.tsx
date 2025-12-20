@@ -43,7 +43,7 @@ import {
   previewYieldDistribution,
   applyYieldDistribution,
   YieldCalculationResult,
-} from "@/services/yieldDistributionService";
+} from "@/services/admin/yieldDistributionService";
 import { cn } from "@/lib/utils";
 
 interface Fund {

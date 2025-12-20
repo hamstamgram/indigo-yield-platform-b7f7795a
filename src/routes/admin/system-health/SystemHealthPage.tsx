@@ -18,7 +18,7 @@ import {
   getSystemHealth,
   getOverallStatus,
   type ServiceStatus,
-} from "@/services/systemHealthService";
+} from "@/services/core/systemHealthService";
 
 export default function SystemHealthPage() {
   const {

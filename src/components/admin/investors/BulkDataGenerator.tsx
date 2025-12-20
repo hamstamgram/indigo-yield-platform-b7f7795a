@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   generateMissingTemplates,
   type BulkGenerateOptions,
-} from "@/services/historicalDataService";
+} from "@/services/shared/historicalDataService";
 
 interface GenerationResult {
   success: boolean;

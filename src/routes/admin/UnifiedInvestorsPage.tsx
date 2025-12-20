@@ -28,15 +28,15 @@ import {
   Filter,
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
-import { adminServiceV2, InvestorSummaryV2 } from "@/services/adminServiceV2";
+import { adminServiceV2, InvestorSummaryV2 } from "@/services/admin/adminService";
 import AddInvestorDialog from "@/components/admin/investors/AddInvestorDialog";
 import { InvestorManagementDrawer } from "@/components/admin/investors/InvestorManagementDrawer";
 import { useInlineManagementToggle } from "@/hooks/useInlineManagementToggle";
-import { deleteInvestorUser } from "@/services/userService";
+import { deleteInvestorUser } from "@/services/admin/userService";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import { cn } from "@/lib/utils";
-import { assetService } from "@/services/assetService";
+import { assetService } from "@/services/shared/assetService";
 import { Asset } from "@/types/investorTypes";
 import {
   getActiveFundsForList,

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth/context";
-import { adminServiceV2 } from "@/services/adminServiceV2";
+import { adminServiceV2 } from "@/services/admin/adminService";
 
 interface AdminMetrics {
   totalUsers: number;

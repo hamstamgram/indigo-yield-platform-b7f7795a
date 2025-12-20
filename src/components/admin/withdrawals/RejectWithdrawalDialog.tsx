@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { withdrawalService } from "@/services/withdrawalService";
+import { withdrawalService } from "@/services/investor/withdrawalService";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 

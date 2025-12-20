@@ -40,7 +40,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, AlertTriangle, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { auditLogService } from "@/services/auditLogService";
+import { auditLogService } from "@/services/shared/auditLogService";
 
 export interface WithdrawalPosition {
   fund_id: string;

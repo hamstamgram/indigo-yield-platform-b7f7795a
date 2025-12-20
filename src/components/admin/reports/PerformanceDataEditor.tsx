@@ -32,7 +32,7 @@ import {
   deletePerformanceRecord,
   getAvailableFunds,
   PerformanceUpdateData,
-} from "@/services/performanceDataService";
+} from "@/services/shared/performanceDataService";
 
 interface AssetData {
   asset_code: string;

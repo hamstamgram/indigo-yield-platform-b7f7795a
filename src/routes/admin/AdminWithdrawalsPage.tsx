@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WithdrawalStatsComponent } from "@/components/admin/withdrawals/WithdrawalStats";
 import { WithdrawalsTable } from "@/components/admin/withdrawals/WithdrawalsTable";
-import { withdrawalService } from "@/services/withdrawalService";
+import { withdrawalService } from "@/services/investor/withdrawalService";
 import { Withdrawal, WithdrawalFilters, WithdrawalStats } from "@/types/withdrawal";
 import { toast } from "sonner";
 import { ArrowDownToLine } from "lucide-react";

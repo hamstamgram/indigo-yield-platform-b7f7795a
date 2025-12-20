@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/select";
 import { investmentFormSchema, type InvestmentFormValues } from "@/lib/validations/investment";
 import { type InvestmentFormData } from "@/types/investment";
-import { investmentService } from "@/services/investmentService";
+import { investmentService } from "@/services/investor/investmentService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 

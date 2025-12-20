@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, CheckCircle, XCircle } from "lucide-react";
-import { depositService } from "@/services/depositService";
+import { depositService } from "@/services/investor/depositService";
 import { ApproveDepositDialog } from "./ApproveDepositDialog";
 import { RejectDepositDialog } from "./RejectDepositDialog";
 import type { Deposit, DepositStatus } from "@/types/deposit";

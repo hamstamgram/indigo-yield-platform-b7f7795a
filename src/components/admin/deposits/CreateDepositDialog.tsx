@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { depositService } from "@/services/depositService";
+import { depositService } from "@/services/investor/depositService";
 import { supabase } from "@/integrations/supabase/client";
 import type { DepositFormData } from "@/types/deposit";
 

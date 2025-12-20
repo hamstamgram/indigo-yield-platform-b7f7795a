@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { performanceService } from "@/services/performanceService";
+import { performanceService } from "@/services/shared/performanceService";
 import { supabase } from "@/integrations/supabase/client";
 
 export function useInvestorPerformance(assetCode?: string) {
