@@ -21,7 +21,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -39,14 +38,17 @@ import {
   RotateCcw,
   FileText,
   Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { InvestorSummaryV2 } from "@/services/adminServiceV2";
+import { forceDeleteInvestorUser } from "@/services/userService";
 import { InvestorYieldManager } from "./InvestorYieldManager";
 import InvestorPositionsTab from "./InvestorPositionsTab";
 import InvestorTransactionsTab from "./InvestorTransactionsTab";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface InvestorPosition {
   fund_id: string;
@@ -63,6 +65,8 @@ interface InvestorDetailData {
   totalValue: number;
   name: string;
 }
+
+type DeleteStep = "check" | "confirm-with-positions" | "confirm-empty" | "deleting";
 
 interface InvestorManagementDrawerProps {
   investorId: string | null;
@@ -82,12 +86,16 @@ export function InvestorManagementDrawer({
   onDelete,
 }: InvestorManagementDrawerProps) {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [detailData, setDetailData] = useState<InvestorDetailData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
-  const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Delete flow state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteStep, setDeleteStep] = useState<DeleteStep>("check");
+  const [activePositions, setActivePositions] = useState<InvestorPosition[]>([]);
 
   // Load investor details when drawer opens
   useEffect(() => {
@@ -101,6 +109,9 @@ export function InvestorManagementDrawer({
     if (!isOpen) {
       setActiveTab("overview");
       setError(null);
+      setDeleteDialogOpen(false);
+      setDeleteStep("check");
+      setActivePositions([]);
     }
   }, [isOpen]);
 
@@ -166,22 +177,204 @@ export function InvestorManagementDrawer({
     }
   };
 
-  const handleDelete = async () => {
+  // Open delete dialog and check for active positions
+  const handleDeleteClick = async () => {
+    if (!investorId) return;
+    
+    setDeleteStep("check");
+    setDeleteDialogOpen(true);
+    
+    try {
+      // Check for positions with value > 0
+      const { data: positions } = await supabase
+        .from("investor_positions")
+        .select(`
+          fund_id,
+          current_value,
+          cost_basis,
+          unrealized_pnl,
+          funds!inner(name, code, asset)
+        `)
+        .eq("investor_id", investorId)
+        .gt("current_value", 0);
+      
+      const mappedPositions: InvestorPosition[] = (positions || []).map((p: any) => ({
+        fund_id: p.fund_id,
+        fund_name: p.funds?.name || "Unknown",
+        fund_code: p.funds?.code || "",
+        asset: p.funds?.asset || "",
+        current_value: p.current_value || 0,
+        cost_basis: p.cost_basis || 0,
+        unrealized_pnl: p.unrealized_pnl || 0,
+      }));
+      
+      if (mappedPositions.length > 0) {
+        setActivePositions(mappedPositions);
+        setDeleteStep("confirm-with-positions");
+      } else {
+        setActivePositions([]);
+        setDeleteStep("confirm-empty");
+      }
+    } catch (err) {
+      console.error("Error checking positions:", err);
+      // Still allow deletion attempt
+      setActivePositions([]);
+      setDeleteStep("confirm-empty");
+    }
+  };
+
+  // Force delete - clears all positions and deletes investor
+  const handleForceDelete = async () => {
+    if (!investorId) return;
+    
+    setDeleteStep("deleting");
+    
+    try {
+      await forceDeleteInvestorUser(investorId);
+      
+      toast({
+        title: "Investor deleted",
+        description: "The investor and all associated data have been removed.",
+      });
+      
+      setDeleteDialogOpen(false);
+      onClose();
+      onDataChange?.();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to delete investor";
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      });
+      setDeleteStep("confirm-with-positions");
+    }
+  };
+
+  // Simple delete for investors without positions
+  const handleSimpleDelete = async () => {
     if (!investorId || !onDelete) return;
-    setIsDeleting(true);
+    
+    setDeleteStep("deleting");
+    
     try {
       await onDelete(investorId);
       setDeleteDialogOpen(false);
     } catch {
-      // Error already handled by parent
-    } finally {
-      setIsDeleting(false);
+      // Error handled by parent
+      setDeleteStep("confirm-empty");
     }
   };
 
   const investorName = investorSummary
     ? `${investorSummary.firstName} ${investorSummary.lastName}`
     : "Investor";
+
+  // Render delete dialog content based on step
+  const renderDeleteDialogContent = () => {
+    switch (deleteStep) {
+      case "check":
+        return (
+          <>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Checking Investor Data...</AlertDialogTitle>
+              <AlertDialogDescription>
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+            </AlertDialogFooter>
+          </>
+        );
+      
+      case "confirm-with-positions":
+        return (
+          <>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                Active Positions Found
+              </AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-4">
+                  <p>
+                    <strong>{investorName}</strong> has {activePositions.length} active fund position{activePositions.length !== 1 ? "s" : ""}:
+                  </p>
+                  <div className="bg-muted rounded-lg p-3 space-y-2 max-h-48 overflow-y-auto">
+                    {activePositions.map((pos) => (
+                      <div key={pos.fund_id} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <CryptoIcon symbol={pos.asset} className="h-5 w-5" />
+                          <span className="font-medium">{pos.fund_name}</span>
+                        </div>
+                        <span className="font-mono">
+                          {formatValue(pos.current_value, pos.asset === "BTC" ? 4 : 2)} {pos.asset}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-amber-600 dark:text-amber-400 text-sm">
+                    Force deleting will permanently remove all positions and associated data. This cannot be undone.
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleForceDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Force Delete All & Remove Investor
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </>
+        );
+      
+      case "confirm-empty":
+        return (
+          <>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Investor</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete <strong>{investorName}</strong>? 
+                This action cannot be undone and will remove all associated data.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleSimpleDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </>
+        );
+      
+      case "deleting":
+        return (
+          <>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Deleting Investor...</AlertDialogTitle>
+              <AlertDialogDescription>
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-destructive" />
+                </div>
+                <p className="text-center text-sm">
+                  Removing investor data and positions...
+                </p>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+          </>
+        );
+    }
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -317,40 +510,14 @@ export function InvestorManagementDrawer({
 
               {/* Delete Investor Button */}
               {onDelete && (
-                <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" className="w-full">
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete Investor
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Investor</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete <strong>{investorName}</strong>? 
-                        This action cannot be undone and will remove all associated data.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleDelete}
-                        disabled={isDeleting}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        {isDeleting ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Deleting...
-                          </>
-                        ) : (
-                          "Delete"
-                        )}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button 
+                  variant="destructive" 
+                  className="w-full"
+                  onClick={handleDeleteClick}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Investor
+                </Button>
               )}
             </TabsContent>
 
@@ -370,6 +537,13 @@ export function InvestorManagementDrawer({
             </TabsContent>
           </Tabs>
         )}
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            {renderDeleteDialogContent()}
+          </AlertDialogContent>
+        </AlertDialog>
       </SheetContent>
     </Sheet>
   );

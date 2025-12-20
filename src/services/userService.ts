@@ -149,3 +149,38 @@ export const deleteInvestorUser = async (userId: string): Promise<void> => {
     throw error;
   }
 };
+
+export const forceDeleteInvestorUser = async (userId: string): Promise<void> => {
+  try {
+    const { data, error } = await supabase.functions.invoke("admin-user-management", {
+      body: {
+        action: "forceDeleteUser",
+        userId,
+      },
+    });
+
+    if (error) {
+      console.error("Error force deleting user via Edge Function:", error);
+      let errorMessage = "Failed to force delete user";
+      try {
+        if (error.context && typeof error.context.json === 'function') {
+          const errorBody = await error.context.json();
+          errorMessage = errorBody?.error || errorMessage;
+        } else {
+          errorMessage = error.message || errorMessage;
+        }
+      } catch {
+        errorMessage = error.message || errorMessage;
+      }
+      throw new Error(errorMessage);
+    }
+
+    if (data?.success === false && data?.error) {
+      throw new Error(data.error);
+    }
+
+  } catch (error) {
+    console.error("Error in forceDeleteInvestorUser:", error);
+    throw error;
+  }
+};
