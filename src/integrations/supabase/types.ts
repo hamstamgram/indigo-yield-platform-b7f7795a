@@ -4651,13 +4651,7 @@ export type Database = {
           p_gross_amount: number
           p_purpose?: string
         }
-        Returns: {
-          fee_amount: number
-          gross_amount: number
-          ib_amount: number
-          investor_id: string
-          net_amount: number
-        }[]
+        Returns: Json
       }
       apply_daily_yield_with_fees: {
         Args: {
@@ -5127,6 +5121,16 @@ export type Database = {
           expires_at: string
           id: string
           used: boolean
+        }[]
+      }
+      verify_yield_distribution_balance: {
+        Args: { p_date: string; p_fund_id: string; p_purpose?: string }
+        Returns: {
+          actual: number
+          check_name: string
+          difference: number
+          expected: number
+          status: string
         }[]
       }
     }
