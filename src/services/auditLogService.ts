@@ -263,6 +263,40 @@ class AuditLogService {
     if (typeof value === "object") return JSON.stringify(value);
     return String(value);
   }
+
+  /**
+   * Log an audit event
+   */
+  async logEvent(params: {
+    actorUserId: string;
+    action: string;
+    entity: string;
+    entityId?: string;
+    meta?: Record<string, any>;
+    oldValues?: Record<string, any>;
+    newValues?: Record<string, any>;
+  }): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { error } = await supabase.from("audit_log").insert({
+        actor_user: params.actorUserId,
+        action: params.action,
+        entity: params.entity,
+        entity_id: params.entityId || null,
+        meta: params.meta || null,
+        old_values: params.oldValues || null,
+        new_values: params.newValues || null,
+      });
+
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      console.error("Error logging audit event:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to log audit event",
+      };
+    }
+  }
 }
 
 export const auditLogService = new AuditLogService();

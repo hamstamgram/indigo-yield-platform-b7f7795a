@@ -64,6 +64,43 @@ export async function getAllFunds(): Promise<Fund[]> {
 }
 
 /**
+ * Get active funds with minimal fields for dropdowns/lists
+ */
+export async function getActiveFundsForList(): Promise<
+  { id: string; code: string; name: string; asset: string }[]
+> {
+  const { data, error } = await supabase
+    .from("funds")
+    .select("id, code, name, asset")
+    .eq("status", "active")
+    .order("code");
+
+  if (error) {
+    console.error("Error fetching active funds:", error);
+    throw new Error(`Failed to fetch active funds: ${error.message}`);
+  }
+  return data || [];
+}
+
+/**
+ * Get investor positions with fund IDs for filtering
+ */
+export async function getActiveInvestorPositions(): Promise<
+  { investor_id: string; fund_id: string }[]
+> {
+  const { data, error } = await supabase
+    .from("investor_positions")
+    .select("investor_id, fund_id")
+    .gt("current_value", 0);
+
+  if (error) {
+    console.error("Error fetching investor positions:", error);
+    throw new Error(`Failed to fetch investor positions: ${error.message}`);
+  }
+  return data || [];
+}
+
+/**
  * Get fund by ID
  */
 export async function getFundById(fundId: string): Promise<Fund | null> {

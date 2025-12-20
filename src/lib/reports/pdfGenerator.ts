@@ -8,7 +8,7 @@ import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { ReportData, ReportStyles } from "@/types/reports";
 import { getAssetLogo } from "@/utils/assets";
-import { formatAssetWithSymbol } from "@/utils/assetFormatting";
+import { formatAssetWithSymbol } from "@/utils/formatters";
 
 // Extend jsPDF type to include autoTable
 declare module "jspdf" {

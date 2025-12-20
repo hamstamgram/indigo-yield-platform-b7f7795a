@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { useFundAUM, FundAUMData } from "@/hooks/useFundAUM";
-import { formatAUM } from "@/utils/formatters/aumFormatter";
+import { formatAUM } from "@/utils/formatters";
 
 interface FlowData {
   fund_id: string;

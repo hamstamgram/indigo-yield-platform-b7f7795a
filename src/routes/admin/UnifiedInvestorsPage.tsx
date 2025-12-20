@@ -38,7 +38,10 @@ import { useAdminStats } from "@/hooks/useAdminStats";
 import { cn } from "@/lib/utils";
 import { assetService } from "@/services/assetService";
 import { Asset } from "@/types/investorTypes";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  getActiveFundsForList,
+  getActiveInvestorPositions,
+} from "@/services/fundService";
 
 interface Fund {
   id: string;
@@ -73,16 +76,16 @@ function UnifiedInvestorsContent() {
       const [investorsData, assetsData, fundsData, positionsData] = await Promise.all([
         adminServiceV2.getAllInvestorsWithSummary(),
         assetService.getAssets({ is_active: true }),
-        supabase.from("funds").select("id, code, name, asset").eq("status", "active").order("code"),
-        supabase.from("investor_positions").select("investor_id, fund_id").gt("current_value", 0),
+        getActiveFundsForList(),
+        getActiveInvestorPositions(),
       ]);
       
       setInvestors(investorsData);
-      setFunds(fundsData.data || []);
-      
+      setFunds(fundsData);
+
       // Build map of investor -> fund IDs
       const posMap = new Map<string, string[]>();
-      (positionsData.data || []).forEach((p) => {
+      positionsData.forEach((p) => {
         const existing = posMap.get(p.investor_id) || [];
         if (!existing.includes(p.fund_id)) {
           existing.push(p.fund_id);

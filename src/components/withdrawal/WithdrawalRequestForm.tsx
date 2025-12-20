@@ -40,6 +40,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, AlertTriangle, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { auditLogService } from "@/services/auditLogService";
 
 export interface WithdrawalPosition {
   fund_id: string;
@@ -164,12 +165,12 @@ export function WithdrawalRequestForm({
       if (insertError) throw insertError;
 
       // 5. Log Audit Event
-      await supabase.from("audit_log").insert({
-        actor_user: user.id,
+      await auditLogService.logEvent({
+        actorUserId: user.id,
         action: "WITHDRAWAL_REQUEST_CREATED",
         entity: "withdrawal_requests",
-        entity_id: request.id,
-        details: {
+        entityId: request.id,
+        meta: {
           amount: data.amount,
           asset: data.assetCode,
           destination: data.destinationAddress.substring(0, 10) + "...",
