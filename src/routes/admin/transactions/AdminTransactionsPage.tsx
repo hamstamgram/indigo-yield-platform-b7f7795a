@@ -30,7 +30,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { format } from "date-fns";
 
-type TransactionType = "DEPOSIT" | "WITHDRAWAL" | "FEE" | "INTEREST" | "YIELD" | "ADJUSTMENT";
+type TransactionType = "DEPOSIT" | "WITHDRAWAL" | "FEE" | "INTEREST" | "ADJUSTMENT";
 
 interface Transaction {
   id: string;
@@ -58,7 +58,7 @@ interface Fund {
 function TransactionHistoryContent() {
   const [funds, setFunds] = useState<Fund[]>([]);
   const [selectedFund, setSelectedFund] = useState<string>("all");
-  const [selectedType, setSelectedType] = useState<string>("all");
+  const [selectedType, setSelectedType] = useState<TransactionType | "all">("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -217,7 +217,7 @@ function TransactionHistoryContent() {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={selectedType} onValueChange={setSelectedType}>
+            <Select value={selectedType} onValueChange={(v) => setSelectedType(v as TransactionType | "all")}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Filter by type" />
               </SelectTrigger>
