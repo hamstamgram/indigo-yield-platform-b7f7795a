@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { createOrFindInvestorUser } from "@/services/userService";
 import { portfolioService } from "@/services/core/PortfolioService";
 import { useInvestorInvite } from "@/hooks/useInvestorInvite";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AddInvestorDialogProps {
   assets: Asset[];
@@ -51,6 +52,26 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({ assets, onInvesto
 
       if (!portfolioCreated) {
         throw new Error("Failed to create portfolio entries");
+      }
+
+      // Save report recipient emails to investor_emails table
+      const reportEmails = values.report_emails || [];
+      if (reportEmails.length > 0) {
+        const emailRecords = reportEmails.map((email, index) => ({
+          investor_id: userId,
+          email: email.toLowerCase(),
+          is_primary: index === 0, // First email is primary
+          verified: false,
+        }));
+
+        const { error: emailError } = await supabase
+          .from("investor_emails")
+          .insert(emailRecords);
+
+        if (emailError) {
+          console.error("Failed to save report emails:", emailError);
+          // Don't throw - investor is already created, just log warning
+        }
       }
 
       // Also create an invite entry to track this investor
@@ -104,7 +125,7 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({ assets, onInvesto
           Add Investor
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Investor</DialogTitle>
           <DialogDescription>
@@ -123,3 +144,4 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({ assets, onInvesto
 };
 
 export default AddInvestorDialog;
+

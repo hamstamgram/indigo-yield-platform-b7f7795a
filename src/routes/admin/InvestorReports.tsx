@@ -136,7 +136,14 @@ const InvestorReports = () => {
         return;
       }
 
-      // Fetch investor emails - use profiles.email as fallback
+      // Fetch investor emails from investor_emails table
+      const investorIds = investors.map((inv: any) => inv.id);
+      const { data: investorEmailsData } = await supabase
+        .from("investor_emails")
+        .select("investor_id, email, is_primary, verified")
+        .in("investor_id", investorIds);
+
+      // Build email lookup, starting with profile email as fallback
       const emailsByInvestor: Record<string, any[]> = {};
       investors.forEach((inv: any) => {
         emailsByInvestor[inv.id] = [{
@@ -145,6 +152,22 @@ const InvestorReports = () => {
           verified: true, // Auth email is verified
         }];
       });
+
+      // Add additional emails from investor_emails table (if any)
+      if (investorEmailsData && investorEmailsData.length > 0) {
+        for (const emailRecord of investorEmailsData) {
+          const existing = emailsByInvestor[emailRecord.investor_id] || [];
+          // Check if this email is already in the list
+          if (!existing.some((e) => e.email === emailRecord.email)) {
+            existing.push({
+              email: emailRecord.email,
+              is_primary: emailRecord.is_primary,
+              verified: emailRecord.verified,
+            });
+          }
+          emailsByInvestor[emailRecord.investor_id] = existing;
+        }
+      }
 
       // Resolve Period ID
       const [yearStr, monthStr] = selectedMonth.split("-");
@@ -453,25 +476,27 @@ const InvestorReports = () => {
         });
       }
 
-      // Send emails via Edge Function
+      // Send emails via Edge Function (using multi-recipient format)
       let sentCount = 0;
+      let failedCount = 0;
+      
       for (const batch of emailBatchData) {
-        for (const recipientEmail of batch.recipientEmails) {
-          const { error } = await supabase.functions.invoke("send-investor-report", {
-            body: {
-              to: recipientEmail,
-              investorName: batch.investorName,
-              reportMonth: selectedMonth, // YYYY-MM
-              htmlContent: batch.htmlContent,
-            },
-          });
+        // Send to all recipients in one API call
+        const { error } = await supabase.functions.invoke("send-investor-report", {
+          body: {
+            to: batch.recipientEmails,  // Array of recipients
+            investorId: batch.investorId,
+            investorName: batch.investorName,
+            reportMonth: selectedMonth, // YYYY-MM
+            htmlContent: batch.htmlContent,
+          },
+        });
 
-          if (error) {
-            console.error(`Failed to send to ${recipientEmail}:`, error);
-            // Continue sending to others even if one fails
-          } else {
-            sentCount++;
-          }
+        if (error) {
+          console.error(`Failed to send to ${batch.investorName}:`, error);
+          failedCount++;
+        } else {
+          sentCount += batch.recipientEmails.length;
         }
       }
 

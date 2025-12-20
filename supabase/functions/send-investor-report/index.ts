@@ -5,10 +5,36 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 interface EmailRequest {
-  to: string;
+  to: string | string[];  // Support single email or array
+  cc?: string[];
+  bcc?: string[];
+  investorId?: string;
   investorName: string;
   reportMonth: string; // YYYY-MM
+  subject?: string;    // Optional custom subject
   htmlContent: string;
+}
+
+// Simple in-memory rate limiting (resets on function cold start)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 10; // max emails per minute per admin
+const RATE_WINDOW_MS = 60000; // 1 minute
+
+function checkRateLimit(adminId: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(adminId);
+  
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(adminId, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return true;
+  }
+  
+  if (entry.count >= RATE_LIMIT) {
+    return false;
+  }
+  
+  entry.count++;
+  return true;
 }
 
 serve(async (req: Request) => {
@@ -66,11 +92,22 @@ serve(async (req: Request) => {
       });
     }
 
+    // Check rate limit
+    if (!checkRateLimit(user.id)) {
+      return new Response(JSON.stringify({ error: "Rate limit exceeded. Max 10 emails per minute." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Parse request body
     const body: EmailRequest = await req.json();
-    const { to, investorName, reportMonth, htmlContent } = body;
+    const { to, cc, bcc, investorId, investorName, reportMonth, subject, htmlContent } = body;
 
-    if (!to || !investorName || !reportMonth || !htmlContent) {
+    // Normalize 'to' to array
+    const toArray = Array.isArray(to) ? to : [to];
+
+    if (toArray.length === 0 || !investorName || !reportMonth || !htmlContent) {
       return new Response(
         JSON.stringify({
           error: "Missing required fields: to, investorName, reportMonth, htmlContent",
@@ -80,6 +117,21 @@ serve(async (req: Request) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
+    }
+
+    // Validate all emails
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const allEmails = [...toArray, ...(cc || []), ...(bcc || [])];
+    for (const email of allEmails) {
+      if (!emailRegex.test(email)) {
+        return new Response(
+          JSON.stringify({ error: `Invalid email format: ${email}` }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
     }
 
     // Check if RESEND_API_KEY is configured
@@ -100,16 +152,41 @@ serve(async (req: Request) => {
       month: "long",
     });
 
+    // Use custom subject or generate default
+    const emailSubject = subject || `INDIGO Monthly Report – ${reportDate} – ${investorName}`;
+
+    // Build plain text fallback
+    const plainText = `Dear ${investorName},
+
+Your investment report for ${reportDate} is attached.
+
+Please view this email in an HTML-compatible email client to see the full report with all formatting and details.
+
+Thank you for trusting us with your investments.
+
+Best regards,
+Indigo Yield Team`;
+
     // Send email via Resend
-    const emailPayload = {
+    const emailPayload: Record<string, unknown> = {
       from: "Indigo Yield <reports@indigoyield.com>",
-      to: [to],
-      subject: `Your Investment Report - ${reportDate}`,
+      to: toArray,
+      subject: emailSubject,
       html: htmlContent,
-      text: `Dear ${investorName},\n\nPlease view this email in an HTML-compatible email client to see your investment report for ${reportDate}.\n\nThank you for trusting us with your investments.\n\nBest regards,\nIndigo Yield Team`,
+      text: plainText,
     };
 
-    console.log(`Sending email to ${to} for report month ${reportMonth}`);
+    // Add CC and BCC if provided
+    if (cc && cc.length > 0) {
+      emailPayload.cc = cc;
+    }
+    if (bcc && bcc.length > 0) {
+      emailPayload.bcc = bcc;
+    }
+
+    console.log(`Sending email to ${toArray.length} recipient(s) for ${investorName}, report month ${reportMonth}`);
+    if (cc?.length) console.log(`CC: ${cc.join(", ")}`);
+    if (bcc?.length) console.log(`BCC: ${bcc.join(", ")}`);
 
     const resendResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -136,13 +213,18 @@ serve(async (req: Request) => {
     );
 
     const { error: logError } = await serviceClient.from("email_logs").insert({
-      recipient: to,
-      subject: `Your Investment Report - ${reportDate}`,
+      recipient: toArray[0], // Primary recipient
+      subject: emailSubject,
       template: "investor_report",
       metadata: {
+        investor_id: investorId || null,
         investor_name: investorName,
         report_month: reportMonth,
         sent_by: user.id,
+        to: toArray,
+        cc: cc || [],
+        bcc: bcc || [],
+        total_recipients: toArray.length + (cc?.length || 0) + (bcc?.length || 0),
       },
       sent_at: new Date().toISOString(),
       status: "sent",
@@ -156,8 +238,12 @@ serve(async (req: Request) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Email sent successfully via Resend",
-        recipient: to,
+        message: `Email sent successfully to ${toArray.length} recipient(s)`,
+        recipients: {
+          to: toArray,
+          cc: cc || [],
+          bcc: bcc || [],
+        },
         reportMonth,
         id: resendResult.id,
       }),
