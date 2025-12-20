@@ -16,7 +16,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ReportsApi } from "@/services/api/reportsApi";
 import { useQuery } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
-import { generateInvestorReportHtml, ReportData } from "@/utils/reportGenerator";
+import { renderReportToHtml } from "@/components/reports/InvestorReportTemplate";
+import { InvestorData, InvestorFund } from "@/types/investor-report";
 
 interface Investor {
   id: string;
@@ -51,8 +52,26 @@ export function SingleReportGenerator() {
     },
   });
 
+  // Helper formatters for the new template
+  const formatValue = (val: number | null | undefined): string => {
+    if (val === null || val === undefined || val === 0) return '-';
+    return val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  const formatNetIncome = (val: number | null | undefined): string => {
+    if (val === null || val === undefined || val === 0) return '-';
+    const formatted = Math.abs(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return val >= 0 ? `+${formatted}` : `-${formatted}`;
+  };
+
+  const formatRate = (val: number | null | undefined): string => {
+    if (val === null || val === undefined || val === 0) return '-';
+    const pct = (val * 100).toFixed(2);
+    return val >= 0 ? `+${pct}%` : `${pct}%`;
+  };
+
   // Fetch Report Data for HTML Preview/Sending
-  const fetchReportHtmlData = async () => {
+  const fetchReportHtmlData = async (): Promise<{ investorData: InvestorData; investor: Investor } | null> => {
     if (!selectedInvestor || !reportDate) return null;
 
     // 1. Get Investor Details
@@ -74,68 +93,57 @@ export function SingleReportGenerator() {
     if (!period) throw new Error(`No statement period found for ${reportDate}`);
 
     // 3. Fetch Performance Reports (V2)
-    // Cast to any to avoid "Type instantiation is excessively deep" error
     const { data: reports, error } = await (supabase as any)
       .from("investor_fund_performance")
       .select("*")
-      .eq("investor_id", selectedInvestor) // Was user_id, fixing to investor_id as well if needed, but schema uses investor_id. Previous code used user_id, which is wrong based on schema.
+      .eq("investor_id", selectedInvestor)
       .eq("period_id", period.id);
 
     if (error) throw error;
     if (!reports || reports.length === 0)
       throw new Error(`No report data found for ${reportDate}`);
 
-    // 4. Map to ReportData structure
-    const reportData: ReportData = {
-      investorName: investor.name,
+    // 4. Map to InvestorData structure (new format)
+    const investorData: InvestorData = {
+      name: investor.name,
       reportDate: format(parseISO(period.period_end_date), "MMMM d, yyyy"),
-      funds: reports.map((r) => {
-        let fundName = r.fund_name;
-        // Simple normalization for display if needed, or use fund_name directly
-        if (fundName === "xAUT") fundName = "Tokenized Gold";
-        if (fundName === "USDT") fundName = "Stablecoin Fund";
-        if (fundName === "BTC") fundName = "BTC YIELD FUND";
-        if (fundName === "ETH") fundName = "ETH YIELD FUND";
+      funds: reports.map((r: any): InvestorFund => {
+        // Normalize fund name to match FUND_ICONS keys
+        const assetCode = r.fund_name?.toUpperCase() || 'USDC';
+        const fundName = `${assetCode} YIELD FUND`;
 
         return {
-          fundName: fundName,
-          currency: r.fund_name, // Asset code
-          metrics: {
-            begin_balance_mtd: r.mtd_beginning_balance?.toString() || "0",
-            begin_balance_qtd: r.qtd_beginning_balance?.toString() || "-",
-            begin_balance_ytd: r.ytd_beginning_balance?.toString() || "-",
-            begin_balance_itd: r.itd_beginning_balance?.toString() || "-",
-
-            additions_mtd: r.mtd_additions?.toString() || "0",
-            additions_qtd: r.qtd_additions?.toString() || "-",
-            additions_ytd: r.ytd_additions?.toString() || "-",
-            additions_itd: r.itd_additions?.toString() || "-",
-
-            redemptions_mtd: r.mtd_redemptions?.toString() || "0",
-            redemptions_qtd: r.qtd_redemptions?.toString() || "-",
-            redemptions_ytd: r.ytd_redemptions?.toString() || "-",
-            redemptions_itd: r.itd_redemptions?.toString() || "-",
-
-            net_income_mtd: r.mtd_net_income?.toString() || "0",
-            net_income_qtd: r.qtd_net_income?.toString() || "-",
-            net_income_ytd: r.ytd_net_income?.toString() || "-",
-            net_income_itd: r.itd_net_income?.toString() || "-",
-
-            ending_balance_mtd: r.mtd_ending_balance?.toString() || "0",
-            ending_balance_qtd: r.qtd_ending_balance?.toString() || "-",
-            ending_balance_ytd: r.ytd_ending_balance?.toString() || "-",
-            ending_balance_itd: r.itd_ending_balance?.toString() || "-",
-
-            return_rate_mtd: r.mtd_rate_of_return ? (Number(r.mtd_rate_of_return) * 100).toFixed(2) : "0",
-            return_rate_qtd: r.qtd_rate_of_return ? (Number(r.qtd_rate_of_return) * 100).toFixed(2) : "-",
-            return_rate_ytd: r.ytd_rate_of_return ? (Number(r.ytd_rate_of_return) * 100).toFixed(2) : "-",
-            return_rate_itd: r.itd_rate_of_return ? (Number(r.itd_rate_of_return) * 100).toFixed(2) : "-",
-          },
+          name: fundName,
+          currency: assetCode,
+          begin_balance_mtd: formatValue(r.mtd_beginning_balance),
+          begin_balance_qtd: formatValue(r.qtd_beginning_balance),
+          begin_balance_ytd: formatValue(r.ytd_beginning_balance),
+          begin_balance_itd: formatValue(r.itd_beginning_balance),
+          additions_mtd: formatValue(r.mtd_additions),
+          additions_qtd: formatValue(r.qtd_additions),
+          additions_ytd: formatValue(r.ytd_additions),
+          additions_itd: formatValue(r.itd_additions),
+          redemptions_mtd: formatValue(r.mtd_redemptions),
+          redemptions_qtd: formatValue(r.qtd_redemptions),
+          redemptions_ytd: formatValue(r.ytd_redemptions),
+          redemptions_itd: formatValue(r.itd_redemptions),
+          net_income_mtd: formatNetIncome(r.mtd_net_income),
+          net_income_qtd: formatNetIncome(r.qtd_net_income),
+          net_income_ytd: formatNetIncome(r.ytd_net_income),
+          net_income_itd: formatNetIncome(r.itd_net_income),
+          ending_balance_mtd: formatValue(r.mtd_ending_balance),
+          ending_balance_qtd: formatValue(r.qtd_ending_balance),
+          ending_balance_ytd: formatValue(r.ytd_ending_balance),
+          ending_balance_itd: formatValue(r.itd_ending_balance),
+          return_rate_mtd: formatRate(r.mtd_rate_of_return),
+          return_rate_qtd: formatRate(r.qtd_rate_of_return),
+          return_rate_ytd: formatRate(r.ytd_rate_of_return),
+          return_rate_itd: formatRate(r.itd_rate_of_return),
         };
       }),
     };
 
-    return { reportData, investor };
+    return { investorData, investor };
   };
 
   const handlePreviewEmail = async () => {
@@ -144,7 +152,7 @@ export function SingleReportGenerator() {
       const data = await fetchReportHtmlData();
       if (!data) return;
 
-      const html = generateInvestorReportHtml(data.reportData);
+      const html = renderReportToHtml(data.investorData);
       const win = window.open("", "_blank");
       if (win) {
         win.document.write(html);
@@ -167,7 +175,7 @@ export function SingleReportGenerator() {
       const data = await fetchReportHtmlData();
       if (!data) return;
 
-      const htmlContent = generateInvestorReportHtml(data.reportData);
+      const htmlContent = renderReportToHtml(data.investorData);
 
       // Send via Edge Function
       const { error } = await supabase.functions.invoke("send-investor-report", {

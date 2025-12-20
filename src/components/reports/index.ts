@@ -5,3 +5,4 @@
 
 export { ReportBuilder } from "./ReportBuilder";
 export { ReportHistory } from "./ReportHistory";
+export { InvestorReportTemplate, renderReportToHtml } from "./InvestorReportTemplate";

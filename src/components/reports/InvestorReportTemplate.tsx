@@ -188,7 +188,7 @@ export const InvestorReportTemplate: React.FC<InvestorReportTemplateProps> = ({ 
                               This report is confidential and intended solely for the named recipient.
                             </p>
                             <p style={{ margin: 0 }}>
-                              © {new Date().getFullYear()} Indigo Yield. All rights reserved.
+                              © {new Date().getFullYear()} Indigo Fund. All rights reserved.
                             </p>
                           </td>
                         </tr>
@@ -207,104 +207,142 @@ export const InvestorReportTemplate: React.FC<InvestorReportTemplateProps> = ({ 
 
 /**
  * Renders the InvestorReportTemplate to an HTML string for email sending
+ * Uses the exact HTML template structure provided
  */
 export function renderReportToHtml(investor: InvestorData): string {
   const fundBlocksHtml = investor.funds.map((fund, index) => {
     const iconUrl = FUND_ICONS[fund.name] || FUND_ICONS["USDC YIELD FUND"];
-    const spacer = index > 0 ? '<tr><td style="height:16px;"></td></tr>' : '';
+    const spacer = index > 0 ? '<tr><td style="height:20px;"></td></tr>' : '';
     
     return `${spacer}
-    <tr>
-      <td style="background-color:#ffffff;border-radius:10px;padding:20px;border:1px solid #e2e8f0;">
-        <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
-          <tr>
-            <td style="width:40px;" valign="middle">
-              <img src="${iconUrl}" alt="${fund.name}" width="32" style="border:0;max-width:100%;" />
-            </td>
-            <td valign="middle" style="padding-left:12px;">
-              <h2 style="margin:0;font-size:18px;font-weight:700;color:#1a202c;">${fund.name}</h2>
-            </td>
-          </tr>
-        </table>
-        
-        <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin-top:20px;">
-          <tr style="border-bottom:1px solid #e2e8f0;">
-            <th scope="col" style="padding:10px 8px;text-align:left;font-size:12px;color:#64748b;text-transform:uppercase;font-weight:700;">Capital Account Summary</th>
-            <th scope="col" style="padding:10px 8px;text-align:right;font-size:12px;color:#64748b;text-transform:uppercase;font-weight:700;">MTD (${fund.currency})</th>
-            <th scope="col" style="padding:10px 8px;text-align:right;font-size:12px;color:#64748b;text-transform:uppercase;font-weight:700;">QTD (${fund.currency})</th>
-            <th scope="col" style="padding:10px 8px;text-align:right;font-size:12px;color:#64748b;text-transform:uppercase;font-weight:700;">YTD (${fund.currency})</th>
-            <th scope="col" style="padding:10px 8px;text-align:right;font-size:12px;color:#64748b;text-transform:uppercase;font-weight:700;">ITD (${fund.currency})</th>
-          </tr>
-          <tr>
-            <td style="padding:8px;font-size:14px;color:#334155;">Beginning Balance</td>
-            <td style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${fund.begin_balance_mtd}</td>
-            <td style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${fund.begin_balance_qtd}</td>
-            <td style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${fund.begin_balance_ytd}</td>
-            <td style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${fund.begin_balance_itd}</td>
-          </tr>
-          <tr>
-            <td style="padding:8px;font-size:14px;color:#334155;">Additions</td>
-            <td style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${fund.additions_mtd}</td>
-            <td style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${fund.additions_qtd}</td>
-            <td style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${fund.additions_ytd}</td>
-            <td style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${fund.additions_itd}</td>
-          </tr>
-          <tr>
-            <td style="padding:8px;font-size:14px;color:#334155;">Redemptions</td>
-            <td style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${fund.redemptions_mtd}</td>
-            <td style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${fund.redemptions_qtd}</td>
-            <td style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${fund.redemptions_ytd}</td>
-            <td style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${fund.redemptions_itd}</td>
-          </tr>
-          <tr>
-            <td style="padding:8px;font-size:14px;color:#334155;">Net Income</td>
-            <td style="padding:8px;text-align:right;font-size:14px;font-weight:700;color:${getValueColor(fund.net_income_mtd)};">${fund.net_income_mtd}</td>
-            <td style="padding:8px;text-align:right;font-size:14px;font-weight:700;color:${getValueColor(fund.net_income_qtd)};">${fund.net_income_qtd}</td>
-            <td style="padding:8px;text-align:right;font-size:14px;font-weight:700;color:${getValueColor(fund.net_income_ytd)};">${fund.net_income_ytd}</td>
-            <td style="padding:8px;text-align:right;font-size:14px;font-weight:700;color:${getValueColor(fund.net_income_itd)};">${fund.net_income_itd}</td>
-          </tr>
-          <tr style="border-top:1px solid #e2e8f0;">
-            <td style="padding:8px;font-size:14px;color:#334155;font-weight:600;">Ending Balance</td>
-            <td style="padding:8px;text-align:right;font-size:14px;color:#1e293b;font-weight:600;">${fund.ending_balance_mtd}</td>
-            <td style="padding:8px;text-align:right;font-size:14px;color:#1e293b;font-weight:600;">${fund.ending_balance_qtd}</td>
-            <td style="padding:8px;text-align:right;font-size:14px;color:#1e293b;font-weight:600;">${fund.ending_balance_ytd}</td>
-            <td style="padding:8px;text-align:right;font-size:14px;color:#1e293b;font-weight:600;">${fund.ending_balance_itd}</td>
-          </tr>
-          <tr style="background-color:#f8fafc;">
-            <td style="padding:8px;font-size:14px;color:#334155;font-weight:600;">Rate of Return</td>
-            <td style="padding:8px;text-align:right;font-size:14px;font-weight:700;color:${getValueColor(fund.return_rate_mtd)};">${fund.return_rate_mtd}</td>
-            <td style="padding:8px;text-align:right;font-size:14px;font-weight:700;color:${getValueColor(fund.return_rate_qtd)};">${fund.return_rate_qtd}</td>
-            <td style="padding:8px;text-align:right;font-size:14px;font-weight:700;color:${getValueColor(fund.return_rate_ytd)};">${fund.return_rate_ytd}</td>
-            <td style="padding:8px;text-align:right;font-size:14px;font-weight:700;color:${getValueColor(fund.return_rate_itd)};">${fund.return_rate_itd}</td>
-          </tr>
-        </table>
-      </td>
-    </tr>`;
+                <tr>
+                  <td>
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0;">
+                      <tr>
+                        <td style="padding:16px 20px;">
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                            <tr>
+                              <td width="36" valign="middle">
+                                <img src="${iconUrl}" alt="${fund.name}" width="28" height="28" style="display:block;border:0;">
+                              </td>
+                              <td valign="middle" style="padding-left:12px;">
+                                <p style="margin:0;font-size:16px;font-weight:700;color:#1a202c;">${fund.name}</p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:0 20px 20px 20px;">
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;" class="mobile-table">
+                            <tr style="background-color:#f1f5f9;">
+                              <th scope="col" style="padding:10px 8px;text-align:left;font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;" class="mobile-header">Capital Account Summary</th>
+                              <th scope="col" style="padding:10px 8px;text-align:right;font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;" class="mobile-header">MTD (${fund.currency})</th>
+                              <th scope="col" style="padding:10px 8px;text-align:right;font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;" class="mobile-header">QTD (${fund.currency})</th>
+                              <th scope="col" style="padding:10px 8px;text-align:right;font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;" class="mobile-header">YTD (${fund.currency})</th>
+                              <th scope="col" style="padding:10px 8px;text-align:right;font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;" class="mobile-header">ITD (${fund.currency})</th>
+                            </tr>
+                            <tr>
+                              <td style="padding:10px 8px;font-size:13px;color:#334155;border-bottom:1px solid #f1f5f9;" class="mobile-cell">Beginning Balance</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.begin_balance_mtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.begin_balance_qtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.begin_balance_ytd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.begin_balance_itd}</td>
+                            </tr>
+                            <tr>
+                              <td style="padding:10px 8px;font-size:13px;color:#334155;border-bottom:1px solid #f1f5f9;" class="mobile-cell">Additions</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.additions_mtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.additions_qtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.additions_ytd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.additions_itd}</td>
+                            </tr>
+                            <tr>
+                              <td style="padding:10px 8px;font-size:13px;color:#334155;border-bottom:1px solid #f1f5f9;" class="mobile-cell">Redemptions</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.redemptions_mtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.redemptions_qtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.redemptions_ytd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.redemptions_itd}</td>
+                            </tr>
+                            <tr>
+                              <td style="padding:10px 8px;font-size:13px;color:#334155;border-bottom:1px solid #f1f5f9;" class="mobile-cell">Net Income</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.net_income_mtd)};border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.net_income_mtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.net_income_qtd)};border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.net_income_qtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.net_income_ytd)};border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.net_income_ytd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.net_income_itd)};border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.net_income_itd}</td>
+                            </tr>
+                            <tr>
+                              <td style="padding:10px 8px;font-size:13px;color:#334155;font-weight:600;border-bottom:1px solid #f1f5f9;" class="mobile-cell">Ending Balance</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.ending_balance_mtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.ending_balance_qtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.ending_balance_ytd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;" class="mobile-cell">${fund.ending_balance_itd}</td>
+                            </tr>
+                            <tr style="background-color:#f8fafc;">
+                              <td style="padding:10px 8px;font-size:13px;color:#334155;font-weight:600;" class="mobile-cell">Rate of Return</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.return_rate_mtd)};" class="mobile-cell">${fund.return_rate_mtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.return_rate_qtd)};" class="mobile-cell">${fund.return_rate_qtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.return_rate_ytd)};" class="mobile-cell">${fund.return_rate_ytd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.return_rate_itd)};" class="mobile-cell">${fund.return_rate_itd}</td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>`;
   }).join('\n');
 
   return `<!DOCTYPE html>
-<html>
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+  <!--[if mso]>
+    <xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
+    <style>td,th,div,p,a,h1,h2,h3,h4,h5,h6 {font-family: "Segoe UI", sans-serif !important; mso-line-height-rule: exactly;}</style>
+  <![endif]-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body, table, td, p, h1, h2 { font-family: 'Montserrat', Arial, sans-serif; }
+    @media (max-width:600px) {
+      .sm-w-full { width: 100% !important }
+      .mobile-logo { height: 22px !important; width: auto !important }
+      .mobile-h1 { font-size: 18px !important }
+      .mobile-table { font-size: 11px !important }
+      .mobile-header { font-size: 10px !important; padding: 8px 6px !important }
+      .mobile-cell { font-size: 11px !important; padding: 8px 6px !important }
+      .mobile-footer-text { font-size: 10px !important; }
+    }
+    @media (max-width:480px) {
+      .mobile-h1 { font-size: 16px !important }
+      .mobile-table { font-size: 10px !important }
+      .mobile-header { font-size: 9px !important; padding: 6px 4px !important }
+      .mobile-cell { font-size: 10px !important; padding: 6px 4px !important }
+      .mobile-footer-text { font-size: 9px !important; }
+    }
+  </style>
 </head>
-<body style="margin:0;padding:0;background-color:#ffffff;">
-  <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;font-family:'Montserrat',Arial,sans-serif;">
+<body style="margin:0;padding:0;width:100%;background-color:#ffffff;-webkit-font-smoothing:antialiased;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#ffffff;">
     <tr>
       <td align="center" style="padding:24px 12px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" style="width:600px;">
-          
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="sm-w-full" style="max-width:600px;width:100%;">
+
           <!-- Brand Header -->
           <tr>
             <td style="background-color:#edf0fe;padding:20px 24px;border-radius:10px 10px 0 0;">
-              <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
                   <td valign="middle">
-                    <img src="${LOGO_URL}" alt="Indigo Logo" height="24" style="display:block;border:0;height:24px;width:auto;" />
+                    <img src="${LOGO_URL}" alt="Indigo Logo" height="28" class="mobile-logo" style="display:block;border:0;height:28px;width:auto;">
                   </td>
                   <td valign="middle" align="right">
-                    <h1 style="margin:0;font-size:22px;line-height:1.2;color:#0f172a;font-weight:700;">Monthly Report</h1>
+                    <h1 style="margin:0;font-size:22px;line-height:1.2;color:#0f172a;font-weight:700;" class="mobile-h1">Monthly Report</h1>
                   </td>
                 </tr>
               </table>
@@ -322,39 +360,53 @@ export function renderReportToHtml(investor: InvestorData): string {
           <!-- Main Content Area -->
           <tr>
             <td style="padding:24px;background-color:#f8fafc;border-radius:0 0 10px 10px;border:1px solid #e2e8f0;border-top:0;">
-              <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
-                ${fundBlocksHtml}
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+${fundBlocksHtml}
               </table>
             </td>
           </tr>
 
-          <!-- Spacer -->
-          <tr><td style="height:24px;"></td></tr>
-
-          <!-- Footer -->
+          <!-- Disclaimer -->
           <tr>
-            <td style="padding:0 24px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
+            <td style="padding:24px 0;">
+              <p style="margin:0;font-size:11px;line-height:1.6;color:#94a3b8;text-align:center;" class="mobile-footer-text">
+                This document is not an offer to sell or a solicitation of an offer to buy any securities. Any such offer or solicitation will be made only by means of a complete offering document and only in those jurisdictions where permitted by law.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Social Icons -->
+          <tr>
+            <td align="center" style="padding-bottom:16px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td style="text-align:center;padding-bottom:16px;">
-                    <a href="https://linkedin.com" style="display:inline-block;margin-right:12px;">
-                      <img src="${SOCIAL_ICONS.linkedin}" alt="LinkedIn" width="24" height="24" style="border:0;" />
-                    </a>
-                    <a href="https://instagram.com" style="display:inline-block;margin-right:12px;">
-                      <img src="${SOCIAL_ICONS.instagram}" alt="Instagram" width="24" height="24" style="border:0;" />
-                    </a>
-                    <a href="https://twitter.com" style="display:inline-block;">
-                      <img src="${SOCIAL_ICONS.twitter}" alt="Twitter" width="24" height="24" style="border:0;" />
+                  <td style="padding:0 8px;">
+                    <a href="https://linkedin.com" style="display:block;">
+                      <img src="${SOCIAL_ICONS.linkedin}" alt="LinkedIn" width="24" height="24" style="display:block;border:0;">
                     </a>
                   </td>
-                </tr>
-                <tr>
-                  <td style="text-align:center;font-size:12px;color:#64748b;line-height:1.5;">
-                    <p style="margin:0 0 8px 0;">This report is confidential and intended solely for the named recipient.</p>
-                    <p style="margin:0;">© ${new Date().getFullYear()} Indigo Yield. All rights reserved.</p>
+                  <td style="padding:0 8px;">
+                    <a href="https://instagram.com" style="display:block;">
+                      <img src="${SOCIAL_ICONS.instagram}" alt="Instagram" width="24" height="24" style="display:block;border:0;">
+                    </a>
+                  </td>
+                  <td style="padding:0 8px;">
+                    <a href="https://twitter.com" style="display:block;">
+                      <img src="${SOCIAL_ICONS.twitter}" alt="X" width="24" height="24" style="display:block;border:0;">
+                    </a>
                   </td>
                 </tr>
               </table>
+            </td>
+          </tr>
+
+          <!-- Copyright & Unsubscribe -->
+          <tr>
+            <td align="center" style="padding-bottom:24px;">
+              <p style="margin:0 0 8px 0;font-size:12px;color:#64748b;" class="mobile-footer-text">© 2025 Indigo Fund. All rights reserved.</p>
+              <p style="margin:0;font-size:12px;" class="mobile-footer-text">
+                <a href="#" style="color:#6366f1;text-decoration:underline;">Unsubscribe</a>
+              </p>
             </td>
           </tr>
 
