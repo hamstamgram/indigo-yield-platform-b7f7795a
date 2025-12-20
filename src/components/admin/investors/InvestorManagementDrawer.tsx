@@ -91,7 +91,7 @@ export function InvestorManagementDrawer({
   onDelete,
 }: InvestorManagementDrawerProps) {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  
   const [detailData, setDetailData] = useState<InvestorDetailData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -239,8 +239,7 @@ export function InvestorManagementDrawer({
     try {
       await forceDeleteInvestorUser(investorId);
       
-      toast({
-        title: "Investor deleted",
+      toast.success("Investor deleted", {
         description: "The investor and all associated data have been removed.",
       });
       
@@ -249,10 +248,8 @@ export function InvestorManagementDrawer({
       onDataChange?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to delete investor";
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: message,
-        variant: "destructive",
       });
       setDeleteStep("confirm-with-positions");
     }
