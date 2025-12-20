@@ -35,7 +35,7 @@ const StatementsPage = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No authenticated user");
 
-      // Query V2 Performance Table joined with Periods
+      // Query V2 Performance Table joined with Periods (reporting purpose only)
       let query = supabase
         .from("investor_fund_performance")
         .select(`
@@ -47,6 +47,7 @@ const StatementsPage = () => {
           mtd_net_income,
           mtd_ending_balance,
           mtd_rate_of_return,
+          purpose,
           period:statement_periods!inner(
             year,
             month,
@@ -55,6 +56,7 @@ const StatementsPage = () => {
         `)
         .eq("investor_id", user.id)
         .eq("period.year", parseInt(selectedYear))
+        .or("purpose.is.null,purpose.eq.reporting")
         .order("period(period_end_date)", { ascending: false });
 
       if (selectedAsset !== "all") {

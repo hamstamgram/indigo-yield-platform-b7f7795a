@@ -43,13 +43,23 @@ export interface PerformanceData {
 export type PerformanceUpdateData = Partial<Omit<PerformanceData, 'id' | 'investor_id' | 'period_id' | 'fund_name'>>;
 
 /**
- * Update performance data for a specific record
+ * Update performance data for a specific record with audit trail
  */
 export async function updatePerformanceData(
   recordId: string,
   data: PerformanceUpdateData
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // Fetch old data for audit trail
+    const { data: oldRecord, error: fetchError } = await supabase
+      .from("investor_fund_performance")
+      .select("*")
+      .eq("id", recordId)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // Perform the update
     const { error } = await supabase
       .from("investor_fund_performance")
       .update({
@@ -59,6 +69,29 @@ export async function updatePerformanceData(
       .eq("id", recordId);
 
     if (error) throw error;
+
+    // Calculate changed fields for audit
+    const changedFields: string[] = [];
+    for (const key of Object.keys(data) as Array<keyof PerformanceUpdateData>) {
+      if (oldRecord[key] !== data[key]) {
+        changedFields.push(key);
+      }
+    }
+
+    // Log to audit trail
+    const { data: userData } = await supabase.auth.getUser();
+    if (changedFields.length > 0) {
+      await supabase.from("data_edit_audit").insert({
+        table_name: "investor_fund_performance",
+        record_id: recordId,
+        operation: "UPDATE",
+        old_data: oldRecord,
+        new_data: { ...oldRecord, ...data },
+        changed_fields: changedFields,
+        edited_by: userData?.user?.id || null,
+        edit_source: "admin_editor",
+      });
+    }
 
     return { success: true };
   } catch (error: any) {
