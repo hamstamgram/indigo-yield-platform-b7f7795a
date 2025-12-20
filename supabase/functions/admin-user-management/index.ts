@@ -34,6 +34,19 @@ interface UpdateUserRequest {
   fundPreferences: string[];
 }
 
+interface UpdateInvestorProfileRequest {
+  investorId: string;
+  firstName: string;
+  lastName: string;
+  phone?: string | null;
+  status?: string;
+}
+
+interface UpdateReportRecipientsRequest {
+  investorId: string;
+  emails: string[];
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -80,6 +93,12 @@ serve(async (req) => {
         break;
       case "updateUser":
         result = await updateUser(params as UpdateUserRequest);
+        break;
+      case "updateInvestorProfile":
+        result = await updateInvestorProfile(params as UpdateInvestorProfileRequest);
+        break;
+      case "updateReportRecipients":
+        result = await updateReportRecipients(params as UpdateReportRecipientsRequest);
         break;
       case "deleteUser":
         result = await deleteUser(params.userId as string, user.id);
@@ -356,5 +375,117 @@ async function forceDeleteUser(userId: string, adminUserId: string): Promise<any
     success: true,
     user_id: userId,
     message: "Investor force deleted successfully",
+  };
+}
+
+async function updateInvestorProfile(params: UpdateInvestorProfileRequest): Promise<any> {
+  const { investorId, firstName, lastName, phone, status } = params;
+
+  console.log(`Updating investor profile for ${investorId}`);
+
+  // Validate required fields
+  if (!firstName?.trim() || !lastName?.trim()) {
+    throw new Error("First name and last name are required");
+  }
+
+  // Validate status if provided
+  const validStatuses = ["active", "inactive", "pending"];
+  if (status && !validStatuses.includes(status)) {
+    throw new Error(`Invalid status. Must be one of: ${validStatuses.join(", ")}`);
+  }
+
+  // Update profile
+  const updateData: Record<string, any> = {
+    first_name: firstName.trim(),
+    last_name: lastName.trim(),
+    updated_at: new Date().toISOString(),
+  };
+
+  if (phone !== undefined) {
+    updateData.phone = phone?.trim() || null;
+  }
+
+  if (status) {
+    updateData.status = status;
+  }
+
+  const { error: updateError } = await supabaseAdmin
+    .from("profiles")
+    .update(updateData)
+    .eq("id", investorId);
+
+  if (updateError) {
+    throw new Error(`Failed to update profile: ${updateError.message}`);
+  }
+
+  console.log(`Successfully updated profile for ${investorId}`);
+
+  return {
+    success: true,
+    investor_id: investorId,
+    message: "Investor profile updated successfully",
+  };
+}
+
+async function updateReportRecipients(params: UpdateReportRecipientsRequest): Promise<any> {
+  const { investorId, emails } = params;
+
+  console.log(`Updating report recipients for investor ${investorId}`);
+
+  // Validate emails
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const validEmails: string[] = [];
+  const seen = new Set<string>();
+
+  for (const email of emails) {
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed) continue;
+    
+    if (!emailRegex.test(trimmed)) {
+      throw new Error(`Invalid email format: ${email}`);
+    }
+    
+    if (seen.has(trimmed)) {
+      continue; // Skip duplicates silently
+    }
+    
+    seen.add(trimmed);
+    validEmails.push(trimmed);
+  }
+
+  // Delete existing recipients for this investor
+  const { error: deleteError } = await supabaseAdmin
+    .from("investor_emails")
+    .delete()
+    .eq("investor_id", investorId);
+
+  if (deleteError) {
+    throw new Error(`Failed to clear existing recipients: ${deleteError.message}`);
+  }
+
+  // Insert new recipients
+  if (validEmails.length > 0) {
+    const insertData = validEmails.map((email, index) => ({
+      investor_id: investorId,
+      email,
+      is_primary: index === 0,
+    }));
+
+    const { error: insertError } = await supabaseAdmin
+      .from("investor_emails")
+      .insert(insertData);
+
+    if (insertError) {
+      throw new Error(`Failed to add recipients: ${insertError.message}`);
+    }
+  }
+
+  console.log(`Successfully updated ${validEmails.length} report recipients for ${investorId}`);
+
+  return {
+    success: true,
+    investor_id: investorId,
+    recipients_count: validEmails.length,
+    message: `Report recipients updated successfully (${validEmails.length} emails)`,
   };
 }
