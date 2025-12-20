@@ -2,11 +2,22 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+interface InvestorInfo {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+}
+
 export const useInvestorInvite = (onSuccess?: () => void) => {
   const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
 
-  const createInvite = async (email: string) => {
+  /**
+   * Create an invite for an existing investor profile
+   * @param investor - The investor profile to send the invite to
+   */
+  const createInvite = async (investor: InvestorInfo) => {
     try {
       setIsSending(true);
 
@@ -22,12 +33,13 @@ export const useInvestorInvite = (onSuccess?: () => void) => {
         data: { user },
       } = await supabase.auth.getUser();
 
-      // Store or create invite in the database
+      // Store invite in the database linked to the investor profile
       const { error: inviteError } = await supabase.from("investor_invites" as any).insert({
-        email: email,
+        email: investor.email,
         invite_code: inviteCode,
         created_by: user?.id,
         expires_at: expiresAt.toISOString(),
+        investor_id: investor.id, // Link to existing investor profile
       });
 
       if (inviteError) {
@@ -37,14 +49,19 @@ export const useInvestorInvite = (onSuccess?: () => void) => {
 
       // Send invite email
       const inviteUrl = `${window.location.origin}/investor-invite?code=${inviteCode}`;
+      const investorName = investor.firstName 
+        ? `${investor.firstName}${investor.lastName ? ' ' + investor.lastName : ''}` 
+        : '';
+      
       try {
         const { error: emailError } = await supabase.functions.invoke("send-email", {
           body: {
-            to: email,
+            to: investor.email,
             subject: "You're Invited to Join Indigo Yield Platform",
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h1 style="color: #4F46E5;">Welcome to Indigo Yield</h1>
+                ${investorName ? `<p>Hello ${investorName},</p>` : ''}
                 <p>You've been invited to join the Indigo Yield investment platform.</p>
                 <p>Click the button below to create your account:</p>
                 <a href="${inviteUrl}" style="display: inline-block; background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 16px 0;">
@@ -72,7 +89,7 @@ export const useInvestorInvite = (onSuccess?: () => void) => {
 
       toast({
         title: "Investor Invite Sent",
-        description: `An invitation email has been sent to ${email}.`,
+        description: `An invitation email has been sent to ${investor.email}.`,
       });
 
       return true;

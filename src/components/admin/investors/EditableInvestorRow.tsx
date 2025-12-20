@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Send, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Asset } from "@/types/investorTypes";
 import { InvestorSummaryV2 } from "@/services/adminServiceV2";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import InviteInvestorDialog from "./InviteInvestorDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -72,10 +73,14 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
       {/* Actions */}
       <TableCell className="text-right">
         <div className="flex justify-end gap-2">
-          <Button variant="outline" size="sm" onClick={() => onSendEmail(investor.email)}>
-            <Send className="h-4 w-4 mr-1" />
-            Invite
-          </Button>
+          <InviteInvestorDialog
+            investor={{
+              id: investor.id,
+              email: investor.email,
+              firstName: investor.firstName || undefined,
+              lastName: investor.lastName || undefined,
+            }}
+          />
           <Button variant="ghost" size="sm" asChild>
             <a href={`/admin/investors/${investor.id}`}>Manage</a>
           </Button>

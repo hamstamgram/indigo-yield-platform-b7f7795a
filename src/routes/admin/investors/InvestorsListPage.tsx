@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import InvestorsTable from "@/components/admin/investors/InvestorsTable";
 import AddInvestorDialog from "@/components/admin/investors/AddInvestorDialog";
-import InviteInvestorDialog from "@/components/admin/investors/InviteInvestorDialog";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { adminServiceV2 } from "@/services/adminServiceV2";
@@ -80,7 +79,6 @@ export default function InvestorsListPage() {
           <p className="text-muted-foreground">Manage all investor accounts and portfolios</p>
         </div>
         <div className="flex gap-2">
-          <InviteInvestorDialog />
           <AddInvestorDialog assets={assets} onInvestorAdded={loadData} />
         </div>
       </div>

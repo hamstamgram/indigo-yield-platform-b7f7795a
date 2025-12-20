@@ -10,7 +10,6 @@ import { AdminGuard } from "@/components/admin/AdminGuard";
 import { supabase } from "@/integrations/supabase/client";
 import { FinancialSnapshot } from "@/components/admin/FinancialSnapshot";
 import { PendingActionsPanel } from "@/components/admin/dashboard/PendingActionsPanel";
-import { QuickYieldEntry } from "@/components/admin/dashboard/QuickYieldEntry";
 import { RecentActivityFeed } from "@/components/admin/dashboard/RecentActivityFeed";
 
 interface AdminStats {
@@ -174,19 +173,14 @@ function AdminDashboardContent() {
         </Card>
       </div>
 
-      {/* Command Center 3-Column Layout */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      {/* Command Center 2-Column Layout */}
+      <div className="grid gap-6 lg:grid-cols-2">
         {/* Column 1: Pending Actions */}
         <div className="lg:col-span-1">
           <PendingActionsPanel />
         </div>
 
-        {/* Column 2: Quick Yield Entry */}
-        <div className="lg:col-span-1">
-          <QuickYieldEntry />
-        </div>
-
-        {/* Column 3: Recent Activity */}
+        {/* Column 2: Recent Activity */}
         <div className="lg:col-span-1">
           <RecentActivityFeed />
         </div>
