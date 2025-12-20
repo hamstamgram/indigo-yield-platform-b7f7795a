@@ -1471,7 +1471,7 @@ export type Database = {
           period_end: string | null
           period_id: string | null
           period_start: string | null
-          purpose: Database["public"]["Enums"]["aum_purpose"] | null
+          purpose: Database["public"]["Enums"]["aum_purpose"]
           source: string | null
           source_investor_id: string
           source_net_income: number
@@ -1489,7 +1489,7 @@ export type Database = {
           period_end?: string | null
           period_id?: string | null
           period_start?: string | null
-          purpose?: Database["public"]["Enums"]["aum_purpose"] | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"]
           source?: string | null
           source_investor_id: string
           source_net_income: number
@@ -1507,7 +1507,7 @@ export type Database = {
           period_end?: string | null
           period_id?: string | null
           period_start?: string | null
-          purpose?: Database["public"]["Enums"]["aum_purpose"] | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"]
           source?: string | null
           source_investor_id?: string
           source_net_income?: number
@@ -4412,6 +4412,46 @@ export type Database = {
           },
         ]
       }
+      position_transaction_reconciliation: {
+        Row: {
+          discrepancy: number | null
+          fund_id: string | null
+          investor_id: string | null
+          position_balance: number | null
+          status: string | null
+          transaction_sum: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_investor_positions_profile"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_profile"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "investor_positions_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_positions_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["fund_id"]
+          },
+        ]
+      }
       v_investor_kpis: {
         Row: {
           email: string | null
@@ -4850,6 +4890,17 @@ export type Database = {
           snapshot_date: string
         }[]
       }
+      get_position_reconciliation: {
+        Args: { p_investor_id?: string }
+        Returns: {
+          discrepancy: number
+          fund_id: string
+          investor_id: string
+          position_balance: number
+          status: string
+          transaction_sum: number
+        }[]
+      }
       get_profile_by_id: {
         Args: { profile_id: string }
         Returns: {
@@ -5106,7 +5157,15 @@ export type Database = {
       ticket_status: "open" | "in_progress" | "waiting_on_lp" | "closed"
       transaction_status: "pending" | "confirmed" | "failed" | "cancelled"
       transaction_type: "DEPOSIT" | "WITHDRAWAL" | "INTEREST" | "FEE"
-      tx_type: "DEPOSIT" | "WITHDRAWAL" | "INTEREST" | "FEE" | "ADJUSTMENT"
+      tx_type:
+        | "DEPOSIT"
+        | "WITHDRAWAL"
+        | "INTEREST"
+        | "FEE"
+        | "ADJUSTMENT"
+        | "FEE_CREDIT"
+        | "IB_CREDIT"
+        | "YIELD"
       withdrawal_action:
         | "create"
         | "approve"
@@ -5284,7 +5343,16 @@ export const Constants = {
       ticket_status: ["open", "in_progress", "waiting_on_lp", "closed"],
       transaction_status: ["pending", "confirmed", "failed", "cancelled"],
       transaction_type: ["DEPOSIT", "WITHDRAWAL", "INTEREST", "FEE"],
-      tx_type: ["DEPOSIT", "WITHDRAWAL", "INTEREST", "FEE", "ADJUSTMENT"],
+      tx_type: [
+        "DEPOSIT",
+        "WITHDRAWAL",
+        "INTEREST",
+        "FEE",
+        "ADJUSTMENT",
+        "FEE_CREDIT",
+        "IB_CREDIT",
+        "YIELD",
+      ],
       withdrawal_action: [
         "create",
         "approve",
