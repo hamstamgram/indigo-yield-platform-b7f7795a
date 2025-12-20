@@ -109,12 +109,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchProfile = async (userId: string) => {
     setProfileLoading(true);
     try {
-      // Direct query to profiles table
+      // Direct query to profiles table for basic info
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("first_name, last_name, is_admin")
+        .select("first_name, last_name")
         .eq("id", userId)
         .maybeSingle();
+
+      // Check admin role from user_roles table (SECURITY: Server-side role check)
+      const { data: adminRole } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      const isAdmin = !!adminRole;
 
       // Try to get TOTP status
       let totpData: { enabled?: boolean; verified_at?: string | null } | null = null;
@@ -138,14 +148,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           email: user?.email || "",
           first_name: profileData.first_name ?? undefined,
           last_name: profileData.last_name ?? undefined,
-          is_admin: profileData.is_admin || false,
+          is_admin: isAdmin,
           totp_enabled: totpData?.enabled || false,
           totp_verified:
             (totpData?.verified_at !== null && totpData?.verified_at !== undefined) || false,
         });
       } else {
         // SECURITY: Fail closed - never trust user_metadata for admin status
-        // Admin status MUST come from the profiles table (server-verified)
+        // Admin status MUST come from the user_roles table (server-verified)
         console.warn("Profile not found in database, defaulting to non-admin");
         setProfile({
           id: userId,
@@ -161,6 +171,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       // SECURITY: Fail closed - no admin access if profile can't be loaded
       // Never use user_metadata.is_admin as it can be manipulated client-side
+      // Admin status MUST come from user_roles table
       setProfile({
         id: userId,
         email: user?.email || "",

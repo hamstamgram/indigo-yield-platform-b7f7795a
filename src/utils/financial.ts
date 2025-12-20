@@ -37,6 +37,11 @@ export function toDecimal(value: string | number | Decimal): Decimal {
 
 /**
  * Format money for display
+ * 
+ * @deprecated This function formats values as USD which violates the platform's
+ * requirement that ALL ASSETS MUST BE DISPLAYED IN THEIR NATIVE CURRENCY.
+ * Use formatCrypto() or the utilities in utils/assetFormatting.ts instead.
+ * 
  * @param value - The amount to format
  * @param decimals - Number of decimal places (default: 2 for USD)
  * @param includeSymbol - Include $ symbol (default: true)
@@ -46,6 +51,7 @@ export function formatMoney(
   decimals: number = 2,
   includeSymbol: boolean = true
 ): string {
+  console.warn("formatMoney() is deprecated. Use formatCrypto() for token-denominated display.");
   const decimal = toDecimal(value);
   const formatted = decimal.toFixed(decimals);
   return includeSymbol ? `$${formatted}` : formatted;

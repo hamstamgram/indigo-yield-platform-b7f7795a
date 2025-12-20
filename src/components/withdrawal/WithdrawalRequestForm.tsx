@@ -16,7 +16,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { withdrawalRequestSchema, type WithdrawalRequestInput } from "@/lib/validation/schemas";
-import { toDecimal, formatMoney, formatCrypto } from "@/utils/financial";
+import { toDecimal, formatCrypto } from "@/utils/financial";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, AlertTriangle, Info } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { auditLogService } from "@/services/shared/auditLogService";
 
@@ -46,7 +46,6 @@ export interface WithdrawalPosition {
   fund_id: string;
   asset_symbol: string;
   amount: number;
-  value_usd: number;
 }
 
 interface WithdrawalRequestFormProps {
@@ -61,7 +60,6 @@ export function WithdrawalRequestForm({
   onCancel,
 }: WithdrawalRequestFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
 
   const {
     register,
@@ -177,18 +175,15 @@ export function WithdrawalRequestForm({
         },
       });
 
-      toast({
-        title: "Withdrawal Request Submitted",
+      toast.success("Withdrawal Request Submitted", {
         description: `Your request for ${formatCrypto(data.amount, 8, data.assetCode)} has been submitted for approval.`,
       });
 
       onSuccess?.();
     } catch (error) {
       console.error("Withdrawal error:", error);
-      toast({
-        title: "Withdrawal Request Failed",
+      toast.error("Withdrawal Request Failed", {
         description: error instanceof Error ? error.message : "Unknown error occurred",
-        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -223,7 +218,7 @@ export function WithdrawalRequestForm({
                     <div className="flex justify-between items-center w-full">
                       <span>{position.asset_symbol}</span>
                       <span className="text-sm text-muted-foreground ml-4">
-                        {formatCrypto(position.amount, 8)} ({formatMoney(position.value_usd)})
+                        {formatCrypto(position.amount, 8, position.asset_symbol)}
                       </span>
                     </div>
                   </SelectItem>
@@ -235,13 +230,12 @@ export function WithdrawalRequestForm({
             )}
           </div>
 
-          {/* Available Balance Display */}
+          {/* Available Balance Display - Token denominated only */}
           {availableBalance && (
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
-                Available: {formatCrypto(availableBalance.amount, 8, availableBalance.asset_symbol)}{" "}
-                ({formatMoney(availableBalance.value_usd)})
+                Available: {formatCrypto(availableBalance.amount, 8, availableBalance.asset_symbol)}
               </AlertDescription>
             </Alert>
           )}
