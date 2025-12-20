@@ -87,9 +87,9 @@ export function useNavItems(): NavItem[] {
     },
     {
       title: "Fund Data Entry",
-      href: "/admin/monthly-data-entry",
+      href: "/admin/yield",
       icon: Database,
-      description: "Monthly fund data and yield entry",
+      description: "Yield distribution and fund data",
     },
     {
       title: "Daily Rates",
@@ -99,7 +99,7 @@ export function useNavItems(): NavItem[] {
     },
     {
       title: "System",
-      href: "/admin/audit",
+      href: "/admin/audit-logs",
       icon: Database,
       description: "Audit logs and system health",
     },

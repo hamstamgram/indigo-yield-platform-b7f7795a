@@ -38,6 +38,50 @@ interface ComplianceCheck {
   requiresManualReview: boolean;
 }
 
+// Token-denominated withdrawal limits per asset
+const DAILY_LIMITS: Record<string, number> = {
+  BTC: 5,
+  ETH: 50,
+  SOL: 500,
+  XRP: 10000,
+  USDT: 50000,
+  USDC: 50000,
+  EURC: 50000,
+  XAUT: 10,
+};
+
+const MONTHLY_LIMITS: Record<string, number> = {
+  BTC: 20,
+  ETH: 200,
+  SOL: 2000,
+  XRP: 40000,
+  USDT: 200000,
+  USDC: 200000,
+  EURC: 200000,
+  XAUT: 40,
+};
+
+const LARGE_WITHDRAWAL_THRESHOLDS: Record<string, number> = {
+  BTC: 2,
+  ETH: 25,
+  SOL: 250,
+  XRP: 5000,
+  USDT: 25000,
+  USDC: 25000,
+  EURC: 25000,
+  XAUT: 5,
+};
+
+// Helper to get limit for currency with fallback
+function getLimit(limits: Record<string, number>, currency: string, defaultValue: number): number {
+  return limits[currency.toUpperCase()] ?? defaultValue;
+}
+
+// Helper to format token amount with symbol
+function formatTokenAmount(amount: number, currency: string): string {
+  return `${amount.toLocaleString()} ${currency.toUpperCase()}`;
+}
+
 serve(async (req) => {
   const origin = req.headers.get("origin");
   const headers = corsHeaders(origin);
@@ -79,24 +123,26 @@ serve(async (req) => {
 
     // Parse request
     const withdrawalRequest: WithdrawalRequest = await req.json();
+    const currency = withdrawalRequest.currency.toUpperCase();
 
     console.log("Processing withdrawal:", {
       investorId: withdrawalRequest.investorId,
       amount: withdrawalRequest.amount,
-      currency: withdrawalRequest.currency,
+      currency: currency,
       method: withdrawalRequest.withdrawalMethod,
     });
 
     // Verify investor ownership
     if (withdrawalRequest.investorId !== user.id) {
-      // Check if user is admin
-      const { data: profile } = await supabaseClient
-        .from("profiles")
+      // Check if user is admin using user_roles table
+      const { data: adminRole } = await supabaseClient
+        .from("user_roles")
         .select("role")
-        .eq("id", user.id)
-        .single();
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
 
-      if (profile?.role !== "admin") {
+      if (!adminRole) {
         throw new Error("Unauthorized to process withdrawal for this investor");
       }
     }
@@ -106,10 +152,10 @@ serve(async (req) => {
       throw new Error("Withdrawal amount must be greater than zero");
     }
 
-    // Verify investor account is active
+    // Verify investor account is active - query profiles table
     const { data: investor } = await supabaseClient
-      .from("investors")
-      .select("id, kyc_status, account_status, total_balance, aml_status")
+      .from("profiles")
+      .select("id, status")
       .eq("id", withdrawalRequest.investorId)
       .single();
 
@@ -117,20 +163,23 @@ serve(async (req) => {
       throw new Error("Investor account not found");
     }
 
-    if (investor.account_status !== "active") {
+    if (investor.status !== "active") {
       throw new Error("Investor account is not active");
     }
 
-    if (investor.kyc_status !== "approved") {
-      throw new Error("KYC verification must be completed before making withdrawals");
-    }
+    // Get investor position for balance check
+    const { data: position } = await supabaseClient
+      .from("investor_positions")
+      .select("current_value, fund_id")
+      .eq("investor_id", withdrawalRequest.investorId)
+      .maybeSingle();
 
     // Check sufficient balance
-    const availableBalance = investor.total_balance || 0;
+    const availableBalance = position?.current_value || 0;
     if (withdrawalRequest.amount > availableBalance) {
       throw new Error(
-        `Insufficient balance. Available: $${availableBalance.toLocaleString()}, ` +
-          `Requested: $${withdrawalRequest.amount.toLocaleString()}`
+        `Insufficient balance. Available: ${formatTokenAmount(availableBalance, currency)}, ` +
+          `Requested: ${formatTokenAmount(withdrawalRequest.amount, currency)}`
       );
     }
 
@@ -139,6 +188,7 @@ serve(async (req) => {
       supabaseClient,
       withdrawalRequest.investorId,
       withdrawalRequest.amount,
+      currency,
       withdrawalRequest.withdrawalMethod
     );
 
@@ -163,7 +213,7 @@ serve(async (req) => {
       investor_id: withdrawalRequest.investorId,
       transaction_type: "withdrawal",
       amount: withdrawalRequest.amount,
-      currency: withdrawalRequest.currency,
+      currency: currency,
       status: initialStatus,
       payment_method: withdrawalRequest.withdrawalMethod,
       created_at: now,
@@ -187,7 +237,8 @@ serve(async (req) => {
         transaction_id: withdrawalId,
         crypto_asset_id: withdrawalRequest.cryptoAssetId,
         destination_address: withdrawalRequest.cryptoAddress,
-        amount_usd: withdrawalRequest.amount,
+        amount: withdrawalRequest.amount,
+        currency: currency,
         status: "pending",
       });
     }
@@ -223,7 +274,7 @@ serve(async (req) => {
       resource_id: withdrawalId,
       details: {
         amount: withdrawalRequest.amount,
-        currency: withdrawalRequest.currency,
+        currency: currency,
         withdrawalMethod: withdrawalRequest.withdrawalMethod,
         requiresManualReview: complianceResult.requiresManualReview,
       },
@@ -238,6 +289,7 @@ serve(async (req) => {
         withdrawalRequest.investorId,
         withdrawalId,
         withdrawalRequest.amount,
+        currency,
         initialStatus
       );
     }
@@ -249,6 +301,7 @@ serve(async (req) => {
         withdrawalId,
         withdrawalRequest.investorId,
         withdrawalRequest.amount,
+        currency,
         complianceResult
       );
     }
@@ -258,7 +311,7 @@ serve(async (req) => {
       withdrawalId,
       status: initialStatus,
       amount: withdrawalRequest.amount,
-      currency: withdrawalRequest.currency,
+      currency: currency,
       withdrawalMethod: withdrawalRequest.withdrawalMethod,
       requiresManualReview: complianceResult.requiresManualReview,
       message: complianceResult.requiresManualReview
@@ -272,6 +325,7 @@ serve(async (req) => {
     console.log("Withdrawal processed successfully:", {
       withdrawalId,
       amount: withdrawalRequest.amount,
+      currency: currency,
       requiresReview: complianceResult.requiresManualReview,
     });
 
@@ -302,13 +356,18 @@ async function runComplianceChecks(
   supabase: any,
   investorId: string,
   amount: number,
+  currency: string,
   withdrawalMethod: string
 ): Promise<ComplianceCheck> {
   const checks: ComplianceCheck["checks"] = [];
   let requiresManualReview = false;
 
+  // Get per-asset limits
+  const dailyLimit = getLimit(DAILY_LIMITS, currency, 50000);
+  const monthlyLimit = getLimit(MONTHLY_LIMITS, currency, 200000);
+  const largeWithdrawalThreshold = getLimit(LARGE_WITHDRAWAL_THRESHOLDS, currency, 25000);
+
   // Check 1: Daily withdrawal limit
-  const dailyLimit = 50000; // $50,000
   const { data: todayWithdrawals } = await supabase
     .from("transactions")
     .select("amount")
@@ -323,12 +382,11 @@ async function runComplianceChecks(
     name: "daily_limit",
     passed: !wouldExceedDaily,
     message: wouldExceedDaily
-      ? `Would exceed daily withdrawal limit of $${dailyLimit.toLocaleString()}`
+      ? `Would exceed daily withdrawal limit of ${formatTokenAmount(dailyLimit, currency)}`
       : "Within daily limit",
   });
 
   // Check 2: Monthly withdrawal limit
-  const monthlyLimit = 200000; // $200,000
   const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   const { data: monthWithdrawals } = await supabase
     .from("transactions")
@@ -344,12 +402,11 @@ async function runComplianceChecks(
     name: "monthly_limit",
     passed: !wouldExceedMonthly,
     message: wouldExceedMonthly
-      ? `Would exceed monthly withdrawal limit of $${monthlyLimit.toLocaleString()}`
+      ? `Would exceed monthly withdrawal limit of ${formatTokenAmount(monthlyLimit, currency)}`
       : "Within monthly limit",
   });
 
   // Check 3: Large withdrawal threshold (requires manual review)
-  const largeWithdrawalThreshold = 25000; // $25,000
   const isLargeWithdrawal = amount >= largeWithdrawalThreshold;
 
   if (isLargeWithdrawal) {
@@ -360,29 +417,26 @@ async function runComplianceChecks(
     name: "large_withdrawal_review",
     passed: true,
     message: isLargeWithdrawal
-      ? `Withdrawal amount exceeds $${largeWithdrawalThreshold.toLocaleString()} - requires manual review`
+      ? `Withdrawal amount exceeds ${formatTokenAmount(largeWithdrawalThreshold, currency)} - requires manual review`
       : "Below large withdrawal threshold",
   });
 
-  // Check 4: AML status
-  const { data: investor } = await supabase
-    .from("investors")
-    .select("aml_status, aml_last_checked_at")
+  // Check 4: Account status (using profiles table)
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("status")
     .eq("id", investorId)
     .single();
 
-  const amlCheckValid =
-    investor?.aml_status === "clear" &&
-    investor?.aml_last_checked_at &&
-    new Date(investor.aml_last_checked_at) > new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+  const accountActive = profile?.status === "active";
 
   checks.push({
-    name: "aml_check",
-    passed: amlCheckValid,
-    message: amlCheckValid ? "AML status is clear and current" : "AML check required or outdated",
+    name: "account_status",
+    passed: accountActive,
+    message: accountActive ? "Account is active" : "Account is not active",
   });
 
-  if (!amlCheckValid) {
+  if (!accountActive) {
     requiresManualReview = true;
   }
 
@@ -461,12 +515,13 @@ async function sendWithdrawalNotificationEmail(
   investorId: string,
   withdrawalId: string,
   amount: number,
+  currency: string,
   status: string
 ): Promise<void> {
   try {
-    // Get investor email
+    // Get investor email from profiles table
     const { data: investor } = await supabase
-      .from("investors")
+      .from("profiles")
       .select("email, first_name")
       .eq("id", investorId)
       .single();
@@ -482,6 +537,10 @@ async function sendWithdrawalNotificationEmail(
       subject: "Withdrawal Request Received",
       template: "withdrawal_initiated",
       status: "pending",
+      metadata: {
+        amount: formatTokenAmount(amount, currency),
+        withdrawalId,
+      },
     });
 
     console.log("Withdrawal notification email queued for:", investor.email);
@@ -498,31 +557,46 @@ async function notifyAdminsForReview(
   withdrawalId: string,
   investorId: string,
   amount: number,
+  currency: string,
   complianceResult: ComplianceCheck
 ): Promise<void> {
   try {
-    // Get admin emails
-    const { data: admins } = await supabase
-      .from("profiles")
-      .select("email, full_name")
+    // Get admin emails using user_roles table
+    const { data: adminRoles } = await supabase
+      .from("user_roles")
+      .select("user_id")
       .eq("role", "admin");
 
-    if (!admins || admins.length === 0) {
+    if (!adminRoles || adminRoles.length === 0) {
       console.error("No admins found for notification");
       return;
     }
 
-    // Create admin notification
+    // Get admin profiles
+    const adminIds = adminRoles.map((r: { user_id: string }) => r.user_id);
+    const { data: admins } = await supabase
+      .from("profiles")
+      .select("email, first_name, last_name")
+      .in("id", adminIds);
+
+    if (!admins || admins.length === 0) {
+      console.error("No admin profiles found for notification");
+      return;
+    }
+
+    // Create admin notification with token-denominated amount
     await supabase.from("admin_notifications").insert({
       notification_type: "withdrawal_review_required",
       title: "Withdrawal Requires Manual Review",
-      message: `Withdrawal of $${amount.toLocaleString()} requires manual review`,
+      message: `Withdrawal of ${formatTokenAmount(amount, currency)} requires manual review`,
       priority: "high",
       related_entity_type: "transaction",
       related_entity_id: withdrawalId,
       metadata: {
         investorId,
         amount,
+        currency,
+        formattedAmount: formatTokenAmount(amount, currency),
         complianceChecks: complianceResult.checks,
       },
     });
