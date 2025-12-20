@@ -50,15 +50,15 @@ export async function fetchTransactions(filter: TransactionFilter = {}): Promise
     }
 
     if (filter.startDate) {
-      query = query.gte("created_at", filter.startDate);
+      query = query.gte("tx_date", filter.startDate);
     }
 
     if (filter.endDate) {
-      query = query.lte("created_at", filter.endDate);
+      query = query.lte("tx_date", filter.endDate);
     }
 
     const { data, error, count } = await query
-      .order("created_at", { ascending: false })
+      .order("tx_date", { ascending: false })
       .limit(filter.limit || 50);
 
     if (error) throw error;
@@ -119,7 +119,7 @@ export async function fetchTransactionSummary(userId: string): Promise<Transacti
       .from("transactions_v2")
       .select("*")
       .eq("investor_id", investorId)
-      .order("created_at", { ascending: false });
+      .order("tx_date", { ascending: false });
 
     if (error) throw error;
 

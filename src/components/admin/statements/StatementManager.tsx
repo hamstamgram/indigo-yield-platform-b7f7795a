@@ -94,11 +94,12 @@ export const StatementManager: React.FC = () => {
       // 2. Process Each Investor
       for (const investor of investors) {
         // Get Transactions
+        // Filter by tx_date (effective date) not created_at
         const { data: txs } = await supabase
           .from("transactions_v2")
           .select("*")
           .eq("investor_id", investor.id)
-          .lte("created_at", endDate.toISOString());
+          .lte("tx_date", endDate.toISOString().split("T")[0]);
 
         if (!txs) continue;
 

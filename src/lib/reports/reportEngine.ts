@@ -81,14 +81,14 @@ export class ReportEngine {
       .select("*, funds(name, code, asset)")
       .eq("investor_id", investorId);
 
-    // Use transactions_v2 (new table)
+    // Use transactions_v2 (new table) - filter by tx_date (effective date) not created_at
     const { data: transactions } = await supabase
       .from("transactions_v2")
       .select("*")
       .eq("investor_id", investorId)
-      .gte("created_at", startDate.toISOString())
-      .lte("created_at", endDate.toISOString())
-      .order("created_at", { ascending: false });
+      .gte("tx_date", startDate.toISOString().split("T")[0])
+      .lte("tx_date", endDate.toISOString().split("T")[0])
+      .order("tx_date", { ascending: false });
 
     // Use investor_fund_performance (V2) for statements with investor_id
     // Cast to any to avoid "Type instantiation is excessively deep" error

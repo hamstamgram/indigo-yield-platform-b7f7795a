@@ -101,11 +101,12 @@ export async function getHistoricalData(entityId: string, type: "fund" | "invest
     }
     return data;
   } else {
+    // Join with statement_periods to order by period_end_date (effective date)
     const { data, error } = await supabase
       .from("investor_fund_performance")
-      .select("*")
+      .select("*, period:statement_periods(period_end_date)")
       .eq("investor_id", entityId)
-      .order("created_at", { ascending: false });
+      .order("period(period_end_date)", { ascending: false });
     if (error) {
       console.error("Error fetching investor historical data:", error);
       return [];
