@@ -34,7 +34,9 @@ export default function TransactionsPage() {
         query = query.or(`asset.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%`);
       }
 
-      const { data, error } = await query.order("tx_date", { ascending: false });
+      const { data, error } = await query
+        .order("tx_date", { ascending: false })
+        .order("id", { ascending: false }); // Deterministic tie-breaker for same-day ordering
       if (error) throw error;
       return data;
     },

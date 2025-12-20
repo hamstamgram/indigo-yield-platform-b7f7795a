@@ -64,6 +64,7 @@ export function useDashboardData() {
           .select("*")
           .eq("investor_id", investorId)
           .order("tx_date", { ascending: false })
+          .order("id", { ascending: false }) // Deterministic tie-breaker for same-day ordering
           .limit(5);
 
         setState({

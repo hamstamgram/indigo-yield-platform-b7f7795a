@@ -16,7 +16,8 @@ export class DepositService {
       `
       )
       .eq("type", "DEPOSIT")
-      .order("tx_date", { ascending: false });
+      .order("tx_date", { ascending: false })
+      .order("id", { ascending: false }); // Deterministic tie-breaker for same-day ordering
 
     if (filters?.asset_symbol) {
       query = query.eq("asset", filters.asset_symbol);

@@ -303,7 +303,8 @@ class GDPRComplianceManager {
       .from('transactions_v2')
       .select('*')
       .eq('investor_id', userId)
-      .order('tx_date', { ascending: false });
+      .order('tx_date', { ascending: false })
+      .order('id', { ascending: false }); // Deterministic tie-breaker for same-day ordering
 
     const { data: transactions } = transactionsResult as { data: any; error: any };
 

@@ -78,7 +78,8 @@ export async function computeStatement(
       .select("*")
       .eq("investor_id", investor_id) // Unified ID
       .lte("tx_date", period_end_str)
-      .order("tx_date", { ascending: true });
+      .order("tx_date", { ascending: true })
+      .order("id", { ascending: true }); // Deterministic tie-breaker for same-day ordering
 
     if (txError) {
       console.error("Error fetching transactions:", txError);
