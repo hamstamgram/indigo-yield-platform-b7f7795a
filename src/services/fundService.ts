@@ -150,6 +150,7 @@ export async function addFundToInvestor(
 
 /**
  * Get investor positions by investor ID
+ * Filters out zero-value positions (deleted or fully withdrawn)
  */
 export async function getInvestorPositions(investorId: string): Promise<InvestorPosition[]> {
   const { data, error } = await supabase
@@ -167,6 +168,8 @@ export async function getInvestorPositions(investorId: string): Promise<Investor
     `
     )
     .eq("investor_id", investorId)
+    // Filter out zero-value positions
+    .or("current_value.gt.0,cost_basis.gt.0,shares.gt.0")
     .order("current_value", { ascending: false });
 
   if (error) {
