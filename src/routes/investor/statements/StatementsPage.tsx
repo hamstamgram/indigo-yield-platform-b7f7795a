@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FileText, Calendar, TrendingUp, Info, AlertCircle, Download, Loader2 } from "lucide-react";
+import PageHeader from "@/components/layout/PageHeader";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { getAssetConfig, getAssetName } from "@/utils/assets";
@@ -225,25 +226,23 @@ const StatementsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="space-y-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-8 bg-muted rounded w-1/3"></div>
+          <div className="h-64 bg-muted rounded"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-display font-bold flex items-center gap-2">
-          <FileText className="h-8 w-8 text-primary" />
-          Monthly Statements
-        </h1>
-        <p className="text-muted-foreground">Access your monthly investment statements</p>
-      </div>
+      <PageHeader 
+        title="Monthly Statements" 
+        subtitle="Access your monthly investment statements"
+        icon={FileText}
+      />
 
       {/* Filters */}
       <Card>

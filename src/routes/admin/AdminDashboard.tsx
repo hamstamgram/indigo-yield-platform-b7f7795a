@@ -10,6 +10,7 @@ import { FinancialSnapshot } from "@/components/admin/FinancialSnapshot";
 import { PendingActionsPanel } from "@/components/admin/dashboard/PendingActionsPanel";
 import { RecentActivityFeed } from "@/components/admin/dashboard/RecentActivityFeed";
 import { useAdminStats } from "@/hooks/useAdminStats";
+import PageHeader from "@/components/layout/PageHeader";
 
 function AdminDashboardContent() {
   const { stats, loading } = useAdminStats();
@@ -23,18 +24,18 @@ function AdminDashboardContent() {
   }
 
   return (
-    <div className="container max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-end">
-        <div>
-          <h1 className="text-3xl font-display font-bold tracking-tight">Command Center</h1>
-          <p className="text-muted-foreground mt-1">Platform overview and operational status</p>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
-          System Operational
-        </div>
-      </div>
+      <PageHeader 
+        title="Command Center" 
+        subtitle="Platform overview and operational status"
+        actions={
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+            System Operational
+          </div>
+        }
+      />
 
       {/* Quick Stats Bar */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
@@ -118,7 +119,6 @@ function AdminDashboardContent() {
     </div>
   );
 }
-
 export default function AdminDashboard() {
   return (
     <AdminGuard>

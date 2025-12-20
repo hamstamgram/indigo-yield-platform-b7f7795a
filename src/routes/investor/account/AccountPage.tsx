@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, Moon, Sun, Settings } from "lucide-react";
+import PageHeader from "@/components/layout/PageHeader";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -257,8 +258,8 @@ const AccountPage = () => {
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-foreground mb-6">Account</h1>
+    <div className="space-y-6">
+      <PageHeader title="Account" icon={Settings} />
 
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="mb-4 bg-muted">
