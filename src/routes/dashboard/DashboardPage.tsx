@@ -31,7 +31,7 @@ export default function DashboardPage() {
 
   // Build per-asset balances for hero (token-denominated, no USD)
   const assetBalances = assetStats?.assets?.map((a) => ({
-    symbol: a.fundName, // Fund name is the asset code (BTC, ETH, etc.)
+    symbol: a.assetSymbol, // Asset symbol from funds table (BTC, ETH, etc.)
     balance: a.mtd.endingBalance || 0,
     ytdReturn: a.ytd.rateOfReturn || 0,
   })) || [];
