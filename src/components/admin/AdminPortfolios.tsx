@@ -21,7 +21,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { InvestorSummaryV2 } from "@/services/adminServiceV2";
+import { InvestorSummaryV2 } from "@/services/admin";
 import { Asset } from "@/types/investorTypes";
 
 type UserPortfolio = {

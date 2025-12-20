@@ -1,6 +1,5 @@
 /**
- * Service Layer - Central Export
- * Unified access to all business logic services
+ * Core Services - Foundational/infrastructure services
  */
 
 export { ApiClient } from "./ApiClient";
@@ -9,6 +8,21 @@ export type { ApiResponse } from "./ApiClient";
 export { AuthService, authService } from "./AuthService";
 export type { SignUpData, SignInData } from "./AuthService";
 
-
-
 export { PortfolioService, portfolioService } from "./PortfolioService";
+
+// Data integrity
+export * from "./dataIntegrityService";
+
+// System health
+export * from "./systemHealthService";
+
+// Session management
+export * from "./sessionManagement";
+
+// Report services
+export * from "./reportEngine";
+export * from "./reportGenerationService";
+export * from "./reportUpsertService";
+
+// Support service
+export * from "./supportService";

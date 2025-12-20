@@ -4,11 +4,9 @@ import InvestorsTable from "@/components/admin/investors/InvestorsTable";
 import AddInvestorDialog from "@/components/admin/investors/AddInvestorDialog";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { adminServiceV2 } from "@/services/adminServiceV2";
-import { assetService } from "@/services/assetService";
+import { adminServiceV2, InvestorSummaryV2, deleteInvestorUser } from "@/services/admin";
+import { assetService } from "@/services/shared";
 import { Asset } from "@/types/investorTypes";
-import { InvestorSummaryV2 } from "@/services/adminServiceV2";
-import { deleteInvestorUser } from "@/services/userService";
 import { useToast } from "@/hooks/use-toast";
 
 export default function InvestorsListPage() {

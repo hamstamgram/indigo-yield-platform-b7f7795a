@@ -14,7 +14,7 @@ import {
   isPeriodLocked,
   getPeriodOwnership,
   getFundPeriodSnapshot
-} from "./snapshotService";
+} from "@/services/operations/snapshotService";
 
 // ============================================================================
 // Types
