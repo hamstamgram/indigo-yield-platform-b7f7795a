@@ -674,6 +674,131 @@ export type Database = {
           },
         ]
       }
+      fee_allocations: {
+        Row: {
+          base_net_income: number
+          created_at: string | null
+          created_by: string | null
+          credit_transaction_id: string | null
+          debit_transaction_id: string | null
+          distribution_id: string
+          fee_amount: number
+          fee_percentage: number
+          fees_account_id: string
+          fund_id: string
+          id: string
+          investor_id: string
+          period_end: string
+          period_start: string
+          purpose: Database["public"]["Enums"]["aum_purpose"]
+        }
+        Insert: {
+          base_net_income: number
+          created_at?: string | null
+          created_by?: string | null
+          credit_transaction_id?: string | null
+          debit_transaction_id?: string | null
+          distribution_id: string
+          fee_amount: number
+          fee_percentage: number
+          fees_account_id?: string
+          fund_id: string
+          id?: string
+          investor_id: string
+          period_end: string
+          period_start: string
+          purpose: Database["public"]["Enums"]["aum_purpose"]
+        }
+        Update: {
+          base_net_income?: number
+          created_at?: string | null
+          created_by?: string | null
+          credit_transaction_id?: string | null
+          debit_transaction_id?: string | null
+          distribution_id?: string
+          fee_amount?: number
+          fee_percentage?: number
+          fees_account_id?: string
+          fund_id?: string
+          id?: string
+          investor_id?: string
+          period_end?: string
+          period_start?: string
+          purpose?: Database["public"]["Enums"]["aum_purpose"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_allocations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_allocations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "fee_allocations_credit_transaction_id_fkey"
+            columns: ["credit_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions_v2"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_allocations_debit_transaction_id_fkey"
+            columns: ["debit_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions_v2"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_allocations_fees_account_id_fkey"
+            columns: ["fees_account_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_allocations_fees_account_id_fkey"
+            columns: ["fees_account_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "fee_allocations_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_allocations_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fee_allocations_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_allocations_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+        ]
+      }
       fee_calculations: {
         Row: {
           calculation_basis: number
