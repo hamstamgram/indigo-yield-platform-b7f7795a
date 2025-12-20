@@ -7,6 +7,9 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+// Allowed sender domains for security
+const ALLOWED_SENDER_DOMAINS = ["indigoyield.com"];
+
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req.headers.get("origin"));
 
@@ -20,6 +23,58 @@ serve(async (req) => {
       throw new Error("RESEND_API_KEY is not set");
     }
 
+    // ========================================
+    // SECURITY FIX: Require admin authorization
+    // ========================================
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      console.error("[send-email] Missing authorization header");
+      return new Response(
+        JSON.stringify({ error: "Missing authorization header" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const supabaseAuth = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    
+    // Verify the user's JWT token
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error("[send-email] Invalid token:", authError?.message);
+      return new Response(
+        JSON.stringify({ error: "Unauthorized - invalid token" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Check if user is an admin
+    const { data: profile, error: profileError } = await supabaseAuth
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !profile?.is_admin) {
+      console.error("[send-email] Non-admin attempted to send email:", user.email);
+      return new Response(
+        JSON.stringify({ error: "Admin access required to send emails" }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    console.log("[send-email] Admin authorized:", user.email);
+
     // Validate request body
     const validation = await parseAndValidate(req, sendEmailRequestSchema, corsHeaders);
     if (!validation.success) {
@@ -28,8 +83,28 @@ serve(async (req) => {
 
     const { to, subject, html, from, reply_to, email_type } = validation.data;
 
-    // Default sender if not provided
+    // ========================================
+    // SECURITY FIX: Validate sender domain
+    // ========================================
     const sender = from || "Indigo Yield Platform <noreply@indigoyield.com>";
+    
+    // Extract domain from sender email
+    const senderMatch = sender.match(/<([^>]+)>/) || sender.match(/([^\s]+@[^\s]+)/);
+    if (senderMatch) {
+      const senderEmail = senderMatch[1] || senderMatch[0];
+      const senderDomain = senderEmail.split("@")[1]?.toLowerCase();
+      
+      if (senderDomain && !ALLOWED_SENDER_DOMAINS.some(d => senderDomain.endsWith(d))) {
+        console.error("[send-email] Invalid sender domain:", senderDomain);
+        return new Response(
+          JSON.stringify({ error: "Invalid sender domain. Only approved domains are allowed." }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+    }
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -48,18 +123,21 @@ serve(async (req) => {
 
     const data = await res.json();
 
-    if (!res.ok) {
-      // Log failure if possible
-      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-      const recipients = Array.isArray(to) ? to : [to];
+    // Create Supabase client for logging
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const recipients = Array.isArray(to) ? to : [to];
 
+    if (!res.ok) {
+      console.error("[send-email] Resend API error:", data);
+      
+      // Log failure
       for (const recipient of recipients) {
         await supabase.from("email_logs").insert({
           recipient: recipient,
           subject: subject,
           status: "failed",
           error: JSON.stringify(data),
-          metadata: { email_type },
+          metadata: { email_type, sent_by: user.id },
           sent_at: new Date().toISOString(),
         });
       }
@@ -70,17 +148,16 @@ serve(async (req) => {
       });
     }
 
-    // Log Success
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    const recipients = Array.isArray(to) ? to : [to];
+    console.log("[send-email] Email sent successfully to:", recipients.join(", "));
 
+    // Log Success
     for (const recipient of recipients) {
       await supabase.from("email_logs").insert({
-        recipient: recipient, // Schema uses 'recipient' not 'recipient_email' based on migration
+        recipient: recipient,
         subject: subject,
         status: "sent",
         message_id: data.id,
-        metadata: { email_type },
+        metadata: { email_type, sent_by: user.id },
         sent_at: new Date().toISOString(),
       });
     }
@@ -90,6 +167,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
+    console.error("[send-email] Unexpected error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
