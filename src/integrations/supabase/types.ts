@@ -1597,6 +1597,7 @@ export type Database = {
           email: string
           expires_at: string
           id: string
+          investor_id: string | null
           invite_code: string
           used: boolean | null
           used_at: string | null
@@ -1607,6 +1608,7 @@ export type Database = {
           email: string
           expires_at: string
           id?: string
+          investor_id?: string | null
           invite_code: string
           used?: boolean | null
           used_at?: string | null
@@ -1617,6 +1619,7 @@ export type Database = {
           email?: string
           expires_at?: string
           id?: string
+          investor_id?: string | null
           invite_code?: string
           used?: boolean | null
           used_at?: string | null
@@ -1632,6 +1635,20 @@ export type Database = {
           {
             foreignKeyName: "investor_invites_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "investor_invites_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_invites_investor_id_fkey"
+            columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
