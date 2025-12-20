@@ -24,12 +24,20 @@ import { format } from "date-fns";
 import { ApproveWithdrawalDialog } from "./ApproveWithdrawalDialog";
 import { RejectWithdrawalDialog } from "./RejectWithdrawalDialog";
 
+interface Fund {
+  id: string;
+  code: string;
+  name: string;
+  asset: string;
+}
+
 interface WithdrawalsTableProps {
   withdrawals: Withdrawal[];
   isLoading: boolean;
   filters: WithdrawalFilters;
   onFiltersChange: (filters: WithdrawalFilters) => void;
   onRefresh: () => void;
+  funds?: Fund[];
 }
 
 const statusColors: Record<WithdrawalStatus, string> = {
@@ -47,6 +55,7 @@ export function WithdrawalsTable({
   filters,
   onFiltersChange,
   onRefresh,
+  funds = [],
 }: WithdrawalsTableProps) {
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<Withdrawal | null>(null);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
@@ -93,6 +102,28 @@ export function WithdrawalsTable({
             <SelectItem value="cancelled">Cancelled</SelectItem>
           </SelectContent>
         </Select>
+        
+        {/* Fund Filter */}
+        {funds.length > 0 && (
+          <Select
+            value={(filters as any).fundId || "all"}
+            onValueChange={(value) =>
+              onFiltersChange({ ...filters, fundId: value === "all" ? undefined : value } as any)
+            }
+          >
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Filter by fund" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Funds</SelectItem>
+              {funds.map((fund) => (
+                <SelectItem key={fund.id} value={fund.id}>
+                  {fund.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <div className="rounded-md border">

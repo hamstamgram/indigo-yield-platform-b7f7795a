@@ -84,6 +84,12 @@ export function WithdrawalRequestForm({
       ? toDecimal(requestedAmount).lessThanOrEqualTo(toDecimal(availableBalance.amount))
       : false;
 
+  // Check if this is a full withdrawal attempt (>= 95% of balance)
+  const isFullWithdrawal =
+    availableBalance && requestedAmount
+      ? toDecimal(requestedAmount).dividedBy(toDecimal(availableBalance.amount)).greaterThanOrEqualTo(0.95)
+      : false;
+
   const onSubmit = async (data: WithdrawalRequestInput) => {
     setIsSubmitting(true);
 
@@ -250,10 +256,22 @@ export function WithdrawalRequestForm({
               {...register("amount", { valueAsNumber: true })}
             />
             {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
-            {requestedAmount && availableBalance && !isAmountValid && (
+              {requestedAmount && availableBalance && !isAmountValid && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>Amount exceeds available balance</AlertDescription>
+              </Alert>
+            )}
+            {isAmountValid && isFullWithdrawal && (
+              <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
+                <Info className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-800 dark:text-amber-200">
+                  <strong>Full Account Withdrawal</strong>
+                  <br />
+                  For withdrawals of 95% or more of your balance, please contact our team directly.
+                  We'll provide a real-time AUM snapshot and guide you through the process to ensure
+                  accurate final calculations.
+                </AlertDescription>
               </Alert>
             )}
           </div>
@@ -338,12 +356,14 @@ export function WithdrawalRequestForm({
           <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isSubmitting || !isAmountValid}>
+          <Button type="submit" disabled={isSubmitting || !isAmountValid || isFullWithdrawal}>
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Submitting...
               </>
+            ) : isFullWithdrawal ? (
+              "Contact Support for Full Withdrawal"
             ) : (
               "Submit Request"
             )}

@@ -1,6 +1,7 @@
 /**
  * Unified Investors Page
  * Single page with toggle for inline management vs navigation mode
+ * Includes filters for fund and active/inactive status
  */
 
 import { useState, useEffect } from "react";
@@ -11,12 +12,20 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Search,
   Loader2,
   User,
   Mail,
   ChevronRight,
   PanelRightOpen,
+  Filter,
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { adminServiceV2, InvestorSummaryV2 } from "@/services/adminServiceV2";
@@ -29,6 +38,14 @@ import { useAdminStats } from "@/hooks/useAdminStats";
 import { cn } from "@/lib/utils";
 import { assetService } from "@/services/assetService";
 import { Asset } from "@/types/investorTypes";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Fund {
+  id: string;
+  code: string;
+  name: string;
+  asset: string;
+}
 
 function UnifiedInvestorsContent() {
   const navigate = useNavigate();
@@ -36,10 +53,16 @@ function UnifiedInvestorsContent() {
   const { stats } = useAdminStats();
   const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [funds, setFunds] = useState<Fund[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedInvestor, setSelectedInvestor] = useState<InvestorSummaryV2 | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  
+  // Filter states
+  const [fundFilter, setFundFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [investorPositions, setInvestorPositions] = useState<Map<string, string[]>>(new Map());
 
   // Toggle for inline management mode
   const { isInlineMode, setIsInlineMode } = useInlineManagementToggle();
@@ -47,11 +70,26 @@ function UnifiedInvestorsContent() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [investorsData, assetsData] = await Promise.all([
+      const [investorsData, assetsData, fundsData, positionsData] = await Promise.all([
         adminServiceV2.getAllInvestorsWithSummary(),
         assetService.getAssets({ is_active: true }),
+        supabase.from("funds").select("id, code, name, asset").eq("status", "active").order("code"),
+        supabase.from("investor_positions").select("investor_id, fund_id").gt("current_value", 0),
       ]);
+      
       setInvestors(investorsData);
+      setFunds(fundsData.data || []);
+      
+      // Build map of investor -> fund IDs
+      const posMap = new Map<string, string[]>();
+      (positionsData.data || []).forEach((p) => {
+        const existing = posMap.get(p.investor_id) || [];
+        if (!existing.includes(p.fund_id)) {
+          existing.push(p.fund_id);
+        }
+        posMap.set(p.investor_id, existing);
+      });
+      setInvestorPositions(posMap);
       
       // Transform to match Asset type expected by AddInvestorDialog
       const transformedAssets: Asset[] = assetsData.map((a) => ({
@@ -108,12 +146,29 @@ function UnifiedInvestorsContent() {
   };
 
   const filteredInvestors = investors.filter((inv) => {
+    // Text search filter
     const search = searchTerm.toLowerCase();
-    return (
+    const matchesSearch =
       inv.firstName.toLowerCase().includes(search) ||
       inv.lastName.toLowerCase().includes(search) ||
-      inv.email.toLowerCase().includes(search)
-    );
+      inv.email.toLowerCase().includes(search);
+
+    if (!matchesSearch) return false;
+
+    // Fund filter
+    if (fundFilter !== "all") {
+      const investorFunds = investorPositions.get(inv.id) || [];
+      if (!investorFunds.includes(fundFilter)) return false;
+    }
+
+    // Status filter (active = has positions, inactive = no positions)
+    if (statusFilter !== "all") {
+      const hasPositions = investorPositions.has(inv.id);
+      if (statusFilter === "active" && !hasPositions) return false;
+      if (statusFilter === "inactive" && hasPositions) return false;
+    }
+
+    return true;
   });
 
   if (loading) {
@@ -154,15 +209,45 @@ function UnifiedInvestorsContent() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search by name or email..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9"
-        />
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        
+        {/* Fund Filter */}
+        <Select value={fundFilter} onValueChange={setFundFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Filter by fund" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Funds</SelectItem>
+            {funds.map((fund) => (
+              <SelectItem key={fund.id} value={fund.id}>
+                {fund.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        
+        {/* Status Filter */}
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Investors</SelectItem>
+            <SelectItem value="active">Active (with positions)</SelectItem>
+            <SelectItem value="inactive">Inactive (no positions)</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Mode indicator */}
@@ -170,6 +255,8 @@ function UnifiedInvestorsContent() {
         {isInlineMode
           ? "Click an investor to manage inline"
           : "Click an investor to open full profile"}
+        {" • "}
+        Showing {filteredInvestors.length} of {investors.length} investors
       </p>
 
       {/* Investors List */}

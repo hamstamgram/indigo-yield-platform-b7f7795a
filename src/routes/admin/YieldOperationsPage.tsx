@@ -64,6 +64,10 @@ function YieldOperationsContent() {
   const [yieldPreview, setYieldPreview] = useState<YieldCalculationResult | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [applyLoading, setApplyLoading] = useState(false);
+  
+  // Purpose selector state
+  const [yieldPurpose, setYieldPurpose] = useState<"reporting" | "transaction">("reporting");
+  const [aumDate, setAumDate] = useState<string>(new Date().toISOString().split("T")[0]);
 
   const { toast } = useToast();
   const { user } = useAuth();
@@ -124,6 +128,8 @@ function YieldOperationsContent() {
     setSelectedFund(fund);
     setNewAUM("");
     setYieldPreview(null);
+    setYieldPurpose("reporting");
+    setAumDate(new Date().toISOString().split("T")[0]);
     setShowYieldDialog(true);
   };
 
@@ -340,19 +346,53 @@ function YieldOperationsContent() {
               </div>
             </div>
 
-            {/* Purpose Selector - NEW */}
+            {/* AUM Date Picker */}
+            <div className="space-y-2">
+              <Label htmlFor="aum-date">Effective Date</Label>
+              <input
+                id="aum-date"
+                type="date"
+                value={aumDate}
+                onChange={(e) => setAumDate(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+
+            {/* Purpose Selector - Functional */}
             <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
               <Label className="text-sm font-medium">Purpose</Label>
               <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer hover:border-green-500 transition-colors border-green-500">
-                  <div className="mt-0.5 h-4 w-4 rounded-full bg-green-500" />
+                <div 
+                  className={cn(
+                    "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
+                    yieldPurpose === "reporting" 
+                      ? "border-green-500 ring-1 ring-green-500/20" 
+                      : "hover:border-green-500/50"
+                  )}
+                  onClick={() => setYieldPurpose("reporting")}
+                >
+                  <div className={cn(
+                    "mt-0.5 h-4 w-4 rounded-full",
+                    yieldPurpose === "reporting" ? "bg-green-500" : "bg-muted-foreground/30"
+                  )} />
                   <div>
                     <p className="font-medium text-sm">Reporting</p>
                     <p className="text-xs text-muted-foreground">Month-end official yield for statements</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer hover:border-orange-500 transition-colors opacity-50">
-                  <div className="mt-0.5 h-4 w-4 rounded-full bg-orange-500" />
+                <div 
+                  className={cn(
+                    "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
+                    yieldPurpose === "transaction" 
+                      ? "border-orange-500 ring-1 ring-orange-500/20" 
+                      : "hover:border-orange-500/50"
+                  )}
+                  onClick={() => setYieldPurpose("transaction")}
+                >
+                  <div className={cn(
+                    "mt-0.5 h-4 w-4 rounded-full",
+                    yieldPurpose === "transaction" ? "bg-orange-500" : "bg-muted-foreground/30"
+                  )} />
                   <div>
                     <p className="font-medium text-sm">Transaction</p>
                     <p className="text-xs text-muted-foreground">Mid-month operational (withdrawals/top-ups)</p>
