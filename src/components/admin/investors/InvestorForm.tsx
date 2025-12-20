@@ -9,11 +9,13 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Asset } from "@/types/investorTypes";
 import { getAssetLogo } from "@/utils/assets";
+import { EmailChipsInput } from "@/components/ui/email-chips-input";
 
 // Define the schema for our form with non-negative balance validation
 const formSchema = z.object({
@@ -26,6 +28,8 @@ const formSchema = z.object({
   last_name: z.string().min(1, {
     message: "Last name is required",
   }),
+  // Report recipient emails (optional array)
+  report_emails: z.array(z.string().email()).default([]),
   // Dynamic balances record: key is asset symbol, value is balance string
   // Must be empty string OR a valid non-negative number
   balances: z.record(
@@ -57,6 +61,7 @@ const InvestorForm: React.FC<InvestorFormProps> = ({
       email: "",
       first_name: "",
       last_name: "",
+      report_emails: [],
       balances: {},
       ...defaultValues,
     },
@@ -70,11 +75,14 @@ const InvestorForm: React.FC<InvestorFormProps> = ({
             control={form.control}
             name="email"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
+              <FormItem className="md:col-span-2">
+                <FormLabel>Account Email</FormLabel>
                 <FormControl>
                   <Input placeholder="investor@example.com" {...field} />
                 </FormControl>
+                <FormDescription>
+                  Used for login and account access
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -103,6 +111,30 @@ const InvestorForm: React.FC<InvestorFormProps> = ({
                 <FormControl>
                   <Input placeholder="Last Name" {...field} />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Report Recipients Section */}
+        <div className="pt-4 border-t">
+          <FormField
+            control={form.control}
+            name="report_emails"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Report Recipients</FormLabel>
+                <FormControl>
+                  <EmailChipsInput
+                    value={field.value || []}
+                    onChange={field.onChange}
+                    placeholder="Add email and press Enter"
+                  />
+                </FormControl>
+                <FormDescription>
+                  These emails will receive monthly investment reports. Leave empty to use account email.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -153,3 +185,4 @@ const InvestorForm: React.FC<InvestorFormProps> = ({
 };
 
 export default InvestorForm;
+
