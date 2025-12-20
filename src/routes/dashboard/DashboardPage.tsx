@@ -120,6 +120,7 @@ export default function DashboardPage() {
           year: "numeric"
         }) : undefined}
         isLoading={isLoadingStats}
+        isFinalizedData={true}
       />
 
       {/* Quick Actions - Mobile scrollable, Desktop grid */}
