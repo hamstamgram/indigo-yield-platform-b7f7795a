@@ -1,7 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Wallet, Calendar } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Calendar, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface PortfolioHeroProps {
   totalBalance: number;
@@ -10,6 +11,8 @@ interface PortfolioHeroProps {
   lastUpdated?: string;
   isLoading?: boolean;
   className?: string;
+  /** If true, shows "as of" label instead of "Last updated" */
+  isFinalizedData?: boolean;
 }
 
 const formatCurrency = (val: number) => {
@@ -33,6 +36,7 @@ export function PortfolioHero({
   lastUpdated,
   isLoading,
   className,
+  isFinalizedData = false,
 }: PortfolioHeroProps) {
   const isPositive = totalYtdReturn >= 0;
 
@@ -65,6 +69,21 @@ export function PortfolioHero({
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
               <Wallet className="h-3 w-3" />
               Total Portfolio Value
+              {isFinalizedData && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs text-xs">
+                        This shows your finalized month-end balance. 
+                        Mid-month values are not displayed until the period is closed.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </p>
             <p className="text-3xl md:text-4xl lg:text-5xl font-display font-bold tracking-tight">
               {formatCurrency(totalBalance)}
@@ -72,7 +91,7 @@ export function PortfolioHero({
             {lastUpdated && (
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                As of {lastUpdated}
+                {isFinalizedData ? "As of period ending" : "Last updated"} {lastUpdated}
               </p>
             )}
           </div>

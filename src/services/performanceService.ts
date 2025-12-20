@@ -90,5 +90,77 @@ export const performanceService = {
       assets: perAssetStats,
       activeFunds: latestByFund.size
     };
+  },
+
+  /**
+   * Get finalized (month-end reporting purpose) AUM data for investor display
+   * Only returns data that has been finalized for reporting
+   */
+  async getFinalizedInvestorData(userId: string): Promise<{
+    totalBalance: number;
+    ytdReturn: number;
+    activeFunds: number;
+    lastFinalizedDate: string | null;
+    isCurrentMonth: boolean;
+  }> {
+    // Get latest finalized statement period
+    const { data: latestPeriod, error: periodError } = await supabase
+      .from("statement_periods")
+      .select("id, period_name, period_end_date")
+      .eq("status", "FINALIZED")
+      .order("period_end_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (periodError) {
+      console.error("Error fetching finalized period:", periodError);
+    }
+
+    // If no finalized period, check for any period with data
+    let periodToUse = latestPeriod;
+    if (!periodToUse) {
+      const { data: anyPeriod } = await supabase
+        .from("statement_periods")
+        .select("id, period_name, period_end_date")
+        .order("period_end_date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      periodToUse = anyPeriod;
+    }
+
+    // Get investor's performance data for the latest period
+    const { data: performance } = await supabase
+      .from("investor_fund_performance")
+      .select("fund_name, mtd_ending_balance, ytd_rate_of_return")
+      .eq("investor_id", userId)
+      .eq("period_id", periodToUse?.id || "");
+
+    // Calculate totals
+    const totalBalance = performance?.reduce(
+      (sum, p) => sum + Number(p.mtd_ending_balance || 0), 
+      0
+    ) || 0;
+
+    // Get weighted average YTD return
+    const ytdReturn = performance?.length 
+      ? performance.reduce((sum, p) => sum + Number(p.ytd_rate_of_return || 0), 0) / performance.length
+      : 0;
+
+    const activeFunds = performance?.filter(p => Number(p.mtd_ending_balance || 0) > 0).length || 0;
+
+    // Check if finalized period is current month
+    const now = new Date();
+    const periodDate = periodToUse?.period_end_date ? new Date(periodToUse.period_end_date) : null;
+    const isCurrentMonth = periodDate 
+      ? periodDate.getMonth() === now.getMonth() && periodDate.getFullYear() === now.getFullYear()
+      : false;
+
+    return {
+      totalBalance,
+      ytdReturn: ytdReturn / 100, // Convert to decimal for formatting
+      activeFunds,
+      lastFinalizedDate: periodToUse?.period_end_date || null,
+      isCurrentMonth,
+    };
   }
 };

@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Loader2 } from "lucide-react";
+import { FileText, Loader2, Shield, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { generatePDF } from "@/lib/pdf/statementGenerator";
+import { checkStatementExists } from "@/services/reportUpsertService";
+import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const AdminStatementGenerator: React.FC = () => {
+  const { isSuperAdmin, loading: roleLoading } = useSuperAdmin();
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -137,6 +141,39 @@ const AdminStatementGenerator: React.FC = () => {
     }
   };
 
+  // RBAC check
+  if (roleLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+          <p className="text-muted-foreground mt-2">Verifying permissions...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!isSuperAdmin) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-muted-foreground" />
+            Statement Generator
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert>
+            <Shield className="h-4 w-4" />
+            <AlertDescription>
+              Only Super Admins can generate statements. Contact a Super Admin for assistance.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -144,7 +181,9 @@ const AdminStatementGenerator: React.FC = () => {
           <FileText className="h-5 w-5" />
           Statement Generator
         </CardTitle>
-        <CardDescription>Generate monthly statements for all investors</CardDescription>
+        <CardDescription>
+          Generate monthly statements for all investors. Existing statements will be updated.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
@@ -177,6 +216,13 @@ const AdminStatementGenerator: React.FC = () => {
           </div>
         </div>
 
+        <Alert>
+          <RefreshCw className="h-4 w-4" />
+          <AlertDescription>
+            If a statement already exists for an investor + period, it will be updated (not duplicated).
+          </AlertDescription>
+        </Alert>
+
         {isGenerating && (
           <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
             <div
@@ -195,7 +241,7 @@ const AdminStatementGenerator: React.FC = () => {
           ) : (
             <>
               <FileText className="mr-2 h-4 w-4" />
-              Generate All Statements
+              Generate / Update All Statements
             </>
           )}
         </Button>
