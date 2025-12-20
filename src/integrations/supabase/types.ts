@@ -922,6 +922,54 @@ export type Database = {
           },
         ]
       }
+      fund_daily_aum_archive: {
+        Row: {
+          archive_id: string
+          archived_at: string
+          archived_by: string | null
+          as_of_date: string | null
+          aum_date: string | null
+          fund_id: string | null
+          id: string | null
+          nav_per_share: number | null
+          original_created_at: string | null
+          reset_batch_id: string
+          source: string | null
+          total_aum: number | null
+          total_shares: number | null
+        }
+        Insert: {
+          archive_id?: string
+          archived_at?: string
+          archived_by?: string | null
+          as_of_date?: string | null
+          aum_date?: string | null
+          fund_id?: string | null
+          id?: string | null
+          nav_per_share?: number | null
+          original_created_at?: string | null
+          reset_batch_id: string
+          source?: string | null
+          total_aum?: number | null
+          total_shares?: number | null
+        }
+        Update: {
+          archive_id?: string
+          archived_at?: string
+          archived_by?: string | null
+          as_of_date?: string | null
+          aum_date?: string | null
+          fund_id?: string | null
+          id?: string | null
+          nav_per_share?: number | null
+          original_created_at?: string | null
+          reset_batch_id?: string
+          source?: string | null
+          total_aum?: number | null
+          total_shares?: number | null
+        }
+        Relationships: []
+      }
       fund_fee_history: {
         Row: {
           created_at: string
@@ -1682,6 +1730,117 @@ export type Database = {
           },
         ]
       }
+      investor_fund_performance_archive: {
+        Row: {
+          archive_id: string
+          archived_at: string
+          archived_by: string | null
+          fund_name: string | null
+          id: string | null
+          investor_id: string | null
+          itd_additions: number | null
+          itd_beginning_balance: number | null
+          itd_ending_balance: number | null
+          itd_net_income: number | null
+          itd_rate_of_return: number | null
+          itd_redemptions: number | null
+          mtd_additions: number | null
+          mtd_beginning_balance: number | null
+          mtd_ending_balance: number | null
+          mtd_net_income: number | null
+          mtd_rate_of_return: number | null
+          mtd_redemptions: number | null
+          original_created_at: string | null
+          original_updated_at: string | null
+          period_id: string | null
+          qtd_additions: number | null
+          qtd_beginning_balance: number | null
+          qtd_ending_balance: number | null
+          qtd_net_income: number | null
+          qtd_rate_of_return: number | null
+          qtd_redemptions: number | null
+          reset_batch_id: string
+          ytd_additions: number | null
+          ytd_beginning_balance: number | null
+          ytd_ending_balance: number | null
+          ytd_net_income: number | null
+          ytd_rate_of_return: number | null
+          ytd_redemptions: number | null
+        }
+        Insert: {
+          archive_id?: string
+          archived_at?: string
+          archived_by?: string | null
+          fund_name?: string | null
+          id?: string | null
+          investor_id?: string | null
+          itd_additions?: number | null
+          itd_beginning_balance?: number | null
+          itd_ending_balance?: number | null
+          itd_net_income?: number | null
+          itd_rate_of_return?: number | null
+          itd_redemptions?: number | null
+          mtd_additions?: number | null
+          mtd_beginning_balance?: number | null
+          mtd_ending_balance?: number | null
+          mtd_net_income?: number | null
+          mtd_rate_of_return?: number | null
+          mtd_redemptions?: number | null
+          original_created_at?: string | null
+          original_updated_at?: string | null
+          period_id?: string | null
+          qtd_additions?: number | null
+          qtd_beginning_balance?: number | null
+          qtd_ending_balance?: number | null
+          qtd_net_income?: number | null
+          qtd_rate_of_return?: number | null
+          qtd_redemptions?: number | null
+          reset_batch_id: string
+          ytd_additions?: number | null
+          ytd_beginning_balance?: number | null
+          ytd_ending_balance?: number | null
+          ytd_net_income?: number | null
+          ytd_rate_of_return?: number | null
+          ytd_redemptions?: number | null
+        }
+        Update: {
+          archive_id?: string
+          archived_at?: string
+          archived_by?: string | null
+          fund_name?: string | null
+          id?: string | null
+          investor_id?: string | null
+          itd_additions?: number | null
+          itd_beginning_balance?: number | null
+          itd_ending_balance?: number | null
+          itd_net_income?: number | null
+          itd_rate_of_return?: number | null
+          itd_redemptions?: number | null
+          mtd_additions?: number | null
+          mtd_beginning_balance?: number | null
+          mtd_ending_balance?: number | null
+          mtd_net_income?: number | null
+          mtd_rate_of_return?: number | null
+          mtd_redemptions?: number | null
+          original_created_at?: string | null
+          original_updated_at?: string | null
+          period_id?: string | null
+          qtd_additions?: number | null
+          qtd_beginning_balance?: number | null
+          qtd_ending_balance?: number | null
+          qtd_net_income?: number | null
+          qtd_rate_of_return?: number | null
+          qtd_redemptions?: number | null
+          reset_batch_id?: string
+          ytd_additions?: number | null
+          ytd_beginning_balance?: number | null
+          ytd_ending_balance?: number | null
+          ytd_net_income?: number | null
+          ytd_rate_of_return?: number | null
+          ytd_redemptions?: number | null
+        }
+        Relationships: []
+      }
       investor_invites: {
         Row: {
           created_at: string | null
@@ -1975,6 +2134,72 @@ export type Database = {
           },
         ]
       }
+      investor_positions_archive: {
+        Row: {
+          archive_id: string
+          archived_at: string
+          archived_by: string | null
+          aum_percentage: number | null
+          cost_basis: number | null
+          current_value: number | null
+          fund_class: string | null
+          fund_id: string | null
+          high_water_mark: number | null
+          investor_id: string | null
+          last_transaction_date: string | null
+          lock_until_date: string | null
+          mgmt_fees_paid: number | null
+          original_updated_at: string | null
+          perf_fees_paid: number | null
+          realized_pnl: number | null
+          reset_batch_id: string
+          shares: number | null
+          unrealized_pnl: number | null
+        }
+        Insert: {
+          archive_id?: string
+          archived_at?: string
+          archived_by?: string | null
+          aum_percentage?: number | null
+          cost_basis?: number | null
+          current_value?: number | null
+          fund_class?: string | null
+          fund_id?: string | null
+          high_water_mark?: number | null
+          investor_id?: string | null
+          last_transaction_date?: string | null
+          lock_until_date?: string | null
+          mgmt_fees_paid?: number | null
+          original_updated_at?: string | null
+          perf_fees_paid?: number | null
+          realized_pnl?: number | null
+          reset_batch_id: string
+          shares?: number | null
+          unrealized_pnl?: number | null
+        }
+        Update: {
+          archive_id?: string
+          archived_at?: string
+          archived_by?: string | null
+          aum_percentage?: number | null
+          cost_basis?: number | null
+          current_value?: number | null
+          fund_class?: string | null
+          fund_id?: string | null
+          high_water_mark?: number | null
+          investor_id?: string | null
+          last_transaction_date?: string | null
+          lock_until_date?: string | null
+          mgmt_fees_paid?: number | null
+          original_updated_at?: string | null
+          perf_fees_paid?: number | null
+          realized_pnl?: number | null
+          reset_batch_id?: string
+          shares?: number | null
+          unrealized_pnl?: number | null
+        }
+        Relationships: []
+      }
       notification_settings: {
         Row: {
           daily_rates_enabled: boolean | null
@@ -2156,6 +2381,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      position_reset_log: {
+        Row: {
+          admin_user_id: string
+          affected_counts: Json | null
+          completed_at: string | null
+          confirmation_code: string
+          error_message: string | null
+          id: string
+          initiated_at: string
+          reset_batch_id: string
+          status: string
+        }
+        Insert: {
+          admin_user_id: string
+          affected_counts?: Json | null
+          completed_at?: string | null
+          confirmation_code: string
+          error_message?: string | null
+          id?: string
+          initiated_at?: string
+          reset_batch_id: string
+          status?: string
+        }
+        Update: {
+          admin_user_id?: string
+          affected_counts?: Json | null
+          completed_at?: string | null
+          confirmation_code?: string
+          error_message?: string | null
+          id?: string
+          initiated_at?: string
+          reset_batch_id?: string
+          status?: string
+        }
+        Relationships: []
       }
       price_alerts: {
         Row: {
@@ -3122,6 +3383,60 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
         ]
+      }
+      transactions_v2_archive: {
+        Row: {
+          amount: number | null
+          archive_id: string
+          archived_at: string
+          archived_by: string | null
+          asset: string | null
+          created_by: string | null
+          fund_id: string | null
+          id: string | null
+          investor_id: string | null
+          notes: string | null
+          original_created_at: string | null
+          reference_id: string | null
+          reset_batch_id: string
+          tx_date: string | null
+          type: string | null
+        }
+        Insert: {
+          amount?: number | null
+          archive_id?: string
+          archived_at?: string
+          archived_by?: string | null
+          asset?: string | null
+          created_by?: string | null
+          fund_id?: string | null
+          id?: string | null
+          investor_id?: string | null
+          notes?: string | null
+          original_created_at?: string | null
+          reference_id?: string | null
+          reset_batch_id: string
+          tx_date?: string | null
+          type?: string | null
+        }
+        Update: {
+          amount?: number | null
+          archive_id?: string
+          archived_at?: string
+          archived_by?: string | null
+          asset?: string | null
+          created_by?: string | null
+          fund_id?: string | null
+          id?: string | null
+          investor_id?: string | null
+          notes?: string | null
+          original_created_at?: string | null
+          reference_id?: string | null
+          reset_batch_id?: string
+          tx_date?: string | null
+          type?: string | null
+        }
+        Relationships: []
       }
       user_access_logs_enhanced: {
         Row: {
@@ -4289,6 +4604,10 @@ export type Database = {
       reject_withdrawal: {
         Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
         Returns: boolean
+      }
+      reset_all_investor_positions: {
+        Args: { p_admin_id: string; p_confirmation_code: string }
+        Returns: Json
       }
       send_daily_rate_notifications: {
         Args: { p_rate_date: string }

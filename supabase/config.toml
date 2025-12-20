@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.generate-fund-performance]
 verify_jwt = true
+
+[functions.reset-positions]
+verify_jwt = true

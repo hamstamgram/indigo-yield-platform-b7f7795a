@@ -1,6 +1,6 @@
 /**
  * Admin System Routes
- * System administration: settings, audit logs
+ * System administration: settings, audit logs, maintenance
  */
 
 import { Route, Navigate } from "react-router-dom";
@@ -9,6 +9,7 @@ import { AdminRoute } from "../../AdminRoute";
 
 const AdminSettingsNew = lazy(() => import("@/routes/admin/AdminSettings"));
 const AdminAuditLogs = lazy(() => import("@/routes/admin/AdminAuditLogs"));
+const MaintenancePage = lazy(() => import("@/routes/admin/MaintenancePage"));
 
 export function SystemRoutes() {
   return (
@@ -29,6 +30,16 @@ export function SystemRoutes() {
         element={
           <AdminRoute>
             <AdminAuditLogs />
+          </AdminRoute>
+        }
+      />
+
+      {/* Maintenance */}
+      <Route
+        path="/admin/maintenance"
+        element={
+          <AdminRoute>
+            <MaintenancePage />
           </AdminRoute>
         }
       />
