@@ -1,6 +1,6 @@
 /**
  * Admin System Routes
- * System administration: settings, audit logs, maintenance
+ * System administration: settings, audit logs, maintenance, admin management
  */
 
 import { Route, Navigate } from "react-router-dom";
@@ -10,6 +10,7 @@ import { AdminRoute } from "../../AdminRoute";
 const AdminSettingsNew = lazy(() => import("@/routes/admin/AdminSettings"));
 const AdminAuditLogs = lazy(() => import("@/routes/admin/AdminAuditLogs"));
 const MaintenancePage = lazy(() => import("@/routes/admin/MaintenancePage"));
+const AdminListPage = lazy(() => import("@/routes/admin/settings/AdminList"));
 
 export function SystemRoutes() {
   return (
@@ -20,6 +21,16 @@ export function SystemRoutes() {
         element={
           <AdminRoute>
             <AdminSettingsNew />
+          </AdminRoute>
+        }
+      />
+
+      {/* Admin Management - Super Admin only (enforced in component) */}
+      <Route
+        path="/admin/settings/admins"
+        element={
+          <AdminRoute>
+            <AdminListPage />
           </AdminRoute>
         }
       />

@@ -59,7 +59,7 @@ export const mainNav: NavItem[] = [
   },
 ];
 
-// Admin Platform Navigation - Ultra Simple (4 core items)
+// Admin Platform Navigation - Organized by functional area
 
 export const adminNavGroups: NavGroup[] = [
   {
@@ -103,6 +103,18 @@ export const adminNavGroups: NavGroup[] = [
         adminOnly: true,
       },
       {
+        title: "Recorded Yields",
+        href: "/admin/recorded-yields",
+        icon: <Calendar className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
+        title: "Fee Management",
+        href: "/admin/fees",
+        icon: <CreditCard className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
         title: "Reports",
         href: "/admin/investor-reports",
         icon: <FileSpreadsheet className="h-5 w-5" />,
@@ -117,6 +129,12 @@ export const adminNavGroups: NavGroup[] = [
       {
         title: "Audit Logs",
         href: "/admin/audit-logs",
+        icon: <Shield className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
+        title: "Admin Management",
+        href: "/admin/settings/admins",
         icon: <Shield className="h-5 w-5" />,
         adminOnly: true,
       },
