@@ -1,6 +1,6 @@
 /**
- * Fees Routes Module
- * Admin fee management routes
+ * INDIGO Fees Routes Module
+ * Admin INDIGO Fees management and audit trail
  */
 
 import { lazy } from "react";

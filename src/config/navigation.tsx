@@ -115,7 +115,7 @@ export const adminNavGroups: NavGroup[] = [
         adminOnly: true,
       },
       {
-        title: "Fee Management",
+        title: "INDIGO Fees",
         href: "/admin/fees",
         icon: <CreditCard className="h-5 w-5" />,
         adminOnly: true,
