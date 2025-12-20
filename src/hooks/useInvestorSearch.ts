@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { InvestorSummaryV2 } from "@/services/adminServiceV2";
+import { InvestorSummaryV2 } from "@/services/admin";
 
 /**
  * A hook for searching and filtering investors

@@ -41,8 +41,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { InvestorSummaryV2 } from "@/services/adminServiceV2";
-import { forceDeleteInvestorUser } from "@/services/userService";
+import { InvestorSummaryV2, forceDeleteInvestorUser } from "@/services/admin";
 import { InvestorYieldManager } from "./InvestorYieldManager";
 import InvestorPositionsTab from "./InvestorPositionsTab";
 import InvestorTransactionsTab from "./InvestorTransactionsTab";
