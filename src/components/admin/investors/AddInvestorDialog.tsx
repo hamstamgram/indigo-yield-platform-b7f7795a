@@ -54,7 +54,12 @@ const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({ assets, onInvesto
       }
 
       // Also create an invite entry to track this investor
-      await createInvite(values.email);
+      await createInvite({
+        id: userId,
+        email: values.email,
+        firstName: values.first_name,
+        lastName: values.last_name,
+      });
 
       toast({
         title: "Investor added",

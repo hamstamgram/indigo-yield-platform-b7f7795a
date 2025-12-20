@@ -30,7 +30,6 @@ import { AdminGuard } from "@/components/admin/AdminGuard";
 import { adminServiceV2, InvestorSummaryV2 } from "@/services/adminServiceV2";
 import { supabase } from "@/integrations/supabase/client";
 import AddInvestorDialog from "@/components/admin/investors/AddInvestorDialog";
-import InviteInvestorDialog from "@/components/admin/investors/InviteInvestorDialog";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { cn } from "@/lib/utils";
 
@@ -150,7 +149,6 @@ function UnifiedInvestorsContent() {
           </p>
         </div>
         <div className="flex gap-2">
-          <InviteInvestorDialog />
           <AddInvestorDialog assets={[]} onInvestorAdded={loadInvestors} />
         </div>
       </div>

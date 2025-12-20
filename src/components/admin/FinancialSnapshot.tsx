@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, PieChart, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Calendar as CalendarIcon, PieChart, ArrowUpDown, ArrowUp, ArrowDown, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -64,10 +71,8 @@ export const FinancialSnapshot: React.FC = () => {
   // Handle column sort
   const handleSort = (column: SortColumn) => {
     if (sortColumn === column) {
-      // Toggle direction if same column
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      // New column, default to descending for numbers, ascending for text
       setSortColumn(column);
       setSortDirection(column === "balance" || column === "ownership_pct" ? "desc" : "asc");
     }
@@ -137,14 +142,15 @@ export const FinancialSnapshot: React.FC = () => {
       if (!date) return;
       setLoadingComp(true);
       try {
-        // Direct query to investor_positions instead of RPC
+        // Direct query to investor_positions with limit for performance
         const { data: positions, error } = await supabase
           .from("investor_positions")
           .select(`
             current_value,
             profile:profiles!investor_id(first_name, last_name, email)
           `)
-          .eq("fund_id", fundId);
+          .eq("fund_id", fundId)
+          .limit(100);
 
         if (error) throw error;
 
@@ -185,12 +191,17 @@ export const FinancialSnapshot: React.FC = () => {
 
   const selectedFund = data.find((f) => f.fund_id === selectedFundId);
 
+  const handleCloseDrawer = () => {
+    setSelectedFundId(null);
+    setCompositionData([]);
+  };
+
   return (
     <div className="space-y-8">
       {/* Controls Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">
             Fund Financials
           </h2>
           <p className="text-muted-foreground">Historical snapshot of AUM and daily flows.</p>
@@ -230,8 +241,8 @@ export const FinancialSnapshot: React.FC = () => {
             key={fund.fund_id || fund.asset_code}
             className={cn(
               "hover:shadow-md transition-all cursor-pointer border-l-4",
-              selectedFundId === fund.fund_id ? "ring-2 ring-indigo-500 shadow-lg" : "",
-              "border-l-indigo-500"
+              selectedFundId === fund.fund_id ? "ring-2 ring-primary shadow-lg" : "",
+              "border-l-primary"
             )}
             onClick={() => setSelectedFundId(fund.fund_id)}
           >
@@ -243,14 +254,14 @@ export const FinancialSnapshot: React.FC = () => {
                   <p className="text-xs text-muted-foreground">{fund.fund_name}</p>
                 </div>
               </div>
-              {selectedFundId === fund.fund_id && <Badge className="bg-indigo-600">Selected</Badge>}
+              {selectedFundId === fund.fund_id && <Badge className="bg-primary">Selected</Badge>}
             </CardHeader>
             <CardContent>
               {/* Main AUM */}
               <div className="mt-4 mb-6">
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                <div className="text-2xl font-bold text-foreground">
                   {formatCrypto(fund.aum, fund.asset_code)}{" "}
-                  <span className="text-sm text-gray-500 font-normal">{fund.asset_code}</span>
+                  <span className="text-sm text-muted-foreground font-normal">{fund.asset_code}</span>
                 </div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mt-1">
                   Total Assets Under Management
@@ -258,30 +269,30 @@ export const FinancialSnapshot: React.FC = () => {
               </div>
 
               {/* Daily Flows Grid */}
-              <div className="grid grid-cols-3 gap-2 pt-4 border-t border-gray-100 dark:border-gray-800">
+              <div className="grid grid-cols-3 gap-2 pt-4 border-t border-border">
                 {/* Inflows */}
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Deposits (24h)</p>
-                  <p className="text-sm font-semibold text-green-600">
+                  <p className="text-xs text-muted-foreground mb-1">Deposits (24h)</p>
+                  <p className="text-sm font-semibold text-green-600 dark:text-green-400">
                     +{formatCrypto(fund.daily_inflows, fund.asset_code)}
                   </p>
                 </div>
 
                 {/* Outflows */}
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Withdrawals (24h)</p>
-                  <p className="text-sm font-semibold text-red-600">
+                  <p className="text-xs text-muted-foreground mb-1">Withdrawals (24h)</p>
+                  <p className="text-sm font-semibold text-red-600 dark:text-red-400">
                     -{formatCrypto(fund.daily_outflows, fund.asset_code)}
                   </p>
                 </div>
 
                 {/* Net Flow */}
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Net Flow</p>
+                  <p className="text-xs text-muted-foreground mb-1">Net Flow</p>
                   <p
                     className={cn(
                       "text-sm font-bold",
-                      fund.net_flow_24h >= 0 ? "text-green-600" : "text-red-600"
+                      fund.net_flow_24h >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
                     )}
                   >
                     {fund.net_flow_24h > 0 ? "+" : ""}
@@ -294,108 +305,102 @@ export const FinancialSnapshot: React.FC = () => {
         ))}
       </div>
 
-      {/* Investor Composition Detail View */}
-      {selectedFundId && selectedFund && (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <Card className="border-t-4 border-t-indigo-600">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <PieChart className="h-6 w-6 text-indigo-600" />
-                  <div>
-                    <CardTitle>Investor Composition</CardTitle>
-                    <CardDescription>
-                      Ownership breakdown for <strong>{selectedFund.fund_name}</strong> on{" "}
-                      {date ? format(date, "PPP") : ""}
-                    </CardDescription>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold">
-                    {formatCrypto(selectedFund.aum, selectedFund.asset_code)}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Total Fund Size</div>
-                </div>
+      {/* Investor Composition Drawer */}
+      <Sheet open={!!selectedFundId} onOpenChange={(open) => !open && handleCloseDrawer()}>
+        <SheetContent side="right" className="w-full sm:w-[600px] sm:max-w-[600px] overflow-y-auto">
+          <SheetHeader className="pb-4 border-b">
+            <div className="flex items-center gap-3">
+              {selectedFund && <CryptoIcon symbol={selectedFund.asset_code} className="h-8 w-8" />}
+              <div>
+                <SheetTitle className="text-xl">
+                  {selectedFund?.fund_name || "Fund"} - Investor Composition
+                </SheetTitle>
+                <SheetDescription>
+                  Ownership breakdown as of {date ? format(date, "PPP") : ""}
+                </SheetDescription>
               </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
+            </div>
+            {selectedFund && (
+              <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                <div className="text-2xl font-bold text-foreground">
+                  {formatCrypto(selectedFund.aum, selectedFund.asset_code)}{" "}
+                  <span className="text-sm text-muted-foreground font-normal">{selectedFund.asset_code}</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Total Fund Size</p>
+              </div>
+            )}
+          </SheetHeader>
+
+          <div className="mt-6">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50 select-none"
+                    onClick={() => handleSort("investor_name")}
+                  >
+                    <div className="flex items-center">
+                      Investor
+                      {getSortIcon("investor_name")}
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                    onClick={() => handleSort("balance")}
+                  >
+                    <div className="flex items-center justify-end">
+                      Balance
+                      {getSortIcon("balance")}
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                    onClick={() => handleSort("ownership_pct")}
+                  >
+                    <div className="flex items-center justify-end">
+                      Share
+                      {getSortIcon("ownership_pct")}
+                    </div>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loadingComp ? (
                   <TableRow>
-                    <TableHead
-                      className="cursor-pointer hover:bg-muted/50 select-none"
-                      onClick={() => handleSort("investor_name")}
-                    >
-                      <div className="flex items-center">
-                        Investor Name
-                        {getSortIcon("investor_name")}
-                      </div>
-                    </TableHead>
-                    <TableHead
-                      className="cursor-pointer hover:bg-muted/50 select-none"
-                      onClick={() => handleSort("email")}
-                    >
-                      <div className="flex items-center">
-                        Email
-                        {getSortIcon("email")}
-                      </div>
-                    </TableHead>
-                    <TableHead
-                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                      onClick={() => handleSort("balance")}
-                    >
-                      <div className="flex items-center justify-end">
-                        Balance ({selectedFund.asset_code})
-                        {getSortIcon("balance")}
-                      </div>
-                    </TableHead>
-                    <TableHead
-                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                      onClick={() => handleSort("ownership_pct")}
-                    >
-                      <div className="flex items-center justify-end">
-                        Ownership Share
-                        {getSortIcon("ownership_pct")}
-                      </div>
-                    </TableHead>
+                    <TableCell colSpan={3} className="text-center py-8">
+                      Loading data...
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loadingComp ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8">
-                        Loading data...
+                ) : (
+                  sortedCompositionData.map((investor, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>
+                        <div className="font-medium">{investor.investor_name}</div>
+                        <div className="text-xs text-muted-foreground">{investor.email}</div>
+                      </TableCell>
+                      <TableCell className="text-right font-mono">
+                        {selectedFund && formatCrypto(investor.balance, selectedFund.asset_code)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Badge variant="outline" className="font-mono">
+                          {investor.ownership_pct.toFixed(2)}%
+                        </Badge>
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    sortedCompositionData.map((investor, idx) => (
-                      <TableRow key={idx}>
-                        <TableCell className="font-medium">{investor.investor_name}</TableCell>
-                        <TableCell className="text-muted-foreground">{investor.email}</TableCell>
-                        <TableCell className="text-right font-mono">
-                          {formatCrypto(investor.balance, selectedFund.asset_code)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Badge variant="outline" className="font-mono">
-                            {investor.ownership_pct.toFixed(4)}%
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                  {sortedCompositionData.length === 0 && !loadingComp && (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                        No investors found with a balance on this date.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+                  ))
+                )}
+                {sortedCompositionData.length === 0 && !loadingComp && (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                      No investors found with a balance on this date.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

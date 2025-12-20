@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Asset } from "@/types/investorTypes";
 import { getAssetLogo } from "@/utils/assets";
 
-// Define the schema for our form
+// Define the schema for our form with non-negative balance validation
 const formSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address",
@@ -27,7 +27,13 @@ const formSchema = z.object({
     message: "Last name is required",
   }),
   // Dynamic balances record: key is asset symbol, value is balance string
-  balances: z.record(z.string()),
+  // Must be empty string OR a valid non-negative number
+  balances: z.record(
+    z.string().refine(
+      (val) => val === "" || (!isNaN(Number(val)) && Number(val) >= 0),
+      { message: "Must be a non-negative number" }
+    )
+  ),
 });
 
 export type InvestorFormValues = z.infer<typeof formSchema>;
