@@ -133,6 +133,12 @@ export const adminNavGroups: NavGroup[] = [
     icon: Settings,
     items: [
       {
+        title: "IB Management",
+        href: "/admin/ib-management",
+        icon: <Users className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
         title: "Audit Logs",
         href: "/admin/audit-logs",
         icon: <Shield className="h-5 w-5" />,

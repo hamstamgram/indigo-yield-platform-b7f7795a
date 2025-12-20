@@ -12,8 +12,9 @@
  * - System: Settings, audit, users, health (5 routes)
  * - Transactions: Manual transaction entry (1 route)
  * - Fees: Fee management (1 route)
+ * - IB: Introducing Broker management (1 route)
  *
- * Total: ~26 admin routes
+ * Total: ~27 admin routes
  */
 
 import { CoreAdminRoutes } from "./admin/core";
@@ -25,6 +26,7 @@ import { ReportsRoutes } from "./admin/reports";
 import { SystemRoutes } from "./admin/system";
 import { TransactionRoutes } from "./admin/transactions";
 import { FeesRoutes } from "./admin/fees";
+import { IBRoutes } from "./admin/ib";
 
 /**
  * Admin Routes Component
@@ -42,6 +44,7 @@ export function AdminRoutes() {
       {SystemRoutes()}
       {TransactionRoutes()}
       {FeesRoutes()}
+      {IBRoutes()}
     </>
   );
 }

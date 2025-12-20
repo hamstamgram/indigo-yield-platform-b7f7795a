@@ -6,6 +6,7 @@
 import { CoreInvestorRoutes } from "./investor/core";
 import { PortfolioRoutes } from "./investor/portfolio";
 import { ReportsRoutes } from "./investor/reports";
+import { IBUserRoutes } from "./ib";
 
 /**
  * Investor Routes Component
@@ -17,6 +18,7 @@ export function InvestorRoutes() {
       {CoreInvestorRoutes()}
       {PortfolioRoutes()}
       {ReportsRoutes()}
+      {IBUserRoutes()}
     </>
   );
 }
