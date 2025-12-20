@@ -21,8 +21,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { UserCog, UserPlus, Trash2, Shield, RefreshCw, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -48,7 +58,9 @@ function AdminUserManagementContent() {
   const [newPassword, setNewPassword] = useState("");
   const [isResetting, setIsResetting] = useState(false);
 
-  const { toast } = useToast();
+  // Remove admin confirmation state
+  const [removeAdminOpen, setRemoveAdminOpen] = useState(false);
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAdmins();
@@ -57,21 +69,33 @@ function AdminUserManagementContent() {
   const fetchAdmins = async () => {
     try {
       setIsLoading(true);
+      // Query user_roles table for admin role instead of profiles.is_admin
+      const { data: adminRoles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+
+      if (rolesError) throw rolesError;
+
+      if (!adminRoles || adminRoles.length === 0) {
+        setAdmins([]);
+        return;
+      }
+
+      const adminIds = adminRoles.map((r) => r.user_id);
+
+      // Get profile details for admins
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("is_admin", true)
+        .in("id", adminIds)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       setAdmins(data || []);
     } catch (error) {
       console.error("Error fetching admins:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load admin list",
-        variant: "destructive",
-      });
+      toast.error("Failed to load admin list");
     } finally {
       setIsLoading(false);
     }
@@ -112,15 +136,11 @@ function AdminUserManagementContent() {
 
       if (fnError) {
         console.warn("Email sending failed, but invite created:", fnError);
-        toast({
-          title: "Invite Created (Email Failed)",
-          description:
-            "The invite was created, but the email failed to send. You can manually share the code.",
-          variant: "destructive",
+        toast.error("Invite Created (Email Failed)", {
+          description: "The invite was created, but the email failed to send. You can manually share the code.",
         });
       } else {
-        toast({
-          title: "Invite Sent",
+        toast.success("Invite Sent", {
           description: `Invitation sent to ${inviteEmail}`,
         });
       }
@@ -129,35 +149,41 @@ function AdminUserManagementContent() {
       setInviteEmail("");
     } catch (error: any) {
       console.error("Invite error:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: error.message || "Failed to send invite",
-        variant: "destructive",
       });
     } finally {
       setIsInviting(false);
     }
   };
 
-  const removeAdmin = async (id: string) => {
-    if (!confirm("Are you sure you want to remove admin privileges from this user?")) return;
+  const handleRemoveAdminClick = (id: string) => {
+    setPendingRemoveId(id);
+    setRemoveAdminOpen(true);
+  };
+
+  const confirmRemoveAdmin = async () => {
+    if (!pendingRemoveId) return;
 
     try {
-      const { error } = await supabase.from("profiles").update({ is_admin: false }).eq("id", id);
+      // Remove admin role from user_roles table
+      const { error } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", pendingRemoveId)
+        .eq("role", "admin");
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Admin privileges removed",
-      });
+      toast.success("Admin privileges removed");
       fetchAdmins();
     } catch (error: any) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: error.message,
-        variant: "destructive",
       });
+    } finally {
+      setRemoveAdminOpen(false);
+      setPendingRemoveId(null);
     }
   };
 
@@ -172,18 +198,15 @@ function AdminUserManagementContent() {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: `Password updated for ${resetEmail}`,
       });
 
       setResetEmail("");
       setNewPassword("");
     } catch (error: any) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: error.message || "Failed to update password",
-        variant: "destructive",
       });
     } finally {
       setIsResetting(false);
@@ -291,7 +314,7 @@ function AdminUserManagementContent() {
                             variant="ghost"
                             size="icon"
                             className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => removeAdmin(admin.id)}
+                            onClick={() => handleRemoveAdminClick(admin.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -350,6 +373,28 @@ function AdminUserManagementContent() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Remove Admin Confirmation Dialog */}
+      <AlertDialog open={removeAdminOpen} onOpenChange={setRemoveAdminOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Admin Privileges</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove admin privileges from this user? They will lose access
+              to all admin features immediately.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmRemoveAdmin}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remove Admin
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

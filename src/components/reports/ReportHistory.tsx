@@ -26,6 +26,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -35,19 +45,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { ReportsApi } from "@/services/api/reportsApi";
 import { GeneratedReport, ReportType, ReportStatus } from "@/types/reports";
 
 export const ReportHistory: React.FC = () => {
-  const { toast } = useToast();
-
   const [reports, setReports] = useState<GeneratedReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<ReportStatus | "all">("all");
   const [filterType] = useState<ReportType | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  // Delete confirmation state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     loadReports();
@@ -65,11 +77,7 @@ export const ReportHistory: React.FC = () => {
       setReports(data);
     } catch (error) {
       console.error("Failed to load reports:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load reports",
-        variant: "destructive",
-      });
+      toast.error("Failed to load reports");
     } finally {
       setLoading(false);
     }
@@ -82,10 +90,7 @@ export const ReportHistory: React.FC = () => {
 
       if (result.success && result.downloadUrl) {
         window.open(result.downloadUrl, "_blank");
-        toast({
-          title: "Success",
-          description: "Download started",
-        });
+        toast.success("Download started");
 
         // Refresh reports to update download count
         await loadReports();
@@ -94,40 +99,35 @@ export const ReportHistory: React.FC = () => {
       }
     } catch (error) {
       console.error("Download failed:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Download failed",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Download failed");
     } finally {
       setDownloadingId(null);
     }
   };
 
-  const handleDelete = async (reportId: string) => {
-    if (!confirm("Are you sure you want to delete this report?")) {
-      return;
-    }
+  const handleDeleteClick = (reportId: string) => {
+    setPendingDeleteId(reportId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDeleteId) return;
 
     try {
-      const result = await ReportsApi.deleteReport(reportId);
+      const result = await ReportsApi.deleteReport(pendingDeleteId);
 
       if (result.success) {
-        toast({
-          title: "Success",
-          description: "Report deleted successfully",
-        });
+        toast.success("Report deleted successfully");
         await loadReports();
       } else {
         throw new Error(result.error || "Delete failed");
       }
     } catch (error) {
       console.error("Delete failed:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Delete failed",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Delete failed");
+    } finally {
+      setDeleteDialogOpen(false);
+      setPendingDeleteId(null);
     }
   };
 
@@ -194,145 +194,168 @@ export const ReportHistory: React.FC = () => {
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          Report History
-        </CardTitle>
-        <CardDescription>View and download your previously generated reports</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search reports..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Report History
+          </CardTitle>
+          <CardDescription>View and download your previously generated reports</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search reports..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
             </div>
+
+            <Select
+              value={filterStatus}
+              onValueChange={(value: ReportStatus | "all") => setFilterStatus(value)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="processing">Processing</SelectItem>
+                <SelectItem value="queued">Queued</SelectItem>
+                <SelectItem value="failed">Failed</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Button variant="outline" size="sm" onClick={loadReports}>
+              <Filter className="mr-2 h-4 w-4" />
+              Refresh
+            </Button>
           </div>
 
-          <Select
-            value={filterStatus}
-            onValueChange={(value: ReportStatus | "all") => setFilterStatus(value)}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="processing">Processing</SelectItem>
-              <SelectItem value="queued">Queued</SelectItem>
-              <SelectItem value="failed">Failed</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Button variant="outline" size="sm" onClick={loadReports}>
-            <Filter className="mr-2 h-4 w-4" />
-            Refresh
-          </Button>
-        </div>
-
-        {/* Reports Table */}
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        ) : filteredReports.length === 0 ? (
-          <div className="text-center py-12">
-            <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No Reports Found</h3>
-            <p className="text-muted-foreground">
-              {searchQuery || filterStatus !== "all" || filterType !== "all"
-                ? "Try adjusting your filters"
-                : "Generate your first report to get started"}
-            </p>
-          </div>
-        ) : (
-          <div className="border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Report</TableHead>
-                  <TableHead>Format</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Generated</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredReports.map((report) => (
-                  <TableRow key={report.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{formatReportType(report.reportType)}</div>
-                        {report.dateRangeStart && report.dateRangeEnd && (
-                          <div className="text-sm text-muted-foreground">
-                            {format(new Date(report.dateRangeStart), "MMM dd")} -{" "}
-                            {format(new Date(report.dateRangeEnd), "MMM dd, yyyy")}
+          {/* Reports Table */}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : filteredReports.length === 0 ? (
+            <div className="text-center py-12">
+              <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">No Reports Found</h3>
+              <p className="text-muted-foreground">
+                {searchQuery || filterStatus !== "all" || filterType !== "all"
+                  ? "Try adjusting your filters"
+                  : "Generate your first report to get started"}
+              </p>
+            </div>
+          ) : (
+            <div className="border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Report</TableHead>
+                    <TableHead>Format</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Generated</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredReports.map((report) => (
+                    <TableRow key={report.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{formatReportType(report.reportType)}</div>
+                          {report.dateRangeStart && report.dateRangeEnd && (
+                            <div className="text-sm text-muted-foreground">
+                              {format(new Date(report.dateRangeStart), "MMM dd")} -{" "}
+                              {format(new Date(report.dateRangeEnd), "MMM dd, yyyy")}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{report.format.toUpperCase()}</Badge>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(report.status)}</TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {formatDistanceToNow(new Date(report.createdAt), { addSuffix: true })}
+                        </div>
+                        {report.downloadCount > 0 && (
+                          <div className="text-xs text-muted-foreground">
+                            Downloaded {report.downloadCount} time
+                            {report.downloadCount !== 1 ? "s" : ""}
                           </div>
                         )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{report.format.toUpperCase()}</Badge>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(report.status)}</TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {formatDistanceToNow(new Date(report.createdAt), { addSuffix: true })}
-                      </div>
-                      {report.downloadCount > 0 && (
-                        <div className="text-xs text-muted-foreground">
-                          Downloaded {report.downloadCount} time
-                          {report.downloadCount !== 1 ? "s" : ""}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>{formatFileSize(report.fileSizeBytes)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {report.status === "completed" && (
+                      </TableCell>
+                      <TableCell>{formatFileSize(report.fileSizeBytes)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {report.status === "completed" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDownload(report.id)}
+                              disabled={downloadingId === report.id}
+                            >
+                              {downloadingId === report.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <Download className="mr-1 h-3 w-3" />
+                                  Download
+                                </>
+                              )}
+                            </Button>
+                          )}
                           <Button
                             size="sm"
-                            variant="outline"
-                            onClick={() => handleDownload(report.id)}
-                            disabled={downloadingId === report.id}
+                            variant="ghost"
+                            onClick={() => handleDeleteClick(report.id)}
+                            className="text-destructive hover:text-destructive"
                           >
-                            {downloadingId === report.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <>
-                                <Download className="mr-1 h-3 w-3" />
-                                Download
-                              </>
-                            )}
+                            <Trash2 className="h-4 w-4" />
                           </Button>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDelete(report.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Report</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this report? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };

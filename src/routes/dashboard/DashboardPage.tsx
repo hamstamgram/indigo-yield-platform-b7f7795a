@@ -5,7 +5,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PerformanceReportTable } from "@/components/investor/reports/PerformanceReportTable";
 import { useState } from "react";
 import { ReportsApi } from "@/services/api/reportsApi";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { AssetPerformanceCard } from "@/components/shared/AssetPerformanceCard";
 import { useNavigate } from "react-router-dom";
 import { QuickActionsBar } from "@/components/investor/QuickActionsBar";
@@ -13,7 +13,6 @@ import { PortfolioHero } from "@/components/investor/PortfolioHero";
 
 export default function DashboardPage() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   // Fetch performance data
@@ -78,17 +77,10 @@ export default function DashboardPage() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      toast({
-        title: "Success",
-        description: "Statement downloaded successfully",
-      });
+      toast.success("Statement downloaded successfully");
     } catch (error) {
       console.error("Download failed:", error);
-      toast({
-        title: "Error",
-        description: "Failed to download statement",
-        variant: "destructive",
-      });
+      toast.error("Failed to download statement");
     } finally {
       setDownloadingId(null);
     }

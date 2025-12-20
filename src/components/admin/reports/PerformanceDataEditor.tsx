@@ -12,6 +12,16 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,7 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Save, Loader2, Plus, Trash2 } from "lucide-react";
 import {
   updatePerformanceData,
@@ -108,7 +118,9 @@ export function PerformanceDataEditor({
   const [availableFunds, setAvailableFunds] = useState<string[]>([]);
   const [showAddFund, setShowAddFund] = useState(false);
   const [newFundName, setNewFundName] = useState("");
-  const { toast } = useToast();
+  
+  // Delete confirmation state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Initialize form data from assets
   useEffect(() => {
@@ -189,8 +201,7 @@ export function PerformanceDataEditor({
       const result = await updatePerformanceData(currentAsset.report_id, updateData);
 
       if (result.success) {
-        toast({
-          title: "Saved",
+        toast.success("Saved", {
           description: `Performance data for ${selectedAsset} updated successfully.`,
         });
         onSaved();
@@ -198,10 +209,8 @@ export function PerformanceDataEditor({
         throw new Error(result.error);
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: error.message || "Failed to save performance data",
-        variant: "destructive",
       });
     } finally {
       setSaving(false);
@@ -241,8 +250,7 @@ export function PerformanceDataEditor({
       });
 
       if (result.success) {
-        toast({
-          title: "Fund Added",
+        toast.success("Fund Added", {
           description: `${newFundName.toUpperCase()} added for this investor.`,
         });
         setNewFundName("");
@@ -252,30 +260,28 @@ export function PerformanceDataEditor({
         throw new Error(result.error);
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: error.message || "Failed to add fund",
-        variant: "destructive",
       });
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDeleteFund = async () => {
+  const handleDeleteFundClick = () => {
     if (!currentAsset?.report_id) return;
+    setDeleteDialogOpen(true);
+  };
 
-    if (!confirm(`Are you sure you want to delete ${selectedAsset} data for this investor?`)) {
-      return;
-    }
+  const confirmDeleteFund = async () => {
+    if (!currentAsset?.report_id) return;
 
     setSaving(true);
     try {
       const result = await deletePerformanceRecord(currentAsset.report_id);
 
       if (result.success) {
-        toast({
-          title: "Deleted",
+        toast.success("Deleted", {
           description: `${selectedAsset} data removed.`,
         });
         onSaved();
@@ -283,13 +289,12 @@ export function PerformanceDataEditor({
         throw new Error(result.error);
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: error.message || "Failed to delete fund",
-        variant: "destructive",
       });
     } finally {
       setSaving(false);
+      setDeleteDialogOpen(false);
     }
   };
 
@@ -314,150 +319,174 @@ export function PerformanceDataEditor({
   );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Edit Performance Data</DialogTitle>
-          <DialogDescription>
-            {investorName} • {periodName}
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Performance Data</DialogTitle>
+            <DialogDescription>
+              {investorName} • {periodName}
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Asset Selector */}
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <Label className="text-sm text-muted-foreground mb-2 block">Select Fund</Label>
-              <div className="flex flex-wrap gap-2">
-                {Object.keys(formData).map((assetCode) => (
+          <div className="space-y-4">
+            {/* Asset Selector */}
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <Label className="text-sm text-muted-foreground mb-2 block">Select Fund</Label>
+                <div className="flex flex-wrap gap-2">
+                  {Object.keys(formData).map((assetCode) => (
+                    <Button
+                      key={assetCode}
+                      variant={selectedAsset === assetCode ? "secondary" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedAsset(assetCode)}
+                    >
+                      {assetCode}
+                    </Button>
+                  ))}
                   <Button
-                    key={assetCode}
-                    variant={selectedAsset === assetCode ? "secondary" : "outline"}
+                    variant="ghost"
                     size="sm"
-                    onClick={() => setSelectedAsset(assetCode)}
+                    onClick={() => setShowAddFund(true)}
+                    className="text-muted-foreground"
                   >
-                    {assetCode}
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Fund
                   </Button>
-                ))}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowAddFund(true)}
-                  className="text-muted-foreground"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Fund
-                </Button>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Add Fund Dialog */}
-          {showAddFund && (
-            <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-              <Select value={newFundName} onValueChange={setNewFundName}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Select fund" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableFunds
-                    .filter((f) => !Object.keys(formData).includes(f))
-                    .map((fund) => (
-                      <SelectItem key={fund} value={fund}>
-                        {fund}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-              <Input
-                placeholder="Or enter custom fund code"
-                value={newFundName}
-                onChange={(e) => setNewFundName(e.target.value.toUpperCase())}
-                className="w-[180px]"
-              />
-              <Button size="sm" onClick={handleAddFund} disabled={!newFundName || saving}>
-                Add
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => setShowAddFund(false)}>
-                Cancel
-              </Button>
-            </div>
-          )}
+            {/* Add Fund Dialog */}
+            {showAddFund && (
+              <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                <Select value={newFundName} onValueChange={setNewFundName}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Select fund" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableFunds
+                      .filter((f) => !Object.keys(formData).includes(f))
+                      .map((fund) => (
+                        <SelectItem key={fund} value={fund}>
+                          {fund}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  placeholder="Or enter custom fund code"
+                  value={newFundName}
+                  onChange={(e) => setNewFundName(e.target.value.toUpperCase())}
+                  className="w-[180px]"
+                />
+                <Button size="sm" onClick={handleAddFund} disabled={!newFundName || saving}>
+                  Add
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setShowAddFund(false)}>
+                  Cancel
+                </Button>
+              </div>
+            )}
 
-          {/* Time Frame Tabs */}
-          {currentAsset && (
-            <Tabs defaultValue="mtd" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                {(Object.keys(TIME_FRAME_LABELS) as TimeFrame[]).map((tf) => (
-                  <TabsTrigger key={tf} value={tf} className="text-xs sm:text-sm">
-                    {tf.toUpperCase()}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              {(Object.keys(TIME_FRAME_LABELS) as TimeFrame[]).map((tf) => (
-                <TabsContent key={tf} value={tf} className="mt-4">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-medium">{TIME_FRAME_LABELS[tf]}</h3>
-                      <Badge variant="secondary">{selectedAsset}</Badge>
-                    </div>
-                    {renderTimeFrameFields(tf)}
-                  </div>
-                </TabsContent>
-              ))}
-            </Tabs>
-          )}
-
-          {!currentAsset && Object.keys(formData).length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>No fund data for this investor in this period.</p>
-              <Button
-                variant="outline"
-                className="mt-4"
-                onClick={() => setShowAddFund(true)}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add First Fund
-              </Button>
-            </div>
-          )}
-        </div>
-
-        <DialogFooter className="flex justify-between sm:justify-between">
-          <div>
+            {/* Time Frame Tabs */}
             {currentAsset && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleDeleteFund}
-                disabled={saving}
-              >
-                <Trash2 className="h-4 w-4 mr-1" />
-                Delete {selectedAsset}
-              </Button>
+              <Tabs defaultValue="mtd" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  {(Object.keys(TIME_FRAME_LABELS) as TimeFrame[]).map((tf) => (
+                    <TabsTrigger key={tf} value={tf} className="text-xs sm:text-sm">
+                      {tf.toUpperCase()}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+
+                {(Object.keys(TIME_FRAME_LABELS) as TimeFrame[]).map((tf) => (
+                  <TabsContent key={tf} value={tf} className="mt-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium">{TIME_FRAME_LABELS[tf]}</h3>
+                        <Badge variant="secondary">{selectedAsset}</Badge>
+                      </div>
+                      {renderTimeFrameFields(tf)}
+                    </div>
+                  </TabsContent>
+                ))}
+              </Tabs>
+            )}
+
+            {!currentAsset && Object.keys(formData).length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No fund data for this investor in this period.</p>
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => setShowAddFund(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add First Fund
+                </Button>
+              </div>
             )}
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave} disabled={saving || !currentAsset}>
-              {saving ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
-                </>
+
+          <DialogFooter className="flex justify-between sm:justify-between">
+            <div>
+              {currentAsset && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteFundClick}
+                  disabled={saving}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Delete {selectedAsset}
+                </Button>
               )}
-            </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave} disabled={saving || !currentAsset}>
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Fund Data</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedAsset} data for this investor? This action
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteFund}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -15,6 +15,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Search, User, MoreHorizontal, Users } from "lucide-react";
 import PageHeader from "@/components/layout/PageHeader";
 import {
@@ -28,8 +38,11 @@ import {
 export default function AdminInvestorsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Deactivate confirmation state
+  const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
+  const [pendingDeactivateId, setPendingDeactivateId] = useState<string | null>(null);
 
   const deactivateMutation = useMutation({
     mutationFn: async (investorId: string) => {
@@ -41,16 +54,13 @@ export default function AdminInvestorsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-investors"] });
-      toast({
-        title: "Investor deactivated",
+      toast.success("Investor deactivated", {
         description: "The investor account has been deactivated.",
       });
     },
     onError: (error) => {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: error instanceof Error ? error.message : "Failed to deactivate investor",
-        variant: "destructive",
       });
     },
   });
@@ -58,14 +68,24 @@ export default function AdminInvestorsPage() {
   const { data: investors, isLoading } = useQuery({
     queryKey: ["admin-investors"],
     queryFn: async () => {
+      // First get admin user IDs from user_roles table
+      const { data: adminRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+
+      const adminIds = adminRoles?.map((r) => r.user_id) || [];
+
+      // Get all profiles except those with admin role
       const { data, error } = await supabase
         .from("profiles")
         .select("id, status, created_at, email, first_name, last_name")
-        .eq("is_admin", false)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+
+      // Filter out admins client-side
+      return data?.filter((p) => !adminIds.includes(p.id)) || [];
     },
   });
 
@@ -87,6 +107,19 @@ export default function AdminInvestorsPage() {
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400";
     }
+  };
+
+  const handleDeactivateClick = (investorId: string) => {
+    setPendingDeactivateId(investorId);
+    setDeactivateDialogOpen(true);
+  };
+
+  const confirmDeactivate = () => {
+    if (pendingDeactivateId) {
+      deactivateMutation.mutate(pendingDeactivateId);
+    }
+    setDeactivateDialogOpen(false);
+    setPendingDeactivateId(null);
   };
 
   return (
@@ -189,11 +222,7 @@ export default function AdminInvestorsPage() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive"
-                              onClick={() => {
-                                if (confirm("Are you sure you want to deactivate this investor?")) {
-                                  deactivateMutation.mutate(investor.id);
-                                }
-                              }}
+                              onClick={() => handleDeactivateClick(investor.id)}
                             >
                               Deactivate
                             </DropdownMenuItem>
@@ -208,6 +237,28 @@ export default function AdminInvestorsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Deactivate Confirmation Dialog */}
+      <AlertDialog open={deactivateDialogOpen} onOpenChange={setDeactivateDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deactivate Investor</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to deactivate this investor account? They will lose access to
+              the platform until reactivated.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeactivate}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Deactivate
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

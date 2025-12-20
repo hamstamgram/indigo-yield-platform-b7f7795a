@@ -1,9 +1,11 @@
 /**
  * IB Management Page
  * Admin page to manage Introducing Brokers (IBs)
+ * 
+ * NOTE: IB earnings are displayed per-asset (token-denominated) to avoid USD aggregation
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -28,10 +30,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, Users, DollarSign, TrendingUp } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Loader2, Plus, Users, TrendingUp, Coins } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { formatCurrency } from "@/utils/statementCalculations";
+import { formatCrypto } from "@/utils/financial";
+
+interface EarningsByAsset {
+  [assetSymbol: string]: number;
+}
 
 interface IBProfile {
   id: string;
@@ -40,12 +46,11 @@ interface IBProfile {
   lastName: string | null;
   createdAt: string;
   referralCount: number;
-  totalEarnings: number;
+  earningsByAsset: EarningsByAsset;
   activeFunds: string[];
 }
 
 export default function IBManagementPage() {
-  const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -53,7 +58,7 @@ export default function IBManagementPage() {
   const [newIBFirstName, setNewIBFirstName] = useState("");
   const [newIBLastName, setNewIBLastName] = useState("");
 
-  // Fetch all IBs
+  // Fetch all IBs with per-asset earnings
   const { data: ibs, isLoading } = useQuery({
     queryKey: ["ibs"],
     queryFn: async (): Promise<IBProfile[]> => {
@@ -85,18 +90,36 @@ export default function IBManagementPage() {
         .select("ib_parent_id")
         .in("ib_parent_id", ibUserIds);
 
-      // Get IB earnings
+      // Get IB allocations with fund info to determine asset
       const { data: allocations, error: allocError } = await supabase
         .from("ib_allocations")
         .select("ib_investor_id, ib_fee_amount, fund_id")
         .in("ib_investor_id", ibUserIds);
 
-      // Aggregate data per IB
+      // Get funds to map fund_id -> asset
+      const fundIds = [...new Set((allocations || []).map((a) => a.fund_id).filter(Boolean))];
+      const { data: funds } = await supabase
+        .from("funds")
+        .select("id, asset")
+        .in("id", fundIds);
+
+      const fundToAsset = new Map<string, string>();
+      funds?.forEach((f) => fundToAsset.set(f.id, f.asset));
+
+      // Aggregate data per IB with per-asset earnings
       const ibProfiles: IBProfile[] = (profiles || []).map((p) => {
         const refs = (referrals || []).filter((r) => r.ib_parent_id === p.id);
         const allocs = (allocations || []).filter((a) => a.ib_investor_id === p.id);
-        const totalEarnings = allocs.reduce((sum, a) => sum + Number(a.ib_fee_amount || 0), 0);
         const activeFunds = [...new Set(allocs.map((a) => a.fund_id).filter(Boolean))] as string[];
+
+        // Group earnings by asset
+        const earningsByAsset: EarningsByAsset = {};
+        allocs.forEach((a) => {
+          if (a.fund_id) {
+            const asset = fundToAsset.get(a.fund_id) || "UNKNOWN";
+            earningsByAsset[asset] = (earningsByAsset[asset] || 0) + Number(a.ib_fee_amount || 0);
+          }
+        });
 
         return {
           id: p.id,
@@ -105,7 +128,7 @@ export default function IBManagementPage() {
           lastName: p.last_name,
           createdAt: p.created_at,
           referralCount: refs.length,
-          totalEarnings,
+          earningsByAsset,
           activeFunds,
         };
       });
@@ -157,7 +180,9 @@ export default function IBManagementPage() {
       return { userId };
     },
     onSuccess: () => {
-      toast({ title: "IB Created", description: "The Introducing Broker has been set up." });
+      toast.success("IB Created", {
+        description: "The Introducing Broker has been set up.",
+      });
       queryClient.invalidateQueries({ queryKey: ["ibs"] });
       setIsCreateDialogOpen(false);
       setNewIBEmail("");
@@ -165,17 +190,15 @@ export default function IBManagementPage() {
       setNewIBLastName("");
     },
     onError: (error) => {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: error instanceof Error ? error.message : "Failed to create IB",
-        variant: "destructive",
       });
     },
   });
 
   const handleCreateIB = () => {
     if (!newIBEmail) {
-      toast({ title: "Error", description: "Email is required", variant: "destructive" });
+      toast.error("Email is required");
       return;
     }
     createIBMutation.mutate({
@@ -188,7 +211,21 @@ export default function IBManagementPage() {
   // Calculate totals
   const totalIBs = ibs?.length || 0;
   const totalReferrals = ibs?.reduce((sum, ib) => sum + ib.referralCount, 0) || 0;
-  const totalEarnings = ibs?.reduce((sum, ib) => sum + ib.totalEarnings, 0) || 0;
+
+  // Aggregate all earnings by asset across all IBs
+  const allEarningsByAsset: EarningsByAsset = {};
+  ibs?.forEach((ib) => {
+    Object.entries(ib.earningsByAsset).forEach(([asset, amount]) => {
+      allEarningsByAsset[asset] = (allEarningsByAsset[asset] || 0) + amount;
+    });
+  });
+
+  // Format earnings display for a single IB
+  const formatEarningsDisplay = (earnings: EarningsByAsset) => {
+    const entries = Object.entries(earnings);
+    if (entries.length === 0) return "—";
+    return entries.map(([asset, amount]) => formatCrypto(amount, 4, asset)).join(", ");
+  };
 
   return (
     <div className="space-y-6">
@@ -281,10 +318,20 @@ export default function IBManagementPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total IB Earnings</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <Coins className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalEarnings)}</div>
+            <div className="space-y-1">
+              {Object.entries(allEarningsByAsset).length === 0 ? (
+                <div className="text-2xl font-bold text-muted-foreground">—</div>
+              ) : (
+                Object.entries(allEarningsByAsset).map(([asset, amount]) => (
+                  <div key={asset} className="text-lg font-semibold font-mono">
+                    {formatCrypto(amount, 4, asset)}
+                  </div>
+                ))
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -312,7 +359,7 @@ export default function IBManagementPage() {
                   <TableHead>Email</TableHead>
                   <TableHead className="text-center">Referrals</TableHead>
                   <TableHead className="text-center">Active Funds</TableHead>
-                  <TableHead className="text-right">Total Earnings</TableHead>
+                  <TableHead className="text-right">Earnings</TableHead>
                   <TableHead>Created</TableHead>
                 </TableRow>
               </TableHeader>
@@ -335,8 +382,8 @@ export default function IBManagementPage() {
                     <TableCell className="text-center">
                       <Badge variant="secondary">{ib.activeFunds.length}</Badge>
                     </TableCell>
-                    <TableCell className="text-right font-mono">
-                      {formatCurrency(ib.totalEarnings)}
+                    <TableCell className="text-right font-mono text-sm">
+                      {formatEarningsDisplay(ib.earningsByAsset)}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {new Date(ib.createdAt).toLocaleDateString()}
