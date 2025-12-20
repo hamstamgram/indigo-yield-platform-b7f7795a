@@ -6,13 +6,14 @@ import {
   Users,
   User,
   Calendar,
-  Mail,
   Gauge,
   FileSpreadsheet,
   Activity,
   TrendingUp,
   Settings,
   Shield,
+  Briefcase,
+  DollarSign,
 } from "lucide-react";
 import { NavItem } from "@/types/navigation";
 
@@ -22,9 +23,11 @@ export type NavGroup = {
   items: NavItem[];
 };
 
-// Investor Platform Navigation (Redesigned)
-
-export const activityNav: NavItem[] = [
+// ============================================
+// INVESTOR NAVIGATION - Simple flat nav
+// ============================================
+export const investorNav: NavItem[] = [
+  { title: "Dashboard", href: "/dashboard", icon: <BarChart3 className="h-5 w-5" /> },
   { title: "Statements", href: "/statements", icon: <FileText className="h-5 w-5" /> },
   {
     title: "Portfolio Performance",
@@ -37,34 +40,23 @@ export const activityNav: NavItem[] = [
     href: "/withdrawals",
     icon: <ArrowLeftRight className="h-5 w-5" />,
   },
-];
-
-export const profileAndSettingsNav: NavItem[] = [
   { title: "Account", href: "/account", icon: <User className="h-5 w-5" /> },
 ];
 
-export const mainNav: NavItem[] = [
-  { title: "Dashboard", href: "/dashboard", icon: <BarChart3 className="h-5 w-5" /> },
-  {
-    title: "Activity",
-    href: "/activity",
-    icon: <Activity className="h-5 w-5" />,
-    subNav: activityNav,
-  },
-  {
-    title: "Profile & Settings",
-    href: "/profile",
-    icon: <User className="h-5 w-5" />,
-    subNav: profileAndSettingsNav,
-  },
+// ============================================
+// IB (Introducing Broker) NAVIGATION
+// ============================================
+export const ibNav: NavItem[] = [
+  { title: "IB Dashboard", href: "/ib/dashboard", icon: <BarChart3 className="h-5 w-5" /> },
 ];
 
-// Admin Platform Navigation - Organized by functional area
-
+// ============================================
+// ADMIN NAVIGATION - Organized by workflow groups
+// ============================================
 export const adminNavGroups: NavGroup[] = [
   {
-    title: "Command Center",
-    icon: BarChart3,
+    title: "Command",
+    icon: Gauge,
     items: [
       {
         title: "Command Center",
@@ -99,7 +91,7 @@ export const adminNavGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Yield Operations",
+    title: "Yield & Reporting",
     icon: TrendingUp,
     items: [
       {
@@ -115,15 +107,33 @@ export const adminNavGroups: NavGroup[] = [
         adminOnly: true,
       },
       {
-        title: "INDIGO Fees",
-        href: "/admin/fees",
-        icon: <CreditCard className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
         title: "Reports",
         href: "/admin/investor-reports",
         icon: <FileSpreadsheet className="h-5 w-5" />,
+        adminOnly: true,
+      },
+    ],
+  },
+  {
+    title: "Partners",
+    icon: Briefcase,
+    items: [
+      {
+        title: "IB Management",
+        href: "/admin/ib-management",
+        icon: <Users className="h-5 w-5" />,
+        adminOnly: true,
+      },
+    ],
+  },
+  {
+    title: "Finance",
+    icon: DollarSign,
+    items: [
+      {
+        title: "INDIGO Fees",
+        href: "/admin/fees",
+        icon: <CreditCard className="h-5 w-5" />,
         adminOnly: true,
       },
     ],
@@ -133,20 +143,8 @@ export const adminNavGroups: NavGroup[] = [
     icon: Settings,
     items: [
       {
-        title: "IB Management",
-        href: "/admin/ib-management",
-        icon: <Users className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
         title: "Audit Logs",
         href: "/admin/audit-logs",
-        icon: <Shield className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "Admin Management",
-        href: "/admin/settings/admins",
         icon: <Shield className="h-5 w-5" />,
         adminOnly: true,
       },
@@ -156,9 +154,52 @@ export const adminNavGroups: NavGroup[] = [
         icon: <Settings className="h-5 w-5" />,
         adminOnly: true,
       },
+      {
+        title: "Admin Management",
+        href: "/admin/settings/admins",
+        icon: <Shield className="h-5 w-5" />,
+        adminOnly: true,
+        superAdminOnly: true,
+      },
     ],
   },
 ];
 
 // Flat admin navigation for backward compatibility
 export const adminNav: NavItem[] = adminNavGroups.flatMap((group) => group.items);
+
+// Legacy exports for backward compatibility
+export const activityNav: NavItem[] = [
+  { title: "Statements", href: "/statements", icon: <FileText className="h-5 w-5" /> },
+  {
+    title: "Portfolio Performance",
+    href: "/portfolio/analytics",
+    icon: <TrendingUp className="h-5 w-5" />,
+  },
+  { title: "Transaction History", href: "/transactions", icon: <CreditCard className="h-5 w-5" /> },
+  {
+    title: "Withdrawal Requests",
+    href: "/withdrawals",
+    icon: <ArrowLeftRight className="h-5 w-5" />,
+  },
+];
+
+export const profileAndSettingsNav: NavItem[] = [
+  { title: "Account", href: "/account", icon: <User className="h-5 w-5" /> },
+];
+
+export const mainNav: NavItem[] = [
+  { title: "Dashboard", href: "/dashboard", icon: <BarChart3 className="h-5 w-5" /> },
+  {
+    title: "Activity",
+    href: "/activity",
+    icon: <Activity className="h-5 w-5" />,
+    subNav: activityNav,
+  },
+  {
+    title: "Profile & Settings",
+    href: "/profile",
+    icon: <User className="h-5 w-5" />,
+    subNav: profileAndSettingsNav,
+  },
+];

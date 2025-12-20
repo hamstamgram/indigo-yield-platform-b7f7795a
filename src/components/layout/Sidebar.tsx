@@ -5,10 +5,11 @@ import { useNavigate } from "react-router-dom";
 import NavSection from "@/components/sidebar/NavSection";
 import UserProfile from "@/components/sidebar/UserProfile";
 import LogoutButton from "@/components/sidebar/LogoutButton";
-import { adminNavGroups, mainNav } from "@/config/navigation";
+import { adminNavGroups, investorNav, ibNav } from "@/config/navigation";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { NavItem } from "@/types/navigation";
+import { useUserRole } from "@/hooks/useUserRole";
 
 type SidebarProps = {
   sidebarOpen: boolean;
@@ -17,16 +18,15 @@ type SidebarProps = {
 };
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps) => {
-  // Temporary empty arrays for removed nav items
-  const accountNav: NavItem[] = [];
-  const settingsNav: NavItem[] = [];
-
   const [userName, setUserName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
   const navigate = useNavigate();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Get user role for proper navigation rendering
+  const { isIB, isSuperAdmin, isLoading: roleLoading } = useUserRole();
 
   useEffect(() => {
     const getUser = async () => {
@@ -56,15 +56,15 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
     getUser();
   }, [navigate, isAdmin]);
 
-  // Filter navigation items based on admin status and search
-  const filteredMainNav = isAdmin
-    ? [] // Admins don't need the regular main nav
-    : mainNav;
-
   // Filter navigation items based on search
   const filterNavItems = (items: NavItem[], query: string) => {
     if (!query) return items;
     return items.filter((item) => item.title.toLowerCase().includes(query.toLowerCase()));
+  };
+
+  // Filter out superAdminOnly items if user is not super admin
+  const filterBySuperAdmin = (items: NavItem[]) => {
+    return items.filter((item) => !item.superAdminOnly || isSuperAdmin);
   };
 
   // Keyboard navigation handler
@@ -106,7 +106,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
   // Helper to close sidebar when navigating on mobile
   const handleNavigationClick = () => {
     if (window.innerWidth < 1024) {
-      // lg breakpoint
       setSidebarOpen(false);
     }
   };
@@ -122,9 +121,20 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
       sidebarRef.current.focus();
     }
   }, [sidebarOpen]);
+
+  // Determine which navigation to show based on role
+  // Priority: Admin > IB > Investor
+  const getNavType = (): "admin" | "ib" | "investor" => {
+    if (isAdmin) return "admin";
+    if (isIB) return "ib";
+    return "investor";
+  };
+
+  const navType = getNavType();
+
   return (
     <>
-      {/* Mobile sidebar backdrop - clicking here should close the sidebar */}
+      {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
@@ -143,14 +153,24 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
         onKeyDown={handleKeyDown}
         tabIndex={-1}
         role="navigation"
-        aria-label={isAdmin ? "Admin navigation menu" : "Main navigation menu"}
+        aria-label={
+          navType === "admin"
+            ? "Admin navigation menu"
+            : navType === "ib"
+              ? "IB navigation menu"
+              : "Main navigation menu"
+        }
       >
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-sidebar-border">
             <div
               className="flex items-center gap-2 flex-1 cursor-pointer"
-              onClick={() => navigate(isAdmin ? "/admin" : "/dashboard")}
+              onClick={() => {
+                if (navType === "admin") navigate("/admin");
+                else if (navType === "ib") navigate("/ib/dashboard");
+                else navigate("/dashboard");
+              }}
             >
               <img
                 src="/lovable-uploads/74aa0ccc-22f8-4892-9282-3991b5e10f4c.png"
@@ -168,7 +188,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
           </div>
 
           {/* Search Bar (Admin only) */}
-          {isAdmin && (
+          {navType === "admin" && (
             <div className="px-4 py-3 border-b border-sidebar-border">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-sidebar-foreground/60" />
@@ -188,11 +208,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
           {/* Nav */}
           <nav className="flex-1 px-4 py-6 overflow-y-auto" role="menu">
             {/* Admin Navigation */}
-            {isAdmin && (
+            {navType === "admin" && (
               <>
-                {/* Static Admin Groups */}
                 {adminNavGroups.map((group) => {
-                  const filteredItems = filterNavItems(group.items, searchQuery);
+                  const filteredItems = filterBySuperAdmin(
+                    filterNavItems(group.items, searchQuery)
+                  );
                   if (filteredItems.length === 0) return null;
 
                   return (
@@ -218,38 +239,25 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
               </>
             )}
 
-            {/* Investor Navigation */}
-            {!isAdmin && (
-              <>
-                {/* Main Nav */}
-                {filteredMainNav.length > 0 && (
-                  <NavSection
-                    title="Main"
-                    items={filteredMainNav}
-                    onItemClick={handleNavigationClick}
-                    isExpanded={true}
-                  />
-                )}
-
-                {/* Settings */}
-                {settingsNav.length > 0 && (
-                  <NavSection
-                    title="Settings"
-                    items={settingsNav}
-                    onItemClick={handleNavigationClick}
-                    isExpanded={true}
-                  />
-                )}
-              </>
+            {/* IB Navigation */}
+            {navType === "ib" && (
+              <NavSection
+                title="IB Portal"
+                items={ibNav}
+                onItemClick={handleNavigationClick}
+                isExpanded={true}
+              />
             )}
 
-            {/* Account Navigation */}
-            <NavSection
-              title="Account"
-              items={accountNav}
-              onItemClick={handleNavigationClick}
-              isExpanded={true}
-            />
+            {/* Investor Navigation */}
+            {navType === "investor" && (
+              <NavSection
+                title="Menu"
+                items={investorNav}
+                onItemClick={handleNavigationClick}
+                isExpanded={true}
+              />
+            )}
 
             {/* Logout Button */}
             <div className="px-2 py-2 border-t border-sidebar-border mt-4 pt-4">
@@ -258,10 +266,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
           </nav>
 
           {/* User Profile */}
-          <UserProfile userName={userName} isAdmin={isAdmin} />
+          <UserProfile userName={userName} isAdmin={navType === "admin"} />
         </div>
       </div>
     </>
   );
 };
+
 export default Sidebar;
