@@ -340,6 +340,30 @@ function YieldOperationsContent() {
               </div>
             </div>
 
+            {/* Purpose Selector - NEW */}
+            <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
+              <Label className="text-sm font-medium">Purpose</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer hover:border-green-500 transition-colors border-green-500">
+                  <div className="mt-0.5 h-4 w-4 rounded-full bg-green-500" />
+                  <div>
+                    <p className="font-medium text-sm">Reporting</p>
+                    <p className="text-xs text-muted-foreground">Month-end official yield for statements</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer hover:border-orange-500 transition-colors opacity-50">
+                  <div className="mt-0.5 h-4 w-4 rounded-full bg-orange-500" />
+                  <div>
+                    <p className="font-medium text-sm">Transaction</p>
+                    <p className="text-xs text-muted-foreground">Mid-month operational (withdrawals/top-ups)</p>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                💡 Reporting yields are shown to investors. Transaction yields are internal only.
+              </p>
+            </div>
+
             {/* Preview Button */}
             <Button
               onClick={handlePreviewYield}
