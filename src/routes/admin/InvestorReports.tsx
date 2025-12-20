@@ -43,7 +43,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format, subMonths, parseISO } from "date-fns";
-import { generateInvestorReportHtml, ReportData } from "@/utils/reportGenerator";
+import { renderReportToHtml } from "@/components/reports/InvestorReportTemplate";
+import { InvestorData, InvestorFund } from "@/types/investor-report";
 import { formatAssetWithSymbol } from "@/utils/assetFormatting";
 import { PerformanceDataEditor } from "@/components/admin/reports/PerformanceDataEditor";
 
@@ -294,52 +295,66 @@ const InvestorReports = () => {
   }, [fetchReports]);
 
   const getFundDisplayName = (assetCode: string) => {
-    // Must match FUND_ICONS keys in reportGenerator.ts (uppercase)
+    // Must match FUND_ICONS keys in investor-report.ts (uppercase)
     return `${assetCode.toUpperCase()} YIELD FUND`;
   };
 
+  // Helper to format numbers for display
+  const formatValue = (val: number): string => {
+    if (val === 0) return '-';
+    return val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  const formatNetIncome = (val: number): string => {
+    if (val === 0) return '-';
+    const formatted = Math.abs(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return val >= 0 ? `+${formatted}` : `-${formatted}`;
+  };
+
+  const formatRate = (val: number): string => {
+    if (val === 0) return '-';
+    const pct = (val * 100).toFixed(2);
+    return val >= 0 ? `+${pct}%` : `${pct}%`;
+  };
+
+  // Transform asset to InvestorFund format
+  const transformToInvestorFund = (asset: InvestorReport['assets'][0]): InvestorFund => ({
+    name: getFundDisplayName(asset.asset_code),
+    currency: asset.asset_code.toUpperCase(),
+    begin_balance_mtd: formatValue(asset.mtd_beginning_balance),
+    begin_balance_qtd: formatValue(asset.qtd_beginning_balance),
+    begin_balance_ytd: formatValue(asset.ytd_beginning_balance),
+    begin_balance_itd: formatValue(asset.itd_beginning_balance),
+    additions_mtd: formatValue(asset.mtd_additions),
+    additions_qtd: formatValue(asset.qtd_additions),
+    additions_ytd: formatValue(asset.ytd_additions),
+    additions_itd: formatValue(asset.itd_additions),
+    redemptions_mtd: formatValue(asset.mtd_redemptions),
+    redemptions_qtd: formatValue(asset.qtd_redemptions),
+    redemptions_ytd: formatValue(asset.ytd_redemptions),
+    redemptions_itd: formatValue(asset.itd_redemptions),
+    net_income_mtd: formatNetIncome(asset.mtd_net_income),
+    net_income_qtd: formatNetIncome(asset.qtd_net_income),
+    net_income_ytd: formatNetIncome(asset.ytd_net_income),
+    net_income_itd: formatNetIncome(asset.itd_net_income),
+    ending_balance_mtd: formatValue(asset.mtd_ending_balance),
+    ending_balance_qtd: formatValue(asset.qtd_ending_balance),
+    ending_balance_ytd: formatValue(asset.ytd_ending_balance),
+    ending_balance_itd: formatValue(asset.itd_ending_balance),
+    return_rate_mtd: formatRate(asset.mtd_rate_of_return),
+    return_rate_qtd: formatRate(asset.qtd_rate_of_return),
+    return_rate_ytd: formatRate(asset.ytd_rate_of_return),
+    return_rate_itd: formatRate(asset.itd_rate_of_return),
+  });
+
   const handlePreviewReport = (investor: InvestorReport) => {
-    const reportData: ReportData = {
-      investorName: investor.investor_name,
+    const investorData: InvestorData = {
+      name: investor.investor_name,
       reportDate: format(parseISO(`${selectedMonth}-01`), "MMMM d, yyyy"),
-      funds: investor.assets.map((asset) => ({
-        fundName: getFundDisplayName(asset.asset_code),
-        currency: asset.asset_code,
-        metrics: {
-          begin_balance_mtd: asset.mtd_beginning_balance.toString(),
-          begin_balance_qtd: asset.qtd_beginning_balance.toString(),
-          begin_balance_ytd: asset.ytd_beginning_balance.toString(),
-          begin_balance_itd: asset.itd_beginning_balance.toString(),
-
-          additions_mtd: asset.mtd_additions.toString(),
-          additions_qtd: asset.qtd_additions.toString(),
-          additions_ytd: asset.ytd_additions.toString(),
-          additions_itd: asset.itd_additions.toString(),
-
-          redemptions_mtd: asset.mtd_redemptions.toString(),
-          redemptions_qtd: asset.qtd_redemptions.toString(),
-          redemptions_ytd: asset.ytd_redemptions.toString(),
-          redemptions_itd: asset.itd_redemptions.toString(),
-
-          net_income_mtd: asset.mtd_net_income.toString(),
-          net_income_qtd: asset.qtd_net_income.toString(),
-          net_income_ytd: asset.ytd_net_income.toString(),
-          net_income_itd: asset.itd_net_income.toString(),
-
-          ending_balance_mtd: asset.mtd_ending_balance.toString(),
-          ending_balance_qtd: asset.qtd_ending_balance.toString(),
-          ending_balance_ytd: asset.ytd_ending_balance.toString(),
-          ending_balance_itd: asset.itd_ending_balance.toString(),
-
-          return_rate_mtd: asset.mtd_rate_of_return.toString(),
-          return_rate_qtd: asset.qtd_rate_of_return.toString(),
-          return_rate_ytd: asset.ytd_rate_of_return.toString(),
-          return_rate_itd: asset.itd_rate_of_return.toString(),
-        },
-      })),
+      funds: investor.assets.map(transformToInvestorFund),
     };
 
-    const html = generateInvestorReportHtml(reportData);
+    const html = renderReportToHtml(investorData);
     const win = window.open("", "_blank");
     if (win) {
       win.document.write(html);
@@ -421,48 +436,14 @@ const InvestorReports = () => {
 
         totalRecipients += recipientEmails.length;
 
-        // Generate HTML Content
-        const reportData: ReportData = {
-          investorName: report.investor_name,
+        // Generate HTML Content using new template
+        const investorData: InvestorData = {
+          name: report.investor_name,
           reportDate: format(parseISO(`${selectedMonth}-01`), "MMMM d, yyyy"),
-          funds: report.assets.map((asset) => ({
-            fundName: getFundDisplayName(asset.asset_code),
-            currency: asset.asset_code,
-            metrics: {
-              begin_balance_mtd: asset.mtd_beginning_balance.toString(),
-              begin_balance_qtd: asset.qtd_beginning_balance.toString(),
-              begin_balance_ytd: asset.ytd_beginning_balance.toString(),
-              begin_balance_itd: asset.itd_beginning_balance.toString(),
-
-              additions_mtd: asset.mtd_additions.toString(),
-              additions_qtd: asset.qtd_additions.toString(),
-              additions_ytd: asset.ytd_additions.toString(),
-              additions_itd: asset.itd_additions.toString(),
-
-              redemptions_mtd: asset.mtd_redemptions.toString(),
-              redemptions_qtd: asset.qtd_redemptions.toString(),
-              redemptions_ytd: asset.ytd_redemptions.toString(),
-              redemptions_itd: asset.itd_redemptions.toString(),
-
-              net_income_mtd: asset.mtd_net_income.toString(),
-              net_income_qtd: asset.qtd_net_income.toString(),
-              net_income_ytd: asset.ytd_net_income.toString(),
-              net_income_itd: asset.itd_net_income.toString(),
-
-              ending_balance_mtd: asset.mtd_ending_balance.toString(),
-              ending_balance_qtd: asset.qtd_ending_balance.toString(),
-              ending_balance_ytd: asset.ytd_ending_balance.toString(),
-              ending_balance_itd: asset.itd_ending_balance.toString(),
-
-              return_rate_mtd: asset.mtd_rate_of_return.toString(),
-              return_rate_qtd: asset.qtd_rate_of_return.toString(),
-              return_rate_ytd: asset.ytd_rate_of_return.toString(),
-              return_rate_itd: asset.itd_rate_of_return.toString(),
-            },
-          })),
+          funds: report.assets.map(transformToInvestorFund),
         };
 
-        const htmlContent = generateInvestorReportHtml(reportData);
+        const htmlContent = renderReportToHtml(investorData);
 
         emailBatchData.push({
           investorId: report.investor_id,
