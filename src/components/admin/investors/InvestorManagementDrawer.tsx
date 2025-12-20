@@ -12,6 +12,17 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +38,7 @@ import {
   AlertCircle,
   RotateCcw,
   FileText,
+  Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { InvestorSummaryV2 } from "@/services/adminServiceV2";
@@ -58,6 +70,7 @@ interface InvestorManagementDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onDataChange?: () => void;
+  onDelete?: (investorId: string) => Promise<void>;
 }
 
 export function InvestorManagementDrawer({
@@ -66,12 +79,15 @@ export function InvestorManagementDrawer({
   isOpen,
   onClose,
   onDataChange,
+  onDelete,
 }: InvestorManagementDrawerProps) {
   const navigate = useNavigate();
   const [detailData, setDetailData] = useState<InvestorDetailData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Load investor details when drawer opens
   useEffect(() => {
@@ -147,6 +163,19 @@ export function InvestorManagementDrawer({
     if (investorId) {
       navigate(`/admin/investors/${investorId}`);
       onClose();
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!investorId || !onDelete) return;
+    setIsDeleting(true);
+    try {
+      await onDelete(investorId);
+      setDeleteDialogOpen(false);
+    } catch {
+      // Error already handled by parent
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -285,6 +314,44 @@ export function InvestorManagementDrawer({
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Open Full Profile
               </Button>
+
+              {/* Delete Investor Button */}
+              {onDelete && (
+                <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" className="w-full">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Investor
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Investor</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete <strong>{investorName}</strong>? 
+                        This action cannot be undone and will remove all associated data.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {isDeleting ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Deleting...
+                          </>
+                        ) : (
+                          "Delete"
+                        )}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </TabsContent>
 
             {/* Yield Tab */}

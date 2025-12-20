@@ -23,10 +23,13 @@ import { adminServiceV2, InvestorSummaryV2 } from "@/services/adminServiceV2";
 import AddInvestorDialog from "@/components/admin/investors/AddInvestorDialog";
 import { InvestorManagementDrawer } from "@/components/admin/investors/InvestorManagementDrawer";
 import { useInlineManagementToggle } from "@/hooks/useInlineManagementToggle";
+import { deleteInvestorUser } from "@/services/userService";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 function UnifiedInvestorsContent() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -65,6 +68,27 @@ function UnifiedInvestorsContent() {
 
   const handleDrawerClose = () => {
     setDrawerOpen(false);
+  };
+
+  const handleDeleteInvestor = async (investorId: string) => {
+    try {
+      await deleteInvestorUser(investorId);
+      toast({
+        title: "Investor deleted",
+        description: "The investor has been removed successfully.",
+      });
+      setDrawerOpen(false);
+      setSelectedInvestor(null);
+      loadInvestors();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to delete investor";
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      });
+      throw error; // Re-throw so drawer knows deletion failed
+    }
   };
 
   const filteredInvestors = investors.filter((inv) => {
@@ -190,6 +214,7 @@ function UnifiedInvestorsContent() {
         isOpen={drawerOpen}
         onClose={handleDrawerClose}
         onDataChange={loadInvestors}
+        onDelete={handleDeleteInvestor}
       />
     </div>
   );
