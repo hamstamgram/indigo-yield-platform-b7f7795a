@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -763,12 +764,14 @@ const InvestorReports = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-2 items-center">
                         {report.assets.length > 0 ? (
                           report.assets.map((asset) => (
-                            <Badge key={asset.asset_code} variant="secondary" className="text-xs">
-                              {asset.asset_code}
-                            </Badge>
+                            <CryptoIcon 
+                              key={asset.asset_code} 
+                              symbol={asset.asset_code} 
+                              className="h-6 w-6" 
+                            />
                           ))
                         ) : (
                           <span className="text-xs text-muted-foreground">No assets</span>
@@ -841,11 +844,9 @@ const InvestorReports = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Asset Types</p>
-                      <div className="flex flex-wrap gap-1 mt-1">
+                      <div className="flex flex-wrap gap-2 mt-1 items-center">
                         {selectedInvestor.assets.map((a) => (
-                          <Badge key={a.asset_code} variant="secondary">
-                            {a.asset_code}
-                          </Badge>
+                          <CryptoIcon key={a.asset_code} symbol={a.asset_code} className="h-6 w-6" />
                         ))}
                       </div>
                     </div>
