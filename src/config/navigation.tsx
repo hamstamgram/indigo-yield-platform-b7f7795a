@@ -85,6 +85,12 @@ export const adminNavGroups: NavGroup[] = [
         adminOnly: true,
       },
       {
+        title: "Transactions",
+        href: "/admin/transactions",
+        icon: <CreditCard className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
         title: "Withdrawals",
         href: "/admin/withdrawals",
         icon: <ArrowLeftRight className="h-5 w-5" />,
