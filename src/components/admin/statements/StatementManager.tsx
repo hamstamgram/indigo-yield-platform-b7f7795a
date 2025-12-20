@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
-import { Loader2, FileText, CheckCircle, AlertCircle, Download, Send } from "lucide-react";
+import { Loader2, FileText, CheckCircle, AlertCircle, Download, Send, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { generatePDF } from "@/lib/pdf/statementGenerator";
+import { checkStatementExists } from "@/services/reportUpsertService";
+import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
 
 interface StatementDraft {
   id: string;
@@ -26,10 +28,12 @@ interface StatementDraft {
 }
 
 export const StatementManager: React.FC = () => {
+  const { isSuperAdmin, loading: roleLoading } = useSuperAdmin();
   const [selectedMonth, setSelectedMonth] = useState(format(subMonths(new Date(), 1), "yyyy-MM"));
   const [drafts, setDrafts] = useState<StatementDraft[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [existingCount, setExistingCount] = useState(0);
 
   const fetchDrafts = React.useCallback(async () => {
     const [year, month] = selectedMonth.split("-").map(Number);
@@ -242,6 +246,18 @@ export const StatementManager: React.FC = () => {
     }
   };
 
+  // Show loading while checking role
+  if (roleLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+          <p className="text-muted-foreground mt-2">Verifying permissions...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -249,6 +265,11 @@ export const StatementManager: React.FC = () => {
           <CardTitle>Monthly Statements</CardTitle>
           <p className="text-sm text-muted-foreground">
             Generate, review, and publish investor reports.
+            {existingCount > 0 && (
+              <span className="ml-2 text-amber-600">
+                ({existingCount} existing will be updated)
+              </span>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -258,17 +279,19 @@ export const StatementManager: React.FC = () => {
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
           />
-          <Button onClick={generateDrafts} disabled={isGenerating}>
+          <Button onClick={generateDrafts} disabled={isGenerating || !isSuperAdmin}>
             {isGenerating ? (
               <Loader2 className="animate-spin mr-2" />
+            ) : existingCount > 0 ? (
+              <RefreshCw className="mr-2 h-4 w-4" />
             ) : (
               <FileText className="mr-2 h-4 w-4" />
             )}
-            Generate Drafts
+            {existingCount > 0 ? "Regenerate" : "Generate"} Drafts
           </Button>
           <Button
             onClick={publishDrafts}
-            disabled={isPublishing || drafts.filter((d) => d.status === "draft").length === 0}
+            disabled={isPublishing || !isSuperAdmin || drafts.filter((d) => d.status === "draft").length === 0}
             variant="secondary"
             className="bg-green-600 hover:bg-green-700 text-white"
           >
@@ -278,6 +301,13 @@ export const StatementManager: React.FC = () => {
         </div>
       </CardHeader>
       <CardContent>
+        {!isSuperAdmin && (
+          <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+            <p className="text-sm text-amber-700 dark:text-amber-400">
+              You can view statements but only Super Admins can generate or publish.
+            </p>
+          </div>
+        )}
         <Table>
           <TableHeader>
             <TableRow>
@@ -310,8 +340,6 @@ export const StatementManager: React.FC = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      // Preview Logic (Get Signed URL)
-                      // For now just log path
                       console.log("Preview:", draft.storage_path);
                     }}
                   >
