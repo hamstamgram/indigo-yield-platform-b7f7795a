@@ -25,11 +25,13 @@ import { InvestorManagementDrawer } from "@/components/admin/investors/InvestorM
 import { useInlineManagementToggle } from "@/hooks/useInlineManagementToggle";
 import { deleteInvestorUser } from "@/services/userService";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminStats } from "@/hooks/useAdminStats";
 import { cn } from "@/lib/utils";
 
 function UnifiedInvestorsContent() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { stats } = useAdminStats();
   const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -115,7 +117,7 @@ function UnifiedInvestorsContent() {
         <div>
           <h1 className="text-3xl font-display font-bold tracking-tight">Investors</h1>
           <p className="text-muted-foreground mt-1">
-            {investors.length} total investors
+            {investors.length} total investors • {stats.uniqueInvestorsWithPositions} with active positions
           </p>
         </div>
         <div className="flex items-center gap-4">

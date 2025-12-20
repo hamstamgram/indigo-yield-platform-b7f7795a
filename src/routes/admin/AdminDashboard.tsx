@@ -3,91 +3,16 @@
  * 3-column layout with pending actions, quick entry, and activity feed
  */
 
-import { useEffect, useState } from "react";
 import { Users, Activity, Loader2, CheckCircle2, Clock, TrendingUp } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { AdminGuard } from "@/components/admin/AdminGuard";
-import { supabase } from "@/integrations/supabase/client";
 import { FinancialSnapshot } from "@/components/admin/FinancialSnapshot";
 import { PendingActionsPanel } from "@/components/admin/dashboard/PendingActionsPanel";
 import { RecentActivityFeed } from "@/components/admin/dashboard/RecentActivityFeed";
-
-interface AdminStats {
-  totalInvestors: number;
-  activeInvestors: number;
-  activePositionsCount: number;
-  pendingWithdrawals: number;
-  recentActivity: number;
-}
+import { useAdminStats } from "@/hooks/useAdminStats";
 
 function AdminDashboardContent() {
-  const [stats, setStats] = useState<AdminStats>({
-    totalInvestors: 0,
-    activeInvestors: 0,
-    activePositionsCount: 0,
-    pendingWithdrawals: 0,
-    recentActivity: 0,
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadAdminStats();
-
-    const withdrawalChannel = supabase
-      .channel("admin-withdrawals")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "withdrawal_requests",
-          filter: "status=eq.pending",
-        },
-        () => loadAdminStats()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(withdrawalChannel);
-    };
-  }, []);
-
-  const loadAdminStats = async () => {
-    try {
-      const { data: investors, error: invError } = await supabase
-        .from("profiles")
-        .select("id, status")
-        .eq("is_admin", false);
-
-      if (invError) throw invError;
-
-      const positionsResult = await (supabase as any)
-        .from("investor_positions")
-        .select("investor_id, fund_id");
-
-      const withdrawalsResult = await (supabase as any)
-        .from("withdrawal_requests")
-        .select("id")
-        .eq("status", "pending");
-
-      const recentActivityResult = await (supabase as any)
-        .from("transactions_v2")
-        .select("id")
-        .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
-
-      setStats({
-        totalInvestors: investors?.length || 0,
-        activeInvestors: investors?.filter((i: any) => i.status === "active").length || 0,
-        activePositionsCount: positionsResult.data?.length || 0,
-        pendingWithdrawals: withdrawalsResult.data?.length || 0,
-        recentActivity: recentActivityResult.data?.length || 0,
-      });
-    } catch (error) {
-      console.error("Failed to load admin stats:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { stats, loading } = useAdminStats();
 
   if (loading) {
     return (
@@ -118,13 +43,13 @@ function AdminDashboardContent() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Investors</p>
-                <p className="text-2xl font-mono font-bold">{stats.totalInvestors}</p>
+                <p className="text-2xl font-mono font-bold">{stats.totalProfiles}</p>
               </div>
               <Users className="h-8 w-8 text-primary/20" />
             </div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
               <CheckCircle2 className="h-3 w-3 text-green-500" />
-              {stats.activeInvestors} active
+              {stats.activeProfiles} active
             </p>
           </CardContent>
         </Card>
@@ -134,7 +59,7 @@ function AdminDashboardContent() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Positions</p>
-                <p className="text-2xl font-mono font-bold">{stats.activePositionsCount}</p>
+                <p className="text-2xl font-mono font-bold">{stats.totalPositions}</p>
               </div>
               <TrendingUp className="h-8 w-8 text-blue-500/20" />
             </div>
