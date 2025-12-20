@@ -27,12 +27,15 @@ import { deleteInvestorUser } from "@/services/userService";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import { cn } from "@/lib/utils";
+import { assetService } from "@/services/assetService";
+import { Asset } from "@/types/investorTypes";
 
 function UnifiedInvestorsContent() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { stats } = useAdminStats();
   const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);
+  const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedInvestor, setSelectedInvestor] = useState<InvestorSummaryV2 | null>(null);
@@ -41,20 +44,31 @@ function UnifiedInvestorsContent() {
   // Toggle for inline management mode
   const { isInlineMode, setIsInlineMode } = useInlineManagementToggle();
 
-  const loadInvestors = async () => {
+  const loadData = async () => {
     setLoading(true);
     try {
-      const data = await adminServiceV2.getAllInvestorsWithSummary();
-      setInvestors(data);
+      const [investorsData, assetsData] = await Promise.all([
+        adminServiceV2.getAllInvestorsWithSummary(),
+        assetService.getAssets({ is_active: true }),
+      ]);
+      setInvestors(investorsData);
+      
+      // Transform to match Asset type expected by AddInvestorDialog
+      const transformedAssets: Asset[] = assetsData.map((a) => ({
+        id: a.asset_id ? parseInt(a.asset_id, 10) : 0,
+        symbol: a.symbol,
+        name: a.name,
+      }));
+      setAssets(transformedAssets);
     } catch (error) {
-      console.error("Failed to load investors:", error);
+      console.error("Failed to load data:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadInvestors();
+    loadData();
   }, []);
 
   const handleInvestorClick = (investor: InvestorSummaryV2) => {
@@ -81,7 +95,7 @@ function UnifiedInvestorsContent() {
       });
       setDrawerOpen(false);
       setSelectedInvestor(null);
-      loadInvestors();
+      loadData();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to delete investor";
       toast({
@@ -136,7 +150,7 @@ function UnifiedInvestorsContent() {
               onCheckedChange={setIsInlineMode}
             />
           </div>
-          <AddInvestorDialog assets={[]} onInvestorAdded={loadInvestors} />
+          <AddInvestorDialog assets={assets} onInvestorAdded={loadData} />
         </div>
       </div>
 
@@ -215,7 +229,7 @@ function UnifiedInvestorsContent() {
         investorSummary={selectedInvestor}
         isOpen={drawerOpen}
         onClose={handleDrawerClose}
-        onDataChange={loadInvestors}
+        onDataChange={loadData}
         onDelete={handleDeleteInvestor}
       />
     </div>
