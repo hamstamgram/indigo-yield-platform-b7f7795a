@@ -16,7 +16,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Loader2, DollarSign, Users, TrendingUp, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { formatCurrency } from "@/utils/formatters";
+import { formatCurrency } from "@/utils/statementCalculations";
 import { useAuth } from "@/lib/auth/context";
 
 interface Allocation {

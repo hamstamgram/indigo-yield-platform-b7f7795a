@@ -31,7 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Plus, Users, DollarSign, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { formatCurrency } from "@/utils/formatters";
+import { formatCurrency } from "@/utils/statementCalculations";
 
 interface IBProfile {
   id: string;
@@ -124,26 +124,24 @@ export default function IBManagementPage() {
         .eq("email", data.email)
         .maybeSingle();
 
-      let userId: string;
+      if (!existingProfile) {
+        throw new Error(
+          "User profile does not exist. Please invite this user first through the investor invite flow, then assign IB role."
+        );
+      }
 
-      if (existingProfile) {
-        // User exists, just add IB role
-        userId = existingProfile.id;
-      } else {
-        // Create new profile (in a real system, this would send an invite)
-        // For now, we'll create a placeholder profile
-        const { data: newProfile, error: createError } = await supabase
-          .from("profiles")
-          .insert({
-            email: data.email,
-            first_name: data.firstName,
-            last_name: data.lastName,
-          })
-          .select("id")
-          .single();
+      const userId = existingProfile.id;
 
-        if (createError) throw createError;
-        userId = newProfile.id;
+      // Check if already has IB role
+      const { data: existingRole } = await supabase
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("role", "ib")
+        .maybeSingle();
+
+      if (existingRole) {
+        throw new Error("This user is already an IB.");
       }
 
       // Add IB role
@@ -152,7 +150,7 @@ export default function IBManagementPage() {
         role: "ib",
       });
 
-      if (roleError && !roleError.message.includes("duplicate")) {
+      if (roleError) {
         throw roleError;
       }
 
