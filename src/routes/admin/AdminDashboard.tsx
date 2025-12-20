@@ -58,12 +58,12 @@ function AdminDashboardContent() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Positions</p>
-                <p className="text-2xl font-mono font-bold">{stats.totalPositions}</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Active Positions</p>
+                <p className="text-2xl font-mono font-bold">{stats.activePositions}</p>
               </div>
               <TrendingUp className="h-8 w-8 text-blue-500/20" />
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Across all funds</p>
+            <p className="text-xs text-muted-foreground mt-1">{stats.totalPositions} accounts tracked</p>
           </CardContent>
         </Card>
 
