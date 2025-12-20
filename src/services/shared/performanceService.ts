@@ -51,6 +51,17 @@ export const performanceService = {
   async getPerAssetStats(userId: string) {
     const records = await this.getInvestorPerformance({ userId });
     
+    // Fetch funds to get asset symbols
+    const { data: funds } = await supabase
+      .from("funds")
+      .select("name, asset");
+    
+    // Create a map of fund name -> asset symbol
+    const fundToAsset = new Map<string, string>();
+    funds?.forEach(f => {
+      fundToAsset.set(f.name, f.asset);
+    });
+    
     // Get latest record for each unique fund
     const latestByFund = new Map<string, PerformanceRecord>();
     
@@ -66,6 +77,7 @@ export const performanceService = {
       .filter(rec => Number(rec.mtd_ending_balance || 0) > 0)
       .map(rec => ({
         fundName: rec.fund_name,
+        assetSymbol: fundToAsset.get(rec.fund_name) || rec.fund_name,
         periodName: rec.period?.period_name || "Current",
         mtd: {
           netIncome: Number(rec.mtd_net_income || 0),
