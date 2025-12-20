@@ -33,7 +33,7 @@ export const activityNav: NavItem[] = [
   },
   { title: "Transaction History", href: "/transactions", icon: <CreditCard className="h-5 w-5" /> },
   {
-    title: "Withdrawals Request",
+    title: "Withdrawal Requests",
     href: "/withdrawals",
     icon: <ArrowLeftRight className="h-5 w-5" />,
   },
@@ -91,7 +91,7 @@ export const adminNavGroups: NavGroup[] = [
         adminOnly: true,
       },
       {
-        title: "Withdrawals",
+        title: "Withdrawal Requests",
         href: "/admin/withdrawals",
         icon: <ArrowLeftRight className="h-5 w-5" />,
         adminOnly: true,

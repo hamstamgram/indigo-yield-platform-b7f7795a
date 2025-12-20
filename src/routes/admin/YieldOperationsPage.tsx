@@ -159,7 +159,7 @@ function YieldOperationsContent() {
     try {
       const result = await previewYieldDistribution({
         fundId: selectedFund.id,
-        targetDate: new Date(),
+        targetDate: new Date(aumDate),
         newTotalAUM: newAUMValue,
       });
       setYieldPreview(result);
@@ -182,15 +182,16 @@ function YieldOperationsContent() {
       await applyYieldDistribution(
         {
           fundId: selectedFund.id,
-          targetDate: new Date(),
+          targetDate: new Date(aumDate),
           newTotalAUM: parseFloat(newAUM),
         },
-        user.id
+        user.id,
+        yieldPurpose // Pass purpose to backend
       );
 
       toast({
         title: "Yield Distributed",
-        description: `Distributed ${formatValue(yieldPreview.grossYield, selectedFund.asset)} ${selectedFund.asset} to ${yieldPreview.investorCount} investors.`,
+        description: `Distributed ${formatValue(yieldPreview.grossYield, selectedFund.asset)} ${selectedFund.asset} to ${yieldPreview.investorCount} investors (${yieldPurpose === "reporting" ? "Reporting" : "Transaction"} purpose).`,
       });
 
       setShowYieldDialog(false);

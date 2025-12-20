@@ -4457,6 +4457,22 @@ export type Database = {
               net_amount: number
             }[]
           }
+      apply_daily_yield_to_fund_v2: {
+        Args: {
+          p_admin_id: string
+          p_date: string
+          p_fund_id: string
+          p_gross_amount: number
+          p_purpose?: string
+        }
+        Returns: {
+          fee_amount: number
+          gross_amount: number
+          ib_amount: number
+          investor_id: string
+          net_amount: number
+        }[]
+      }
       apply_daily_yield_with_fees: {
         Args: {
           p_fee_rate?: number

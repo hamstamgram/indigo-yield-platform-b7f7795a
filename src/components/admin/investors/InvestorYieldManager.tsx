@@ -354,10 +354,10 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
               <Button
                 variant="outline"
                 className="mt-4"
-                onClick={() => navigate(`/admin/investors/${investorId}?tab=positions`)}
+                onClick={() => navigate(`/admin/transactions?investorId=${investorId}&action=add`)}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Add Position
+                Add Transaction
               </Button>
             </CardContent>
           </Card>

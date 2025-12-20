@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -18,25 +18,16 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Loader2, AlertCircle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 export default function InvestorPositionsTab({ investorId }: { investorId: string }) {
-  const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<any>(null);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   // Fetch Positions - filter out zero-value positions
   const { data: positions, isLoading } = useQuery({
@@ -63,28 +54,6 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
 
       if (error) throw error;
       return data;
-    },
-  });
-
-  // Add Position Mutation
-  const addPositionMutation = useMutation({
-    mutationFn: async (newPosition: any) => {
-      const { error } = await supabase.from("investor_positions").insert([
-        {
-          investor_id: investorId,
-          fund_id: newPosition.fundId,
-          shares: parseFloat(newPosition.shares),
-        },
-      ]);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["investor-positions", investorId] });
-      setIsAddOpen(false);
-      toast.success("Position added successfully");
-    },
-    onError: (error: any) => {
-      toast.error(`Error adding position: ${error.message}`);
     },
   });
 
@@ -133,22 +102,14 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
     },
   });
 
-  // Fetch Funds for Dropdown
-  const { data: funds } = useQuery({
-    queryKey: ["active-funds"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("funds")
-        .select("id, name, asset")
-        .eq("status", "active");
-      if (error) throw error;
-      return data;
-    },
-  });
-
   const handleEdit = (position: any) => {
     setSelectedPosition(position);
     setIsEditOpen(true);
+  };
+
+  // Navigate to Add Transaction page with investor pre-selected
+  const handleAddTransaction = () => {
+    navigate(`/admin/transactions?investorId=${investorId}&action=add`);
   };
 
   if (isLoading) {
@@ -163,23 +124,9 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Asset Positions</h2>
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Add Position
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Position</DialogTitle>
-            </DialogHeader>
-            <AddPositionForm
-              funds={funds || []}
-              onSubmit={(data: any) => addPositionMutation.mutate(data)}
-              isLoading={addPositionMutation.isPending}
-            />
-          </DialogContent>
-        </Dialog>
+        <Button onClick={handleAddTransaction}>
+          <Plus className="mr-2 h-4 w-4" /> Add Transaction
+        </Button>
       </div>
 
       <Card>
@@ -233,7 +180,11 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              No positions found for this investor.
+              <p>No positions found for this investor.</p>
+              <Button variant="outline" className="mt-4" onClick={handleAddTransaction}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Transaction
+              </Button>
             </div>
           )}
         </CardContent>
@@ -257,50 +208,6 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
         </DialogContent>
       </Dialog>
     </div>
-  );
-}
-
-function AddPositionForm({ funds, onSubmit, isLoading }: any) {
-  const [fundId, setFundId] = useState("");
-  const [shares, setShares] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit({ fundId, shares });
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label>Fund</Label>
-        <Select value={fundId} onValueChange={setFundId} required>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a fund" />
-          </SelectTrigger>
-          <SelectContent>
-            {funds.map((f: any) => (
-              <SelectItem key={f.id} value={f.id}>
-                {f.name} ({f.asset})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label>Initial Balance (Shares)</Label>
-        <Input
-          type="number"
-          step="0.000001"
-          value={shares}
-          onChange={(e) => setShares(e.target.value)}
-          required
-        />
-      </div>
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-        Create Position
-      </Button>
-    </form>
   );
 }
 
@@ -331,5 +238,3 @@ function EditPositionForm({ position, onSubmit, isLoading }: any) {
     </form>
   );
 }
-// @ts-nocheck
-// @ts-nocheck

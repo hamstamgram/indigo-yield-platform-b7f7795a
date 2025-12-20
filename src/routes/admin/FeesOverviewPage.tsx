@@ -27,9 +27,7 @@ import { AdminGuard } from "@/components/admin/AdminGuard";
 import { supabase } from "@/integrations/supabase/client";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { format } from "date-fns";
-
-// INDIGO Fees account ID (designated fee collection account)
-const INDIGO_FEES_ACCOUNT_ID = "169bb053-36cb-4f6e-93ea-831f0dfeaf1d";
+import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 
 interface FeeRecord {
   id: string;
