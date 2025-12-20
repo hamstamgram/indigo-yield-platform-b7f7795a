@@ -63,7 +63,7 @@ function AdminDashboardContent() {
               </div>
               <TrendingUp className="h-8 w-8 text-blue-500/20" />
             </div>
-            <p className="text-xs text-muted-foreground mt-1">{stats.totalPositions} accounts tracked</p>
+            <p className="text-xs text-muted-foreground mt-1">Across all funds</p>
           </CardContent>
         </Card>
 
