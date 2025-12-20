@@ -10,6 +10,34 @@ interface RequestBody {
   periodMonth: number;
 }
 
+/**
+ * CANONICAL FORMULA (Source of Truth):
+ * net_income = ending_balance - beginning_balance - additions + redemptions
+ * rate_of_return = net_income / beginning_balance (0 if beginning_balance <= 0)
+ * 
+ * Edge Cases:
+ * - First investment mid-month: beginning_balance = 0, rate_of_return = 0
+ * - Full exit mid-month: ending_balance = 0 (calculated correctly)
+ * - Divide by zero: rate_of_return = 0 when beginning_balance <= 0
+ */
+function calculatePerformanceMetrics(
+  endingBalance: number,
+  beginningBalance: number,
+  additions: number,
+  redemptions: number
+): { netIncome: number; rateOfReturn: number } {
+  // CORRECT formula per audit requirements:
+  const netIncome = endingBalance - beginningBalance - additions + redemptions;
+  
+  // Avoid divide by zero - return 0% if no beginning balance
+  if (beginningBalance <= 0) {
+    return { netIncome, rateOfReturn: 0 };
+  }
+  
+  const rateOfReturn = (netIncome / beginningBalance) * 100;
+  return { netIncome, rateOfReturn };
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -46,17 +74,18 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Use service role client to check if user is admin
+    // Use service role client to check if user is admin via user_roles table
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("is_admin")
-      .eq("id", user.id)
-      .single();
+    const { data: userRole, error: roleError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .in("role", ["admin", "super_admin"])
+      .maybeSingle();
 
-    if (profileError || !profile?.is_admin) {
-      console.error("Admin check failed:", profileError || "User is not admin");
+    if (roleError || !userRole) {
+      console.error("Admin check failed:", roleError || "User is not admin");
       return new Response(
         JSON.stringify({ error: "Admin access required" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -183,108 +212,82 @@ Deno.serve(async (req) => {
         (tx: any) => tx.investor_id === investorId && tx.asset === fundAsset
       );
 
-      // Calculate MTD metrics
-      const mtdTxs = investorTxs.filter((tx: any) => {
-        const txDate = new Date(tx.tx_date);
-        return txDate >= mtdStart && txDate <= mtdEnd;
-      });
+      // Helper to calculate beginning balance from transactions before a date
+      const calculateBeginningBalance = (txs: any[], beforeDate: Date): number => {
+        return txs
+          .filter((tx: any) => new Date(tx.tx_date) < beforeDate)
+          .reduce((sum: number, tx: any) => {
+            const amount = Number(tx.amount);
+            if (["WITHDRAWAL", "FEE", "REDEMPTION"].includes(tx.type)) {
+              return sum - Math.abs(amount);
+            }
+            return sum + amount;
+          }, 0);
+      };
 
-      const mtdAdditions = mtdTxs
-        .filter((tx: any) => ["DEPOSIT", "SUBSCRIPTION"].includes(tx.type))
-        .reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);
+      // Helper to sum transactions by type within a date range
+      const sumByType = (txs: any[], startDate: Date, endDate: Date, types: string[]): number => {
+        return txs
+          .filter((tx: any) => {
+            const txDate = new Date(tx.tx_date);
+            return txDate >= startDate && txDate <= endDate && types.includes(tx.type);
+          })
+          .reduce((sum: number, tx: any) => sum + Math.abs(Number(tx.amount)), 0);
+      };
 
-      const mtdRedemptions = mtdTxs
-        .filter((tx: any) => ["WITHDRAWAL", "REDEMPTION"].includes(tx.type))
-        .reduce((sum: number, tx: any) => sum + Math.abs(Number(tx.amount)), 0);
+      // ============= MTD CALCULATIONS =============
+      const mtdBeginning = calculateBeginningBalance(investorTxs, mtdStart);
+      const mtdAdditions = sumByType(investorTxs, mtdStart, mtdEnd, ["DEPOSIT", "SUBSCRIPTION"]);
+      const mtdRedemptions = sumByType(investorTxs, mtdStart, mtdEnd, ["WITHDRAWAL", "REDEMPTION"]);
+      
+      // CORRECT FORMULA: net_income = ending - beginning - additions + redemptions
+      const mtdMetrics = calculatePerformanceMetrics(
+        currentBalance,
+        mtdBeginning,
+        mtdAdditions,
+        mtdRedemptions
+      );
 
-      const mtdInterest = mtdTxs
-        .filter((tx: any) => tx.type === "INTEREST")
-        .reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);
+      // ============= QTD CALCULATIONS =============
+      const qtdBeginning = calculateBeginningBalance(investorTxs, qtdStart);
+      const qtdAdditions = sumByType(investorTxs, qtdStart, mtdEnd, ["DEPOSIT", "SUBSCRIPTION"]);
+      const qtdRedemptions = sumByType(investorTxs, qtdStart, mtdEnd, ["WITHDRAWAL", "REDEMPTION"]);
+      
+      const qtdMetrics = calculatePerformanceMetrics(
+        currentBalance,
+        qtdBeginning,
+        qtdAdditions,
+        qtdRedemptions
+      );
 
-      const mtdFees = mtdTxs
-        .filter((tx: any) => tx.type === "FEE")
-        .reduce((sum: number, tx: any) => sum + Math.abs(Number(tx.amount)), 0);
+      // ============= YTD CALCULATIONS =============
+      const ytdBeginning = calculateBeginningBalance(investorTxs, ytdStart);
+      const ytdAdditions = sumByType(investorTxs, ytdStart, mtdEnd, ["DEPOSIT", "SUBSCRIPTION"]);
+      const ytdRedemptions = sumByType(investorTxs, ytdStart, mtdEnd, ["WITHDRAWAL", "REDEMPTION"]);
+      
+      const ytdMetrics = calculatePerformanceMetrics(
+        currentBalance,
+        ytdBeginning,
+        ytdAdditions,
+        ytdRedemptions
+      );
 
-      // MTD beginning balance = current - additions + redemptions - interest + fees
-      const mtdBeginning = currentBalance - mtdAdditions + mtdRedemptions - mtdInterest + mtdFees;
-      const mtdNetIncome = mtdInterest - mtdFees;
-      const mtdRoR = mtdBeginning > 0 ? (mtdNetIncome / mtdBeginning) * 100 : 0;
-
-      // Calculate QTD metrics
-      const qtdTxs = investorTxs.filter((tx: any) => {
-        const txDate = new Date(tx.tx_date);
-        return txDate >= qtdStart && txDate <= mtdEnd;
-      });
-
-      const qtdAdditions = qtdTxs
-        .filter((tx: any) => ["DEPOSIT", "SUBSCRIPTION"].includes(tx.type))
-        .reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);
-
-      const qtdRedemptions = qtdTxs
-        .filter((tx: any) => ["WITHDRAWAL", "REDEMPTION"].includes(tx.type))
-        .reduce((sum: number, tx: any) => sum + Math.abs(Number(tx.amount)), 0);
-
-      const qtdInterest = qtdTxs
-        .filter((tx: any) => tx.type === "INTEREST")
-        .reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);
-
-      const qtdFees = qtdTxs
-        .filter((tx: any) => tx.type === "FEE")
-        .reduce((sum: number, tx: any) => sum + Math.abs(Number(tx.amount)), 0);
-
-      const qtdBeginning = currentBalance - qtdAdditions + qtdRedemptions - qtdInterest + qtdFees;
-      const qtdNetIncome = qtdInterest - qtdFees;
-      const qtdRoR = qtdBeginning > 0 ? (qtdNetIncome / qtdBeginning) * 100 : 0;
-
-      // Calculate YTD metrics
-      const ytdTxs = investorTxs.filter((tx: any) => {
-        const txDate = new Date(tx.tx_date);
-        return txDate >= ytdStart && txDate <= mtdEnd;
-      });
-
-      const ytdAdditions = ytdTxs
-        .filter((tx: any) => ["DEPOSIT", "SUBSCRIPTION"].includes(tx.type))
-        .reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);
-
-      const ytdRedemptions = ytdTxs
-        .filter((tx: any) => ["WITHDRAWAL", "REDEMPTION"].includes(tx.type))
-        .reduce((sum: number, tx: any) => sum + Math.abs(Number(tx.amount)), 0);
-
-      const ytdInterest = ytdTxs
-        .filter((tx: any) => tx.type === "INTEREST")
-        .reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);
-
-      const ytdFees = ytdTxs
-        .filter((tx: any) => tx.type === "FEE")
-        .reduce((sum: number, tx: any) => sum + Math.abs(Number(tx.amount)), 0);
-
-      const ytdBeginning = currentBalance - ytdAdditions + ytdRedemptions - ytdInterest + ytdFees;
-      const ytdNetIncome = ytdInterest - ytdFees;
-      const ytdRoR = ytdBeginning > 0 ? (ytdNetIncome / ytdBeginning) * 100 : 0;
-
-      // Calculate ITD (Inception to Date) metrics - all transactions
-      const itdAdditions = investorTxs
-        .filter((tx: any) => ["DEPOSIT", "SUBSCRIPTION"].includes(tx.type))
-        .reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);
-
-      const itdRedemptions = investorTxs
-        .filter((tx: any) => ["WITHDRAWAL", "REDEMPTION"].includes(tx.type))
-        .reduce((sum: number, tx: any) => sum + Math.abs(Number(tx.amount)), 0);
-
-      const itdInterest = investorTxs
-        .filter((tx: any) => tx.type === "INTEREST")
-        .reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);
-
-      const itdFees = investorTxs
-        .filter((tx: any) => tx.type === "FEE")
-        .reduce((sum: number, tx: any) => sum + Math.abs(Number(tx.amount)), 0);
-
-      // ITD beginning is essentially 0 (inception)
+      // ============= ITD CALCULATIONS =============
+      // ITD beginning is always 0 (inception)
       const itdBeginning = 0;
-      const itdNetIncome = itdInterest - itdFees;
-      // ITD RoR = net income / total principal invested
+      const itdAdditions = sumByType(investorTxs, new Date(0), mtdEnd, ["DEPOSIT", "SUBSCRIPTION"]);
+      const itdRedemptions = sumByType(investorTxs, new Date(0), mtdEnd, ["WITHDRAWAL", "REDEMPTION"]);
+      
+      const itdMetrics = calculatePerformanceMetrics(
+        currentBalance,
+        itdBeginning,
+        itdAdditions,
+        itdRedemptions
+      );
+      
+      // Special case for ITD: use total principal as denominator since beginning is 0
       const totalPrincipal = itdAdditions - itdRedemptions;
-      const itdRoR = totalPrincipal > 0 ? (itdNetIncome / totalPrincipal) * 100 : 0;
+      const itdRoR = totalPrincipal > 0 ? (itdMetrics.netIncome / totalPrincipal) * 100 : 0;
 
       performanceRecords.push({
         period_id: periodId,
@@ -294,28 +297,28 @@ Deno.serve(async (req) => {
         mtd_beginning_balance: Math.round(mtdBeginning * 100) / 100,
         mtd_additions: Math.round(mtdAdditions * 100) / 100,
         mtd_redemptions: Math.round(mtdRedemptions * 100) / 100,
-        mtd_net_income: Math.round(mtdNetIncome * 100) / 100,
+        mtd_net_income: Math.round(mtdMetrics.netIncome * 100) / 100,
         mtd_ending_balance: Math.round(currentBalance * 100) / 100,
-        mtd_rate_of_return: Math.round(mtdRoR * 100) / 100,
+        mtd_rate_of_return: Math.round(mtdMetrics.rateOfReturn * 100) / 100,
         // QTD
         qtd_beginning_balance: Math.round(qtdBeginning * 100) / 100,
         qtd_additions: Math.round(qtdAdditions * 100) / 100,
         qtd_redemptions: Math.round(qtdRedemptions * 100) / 100,
-        qtd_net_income: Math.round(qtdNetIncome * 100) / 100,
+        qtd_net_income: Math.round(qtdMetrics.netIncome * 100) / 100,
         qtd_ending_balance: Math.round(currentBalance * 100) / 100,
-        qtd_rate_of_return: Math.round(qtdRoR * 100) / 100,
+        qtd_rate_of_return: Math.round(qtdMetrics.rateOfReturn * 100) / 100,
         // YTD
         ytd_beginning_balance: Math.round(ytdBeginning * 100) / 100,
         ytd_additions: Math.round(ytdAdditions * 100) / 100,
         ytd_redemptions: Math.round(ytdRedemptions * 100) / 100,
-        ytd_net_income: Math.round(ytdNetIncome * 100) / 100,
+        ytd_net_income: Math.round(ytdMetrics.netIncome * 100) / 100,
         ytd_ending_balance: Math.round(currentBalance * 100) / 100,
-        ytd_rate_of_return: Math.round(ytdRoR * 100) / 100,
+        ytd_rate_of_return: Math.round(ytdMetrics.rateOfReturn * 100) / 100,
         // ITD
         itd_beginning_balance: itdBeginning,
         itd_additions: Math.round(itdAdditions * 100) / 100,
         itd_redemptions: Math.round(itdRedemptions * 100) / 100,
-        itd_net_income: Math.round(itdNetIncome * 100) / 100,
+        itd_net_income: Math.round(itdMetrics.netIncome * 100) / 100,
         itd_ending_balance: Math.round(currentBalance * 100) / 100,
         itd_rate_of_return: Math.round(itdRoR * 100) / 100,
       });

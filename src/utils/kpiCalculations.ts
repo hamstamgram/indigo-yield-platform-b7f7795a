@@ -26,9 +26,7 @@ export const calculateTotalAUM = async () => {
 
     if (error) throw error;
 
-    // Sum up AUM (This mixes currencies, but for a "Total" abstract number it's what we have)
-    // Ideally we'd convert to USD, but we are Token Native.
-    // This function might be deprecated if we don't show a single global number.
+    // Sum up AUM - all values are in native token units
     return data?.reduce((sum, row) => sum + Number(row.aum), 0) || 0;
   } catch (error) {
     console.error("Error calculating total AUM:", error);
@@ -84,23 +82,90 @@ export const formatAssetValue = (value: number, assetCode?: string): string => {
   })} ${config.symbol}`;
 };
 
+/**
+ * Get the current period ID for fetching performance data
+ */
+async function getCurrentPeriodId(): Promise<string | null> {
+  const now = new Date();
+  const { data, error } = await supabase
+    .from("statement_periods")
+    .select("id")
+    .eq("year", now.getFullYear())
+    .eq("month", now.getMonth() + 1)
+    .maybeSingle();
+
+  if (error || !data) {
+    // Try to get the most recent period
+    const { data: latestPeriod } = await supabase
+      .from("statement_periods")
+      .select("id")
+      .order("year", { ascending: false })
+      .order("month", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    return latestPeriod?.id || null;
+  }
+
+  return data.id;
+}
+
+/**
+ * Calculate all KPIs for an investor by fetching REAL data from investor_fund_performance
+ * This is the single source of truth for performance metrics.
+ * 
+ * Formula (canonical):
+ * - net_income = ending_balance - beginning_balance - additions + redemptions
+ * - rate_of_return = net_income / beginning_balance (0 if beginning_balance <= 0)
+ */
 export const calculateAllKPIs = async (userId: string): Promise<AssetKPI[]> => {
   try {
-    // userId IS the investor.id (One ID)
     const investorId = userId;
 
-    // Fetch Real Data from Investor Positions with fund details
+    // Get current period ID
+    const periodId = await getCurrentPeriodId();
+
+    // First try to fetch from investor_fund_performance (source of truth)
+    if (periodId) {
+      const { data: performanceData, error: perfError } = await supabase
+        .from("investor_fund_performance")
+        .select("*")
+        .eq("investor_id", investorId)
+        .eq("period_id", periodId);
+
+      if (!perfError && performanceData && performanceData.length > 0) {
+        // Return real performance data from the canonical source
+        return performanceData.map((perf: any) => ({
+          assetCode: perf.fund_name,
+          currentBalance: Number(perf.mtd_ending_balance) || 0,
+          principal: Number(perf.itd_additions) - Number(perf.itd_redemptions) || 0,
+          metrics: {
+            mtd: Number(perf.mtd_net_income) || 0,
+            qtd: Number(perf.qtd_net_income) || 0,
+            ytd: Number(perf.ytd_net_income) || 0,
+            itd: Number(perf.itd_net_income) || 0,
+            mtdPercentage: Number(perf.mtd_rate_of_return) || 0,
+            qtdPercentage: Number(perf.qtd_rate_of_return) || 0,
+            ytdPercentage: Number(perf.ytd_rate_of_return) || 0,
+            itdPercentage: Number(perf.itd_rate_of_return) || 0,
+          },
+        }));
+      }
+    }
+
+    // Fallback: Calculate from positions if no performance data exists yet
+    // This should only happen for new investors before month-end processing
+    console.warn("No investor_fund_performance data found, falling back to positions calculation");
+    
     const { data: positions, error } = await supabase
       .from("investor_positions")
-      .select(
-        `
+      .select(`
         shares,
         cost_basis,
         current_value,
         fund_id,
         fund:funds(id, asset)
-      `
-      )
+      `)
       .eq("investor_id", investorId);
 
     if (error || !positions) {
@@ -108,46 +173,30 @@ export const calculateAllKPIs = async (userId: string): Promise<AssetKPI[]> => {
       return [];
     }
 
-    // Fetch latest NAV for each fund to calculate current values
-    const fundIds = [...new Set(positions.map((p: any) => p.fund_id))];
-    const { data: latestNavs } = await supabase
-      .from("daily_nav")
-      .select("fund_id, nav_per_share, nav_date")
-      .in("fund_id", fundIds)
-      .order("nav_date", { ascending: false });
-
-    // Create a map of fund_id to latest NAV
-    const navMap = new Map<string, number>();
-    fundIds.forEach((fundId) => {
-      const nav = latestNavs?.find((n: any) => n.fund_id === fundId);
-      if (nav) navMap.set(fundId, Number(nav.nav_per_share));
-    });
-
-    // Calculate KPIs with real data
+    // For fallback, we can only calculate ITD from positions
+    // MTD/QTD/YTD require the generate-fund-performance edge function to be run
     return positions.map((pos: any) => {
-      const shares = Number(pos.shares);
-      const costBasis = Number(pos.cost_basis);
-      const navPerShare = navMap.get(pos.fund_id) || 1;
-      const currentValue = pos.current_value ? Number(pos.current_value) : shares * navPerShare;
-
-      // Calculate ITD (Inception-to-Date) return
+      const currentValue = Number(pos.current_value) || 0;
+      const costBasis = Number(pos.cost_basis) || 0;
+      
+      // ITD calculation: current_value - cost_basis (where cost_basis = principal)
       const itdReturn = currentValue - costBasis;
       const itdPercentage = costBasis > 0 ? (itdReturn / costBasis) * 100 : 0;
 
-      // For MTD, QTD, YTD we would need historical data
-      // Using ITD as placeholder since we don't have period-based tracking yet
       return {
         assetCode: pos.fund?.asset || "UNKNOWN",
         currentBalance: currentValue,
         principal: costBasis,
         metrics: {
-          mtd: itdReturn * 0.1, // Estimate: ~10% of ITD for month
-          qtd: itdReturn * 0.3, // Estimate: ~30% of ITD for quarter
-          ytd: itdReturn * 0.8, // Estimate: ~80% of ITD for year
+          // Cannot calculate MTD/QTD/YTD without historical data
+          // These will be 0 until generate-fund-performance is run
+          mtd: 0,
+          qtd: 0,
+          ytd: 0,
           itd: itdReturn,
-          mtdPercentage: itdPercentage * 0.1,
-          qtdPercentage: itdPercentage * 0.3,
-          ytdPercentage: itdPercentage * 0.8,
+          mtdPercentage: 0,
+          qtdPercentage: 0,
+          ytdPercentage: 0,
           itdPercentage: itdPercentage,
         },
       };
