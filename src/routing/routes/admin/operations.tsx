@@ -10,6 +10,7 @@ import { AdminRoute } from "../../AdminRoute";
 const YieldOperationsPage = lazy(() => import("@/routes/admin/YieldOperationsPage"));
 const InvestorReports = lazy(() => import("@/routes/admin/InvestorReports"));
 const DailyRatesManagement = lazy(() => import("@/routes/admin/DailyRatesManagement"));
+const RecordedYieldsPage = lazy(() => import("@/routes/admin/RecordedYieldsPage"));
 
 export function OperationsRoutes() {
   return (
@@ -20,6 +21,16 @@ export function OperationsRoutes() {
         element={
           <AdminRoute>
             <YieldOperationsPage />
+          </AdminRoute>
+        }
+      />
+
+      {/* Recorded Yields - view/edit all yield entries */}
+      <Route
+        path="/admin/recorded-yields"
+        element={
+          <AdminRoute>
+            <RecordedYieldsPage />
           </AdminRoute>
         }
       />

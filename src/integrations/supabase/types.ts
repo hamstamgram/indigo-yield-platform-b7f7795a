@@ -286,6 +286,7 @@ export type Database = {
           nav_date: string
           nav_per_share: number | null
           net_return_pct: number | null
+          purpose: Database["public"]["Enums"]["aum_purpose"]
           shares_outstanding: number | null
           total_inflows: number | null
           total_outflows: number | null
@@ -303,6 +304,7 @@ export type Database = {
           nav_date: string
           nav_per_share?: number | null
           net_return_pct?: number | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"]
           shares_outstanding?: number | null
           total_inflows?: number | null
           total_outflows?: number | null
@@ -320,6 +322,7 @@ export type Database = {
           nav_date?: string
           nav_per_share?: number | null
           net_return_pct?: number | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"]
           shares_outstanding?: number | null
           total_inflows?: number | null
           total_outflows?: number | null
@@ -878,6 +881,7 @@ export type Database = {
           id: string
           is_month_end: boolean | null
           nav_per_share: number | null
+          purpose: Database["public"]["Enums"]["aum_purpose"]
           source: string | null
           total_aum: number
           total_shares: number | null
@@ -892,6 +896,7 @@ export type Database = {
           id?: string
           is_month_end?: boolean | null
           nav_per_share?: number | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"]
           source?: string | null
           total_aum?: number
           total_shares?: number | null
@@ -906,6 +911,7 @@ export type Database = {
           id?: string
           is_month_end?: boolean | null
           nav_per_share?: number | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"]
           source?: string | null
           total_aum?: number
           total_shares?: number | null
@@ -2787,6 +2793,45 @@ export type Database = {
           },
         ]
       }
+      report_change_log: {
+        Row: {
+          change_reason: string | null
+          change_summary: Json | null
+          changed_at: string
+          changed_by: string | null
+          created_at: string
+          id: string
+          previous_html_hash: string | null
+          previous_pdf_url: string | null
+          report_id: string
+          report_table: string
+        }
+        Insert: {
+          change_reason?: string | null
+          change_summary?: Json | null
+          changed_at?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          previous_html_hash?: string | null
+          previous_pdf_url?: string | null
+          report_id: string
+          report_table: string
+        }
+        Update: {
+          change_reason?: string | null
+          change_summary?: Json | null
+          changed_at?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          previous_html_hash?: string | null
+          previous_pdf_url?: string | null
+          report_id?: string
+          report_table?: string
+        }
+        Relationships: []
+      }
       report_definitions: {
         Row: {
           created_at: string | null
@@ -4053,6 +4098,42 @@ export type Database = {
           },
         ]
       }
+      yield_edit_audit: {
+        Row: {
+          created_at: string
+          edit_reason: string | null
+          edited_at: string
+          edited_by: string | null
+          id: string
+          new_values: Json
+          previous_values: Json
+          record_id: string
+          record_type: string
+        }
+        Insert: {
+          created_at?: string
+          edit_reason?: string | null
+          edited_at?: string
+          edited_by?: string | null
+          id?: string
+          new_values: Json
+          previous_values: Json
+          record_id: string
+          record_type: string
+        }
+        Update: {
+          created_at?: string
+          edit_reason?: string | null
+          edited_at?: string
+          edited_by?: string | null
+          id?: string
+          new_values?: Json
+          previous_values?: Json
+          record_id?: string
+          record_type?: string
+        }
+        Relationships: []
+      }
       yield_rates: {
         Row: {
           asset_id: number
@@ -4814,6 +4895,7 @@ export type Database = {
         | "password_change"
       app_role: "super_admin" | "admin" | "moderator" | "user"
       asset_code: "BTC" | "ETH" | "SOL" | "USDT" | "EURC" | "xAUT" | "XRP"
+      aum_purpose: "reporting" | "transaction"
       benchmark_type: "BTC" | "ETH" | "STABLE" | "CUSTOM"
       document_type: "statement" | "notice" | "terms" | "tax" | "other"
       fee_kind: "mgmt" | "perf"
@@ -4989,6 +5071,7 @@ export const Constants = {
       ],
       app_role: ["super_admin", "admin", "moderator", "user"],
       asset_code: ["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"],
+      aum_purpose: ["reporting", "transaction"],
       benchmark_type: ["BTC", "ETH", "STABLE", "CUSTOM"],
       document_type: ["statement", "notice", "terms", "tax", "other"],
       fee_kind: ["mgmt", "perf"],
