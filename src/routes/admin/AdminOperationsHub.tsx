@@ -22,8 +22,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { operationsService, type PendingBreakdown } from "@/services/operationsService";
-import { getSystemHealth, type SystemHealth } from "@/services/systemHealthService";
+import { operationsService, type PendingBreakdown } from "@/services/operations/operationsService";
+import { getSystemHealth, type SystemHealth } from "@/services/core/systemHealthService";
 
 function AdminOperationsHubContent() {
   const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);

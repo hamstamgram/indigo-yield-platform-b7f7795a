@@ -29,7 +29,7 @@ import {
   previewYieldDistribution,
   applyYieldDistribution,
   YieldCalculationResult,
-} from "@/services/yieldDistributionService";
+} from "@/services/admin/yieldDistributionService";
 
 interface Fund {
   id: string;

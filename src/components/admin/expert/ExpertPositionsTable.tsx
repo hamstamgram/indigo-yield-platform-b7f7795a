@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Edit3, Save, X, TrendingUp, TrendingDown } from "lucide-react";
 import { toast } from "sonner";
-import { ExpertPosition, expertInvestorService } from "@/services/expertInvestorService";
+import { ExpertPosition, expertInvestorService } from "@/services/admin/expertInvestorService";
 import { formatAssetValue } from "@/utils/kpiCalculations";
 
 interface ExpertPositionsTableProps {

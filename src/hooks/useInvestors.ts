@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Asset } from "@/types/investorTypes";
-import { adminServiceV2, InvestorSummaryV2 } from "@/services/adminServiceV2";
+import { adminServiceV2, InvestorSummaryV2 } from "@/services/admin/adminService";
 import { useInvestorSearch } from "./useInvestorSearch";
 import { supabase } from "@/integrations/supabase/client";
 import { CACHE_KEYS } from "@/utils/performance/caching";

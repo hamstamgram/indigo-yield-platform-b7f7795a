@@ -3,7 +3,7 @@
  * Run this once to initialize AUM values based on current investor positions
  */
 
-import { setFundDailyAUM } from "@/services/aumService";
+import { setFundDailyAUM } from "@/services/operations/aumService";
 
 // Fund data based on current investor positions
 const fundsToInitialize = [

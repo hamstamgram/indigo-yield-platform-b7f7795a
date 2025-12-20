@@ -64,7 +64,7 @@ import {
   YieldRecord,
   AumPurpose,
   YieldFilters,
-} from "@/services/recordedYieldsService";
+} from "@/services/admin/recordedYieldsService";
 
 interface Fund {
   id: string;

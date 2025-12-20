@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { assetService } from "@/services/assetService";
+import { assetService } from "@/services/shared/assetService";
 import type { Asset, AssetFormData, AssetKind } from "@/types/asset";
 
 interface EditAssetDialogProps {

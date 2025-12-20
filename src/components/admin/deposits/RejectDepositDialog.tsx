@@ -10,7 +10,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { depositService } from "@/services/depositService";
+import { depositService } from "@/services/investor/depositService";
 import type { Deposit } from "@/types/deposit";
 
 interface RejectDepositDialogProps {

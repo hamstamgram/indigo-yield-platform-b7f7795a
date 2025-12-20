@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { generatePDF } from "@/lib/pdf/statementGenerator";
-import { checkStatementExists } from "@/services/reportUpsertService";
+import { checkStatementExists } from "@/services/core/reportUpsertService";
 import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
 
 interface StatementDraft {

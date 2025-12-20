@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, Calendar, Database, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import BulkDataGenerator from "./BulkDataGenerator";
-import { getHistoricalDataSummary } from "@/services/historicalDataService";
+import { getHistoricalDataSummary } from "@/services/shared/historicalDataService";
 
 const HistoricalReportsDashboard: React.FC = () => {
   const [, setLoading] = useState(false);

@@ -26,7 +26,7 @@ import {
   updateInvestorIBConfig,
   getIBReferrals,
   getAvailableIBParents,
-} from "@/services/ibService";
+} from "@/services/shared/ibService";
 
 interface IBSettingsSectionProps {
   investorId: string;

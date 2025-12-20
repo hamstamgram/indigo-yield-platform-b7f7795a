@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { FileText, Filter, Calendar, User, Activity, Database, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { auditLogService, AuditLogEntry, AuditLogFilters } from "@/services/auditLogService";
+import { auditLogService, AuditLogEntry, AuditLogFilters } from "@/services/shared/auditLogService";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 const AuditLogViewer = () => {

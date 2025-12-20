@@ -20,7 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { assetService } from "@/services/assetService";
+import { assetService } from "@/services/shared/assetService";
 import type { Asset, AssetPrice, AssetPriceFormData } from "@/types/asset";
 import { format } from "date-fns";
 import { TrendingUp, DollarSign } from "lucide-react";

@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { createAdminTransaction } from "@/services/transactionService";
+import { createAdminTransaction } from "@/services/shared/transactionService";
 import { Loader2 } from "lucide-react";
 
 // Transaction validation schema

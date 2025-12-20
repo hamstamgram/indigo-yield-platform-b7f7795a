@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { depositService } from "@/services/depositService";
+import { depositService } from "@/services/investor/depositService";
 import { PlusCircle, Loader2 } from "lucide-react";
 
 interface AdminDepositFormProps {

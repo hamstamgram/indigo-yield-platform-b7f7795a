@@ -12,7 +12,7 @@ import { UserPlus } from "lucide-react";
 import InvestorForm, { InvestorFormValues } from "./InvestorForm";
 import { Asset } from "@/types/investorTypes";
 import { useToast } from "@/hooks/use-toast";
-import { createOrFindInvestorUser } from "@/services/userService";
+import { createOrFindInvestorUser } from "@/services/admin/userService";
 import { portfolioService } from "@/services/core/PortfolioService";
 import { useInvestorInvite } from "@/hooks/useInvestorInvite";
 import { supabase } from "@/integrations/supabase/client";

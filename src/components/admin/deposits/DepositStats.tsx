@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wallet, Clock, CheckCircle, XCircle } from "lucide-react";
-import { depositService } from "@/services/depositService";
+import { depositService } from "@/services/investor/depositService";
 
 export function DepositStats() {
   const { data: stats, isLoading } = useQuery({
