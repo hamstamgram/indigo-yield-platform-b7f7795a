@@ -4887,6 +4887,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      use_invite_code: {
+        Args: { p_invite_code: string; p_user_id: string }
+        Returns: boolean
+      }
+      validate_invite_code: {
+        Args: { p_invite_code: string }
+        Returns: {
+          email: string
+          expires_at: string
+          id: string
+          used: boolean
+        }[]
+      }
     }
     Enums: {
       access_event:
