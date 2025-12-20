@@ -13,7 +13,6 @@ import { FileText, Calendar, TrendingUp, Info, AlertCircle, Download, Loader2 } 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { getAssetConfig, getAssetName } from "@/utils/assets";
-import { ReportsApi } from "@/services/api/reportsApi";
 import { useToast } from "@/hooks/use-toast";
 
 const StatementsPage = () => {
@@ -149,53 +148,74 @@ const StatementsPage = () => {
     try {
       setDownloadingId(statement.id);
 
-      // Calculate start and end dates for the report month
-      // report_month is YYYY-MM-DD (usually 01 of month)
-      const date = new Date(statement.report_month);
-      const year = date.getFullYear();
-      const month = date.getMonth();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
-      const startDate = new Date(year, month, 1).toISOString();
-      const endDate = new Date(year, month + 1, 0).toISOString(); // Last day of month
+      // Fetch the period_id for this statement
+      const { data: periodData } = await supabase
+        .from("statement_periods")
+        .select("id")
+        .eq("year", statement.period_year)
+        .eq("month", statement.period_month)
+        .single();
 
-      const result = await ReportsApi.generateReportNow({
-        reportType: "monthly_statement",
-        format: "pdf",
-        filters: {
-          dateFrom: startDate,
-          dateTo: endDate,
-          asset: statement.asset_code,
-        },
-        parameters: {
-          includeCharts: true,
-          confidential: true,
-        },
-      });
-
-      if (!result.success || !result.data) {
-        throw new Error(result.error || "Failed to generate PDF");
+      if (!periodData) {
+        throw new Error("Statement period not found");
       }
 
-      // Create download link
-      const blob = new Blob([result.data as any], { type: "application/pdf" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = result.filename || `Statement_${statement.asset_code}_${year}_${month + 1}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Fetch the generated statement HTML
+      const { data: generatedStatement, error: fetchError } = await supabase
+        .from("generated_statements")
+        .select("html_content")
+        .eq("period_id", periodData.id)
+        .eq("user_id", user.id)
+        .single();
+
+      if (fetchError || !generatedStatement?.html_content) {
+        throw new Error("Statement not yet generated. Please contact support.");
+      }
+
+      // Add print-optimized CSS to the HTML
+      const printStyles = `
+        <style>
+          @media print {
+            body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            @page { size: A4; margin: 10mm; }
+          }
+        </style>
+      `;
+      
+      // Insert print styles before closing </head>
+      const htmlWithPrintStyles = generatedStatement.html_content.replace(
+        '</head>',
+        `${printStyles}</head>`
+      );
+
+      // Open in new window
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        throw new Error("Pop-up blocked. Please allow pop-ups for this site.");
+      }
+
+      printWindow.document.write(htmlWithPrintStyles);
+      printWindow.document.close();
+
+      // Wait for content to load, then trigger print dialog
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+        }, 500);
+      };
 
       toast({
-        title: "Success",
-        description: "Statement downloaded successfully",
+        title: "Print Dialog Opened",
+        description: "Use 'Save as PDF' in the print dialog to download your statement.",
       });
     } catch (error) {
       console.error("Download failed:", error);
       toast({
         title: "Error",
-        description: "Failed to download statement",
+        description: error instanceof Error ? error.message : "Failed to open statement",
         variant: "destructive",
       });
     } finally {
