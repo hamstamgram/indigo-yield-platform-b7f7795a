@@ -53,6 +53,7 @@ export async function fetchUserTransactions(): Promise<Transaction[]> {
       )
       .eq("investor_id", investorId)
       .order("tx_date", { ascending: false })
+      .order("id", { ascending: false }) // Deterministic tie-breaker for same-day ordering
       .limit(100);
 
     if (error) throw error;

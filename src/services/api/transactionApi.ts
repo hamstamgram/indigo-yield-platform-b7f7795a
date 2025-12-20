@@ -59,6 +59,7 @@ export async function fetchTransactions(filter: TransactionFilter = {}): Promise
 
     const { data, error, count } = await query
       .order("tx_date", { ascending: false })
+      .order("id", { ascending: false }) // Deterministic tie-breaker for same-day ordering
       .limit(filter.limit || 50);
 
     if (error) throw error;
@@ -119,7 +120,8 @@ export async function fetchTransactionSummary(userId: string): Promise<Transacti
       .from("transactions_v2")
       .select("*")
       .eq("investor_id", investorId)
-      .order("tx_date", { ascending: false });
+      .order("tx_date", { ascending: false })
+      .order("id", { ascending: false }); // Deterministic tie-breaker for same-day ordering
 
     if (error) throw error;
 

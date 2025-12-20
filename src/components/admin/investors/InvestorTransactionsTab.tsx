@@ -86,6 +86,7 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
         )
         .eq("investor_id", investorId) // Use investorId (profile.id)
         .order("tx_date", { ascending: false })
+        .order("id", { ascending: false }) // Deterministic tie-breaker for same-day ordering
         .limit(100);
 
       if (txError) throw txError;

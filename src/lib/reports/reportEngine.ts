@@ -88,7 +88,8 @@ export class ReportEngine {
       .eq("investor_id", investorId)
       .gte("tx_date", startDate.toISOString().split("T")[0])
       .lte("tx_date", endDate.toISOString().split("T")[0])
-      .order("tx_date", { ascending: false });
+      .order("tx_date", { ascending: false })
+      .order("id", { ascending: false }); // Deterministic tie-breaker for same-day ordering
 
     // Use investor_fund_performance (V2) for statements with investor_id
     // Cast to any to avoid "Type instantiation is excessively deep" error

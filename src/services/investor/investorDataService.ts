@@ -386,7 +386,8 @@ export class InvestorDataService {
       .eq("investor_id", investorId)
       .eq("type", "INTEREST")
       .gte("tx_date", startDate.toISOString().split("T")[0])
-      .order("tx_date", { ascending: false });
+      .order("tx_date", { ascending: false })
+      .order("id", { ascending: false }); // Deterministic tie-breaker for same-day ordering
 
     if (error) throw error;
 

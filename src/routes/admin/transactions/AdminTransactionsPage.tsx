@@ -23,6 +23,7 @@ export default function AdminTransactionsPage() {
         `
         )
         .order("tx_date", { ascending: false })
+        .order("id", { ascending: false }) // Deterministic tie-breaker for same-day ordering
         .limit(100);
 
       if (error) throw error;

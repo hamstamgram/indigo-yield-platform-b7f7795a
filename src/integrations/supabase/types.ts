@@ -960,6 +960,98 @@ export type Database = {
           },
         ]
       }
+      fund_period_snapshot: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          fund_id: string
+          id: string
+          investor_count: number
+          is_locked: boolean
+          locked_at: string | null
+          locked_by: string | null
+          period_id: string
+          snapshot_date: string
+          total_aum: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          fund_id: string
+          id?: string
+          investor_count?: number
+          is_locked?: boolean
+          locked_at?: string | null
+          locked_by?: string | null
+          period_id: string
+          snapshot_date: string
+          total_aum: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          fund_id?: string
+          id?: string
+          investor_count?: number
+          is_locked?: boolean
+          locked_at?: string | null
+          locked_by?: string | null
+          period_id?: string
+          snapshot_date?: string
+          total_aum?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fund_period_snapshot_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_period_snapshot_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "fund_period_snapshot_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_period_snapshot_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fund_period_snapshot_locked_by_fkey"
+            columns: ["locked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_period_snapshot_locked_by_fkey"
+            columns: ["locked_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "fund_period_snapshot_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "statement_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       funds: {
         Row: {
           asset: string
@@ -1721,6 +1813,82 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
+          },
+        ]
+      }
+      investor_period_snapshot: {
+        Row: {
+          balance_at_snapshot: number
+          created_at: string
+          fund_id: string
+          fund_period_snapshot_id: string
+          id: string
+          investor_id: string
+          ownership_pct: number
+          period_id: string
+        }
+        Insert: {
+          balance_at_snapshot: number
+          created_at?: string
+          fund_id: string
+          fund_period_snapshot_id: string
+          id?: string
+          investor_id: string
+          ownership_pct: number
+          period_id: string
+        }
+        Update: {
+          balance_at_snapshot?: number
+          created_at?: string
+          fund_id?: string
+          fund_period_snapshot_id?: string
+          id?: string
+          investor_id?: string
+          ownership_pct?: number
+          period_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investor_period_snapshot_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_period_snapshot_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "investor_period_snapshot_fund_period_snapshot_id_fkey"
+            columns: ["fund_period_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "fund_period_snapshot"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_period_snapshot_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_period_snapshot_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "investor_period_snapshot_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "statement_periods"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -3851,6 +4019,10 @@ export type Database = {
         Args: { document_type: string; filename: string; user_id: string }
         Returns: string
       }
+      generate_fund_period_snapshot: {
+        Args: { p_admin_id?: string; p_fund_id: string; p_period_id: string }
+        Returns: string
+      }
       generate_statement_path: {
         Args: {
           fund_code?: string
@@ -3969,6 +4141,16 @@ export type Database = {
           total_aum: number
         }[]
       }
+      get_period_ownership: {
+        Args: { p_fund_id: string; p_period_id: string }
+        Returns: {
+          balance: number
+          investor_id: string
+          is_locked: boolean
+          ownership_pct: number
+          snapshot_date: string
+        }[]
+      }
       get_profile_by_id: {
         Args: { profile_id: string }
         Returns: {
@@ -4037,9 +4219,17 @@ export type Database = {
       is_admin_for_jwt: { Args: never; Returns: boolean }
       is_admin_safe: { Args: never; Returns: boolean }
       is_import_enabled: { Args: never; Returns: boolean }
+      is_period_locked: {
+        Args: { p_fund_id: string; p_period_id: string }
+        Returns: boolean
+      }
       is_valid_share_token: { Args: { token_value: string }; Returns: boolean }
       is_within_edit_window: {
         Args: { p_created_at: string }
+        Returns: boolean
+      }
+      lock_fund_period_snapshot: {
+        Args: { p_admin_id: string; p_fund_id: string; p_period_id: string }
         Returns: boolean
       }
       lock_imports: { Args: { p_reason?: string }; Returns: string }

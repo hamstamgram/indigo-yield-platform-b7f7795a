@@ -2,9 +2,19 @@
  * Yield Distribution Service
  * Handles daily yield entry, preview, and distribution across investor positions
  * All values are in NATIVE TOKENS (BTC, ETH, USDT, etc.) - never fiat
+ * 
+ * IMPORTANT: Historical yield uses snapshot-based ownership percentages
+ * to ensure correctness when backdating yield entries
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { 
+  ensureSnapshotExists, 
+  lockPeriodSnapshot, 
+  isPeriodLocked,
+  getPeriodOwnership,
+  getFundPeriodSnapshot
+} from "./snapshotService";
 
 // ============================================================================
 // Types
@@ -45,6 +55,12 @@ export interface YieldCalculationResult {
   investorCount: number;
   distributions: YieldDistribution[];
   status: "preview" | "applied";
+  snapshotInfo?: {
+    snapshotId: string;
+    snapshotDate: string;
+    isLocked: boolean;
+    periodId?: string;
+  };
 }
 
 // Align with actual fund_daily_aum table
@@ -74,13 +90,64 @@ function formatDate(date: Date): string {
 // ============================================================================
 
 /**
+ * Get period ID for a given date
+ */
+async function getPeriodIdForDate(targetDate: Date): Promise<string | null> {
+  const dateStr = formatDate(targetDate);
+  const { data, error } = await supabase
+    .from("statement_periods")
+    .select("id")
+    .lte("period_start_date", dateStr)
+    .gte("period_end_date", dateStr)
+    .maybeSingle();
+  
+  if (error || !data) {
+    // Try to find the period that ends after this date
+    const { data: nextPeriod } = await supabase
+      .from("statement_periods")
+      .select("id")
+      .gte("period_end_date", dateStr)
+      .order("period_end_date", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    return nextPeriod?.id || null;
+  }
+  return data.id;
+}
+
+/**
  * Preview yield distribution without applying changes.
- * Backend preview RPC is unavailable; compute a simple preview from AUM delta.
+ * Uses snapshot-based ownership if available for historical periods.
  */
 export async function previewYieldDistribution(
   input: YieldCalculationInput
 ): Promise<YieldCalculationResult> {
   const { fundId, targetDate, newTotalAUM } = input;
+
+  // Check if we should use snapshot-based ownership
+  const periodId = await getPeriodIdForDate(targetDate);
+  let snapshotInfo: YieldCalculationResult["snapshotInfo"];
+  let useSnapshotOwnership = false;
+  let snapshotOwnership: Awaited<ReturnType<typeof getPeriodOwnership>> = null;
+  
+  if (periodId) {
+    // Check if a snapshot exists for this period
+    const snapshot = await getFundPeriodSnapshot(fundId, periodId);
+    if (snapshot) {
+      snapshotInfo = {
+        snapshotId: snapshot.id,
+        snapshotDate: snapshot.snapshot_date,
+        isLocked: snapshot.is_locked,
+        periodId,
+      };
+      
+      // Get snapshot ownership percentages
+      snapshotOwnership = await getPeriodOwnership(fundId, periodId);
+      if (snapshotOwnership && snapshotOwnership.length > 0) {
+        useSnapshotOwnership = true;
+      }
+    }
+  }
 
   // Get investor positions for the fund
   const { data: positions, error: posError } = await supabase
@@ -107,12 +174,27 @@ export async function previewYieldDistribution(
   const grossYield = Math.max(newTotalAUM - currentAUM, 0);
   const yieldPercentage = currentAUM > 0 ? (grossYield / currentAUM) * 100 : 0;
 
+  // Build a map of snapshot ownership if using snapshots
+  const ownershipMap = new Map<string, number>();
+  if (useSnapshotOwnership && snapshotOwnership) {
+    snapshotOwnership.forEach((o) => {
+      ownershipMap.set(o.investor_id, o.ownership_pct / 100);
+    });
+  }
+
   // Resolve fees per investor using helper RPC
   const distributions =
     (positions || []).length > 0 && currentAUM > 0
       ? await Promise.all(
           (positions || []).map(async (p) => {
-            const allocation = Number(p.current_value || 0) / currentAUM;
+            // Use snapshot ownership if available, otherwise calculate from current positions
+            let allocation: number;
+            if (useSnapshotOwnership && ownershipMap.has(p.investor_id)) {
+              allocation = ownershipMap.get(p.investor_id) || 0;
+            } else {
+              allocation = Number(p.current_value || 0) / currentAUM;
+            }
+            
             const gross = grossYield * allocation;
             let feePct = 0;
             try {
@@ -169,18 +251,48 @@ export async function previewYieldDistribution(
     investorCount: distributions.length,
     distributions,
     status: "preview",
+    snapshotInfo,
   };
 }
 
 /**
  * Apply yield distribution (calls RPC function)
- * This permanently updates investor positions and creates transactions
+ * This permanently updates investor positions and creates transactions.
+ * Also generates and locks a snapshot for the period to preserve ownership percentages.
  */
 export async function applyYieldDistribution(
   input: YieldCalculationInput,
   adminId: string
 ): Promise<YieldCalculationResult> {
   const { fundId, targetDate, newTotalAUM } = input;
+
+  // Get or create period snapshot before applying yield
+  const periodId = await getPeriodIdForDate(targetDate);
+  let snapshotInfo: YieldCalculationResult["snapshotInfo"];
+  
+  if (periodId) {
+    // Check if period is already locked
+    const isLocked = await isPeriodLocked(fundId, periodId);
+    if (isLocked) {
+      throw new Error("This period is locked. Yield has already been applied for this period.");
+    }
+    
+    // Ensure snapshot exists (creates one if not)
+    const snapshotResult = await ensureSnapshotExists(fundId, periodId, adminId);
+    if (!snapshotResult.exists) {
+      console.warn("Could not create snapshot:", snapshotResult.error);
+    } else if (snapshotResult.snapshotId) {
+      const snapshot = await getFundPeriodSnapshot(fundId, periodId);
+      if (snapshot) {
+        snapshotInfo = {
+          snapshotId: snapshot.id,
+          snapshotDate: snapshot.snapshot_date,
+          isLocked: snapshot.is_locked,
+          periodId,
+        };
+      }
+    }
+  }
 
   // First, calculate the gross yield (new AUM - current AUM)
   const { data: positions, error: posError } = await supabase
@@ -211,6 +323,14 @@ export async function applyYieldDistribution(
   if (error) {
     console.error("Error applying yield distribution:", error);
     throw new Error(`Failed to apply yield: ${error.message}`);
+  }
+
+  // Lock the snapshot after successful yield application
+  if (periodId && snapshotInfo) {
+    const lockResult = await lockPeriodSnapshot(fundId, periodId, adminId);
+    if (lockResult.success) {
+      snapshotInfo.isLocked = true;
+    }
   }
 
   const distributions: YieldDistribution[] = (data as any[] | null || []).map((d) => ({
@@ -244,6 +364,7 @@ export async function applyYieldDistribution(
     investorCount: distributions.length,
     distributions,
     status: "applied",
+    snapshotInfo,
   };
 }
 
