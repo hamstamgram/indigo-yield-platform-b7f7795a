@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.3";
 // CORS headers for web app access
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-csrf-token",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -54,8 +54,17 @@ serve(async (req) => {
   }
 
   try {
-    // Note: CSRF protection is not needed for token-based auth (JWT)
-    // The Authorization header with Bearer token provides sufficient protection
+    // CSRF protection - defense in depth for state-changing operations
+    const csrfToken = req.headers.get("x-csrf-token");
+    if (!csrfToken || csrfToken.length < 32) {
+      return new Response(
+        JSON.stringify({ error: "Invalid CSRF token" }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
     // Verify the request is from an authenticated admin
     const authHeader = req.headers.get("Authorization");

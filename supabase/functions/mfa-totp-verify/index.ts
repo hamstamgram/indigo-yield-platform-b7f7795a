@@ -75,10 +75,10 @@ serve(async (req) => {
       });
     }
 
-    // Get stored TOTP secret
+    // Get stored TOTP secret and rate limit info
     const { data: totpData, error: totpError } = await supabaseClient
       .from("user_totp_settings")
-      .select("secret_encrypted")
+      .select("secret_encrypted, failed_attempts, locked_until")
       .eq("user_id", user.id)
       .single();
 
@@ -87,6 +87,36 @@ serve(async (req) => {
         status: 400,
         headers: { ...headers, "Content-Type": "application/json" },
       });
+    }
+
+    // Rate limiting: Check if account is locked
+    if (totpData.locked_until && new Date(totpData.locked_until) > new Date()) {
+      const lockRemaining = Math.ceil((new Date(totpData.locked_until).getTime() - Date.now()) / 60000);
+      return new Response(
+        JSON.stringify({ error: `Account temporarily locked. Try again in ${lockRemaining} minutes.` }),
+        {
+          status: 429,
+          headers: { ...headers, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Rate limiting: Lock after 5 failed attempts
+    const failedAttempts = totpData.failed_attempts || 0;
+    if (failedAttempts >= 5) {
+      const lockUntil = new Date(Date.now() + 30 * 60 * 1000); // 30 min lockout
+      await supabaseClient
+        .from("user_totp_settings")
+        .update({ locked_until: lockUntil.toISOString() })
+        .eq("user_id", user.id);
+
+      return new Response(
+        JSON.stringify({ error: "Too many failed attempts. Account locked for 30 minutes." }),
+        {
+          status: 429,
+          headers: { ...headers, "Content-Type": "application/json" },
+        }
+      );
     }
 
     // Decrypt secret (fallback to plain text for now)
@@ -119,17 +149,31 @@ serve(async (req) => {
     const currentTime = Math.floor(Date.now() / 1000);
     const window = 1; // Allow 1 time step before/after for clock skew
 
-    let isValid = false;
+    // Constant-time comparison to prevent timing attacks
+    function constantTimeCompare(a: string, b: string): boolean {
+      if (a.length !== b.length) return false;
+      let result = 0;
+      for (let i = 0; i < a.length; i++) {
+        result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+      }
+      return result === 0;
+    }
+
+    // Check all time windows without early exit to prevent timing leaks
+    const results: boolean[] = [];
     for (let i = -window; i <= window; i++) {
       const timeStep = Math.floor((currentTime + i * 30) / 30);
       const expectedCode = totp.generate({ timestamp: timeStep * 30 * 1000 });
-      if (expectedCode === code) {
-        isValid = true;
-        break;
-      }
+      results.push(constantTimeCompare(expectedCode, code));
     }
+    const isValid = results.some((r) => r === true);
 
     if (isValid) {
+      // Reset failed attempts on success
+      await supabaseClient
+        .from("user_totp_settings")
+        .update({ failed_attempts: 0, locked_until: null })
+        .eq("user_id", user.id);
       // Update TOTP settings to verified
       const { error: updateError } = await supabaseClient
         .from("user_totp_settings")
@@ -154,10 +198,16 @@ serve(async (req) => {
         headers: { ...headers, "Content-Type": "application/json" },
       });
     } else {
+      // Increment failed attempts counter
+      await supabaseClient
+        .from("user_totp_settings")
+        .update({ failed_attempts: failedAttempts + 1 })
+        .eq("user_id", user.id);
+
       // Log failed verification
       await supabaseClient.rpc("log_security_event", {
         event_type: "TOTP_VERIFICATION_FAILED",
-        details: { user_id: user.id, timestamp: new Date().toISOString() },
+        details: { user_id: user.id, timestamp: new Date().toISOString(), attempt: failedAttempts + 1 },
       });
 
       return new Response(JSON.stringify({ enabled: false, error: "Invalid code" }), {
