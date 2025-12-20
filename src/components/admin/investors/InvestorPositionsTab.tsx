@@ -38,7 +38,7 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
   const [selectedPosition, setSelectedPosition] = useState<any>(null);
   const queryClient = useQueryClient();
 
-  // Fetch Positions
+  // Fetch Positions - filter out zero-value positions
   const { data: positions, isLoading } = useQuery({
     queryKey: ["investor-positions", investorId],
     queryFn: async () => {
@@ -57,7 +57,9 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
           funds ( id, name, asset )
         `
         )
-        .eq("investor_id", investorId);
+        .eq("investor_id", investorId)
+        // Filter out zero-value positions (deleted or fully withdrawn)
+        .or("current_value.gt.0,cost_basis.gt.0,shares.gt.0");
 
       if (error) throw error;
       return data;
@@ -119,7 +121,11 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
       if (error) throw error;
     },
     onSuccess: () => {
+      // Invalidate all related queries to ensure UI updates immediately
       queryClient.invalidateQueries({ queryKey: ["investor-positions", investorId] });
+      queryClient.invalidateQueries({ queryKey: ["investor-asset-stats", investorId] });
+      queryClient.invalidateQueries({ queryKey: ["per-asset-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["portfolio"] });
       toast.success("Position deleted successfully");
     },
     onError: (error: any) => {

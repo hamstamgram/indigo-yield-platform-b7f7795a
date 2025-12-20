@@ -121,7 +121,7 @@ export function InvestorManagementDrawer({
     setError(null);
 
     try {
-      // Load positions with fund details
+      // Load positions with fund details - filter out zero-value positions
       const { data: positions, error: posError } = await supabase
         .from("investor_positions")
         .select(`
@@ -131,7 +131,9 @@ export function InvestorManagementDrawer({
           unrealized_pnl,
           funds!inner(name, code, asset)
         `)
-        .eq("investor_id", investorId);
+        .eq("investor_id", investorId)
+        // Filter out zero-value positions (deleted or fully withdrawn)
+        .or("current_value.gt.0,cost_basis.gt.0");
 
       if (posError) throw posError;
 

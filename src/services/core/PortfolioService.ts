@@ -88,10 +88,12 @@ export class PortfolioService extends ApiClient {
   async getPortfolioSummary(investorId: string): Promise<ApiResponse<PortfolioSummary>> {
     return this.execute(async () => {
       // RPC doesn't exist - calculate summary from investor_positions directly
+      // Filter out zero-value positions
       const { data: positions, error } = await this.supabase
         .from("investor_positions")
         .select("cost_basis, current_value, unrealized_pnl, realized_pnl")
-        .eq("investor_id", investorId);
+        .eq("investor_id", investorId)
+        .or("current_value.gt.0,cost_basis.gt.0,shares.gt.0");
 
       if (error) {
         return { data: null, error };
@@ -126,6 +128,7 @@ export class PortfolioService extends ApiClient {
 
   /**
    * Get portfolio positions
+   * Filters out zero-value positions
    */
   async getPortfolioPositions(investorId: string): Promise<ApiResponse<PortfolioPosition[]>> {
     return this.execute(async () => {
@@ -142,7 +145,9 @@ export class PortfolioService extends ApiClient {
           )
         `
         )
-        .eq("investor_id", investorId);
+        .eq("investor_id", investorId)
+        // Filter out zero-value positions
+        .or("current_value.gt.0,cost_basis.gt.0,shares.gt.0");
 
       if (error) {
         return { data: null, error };
@@ -177,6 +182,7 @@ export class PortfolioService extends ApiClient {
   async getCompletePortfolio(investorId: string): Promise<ApiResponse<PortfolioData>> {
     return this.execute(async () => {
       // Get positions (also used for summary calculation)
+      // Filter out zero-value positions
       const { data: positionsData, error: positionsError } = await this.supabase
         .from("investor_positions")
         .select(
@@ -190,7 +196,9 @@ export class PortfolioService extends ApiClient {
           )
         `
         )
-        .eq("investor_id", investorId);
+        .eq("investor_id", investorId)
+        // Filter out zero-value positions
+        .or("current_value.gt.0,cost_basis.gt.0,shares.gt.0");
 
       if (positionsError) {
         return { data: null, error: positionsError };
