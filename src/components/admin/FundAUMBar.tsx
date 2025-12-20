@@ -7,7 +7,7 @@
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFundAUM } from "@/hooks/useFundAUM";
-import { formatAUMCompact } from "@/utils/formatters/aumFormatter";
+import { formatAUMCompact } from "@/utils/formatters";
 
 export const FundAUMBar: React.FC = () => {
   const { funds, isLoading } = useFundAUM();

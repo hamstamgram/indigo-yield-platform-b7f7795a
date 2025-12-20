@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { createAdminTransaction } from "@/services/transactionService";
 import { Loader2 } from "lucide-react";
 
 // Transaction validation schema
@@ -105,34 +105,21 @@ export function AddTransactionDialog({
     try {
       setLoading(true);
 
-      // Get current user for created_by field
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("You must be logged in to create transactions");
-        return;
-      }
-
-      // Create the transaction (V2 schema uses tx_date, not occurred_at)
-      const { error } = await supabase.from("transactions_v2").insert({
-        investor_id: investorId,
-        fund_id: fundId,
-        type: data.txn_type as any, // Enum type
-        txn_type: data.txn_type,
+      const result = await createAdminTransaction({
+        investorId,
+        fundId,
+        type: data.txn_type as "DEPOSIT" | "WITHDRAWAL" | "YIELD" | "INTEREST" | "FEE",
         asset: data.asset,
         amount: Number(data.amount),
-        tx_date: data.tx_date, // Main date column
-        value_date: data.tx_date,
-        reference_id: data.reference_id || null,
-        tx_hash: data.tx_hash || null,
-        notes: data.notes || null,
-        created_by: user.id,
-        approved_by: user.id, // Auto-approve admin-created transactions
-        approved_at: new Date().toISOString(),
+        txDate: data.tx_date,
+        referenceId: data.reference_id || undefined,
+        txHash: data.tx_hash || undefined,
+        notes: data.notes || undefined,
       });
 
-      if (error) throw error;
+      if (!result.success) {
+        throw new Error(result.error || "Failed to create transaction");
+      }
 
       toast.success("Transaction created successfully");
       reset();

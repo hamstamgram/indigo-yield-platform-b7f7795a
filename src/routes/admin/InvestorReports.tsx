@@ -46,7 +46,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, subMonths, parseISO } from "date-fns";
 import { renderReportToHtml } from "@/components/reports/InvestorReportTemplate";
 import { InvestorData, InvestorFund } from "@/types/investor-report";
-import { formatAssetWithSymbol } from "@/utils/assetFormatting";
+import { formatAssetWithSymbol } from "@/utils/formatters";
 import { PerformanceDataEditor } from "@/components/admin/reports/PerformanceDataEditor";
 
 interface InvestorReport {

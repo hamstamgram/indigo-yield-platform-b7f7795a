@@ -119,7 +119,64 @@ export async function calculateTransactionSummary(): Promise<TransactionSummary>
   }
 }
 
+/**
+ * Create a transaction (admin use)
+ */
+export interface CreateTransactionParams {
+  investorId: string;
+  fundId: string;
+  type: "DEPOSIT" | "WITHDRAWAL" | "YIELD" | "INTEREST" | "FEE";
+  asset: string;
+  amount: number;
+  txDate: string;
+  referenceId?: string;
+  txHash?: string;
+  notes?: string;
+}
+
+export async function createAdminTransaction(
+  params: CreateTransactionParams
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { success: false, error: "You must be logged in to create transactions" };
+    }
+
+    const { error } = await supabase.from("transactions_v2").insert({
+      investor_id: params.investorId,
+      fund_id: params.fundId,
+      type: params.type as any,
+      txn_type: params.type,
+      asset: params.asset,
+      amount: params.amount,
+      tx_date: params.txDate,
+      value_date: params.txDate,
+      reference_id: params.referenceId || null,
+      tx_hash: params.txHash || null,
+      notes: params.notes || null,
+      created_by: user.id,
+      approved_by: user.id,
+      approved_at: new Date().toISOString(),
+    });
+
+    if (error) throw error;
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error creating transaction:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to create transaction",
+    };
+  }
+}
+
 export const transactionService = {
   fetchUserTransactions,
   calculateTransactionSummary,
+  createAdminTransaction,
 };
