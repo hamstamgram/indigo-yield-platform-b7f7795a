@@ -29,15 +29,12 @@ export default function DashboardPage() {
   const periodName = latestMonthData[0]?.period?.period_name || "Current Period";
   const periodEndDate = latestMonthData[0]?.period?.period_end_date;
 
-  // Calculate totals for hero section
-  const totalBalance = assetStats?.assets?.reduce((sum, a) => {
-    // For now, just show the count - actual USD conversion would need rates
-    return sum + (a.mtd.endingBalance || 0);
-  }, 0) || 0;
-
-  const avgYtdReturn = assetStats?.assets?.length 
-    ? assetStats.assets.reduce((sum, a) => sum + (a.ytd.rateOfReturn || 0), 0) / assetStats.assets.length
-    : 0;
+  // Build per-asset balances for hero (token-denominated, no USD)
+  const assetBalances = assetStats?.assets?.map((a) => ({
+    symbol: a.fundName, // Fund name is the asset code (BTC, ETH, etc.)
+    balance: a.mtd.endingBalance || 0,
+    ytdReturn: a.ytd.rateOfReturn || 0,
+  })) || [];
 
   const handleDownload = async (record: any) => {
     try {
@@ -109,10 +106,9 @@ export default function DashboardPage() {
         </p>
       </section>
 
-      {/* Portfolio Hero - Shows total value and key metrics */}
+      {/* Portfolio Hero - Shows per-asset balances (token-denominated) */}
       <PortfolioHero
-        totalBalance={totalBalance}
-        totalYtdReturn={avgYtdReturn}
+        assetBalances={assetBalances}
         activeFunds={assetStats?.activeFunds || 0}
         lastUpdated={periodEndDate ? new Date(periodEndDate).toLocaleDateString("en-US", {
           month: "short",

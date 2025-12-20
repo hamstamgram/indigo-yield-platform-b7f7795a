@@ -1,6 +1,7 @@
 /**
  * IB Dashboard
  * Dashboard for Introducing Brokers to view their earnings and referrals
+ * All values are token-denominated (no USD conversion)
  */
 
 import { useQuery } from "@tanstack/react-query";
@@ -14,14 +15,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, DollarSign, Users, TrendingUp, Calendar } from "lucide-react";
+import { Loader2, Coins, Users, TrendingUp, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { formatCurrency } from "@/utils/statementCalculations";
 import { useAuth } from "@/lib/auth/context";
+import { getAssetLogo } from "@/utils/assets";
 
 interface Allocation {
   id: string;
   fundId: string;
+  fundAsset: string;
   sourceInvestorId: string;
   sourceInvestorEmail?: string;
   periodStart: string;
@@ -33,22 +35,40 @@ interface Allocation {
   createdAt: string;
 }
 
-interface MonthlyEarning {
-  month: string;
+interface AssetEarning {
+  asset: string;
   amount: number;
 }
 
-interface FundEarning {
+interface MonthlyEarning {
+  month: string;
+  byAsset: AssetEarning[];
+}
+
+interface FundPosition {
   fundId: string;
   fundName: string;
-  amount: number;
+  asset: string;
+  currentValue: number;
 }
+
+// Format token amount with appropriate decimals
+const formatTokenAmount = (val: number, symbol: string) => {
+  const decimals = symbol.toUpperCase() === 'BTC' ? 8 
+    : ['ETH', 'SOL', 'XRP'].includes(symbol.toUpperCase()) ? 6 
+    : 2;
+  
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: decimals,
+  }).format(val);
+};
 
 export default function IBDashboard() {
   const { user } = useAuth();
   const userId = user?.id;
 
-  // Fetch IB allocations
+  // Fetch IB allocations with fund info
   const { data: allocations, isLoading: allocationsLoading } = useQuery({
     queryKey: ["ib-allocations", userId],
     queryFn: async (): Promise<Allocation[]> => {
@@ -66,7 +86,8 @@ export default function IBDashboard() {
           ib_percentage,
           ib_fee_amount,
           source,
-          created_at
+          created_at,
+          funds:fund_id (asset)
         `)
         .eq("ib_investor_id", userId)
         .order("created_at", { ascending: false });
@@ -76,6 +97,7 @@ export default function IBDashboard() {
       return (data || []).map((a) => ({
         id: a.id,
         fundId: a.fund_id || "",
+        fundAsset: (a.funds as any)?.asset || "USDT",
         sourceInvestorId: a.source_investor_id,
         periodStart: a.period_start || "",
         periodEnd: a.period_end || "",
@@ -107,10 +129,10 @@ export default function IBDashboard() {
     enabled: !!userId,
   });
 
-  // Fetch IB positions
+  // Fetch IB positions with fund details
   const { data: positions, isLoading: positionsLoading } = useQuery({
     queryKey: ["ib-positions", userId],
-    queryFn: async () => {
+    queryFn: async (): Promise<FundPosition[]> => {
       if (!userId) return [];
 
       const { data, error } = await supabase
@@ -119,37 +141,56 @@ export default function IBDashboard() {
           fund_id,
           current_value,
           cost_basis,
-          funds:fund_id (name)
+          funds:fund_id (name, asset)
         `)
         .eq("investor_id", userId)
         .gt("current_value", 0);
 
       if (error) throw error;
-      return data || [];
+      return (data || []).map((p) => ({
+        fundId: p.fund_id,
+        fundName: (p.funds as any)?.name || p.fund_id,
+        asset: (p.funds as any)?.asset || "USDT",
+        currentValue: Number(p.current_value || 0),
+      }));
     },
     enabled: !!userId,
   });
 
-  // Calculate totals and aggregations
-  const totalEarnings = allocations?.reduce((sum, a) => sum + a.ibFeeAmount, 0) || 0;
-  const totalReferrals = referrals?.length || 0;
-  const totalPositionValue = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
+  // Calculate totals by asset
+  const earningsByAsset: Record<string, number> = {};
+  allocations?.forEach((a) => {
+    const asset = a.fundAsset;
+    earningsByAsset[asset] = (earningsByAsset[asset] || 0) + a.ibFeeAmount;
+  });
 
-  // Monthly earnings
+  const totalReferrals = referrals?.length || 0;
+
+  // Position totals by asset
+  const positionsByAsset: Record<string, number> = {};
+  positions?.forEach((p) => {
+    positionsByAsset[p.asset] = (positionsByAsset[p.asset] || 0) + p.currentValue;
+  });
+
+  // Monthly earnings by asset
   const monthlyEarnings: MonthlyEarning[] = [];
   if (allocations) {
-    const byMonth: Record<string, number> = {};
+    const byMonth: Record<string, Record<string, number>> = {};
     allocations.forEach((a) => {
       if (a.periodEnd) {
         const month = a.periodEnd.substring(0, 7);
-        byMonth[month] = (byMonth[month] || 0) + a.ibFeeAmount;
+        if (!byMonth[month]) byMonth[month] = {};
+        byMonth[month][a.fundAsset] = (byMonth[month][a.fundAsset] || 0) + a.ibFeeAmount;
       }
     });
     Object.entries(byMonth)
       .sort(([a], [b]) => b.localeCompare(a))
       .slice(0, 12)
-      .forEach(([month, amount]) => {
-        monthlyEarnings.push({ month, amount });
+      .forEach(([month, assets]) => {
+        monthlyEarnings.push({
+          month,
+          byAsset: Object.entries(assets).map(([asset, amount]) => ({ asset, amount })),
+        });
       });
   }
 
@@ -173,17 +214,37 @@ export default function IBDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
+        {/* Total Earnings by Asset */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <Coins className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalEarnings)}</div>
-            <p className="text-xs text-muted-foreground">Lifetime IB commissions</p>
+            {Object.keys(earningsByAsset).length === 0 ? (
+              <p className="text-muted-foreground text-sm">No earnings yet</p>
+            ) : (
+              <div className="space-y-2">
+                {Object.entries(earningsByAsset).map(([asset, amount]) => (
+                  <div key={asset} className="flex items-center gap-2">
+                    <img 
+                      src={getAssetLogo(asset)} 
+                      alt={asset}
+                      className="h-5 w-5 rounded-full"
+                    />
+                    <span className="text-lg font-bold font-mono">
+                      {formatTokenAmount(amount, asset)} {asset}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground mt-2">Lifetime IB commissions</p>
           </CardContent>
         </Card>
+
+        {/* Referrals */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Referrals</CardTitle>
@@ -194,28 +255,33 @@ export default function IBDashboard() {
             <p className="text-xs text-muted-foreground">Investors you referred</p>
           </CardContent>
         </Card>
+
+        {/* Fund Positions by Asset */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Fund Position</CardTitle>
+            <CardTitle className="text-sm font-medium">Fund Positions</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalPositionValue)}</div>
-            <p className="text-xs text-muted-foreground">Current portfolio value</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Month</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(monthlyEarnings[0]?.amount || 0)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {monthlyEarnings[0]?.month || "No earnings yet"}
-            </p>
+            {Object.keys(positionsByAsset).length === 0 ? (
+              <p className="text-muted-foreground text-sm">No positions</p>
+            ) : (
+              <div className="space-y-2">
+                {Object.entries(positionsByAsset).map(([asset, amount]) => (
+                  <div key={asset} className="flex items-center gap-2">
+                    <img 
+                      src={getAssetLogo(asset)} 
+                      alt={asset}
+                      className="h-5 w-5 rounded-full"
+                    />
+                    <span className="text-lg font-bold font-mono">
+                      {formatTokenAmount(amount, asset)} {asset}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground mt-2">Current portfolio</p>
           </CardContent>
         </Card>
       </div>
@@ -266,7 +332,7 @@ export default function IBDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Monthly Earnings</CardTitle>
-            <CardDescription>Your commission earnings by month</CardDescription>
+            <CardDescription>Your commission earnings by month (token-denominated)</CardDescription>
           </CardHeader>
           <CardContent>
             {monthlyEarnings.length === 0 ? (
@@ -283,8 +349,21 @@ export default function IBDashboard() {
                   {monthlyEarnings.map((me) => (
                     <TableRow key={me.month}>
                       <TableCell>{me.month}</TableCell>
-                      <TableCell className="text-right font-mono">
-                        {formatCurrency(me.amount)}
+                      <TableCell className="text-right">
+                        <div className="flex flex-col items-end gap-1">
+                          {me.byAsset.map(({ asset, amount }) => (
+                            <div key={asset} className="flex items-center gap-1.5">
+                              <img 
+                                src={getAssetLogo(asset)} 
+                                alt={asset}
+                                className="h-4 w-4 rounded-full"
+                              />
+                              <span className="font-mono text-sm">
+                                {formatTokenAmount(amount, asset)} {asset}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -299,7 +378,7 @@ export default function IBDashboard() {
       <Card>
         <CardHeader>
           <CardTitle>Recent Allocations</CardTitle>
-          <CardDescription>Detailed breakdown of your IB commissions</CardDescription>
+          <CardDescription>Detailed breakdown of your IB commissions (token-denominated)</CardDescription>
         </CardHeader>
         <CardContent>
           {!allocations || allocations.length === 0 ? (
@@ -309,6 +388,7 @@ export default function IBDashboard() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Period</TableHead>
+                  <TableHead>Asset</TableHead>
                   <TableHead>Base Net Income</TableHead>
                   <TableHead className="text-center">Rate</TableHead>
                   <TableHead className="text-right">Commission</TableHead>
@@ -323,14 +403,24 @@ export default function IBDashboard() {
                         ? `${alloc.periodStart} - ${alloc.periodEnd}`
                         : alloc.createdAt?.split("T")[0]}
                     </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5">
+                        <img 
+                          src={getAssetLogo(alloc.fundAsset)} 
+                          alt={alloc.fundAsset}
+                          className="h-4 w-4 rounded-full"
+                        />
+                        <span>{alloc.fundAsset}</span>
+                      </div>
+                    </TableCell>
                     <TableCell className="font-mono">
-                      {formatCurrency(alloc.sourceNetIncome)}
+                      {formatTokenAmount(alloc.sourceNetIncome, alloc.fundAsset)} {alloc.fundAsset}
                     </TableCell>
                     <TableCell className="text-center">
                       <Badge variant="outline">{alloc.ibPercentage}%</Badge>
                     </TableCell>
                     <TableCell className="text-right font-mono font-semibold text-green-600">
-                      +{formatCurrency(alloc.ibFeeAmount)}
+                      +{formatTokenAmount(alloc.ibFeeAmount, alloc.fundAsset)} {alloc.fundAsset}
                     </TableCell>
                     <TableCell>
                       <Badge variant={alloc.source === "from_platform_fees" ? "secondary" : "outline"}>
@@ -350,24 +440,33 @@ export default function IBDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Your Fund Positions</CardTitle>
-            <CardDescription>Your accumulated IB earnings invested in funds</CardDescription>
+            <CardDescription>Your accumulated IB earnings invested in funds (token-denominated)</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Fund</TableHead>
-                  <TableHead className="text-right">Current Value</TableHead>
+                  <TableHead>Asset</TableHead>
+                  <TableHead className="text-right">Current Balance</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {positions.map((pos) => (
-                  <TableRow key={pos.fund_id}>
-                    <TableCell className="font-medium">
-                      {(pos.funds as any)?.name || pos.fund_id}
+                  <TableRow key={pos.fundId}>
+                    <TableCell className="font-medium">{pos.fundName}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5">
+                        <img 
+                          src={getAssetLogo(pos.asset)} 
+                          alt={pos.asset}
+                          className="h-4 w-4 rounded-full"
+                        />
+                        <span>{pos.asset}</span>
+                      </div>
                     </TableCell>
                     <TableCell className="text-right font-mono">
-                      {formatCurrency(Number(pos.current_value || 0))}
+                      {formatTokenAmount(pos.currentValue, pos.asset)} {pos.asset}
                     </TableCell>
                   </TableRow>
                 ))}
