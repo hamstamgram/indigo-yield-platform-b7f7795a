@@ -24,6 +24,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Plus, Trash2, Percent, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -52,6 +62,7 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
   const [feeSchedule, setFeeSchedule] = useState<FeeScheduleEntry[]>([]);
   const [funds, setFunds] = useState<Fund[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteEntry, setDeleteEntry] = useState<{ id: string; fundName: string } | null>(null);
   
   // Form state
   const [newFeeFundId, setNewFeeFundId] = useState<string>("all");
@@ -145,8 +156,6 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
   };
 
   const handleDeleteFee = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this fee entry?")) return;
-
     try {
       const { error } = await supabase
         .from("investor_fee_schedule")
@@ -284,7 +293,10 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6"
-                            onClick={() => handleDeleteFee(entry.id)}
+                            onClick={() => setDeleteEntry({ 
+                              id: entry.id, 
+                              fundName: entry.fund?.name || "All Funds" 
+                            })}
                           >
                             <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
@@ -302,6 +314,33 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
             )}
           </div>
         )}
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!deleteEntry} onOpenChange={(open) => !open && setDeleteEntry(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Fee Entry</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete the fee entry for {deleteEntry?.fundName}? 
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  if (deleteEntry) {
+                    handleDeleteFee(deleteEntry.id);
+                    setDeleteEntry(null);
+                  }
+                }}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
     </Card>
   );

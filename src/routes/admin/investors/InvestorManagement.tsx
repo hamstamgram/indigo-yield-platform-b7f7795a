@@ -1,19 +1,31 @@
 import { useState, useEffect, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { InvestorYieldManager } from "@/components/admin/investors/InvestorYieldManager";
 import InvestorPositionsTab from "@/components/admin/investors/InvestorPositionsTab";
 import InvestorTransactionsTab from "@/components/admin/investors/InvestorTransactionsTab";
 import { InvestorProfileEditor } from "@/components/admin/investors/InvestorProfileEditor";
 import { ReportRecipientsEditor } from "@/components/admin/investors/ReportRecipientsEditor";
-import { Loader2, ArrowLeft, Coins, TrendingUp } from "lucide-react";
+import InvestorWithdrawalsTab from "@/components/admin/investors/InvestorWithdrawalsTab";
+import InvestorReportsTab from "@/components/admin/investors/InvestorReportsTab";
+import InvestorSettingsTab from "@/components/admin/investors/InvestorSettingsTab";
+import { Loader2, ArrowLeft, Coins, TrendingUp, FileText, Settings, ArrowDownToLine } from "lucide-react";
 import { useInvestorAssetStats } from "@/hooks/useInvestorPerformance";
 import { AssetPerformanceCard } from "@/components/shared/AssetPerformanceCard";
+import { deleteInvestorUser } from "@/services/admin/userService";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 interface InvestorDetail {
   id: string;
@@ -29,9 +41,9 @@ interface InvestorDetail {
 
 const InvestorManagement = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [investor, setInvestor] = useState<InvestorDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
 
   // Fetch per-asset performance stats for this investor
   const { data: assetStats, isLoading: isLoadingStats } = useInvestorAssetStats(id);
@@ -68,19 +80,34 @@ const InvestorManagement = () => {
       });
     } catch (error) {
       console.error("Error fetching investor details:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch investor details",
-        variant: "destructive",
-      });
+      toast.error("Failed to fetch investor details");
     } finally {
       setIsLoading(false);
     }
-  }, [id, toast]);
+  }, [id]);
 
   useEffect(() => {
     fetchInvestorDetails();
   }, [fetchInvestorDetails]);
+
+  const handleBack = () => {
+    navigate("/admin/investors");
+  };
+
+  const handleDeleteInvestor = async () => {
+    if (!id) return;
+    try {
+      await deleteInvestorUser(id);
+      toast.success("Investor deleted", {
+        description: "The investor and all associated data have been removed.",
+      });
+      navigate("/admin/investors");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to delete investor";
+      toast.error("Error", { description: message });
+      throw error;
+    }
+  };
 
   if (isLoading) {
     return (
@@ -100,6 +127,10 @@ const InvestorManagement = () => {
             <div className="text-center">
               <h2 className="text-lg font-semibold">Investor Not Found</h2>
               <p className="text-muted-foreground">The requested investor could not be found.</p>
+              <Button variant="outline" className="mt-4" onClick={handleBack}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Investors
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -109,9 +140,24 @@ const InvestorManagement = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      {/* Breadcrumb */}
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/admin/investors">Investors</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{investor.name || "Investor"}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
+          <Button variant="ghost" size="sm" onClick={handleBack}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
@@ -136,6 +182,18 @@ const InvestorManagement = () => {
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="positions">Positions</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          <TabsTrigger value="withdrawals" className="gap-2">
+            <ArrowDownToLine className="h-4 w-4" />
+            Withdrawals
+          </TabsTrigger>
+          <TabsTrigger value="reports" className="gap-2">
+            <FileText className="h-4 w-4" />
+            Reports
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="gap-2">
+            <Settings className="h-4 w-4" />
+            Settings
+          </TabsTrigger>
         </TabsList>
 
         {/* Yield Management Tab - NEW PRIMARY TAB */}
@@ -206,6 +264,26 @@ const InvestorManagement = () => {
         {/* Transactions Tab */}
         <TabsContent value="transactions" className="space-y-4">
           <InvestorTransactionsTab investorId={id!} />
+        </TabsContent>
+
+        {/* Withdrawals Tab */}
+        <TabsContent value="withdrawals" className="space-y-4">
+          <InvestorWithdrawalsTab investorId={id!} />
+        </TabsContent>
+
+        {/* Reports Tab */}
+        <TabsContent value="reports" className="space-y-4">
+          <InvestorReportsTab investorId={id!} investorName={investor.name} />
+        </TabsContent>
+
+        {/* Settings Tab */}
+        <TabsContent value="settings" className="space-y-4">
+          <InvestorSettingsTab
+            investorId={id!}
+            investorName={investor.name}
+            onDelete={handleDeleteInvestor}
+            onDataChange={fetchInvestorDetails}
+          />
         </TabsContent>
       </Tabs>
     </div>

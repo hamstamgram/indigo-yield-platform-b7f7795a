@@ -33,7 +33,7 @@ import AddInvestorDialog from "@/components/admin/investors/AddInvestorDialog";
 import { InvestorManagementDrawer } from "@/components/admin/investors/InvestorManagementDrawer";
 import { useInlineManagementToggle } from "@/hooks/useInlineManagementToggle";
 import { deleteInvestorUser } from "@/services/admin/userService";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import { cn } from "@/lib/utils";
 import { assetService } from "@/services/shared/assetService";
@@ -42,6 +42,7 @@ import {
   getActiveFundsForList,
   getActiveInvestorPositions,
 } from "@/services/fundService";
+import { useUrlFilters } from "@/hooks/useUrlFilters";
 
 interface Fund {
   id: string;
@@ -52,20 +53,24 @@ interface Fund {
 
 function UnifiedInvestorsContent() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { stats } = useAdminStats();
   const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [funds, setFunds] = useState<Fund[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedInvestor, setSelectedInvestor] = useState<InvestorSummaryV2 | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  
-  // Filter states
-  const [fundFilter, setFundFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [investorPositions, setInvestorPositions] = useState<Map<string, string[]>>(new Map());
+
+  // URL-persisted filters
+  const { filters, setFilter } = useUrlFilters({
+    keys: ["search", "fund", "status"],
+    defaults: { fund: "all", status: "all" },
+  });
+
+  const searchTerm = filters.search || "";
+  const fundFilter = filters.fund || "all";
+  const statusFilter = filters.status || "all";
 
   // Toggle for inline management mode
   const { isInlineMode, setIsInlineMode } = useInlineManagementToggle();
@@ -130,8 +135,7 @@ function UnifiedInvestorsContent() {
   const handleDeleteInvestor = async (investorId: string) => {
     try {
       await deleteInvestorUser(investorId);
-      toast({
-        title: "Investor deleted",
+      toast.success("Investor deleted", {
         description: "The investor has been removed successfully.",
       });
       setDrawerOpen(false);
@@ -139,11 +143,7 @@ function UnifiedInvestorsContent() {
       loadData();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to delete investor";
-      toast({
-        title: "Error",
-        description: message,
-        variant: "destructive",
-      });
+      toast.error("Error", { description: message });
       throw error; // Re-throw so drawer knows deletion failed
     }
   };
@@ -219,13 +219,13 @@ function UnifiedInvestorsContent() {
           <Input
             placeholder="Search by name or email..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => setFilter("search", e.target.value || null)}
             className="pl-9"
           />
         </div>
         
         {/* Fund Filter */}
-        <Select value={fundFilter} onValueChange={setFundFilter}>
+        <Select value={fundFilter} onValueChange={(v) => setFilter("fund", v)}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <Filter className="h-4 w-4 mr-2" />
             <SelectValue placeholder="Filter by fund" />
@@ -241,7 +241,7 @@ function UnifiedInvestorsContent() {
         </Select>
         
         {/* Status Filter */}
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={(v) => setFilter("status", v)}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
