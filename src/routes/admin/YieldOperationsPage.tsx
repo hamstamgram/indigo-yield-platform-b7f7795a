@@ -251,6 +251,7 @@ function YieldOperationsContent() {
                 <p className="text-2xl font-mono font-bold">
                   {funds.reduce((sum, f) => sum + f.investor_count, 0)}
                 </p>
+                <p className="text-xs text-muted-foreground">Investor × fund combinations</p>
               </div>
             </div>
           </CardContent>
