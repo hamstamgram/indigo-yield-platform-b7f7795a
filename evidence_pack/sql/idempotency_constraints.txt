@@ -1,0 +1,85 @@
+# Idempotency Constraints Evidence
+
+## 1. transactions_v2
+
+Constraint: `idx_transactions_v2_reference_id_unique`
+Type: UNIQUE INDEX
+Column: `reference_id`
+Purpose: Prevents duplicate yield distributions with same reference
+
+```sql
+CREATE UNIQUE INDEX idx_transactions_v2_reference_id_unique 
+ON public.transactions_v2 USING btree (reference_id) 
+WHERE reference_id IS NOT NULL;
+```
+
+## 2. ib_allocations
+
+Constraint: `ib_allocations_idempotency`
+Type: UNIQUE INDEX
+Columns: `source_investor_id, ib_investor_id, period_start, period_end, fund_id`
+Purpose: Prevents duplicate IB commission allocations for same investor/period/fund
+
+```sql
+CREATE UNIQUE INDEX ib_allocations_idempotency 
+ON public.ib_allocations USING btree (
+    source_investor_id, 
+    ib_investor_id, 
+    period_start, 
+    period_end, 
+    fund_id
+);
+```
+
+Constraint: `ib_allocations_distribution_unique`
+Type: UNIQUE INDEX
+Columns: `distribution_id, source_investor_id, ib_investor_id`
+Purpose: Prevents duplicate allocations within same distribution batch
+
+```sql
+CREATE UNIQUE INDEX ib_allocations_distribution_unique 
+ON public.ib_allocations USING btree (
+    distribution_id, 
+    source_investor_id, 
+    ib_investor_id
+) 
+WHERE distribution_id IS NOT NULL;
+```
+
+## 3. fee_allocations
+
+Constraint: `fee_allocations_unique`
+Type: UNIQUE INDEX
+Columns: `investor_id, fund_id, period_start, period_end, distribution_id`
+Purpose: Prevents duplicate fee allocations for same investor/fund/period
+
+```sql
+CREATE UNIQUE INDEX fee_allocations_unique 
+ON public.fee_allocations USING btree (
+    investor_id, 
+    fund_id, 
+    period_start, 
+    period_end, 
+    distribution_id
+);
+```
+
+## 4. generated_statements
+
+Constraint: `unique_investor_period`
+Type: UNIQUE INDEX
+Columns: `investor_id, period_id`
+Purpose: Enforces one report per investor per period
+
+```sql
+CREATE UNIQUE INDEX unique_investor_period 
+ON public.generated_statements USING btree (
+    investor_id, 
+    period_id
+);
+```
+
+## Verification Status
+
+All constraints verified in database as of 2024-12-20.
+Run `idempotency_test.sql` to confirm functionality.

@@ -123,8 +123,81 @@ function simpleHash(content: string): string {
 }
 
 /**
+ * Custom error class for duplicate report attempts
+ */
+export class DuplicateStatementError extends Error {
+  public readonly existingReportId: string;
+  public readonly investorId: string;
+  public readonly periodId: string;
+  public readonly createdAt: string;
+
+  constructor(existingReport: ExistingReport, investorId: string, periodId: string) {
+    super(`Statement already exists for investor ${investorId} and period ${periodId}. Created at: ${existingReport.created_at}`);
+    this.name = 'DuplicateStatementError';
+    this.existingReportId = existingReport.id;
+    this.investorId = investorId;
+    this.periodId = periodId;
+    this.createdAt = existingReport.created_at;
+  }
+}
+
+/**
+ * STRICT Insert: Creates a new statement ONLY if none exists.
+ * REJECTS with DuplicateStatementError if statement already exists.
+ * This is the preferred method for enforcing one-report-per-period rule.
+ */
+export async function strictInsertStatement(
+  investorId: string,
+  periodId: string,
+  userId: string,
+  htmlContent: string,
+  pdfUrl: string | null,
+  fundNames: string[],
+  generatedBy: string
+): Promise<{ reportId: string; isNew: true }> {
+  // Check if statement already exists
+  const existing = await checkStatementExists(investorId, periodId);
+
+  if (existing.exists && existing.report) {
+    // REJECT - do not update, throw error
+    throw new DuplicateStatementError(existing.report, investorId, periodId);
+  }
+
+  // Create new statement
+  const { data, error } = await supabase
+    .from("generated_statements")
+    .insert({
+      investor_id: investorId,
+      period_id: periodId,
+      user_id: userId,
+      html_content: htmlContent,
+      pdf_url: pdfUrl,
+      fund_names: fundNames,
+      generated_by: generatedBy,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    // Handle unique constraint violation as well
+    if (error.code === '23505') {
+      const checkAgain = await checkStatementExists(investorId, periodId);
+      if (checkAgain.exists && checkAgain.report) {
+        throw new DuplicateStatementError(checkAgain.report, investorId, periodId);
+      }
+    }
+    throw new Error(`Failed to create statement: ${error.message}`);
+  }
+
+  return { reportId: data.id, isNew: true };
+}
+
+/**
  * Upsert a generated statement (creates or updates existing)
  * Returns the report ID and whether it was an update
+ * 
+ * @deprecated Use strictInsertStatement instead to enforce one-report-per-period rule.
+ * This function is kept for backward compatibility but should not be used for new code.
  */
 export async function upsertStatement(
   investorId: string,
