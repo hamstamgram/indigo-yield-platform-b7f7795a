@@ -61,7 +61,7 @@ const DashboardLayout = () => {
   }
 
   return (
-    <div className="flex h-screen w-full bg-gray-100 dark:bg-gray-900">
+    <div className="flex h-screen w-full bg-background">
       {/* Global Shortcuts & Action Bar */}
       <GlobalShortcuts />
 
@@ -69,12 +69,12 @@ const DashboardLayout = () => {
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} isAdmin={isAdmin} />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden w-full">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Top Header */}
         <Header toggleSidebar={toggleSidebar} />
 
-        {/* Content Area - Add bottom padding for Action Bar */}
-        <ContentArea className="pb-14">
+        {/* Content Area */}
+        <ContentArea>
           <Outlet />
         </ContentArea>
       </div>

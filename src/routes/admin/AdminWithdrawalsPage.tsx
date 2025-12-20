@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { ArrowDownToLine } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import PageHeader from "@/components/layout/PageHeader";
 
 interface Fund {
   id: string;
@@ -69,16 +70,12 @@ export default function AdminWithdrawalsPage() {
   }, [filters]);
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <ArrowDownToLine className="h-8 w-8" />
-            Withdrawal Management
-          </h1>
-          <p className="text-muted-foreground">Review and process investor withdrawal requests</p>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PageHeader 
+        title="Withdrawal Management"
+        subtitle="Review and process investor withdrawal requests"
+        icon={ArrowDownToLine}
+      />
 
       <WithdrawalStatsComponent stats={stats} isLoading={isLoading} />
 

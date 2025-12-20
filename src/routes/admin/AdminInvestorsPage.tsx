@@ -15,7 +15,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, User, MoreHorizontal } from "lucide-react";
+import { Search, User, MoreHorizontal, Users } from "lucide-react";
+import PageHeader from "@/components/layout/PageHeader";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,25 +90,26 @@ export default function AdminInvestorsPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-display font-bold tracking-tight">Investors</h1>
-          <p className="text-muted-foreground">Manage investor accounts and portfolios</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="relative w-64">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search investors..."
-              className="pl-8"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+    <div className="space-y-6">
+      <PageHeader 
+        title="Investors"
+        subtitle="Manage investor accounts and portfolios"
+        icon={Users}
+        actions={
+          <div className="flex items-center gap-4">
+            <div className="relative w-64">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search investors..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Button onClick={() => navigate("/admin/investors/new")}>Add Investor</Button>
           </div>
-          <Button onClick={() => navigate("/admin/investors/new")}>Add Investor</Button>
-        </div>
-      </div>
+        }
+      />
 
       <Card>
         <CardHeader>

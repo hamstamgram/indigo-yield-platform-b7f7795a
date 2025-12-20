@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import PageHeader from "@/components/layout/PageHeader";
 import {
   Select,
   SelectContent,
@@ -26,7 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, Search, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { Loader2, Search, ChevronLeft, ChevronRight, ExternalLink, CreditCard } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { supabase } from "@/integrations/supabase/client";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -282,13 +283,12 @@ function TransactionHistoryContent() {
   };
 
   return (
-    <div className="container max-w-7xl mx-auto px-4 py-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-display font-bold tracking-tight">Transaction History</h1>
-        <p className="text-muted-foreground mt-1">
-          Complete chronological ledger of all investor transactions
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader 
+        title="Transaction History"
+        subtitle="Complete chronological ledger of all investor transactions"
+        icon={CreditCard}
+      />
 
       {/* Filters */}
       <Card>
