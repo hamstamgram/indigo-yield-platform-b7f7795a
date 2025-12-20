@@ -4136,10 +4136,19 @@ export type Database = {
         Args: { p_fund_id: string; p_new_baseline: number }
         Returns: boolean
       }
-      update_investor_aum_percentages: {
-        Args: { p_fund_id: string }
-        Returns: number
-      }
+      update_investor_aum_percentages:
+        | {
+            Args: { p_fund_id: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.update_investor_aum_percentages(p_fund_id => text), public.update_investor_aum_percentages(p_fund_id => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+        | {
+            Args: { p_fund_id: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.update_investor_aum_percentages(p_fund_id => text), public.update_investor_aum_percentages(p_fund_id => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
       update_user_profile_secure: {
         Args: {
           p_first_name?: string
