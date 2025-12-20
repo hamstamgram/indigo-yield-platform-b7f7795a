@@ -58,12 +58,12 @@ export function useDashboardData() {
         const totalGain = totalValue - totalCost;
         const totalGainPercent = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
 
-        // Fetch recent transactions
+        // Fetch recent transactions - order by tx_date (effective date)
         const { data: transactions } = await supabase
           .from("transactions_v2")
           .select("*")
           .eq("investor_id", investorId)
-          .order("created_at", { ascending: false })
+          .order("tx_date", { ascending: false })
           .limit(5);
 
         setState({
