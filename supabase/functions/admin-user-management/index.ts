@@ -84,6 +84,9 @@ serve(async (req) => {
       case "deleteUser":
         result = await deleteUser(params.userId as string, user.id);
         break;
+      case "forceDeleteUser":
+        result = await forceDeleteUser(params.userId as string, user.id);
+        break;
       default:
         throw new Error(`Unknown action: ${action}`);
     }
@@ -315,5 +318,42 @@ async function deleteUser(userId: string, adminUserId: string): Promise<any> {
     success: true,
     user_id: userId,
     message: "User deleted successfully",
+  };
+}
+
+async function forceDeleteUser(userId: string, adminUserId: string): Promise<any> {
+  console.log(`Force deleting user ${userId} by admin ${adminUserId}`);
+
+  // Prevent self-deletion
+  if (userId === adminUserId) {
+    throw new Error("Cannot delete your own account");
+  }
+
+  // Call the database function to clean up all related data
+  const { error: rpcError } = await supabaseAdmin.rpc('force_delete_investor', {
+    p_investor_id: userId,
+    p_admin_id: adminUserId
+  });
+
+  if (rpcError) {
+    console.error("RPC error:", rpcError);
+    throw new Error(`Failed to delete investor data: ${rpcError.message}`);
+  }
+
+  // Delete auth user
+  const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
+  if (userData?.user) {
+    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    if (authError) {
+      console.warn(`Auth user deletion warning: ${authError.message}`);
+    }
+  }
+
+  console.log(`Successfully force deleted user ${userId}`);
+
+  return {
+    success: true,
+    user_id: userId,
+    message: "Investor force deleted successfully",
   };
 }
