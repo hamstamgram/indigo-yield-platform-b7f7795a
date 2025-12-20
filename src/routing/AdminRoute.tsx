@@ -7,10 +7,11 @@ interface AdminRouteProps {
 }
 
 export function AdminRoute({ children }: AdminRouteProps) {
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading, isAdmin, profile } = useAuth();
   const location = useLocation();
 
-  if (loading) {
+  // Wait for both auth and profile to be loaded before making decisions
+  if (loading || (user && !profile)) {
     return <PageLoadingSpinner />;
   }
 

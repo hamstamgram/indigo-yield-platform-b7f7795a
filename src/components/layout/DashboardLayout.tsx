@@ -21,10 +21,11 @@ const DashboardLayout = () => {
   const isAdminRoute = currentPath.startsWith("/admin") || currentPath === "/admin-operations";
 
   // Get auth status from context - no need for complex checking since AuthProvider handles it
-  const { user, loading: authLoading, isAdmin: userIsAdmin } = useAuth();
+  const { user, loading: authLoading, isAdmin: userIsAdmin, profile } = useAuth();
 
   useEffect(() => {
-    if (!authLoading) {
+    // Wait for both auth and profile to be loaded
+    if (!authLoading && profile !== null) {
       if (!user) {
         navigate("/login", { replace: true });
         return;
@@ -38,7 +39,7 @@ const DashboardLayout = () => {
         navigate("/admin", { replace: true });
       }
     }
-  }, [user, authLoading, userIsAdmin, navigate, currentPath, isAdminRoute]);
+  }, [user, authLoading, userIsAdmin, profile, navigate, currentPath, isAdminRoute]);
 
   // Set sidebar open state based on screen size
   useEffect(() => {

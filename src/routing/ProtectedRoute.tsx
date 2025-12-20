@@ -7,10 +7,11 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, loading } = useAuth();
+  const { user, loading, profile } = useAuth();
   const location = useLocation();
 
-  if (loading) {
+  // Wait for both auth and profile to be loaded before making decisions
+  if (loading || (user && !profile)) {
     return <PageLoadingSpinner />;
   }
 

@@ -56,6 +56,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Track profile fetch state to avoid double-fetching
   const profileFetchedRef = useRef<string | null>(null);
   const initializedRef = useRef(false);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   // Memoized profile fetch that deduplicates requests
   const fetchProfileOnce = useCallback((userId: string) => {
@@ -106,6 +107,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [fetchProfileOnce]);
 
   const fetchProfile = async (userId: string) => {
+    setProfileLoading(true);
     try {
       // Direct query to profiles table
       const { data: profileData, error: profileError } = await supabase
@@ -167,6 +169,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         totp_verified: false,
       });
     } finally {
+      setProfileLoading(false);
       setLoading(false);
     }
   };
@@ -195,7 +198,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     user,
     session,
     profile,
-    loading,
+    loading: loading || (user !== null && profileLoading),
     isAdmin: profile?.is_admin ?? false,
     signIn,
     signOut,
