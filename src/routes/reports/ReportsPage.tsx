@@ -6,6 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Plus, Search, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { CryptoIcon } from "@/components/CryptoIcons";
+
+// Extract symbol from fund name (e.g., "eth_yield_fund" -> "ETH")
+const getSymbolFromFundName = (fundName: string) => {
+  return fundName?.split(/[_\s]/)[0]?.toUpperCase() || "BTC";
+};
 
 export default function ReportsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -91,13 +97,19 @@ export default function ReportsPage() {
                 <Card key={item.id}>
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-semibold">
-                          {item.asset_code?.replace(/_/g, " ").toUpperCase() || "Report"} - {item.report_month}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(item.created_at).toLocaleDateString()}
-                        </p>
+                      <div className="flex items-center gap-3">
+                        <CryptoIcon 
+                          symbol={getSymbolFromFundName(item.asset_code || "")} 
+                          className="h-8 w-8"
+                        />
+                        <div>
+                          <h3 className="font-semibold">
+                            {item.asset_code?.replace(/_/g, " ").toUpperCase() || "Report"} - {item.report_month}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(item.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
                       <Button variant="outline" size="sm" asChild>
                         <Link to={`/reports/${item.id}`}>View Details</Link>
