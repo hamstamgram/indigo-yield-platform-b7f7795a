@@ -4860,6 +4860,10 @@ export type Database = {
         }[]
       }
       unlock_imports: { Args: never; Returns: boolean }
+      update_admin_role: {
+        Args: { p_new_role: string; p_target_user_id: string }
+        Returns: Json
+      }
       update_fund_aum_baseline: {
         Args: { p_fund_id: string; p_new_baseline: number }
         Returns: boolean
