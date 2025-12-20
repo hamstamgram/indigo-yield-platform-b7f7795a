@@ -1,43 +1,16 @@
 /**
  * Fund AUM Bar Component
  * Displays small cards showing each fund's total AUM in the header for admins
+ * Uses unified useFundAUM hook for consistent data across the app
  */
 
-import { useQuery } from "@tanstack/react-query";
-import { getAllFundsWithAUM } from "@/services/aumService";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface FundWithAUM {
-  id: string;
-  code: string;
-  name: string;
-  asset: string;
-  latest_aum: number;
-  investor_count: number;
-}
-
-const formatAUM = (value: number, symbol: string): string => {
-  if (!value || value === 0) return "0";
-
-  // For crypto, show appropriate decimals
-  if (symbol === "BTC") {
-    return value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
-  } else if (symbol === "ETH" || symbol === "SOL") {
-    return value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  } else {
-    // Stablecoins and others
-    return value.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-  }
-};
+import { useFundAUM } from "@/hooks/useFundAUM";
+import { formatAUMCompact } from "@/utils/formatters/aumFormatter";
 
 export const FundAUMBar: React.FC = () => {
-  const { data: funds, isLoading } = useQuery<FundWithAUM[]>({
-    queryKey: ["admin-fund-aum-bar"],
-    queryFn: getAllFundsWithAUM,
-    refetchInterval: 60000, // Refresh every minute
-    staleTime: 30000,
-  });
+  const { funds, isLoading } = useFundAUM();
 
   if (isLoading) {
     return (
@@ -63,14 +36,14 @@ export const FundAUMBar: React.FC = () => {
       {sortedFunds.map((fund) => (
         <div
           key={fund.id}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex-shrink-0 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted border border-border flex-shrink-0 hover:bg-muted/80 transition-colors"
           title={`${fund.name} - ${fund.investor_count} investors`}
         >
           <CryptoIcon symbol={fund.asset} className="h-4 w-4" />
-          <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">
-            {formatAUM(fund.latest_aum, fund.asset)}
+          <span className="text-xs font-semibold text-foreground">
+            {formatAUMCompact(fund.latest_aum, fund.asset)}
           </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
+          <span className="text-xs text-muted-foreground">
             {fund.asset}
           </span>
         </div>

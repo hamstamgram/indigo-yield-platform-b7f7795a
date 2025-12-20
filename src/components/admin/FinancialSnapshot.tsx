@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, PieChart, ArrowUpDown, ArrowUp, ArrowDown, X } from "lucide-react";
+import { Calendar as CalendarIcon, ArrowUpDown, ArrowUp, ArrowDown, Radio } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -24,12 +24,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { useFundAUM, FundAUMData } from "@/hooks/useFundAUM";
+import { formatAUM } from "@/utils/formatters/aumFormatter";
 
-interface FundSnapshot {
+interface FlowData {
   fund_id: string;
-  fund_name: string;
-  asset_code: string;
-  aum: number;
   daily_inflows: number;
   daily_outflows: number;
   net_flow_24h: number;
@@ -45,19 +44,13 @@ interface InvestorComposition {
 type SortColumn = "investor_name" | "email" | "balance" | "ownership_pct";
 type SortDirection = "asc" | "desc";
 
-const formatCrypto = (value: number, symbol: string) => {
-  if (!value) value = 0;
-  const decimals = symbol === "BTC" ? 8 : symbol === "ETH" ? 6 : 2;
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(value);
-};
-
 export const FinancialSnapshot: React.FC = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [data, setData] = useState<FundSnapshot[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [flowData, setFlowData] = useState<Map<string, FlowData>>(new Map());
+  const [loadingFlows, setLoadingFlows] = useState(false);
+
+  // Use unified AUM hook - single source of truth
+  const { funds, isLoading: loadingAUM, lastUpdated } = useFundAUM();
 
   // Composition State
   const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
@@ -114,26 +107,37 @@ export const FinancialSnapshot: React.FC = () => {
     });
   }, [compositionData, sortColumn, sortDirection]);
 
-  const fetchData = async (targetDate: Date) => {
-    setLoading(true);
+  // Fetch only flow data (inflows/outflows) from historical nav
+  const fetchFlowData = async (targetDate: Date) => {
+    setLoadingFlows(true);
     try {
       const formattedDate = format(targetDate, "yyyy-MM-dd");
-      console.log("Fetching snapshot for:", formattedDate);
 
       const { data: snapshot, error } = await supabase.rpc("get_historical_nav", {
         target_date: formattedDate,
       });
 
       if (error) throw error;
-      setData(snapshot || []);
+
+      // Store flows in a map by fund_id
+      const flows = new Map<string, FlowData>();
+      (snapshot || []).forEach((item: any) => {
+        flows.set(item.fund_id, {
+          fund_id: item.fund_id,
+          daily_inflows: item.daily_inflows || 0,
+          daily_outflows: item.daily_outflows || 0,
+          net_flow_24h: item.net_flow_24h || 0,
+        });
+      });
+      setFlowData(flows);
 
       // Reset selection on date change
       setSelectedFundId(null);
       setCompositionData([]);
     } catch (error) {
-      console.error("Error fetching financial snapshot:", error);
+      console.error("Error fetching flow data:", error);
     } finally {
-      setLoading(false);
+      setLoadingFlows(false);
     }
   };
 
@@ -179,7 +183,7 @@ export const FinancialSnapshot: React.FC = () => {
 
   useEffect(() => {
     if (date) {
-      fetchData(date);
+      fetchFlowData(date);
     }
   }, [date]);
 
@@ -189,7 +193,8 @@ export const FinancialSnapshot: React.FC = () => {
     }
   }, [selectedFundId, date, fetchComposition]);
 
-  const selectedFund = data.find((f) => f.fund_id === selectedFundId);
+  const selectedFund = funds.find((f) => f.id === selectedFundId);
+  const selectedFlows = selectedFundId ? flowData.get(selectedFundId) : null;
 
   const handleCloseDrawer = () => {
     setSelectedFundId(null);
@@ -204,16 +209,25 @@ export const FinancialSnapshot: React.FC = () => {
           <h2 className="text-3xl font-bold tracking-tight text-foreground">
             Fund Financials
           </h2>
-          <p className="text-muted-foreground">Historical snapshot of AUM and daily flows.</p>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <span>Live AUM with historical daily flows.</span>
+            {lastUpdated && (
+              <Badge variant="outline" className="text-xs gap-1">
+                <Radio className="h-2 w-2 text-green-500 animate-pulse" />
+                Live
+              </Badge>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Flows for:</span>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant={"outline"}
                 className={cn(
-                  "w-[240px] justify-start text-left font-normal",
+                  "w-[200px] justify-start text-left font-normal",
                   !date && "text-muted-foreground"
                 )}
               >
@@ -234,99 +248,140 @@ export const FinancialSnapshot: React.FC = () => {
         </div>
       </div>
 
-      {/* Snapshot Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {data.map((fund) => (
-          <Card
-            key={fund.fund_id || fund.asset_code}
-            className={cn(
-              "hover:shadow-md transition-all cursor-pointer border-l-4",
-              selectedFundId === fund.fund_id ? "ring-2 ring-primary shadow-lg" : "",
-              "border-l-primary"
-            )}
-            onClick={() => setSelectedFundId(fund.fund_id)}
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="flex items-center gap-3">
-                <CryptoIcon symbol={fund.asset_code} className="h-10 w-10" />
-                <div>
-                  <CardTitle className="text-lg font-bold">{fund.asset_code} Fund</CardTitle>
-                  <p className="text-xs text-muted-foreground">{fund.fund_name}</p>
+      {/* Loading State */}
+      {loadingAUM && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader className="flex flex-row items-center gap-3 pb-2">
+                <div className="h-10 w-10 rounded-full bg-muted" />
+                <div className="space-y-2">
+                  <div className="h-4 w-24 bg-muted rounded" />
+                  <div className="h-3 w-16 bg-muted rounded" />
                 </div>
-              </div>
-              {selectedFundId === fund.fund_id && <Badge className="bg-primary">Selected</Badge>}
-            </CardHeader>
-            <CardContent>
-              {/* Main AUM */}
-              <div className="mt-4 mb-6">
-                <div className="text-2xl font-bold text-foreground">
-                  {formatCrypto(fund.aum, fund.asset_code)}{" "}
-                  <span className="text-sm text-muted-foreground font-normal">{fund.asset_code}</span>
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 w-32 bg-muted rounded mb-4" />
+                <div className="grid grid-cols-3 gap-2 pt-4 border-t">
+                  <div className="h-6 bg-muted rounded" />
+                  <div className="h-6 bg-muted rounded" />
+                  <div className="h-6 bg-muted rounded" />
                 </div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mt-1">
-                  Total Assets Under Management
-                </p>
-              </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
-              {/* Daily Flows Grid */}
-              <div className="grid grid-cols-3 gap-2 pt-4 border-t border-border">
-                {/* Inflows */}
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Deposits (24h)</p>
-                  <p className="text-sm font-semibold text-green-600 dark:text-green-400">
-                    +{formatCrypto(fund.daily_inflows, fund.asset_code)}
-                  </p>
-                </div>
+      {/* Snapshot Cards Grid - Using unified AUM data */}
+      {!loadingAUM && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {funds.filter(f => f.status === 'active').map((fund) => {
+            const flows = flowData.get(fund.id);
+            return (
+              <Card
+                key={fund.id}
+                className={cn(
+                  "hover:shadow-md transition-all cursor-pointer border-l-4",
+                  selectedFundId === fund.id ? "ring-2 ring-primary shadow-lg" : "",
+                  "border-l-primary"
+                )}
+                onClick={() => setSelectedFundId(fund.id)}
+              >
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <div className="flex items-center gap-3">
+                    <CryptoIcon symbol={fund.asset} className="h-10 w-10" />
+                    <div>
+                      <CardTitle className="text-lg font-bold">{fund.asset} Fund</CardTitle>
+                      <p className="text-xs text-muted-foreground">{fund.name}</p>
+                    </div>
+                  </div>
+                  {selectedFundId === fund.id && <Badge className="bg-primary">Selected</Badge>}
+                </CardHeader>
+                <CardContent>
+                  {/* Main AUM - Live from unified hook */}
+                  <div className="mt-4 mb-6">
+                    <div className="text-2xl font-bold text-foreground">
+                      {formatAUM(fund.latest_aum, fund.asset)}{" "}
+                      <span className="text-sm text-muted-foreground font-normal">{fund.asset}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                        Total AUM
+                      </p>
+                      <Badge variant="outline" className="text-xs">
+                        {fund.investor_count} investors
+                      </Badge>
+                    </div>
+                  </div>
 
-                {/* Outflows */}
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Withdrawals (24h)</p>
-                  <p className="text-sm font-semibold text-red-600 dark:text-red-400">
-                    -{formatCrypto(fund.daily_outflows, fund.asset_code)}
-                  </p>
-                </div>
+                  {/* Daily Flows Grid */}
+                  <div className="grid grid-cols-3 gap-2 pt-4 border-t border-border">
+                    {/* Inflows */}
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Deposits</p>
+                      <p className="text-sm font-semibold text-green-600 dark:text-green-400">
+                        +{formatAUM(flows?.daily_inflows || 0, fund.asset)}
+                      </p>
+                    </div>
 
-                {/* Net Flow */}
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Net Flow</p>
-                  <p
-                    className={cn(
-                      "text-sm font-bold",
-                      fund.net_flow_24h >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                    )}
-                  >
-                    {fund.net_flow_24h > 0 ? "+" : ""}
-                    {formatCrypto(fund.net_flow_24h, fund.asset_code)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                    {/* Outflows */}
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Withdrawals</p>
+                      <p className="text-sm font-semibold text-red-600 dark:text-red-400">
+                        -{formatAUM(flows?.daily_outflows || 0, fund.asset)}
+                      </p>
+                    </div>
+
+                    {/* Net Flow */}
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Net Flow</p>
+                      <p
+                        className={cn(
+                          "text-sm font-bold",
+                          (flows?.net_flow_24h || 0) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                        )}
+                      >
+                        {(flows?.net_flow_24h || 0) > 0 ? "+" : ""}
+                        {formatAUM(flows?.net_flow_24h || 0, fund.asset)}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       {/* Investor Composition Drawer */}
       <Sheet open={!!selectedFundId} onOpenChange={(open) => !open && handleCloseDrawer()}>
         <SheetContent side="right" className="w-full sm:w-[600px] sm:max-w-[600px] overflow-y-auto">
           <SheetHeader className="pb-4 border-b">
             <div className="flex items-center gap-3">
-              {selectedFund && <CryptoIcon symbol={selectedFund.asset_code} className="h-8 w-8" />}
+              {selectedFund && <CryptoIcon symbol={selectedFund.asset} className="h-8 w-8" />}
               <div>
                 <SheetTitle className="text-xl">
-                  {selectedFund?.fund_name || "Fund"} - Investor Composition
+                  {selectedFund?.name || "Fund"} - Investor Composition
                 </SheetTitle>
                 <SheetDescription>
-                  Ownership breakdown as of {date ? format(date, "PPP") : ""}
+                  Live ownership breakdown
                 </SheetDescription>
               </div>
             </div>
             {selectedFund && (
               <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                 <div className="text-2xl font-bold text-foreground">
-                  {formatCrypto(selectedFund.aum, selectedFund.asset_code)}{" "}
-                  <span className="text-sm text-muted-foreground font-normal">{selectedFund.asset_code}</span>
+                  {formatAUM(selectedFund.latest_aum, selectedFund.asset)}{" "}
+                  <span className="text-sm text-muted-foreground font-normal">{selectedFund.asset}</span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Total Fund Size</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-xs text-muted-foreground">Total Fund Size</p>
+                  <Badge variant="outline" className="text-xs gap-1">
+                    <Radio className="h-2 w-2 text-green-500 animate-pulse" />
+                    Live
+                  </Badge>
+                </div>
               </div>
             )}
           </SheetHeader>
@@ -379,7 +434,7 @@ export const FinancialSnapshot: React.FC = () => {
                         <div className="text-xs text-muted-foreground">{investor.email}</div>
                       </TableCell>
                       <TableCell className="text-right font-mono">
-                        {selectedFund && formatCrypto(investor.balance, selectedFund.asset_code)}
+                        {selectedFund && formatAUM(investor.balance, selectedFund.asset)}
                       </TableCell>
                       <TableCell className="text-right">
                         <Badge variant="outline" className="font-mono">
@@ -392,7 +447,7 @@ export const FinancialSnapshot: React.FC = () => {
                 {sortedCompositionData.length === 0 && !loadingComp && (
                   <TableRow>
                     <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
-                      No investors found with a balance on this date.
+                      No investors found with a balance.
                     </TableCell>
                   </TableRow>
                 )}
