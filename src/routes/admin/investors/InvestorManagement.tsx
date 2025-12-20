@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,18 +9,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { InvestorYieldManager } from "@/components/admin/investors/InvestorYieldManager";
 import InvestorPositionsTab from "@/components/admin/investors/InvestorPositionsTab";
 import InvestorTransactionsTab from "@/components/admin/investors/InvestorTransactionsTab";
-import { User, Mail, Calendar, Activity, Loader2, ArrowLeft, Coins, TrendingUp } from "lucide-react";
+import { InvestorProfileEditor } from "@/components/admin/investors/InvestorProfileEditor";
+import { ReportRecipientsEditor } from "@/components/admin/investors/ReportRecipientsEditor";
+import { Loader2, ArrowLeft, Coins, TrendingUp } from "lucide-react";
 import { useInvestorAssetStats } from "@/hooks/useInvestorPerformance";
 import { AssetPerformanceCard } from "@/components/shared/AssetPerformanceCard";
 
 interface InvestorDetail {
   id: string;
   name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   status: string;
   created_at: string | null;
   profile_id: string;
-  phone?: string | null;
+  phone: string | null;
 }
 
 const InvestorManagement = () => {
@@ -32,18 +36,13 @@ const InvestorManagement = () => {
   // Fetch per-asset performance stats for this investor
   const { data: assetStats, isLoading: isLoadingStats } = useInvestorAssetStats(id);
 
-  useEffect(() => {
-    if (id) {
-      fetchInvestorDetails();
-    }
-  }, [id]);
-
-  const fetchInvestorDetails = async () => {
+  const fetchInvestorDetails = useCallback(async () => {
+    if (!id) return;
     try {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", id || "")
+        .eq("id", id)
         .maybeSingle();
 
       if (!data) {
@@ -59,11 +58,13 @@ const InvestorManagement = () => {
       setInvestor({
         id: data.id,
         name: fullName,
+        firstName: data.first_name || "",
+        lastName: data.last_name || "",
         email: data.email,
         status: data.status || "active",
         created_at: data.created_at,
         profile_id: data.id,
-        phone: data.phone
+        phone: data.phone || null,
       });
     } catch (error) {
       console.error("Error fetching investor details:", error);
@@ -75,7 +76,11 @@ const InvestorManagement = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id, toast]);
+
+  useEffect(() => {
+    fetchInvestorDetails();
+  }, [fetchInvestorDetails]);
 
   if (isLoading) {
     return (
@@ -180,54 +185,17 @@ const InvestorManagement = () => {
             </Card>
           )}
 
-          {/* Personal Information Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-              <CardDescription>Investor profile and contact details</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="flex items-center space-x-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Full Name</p>
-                    <p className="text-sm text-muted-foreground">{investor.name}</p>
-                  </div>
-                </div>
+          {/* Personal Information - Editable by Admin */}
+          <InvestorProfileEditor
+            investor={investor}
+            onUpdate={fetchInvestorDetails}
+          />
 
-                <div className="flex items-center space-x-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Email Address</p>
-                    <p className="text-sm text-muted-foreground">{investor.email}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Joined</p>
-                    <p className="text-sm text-muted-foreground">
-                      {investor.created_at
-                        ? new Date(investor.created_at).toLocaleDateString()
-                        : "N/A"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Activity className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Status</p>
-                    <Badge variant={investor.status === "active" ? "default" : "secondary"}>
-                      {investor.status}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Report Recipients - Editable by Admin */}
+          <ReportRecipientsEditor
+            investorId={investor.id}
+            investorEmail={investor.email}
+          />
         </TabsContent>
 
         {/* Positions Tab */}
