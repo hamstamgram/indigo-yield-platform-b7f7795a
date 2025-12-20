@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WithdrawalStatsComponent } from "@/components/admin/withdrawals/WithdrawalStats";
 import { WithdrawalsTable } from "@/components/admin/withdrawals/WithdrawalsTable";
@@ -9,6 +9,7 @@ import { ArrowDownToLine } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/layout/PageHeader";
+import { useUrlFilters } from "@/hooks/useUrlFilters";
 
 interface Fund {
   id: string;
@@ -27,10 +28,27 @@ export default function AdminWithdrawalsPage() {
     rejected: 0,
     pending_by_asset: [],
   });
-  const [filters, setFilters] = useState<WithdrawalFilters>({
-    status: "all",
-  });
   const [isLoading, setIsLoading] = useState(true);
+
+  // URL-persisted filters
+  const { filters: urlFilters, setFilter } = useUrlFilters({
+    keys: ["status", "fund"],
+    defaults: { status: "all" },
+  });
+
+  const filters: WithdrawalFilters = useMemo(() => ({
+    status: (urlFilters.status as WithdrawalFilters["status"]) || "all",
+    fund_id: urlFilters.fund || undefined,
+  }), [urlFilters]);
+
+  const setFilters = (newFilters: WithdrawalFilters) => {
+    if (newFilters.status !== filters.status) {
+      setFilter("status", newFilters.status || "all");
+    }
+    if (newFilters.fund_id !== filters.fund_id) {
+      setFilter("fund", newFilters.fund_id || null);
+    }
+  };
 
   // Fetch active funds for the filter dropdown
   const { data: funds = [] } = useQuery<Fund[]>({

@@ -54,8 +54,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/context";
+import { useUrlFilters } from "@/hooks/useUrlFilters";
 import {
   getYieldRecords,
   updateYieldRecord,
@@ -75,10 +76,6 @@ interface Fund {
 
 function RecordedYieldsContent() {
   const [funds, setFunds] = useState<Fund[]>([]);
-  const [filters, setFilters] = useState<YieldFilters>({
-    fundId: "all",
-    purpose: "all",
-  });
   const [editingRecord, setEditingRecord] = useState<YieldRecord | null>(null);
   const [editValues, setEditValues] = useState<{
     total_aum: string;
@@ -91,8 +88,20 @@ function RecordedYieldsContent() {
   const [historyRecord, setHistoryRecord] = useState<YieldRecord | null>(null);
   const [canEdit, setCanEdit] = useState(false);
 
-  const { toast } = useToast();
   const { user } = useAuth();
+
+  // URL-persisted filters
+  const { filters: urlFilters, setFilter, clearFilters } = useUrlFilters({
+    keys: ["fundId", "purpose", "dateFrom", "dateTo"],
+    defaults: { fundId: "all", purpose: "all" },
+  });
+
+  const filters: YieldFilters = {
+    fundId: urlFilters.fundId || "all",
+    purpose: (urlFilters.purpose as AumPurpose | "all") || "all",
+    dateFrom: urlFilters.dateFrom,
+    dateTo: urlFilters.dateTo,
+  };
   const queryClient = useQueryClient();
 
   // Load funds for filter dropdown
@@ -144,17 +153,13 @@ function RecordedYieldsContent() {
       );
     },
     onSuccess: () => {
-      toast({ title: "Success", description: "Yield record updated" });
+      toast.success("Yield record updated");
       setEditingRecord(null);
       setEditReason("");
       queryClient.invalidateQueries({ queryKey: ["recorded-yields"] });
     },
     onError: (error) => {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Failed to update");
     },
   });
 
@@ -197,7 +202,7 @@ function RecordedYieldsContent() {
               <Label className="text-xs">Fund</Label>
               <Select
                 value={filters.fundId || "all"}
-                onValueChange={(v) => setFilters({ ...filters, fundId: v })}
+                onValueChange={(v) => setFilter("fundId", v)}
               >
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="All Funds" />
@@ -217,7 +222,7 @@ function RecordedYieldsContent() {
               <Label className="text-xs">Purpose</Label>
               <Select
                 value={filters.purpose || "all"}
-                onValueChange={(v) => setFilters({ ...filters, purpose: v as AumPurpose | "all" })}
+                onValueChange={(v) => setFilter("purpose", v)}
               >
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="All" />
@@ -235,7 +240,7 @@ function RecordedYieldsContent() {
               <Input
                 type="date"
                 value={filters.dateFrom || ""}
-                onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value || undefined })}
+                onChange={(e) => setFilter("dateFrom", e.target.value || null)}
                 className="w-40"
               />
             </div>
@@ -245,7 +250,7 @@ function RecordedYieldsContent() {
               <Input
                 type="date"
                 value={filters.dateTo || ""}
-                onChange={(e) => setFilters({ ...filters, dateTo: e.target.value || undefined })}
+                onChange={(e) => setFilter("dateTo", e.target.value || null)}
                 className="w-40"
               />
             </div>
@@ -253,7 +258,7 @@ function RecordedYieldsContent() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setFilters({ fundId: "all", purpose: "all" })}
+              onClick={() => clearFilters()}
             >
               <Filter className="h-4 w-4 mr-1" />
               Reset

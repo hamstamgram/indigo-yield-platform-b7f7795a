@@ -41,8 +41,9 @@ import {
   Mail,
   Pencil,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { format, subMonths, parseISO } from "date-fns";
 import { renderReportToHtml } from "@/components/reports/InvestorReportTemplate";
 import { InvestorData, InvestorFund } from "@/types/investor-report";
@@ -101,11 +102,6 @@ interface InvestorReport {
 const InvestorReports = () => {
   const [loading, setLoading] = useState(true);
   const [reports, setReports] = useState<InvestorReport[]>([]);
-  const [selectedMonth, setSelectedMonth] = useState<string>(
-    format(subMonths(new Date(), 1), "yyyy-MM")
-  );
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sendingReports, setSendingReports] = useState(false);
   const [generatingReports, setGeneratingReports] = useState(false);
   const [selectedInvestor, setSelectedInvestor] = useState<InvestorReport | null>(null);
@@ -113,7 +109,20 @@ const InvestorReports = () => {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingInvestor, setEditingInvestor] = useState<InvestorReport | null>(null);
   const [currentPeriodId, setCurrentPeriodId] = useState<string>("");
-  const { toast } = useToast();
+
+  // URL-persisted filters
+  const { filters, setFilter } = useUrlFilters({
+    keys: ["month", "search", "status", "investorId"],
+    defaults: { 
+      month: format(subMonths(new Date(), 1), "yyyy-MM"),
+      status: "all" 
+    },
+  });
+
+  const selectedMonth = filters.month || format(subMonths(new Date(), 1), "yyyy-MM");
+  const searchTerm = filters.search || "";
+  const statusFilter = filters.status || "all";
+  const preFilterInvestorId = filters.investorId || null;
 
   // Fetch real reports from database
   const fetchReports = useCallback(async () => {
@@ -298,21 +307,18 @@ const InvestorReports = () => {
 
       setReports(investorReports);
 
-      toast({
-        title: "Reports Loaded",
+      toast.success("Reports Loaded", {
         description: `Loaded ${investorReports.length} investor records for ${format(parseISO(reportDate), "MMMM yyyy")}`,
       });
     } catch (error: any) {
       console.error("Error fetching reports:", error);
-      toast({
-        title: "Error Loading Reports",
+      toast.error("Error Loading Reports", {
         description: error.message || "Failed to load investor reports",
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  }, [selectedMonth, toast]);
+  }, [selectedMonth]);
 
   useEffect(() => {
     fetchReports();
@@ -401,8 +407,7 @@ const InvestorReports = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Reports Generated",
+      toast.success("Reports Generated", {
         description: data.message || `Generated ${data.recordsCreated} performance records`,
       });
 
@@ -410,10 +415,8 @@ const InvestorReports = () => {
       await fetchReports();
     } catch (error: any) {
       console.error("Error generating reports:", error);
-      toast({
-        title: "Generation Failed",
+      toast.error("Generation Failed", {
         description: error.message || "Failed to generate performance data",
-        variant: "destructive",
       });
     } finally {
       setGeneratingReports(false);
@@ -427,10 +430,8 @@ const InvestorReports = () => {
       const reportsToSend = reports.filter((r) => r.has_reports);
 
       if (reportsToSend.length === 0) {
-        toast({
-          title: "No Reports to Send",
+        toast.error("No Reports to Send", {
           description: "Generate reports first before sending",
-          variant: "destructive",
         });
         return;
       }
@@ -501,16 +502,13 @@ const InvestorReports = () => {
         }
       }
 
-      toast({
-        title: "Reports Sent",
+      toast.success("Reports Sent", {
         description: `Successfully sent ${sentCount} emails to investors.`,
       });
     } catch (error: any) {
       console.error("Error sending reports:", error);
-      toast({
-        title: "Send Failed",
+      toast.error("Send Failed", {
         description: error.message || "Failed to send monthly reports",
-        variant: "destructive",
       });
     } finally {
       setSendingReports(false);
@@ -678,7 +676,7 @@ const InvestorReports = () => {
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4 items-center">
-        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+        <Select value={selectedMonth} onValueChange={(v) => setFilter("month", v)}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select month" />
           </SelectTrigger>
@@ -695,7 +693,7 @@ const InvestorReports = () => {
           </SelectContent>
         </Select>
 
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={(v) => setFilter("status", v)}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
@@ -711,7 +709,7 @@ const InvestorReports = () => {
           <Input
             placeholder="Search investors..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => setFilter("search", e.target.value || null)}
             className="pl-8"
           />
         </div>

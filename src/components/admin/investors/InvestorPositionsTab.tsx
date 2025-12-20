@@ -19,6 +19,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Loader2, AlertCircle } from "lucide-react";
@@ -26,6 +36,7 @@ import { Plus, Pencil, Trash2, Loader2, AlertCircle } from "lucide-react";
 export default function InvestorPositionsTab({ investorId }: { investorId: string }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<any>(null);
+  const [deletePosition, setDeletePosition] = useState<{ fundId: string; fundName: string } | null>(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -163,11 +174,10 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
                           variant="ghost"
                           size="icon"
                           className="text-destructive hover:text-destructive"
-                          onClick={() => {
-                            if (confirm("Are you sure you want to delete this position?")) {
-                              deletePositionMutation.mutate(pos.fund_id);
-                            }
-                          }}
+                          onClick={() => setDeletePosition({ 
+                            fundId: pos.fund_id, 
+                            fundName: (pos.funds as any)?.name || "this position" 
+                          })}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -207,6 +217,33 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletePosition} onOpenChange={(open) => !open && setDeletePosition(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Position</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the position for {deletePosition?.fundName}? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deletePosition) {
+                  deletePositionMutation.mutate(deletePosition.fundId);
+                  setDeletePosition(null);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
