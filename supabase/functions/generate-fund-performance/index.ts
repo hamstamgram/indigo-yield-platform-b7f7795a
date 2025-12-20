@@ -323,25 +323,22 @@ Deno.serve(async (req) => {
 
     console.log(`Generated ${performanceRecords.length} performance records`);
 
-    // Step 5: Upsert into investor_fund_performance
+    // Step 5: Upsert into investor_fund_performance using ON CONFLICT
+    // This is atomic and safe for concurrent calls
     if (performanceRecords.length > 0) {
-      // Delete existing records for this period first
-      const { error: deleteError } = await supabase
+      const { error: upsertError } = await supabase
         .from("investor_fund_performance")
-        .delete()
-        .eq("period_id", periodId);
+        .upsert(performanceRecords, {
+          onConflict: 'period_id,investor_id,fund_name',
+          ignoreDuplicates: false // Update existing records
+        });
 
-      if (deleteError) {
-        console.error("Delete error:", deleteError);
-        // Continue anyway - may be empty
+      if (upsertError) {
+        console.error("Upsert error:", upsertError);
+        throw upsertError;
       }
-
-      // Insert new records
-      const { error: insertError } = await supabase
-        .from("investor_fund_performance")
-        .insert(performanceRecords);
-
-      if (insertError) throw insertError;
+      
+      console.log(`Successfully upserted ${performanceRecords.length} records`);
     }
 
     return new Response(

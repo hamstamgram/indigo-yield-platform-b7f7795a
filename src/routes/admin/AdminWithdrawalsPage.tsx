@@ -6,6 +6,15 @@ import { withdrawalService } from "@/services/investor/withdrawalService";
 import { Withdrawal, WithdrawalFilters, WithdrawalStats } from "@/types/withdrawal";
 import { toast } from "sonner";
 import { ArrowDownToLine } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+
+interface Fund {
+  id: string;
+  code: string;
+  name: string;
+  asset: string;
+}
 
 export default function AdminWithdrawalsPage() {
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
@@ -21,6 +30,22 @@ export default function AdminWithdrawalsPage() {
     status: "all",
   });
   const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch active funds for the filter dropdown
+  const { data: funds = [] } = useQuery<Fund[]>({
+    queryKey: ["funds-active"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("funds")
+        .select("id, code, name, asset")
+        .eq("status", "active")
+        .order("name");
+      
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
 
   const loadData = async () => {
     setIsLoading(true);
@@ -68,6 +93,7 @@ export default function AdminWithdrawalsPage() {
             filters={filters}
             onFiltersChange={setFilters}
             onRefresh={loadData}
+            funds={funds}
           />
         </CardContent>
       </Card>

@@ -4501,6 +4501,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_admin_invite: { Args: { p_email: string }; Returns: string }
       create_withdrawal_request: {
         Args: {
           p_amount: number
