@@ -1336,39 +1336,54 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
+          distribution_id: string | null
           effective_date: string
           fund_id: string | null
           ib_fee_amount: number
           ib_investor_id: string
           ib_percentage: number
           id: string
+          period_end: string | null
           period_id: string | null
+          period_start: string | null
+          purpose: Database["public"]["Enums"]["aum_purpose"] | null
+          source: string | null
           source_investor_id: string
           source_net_income: number
         }
         Insert: {
           created_at?: string | null
           created_by?: string | null
+          distribution_id?: string | null
           effective_date?: string
           fund_id?: string | null
           ib_fee_amount: number
           ib_investor_id: string
           ib_percentage: number
           id?: string
+          period_end?: string | null
           period_id?: string | null
+          period_start?: string | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"] | null
+          source?: string | null
           source_investor_id: string
           source_net_income: number
         }
         Update: {
           created_at?: string | null
           created_by?: string | null
+          distribution_id?: string | null
           effective_date?: string
           fund_id?: string | null
           ib_fee_amount?: number
           ib_investor_id?: string
           ib_percentage?: number
           id?: string
+          period_end?: string | null
           period_id?: string | null
+          period_start?: string | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"] | null
+          source?: string | null
           source_investor_id?: string
           source_net_income?: number
         }
@@ -4487,6 +4502,16 @@ export type Database = {
           positions_updated: number
         }[]
       }
+      apply_yield_with_ib: {
+        Args: {
+          p_created_by?: string
+          p_date: string
+          p_fund_id: string
+          p_new_aum: number
+          p_purpose: Database["public"]["Enums"]["aum_purpose"]
+        }
+        Returns: Json
+      }
       approve_withdrawal: {
         Args: {
           p_admin_notes?: string
@@ -4768,6 +4793,7 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       is_admin_for_jwt: { Args: never; Returns: boolean }
       is_admin_safe: { Args: never; Returns: boolean }
+      is_ib: { Args: { user_id?: string }; Returns: boolean }
       is_import_enabled: { Args: never; Returns: boolean }
       is_period_locked: {
         Args: { p_fund_id: string; p_period_id: string }
@@ -4930,7 +4956,7 @@ export type Database = {
         | "2fa_verify"
         | "session_revoked"
         | "password_change"
-      app_role: "super_admin" | "admin" | "moderator" | "user"
+      app_role: "super_admin" | "admin" | "moderator" | "ib" | "user"
       asset_code: "BTC" | "ETH" | "SOL" | "USDT" | "EURC" | "xAUT" | "XRP"
       aum_purpose: "reporting" | "transaction"
       benchmark_type: "BTC" | "ETH" | "STABLE" | "CUSTOM"
@@ -5106,7 +5132,7 @@ export const Constants = {
         "session_revoked",
         "password_change",
       ],
-      app_role: ["super_admin", "admin", "moderator", "user"],
+      app_role: ["super_admin", "admin", "moderator", "ib", "user"],
       asset_code: ["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"],
       aum_purpose: ["reporting", "transaction"],
       benchmark_type: ["BTC", "ETH", "STABLE", "CUSTOM"],
