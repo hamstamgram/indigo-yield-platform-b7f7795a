@@ -24,6 +24,7 @@ export interface YieldCalculationInput {
   fundId: string;
   targetDate: Date;
   newTotalAUM: number;
+  purpose?: "reporting" | "transaction";
 }
 
 export interface YieldDistribution {
@@ -262,7 +263,8 @@ export async function previewYieldDistribution(
  */
 export async function applyYieldDistribution(
   input: YieldCalculationInput,
-  adminId: string
+  adminId: string,
+  purpose: "reporting" | "transaction" = "reporting"
 ): Promise<YieldCalculationResult> {
   const { fundId, targetDate, newTotalAUM } = input;
 
@@ -313,11 +315,13 @@ export async function applyYieldDistribution(
   }
 
   // The RPC expects p_gross_amount as the yield to distribute, not new total AUM
-  const { data, error } = await supabase.rpc("apply_daily_yield_to_fund", {
+  // Purpose is passed to control whether this yield appears in investor reports
+  const { data, error } = await (supabase.rpc as any)("apply_daily_yield_to_fund_v2", {
     p_fund_id: fundId,
     p_date: formatDate(targetDate),
     p_gross_amount: grossYieldAmount,
     p_admin_id: adminId,
+    p_purpose: purpose,
   });
 
   if (error) {
