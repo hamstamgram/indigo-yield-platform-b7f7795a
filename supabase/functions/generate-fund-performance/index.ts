@@ -177,10 +177,13 @@ Deno.serve(async (req) => {
     const ytdStart = new Date(periodYear, 0, 1);
 
     // Step 4: Get transactions for calculations
+    // IMPORTANT: Only include 'reporting' purpose transactions for statement calculations
+    // This ensures transaction-purpose yield entries don't appear in investor statements
     const { data: transactions, error: txError } = await supabase
       .from("transactions_v2")
       .select("*")
       .lte("tx_date", mtdEnd.toISOString().split("T")[0])
+      .or("purpose.is.null,purpose.eq.reporting") // Include legacy (null) + reporting only
       .order("tx_date", { ascending: true });
 
     if (txError) throw txError;
@@ -293,6 +296,7 @@ Deno.serve(async (req) => {
         period_id: periodId,
         investor_id: investorId,
         fund_name: fundAsset,
+        purpose: 'reporting', // Always 'reporting' for statement generation
         // MTD
         mtd_beginning_balance: Math.round(mtdBeginning * 100) / 100,
         mtd_additions: Math.round(mtdAdditions * 100) / 100,
@@ -332,7 +336,7 @@ Deno.serve(async (req) => {
       const { error: upsertError } = await supabase
         .from("investor_fund_performance")
         .upsert(performanceRecords, {
-          onConflict: 'period_id,investor_id,fund_name',
+          onConflict: 'period_id,investor_id,fund_name,purpose', // Include purpose in conflict key
           ignoreDuplicates: false // Update existing records
         });
 

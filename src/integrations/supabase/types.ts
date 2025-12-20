@@ -1889,6 +1889,7 @@ export type Database = {
           mtd_rate_of_return: number | null
           mtd_redemptions: number | null
           period_id: string
+          purpose: Database["public"]["Enums"]["aum_purpose"] | null
           qtd_additions: number | null
           qtd_beginning_balance: number | null
           qtd_ending_balance: number | null
@@ -1921,6 +1922,7 @@ export type Database = {
           mtd_rate_of_return?: number | null
           mtd_redemptions?: number | null
           period_id: string
+          purpose?: Database["public"]["Enums"]["aum_purpose"] | null
           qtd_additions?: number | null
           qtd_beginning_balance?: number | null
           qtd_ending_balance?: number | null
@@ -1953,6 +1955,7 @@ export type Database = {
           mtd_rate_of_return?: number | null
           mtd_redemptions?: number | null
           period_id?: string
+          purpose?: Database["public"]["Enums"]["aum_purpose"] | null
           qtd_additions?: number | null
           qtd_beginning_balance?: number | null
           qtd_ending_balance?: number | null
@@ -3600,6 +3603,7 @@ export type Database = {
           id: string
           investor_id: string | null
           notes: string | null
+          purpose: Database["public"]["Enums"]["aum_purpose"] | null
           reference_id: string | null
           tx_date: string
           tx_hash: string | null
@@ -3620,6 +3624,7 @@ export type Database = {
           id?: string
           investor_id?: string | null
           notes?: string | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"] | null
           reference_id?: string | null
           tx_date?: string
           tx_hash?: string | null
@@ -3640,6 +3645,7 @@ export type Database = {
           id?: string
           investor_id?: string | null
           notes?: string | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"] | null
           reference_id?: string | null
           tx_date?: string
           tx_hash?: string | null

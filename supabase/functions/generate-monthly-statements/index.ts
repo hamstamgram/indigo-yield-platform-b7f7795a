@@ -70,10 +70,12 @@ serve(async (req) => {
     const investorEmail = profile.email || "";
 
     // Fetch from investor_fund_performance (single source of truth)
+    // IMPORTANT: Only include 'reporting' purpose for investor-facing statements
     const { data: fundPerformance, error: perfError } = await supabaseClient
       .from("investor_fund_performance")
       .select("*")
-      .eq("investor_id", investor_id);
+      .eq("investor_id", investor_id)
+      .or("purpose.is.null,purpose.eq.reporting"); // Include legacy (null) + reporting only
 
     if (perfError) {
       console.error("Fund performance fetch error:", perfError);
