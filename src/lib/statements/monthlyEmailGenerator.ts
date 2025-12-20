@@ -372,9 +372,13 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
 
 /**
  * Generate statement for preview (opens in browser)
+ * Accepts either MonthlyStatementData object or raw HTML string
  */
-export function generateStatementPreview(data: MonthlyStatementData): string {
-  const html = generateMonthlyStatementHTML(data);
+export function generateStatementPreview(dataOrHtml: MonthlyStatementData | string): string {
+  // Handle both HTML string and data object
+  const html = typeof dataOrHtml === 'string' 
+    ? dataOrHtml 
+    : generateMonthlyStatementHTML(dataOrHtml);
 
   // Add preview notice at top
   const previewNotice = `
@@ -384,5 +388,23 @@ export function generateStatementPreview(data: MonthlyStatementData): string {
   </div>
   `;
 
-  return html.replace("<body", "<body" + ">" + previewNotice);
+  // FIX: Insert AFTER the complete opening body tag, not inside it
+  // This preserves the body's inline styles (background-color, etc.)
+  return html.replace(/<body([^>]*)>/i, `<body$1>${previewNotice}`);
+}
+
+/**
+ * Validate that generated HTML contains required styling markers
+ */
+export function validateStatementHtml(html: string): { valid: boolean; missing: string[] } {
+  const REQUIRED_MARKERS = [
+    "background-color:#edf0fe",      // Header background
+    "background-color:#f8fafc",      // Content background  
+    "font-family:'Montserrat'",      // Font
+    "border: 1px solid #e2e8f0",     // Borders
+    "@media (max-width:600px)",      // Responsive rules
+  ];
+  
+  const missing = REQUIRED_MARKERS.filter(marker => !html.includes(marker));
+  return { valid: missing.length === 0, missing };
 }

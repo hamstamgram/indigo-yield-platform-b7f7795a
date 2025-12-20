@@ -432,12 +432,12 @@ export async function previewInvestorStatement(periodId: string, userId: string)
 
     if (existing && existing.html_content) {
       // Return existing statement with preview banner
-      return (generateStatementPreview as any)(existing.html_content);
+      return generateStatementPreview(existing.html_content);
     }
 
     // Generate new statement for preview
     const { html } = await generateInvestorStatement(periodId, userId);
-    return (generateStatementPreview as any)(html);
+    return generateStatementPreview(html);
   } catch (error) {
     console.error("Error previewing investor statement:", error);
     throw new Error("Failed to preview investor statement");
