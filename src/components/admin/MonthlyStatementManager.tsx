@@ -10,8 +10,9 @@
  *
  * Features:
  * - Bulk data input
- * - Individual preview
- * - Batch email sending
+ * - Individual preview with desktop/mobile toggle
+ * - Send confirmation modal with recipient list
+ * - Batch send with pre-flight checklist
  * - Delivery tracking
  * - Error handling
  */
@@ -57,9 +58,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Check, Eye, Send, FileText, Calendar, Users } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Loader2, Check, Eye, Send, FileText, Calendar, Users, Mail, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { statementsApi } from "@/services/api/statementsApi";
+import { statementsApi, type InvestorStatementSummary } from "@/services/api/statementsApi";
+import { ReportPreviewModal } from "./reports/ReportPreviewModal";
+import { SendConfirmationModal } from "./reports/SendConfirmationModal";
+import { BatchSendDialog } from "./reports/BatchSendDialog";
 
 const createPeriodSchema = z.object({
   year: z.number().min(2024).max(2100),
@@ -78,23 +88,33 @@ interface StatementPeriod {
   created_at: string;
 }
 
-interface InvestorSummary {
-  id: string;
-  name: string;
-  email: string;
-  fund_count: number;
-  statement_generated: boolean;
-  statement_sent: boolean;
-}
-
 export function MonthlyStatementManager() {
   const [periods, setPeriods] = useState<StatementPeriod[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<StatementPeriod | null>(null);
-  const [investors, setInvestors] = useState<InvestorSummary[]>([]);
+  const [investors, setInvestors] = useState<InvestorStatementSummary[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
-  const [previewHTML, setPreviewHTML] = useState("");
+  
+  // New modal states
+  const [previewModal, setPreviewModal] = useState<{
+    open: boolean;
+    html: string;
+    investorName: string;
+    recipientEmails: string[];
+  }>({ open: false, html: "", investorName: "", recipientEmails: [] });
+  
+  const [sendModal, setSendModal] = useState<{
+    open: boolean;
+    investorId: string;
+    investorName: string;
+    recipientEmails: string[];
+    generatedAt?: string;
+    isOutdated: boolean;
+  }>({ open: false, investorId: "", investorName: "", recipientEmails: [], isOutdated: false });
+  
+  const [batchSendOpen, setBatchSendOpen] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  
   const { toast } = useToast();
 
   const {
@@ -111,7 +131,6 @@ export function MonthlyStatementManager() {
     try {
       const { data, error } = await statementsApi.getPeriods();
       if (error) throw new Error(error);
-
       setPeriods((data as StatementPeriod[]) || []);
     } catch (error) {
       console.error("Load periods error:", error);
@@ -130,7 +149,6 @@ export function MonthlyStatementManager() {
       try {
         const { data, error } = await statementsApi.getPeriodInvestors(periodId);
         if (error) throw new Error(error);
-
         setInvestors(data || []);
       } catch (error) {
         console.error("Load investors error:", error);
@@ -218,15 +236,19 @@ export function MonthlyStatementManager() {
     }
   };
 
-  const handlePreview = async (investorId: string) => {
+  const handlePreview = async (investor: InvestorStatementSummary) => {
     if (!selectedPeriod) return;
 
     try {
-      const { data, error } = await statementsApi.previewStatement(selectedPeriod.id, investorId);
+      const { data, error } = await statementsApi.previewStatement(selectedPeriod.id, investor.id);
       if (error) throw new Error(error);
 
-      setPreviewHTML(data || "");
-      setShowPreviewDialog(true);
+      setPreviewModal({
+        open: true,
+        html: data || "",
+        investorName: investor.name,
+        recipientEmails: investor.recipient_emails || [],
+      });
     } catch (error) {
       console.error("Preview error:", error);
       toast({
@@ -237,49 +259,85 @@ export function MonthlyStatementManager() {
     }
   };
 
-  const handleSendAll = async () => {
+  const handleOpenSendModal = (investor: InvestorStatementSummary) => {
+    setSendModal({
+      open: true,
+      investorId: investor.id,
+      investorName: investor.name,
+      recipientEmails: investor.recipient_emails || [],
+      generatedAt: investor.generated_at,
+      isOutdated: false, // Could fetch freshness here if needed
+    });
+  };
+
+  const handleConfirmSend = async () => {
     if (!selectedPeriod) return;
 
-    const confirmed = window.confirm(
-      `Are you sure you want to send ${investors.filter((i) => i.statement_generated && !i.statement_sent).length} statements?\n\nThis action cannot be undone.`
-    );
-
-    if (!confirmed) return;
-
-    setIsLoading(true);
+    setIsSending(true);
     try {
-      const { data, error } = await statementsApi.sendAll(selectedPeriod.id);
+      const { error } = await statementsApi.sendStatement(selectedPeriod.id, sendModal.investorId);
       if (error) throw new Error(error);
 
-      if (data && data.failed > 0) {
-        toast({
-          title: "Statements Sent with Errors",
-          description: `Sent ${data.success} statements successfully. ${data.failed} failed.`,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Statements Sent",
-          description: `Sent ${data?.success || 0} statements successfully`,
-        });
-      }
+      toast({
+        title: "Statement Sent",
+        description: `Statement sent to ${sendModal.recipientEmails.length} recipient(s)`,
+      });
 
       loadInvestors(selectedPeriod.id);
     } catch (error) {
-      console.error("Send statements error:", error);
+      console.error("Send error:", error);
       toast({
         title: "Error",
-        description: "Failed to send statements",
+        description: error instanceof Error ? error.message : "Failed to send statement",
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSending(false);
     }
+  };
+
+  const handleBatchSend = async (investorIds: string[]): Promise<{ success: string[]; failed: { id: string; error: string }[] }> => {
+    if (!selectedPeriod) return { success: [], failed: [] };
+
+    const success: string[] = [];
+    const failed: { id: string; error: string }[] = [];
+
+    for (const investorId of investorIds) {
+      try {
+        const { error } = await statementsApi.sendStatement(selectedPeriod.id, investorId);
+        if (error) {
+          failed.push({ id: investorId, error });
+        } else {
+          success.push(investorId);
+        }
+      } catch (error) {
+        failed.push({
+          id: investorId,
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    }
+
+    // Refresh investors list after batch
+    loadInvestors(selectedPeriod.id);
+
+    return { success, failed };
   };
 
   const pendingStatementsCount = investors.filter(
     (i) => i.statement_generated && !i.statement_sent
   ).length;
+
+  const batchInvestors = investors.map((inv) => ({
+    id: inv.id,
+    name: inv.name,
+    email: inv.email,
+    recipientCount: inv.recipient_count || 0,
+    recipientEmails: inv.recipient_emails || [],
+    isGenerated: inv.statement_generated,
+    isSent: inv.statement_sent,
+    isEligible: inv.statement_generated && !inv.statement_sent && (inv.recipient_count || 0) > 0,
+  }));
 
   return (
     <div className="space-y-6">
@@ -396,6 +454,7 @@ export function MonthlyStatementManager() {
                     <Button
                       onClick={handleGenerateAll}
                       disabled={isLoading || selectedPeriod.status === "SENT"}
+                      variant="outline"
                     >
                       {isLoading ? (
                         <>
@@ -404,28 +463,18 @@ export function MonthlyStatementManager() {
                         </>
                       ) : (
                         <>
-                          <FileText className="mr-2 h-4 w-4" />
+                          <RefreshCw className="mr-2 h-4 w-4" />
                           Generate All Statements
                         </>
                       )}
                     </Button>
 
                     <Button
-                      onClick={handleSendAll}
+                      onClick={() => setBatchSendOpen(true)}
                       disabled={isLoading || pendingStatementsCount === 0}
-                      variant="primary"
                     >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Sending...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="mr-2 h-4 w-4" />
-                          Send All ({pendingStatementsCount})
-                        </>
-                      )}
+                      <Send className="mr-2 h-4 w-4" />
+                      Batch Send ({pendingStatementsCount})
                     </Button>
                   </div>
                 </CardContent>
@@ -441,7 +490,12 @@ export function MonthlyStatementManager() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Investor</TableHead>
-                        <TableHead>Email</TableHead>
+                        <TableHead>
+                          <div className="flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            Recipients
+                          </div>
+                        </TableHead>
                         <TableHead>Funds</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
@@ -450,8 +504,37 @@ export function MonthlyStatementManager() {
                     <TableBody>
                       {investors.map((investor) => (
                         <TableRow key={investor.id}>
-                          <TableCell className="font-medium">{investor.name}</TableCell>
-                          <TableCell>{investor.email}</TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{investor.name}</p>
+                              <p className="text-xs text-muted-foreground">{investor.email}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge
+                                    variant={investor.recipient_count === 0 ? "destructive" : "outline"}
+                                    className="cursor-help"
+                                  >
+                                    {investor.recipient_count || 0} recipient{investor.recipient_count !== 1 ? "s" : ""}
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {investor.recipient_emails && investor.recipient_emails.length > 0 ? (
+                                    <ul className="text-xs">
+                                      {investor.recipient_emails.map((email, i) => (
+                                        <li key={i}>{email}</li>
+                                      ))}
+                                    </ul>
+                                  ) : (
+                                    <span className="text-xs">No recipients configured</span>
+                                  )}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </TableCell>
                           <TableCell>
                             <Badge variant="outline">{investor.fund_count} funds</Badge>
                           </TableCell>
@@ -467,14 +550,24 @@ export function MonthlyStatementManager() {
                               <Badge variant="outline">Not Generated</Badge>
                             )}
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-right space-x-1">
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => handlePreview(investor.id)}
+                              onClick={() => handlePreview(investor)}
                               disabled={!investor.statement_generated}
+                              title="Preview"
                             >
                               <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleOpenSendModal(investor)}
+                              disabled={!investor.statement_generated || investor.statement_sent}
+                              title="Send"
+                            >
+                              <Send className="h-4 w-4" />
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -578,23 +671,37 @@ export function MonthlyStatementManager() {
         </DialogContent>
       </Dialog>
 
-      {/* Preview Dialog */}
-      <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>Statement Preview</DialogTitle>
-            <DialogDescription>Preview of the HTML email statement</DialogDescription>
-          </DialogHeader>
+      {/* Preview Modal */}
+      <ReportPreviewModal
+        open={previewModal.open}
+        onOpenChange={(open) => setPreviewModal((prev) => ({ ...prev, open }))}
+        htmlContent={previewModal.html}
+        investorName={previewModal.investorName}
+        periodName={selectedPeriod?.period_name || ""}
+        recipientEmails={previewModal.recipientEmails}
+      />
 
-          <div className="border rounded-lg overflow-auto max-h-[70vh]">
-            <iframe srcDoc={previewHTML} className="w-full h-[70vh]" title="Statement Preview" />
-          </div>
+      {/* Send Confirmation Modal */}
+      <SendConfirmationModal
+        open={sendModal.open}
+        onOpenChange={(open) => setSendModal((prev) => ({ ...prev, open }))}
+        investorName={sendModal.investorName}
+        periodName={selectedPeriod?.period_name || ""}
+        recipientEmails={sendModal.recipientEmails}
+        generatedAt={sendModal.generatedAt}
+        isOutdated={sendModal.isOutdated}
+        onConfirmSend={handleConfirmSend}
+        isSending={isSending}
+      />
 
-          <DialogFooter>
-            <Button onClick={() => setShowPreviewDialog(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Batch Send Dialog */}
+      <BatchSendDialog
+        open={batchSendOpen}
+        onOpenChange={setBatchSendOpen}
+        periodName={selectedPeriod?.period_name || ""}
+        investors={batchInvestors}
+        onSendBatch={handleBatchSend}
+      />
     </div>
   );
 }

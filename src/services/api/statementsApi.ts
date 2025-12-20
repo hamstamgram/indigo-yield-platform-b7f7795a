@@ -29,6 +29,9 @@ export interface InvestorStatementSummary {
   statement_id?: string;
   delivery_status?: string;
   sent_at?: string;
+  generated_at?: string;
+  recipient_emails?: string[];
+  recipient_count?: number;
 }
 
 export interface PeriodSummary {
@@ -37,6 +40,12 @@ export interface PeriodSummary {
   statements_generated: number;
   statements_sent: number;
   statements_pending: number;
+}
+
+export interface ReportFreshness {
+  isOutdated: boolean;
+  generatedAt: string | null;
+  dataUpdatedAt: string | null;
 }
 
 /**
@@ -156,13 +165,34 @@ export async function fetchPeriodInvestors(periodId: string): Promise<InvestorSt
       }
     }
 
-    // Get generated statements
+    // Get generated statements with created_at for freshness
     const { data: statements, error: stmtError } = (await supabase
       .from("generated_statements" as any)
-      .select("user_id, id")
+      .select("user_id, id, created_at")
       .eq("period_id", periodId)) as any;
 
     if (stmtError) throw stmtError;
+
+    // Get investor emails for each investor
+    const investorIds = Array.from(investorMap.keys());
+    const { data: investorEmails, error: emailsError } = await supabase
+      .from("investor_emails")
+      .select("investor_id, email, is_primary, verified")
+      .in("investor_id", investorIds);
+
+    if (emailsError) {
+      console.warn("Error fetching investor_emails:", emailsError);
+    }
+
+    // Group emails by investor
+    const emailsByInvestor = new Map<string, string[]>();
+    for (const emailRecord of investorEmails || []) {
+      const emails = emailsByInvestor.get(emailRecord.investor_id) || [];
+      if (emailRecord.verified || emailRecord.is_primary) {
+        emails.push(emailRecord.email);
+      }
+      emailsByInvestor.set(emailRecord.investor_id, emails);
+    }
 
     // Get delivery status
     const { data: deliveries, error: delError } = (await supabase
@@ -172,14 +202,29 @@ export async function fetchPeriodInvestors(periodId: string): Promise<InvestorSt
 
     if (delError) throw delError;
 
-    // Update investor summaries with statement info
+    // Update investor summaries with statement info and recipient emails
     const investors = Array.from(investorMap.values());
 
     for (const investor of investors) {
+      // Add recipient emails info
+      const emails = emailsByInvestor.get(investor.id) || [];
+      if (emails.length > 0) {
+        investor.recipient_emails = emails;
+        investor.recipient_count = emails.length;
+      } else if (investor.email) {
+        // Fallback to profile email
+        investor.recipient_emails = [investor.email];
+        investor.recipient_count = 1;
+      } else {
+        investor.recipient_emails = [];
+        investor.recipient_count = 0;
+      }
+
       const statement = statements?.find((s: any) => s.user_id === investor.id);
       if (statement) {
         investor.statement_generated = true;
         investor.statement_id = statement.id;
+        investor.generated_at = statement.created_at;
 
         const delivery = deliveries?.find((d: any) => d.user_id === investor.id);
         if (delivery) {
@@ -402,7 +447,7 @@ export async function previewInvestorStatement(periodId: string, userId: string)
 /**
  * Send statement via email to an investor
  */
-export async function sendInvestorStatement(periodId: string, userId: string): Promise<void> {
+export async function sendInvestorStatement(periodId: string, userId: string): Promise<{ recipients: string[] }> {
   try {
     // Get statement
     const { data: statement, error: stmtError } = (await supabase
@@ -423,8 +468,39 @@ export async function sendInvestorStatement(periodId: string, userId: string): P
       .maybeSingle();
 
     if (!profile) throw new Error("Profile not found");
-
     if (profileError) throw profileError;
+
+    // ========================================
+    // FIX: Fetch report recipients from investor_emails table
+    // ========================================
+    const { data: reportRecipients, error: recipientsError } = await supabase
+      .from("investor_emails")
+      .select("email, is_primary, verified")
+      .eq("investor_id", userId);
+
+    if (recipientsError) {
+      console.error("Error fetching investor_emails:", recipientsError);
+    }
+
+    // Build recipient list: use investor_emails if available, fallback to profile.email
+    let recipientEmails: string[] = [];
+
+    if (reportRecipients && reportRecipients.length > 0) {
+      // Use all verified or primary emails from investor_emails
+      recipientEmails = reportRecipients
+        .filter((r) => r.verified || r.is_primary)
+        .map((r) => r.email)
+        .filter((email): email is string => !!email);
+    }
+
+    // Fallback to profile email if no recipients found
+    if (recipientEmails.length === 0 && profile.email) {
+      recipientEmails = [profile.email];
+    }
+
+    if (recipientEmails.length === 0) {
+      throw new Error("No email addresses configured for this investor");
+    }
 
     // Get period details
     const { data: period, error: periodError } = (await supabase
@@ -434,19 +510,18 @@ export async function sendInvestorStatement(periodId: string, userId: string): P
       .maybeSingle()) as any;
 
     if (!period) throw new Error("Period not found");
-
     if (periodError) throw periodError;
 
     const subject = `Your ${period.period_name} Investment Statement - Indigo Fund`;
 
-    // Queue email for delivery
+    // Queue email for delivery (store primary recipient and full list in metadata)
     const { data: deliveryRecord, error: deliveryError } = (await supabase
       .from("statement_email_delivery" as any)
       .insert({
         statement_id: statement.id,
         user_id: userId,
         period_id: periodId,
-        recipient_email: profile.email || "",
+        recipient_email: recipientEmails[0], // Primary recipient
         subject,
         status: "SENDING",
       })
@@ -455,12 +530,13 @@ export async function sendInvestorStatement(periodId: string, userId: string): P
 
     if (deliveryError) throw deliveryError;
 
-    // Trigger Edge Function to send email
+    // Trigger Edge Function to send email to ALL recipients
     const { error: sendError } = await supabase.functions.invoke("send-email", {
       body: {
-        to: profile.email,
+        to: recipientEmails, // Array of all recipients
         subject: subject,
         html: statement.html_content,
+        email_type: "monthly_statement",
       },
     });
 
@@ -486,9 +562,48 @@ export async function sendInvestorStatement(periodId: string, userId: string): P
         sent_at: new Date().toISOString(),
       })
       .eq("id", deliveryRecord.id);
+
+    return { recipients: recipientEmails };
   } catch (error) {
     console.error("Error sending investor statement:", error);
-    throw new Error("Failed to send investor statement");
+    throw error instanceof Error ? error : new Error("Failed to send investor statement");
+  }
+}
+
+/**
+ * Get report freshness status (whether report needs regeneration)
+ */
+export async function getReportFreshness(periodId: string, userId: string): Promise<ReportFreshness> {
+  try {
+    // Get generated_statements.created_at
+    const { data: statement } = (await supabase
+      .from("generated_statements" as any)
+      .select("created_at")
+      .eq("period_id", periodId)
+      .eq("user_id", userId)
+      .maybeSingle()) as any;
+
+    // Get MAX(updated_at) from investor_fund_performance
+    const { data: performances } = (await supabase
+      .from("investor_fund_performance" as any)
+      .select("updated_at")
+      .eq("period_id", periodId)
+      .eq("investor_id", userId)
+      .order("updated_at", { ascending: false })
+      .limit(1)) as any;
+
+    const generatedAt = statement?.created_at || null;
+    const dataUpdatedAt = performances?.[0]?.updated_at || null;
+
+    // Report is outdated if data was updated after generation
+    const isOutdated = generatedAt && dataUpdatedAt
+      ? new Date(dataUpdatedAt) > new Date(generatedAt)
+      : false;
+
+    return { isOutdated, generatedAt, dataUpdatedAt };
+  } catch (error) {
+    console.error("Error getting report freshness:", error);
+    return { isOutdated: false, generatedAt: null, dataUpdatedAt: null };
   }
 }
 
