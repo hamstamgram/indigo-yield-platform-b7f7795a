@@ -1,6 +1,7 @@
 /**
  * Yield Operations Page
  * Consolidated fund management and yield distribution
+ * With confirmation dialog for safety
  */
 
 import { useState, useEffect } from "react";
@@ -18,6 +19,15 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -25,6 +35,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   TrendingUp,
   Users,
@@ -33,11 +45,14 @@ import {
   CheckCircle,
   ArrowRight,
   Coins,
+  CalendarIcon,
+  AlertTriangle,
+  Info,
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/context";
 import {
   previewYieldDistribution,
@@ -45,6 +60,7 @@ import {
   YieldCalculationResult,
 } from "@/services/admin/yieldDistributionService";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 interface Fund {
   id: string;
@@ -67,9 +83,13 @@ function YieldOperationsContent() {
   
   // Purpose selector state
   const [yieldPurpose, setYieldPurpose] = useState<"reporting" | "transaction">("reporting");
-  const [aumDate, setAumDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [aumDate, setAumDate] = useState<Date>(new Date());
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
 
-  const { toast } = useToast();
+  // Confirmation dialog state
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [confirmationText, setConfirmationText] = useState("");
+
   const { user } = useAuth();
 
   useEffect(() => {
@@ -129,8 +149,9 @@ function YieldOperationsContent() {
     setNewAUM("");
     setYieldPreview(null);
     setYieldPurpose("reporting");
-    setAumDate(new Date().toISOString().split("T")[0]);
+    setAumDate(new Date());
     setShowYieldDialog(true);
+    setConfirmationText("");
   };
 
   const handlePreviewYield = async () => {
@@ -138,20 +159,12 @@ function YieldOperationsContent() {
 
     const newAUMValue = parseFloat(newAUM);
     if (isNaN(newAUMValue) || newAUMValue <= 0) {
-      toast({
-        title: "Invalid AUM",
-        description: "Please enter a valid positive number.",
-        variant: "destructive",
-      });
+      toast.error("Please enter a valid positive number.");
       return;
     }
 
     if (newAUMValue <= selectedFund.total_aum) {
-      toast({
-        title: "Invalid AUM",
-        description: "New AUM must be greater than current AUM to distribute yield.",
-        variant: "destructive",
-      });
+      toast.error("New AUM must be greater than current AUM to distribute yield.");
       return;
     }
 
@@ -159,58 +172,57 @@ function YieldOperationsContent() {
     try {
       const result = await previewYieldDistribution({
         fundId: selectedFund.id,
-        targetDate: new Date(aumDate),
+        targetDate: aumDate,
         newTotalAUM: newAUMValue,
       });
       setYieldPreview(result);
     } catch (error) {
-      toast({
-        title: "Preview Failed",
-        description: error instanceof Error ? error.message : "Failed to preview yield.",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Failed to preview yield.");
     } finally {
       setPreviewLoading(false);
     }
   };
 
+  const handleConfirmApply = () => {
+    // Open confirmation dialog
+    setShowConfirmDialog(true);
+    setConfirmationText("");
+  };
+
   const handleApplyYield = async () => {
     if (!selectedFund || !newAUM || !user || !yieldPreview) return;
+
+    // Validate confirmation text
+    if (confirmationText !== "APPLY") {
+      toast.error("Please type APPLY to confirm.");
+      return;
+    }
 
     setApplyLoading(true);
     try {
       await applyYieldDistribution(
         {
           fundId: selectedFund.id,
-          targetDate: new Date(aumDate),
+          targetDate: aumDate,
           newTotalAUM: parseFloat(newAUM),
         },
         user.id,
-        yieldPurpose // Pass purpose to backend
+        yieldPurpose
       );
 
-      toast({
-        title: "Yield Distributed",
-        description: `Distributed ${formatValue(yieldPreview.grossYield, selectedFund.asset)} ${selectedFund.asset} to ${yieldPreview.investorCount} investors (${yieldPurpose === "reporting" ? "Reporting" : "Transaction"} purpose).`,
-      });
+      toast.success(
+        `Distributed ${formatValue(yieldPreview.grossYield, selectedFund.asset)} ${selectedFund.asset} to ${yieldPreview.investorCount} investors (${yieldPurpose === "reporting" ? "Reporting" : "Transaction"} purpose).`
+      );
 
+      setShowConfirmDialog(false);
       setShowYieldDialog(false);
       loadFunds();
     } catch (error) {
-      toast({
-        title: "Apply Failed",
-        description: error instanceof Error ? error.message : "Failed to apply yield.",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Failed to apply yield.");
     } finally {
       setApplyLoading(false);
     }
   };
-
-  const totalAUM = funds.reduce((sum, f) => {
-    // Group by asset type for display
-    return sum + f.total_aum;
-  }, 0);
 
   if (loading) {
     return (
@@ -324,105 +336,173 @@ function YieldOperationsContent() {
           </DialogHeader>
 
           <div className="space-y-6 py-4">
-            {/* AUM Input */}
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label className="text-muted-foreground">Current AUM</Label>
-                <div className="text-2xl font-mono font-semibold">
-                  {selectedFund && formatValue(selectedFund.total_aum, selectedFund.asset)}{" "}
-                  <span className="text-base text-muted-foreground">{selectedFund?.asset}</span>
+            {/* Step 1: Period & Purpose */}
+            <div className="p-4 border rounded-lg bg-muted/20">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
+                  1
                 </div>
+                <h3 className="font-semibold">Choose Period & Purpose</h3>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="new-aum">New AUM ({selectedFund?.asset})</Label>
-                <Input
-                  id="new-aum"
-                  type="number"
-                  step="any"
-                  value={newAUM}
-                  onChange={(e) => setNewAUM(e.target.value)}
-                  placeholder={`Enter new total AUM`}
-                  className="font-mono"
-                />
-              </div>
-            </div>
 
-            {/* AUM Date Picker */}
-            <div className="space-y-2">
-              <Label htmlFor="aum-date">Effective Date</Label>
-              <input
-                id="aum-date"
-                type="date"
-                value={aumDate}
-                onChange={(e) => setAumDate(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
-
-            {/* Purpose Selector - Functional */}
-            <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
-              <Label className="text-sm font-medium">Purpose</Label>
-              <div className="grid grid-cols-2 gap-3">
-                <div 
-                  className={cn(
-                    "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
-                    yieldPurpose === "reporting" 
-                      ? "border-green-500 ring-1 ring-green-500/20" 
-                      : "hover:border-green-500/50"
-                  )}
-                  onClick={() => setYieldPurpose("reporting")}
-                >
-                  <div className={cn(
-                    "mt-0.5 h-4 w-4 rounded-full",
-                    yieldPurpose === "reporting" ? "bg-green-500" : "bg-muted-foreground/30"
-                  )} />
-                  <div>
-                    <p className="font-medium text-sm">Reporting</p>
-                    <p className="text-xs text-muted-foreground">Month-end official yield for statements</p>
+              {/* AUM Input */}
+              <div className="grid grid-cols-2 gap-6 mb-4">
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">Current AUM</Label>
+                  <div className="text-2xl font-mono font-semibold">
+                    {selectedFund && formatValue(selectedFund.total_aum, selectedFund.asset)}{" "}
+                    <span className="text-base text-muted-foreground">{selectedFund?.asset}</span>
                   </div>
                 </div>
-                <div 
-                  className={cn(
-                    "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
-                    yieldPurpose === "transaction" 
-                      ? "border-orange-500 ring-1 ring-orange-500/20" 
-                      : "hover:border-orange-500/50"
-                  )}
-                  onClick={() => setYieldPurpose("transaction")}
-                >
-                  <div className={cn(
-                    "mt-0.5 h-4 w-4 rounded-full",
-                    yieldPurpose === "transaction" ? "bg-orange-500" : "bg-muted-foreground/30"
-                  )} />
+                <div className="space-y-2">
+                  <Label htmlFor="new-aum">New AUM ({selectedFund?.asset})</Label>
+                  <Input
+                    id="new-aum"
+                    type="number"
+                    step="any"
+                    value={newAUM}
+                    onChange={(e) => setNewAUM(e.target.value)}
+                    placeholder={`Enter new total AUM`}
+                    className="font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Date Picker - Using Shadcn Calendar */}
+              <div className="space-y-2 mb-4">
+                <Label>Effective Date</Label>
+                <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !aumDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {aumDate ? format(aumDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={aumDate}
+                      onSelect={(date) => {
+                        if (date) {
+                          setAumDate(date);
+                          setDatePickerOpen(false);
+                        }
+                      }}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* Purpose Selector with Explainer */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Purpose</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div 
+                    className={cn(
+                      "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
+                      yieldPurpose === "reporting" 
+                        ? "border-green-500 ring-1 ring-green-500/20" 
+                        : "hover:border-green-500/50"
+                    )}
+                    onClick={() => setYieldPurpose("reporting")}
+                  >
+                    <div className={cn(
+                      "mt-0.5 h-4 w-4 rounded-full flex-shrink-0",
+                      yieldPurpose === "reporting" ? "bg-green-500" : "bg-muted-foreground/30"
+                    )} />
+                    <div>
+                      <p className="font-medium text-sm">Reporting</p>
+                      <p className="text-xs text-muted-foreground">Month-end official yield</p>
+                    </div>
+                  </div>
+                  <div 
+                    className={cn(
+                      "flex items-start gap-3 p-3 border rounded-md bg-background cursor-pointer transition-colors",
+                      yieldPurpose === "transaction" 
+                        ? "border-orange-500 ring-1 ring-orange-500/20" 
+                        : "hover:border-orange-500/50"
+                    )}
+                    onClick={() => setYieldPurpose("transaction")}
+                  >
+                    <div className={cn(
+                      "mt-0.5 h-4 w-4 rounded-full flex-shrink-0",
+                      yieldPurpose === "transaction" ? "bg-orange-500" : "bg-muted-foreground/30"
+                    )} />
+                    <div>
+                      <p className="font-medium text-sm">Transaction</p>
+                      <p className="text-xs text-muted-foreground">Operational (withdrawals/top-ups)</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Purpose Explainer */}
+                <div className={cn(
+                  "flex items-start gap-2 p-3 rounded-md text-sm",
+                  yieldPurpose === "reporting" 
+                    ? "bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400" 
+                    : "bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400"
+                )}>
+                  <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-sm">Transaction</p>
-                    <p className="text-xs text-muted-foreground">Mid-month operational (withdrawals/top-ups)</p>
+                    {yieldPurpose === "reporting" ? (
+                      <>
+                        <strong>Visible to investors.</strong> Official month-end yield that appears on investor statements and dashboards.
+                      </>
+                    ) : (
+                      <>
+                        <strong>Internal only.</strong> Operational yield for processing withdrawals or top-ups. Not visible to investors.
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                💡 Reporting yields are shown to investors. Transaction yields are internal only.
-              </p>
             </div>
 
-            {/* Preview Button */}
-            <Button
-              onClick={handlePreviewYield}
-              disabled={!newAUM || previewLoading}
-              variant="secondary"
-              className="w-full"
-            >
-              {previewLoading ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <ArrowRight className="h-4 w-4 mr-2" />
-              )}
-              Preview Yield Distribution
-            </Button>
+            {/* Step 2: Preview Button */}
+            <div className="p-4 border rounded-lg bg-muted/20">
+              <div className="flex items-center gap-2 mb-4">
+                <div className={cn(
+                  "h-6 w-6 rounded-full flex items-center justify-center text-sm font-bold",
+                  yieldPreview ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                )}>
+                  2
+                </div>
+                <h3 className="font-semibold">Preview Distribution</h3>
+              </div>
+
+              <Button
+                onClick={handlePreviewYield}
+                disabled={!newAUM || previewLoading}
+                variant="secondary"
+                className="w-full"
+              >
+                {previewLoading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <ArrowRight className="h-4 w-4 mr-2" />
+                )}
+                Preview Yield Distribution
+              </Button>
+            </div>
 
             {/* Preview Results */}
             {yieldPreview && (
-              <div className="space-y-4 border-t pt-4">
+              <div className="p-4 border rounded-lg bg-muted/20 space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
+                    3
+                  </div>
+                  <h3 className="font-semibold">Confirm & Apply</h3>
+                </div>
+
                 <div className="grid grid-cols-3 gap-4">
                   <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
                     <CardContent className="p-4 text-center">
@@ -488,18 +568,14 @@ function YieldOperationsContent() {
                   </Table>
                 </div>
 
-                {/* Apply Button */}
+                {/* Apply Button - Opens Confirmation */}
                 <Button
-                  onClick={handleApplyYield}
+                  onClick={handleConfirmApply}
                   disabled={applyLoading}
                   className="w-full"
                   size="lg"
                 >
-                  {applyLoading ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                  )}
+                  <CheckCircle className="h-4 w-4 mr-2" />
                   Apply Yield to {yieldPreview.investorCount} Investors
                 </Button>
               </div>
@@ -507,6 +583,92 @@ function YieldOperationsContent() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmation Dialog - Typed Confirmation */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Confirm Yield Distribution
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>You are about to distribute yield with the following details:</p>
+                
+                <div className="p-3 rounded-md bg-muted space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Fund:</span>
+                    <span className="font-medium">{selectedFund?.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Purpose:</span>
+                    <Badge 
+                      variant="outline"
+                      className={yieldPurpose === "reporting" 
+                        ? "border-green-500 text-green-700" 
+                        : "border-orange-500 text-orange-700"
+                      }
+                    >
+                      {yieldPurpose === "reporting" ? "🟢 Reporting" : "🟠 Transaction"}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Effective Date:</span>
+                    <span className="font-medium">{format(aumDate, "PPP")}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Gross Yield:</span>
+                    <span className="font-mono font-medium text-green-600">
+                      +{formatValue(yieldPreview?.grossYield || 0, selectedFund?.asset || "")} {selectedFund?.asset}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Investors:</span>
+                    <span className="font-medium">{yieldPreview?.investorCount}</span>
+                  </div>
+                </div>
+
+                {yieldPurpose === "reporting" && (
+                  <div className="flex items-start gap-2 p-3 rounded-md bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 text-sm">
+                    <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <span>
+                      <strong>This yield will be visible to investors</strong> on their statements and dashboards.
+                    </span>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-text">
+                    Type <span className="font-mono font-bold">APPLY</span> to confirm:
+                  </Label>
+                  <Input
+                    id="confirm-text"
+                    value={confirmationText}
+                    onChange={(e) => setConfirmationText(e.target.value.toUpperCase())}
+                    placeholder="APPLY"
+                    className="font-mono"
+                  />
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button
+              onClick={handleApplyYield}
+              disabled={confirmationText !== "APPLY" || applyLoading}
+            >
+              {applyLoading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <CheckCircle className="h-4 w-4 mr-2" />
+              )}
+              Confirm & Apply
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
