@@ -45,6 +45,33 @@ export interface Transaction {
   running_balance?: number;
 }
 
+/**
+ * Calculate Rate of Return using the correct formula:
+ * net_income = ending_balance - beginning_balance - additions + redemptions
+ * rate_of_return = net_income / beginning_balance (or 0 if beginning_balance is 0)
+ * 
+ * This properly accounts for mid-month additions/withdrawals
+ */
+export function calculateRateOfReturn(
+  beginningBalance: number,
+  endingBalance: number,
+  additions: number,
+  redemptions: number
+): { netIncome: number; rateOfReturn: number } {
+  // CORRECT formula per December 20 requirements:
+  // net_income = ending_balance - beginning_balance - additions + redemptions
+  const netIncome = endingBalance - beginningBalance - additions + redemptions;
+  
+  // If beginning balance is 0, return 0% to avoid NaN/Infinity
+  if (beginningBalance <= 0) {
+    return { netIncome, rateOfReturn: 0 };
+  }
+  
+  const rateOfReturn = (netIncome / beginningBalance) * 100;
+  
+  return { netIncome, rateOfReturn };
+}
+
 export async function computeStatement(
   investor_id: string,
   period_year: number,
@@ -72,11 +99,11 @@ export async function computeStatement(
     const period_end_str = period_end.toISOString().split("T")[0];
 
     // Fetch all transactions for this investor up to the end of the period
-    // using transactions_v2
+    // using transactions_v2 with deterministic ordering (tx_date, id)
     const { data: transactions, error: txError } = await supabase
       .from("transactions_v2")
       .select("*")
-      .eq("investor_id", investor_id) // Unified ID
+      .eq("investor_id", investor_id)
       .lte("tx_date", period_end_str)
       .order("tx_date", { ascending: true })
       .order("id", { ascending: true }); // Deterministic tie-breaker for same-day ordering
@@ -112,9 +139,9 @@ export async function computeStatement(
       if (!assetsMap[assetCode]) {
         const fund = fundMap.get(assetCode);
         assetsMap[assetCode] = {
-          asset_id: fund ? fund.id : 0, // Use ID from funds table if available
+          asset_id: fund ? fund.id : 0,
           asset_code: assetCode,
-          asset_name: fund ? fund.name : assetCode, // Use real name
+          asset_name: fund ? fund.name : assetCode,
           begin_balance: 0,
           deposits: 0,
           withdrawals: 0,
@@ -138,7 +165,7 @@ export async function computeStatement(
         }
       } else {
         // Transaction is within this period
-        let type: Transaction["type"] = "deposit"; // default
+        let type: Transaction["type"] = "deposit";
         if (tx.type === "DEPOSIT") {
           assetStat.deposits += amount;
           type = "deposit";
@@ -163,28 +190,46 @@ export async function computeStatement(
       }
     });
 
-    // Calculate End Balances and Summary
+    // Calculate End Balances using correct formula
     Object.values(assetsMap).forEach((asset) => {
       asset.end_balance =
         asset.begin_balance + asset.deposits - asset.withdrawals + asset.interest - asset.fees;
     });
 
-    // If there is only one asset, we can safely populate the summary
+    // Calculate summary from all assets
     const assetKeys = Object.keys(assetsMap);
-    if (assetKeys.length === 1) {
-      const asset = assetsMap[assetKeys[0]];
-      summary.begin_balance = asset.begin_balance;
-      summary.additions = asset.deposits;
-      summary.redemptions = asset.withdrawals;
-      summary.net_income = asset.interest;
-      summary.fees = asset.fees;
-      summary.end_balance = asset.end_balance;
-    }
+    if (assetKeys.length >= 1) {
+      // Sum across all assets for summary
+      let totalBeginBalance = 0;
+      let totalAdditions = 0;
+      let totalRedemptions = 0;
+      let totalFees = 0;
+      let totalEndBalance = 0;
 
-    // Simple ROI calc (Net Income / (Begin Balance + (Additions - Redemptions)/2))
-    const denominator = summary.begin_balance + (summary.additions - summary.redemptions) / 2;
-    if (denominator > 0) {
-      summary.rate_of_return_mtd = ((summary.net_income - summary.fees) / denominator) * 100;
+      Object.values(assetsMap).forEach((asset) => {
+        totalBeginBalance += asset.begin_balance;
+        totalAdditions += asset.deposits;
+        totalRedemptions += asset.withdrawals;
+        totalFees += asset.fees;
+        totalEndBalance += asset.end_balance;
+      });
+
+      summary.begin_balance = totalBeginBalance;
+      summary.additions = totalAdditions;
+      summary.redemptions = totalRedemptions;
+      summary.fees = totalFees;
+      summary.end_balance = totalEndBalance;
+
+      // Calculate RoR using the CORRECT formula
+      const { netIncome, rateOfReturn } = calculateRateOfReturn(
+        totalBeginBalance,
+        totalEndBalance,
+        totalAdditions,
+        totalRedemptions
+      );
+      
+      summary.net_income = netIncome;
+      summary.rate_of_return_mtd = rateOfReturn;
     }
 
     return {
@@ -223,7 +268,6 @@ export function formatTokenAmount(amount: number, asset?: string, decimals?: num
  * @deprecated Use formatTokenAmount instead - this platform uses native tokens, not fiat
  */
 export function formatCurrency(amount: number, decimals: number = 2): string {
-  // Removed USD currency formatting - platform uses native tokens
   return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
@@ -231,5 +275,9 @@ export function formatCurrency(amount: number, decimals: number = 2): string {
 }
 
 export function formatPercent(value: number, decimals: number = 2): string {
+  // Handle NaN/Infinity cases
+  if (!Number.isFinite(value)) {
+    return "0.00%";
+  }
   return `${value.toFixed(decimals)}%`;
 }

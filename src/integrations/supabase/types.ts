@@ -282,6 +282,7 @@ export type Database = {
           gross_return_pct: number | null
           high_water_mark: number | null
           investor_count: number | null
+          is_month_end: boolean | null
           nav_date: string
           nav_per_share: number | null
           net_return_pct: number | null
@@ -298,6 +299,7 @@ export type Database = {
           gross_return_pct?: number | null
           high_water_mark?: number | null
           investor_count?: number | null
+          is_month_end?: boolean | null
           nav_date: string
           nav_per_share?: number | null
           net_return_pct?: number | null
@@ -314,6 +316,7 @@ export type Database = {
           gross_return_pct?: number | null
           high_water_mark?: number | null
           investor_count?: number | null
+          is_month_end?: boolean | null
           nav_date?: string
           nav_per_share?: number | null
           net_return_pct?: number | null
@@ -873,6 +876,7 @@ export type Database = {
           created_by: string | null
           fund_id: string
           id: string
+          is_month_end: boolean | null
           nav_per_share: number | null
           source: string | null
           total_aum: number
@@ -886,6 +890,7 @@ export type Database = {
           created_by?: string | null
           fund_id: string
           id?: string
+          is_month_end?: boolean | null
           nav_per_share?: number | null
           source?: string | null
           total_aum?: number
@@ -899,6 +904,7 @@ export type Database = {
           created_by?: string | null
           fund_id?: string
           id?: string
+          is_month_end?: boolean | null
           nav_per_share?: number | null
           source?: string | null
           total_aum?: number
@@ -1311,6 +1317,112 @@ export type Database = {
           {
             foreignKeyName: "generated_statements_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+        ]
+      }
+      ib_allocations: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          effective_date: string
+          fund_id: string | null
+          ib_fee_amount: number
+          ib_investor_id: string
+          ib_percentage: number
+          id: string
+          period_id: string | null
+          source_investor_id: string
+          source_net_income: number
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          effective_date?: string
+          fund_id?: string | null
+          ib_fee_amount: number
+          ib_investor_id: string
+          ib_percentage: number
+          id?: string
+          period_id?: string | null
+          source_investor_id: string
+          source_net_income: number
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          effective_date?: string
+          fund_id?: string | null
+          ib_fee_amount?: number
+          ib_investor_id?: string
+          ib_percentage?: number
+          id?: string
+          period_id?: string | null
+          source_investor_id?: string
+          source_net_income?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ib_allocations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_ib_investor_id_fkey"
+            columns: ["ib_investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_ib_investor_id_fkey"
+            columns: ["ib_investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "statement_periods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_source_investor_id_fkey"
+            columns: ["source_investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_source_investor_id_fkey"
+            columns: ["source_investor_id"]
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
@@ -2474,6 +2586,8 @@ export type Database = {
           entity_type: string | null
           fee_percentage: number | null
           first_name: string | null
+          ib_parent_id: string | null
+          ib_percentage: number | null
           id: string
           is_admin: boolean
           kyc_status: string | null
@@ -2493,6 +2607,8 @@ export type Database = {
           entity_type?: string | null
           fee_percentage?: number | null
           first_name?: string | null
+          ib_parent_id?: string | null
+          ib_percentage?: number | null
           id: string
           is_admin?: boolean
           kyc_status?: string | null
@@ -2512,6 +2628,8 @@ export type Database = {
           entity_type?: string | null
           fee_percentage?: number | null
           first_name?: string | null
+          ib_parent_id?: string | null
+          ib_percentage?: number | null
           id?: string
           is_admin?: boolean
           kyc_status?: string | null
@@ -2524,7 +2642,22 @@ export type Database = {
           totp_verified?: boolean | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_ib_parent_id_fkey"
+            columns: ["ib_parent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_ib_parent_id_fkey"
+            columns: ["ib_parent_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+        ]
       }
       reconciliation: {
         Row: {
@@ -4529,6 +4662,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_super_admin_role: { Args: { p_user_id: string }; Returns: boolean }
       is_2fa_required: { Args: { p_user_id: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_admin_for_jwt: { Args: never; Returns: boolean }
@@ -4538,6 +4672,7 @@ export type Database = {
         Args: { p_fund_id: string; p_period_id: string }
         Returns: boolean
       }
+      is_super_admin: { Args: never; Returns: boolean }
       is_valid_share_token: { Args: { token_value: string }; Returns: boolean }
       is_within_edit_window: {
         Args: { p_created_at: string }
@@ -4677,7 +4812,7 @@ export type Database = {
         | "2fa_verify"
         | "session_revoked"
         | "password_change"
-      app_role: "admin" | "moderator" | "user"
+      app_role: "super_admin" | "admin" | "moderator" | "user"
       asset_code: "BTC" | "ETH" | "SOL" | "USDT" | "EURC" | "xAUT" | "XRP"
       benchmark_type: "BTC" | "ETH" | "STABLE" | "CUSTOM"
       document_type: "statement" | "notice" | "terms" | "tax" | "other"
@@ -4852,7 +4987,7 @@ export const Constants = {
         "session_revoked",
         "password_change",
       ],
-      app_role: ["admin", "moderator", "user"],
+      app_role: ["super_admin", "admin", "moderator", "user"],
       asset_code: ["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"],
       benchmark_type: ["BTC", "ETH", "STABLE", "CUSTOM"],
       document_type: ["statement", "notice", "terms", "tax", "other"],
