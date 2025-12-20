@@ -177,23 +177,31 @@ function AdminListContent() {
 
   const handleRoleChange = async (adminId: string, newRole: "admin" | "super_admin") => {
     try {
-      if (newRole === "super_admin") {
-        // Add super_admin role
-        const { error } = await supabase
-          .from("user_roles")
-          .upsert({
-            user_id: adminId,
-            role: "super_admin",
+      // Use secure RPC function that enforces super_admin check server-side
+      const { data, error } = await supabase
+        .rpc("update_admin_role", {
+          p_target_user_id: adminId,
+          p_new_role: newRole,
+        });
+
+      if (error) {
+        // Handle specific error messages
+        if (error.message.includes("Super Admin")) {
+          toast({
+            title: "Permission Denied",
+            description: error.message,
+            variant: "destructive",
           });
-        if (error) throw error;
-      } else {
-        // Remove super_admin role
-        const { error } = await supabase
-          .from("user_roles")
-          .delete()
-          .eq("user_id", adminId)
-          .eq("role", "super_admin");
-        if (error) throw error;
+        } else if (error.message.includes("demote yourself")) {
+          toast({
+            title: "Action Not Allowed",
+            description: "You cannot demote yourself from Super Admin",
+            variant: "destructive",
+          });
+        } else {
+          throw error;
+        }
+        return;
       }
 
       toast({

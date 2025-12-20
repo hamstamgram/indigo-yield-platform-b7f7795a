@@ -11,12 +11,12 @@ const QuickLinks: React.FC = () => {
           <CardTitle>Investor Management</CardTitle>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col">
-          <p className="text-gray-500 mb-4">
+          <p className="text-muted-foreground mb-4">
             View and manage all investor accounts and their portfolio data.
           </p>
           <div className="mt-auto">
             <Button className="w-full text-center" asChild>
-              <Link to="/admin-investors">Manage Investors</Link>
+              <Link to="/admin/investors">Manage Investors</Link>
             </Button>
           </div>
         </CardContent>
@@ -24,15 +24,15 @@ const QuickLinks: React.FC = () => {
 
       <Card className="border-0 shadow-md h-full flex flex-col">
         <CardHeader>
-          <CardTitle>Portfolio Management</CardTitle>
+          <CardTitle>Operations Hub</CardTitle>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col">
-          <p className="text-gray-500 mb-4">
-            Update investor portfolios and manage asset allocations.
+          <p className="text-muted-foreground mb-4">
+            Access data entry, yields, and portfolio management tools.
           </p>
           <div className="mt-auto">
             <Button className="w-full text-center" asChild>
-              <Link to="/admin?tab=portfolios">Update Portfolios</Link>
+              <Link to="/admin/operations">Go to Operations</Link>
             </Button>
           </div>
         </CardContent>
@@ -40,15 +40,15 @@ const QuickLinks: React.FC = () => {
 
       <Card className="border-0 shadow-md h-full flex flex-col">
         <CardHeader>
-          <CardTitle>Yield Settings</CardTitle>
+          <CardTitle>Yield Management</CardTitle>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col">
-          <p className="text-gray-500 mb-4">
-            Configure yield rates and distribution settings for each asset.
+          <p className="text-muted-foreground mb-4">
+            Configure yield rates and view recorded yields for all funds.
           </p>
           <div className="mt-auto">
             <Button className="w-full text-center" asChild>
-              <Link to="/admin?tab=yields">Manage Yields</Link>
+              <Link to="/admin/yields">Manage Yields</Link>
             </Button>
           </div>
         </CardContent>
