@@ -86,7 +86,7 @@ const mapProfilesToInvestors = (profiles: any[]): LegacyInvestor[] => {
     first_name: profile.first_name || null,
     last_name: profile.last_name || null,
     created_at: profile.created_at || new Date().toISOString(),
-    fee_percentage: profile.fee_percentage || 2.0,
+    fee_percentage: profile.fee_percentage || 20.0,
     portfolio_summary: {},
   }));
 };
