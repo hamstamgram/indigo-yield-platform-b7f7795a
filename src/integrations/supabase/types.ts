@@ -886,6 +886,7 @@ export type Database = {
           total_aum: number
           total_shares: number | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           as_of_date?: string | null
@@ -901,6 +902,7 @@ export type Database = {
           total_aum?: number
           total_shares?: number | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           as_of_date?: string | null
@@ -916,6 +918,7 @@ export type Database = {
           total_aum?: number
           total_shares?: number | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
