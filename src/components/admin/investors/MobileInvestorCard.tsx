@@ -24,12 +24,12 @@ const MobileInvestorCard = ({
 }: MobileInvestorCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [fee, setFee] = useState<string>("2.0");
+  const [fee, setFee] = useState<string>("20.0");
   const { toast } = useToast();
 
   // Update fee state when investor prop changes
   useEffect(() => {
-    setFee("2.0"); // Default fee since InvestorSummaryV2 doesn't have fee_percentage
+    setFee("20.0"); // Default fee since InvestorSummaryV2 doesn't have fee_percentage
   }, [investor]);
 
   // Create state for each asset balance
@@ -166,7 +166,7 @@ const MobileInvestorCard = ({
                 className="max-w-[80px]"
               />
             ) : (
-              <div>"2.0%"</div>
+              <div>"20.0%"</div>
             )}
           </div>
         </div>

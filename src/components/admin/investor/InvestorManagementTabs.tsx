@@ -67,7 +67,7 @@ const InvestorManagementTabs: React.FC<InvestorManagementTabsProps> = ({
                     <p className="text-sm text-muted-foreground">
                       Set the default management fee percentage for new investors
                     </p>
-                    <p className="mt-2 font-mono">Current: 2.0%</p>
+                    <p className="mt-2 font-mono">Current: 20.0%</p>
                   </div>
                   <div className="p-4 border rounded-lg">
                     <h4 className="font-medium">Position Lock Defaults</h4>
