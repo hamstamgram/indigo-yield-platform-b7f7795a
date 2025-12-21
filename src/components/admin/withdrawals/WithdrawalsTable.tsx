@@ -216,7 +216,16 @@ export function WithdrawalsTable({
                     {withdrawal.notes || "-"}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-end gap-1">
+                      {onViewDetails && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onViewDetails(withdrawal)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      )}
                       {withdrawal.status === "pending" && (
                         <>
                           <Button
@@ -265,6 +274,40 @@ export function WithdrawalsTable({
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {pagination && pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between pt-4">
+          <p className="text-sm text-muted-foreground">
+            Showing {((pagination.page - 1) * pagination.pageSize) + 1} to{" "}
+            {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)} of{" "}
+            {pagination.totalCount} withdrawals
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => pagination.onPageChange(pagination.page - 1)}
+              disabled={pagination.page <= 1}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Previous
+            </Button>
+            <span className="text-sm text-muted-foreground px-2">
+              Page {pagination.page} of {pagination.totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => pagination.onPageChange(pagination.page + 1)}
+              disabled={pagination.page >= pagination.totalPages}
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {selectedWithdrawal && (
         <>

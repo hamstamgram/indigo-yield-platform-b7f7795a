@@ -85,8 +85,3 @@ export interface WithdrawalAuditLog {
   actor_name?: string;
   actor_email?: string;
 }
-  created_at: string;
-  // Joined data
-  actor_name?: string;
-  actor_email?: string;
-}
