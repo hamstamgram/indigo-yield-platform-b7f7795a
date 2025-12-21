@@ -183,7 +183,8 @@ export default function ReportDeliveryCenter() {
         .limit(100);
 
       if (statusFilter !== "all") {
-        query = query.ilike("status", statusFilter);
+        // Use case-insensitive comparison for status
+        query = query.or(`status.eq.${statusFilter},status.eq.${statusFilter.toUpperCase()}`);
       }
       if (channelFilter !== "all") {
         query = query.eq("channel", channelFilter);

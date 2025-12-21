@@ -19,6 +19,7 @@ import {
   ArrowDownToLine,
   FileCheck,
   Database,
+  Mail,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -287,6 +288,13 @@ function AdminOperationsHubContent() {
       description: "Generate and manage investor reports",
       href: "/admin/investor-reports",
       icon: FileCheck,
+      category: "Reports & Analytics",
+    },
+    {
+      title: "Report Delivery Center",
+      description: "Track and send statement deliveries",
+      href: "/admin/reports/delivery",
+      icon: Mail,
       category: "Reports & Analytics",
     },
     {
