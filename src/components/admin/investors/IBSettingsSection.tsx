@@ -2,6 +2,7 @@
  * IB (Introducing Broker) Settings Section
  * Allows Super Admins to configure IB parent and percentage for investors
  * Includes ability to assign IB role to existing users
+ * NEW: Includes "Promote to IB" functionality for the current investor
  */
 
 import { useState, useEffect } from "react";
@@ -25,7 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Users, Percent, Save, AlertCircle, UserPlus, Search } from "lucide-react";
+import { Loader2, Users, Percent, Save, AlertCircle, UserPlus, Search, Crown, Trash2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -76,6 +77,13 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  // This investor's IB status
+  const [hasIBRole, setHasIBRole] = useState(false);
+  const [promotingToIB, setPromotingToIB] = useState(false);
+  const [showPromoteDialog, setShowPromoteDialog] = useState(false);
+  const [showRemoveIBDialog, setShowRemoveIBDialog] = useState(false);
+  const [removingIBRole, setRemovingIBRole] = useState(false);
+
   // Create IB dialog state
   const [showCreateIBDialog, setShowCreateIBDialog] = useState(false);
   const [searchEmail, setSearchEmail] = useState("");
@@ -91,11 +99,17 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
     setLoading(true);
     setError(null);
     try {
-      // Load IB config, available parents, and referrals in parallel
-      const [config, parents, refs] = await Promise.all([
+      // Load IB config, available parents, referrals, and check if this investor has IB role
+      const [config, parents, refs, ibRoleCheck] = await Promise.all([
         getInvestorIBConfig(investorId),
         getAvailableIBParents(investorId),
         getIBReferrals(investorId),
+        supabase
+          .from("user_roles")
+          .select("id")
+          .eq("user_id", investorId)
+          .eq("role", "ib")
+          .maybeSingle(),
       ]);
 
       if (config) {
@@ -108,6 +122,7 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
 
       setAvailableParents(parents);
       setReferrals(refs);
+      setHasIBRole(!!ibRoleCheck.data);
     } catch (err) {
       console.error("Failed to load IB settings:", err);
       setError("Failed to load IB settings");
@@ -285,6 +300,111 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
     });
   };
 
+  // Promote THIS investor to IB role
+  const handlePromoteToIB = async () => {
+    setPromotingToIB(true);
+    try {
+      // Insert IB role for this investor (keep existing investor role)
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .insert({
+          user_id: investorId,
+          role: "ib",
+        });
+
+      if (roleError) {
+        if (roleError.code === "23505") {
+          toast({
+            title: "Already an IB",
+            description: "This investor already has the IB role",
+          });
+        } else {
+          throw roleError;
+        }
+      } else {
+        // Log audit entry
+        await supabase.from("audit_log").insert({
+          actor_user: (await supabase.auth.getUser()).data.user?.id,
+          action: "PROMOTE_TO_IB",
+          entity: "user_roles",
+          entity_id: investorId,
+          new_values: { role: "ib" },
+        });
+
+        toast({
+          title: "Promoted to IB",
+          description: "This investor now has IB permissions and can have referrals",
+        });
+      }
+
+      setHasIBRole(true);
+      setShowPromoteDialog(false);
+      onUpdate?.();
+    } catch (err) {
+      console.error("Failed to promote to IB:", err);
+      toast({
+        title: "Error",
+        description: "Failed to promote investor to IB",
+        variant: "destructive",
+      });
+    } finally {
+      setPromotingToIB(false);
+    }
+  };
+
+  // Remove IB role from this investor (super_admin only)
+  const handleRemoveIBRole = async () => {
+    setRemovingIBRole(true);
+    try {
+      // Check if investor has referrals
+      if (referrals.length > 0) {
+        toast({
+          title: "Cannot Remove IB Role",
+          description: `This investor has ${referrals.length} active referral(s). Reassign them first.`,
+          variant: "destructive",
+        });
+        setShowRemoveIBDialog(false);
+        return;
+      }
+
+      // Delete the IB role
+      const { error: deleteError } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", investorId)
+        .eq("role", "ib");
+
+      if (deleteError) throw deleteError;
+
+      // Log audit entry
+      await supabase.from("audit_log").insert({
+        actor_user: (await supabase.auth.getUser()).data.user?.id,
+        action: "REMOVE_IB_ROLE",
+        entity: "user_roles",
+        entity_id: investorId,
+        old_values: { role: "ib" },
+      });
+
+      toast({
+        title: "IB Role Removed",
+        description: "This investor no longer has IB permissions",
+      });
+
+      setHasIBRole(false);
+      setShowRemoveIBDialog(false);
+      onUpdate?.();
+    } catch (err) {
+      console.error("Failed to remove IB role:", err);
+      toast({
+        title: "Error",
+        description: "Failed to remove IB role",
+        variant: "destructive",
+      });
+    } finally {
+      setRemovingIBRole(false);
+    }
+  };
+
   if (roleLoading || loading) {
     return (
       <Card>
@@ -302,6 +422,58 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
 
   return (
     <div className="space-y-4">
+      {/* Promote to IB Card - Only show if investor is NOT already an IB */}
+      {!hasIBRole && !isReadOnly && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Crown className="h-5 w-5 text-primary" />
+              Promote to Introducing Broker
+            </CardTitle>
+            <CardDescription>
+              Grant this investor IB permissions so they can earn referral commissions
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => setShowPromoteDialog(true)}>
+              <Crown className="h-4 w-4 mr-2" />
+              Promote to IB
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* IB Status Badge - Show if investor IS an IB */}
+      {hasIBRole && (
+        <Card className="border-green-500/20 bg-green-500/5">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Badge variant="default" className="bg-green-600">
+                  <Crown className="h-3 w-3 mr-1" />
+                  Active IB
+                </Badge>
+                <span className="text-sm text-muted-foreground">
+                  This investor can receive referral commissions
+                </span>
+              </div>
+              {!isReadOnly && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => setShowRemoveIBDialog(true)}
+                  disabled={referrals.length > 0}
+                  title={referrals.length > 0 ? "Cannot remove IB with active referrals" : "Remove IB role"}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* IB Parent Configuration */}
       <Card>
         <CardHeader className="pb-3">
@@ -526,6 +698,84 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCreateIBDialog(false)}>
               Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Promote to IB Confirmation Dialog */}
+      <Dialog open={showPromoteDialog} onOpenChange={setShowPromoteDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-primary" />
+              Promote to Introducing Broker
+            </DialogTitle>
+            <DialogDescription>
+              This will grant the investor IB permissions, allowing them to:
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground ml-2">
+            <li>Earn referral commissions from referred investors</li>
+            <li>Access the IB portal and dashboard</li>
+            <li>View their referral network and earnings</li>
+          </ul>
+
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              The investor will retain their existing investor role. This action adds the IB role.
+            </AlertDescription>
+          </Alert>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPromoteDialog(false)} disabled={promotingToIB}>
+              Cancel
+            </Button>
+            <Button onClick={handlePromoteToIB} disabled={promotingToIB}>
+              {promotingToIB ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Crown className="h-4 w-4 mr-2" />
+              )}
+              Confirm Promotion
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Remove IB Role Confirmation Dialog */}
+      <Dialog open={showRemoveIBDialog} onOpenChange={setShowRemoveIBDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="h-5 w-5" />
+              Remove IB Role
+            </DialogTitle>
+            <DialogDescription>
+              This will revoke the investor's IB permissions.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              The investor will no longer be able to access the IB portal or receive referral commissions.
+            </AlertDescription>
+          </Alert>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRemoveIBDialog(false)} disabled={removingIBRole}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleRemoveIBRole} disabled={removingIBRole}>
+              {removingIBRole ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4 mr-2" />
+              )}
+              Remove IB Role
             </Button>
           </DialogFooter>
         </DialogContent>
