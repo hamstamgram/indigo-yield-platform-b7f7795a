@@ -478,11 +478,12 @@ export async function saveDraftAUMEntry(
         aum_date: formatDate(recordDate),
         as_of_date: formatDate(recordDate),
         total_aum: closingAUM,
+        purpose: "transaction", // Default purpose for draft entries
         source: notes || "manual",
         created_by: adminId || null,
       },
       {
-        onConflict: "fund_id,aum_date",
+        onConflict: "fund_id,aum_date,purpose",
       }
     )
     .select()

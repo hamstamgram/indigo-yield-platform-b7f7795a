@@ -158,14 +158,15 @@ export async function setFundDailyAUM(
       .from("fund_daily_aum")
       .upsert(
         {
-          fund_id: fundId, // fund_daily_aum.fund_id is text; fundId uuid will store as text
+          fund_id: fundId, // fund_daily_aum.fund_id is now UUID
           as_of_date: date,
-          aum_date: date, // keep legacy column if present
+          aum_date: date,
           total_aum: aumAmount,
+          purpose: "transaction", // Required for unique constraint
           source: "ingested",
           updated_at: new Date().toISOString(),
         },
-        { onConflict: "fund_id,aum_date" }
+        { onConflict: "fund_id,aum_date,purpose" }
       );
 
     if (error) throw error;
