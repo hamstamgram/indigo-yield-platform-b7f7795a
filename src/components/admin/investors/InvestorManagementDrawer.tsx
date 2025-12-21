@@ -512,17 +512,7 @@ export function InvestorManagementDrawer({
                 Open Full Profile
               </Button>
 
-              {/* Delete Investor Button */}
-              {onDelete && (
-                <Button 
-                  variant="destructive" 
-                  className="w-full"
-                  onClick={handleDeleteClick}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Investor
-                </Button>
-              )}
+              {/* Delete moved to Settings > Danger Zone */}
             </TabsContent>
 
             {/* Yield Tab */}

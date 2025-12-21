@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
   LayoutDashboard,
-  BookOpen,
+  History,
   Wallet,
   ArrowDownToLine,
   FileText,
@@ -39,7 +39,7 @@ export interface InvestorTabsProps {
   pendingWithdrawalsCount?: number;
 }
 
-const TAB_KEYS = ["overview", "ledger", "positions", "withdrawals", "reports", "settings"] as const;
+const TAB_KEYS = ["overview", "transactions", "positions", "withdrawals", "reports", "settings"] as const;
 type TabKey = typeof TAB_KEYS[number];
 
 export function InvestorTabs({
@@ -91,9 +91,9 @@ export function InvestorTabs({
           <LayoutDashboard className={compact ? "h-3.5 w-3.5 mr-1" : "h-4 w-4 mr-1.5"} />
           <span className={compact ? "hidden sm:inline" : ""}>Overview</span>
         </TabsTrigger>
-        <TabsTrigger value="ledger" className={tabTriggerClass}>
-          <BookOpen className={compact ? "h-3.5 w-3.5 mr-1" : "h-4 w-4 mr-1.5"} />
-          <span className={compact ? "hidden sm:inline" : ""}>Ledger</span>
+        <TabsTrigger value="transactions" className={tabTriggerClass}>
+          <History className={compact ? "h-3.5 w-3.5 mr-1" : "h-4 w-4 mr-1.5"} />
+          <span className={compact ? "hidden sm:inline" : ""}>Transactions</span>
         </TabsTrigger>
         <TabsTrigger value="positions" className={tabTriggerClass}>
           <Wallet className={compact ? "h-3.5 w-3.5 mr-1" : "h-4 w-4 mr-1.5"} />
@@ -130,7 +130,7 @@ export function InvestorTabs({
         />
       </TabsContent>
 
-      <TabsContent value="ledger" className="mt-0">
+      <TabsContent value="transactions" className="mt-0">
         <InvestorLedgerTab
           investorId={investorId}
           onDataChange={onDataChange}
