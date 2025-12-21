@@ -4,6 +4,11 @@ import { Button } from "@/components/ui/button";
 import { WithdrawalStatsComponent } from "@/components/admin/withdrawals/WithdrawalStats";
 import { WithdrawalsTable } from "@/components/admin/withdrawals/WithdrawalsTable";
 import { CreateWithdrawalDialog } from "@/components/admin/withdrawals/CreateWithdrawalDialog";
+import { WithdrawalDetailsDrawer } from "@/components/admin/withdrawals/WithdrawalDetailsDrawer";
+import { ApproveWithdrawalDialog } from "@/components/admin/withdrawals/ApproveWithdrawalDialog";
+import { RejectWithdrawalDialog } from "@/components/admin/withdrawals/RejectWithdrawalDialog";
+import { StartProcessingDialog } from "@/components/admin/withdrawals/StartProcessingDialog";
+import { CompleteWithdrawalDialog } from "@/components/admin/withdrawals/CompleteWithdrawalDialog";
 import { withdrawalService } from "@/services/investor/withdrawalService";
 import { Withdrawal, WithdrawalFilters, WithdrawalStats, PaginatedWithdrawals } from "@/types/withdrawal";
 import { toast } from "sonner";
@@ -38,6 +43,15 @@ export default function AdminWithdrawalsPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  
+  // Drawer and action dialogs
+  const [selectedWithdrawalId, setSelectedWithdrawalId] = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedWithdrawal, setSelectedWithdrawal] = useState<Withdrawal | null>(null);
+  const [approveDialogOpen, setApproveDialogOpen] = useState(false);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [processingDialogOpen, setProcessingDialogOpen] = useState(false);
+  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
 
   // URL-persisted filters including page
   const { filters: urlFilters, setFilter, setFilters: setUrlFilters } = useUrlFilters({
@@ -113,6 +127,36 @@ export default function AdminWithdrawalsPage() {
     loadData();
   };
 
+  const handleViewDetails = (withdrawal: Withdrawal) => {
+    setSelectedWithdrawalId(withdrawal.id);
+    setDrawerOpen(true);
+  };
+
+  const handleDrawerAction = (action: "approve" | "reject" | "process" | "complete", withdrawal: Withdrawal) => {
+    setSelectedWithdrawal(withdrawal);
+    setDrawerOpen(false);
+    
+    switch (action) {
+      case "approve":
+        setApproveDialogOpen(true);
+        break;
+      case "reject":
+        setRejectDialogOpen(true);
+        break;
+      case "process":
+        setProcessingDialogOpen(true);
+        break;
+      case "complete":
+        setCompleteDialogOpen(true);
+        break;
+    }
+  };
+
+  const handleActionSuccess = () => {
+    loadData();
+    setSelectedWithdrawal(null);
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader 
@@ -148,6 +192,7 @@ export default function AdminWithdrawalsPage() {
               totalPages: paginatedData.totalPages,
               onPageChange: setPage,
             }}
+            onViewDetails={handleViewDetails}
           />
         </CardContent>
       </Card>
@@ -157,6 +202,42 @@ export default function AdminWithdrawalsPage() {
         onOpenChange={setCreateDialogOpen}
         onSuccess={handleCreateSuccess}
       />
+
+      <WithdrawalDetailsDrawer
+        withdrawalId={selectedWithdrawalId}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        onAction={handleDrawerAction}
+      />
+
+      {selectedWithdrawal && (
+        <>
+          <ApproveWithdrawalDialog
+            open={approveDialogOpen}
+            onOpenChange={setApproveDialogOpen}
+            withdrawal={selectedWithdrawal}
+            onSuccess={handleActionSuccess}
+          />
+          <RejectWithdrawalDialog
+            open={rejectDialogOpen}
+            onOpenChange={setRejectDialogOpen}
+            withdrawal={selectedWithdrawal}
+            onSuccess={handleActionSuccess}
+          />
+          <StartProcessingDialog
+            open={processingDialogOpen}
+            onOpenChange={setProcessingDialogOpen}
+            withdrawal={selectedWithdrawal}
+            onSuccess={handleActionSuccess}
+          />
+          <CompleteWithdrawalDialog
+            open={completeDialogOpen}
+            onOpenChange={setCompleteDialogOpen}
+            withdrawal={selectedWithdrawal}
+            onSuccess={handleActionSuccess}
+          />
+        </>
+      )}
     </div>
   );
 }
