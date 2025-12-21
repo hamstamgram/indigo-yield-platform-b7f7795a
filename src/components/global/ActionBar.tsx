@@ -54,20 +54,35 @@ export function ActionBar({ onOpenCommandPalette }: ActionBarProps) {
         .eq("status", "pending");
 
       // Fetch investors without reports for current month
-      const currentMonth = format(new Date(), "yyyy-MM");
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const currentMonthNum = currentDate.getMonth() + 1;
+      
       const { count: investorCount } = await supabase
         .from("profiles")
         .select("*", { count: "exact", head: true })
         .eq("is_admin", false);
 
-      const { count: reportCount } = await supabase
-        .from("investor_fund_performance")
-        .select("investor_id", { count: "exact", head: true })
-        .eq("period_id", currentMonth);
+      // First lookup the period_id UUID from statement_periods
+      const { data: periodData } = await supabase
+        .from("statement_periods")
+        .select("id")
+        .eq("year", currentYear)
+        .eq("month", currentMonthNum)
+        .maybeSingle();
+
+      let reportCount = 0;
+      if (periodData?.id) {
+        const { count } = await supabase
+          .from("investor_fund_performance")
+          .select("investor_id", { count: "exact", head: true })
+          .eq("period_id", periodData.id);
+        reportCount = count || 0;
+      }
 
       setPendingCounts({
         withdrawals: withdrawalCount || 0,
-        reportsNeeded: Math.max(0, (investorCount || 0) - (reportCount || 0)),
+        reportsNeeded: Math.max(0, (investorCount || 0) - reportCount),
       });
       setLastSync(new Date());
     } catch (error) {
