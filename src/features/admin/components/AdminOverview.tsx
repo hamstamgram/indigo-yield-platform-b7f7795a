@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Users, DollarSign, Activity, UserPlus, Settings } from "lucide-react";
+import { Users, Coins, Activity, UserPlus, Settings } from "lucide-react";
 
 interface AdminMetrics {
   totalUsers: number;
@@ -109,13 +109,13 @@ export function AdminOverview({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Portfolio Value</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <Coins className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${metrics.totalPortfolioValue.toLocaleString("en-US", { minimumFractionDigits: 0 })}
+              {metrics.totalPortfolioValue.toLocaleString("en-US", { minimumFractionDigits: 2 })}
             </div>
-            <p className="text-xs text-muted-foreground">Across all users</p>
+            <p className="text-xs text-muted-foreground">Across all users (tokens)</p>
           </CardContent>
         </Card>
 

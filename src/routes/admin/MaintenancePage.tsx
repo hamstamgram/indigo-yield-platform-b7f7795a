@@ -15,6 +15,7 @@ import {
 import { PositionResetDialog } from "@/components/admin/maintenance/PositionResetDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { formatAUM } from "@/utils/formatters";
 
 interface ResetLogEntry {
   id: string;
@@ -63,12 +64,9 @@ export default function MaintenancePage() {
     fetchHistory();
   }, []);
 
-  const formatTokenAmount = (value: number | undefined) => {
+  const formatAumValue = (value: number | undefined) => {
     if (value === undefined) return "N/A";
-    return new Intl.NumberFormat("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 8,
-    }).format(value);
+    return formatAUM(value, "USDT"); // Generic token formatting
   };
 
   const getStatusBadge = (status: string) => {
@@ -207,7 +205,7 @@ export default function MaintenancePage() {
                       {entry.affected_counts?.positions_reset ?? "—"}
                     </TableCell>
                     <TableCell className="text-right">
-                      {formatTokenAmount(entry.affected_counts?.total_aum_before)}
+                      {formatAumValue(entry.affected_counts?.total_aum_before)}
                     </TableCell>
                     <TableCell className="font-mono text-xs">
                       {entry.reset_batch_id.slice(0, 8)}...
