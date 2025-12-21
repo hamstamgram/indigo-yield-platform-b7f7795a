@@ -1240,6 +1240,74 @@ export type Database = {
           },
         ]
       }
+      fund_reporting_month_closures: {
+        Row: {
+          closed_at: string
+          closed_by: string
+          created_at: string
+          fund_id: string
+          id: string
+          month_end: string
+          month_start: string
+          notes: string | null
+          purpose: Database["public"]["Enums"]["aum_purpose"]
+          updated_at: string
+        }
+        Insert: {
+          closed_at?: string
+          closed_by: string
+          created_at?: string
+          fund_id: string
+          id?: string
+          month_end: string
+          month_start: string
+          notes?: string | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"]
+          updated_at?: string
+        }
+        Update: {
+          closed_at?: string
+          closed_by?: string
+          created_at?: string
+          fund_id?: string
+          id?: string
+          month_end?: string
+          month_start?: string
+          notes?: string | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fund_reporting_month_closures_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_reporting_month_closures_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "fund_reporting_month_closures_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_reporting_month_closures_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["fund_id"]
+          },
+        ]
+      }
       funds: {
         Row: {
           asset: string
@@ -4720,6 +4788,16 @@ export type Database = {
         Returns: boolean
       }
       check_is_admin: { Args: { user_id: string }; Returns: boolean }
+      close_fund_reporting_month: {
+        Args: {
+          p_admin_id: string
+          p_effective_date: string
+          p_fund_id: string
+          p_month_start: string
+          p_notes?: string
+        }
+        Returns: Json
+      }
       complete_withdrawal: {
         Args: {
           p_admin_notes?: string
@@ -4893,6 +4971,10 @@ export type Database = {
           total_pnl: number
           total_value: number
         }[]
+      }
+      get_month_closure_status: {
+        Args: { p_fund_id: string; p_month_start: string }
+        Returns: Json
       }
       get_monthly_platform_aum: {
         Args: never

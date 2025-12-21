@@ -242,25 +242,36 @@ export async function createInvestorWithWizard(wizardData: WizardFormData): Prom
 
         // Create initial DEPOSIT transactions for audit trail with source tracking
         // Include reference_id for idempotency - prevents duplicates if wizard retried
-        const depositTransactions = funds.map((fund) => ({
-          investor_id: investorId,
-          fund_id: fund.id,
-          type: "DEPOSIT" as const,
-          asset: fund.asset,
-          amount: positions[fund.asset] || 0,
-          tx_date: new Date().toISOString().split("T")[0],
-          notes: "Initial position from investor wizard",
-          source: "investor_wizard" as const, // Track source of transaction
-          is_system_generated: false, // Admin-initiated, not system-generated
-          reference_id: `wizard_initial_${investorId}_${fund.asset}`, // Idempotency key
-        }));
+        // CRITICAL: Must include value_date field for transaction to be valid
+        const effectiveDate = new Date().toISOString().split("T")[0];
+        
+        const depositTransactions = funds
+          .filter((fund) => (positions[fund.asset] || 0) > 0) // Only non-zero positions
+          .map((fund) => ({
+            investor_id: investorId,
+            fund_id: fund.id,
+            type: "DEPOSIT" as const,
+            asset: fund.asset,
+            amount: positions[fund.asset] || 0,
+            tx_date: effectiveDate,
+            value_date: effectiveDate, // Required field - was missing!
+            notes: "Initial position on investor creation",
+            source: "investor_wizard" as const,
+            is_system_generated: false,
+            // Deterministic reference_id format: init_deposit:{investor_id}:{fund_id}:{date}
+            reference_id: `init_deposit:${investorId}:${fund.id}:${effectiveDate}`,
+            visibility_scope: "investor_visible" as const,
+          }));
 
-        const { error: txError } = await supabase
-          .from("transactions_v2")
-          .insert(depositTransactions);
+        if (depositTransactions.length > 0) {
+          const { error: txError } = await supabase
+            .from("transactions_v2")
+            .insert(depositTransactions);
 
-        if (txError) {
-          console.error("Transaction creation error:", txError);
+          if (txError) {
+            console.error("Transaction creation error:", txError);
+            // Don't throw - positions are created, log warning only
+          }
         }
       }
     }
