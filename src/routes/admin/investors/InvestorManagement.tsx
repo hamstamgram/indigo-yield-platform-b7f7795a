@@ -1,23 +1,19 @@
+/**
+ * Investor Management Workspace
+ * Full investor workspace using unified InvestorTabs
+ */
+
 import { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { InvestorYieldManager } from "@/components/admin/investors/InvestorYieldManager";
-import InvestorPositionsTab from "@/components/admin/investors/InvestorPositionsTab";
-import InvestorTransactionsTab from "@/components/admin/investors/InvestorTransactionsTab";
-import { InvestorProfileEditor } from "@/components/admin/investors/InvestorProfileEditor";
-import { ReportRecipientsEditor } from "@/components/admin/investors/ReportRecipientsEditor";
-import InvestorWithdrawalsTab from "@/components/admin/investors/InvestorWithdrawalsTab";
-import InvestorReportsTab from "@/components/admin/investors/InvestorReportsTab";
-import InvestorSettingsTab from "@/components/admin/investors/InvestorSettingsTab";
-import { Loader2, ArrowLeft, Coins, TrendingUp, FileText, Settings, ArrowDownToLine } from "lucide-react";
-import { useInvestorAssetStats } from "@/hooks/useInvestorPerformance";
-import { AssetPerformanceCard } from "@/components/shared/AssetPerformanceCard";
-import { deleteInvestorUser } from "@/services/admin/userService";
+import { Loader2, ArrowLeft, Clock, FileText, ArrowDownToLine, Users, Percent } from "lucide-react";
+import { deleteInvestorUser, forceDeleteInvestorUser } from "@/services/admin/userService";
+import { InvestorTabs } from "@/components/admin/investors/InvestorTabs";
+import { format } from "date-fns";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -39,14 +35,32 @@ interface InvestorDetail {
   phone: string | null;
 }
 
+interface OpsIndicators {
+  lastActivityDate: string | null;
+  lastReportPeriod: string | null;
+  pendingWithdrawals: number;
+  ibParentName: string | null;
+  hasFeeSchedule: boolean;
+}
+
 const InvestorManagement = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [investor, setInvestor] = useState<InvestorDetail | null>(null);
+  const [opsIndicators, setOpsIndicators] = useState<OpsIndicators | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch per-asset performance stats for this investor
-  const { data: assetStats, isLoading: isLoadingStats } = useInvestorAssetStats(id);
+  // Preserve filter params for back navigation
+  const getBackUrl = () => {
+    const preserved = new URLSearchParams();
+    ["search", "fund", "status", "ib", "has_withdrawals"].forEach(key => {
+      const val = searchParams.get(key);
+      if (val) preserved.set(key, val);
+    });
+    const qs = preserved.toString();
+    return `/admin/investors${qs ? `?${qs}` : ""}`;
+  };
 
   const fetchInvestorDetails = useCallback(async () => {
     if (!id) return;
@@ -78,6 +92,9 @@ const InvestorManagement = () => {
         profile_id: data.id,
         phone: data.phone || null,
       });
+
+      // Load ops indicators
+      await loadOpsIndicators(id, data.ib_parent_id);
     } catch (error) {
       console.error("Error fetching investor details:", error);
       toast.error("Failed to fetch investor details");
@@ -86,18 +103,79 @@ const InvestorManagement = () => {
     }
   }, [id]);
 
+  const loadOpsIndicators = async (investorId: string, ibParentId: string | null) => {
+    try {
+      // Fetch last transaction
+      const { data: lastTx } = await supabase
+        .from("transactions_v2")
+        .select("tx_date")
+        .eq("investor_id", investorId)
+        .order("tx_date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      // Fetch pending withdrawals
+      const { count: pendingCount } = await supabase
+        .from("withdrawal_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("investor_id", investorId)
+        .eq("status", "pending");
+
+      // Fetch last report
+      const { data: lastReport } = await supabase
+        .from("generated_statements")
+        .select("period_id")
+        .eq("investor_id", investorId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      // Fetch IB parent name
+      let ibParentName: string | null = null;
+      if (ibParentId) {
+        const { data: parentProfile } = await supabase
+          .from("profiles")
+          .select("first_name, last_name")
+          .eq("id", ibParentId)
+          .maybeSingle();
+        if (parentProfile) {
+          ibParentName = [parentProfile.first_name, parentProfile.last_name]
+            .filter(Boolean)
+            .join(" ") || null;
+        }
+      }
+
+      // Check fee schedule
+      const { data: feeSchedule } = await supabase
+        .from("investor_fee_schedule")
+        .select("id")
+        .eq("investor_id", investorId)
+        .limit(1);
+
+      setOpsIndicators({
+        lastActivityDate: lastTx?.tx_date || null,
+        lastReportPeriod: lastReport?.period_id || null,
+        pendingWithdrawals: pendingCount || 0,
+        ibParentName,
+        hasFeeSchedule: (feeSchedule?.length || 0) > 0,
+      });
+    } catch (error) {
+      console.error("Error loading ops indicators:", error);
+    }
+  };
+
   useEffect(() => {
     fetchInvestorDetails();
   }, [fetchInvestorDetails]);
 
   const handleBack = () => {
-    navigate("/admin/investors");
+    navigate(getBackUrl());
   };
 
   const handleDeleteInvestor = async () => {
     if (!id) return;
     try {
-      await deleteInvestorUser(id);
+      await forceDeleteInvestorUser(id);
       toast.success("Investor deleted", {
         description: "The investor and all associated data have been removed.",
       });
@@ -139,13 +217,13 @@ const InvestorManagement = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-6 space-y-4">
       {/* Breadcrumb */}
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link to="/admin/investors">Investors</Link>
+              <Link to={getBackUrl()}>Investors</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -155,137 +233,68 @@ const InvestorManagement = () => {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" onClick={handleBack}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
+      {/* Header with ops indicators */}
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <Button variant="ghost" size="icon" onClick={handleBack}>
+            <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{investor.name}</h1>
-            <p className="text-muted-foreground">Investor Profile & Portfolio Management</p>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold tracking-tight">{investor.name}</h1>
+              <Badge variant={investor.status === "active" ? "default" : "secondary"}>
+                {investor.status}
+              </Badge>
+            </div>
+            <p className="text-muted-foreground">{investor.email}</p>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Badge variant={investor.status === "active" ? "default" : "secondary"}>
-            {investor.status}
-          </Badge>
-        </div>
+
+        {/* Ops Indicators */}
+        {opsIndicators && (
+          <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Clock className="h-3.5 w-3.5" />
+              <span>
+                {opsIndicators.lastActivityDate
+                  ? format(new Date(opsIndicators.lastActivityDate), "MMM d, yyyy")
+                  : "No activity"}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <FileText className="h-3.5 w-3.5" />
+              <span>{opsIndicators.lastReportPeriod || "No reports"}</span>
+            </div>
+            {opsIndicators.pendingWithdrawals > 0 && (
+              <Badge variant="destructive" className="flex items-center gap-1">
+                <ArrowDownToLine className="h-3 w-3" />
+                {opsIndicators.pendingWithdrawals} pending
+              </Badge>
+            )}
+            {opsIndicators.ibParentName && (
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Users className="h-3 w-3" />
+                IB: {opsIndicators.ibParentName}
+              </Badge>
+            )}
+            <Badge variant={opsIndicators.hasFeeSchedule ? "default" : "secondary"} className="flex items-center gap-1">
+              <Percent className="h-3 w-3" />
+              {opsIndicators.hasFeeSchedule ? "Custom fees" : "Default fees"}
+            </Badge>
+          </div>
+        )}
       </div>
 
-      <Tabs defaultValue="yield" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="yield" className="gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Yield Management
-          </TabsTrigger>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="positions">Positions</TabsTrigger>
-          <TabsTrigger value="transactions">Transactions</TabsTrigger>
-          <TabsTrigger value="withdrawals" className="gap-2">
-            <ArrowDownToLine className="h-4 w-4" />
-            Withdrawals
-          </TabsTrigger>
-          <TabsTrigger value="reports" className="gap-2">
-            <FileText className="h-4 w-4" />
-            Reports
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="gap-2">
-            <Settings className="h-4 w-4" />
-            Settings
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Yield Management Tab - NEW PRIMARY TAB */}
-        <TabsContent value="yield" className="space-y-4">
-          <InvestorYieldManager investorId={id!} investorName={investor.name} />
-        </TabsContent>
-
-        {/* Profile Tab */}
-        <TabsContent value="profile" className="space-y-6">
-          {/* Summary Stats Card */}
-          <Card className="border-l-4 border-l-primary">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-primary/10 rounded-full">
-                  <Coins className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Active Fund Positions</p>
-                  <p className="text-3xl font-bold">
-                    {isLoadingStats ? "..." : assetStats?.activeFunds || 0}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Per-Asset Performance Cards */}
-          {!isLoadingStats && assetStats?.assets && assetStats.assets.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Fund Performance (Latest Period)</h3>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {assetStats.assets.map((asset) => (
-                  <AssetPerformanceCard
-                    key={asset.fundName}
-                    data={asset}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {!isLoadingStats && (!assetStats?.assets || assetStats.assets.length === 0) && (
-            <Card className="bg-muted/30">
-              <CardContent className="p-6 text-center">
-                <p className="text-muted-foreground">No fund positions found for this investor.</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Personal Information - Editable by Admin */}
-          <InvestorProfileEditor
-            investor={investor}
-            onUpdate={fetchInvestorDetails}
-          />
-
-          {/* Report Recipients - Editable by Admin */}
-          <ReportRecipientsEditor
-            investorId={investor.id}
-            investorEmail={investor.email}
-          />
-        </TabsContent>
-
-        {/* Positions Tab */}
-        <TabsContent value="positions" className="space-y-4">
-          <InvestorPositionsTab investorId={id!} />
-        </TabsContent>
-
-        {/* Transactions Tab */}
-        <TabsContent value="transactions" className="space-y-4">
-          <InvestorTransactionsTab investorId={id!} />
-        </TabsContent>
-
-        {/* Withdrawals Tab */}
-        <TabsContent value="withdrawals" className="space-y-4">
-          <InvestorWithdrawalsTab investorId={id!} />
-        </TabsContent>
-
-        {/* Reports Tab */}
-        <TabsContent value="reports" className="space-y-4">
-          <InvestorReportsTab investorId={id!} investorName={investor.name} />
-        </TabsContent>
-
-        {/* Settings Tab */}
-        <TabsContent value="settings" className="space-y-4">
-          <InvestorSettingsTab
-            investorId={id!}
-            investorName={investor.name}
-            onDelete={handleDeleteInvestor}
-            onDataChange={fetchInvestorDetails}
-          />
-        </TabsContent>
-      </Tabs>
+      {/* Unified Tabs */}
+      <InvestorTabs
+        investorId={id!}
+        investorName={investor.name}
+        investorEmail={investor.email}
+        compact={false}
+        onDataChange={fetchInvestorDetails}
+        onDelete={handleDeleteInvestor}
+        pendingWithdrawalsCount={opsIndicators?.pendingWithdrawals || 0}
+      />
     </div>
   );
 };

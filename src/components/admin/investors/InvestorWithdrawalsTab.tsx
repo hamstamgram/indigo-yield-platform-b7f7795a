@@ -3,7 +3,14 @@
  * Shows withdrawal requests for a specific investor with inline approve/reject
  */
 
+/**
+ * Investor Withdrawals Tab
+ * Shows withdrawal requests for a specific investor with inline approve/reject
+ * URL-persisted status filter
+ */
+
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -43,13 +50,33 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-gray-500/10 text-gray-600 border-gray-500/20",
 };
 
+const validStatuses: (WithdrawalStatus | "all")[] = ["all", "pending", "approved", "completed", "rejected"];
+
 export function InvestorWithdrawalsTab({ investorId }: InvestorWithdrawalsTabProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<WithdrawalStatus | "all">("all");
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<Withdrawal | null>(null);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+
+  // URL-persisted status filter
+  const statusParam = searchParams.get("wd_status") || "all";
+  const statusFilter: WithdrawalStatus | "all" = validStatuses.includes(statusParam as any) 
+    ? (statusParam as WithdrawalStatus | "all") 
+    : "all";
+
+  const setStatusFilter = (value: WithdrawalStatus | "all") => {
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      if (value === "all") {
+        newParams.delete("wd_status");
+      } else {
+        newParams.set("wd_status", value);
+      }
+      return newParams;
+    }, { replace: true });
+  };
 
   const loadWithdrawals = useCallback(async () => {
     setLoading(true);
