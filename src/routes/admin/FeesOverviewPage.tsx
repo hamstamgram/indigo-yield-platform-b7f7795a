@@ -35,11 +35,14 @@ interface FeeRecord {
   investorId: string;
   investorName: string;
   investorEmail: string;
-  assetCode: string;
+  fundId: string;
+  fundName: string;
+  asset: string;
   amount: number;
-  kind: string;
-  periodMonth: number | null;
-  periodYear: number | null;
+  type: string;
+  txDate: string;
+  purpose: string;
+  visibilityScope: string;
   createdAt: string;
 }
 
@@ -105,57 +108,79 @@ function FeesOverviewContent() {
 
       setFunds(fundsData || []);
 
-      // Load all fee records
-      const { data: feesData, error: feesError } = await supabase
-        .from("fees")
+      // Load fee-related transactions from transactions_v2
+      const { data: feeTxData, error: feeTxError } = await supabase
+        .from("transactions_v2")
         .select(`
           id,
           investor_id,
-          asset_code,
+          fund_id,
+          asset,
           amount,
-          kind,
-          period_month,
-          period_year,
-          created_at,
-          profiles!fk_fees_investor (
-            email,
-            first_name,
-            last_name
-          )
+          type,
+          tx_date,
+          purpose,
+          visibility_scope,
+          created_at
         `)
+        .in("type", ["FEE", "FEE_CREDIT", "IB_CREDIT"])
         .order("created_at", { ascending: false })
         .limit(500);
 
-      if (feesError) throw feesError;
+      if (feeTxError) throw feeTxError;
 
-      const feeRecords: FeeRecord[] = (feesData || []).map((f: any) => ({
-        id: f.id,
-        investorId: f.investor_id,
-        investorName: f.profiles
-          ? `${f.profiles.first_name || ""} ${f.profiles.last_name || ""}`.trim() || f.profiles.email
-          : "Unknown",
-        investorEmail: f.profiles?.email || "",
-        assetCode: f.asset_code,
-        amount: Number(f.amount),
-        kind: f.kind,
-        periodMonth: f.period_month,
-        periodYear: f.period_year,
-        createdAt: f.created_at,
-      }));
+      // Enrich with investor and fund details
+      const investorIds = [...new Set((feeTxData || []).map(t => t.investor_id))];
+      const fundIds = [...new Set((feeTxData || []).map(t => t.fund_id))];
+
+      const { data: investorProfiles } = await supabase
+        .from("profiles")
+        .select("id, email, first_name, last_name")
+        .in("id", investorIds);
+
+      const { data: fundDetailsForFees } = await supabase
+        .from("funds")
+        .select("id, name, asset")
+        .in("id", fundIds);
+
+      const investorMap = new Map((investorProfiles || []).map(p => [p.id, p]));
+      const fundMapForFees = new Map((fundDetailsForFees || []).map(f => [f.id, f]));
+
+      const feeRecords: FeeRecord[] = (feeTxData || []).map((tx: any) => {
+        const investor = investorMap.get(tx.investor_id);
+        const fund = fundMapForFees.get(tx.fund_id);
+        return {
+          id: tx.id,
+          investorId: tx.investor_id,
+          investorName: investor
+            ? `${investor.first_name || ""} ${investor.last_name || ""}`.trim() || investor.email
+            : "Unknown",
+          investorEmail: investor?.email || "",
+          fundId: tx.fund_id,
+          fundName: fund?.name || "Unknown",
+          asset: tx.asset || fund?.asset || "",
+          amount: Number(tx.amount),
+          type: tx.type,
+          txDate: tx.tx_date,
+          purpose: tx.purpose || "",
+          visibilityScope: tx.visibility_scope || "",
+          createdAt: tx.created_at,
+        };
+      });
 
       setFees(feeRecords);
 
       // Calculate summaries by asset
       const summaryMap = new Map<string, FeeSummary>();
       feeRecords.forEach((fee) => {
-        const existing = summaryMap.get(fee.assetCode) || {
-          assetCode: fee.assetCode,
+        const existing = summaryMap.get(fee.asset) || {
+          assetCode: fee.asset,
           totalAmount: 0,
           transactionCount: 0,
         };
         existing.totalAmount += fee.amount;
         existing.transactionCount += 1;
-        summaryMap.set(fee.assetCode, existing);
+        summaryMap.set(fee.asset, existing);
       });
       setFeeSummaries(Array.from(summaryMap.values()));
 
@@ -270,10 +295,7 @@ function FeesOverviewContent() {
   const filteredFees =
     selectedFund === "all"
       ? fees
-      : fees.filter((f) => {
-          const fund = funds.find((fd) => fd.asset === f.assetCode);
-          return fund?.id === selectedFund;
-        });
+      : fees.filter((f) => f.fundId === selectedFund);
 
   const formatAmount = (amount: number, asset: string) => {
     if (asset === "BTC") {
@@ -389,24 +411,30 @@ function FeesOverviewContent() {
                     <TableRow>
                       <TableHead>Date</TableHead>
                       <TableHead>Investor</TableHead>
-                      <TableHead>Asset</TableHead>
+                      <TableHead>Fund</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead className="text-right">Amount</TableHead>
-                      <TableHead>Period</TableHead>
+                      <TableHead>Purpose</TableHead>
+                      <TableHead>Visibility</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredFees.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          No fee transactions found
+                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                          <div className="space-y-2">
+                            <p>No fee transactions found</p>
+                            <p className="text-xs">
+                              Fee transactions (FEE, FEE_CREDIT, IB_CREDIT) are created during yield distributions.
+                            </p>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ) : (
                       filteredFees.map((fee) => (
                         <TableRow key={fee.id}>
                           <TableCell>
-                            {format(new Date(fee.createdAt), "MMM d, yyyy")}
+                            {format(new Date(fee.txDate || fee.createdAt), "MMM d, yyyy")}
                           </TableCell>
                           <TableCell>
                             <div>
@@ -416,20 +444,33 @@ function FeesOverviewContent() {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              <CryptoIcon symbol={fee.assetCode} className="h-5 w-5" />
-                              {fee.assetCode}
+                              <CryptoIcon symbol={fee.asset} className="h-5 w-5" />
+                              <span className="text-sm">{fee.fundName}</span>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline">{fee.kind}</Badge>
+                            <Badge 
+                              variant={fee.type === "FEE_CREDIT" ? "default" : fee.type === "IB_CREDIT" ? "secondary" : "outline"}
+                              className={fee.type === "FEE_CREDIT" ? "bg-emerald-600" : ""}
+                            >
+                              {fee.type}
+                            </Badge>
                           </TableCell>
                           <TableCell className="text-right font-mono">
-                            {formatAmount(fee.amount, fee.assetCode)}
+                            <span className={fee.amount > 0 ? "text-emerald-600" : ""}>
+                              {fee.amount > 0 ? "+" : ""}{formatAmount(fee.amount, fee.asset)}
+                            </span>
+                            <span className="text-xs text-muted-foreground ml-1">{fee.asset}</span>
                           </TableCell>
                           <TableCell>
-                            {fee.periodMonth && fee.periodYear
-                              ? `${fee.periodMonth}/${fee.periodYear}`
-                              : "—"}
+                            <Badge variant="outline" className="text-xs">
+                              {fee.purpose || "—"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className={`text-xs ${fee.visibilityScope === "admin_only" ? "text-amber-500" : "text-muted-foreground"}`}>
+                              {fee.visibilityScope || "—"}
+                            </span>
                           </TableCell>
                         </TableRow>
                       ))
