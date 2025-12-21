@@ -27,11 +27,58 @@ serve(async (req) => {
   }
 
   try {
-    // Create Supabase client
+    // Create Supabase client (service role for data operations)
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
+
+    // ============ ADMIN AUTH CHECK (P0 Security Fix) ============
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      console.error("Missing Authorization header");
+      return new Response(
+        JSON.stringify({ success: false, error: "Unauthorized - missing auth token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Create auth client to verify caller's identity
+    const supabaseAuth = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(
+      authHeader.replace("Bearer ", "")
+    );
+
+    if (authError || !user) {
+      console.error("Auth verification failed:", authError?.message);
+      return new Response(
+        JSON.stringify({ success: false, error: "Invalid authentication token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check if user has admin role
+    const { data: adminRole, error: roleError } = await supabaseClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .in("role", ["admin", "super_admin"])
+      .maybeSingle();
+
+    if (roleError || !adminRole) {
+      console.error("Admin check failed - user is not admin:", user.id);
+      return new Response(
+        JSON.stringify({ success: false, error: "Admin access required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log(`Admin ${user.id} generating report`);
+    // ============ END AUTH CHECK ============
 
     // Validate request body
     const validation = await parseAndValidate(req, generateReportRequestSchema, corsHeaders);
