@@ -22,7 +22,7 @@ import {
 import { InvestorKpiChips } from "./InvestorKpiChips";
 import { AddTransactionDialog } from "../AddTransactionDialog";
 import { supabase } from "@/integrations/supabase/client";
-import { formatCurrency } from "@/utils/statementCalculations";
+import { formatTokenAmount } from "@/utils/statementCalculations";
 import { format } from "date-fns";
 
 interface Position {
@@ -302,8 +302,8 @@ export function InvestorDrawerQuickView({
                     {pos.shares.toFixed(4)} shares
                   </span>
                 </div>
-                <span className="font-medium text-sm">
-                  {formatCurrency(pos.current_value)}
+                <span className="font-medium text-sm font-mono">
+                  {formatTokenAmount(pos.current_value, pos.fund_code)}
                 </span>
               </div>
             ))
@@ -346,8 +346,8 @@ export function InvestorDrawerQuickView({
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-medium text-sm">
-                    {formatCurrency(Math.abs(activity.amount))}
+                  <div className="font-medium text-sm font-mono">
+                    {formatTokenAmount(Math.abs(activity.amount))}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {format(new Date(activity.date), "MMM d")}

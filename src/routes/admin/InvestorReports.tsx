@@ -532,7 +532,10 @@ const InvestorReports = () => {
     return formatAssetWithSymbol(amount, assetCode);
   };
 
-  const filteredReports = reports.filter((report) => {
+  // Filter to eligible investors (those with assets or reports)
+  const eligibleReports = reports.filter((r) => r.has_reports || r.total_value > 0);
+
+  const filteredReports = eligibleReports.filter((report) => {
     const matchesSearch =
       report.investor_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       report.investor_email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -549,8 +552,9 @@ const InvestorReports = () => {
 
   const stats = {
     totalInvestors: reports.length,
-    reportsGenerated: reports.filter((r) => r.has_reports).length,
-    reportsMissing: reports.filter((r) => !r.has_reports).length,
+    eligibleInvestors: eligibleReports.length,
+    reportsGenerated: eligibleReports.filter((r) => r.has_reports).length,
+    reportsMissing: eligibleReports.filter((r) => !r.has_reports).length,
   };
 
   if (loading) {
@@ -616,12 +620,12 @@ const InvestorReports = () => {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Investors</CardTitle>
+            <CardTitle className="text-sm font-medium">Eligible Investors</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalInvestors}</div>
-            <p className="text-xs text-muted-foreground">Active investors</p>
+            <div className="text-2xl font-bold">{stats.eligibleInvestors}</div>
+            <p className="text-xs text-muted-foreground">Of {stats.totalInvestors} total</p>
           </CardContent>
         </Card>
 

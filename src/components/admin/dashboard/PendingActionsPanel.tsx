@@ -70,32 +70,41 @@ export function PendingActionsPanel() {
         });
       });
 
-      // Check for investors without reports this month
+      // Check for eligible investors without reports this month
       const currentMonth = format(new Date(), "yyyy-MM");
-      const { count: investorCount } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .eq("is_admin", false);
+      const [yearStr, monthStr] = currentMonth.split("-");
+
+      // Get investors with active positions (eligible for reports)
+      const { data: eligibleInvestors } = await supabase
+        .from("investor_positions")
+        .select("investor_id")
+        .gt("current_value", 0);
+
+      const eligibleCount = new Set(eligibleInvestors?.map(p => p.investor_id) || []).size;
 
       const { data: periods } = await supabase
         .from("statement_periods")
         .select("id")
-        .eq("id", currentMonth)
-        .single();
+        .eq("year", parseInt(yearStr))
+        .eq("month", parseInt(monthStr))
+        .maybeSingle();
 
-      if (periods) {
-        const { count: reportCount } = await supabase
+      if (periods && eligibleCount > 0) {
+        // Count unique investors with reports for this period
+        const { data: reportData } = await supabase
           .from("investor_fund_performance")
-          .select("investor_id", { count: "exact", head: true })
-          .eq("period_id", currentMonth);
+          .select("investor_id")
+          .eq("period_id", periods.id);
 
-        const missingReports = (investorCount || 0) - (reportCount || 0);
+        const reportedInvestors = new Set(reportData?.map(r => r.investor_id) || []).size;
+        const missingReports = eligibleCount - reportedInvestors;
+        
         if (missingReports > 0) {
           pendingItems.push({
             id: "reports-needed",
             type: "report",
             title: `Reports Pending`,
-            subtitle: `${missingReports} investor${missingReports > 1 ? "s" : ""} need ${currentMonth} reports`,
+            subtitle: `${missingReports} eligible investor${missingReports > 1 ? "s" : ""} need ${currentMonth} reports`,
             timestamp: new Date(),
             priority: "medium",
           });
