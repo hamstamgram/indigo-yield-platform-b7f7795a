@@ -141,9 +141,6 @@ const Terms = () => {
             <Link className="text-gray-600 hover:text-gray-900" to="/privacy">
               Privacy
             </Link>
-            <Link className="text-gray-600 hover:text-gray-900" to="/contact">
-              Contact
-            </Link>
           </div>
         </div>
       </footer>

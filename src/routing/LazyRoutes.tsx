@@ -4,18 +4,13 @@ import { RouteSuspense } from "./RouteSuspense";
 // ============================================================================
 // PUBLIC PAGES
 // ============================================================================
-export const About = lazy(() => import("@/routes/About"));
-export const Contact = lazy(() => import("@/routes/Contact"));
-export const FAQ = lazy(() => import("@/routes/FAQ"));
 export const ForgotPassword = lazy(() => import("@/routes/ForgotPassword"));
 export const Health = lazy(() => import("@/routes/Health"));
-export const Index = lazy(() => import("@/routes/Index"));
 export const Login = lazy(() => import("@/routes/Login"));
 export const NotFound = lazy(() => import("@/routes/NotFound"));
 export const Privacy = lazy(() => import("@/routes/Privacy"));
 export const ResetPassword = lazy(() => import("@/routes/ResetPassword"));
 export const Status = lazy(() => import("@/routes/Status"));
-export const Strategies = lazy(() => import("@/routes/Strategies"));
 export const Terms = lazy(() => import("@/routes/Terms"));
 
 // ============================================================================
@@ -115,21 +110,6 @@ export const WithdrawalHistoryPage = lazy(
 // ============================================================================
 
 // Public
-export const LazyAbout = () => (
-  <RouteSuspense>
-    <About />
-  </RouteSuspense>
-);
-export const LazyContact = () => (
-  <RouteSuspense>
-    <Contact />
-  </RouteSuspense>
-);
-export const LazyFAQ = () => (
-  <RouteSuspense>
-    <FAQ />
-  </RouteSuspense>
-);
 export const LazyForgotPassword = () => (
   <RouteSuspense>
     <ForgotPassword />
@@ -138,11 +118,6 @@ export const LazyForgotPassword = () => (
 export const LazyHealth = () => (
   <RouteSuspense>
     <Health />
-  </RouteSuspense>
-);
-export const LazyIndex = () => (
-  <RouteSuspense>
-    <Index />
   </RouteSuspense>
 );
 export const LazyLogin = () => (
@@ -168,11 +143,6 @@ export const LazyResetPassword = () => (
 export const LazyStatus = () => (
   <RouteSuspense>
     <Status />
-  </RouteSuspense>
-);
-export const LazyStrategies = () => (
-  <RouteSuspense>
-    <Strategies />
   </RouteSuspense>
 );
 export const LazyTerms = () => (
