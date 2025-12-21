@@ -1,7 +1,7 @@
 /**
  * Yield Operations Page
  * Consolidated fund management and yield distribution
- * With confirmation dialog for safety
+ * With confirmation dialog for safety and month closing functionality
  */
 
 import { useState, useEffect } from "react";
@@ -38,6 +38,13 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   TrendingUp,
   Users,
   Plus,
@@ -48,6 +55,8 @@ import {
   CalendarIcon,
   AlertTriangle,
   Info,
+  Lock,
+  LockOpen,
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -59,8 +68,9 @@ import {
   applyYieldDistribution,
   YieldCalculationResult,
 } from "@/services/admin/yieldDistributionService";
+import { useMonthClosure } from "@/hooks/useMonthClosure";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 
 interface Fund {
   id: string;
@@ -86,11 +96,23 @@ function YieldOperationsContent() {
   const [aumDate, setAumDate] = useState<Date>(new Date());
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
+  // Month closure state
+  const [reportingMonth, setReportingMonth] = useState<string>("");
+  const [closeMonthLoading, setCloseMonthLoading] = useState(false);
+  const { 
+    closureStatus, 
+    checkMonthClosed, 
+    closeReportingMonth, 
+    getAvailableMonths,
+    setClosureStatus 
+  } = useMonthClosure();
+
   // Confirmation dialog state
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmationText, setConfirmationText] = useState("");
 
   const { user } = useAuth();
+  const availableMonths = getAvailableMonths();
 
   useEffect(() => {
     loadFunds();
@@ -144,7 +166,7 @@ function YieldOperationsContent() {
     return value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  const openYieldDialog = (fund: Fund) => {
+  const openYieldDialog = async (fund: Fund) => {
     setSelectedFund(fund);
     setNewAUM("");
     setYieldPreview(null);
@@ -152,6 +174,69 @@ function YieldOperationsContent() {
     setAumDate(new Date());
     setShowYieldDialog(true);
     setConfirmationText("");
+    setClosureStatus(null);
+    
+    // Default to current month
+    const currentMonthStart = startOfMonth(new Date()).toISOString().split("T")[0];
+    setReportingMonth(currentMonthStart);
+    
+    // Check closure status for current month
+    await checkMonthClosed(fund.id, new Date(currentMonthStart));
+  };
+
+  // Check closure status when reporting month changes
+  const handleReportingMonthChange = async (monthStart: string) => {
+    setReportingMonth(monthStart);
+    if (selectedFund && monthStart) {
+      await checkMonthClosed(selectedFund.id, new Date(monthStart));
+    }
+  };
+
+  // Validate effective date is within reporting month
+  const validateEffectiveDate = (): { valid: boolean; error?: string } => {
+    if (yieldPurpose !== "reporting" || !reportingMonth) {
+      return { valid: true };
+    }
+    
+    const monthStart = new Date(reportingMonth);
+    const monthEnd = endOfMonth(monthStart);
+    
+    if (!isWithinInterval(aumDate, { start: monthStart, end: monthEnd })) {
+      return {
+        valid: false,
+        error: `Effective date must be within ${format(monthStart, "MMMM yyyy")} (${format(monthStart, "MMM d")} - ${format(monthEnd, "MMM d")})`,
+      };
+    }
+    
+    return { valid: true };
+  };
+
+  // Handle closing the reporting month
+  const handleCloseMonth = async () => {
+    if (!selectedFund || !reportingMonth || !user) return;
+    
+    const validation = validateEffectiveDate();
+    if (!validation.valid) {
+      toast.error(validation.error);
+      return;
+    }
+    
+    setCloseMonthLoading(true);
+    try {
+      const result = await closeReportingMonth(
+        selectedFund.id,
+        new Date(reportingMonth),
+        aumDate,
+        user.id,
+        `Closed via Yield Operations UI`
+      );
+      
+      if (!result.success) {
+        toast.error(result.error || "Failed to close month");
+      }
+    } finally {
+      setCloseMonthLoading(false);
+    }
   };
 
   const handlePreviewYield = async () => {
@@ -338,12 +423,61 @@ function YieldOperationsContent() {
           <div className="space-y-6 py-4">
             {/* Step 1: Period & Purpose */}
             <div className="p-4 border rounded-lg bg-muted/20">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
-                  1
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
+                    1
+                  </div>
+                  <h3 className="font-semibold">Choose Period & Purpose</h3>
                 </div>
-                <h3 className="font-semibold">Choose Period & Purpose</h3>
+                
+                {/* Month Closure Status Badge */}
+                {yieldPurpose === "reporting" && reportingMonth && (
+                  <Badge 
+                    variant={closureStatus?.is_closed ? "destructive" : "outline"}
+                    className={cn(
+                      "flex items-center gap-1",
+                      closureStatus?.is_closed 
+                        ? "bg-red-100 text-red-700 border-red-300" 
+                        : "bg-green-100 text-green-700 border-green-300"
+                    )}
+                  >
+                    {closureStatus?.is_closed ? (
+                      <>
+                        <Lock className="h-3 w-3" />
+                        Closed {closureStatus.closed_at && format(new Date(closureStatus.closed_at), "MMM d")}
+                      </>
+                    ) : (
+                      <>
+                        <LockOpen className="h-3 w-3" />
+                        Open
+                      </>
+                    )}
+                  </Badge>
+                )}
               </div>
+
+              {/* Reporting Month Selector - Only for reporting purpose */}
+              {yieldPurpose === "reporting" && (
+                <div className="space-y-2 mb-4">
+                  <Label>Reporting Month</Label>
+                  <Select value={reportingMonth} onValueChange={handleReportingMonthChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select month to close" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableMonths.map((month) => (
+                        <SelectItem key={month.value} value={month.value}>
+                          {month.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Select the reporting month this yield applies to
+                  </p>
+                </div>
+              )}
 
               {/* AUM Input */}
               <div className="grid grid-cols-2 gap-6 mb-4">
@@ -364,7 +498,13 @@ function YieldOperationsContent() {
                     onChange={(e) => setNewAUM(e.target.value)}
                     placeholder={`Enter new total AUM`}
                     className="font-mono"
+                    disabled={closureStatus?.is_closed && yieldPurpose === "reporting"}
                   />
+                  {closureStatus?.is_closed && yieldPurpose === "reporting" && (
+                    <p className="text-xs text-red-500">
+                      Month is closed. Edits blocked.
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -466,6 +606,14 @@ function YieldOperationsContent() {
               </div>
             </div>
 
+            {/* Effective Date Validation Warning */}
+            {yieldPurpose === "reporting" && reportingMonth && !validateEffectiveDate().valid && (
+              <div className="flex items-start gap-2 p-3 rounded-md bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 text-sm">
+                <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <span>{validateEffectiveDate().error}</span>
+              </div>
+            )}
+
             {/* Step 2: Preview Button */}
             <div className="p-4 border rounded-lg bg-muted/20">
               <div className="flex items-center gap-2 mb-4">
@@ -478,19 +626,43 @@ function YieldOperationsContent() {
                 <h3 className="font-semibold">Preview Distribution</h3>
               </div>
 
-              <Button
-                onClick={handlePreviewYield}
-                disabled={!newAUM || previewLoading}
-                variant="secondary"
-                className="w-full"
-              >
-                {previewLoading ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <ArrowRight className="h-4 w-4 mr-2" />
+              <div className="flex gap-3">
+                <Button
+                  onClick={handlePreviewYield}
+                  disabled={
+                    !newAUM || 
+                    previewLoading || 
+                    (yieldPurpose === "reporting" && closureStatus?.is_closed) ||
+                    (yieldPurpose === "reporting" && !validateEffectiveDate().valid)
+                  }
+                  variant="secondary"
+                  className="flex-1"
+                >
+                  {previewLoading ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <ArrowRight className="h-4 w-4 mr-2" />
+                  )}
+                  Preview Yield Distribution
+                </Button>
+                
+                {/* Close Month Button - Only for reporting purpose */}
+                {yieldPurpose === "reporting" && reportingMonth && !closureStatus?.is_closed && (
+                  <Button
+                    onClick={handleCloseMonth}
+                    disabled={closeMonthLoading || !validateEffectiveDate().valid}
+                    variant="outline"
+                    className="border-amber-500 text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/20"
+                  >
+                    {closeMonthLoading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Lock className="h-4 w-4 mr-2" />
+                    )}
+                    Close Month
+                  </Button>
                 )}
-                Preview Yield Distribution
-              </Button>
+              </div>
             </div>
 
             {/* Preview Results */}
