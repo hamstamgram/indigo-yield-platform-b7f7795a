@@ -33,8 +33,9 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Loader2, Shield, ShieldCheck, UserPlus, Trash2, Search } from "lucide-react";
+import { Loader2, Shield, ShieldCheck, UserPlus, Search } from "lucide-react";
 import { SuperAdminGuard } from "@/components/admin/SuperAdminGuard";
+import { RoleChangeConfirmDialog } from "@/components/admin/RoleChangeConfirmDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -48,6 +49,14 @@ interface AdminUser {
   createdAt: string;
 }
 
+interface PendingRoleChange {
+  adminId: string;
+  adminName: string;
+  adminEmail: string;
+  currentRole: "admin" | "super_admin";
+  newRole: "admin" | "super_admin";
+}
+
 function AdminListContent() {
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,6 +65,7 @@ function AdminListContent() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"admin" | "super_admin">("admin");
   const [inviting, setInviting] = useState(false);
+  const [pendingRoleChange, setPendingRoleChange] = useState<PendingRoleChange | null>(null);
   const { toast } = useToast();
 
   const loadAdmins = async () => {
@@ -128,7 +138,7 @@ function AdminListContent() {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Create invite
+      // Create invite with intended role
       const { error } = await supabase
         .from("admin_invites")
         .insert({
@@ -136,6 +146,7 @@ function AdminListContent() {
           invite_code: inviteCode,
           expires_at: expiresAt.toISOString(),
           created_by: user?.id,
+          intended_role: inviteRole,
         });
 
       if (error) throw error;
@@ -175,13 +186,27 @@ function AdminListContent() {
     }
   };
 
-  const handleRoleChange = async (adminId: string, newRole: "admin" | "super_admin") => {
+  const initiateRoleChange = (admin: AdminUser, newRole: "admin" | "super_admin") => {
+    if (admin.role === newRole) return; // No change needed
+    
+    setPendingRoleChange({
+      adminId: admin.id,
+      adminName: `${admin.firstName || ""} ${admin.lastName || ""}`.trim() || admin.email,
+      adminEmail: admin.email,
+      currentRole: admin.role,
+      newRole,
+    });
+  };
+
+  const executeRoleChange = async () => {
+    if (!pendingRoleChange) return;
+    
     try {
       // Use secure RPC function that enforces super_admin check server-side
       const { data, error } = await supabase
         .rpc("update_admin_role", {
-          p_target_user_id: adminId,
-          p_new_role: newRole,
+          p_target_user_id: pendingRoleChange.adminId,
+          p_new_role: pendingRoleChange.newRole,
         });
 
       if (error) {
@@ -206,7 +231,7 @@ function AdminListContent() {
 
       toast({
         title: "Role Updated",
-        description: `Admin role changed to ${newRole === "super_admin" ? "Super Admin" : "Admin"}`,
+        description: `Admin role changed to ${pendingRoleChange.newRole === "super_admin" ? "Super Admin" : "Admin"}`,
       });
 
       loadAdmins();
@@ -217,6 +242,8 @@ function AdminListContent() {
         description: "Failed to update role",
         variant: "destructive",
       });
+    } finally {
+      setPendingRoleChange(null);
     }
   };
 
@@ -310,7 +337,7 @@ function AdminListContent() {
                     <Select
                       value={admin.role}
                       onValueChange={(value) =>
-                        handleRoleChange(admin.id, value as "admin" | "super_admin")
+                        initiateRoleChange(admin, value as "admin" | "super_admin")
                       }
                     >
                       <SelectTrigger className="w-32">
@@ -456,6 +483,17 @@ function AdminListContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Role Change Confirmation Dialog */}
+      <RoleChangeConfirmDialog
+        open={!!pendingRoleChange}
+        onOpenChange={(open) => !open && setPendingRoleChange(null)}
+        adminName={pendingRoleChange?.adminName || ""}
+        adminEmail={pendingRoleChange?.adminEmail || ""}
+        currentRole={pendingRoleChange?.currentRole || "admin"}
+        newRole={pendingRoleChange?.newRole || "admin"}
+        onConfirm={executeRoleChange}
+      />
     </div>
   );
 }

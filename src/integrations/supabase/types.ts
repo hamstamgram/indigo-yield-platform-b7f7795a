@@ -54,6 +54,7 @@ export type Database = {
           email: string
           expires_at: string
           id: string
+          intended_role: string | null
           invite_code: string
           used: boolean | null
         }
@@ -63,6 +64,7 @@ export type Database = {
           email: string
           expires_at: string
           id?: string
+          intended_role?: string | null
           invite_code: string
           used?: boolean | null
         }
@@ -72,6 +74,7 @@ export type Database = {
           email?: string
           expires_at?: string
           id?: string
+          intended_role?: string | null
           invite_code?: string
           used?: boolean | null
         }
