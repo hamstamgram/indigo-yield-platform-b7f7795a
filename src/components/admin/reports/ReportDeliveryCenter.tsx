@@ -64,8 +64,10 @@ import {
   XOctagon,
   ArrowLeft,
   TrendingUp,
+  RefreshCcw,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { TestEmailSection } from "./TestEmailSection";
 
 interface DeliveryRecord {
   id: string;
@@ -373,6 +375,31 @@ export default function ReportDeliveryCenter() {
     },
   });
 
+  // Refresh delivery status mutation
+  const refreshStatusMutation = useMutation({
+    mutationFn: async (deliveryId: string) => {
+      const { data, error } = await supabase.functions.invoke("refresh-delivery-status", {
+        body: { delivery_id: deliveryId },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data.status_changed) {
+        toast.success(`Status updated: ${data.old_status} → ${data.new_status}`);
+        queryClient.invalidateQueries({ queryKey: ["deliveries"] });
+        queryClient.invalidateQueries({ queryKey: ["delivery-stats"] });
+      } else {
+        toast.info("Status unchanged", {
+          description: `Current status: ${data.new_status}`,
+        });
+      }
+    },
+    onError: (error) => {
+      toast.error(`Failed to refresh: ${error.message}`);
+    },
+  });
+
   const retryAllFailed = async () => {
     const failedDeliveries = deliveries.filter(d => d.status.toLowerCase() === "failed");
     for (const d of failedDeliveries) {
@@ -575,6 +602,13 @@ export default function ReportDeliveryCenter() {
 
       {/* Action Panel */}
       {selectedPeriodId && (
+        <div className="space-y-4">
+          {/* Test Email Section */}
+          <TestEmailSection 
+            selectedPeriodId={selectedPeriodId}
+            selectedDeliveryMode={selectedDeliveryMode}
+          />
+          
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -687,6 +721,7 @@ export default function ReportDeliveryCenter() {
             </div>
           </CardContent>
         </Card>
+        </div>
       )}
 
       {/* Deliveries Table */}
@@ -791,6 +826,18 @@ export default function ReportDeliveryCenter() {
                                 title="Send via MailerSend"
                               >
                                 <SendHorizonal className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {/* Refresh status for sent items */}
+                            {["sent", "sending"].includes(delivery.status.toLowerCase()) && delivery.provider_message_id && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => refreshStatusMutation.mutate(delivery.id)}
+                                disabled={refreshStatusMutation.isPending}
+                                title="Refresh delivery status from MailerSend"
+                              >
+                                <RefreshCcw className={`h-4 w-4 ${refreshStatusMutation.isPending ? 'animate-spin' : ''}`} />
                               </Button>
                             )}
                             <Button
