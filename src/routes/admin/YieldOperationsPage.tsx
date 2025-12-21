@@ -2,6 +2,8 @@
  * Yield Operations Page
  * Consolidated fund management and yield distribution
  * With confirmation dialog for safety and month closing functionality
+ * 
+ * Preview now uses backend RPC for exact parity with apply
  */
 
 import { useState, useEffect } from "react";
@@ -11,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -57,6 +61,9 @@ import {
   Info,
   Lock,
   LockOpen,
+  Building2,
+  UserCheck,
+  ArrowRightLeft,
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -67,6 +74,8 @@ import {
   previewYieldDistribution,
   applyYieldDistribution,
   YieldCalculationResult,
+  YieldDistribution,
+  IBCredit,
 } from "@/services/admin/yieldDistributionService";
 import { useMonthClosure } from "@/hooks/useMonthClosure";
 import { cn } from "@/lib/utils";
@@ -80,6 +89,9 @@ interface Fund {
   total_aum: number;
   investor_count: number;
 }
+
+// INDIGO FEES account ID
+const INDIGO_FEES_ID = "169bb053-36cb-4f6e-93ea-831f0dfeaf1d";
 
 function YieldOperationsContent() {
   const [funds, setFunds] = useState<Fund[]>([]);
@@ -110,6 +122,11 @@ function YieldOperationsContent() {
   // Confirmation dialog state
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmationText, setConfirmationText] = useState("");
+  
+  // Preview filter state
+  const [showSystemAccounts, setShowSystemAccounts] = useState(true);
+  const [showOnlyChanged, setShowOnlyChanged] = useState(false);
+  const [searchInvestor, setSearchInvestor] = useState("");
 
   const { user } = useAuth();
   const availableMonths = getAvailableMonths();
@@ -159,11 +176,11 @@ function YieldOperationsContent() {
 
   const formatValue = (value: number, asset: string) => {
     if (asset === "BTC") {
-      return value.toLocaleString("en-US", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+      return value.toLocaleString("en-US", { minimumFractionDigits: 4, maximumFractionDigits: 8 });
     } else if (asset === "ETH" || asset === "SOL") {
-      return value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+      return value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 });
     }
-    return value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
   };
 
   const openYieldDialog = async (fund: Fund) => {
@@ -175,6 +192,9 @@ function YieldOperationsContent() {
     setShowYieldDialog(true);
     setConfirmationText("");
     setClosureStatus(null);
+    setShowSystemAccounts(true);
+    setShowOnlyChanged(false);
+    setSearchInvestor("");
     
     // Default to current month
     const currentMonthStart = startOfMonth(new Date()).toISOString().split("T")[0];
@@ -259,6 +279,7 @@ function YieldOperationsContent() {
         fundId: selectedFund.id,
         targetDate: aumDate,
         newTotalAUM: newAUMValue,
+        purpose: yieldPurpose,
       });
       setYieldPreview(result);
     } catch (error) {
@@ -307,6 +328,38 @@ function YieldOperationsContent() {
     } finally {
       setApplyLoading(false);
     }
+  };
+  
+  // Filter distributions for display
+  const getFilteredDistributions = (distributions: YieldDistribution[]) => {
+    return distributions.filter((d) => {
+      // Filter by system accounts
+      if (!showSystemAccounts) {
+        const isSystemAccount = d.investorId === INDIGO_FEES_ID || 
+          d.accountType === "fees_account" ||
+          d.investorName?.toLowerCase().includes("indigo fees");
+        if (isSystemAccount) return false;
+      }
+      
+      // Filter by changed only
+      if (showOnlyChanged && d.wouldSkip) return false;
+      
+      // Filter by search
+      if (searchInvestor) {
+        const search = searchInvestor.toLowerCase();
+        return d.investorName?.toLowerCase().includes(search) || 
+               d.investorId.toLowerCase().includes(search);
+      }
+      
+      return true;
+    });
+  };
+  
+  // Check if investor is a system/IB account
+  const isSystemAccount = (d: YieldDistribution) => {
+    return d.investorId === INDIGO_FEES_ID || 
+      d.accountType === "fees_account" ||
+      d.investorName?.toLowerCase().includes("indigo fees");
   };
 
   if (loading) {
@@ -409,7 +462,7 @@ function YieldOperationsContent() {
 
       {/* Yield Distribution Dialog */}
       <Dialog open={showYieldDialog} onOpenChange={setShowYieldDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               {selectedFund && <CryptoIcon symbol={selectedFund.asset} className="h-8 w-8" />}
@@ -674,71 +727,209 @@ function YieldOperationsContent() {
                   </div>
                   <h3 className="font-semibold">Confirm & Apply</h3>
                 </div>
+                
+                {/* Idempotency Warnings */}
+                {yieldPreview.hasConflicts && (
+                  <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 text-sm">
+                    <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <strong>Some transactions already exist.</strong> {yieldPreview.existingConflicts.length} existing reference(s) will be skipped.
+                    </div>
+                  </div>
+                )}
 
-                <div className="grid grid-cols-3 gap-4">
+                {/* Summary Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
-                    <CardContent className="p-4 text-center">
+                    <CardContent className="p-3 text-center">
                       <p className="text-xs text-muted-foreground">Gross Yield</p>
-                      <p className="text-xl font-mono font-bold text-green-600">
+                      <p className="text-lg font-mono font-bold text-green-600">
                         +{formatValue(yieldPreview.grossYield, selectedFund?.asset || "")}
                       </p>
                     </CardContent>
                   </Card>
                   <Card>
-                    <CardContent className="p-4 text-center">
+                    <CardContent className="p-3 text-center">
                       <p className="text-xs text-muted-foreground">Total Fees</p>
-                      <p className="text-xl font-mono font-semibold">
+                      <p className="text-lg font-mono font-semibold">
                         {formatValue(yieldPreview.totalFees, selectedFund?.asset || "")}
                       </p>
                     </CardContent>
                   </Card>
+                  <Card>
+                    <CardContent className="p-3 text-center">
+                      <p className="text-xs text-muted-foreground">IB Fees</p>
+                      <p className="text-lg font-mono font-semibold text-purple-600">
+                        {formatValue(yieldPreview.totalIbFees || 0, selectedFund?.asset || "")}
+                      </p>
+                    </CardContent>
+                  </Card>
                   <Card className="border-primary/30 bg-primary/5">
-                    <CardContent className="p-4 text-center">
+                    <CardContent className="p-3 text-center">
                       <p className="text-xs text-muted-foreground">Net Yield</p>
-                      <p className="text-xl font-mono font-bold text-primary">
+                      <p className="text-lg font-mono font-bold text-primary">
                         +{formatValue(yieldPreview.netYield, selectedFund?.asset || "")}
                       </p>
                     </CardContent>
                   </Card>
                 </div>
+                
+                {/* INDIGO FEES Credit Card */}
+                {yieldPreview.indigoFeesCredit > 0 && (
+                  <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm font-medium">INDIGO FEES Credit</span>
+                        </div>
+                        <span className="font-mono font-bold text-blue-600">
+                          +{formatValue(yieldPreview.indigoFeesCredit, selectedFund?.asset || "")} {selectedFund?.asset}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Platform fees collected after IB commissions
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+                
+                {/* IB Credits Summary */}
+                {yieldPreview.ibCredits && yieldPreview.ibCredits.length > 0 && (
+                  <Card className="border-purple-200 bg-purple-50 dark:bg-purple-950/20">
+                    <CardHeader className="pb-2 pt-3 px-3">
+                      <div className="flex items-center gap-2">
+                        <UserCheck className="h-4 w-4 text-purple-600" />
+                        <span className="text-sm font-medium">IB Credits ({yieldPreview.ibCredits.length})</span>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="px-3 pb-3">
+                      <div className="space-y-2 max-h-32 overflow-y-auto">
+                        {yieldPreview.ibCredits.map((ib, idx) => (
+                          <div key={idx} className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                              <ArrowRightLeft className="h-3 w-3 text-muted-foreground" />
+                              <span className="truncate max-w-[150px]">{ib.ibInvestorName}</span>
+                              <span className="text-xs text-muted-foreground">({ib.ibPercentage}%)</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-purple-600">
+                                +{formatValue(ib.amount, selectedFund?.asset || "")}
+                              </span>
+                              {ib.wouldSkip && (
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger>
+                                      <Badge variant="outline" className="text-xs">Skip</Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Already exists</TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Filter Controls */}
+                <div className="flex flex-wrap items-center gap-4 pt-2">
+                  <Input
+                    placeholder="Search investor..."
+                    value={searchInvestor}
+                    onChange={(e) => setSearchInvestor(e.target.value)}
+                    className="w-48"
+                  />
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="show-system"
+                      checked={showSystemAccounts}
+                      onCheckedChange={setShowSystemAccounts}
+                    />
+                    <Label htmlFor="show-system" className="text-sm">Show system accounts</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="show-changed"
+                      checked={showOnlyChanged}
+                      onCheckedChange={setShowOnlyChanged}
+                    />
+                    <Label htmlFor="show-changed" className="text-sm">Only new entries</Label>
+                  </div>
+                </div>
 
                 {/* Investor Breakdown */}
-                <div className="rounded-md border max-h-64 overflow-y-auto">
+                <div className="rounded-md border max-h-72 overflow-y-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Investor</TableHead>
-                        <TableHead className="text-right">Ownership</TableHead>
+                        <TableHead className="text-right">Current</TableHead>
                         <TableHead className="text-right">Gross</TableHead>
+                        <TableHead className="text-right">Fee %</TableHead>
                         <TableHead className="text-right">Fee</TableHead>
                         <TableHead className="text-right">Net</TableHead>
+                        <TableHead className="text-right">IB</TableHead>
+                        <TableHead className="text-right">Delta</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {yieldPreview.distributions.map((inv) => (
-                        <TableRow key={inv.investorId}>
+                      {getFilteredDistributions(yieldPreview.distributions).map((inv) => (
+                        <TableRow 
+                          key={inv.investorId}
+                          className={cn(
+                            inv.wouldSkip && "opacity-50",
+                            isSystemAccount(inv) && "bg-blue-50/50 dark:bg-blue-950/20"
+                          )}
+                        >
                           <TableCell>
-                            <div>
-                              <p className="font-medium">{inv.investorName}</p>
+                            <div className="flex items-center gap-2">
+                              {isSystemAccount(inv) && (
+                                <Building2 className="h-3 w-3 text-blue-600" />
+                              )}
+                              <div>
+                                <p className="font-medium text-sm truncate max-w-[120px]">{inv.investorName}</p>
+                                {inv.ibParentName && (
+                                  <p className="text-xs text-purple-600">IB: {inv.ibParentName}</p>
+                                )}
+                              </div>
+                              {inv.wouldSkip && (
+                                <Badge variant="outline" className="text-xs">Skip</Badge>
+                              )}
                             </div>
                           </TableCell>
-                          <TableCell className="text-right font-mono">
-                            {inv.allocationPercentage.toFixed(2)}%
+                          <TableCell className="text-right font-mono text-xs">
+                            {formatValue(inv.currentBalance, selectedFund?.asset || "")}
                           </TableCell>
-                          <TableCell className="text-right font-mono text-green-600">
+                          <TableCell className="text-right font-mono text-xs text-green-600">
                             +{formatValue(inv.grossYield, selectedFund?.asset || "")}
                           </TableCell>
-                          <TableCell className="text-right font-mono text-muted-foreground">
-                            -{formatValue(inv.feeAmount, selectedFund?.asset || "")}
+                          <TableCell className="text-right font-mono text-xs">
+                            {inv.feePercentage}%
                           </TableCell>
-                          <TableCell className="text-right font-mono font-semibold">
+                          <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                            {inv.feeAmount > 0 ? `-${formatValue(inv.feeAmount, selectedFund?.asset || "")}` : "—"}
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-xs font-semibold">
                             +{formatValue(inv.netYield, selectedFund?.asset || "")}
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-xs text-purple-600">
+                            {inv.ibAmount > 0 ? `-${formatValue(inv.ibAmount, selectedFund?.asset || "")}` : "—"}
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-xs font-bold text-primary">
+                            +{formatValue(inv.positionDelta, selectedFund?.asset || "")}
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                 </div>
+                
+                <p className="text-xs text-muted-foreground text-center">
+                  Showing {getFilteredDistributions(yieldPreview.distributions).length} of {yieldPreview.distributions.length} investors
+                </p>
 
                 {/* Apply Button - Opens Confirmation */}
                 <Button
@@ -782,7 +973,7 @@ function YieldOperationsContent() {
                         : "border-orange-500 text-orange-700"
                       }
                     >
-                      {yieldPurpose === "reporting" ? "🟢 Reporting" : "🟠 Transaction"}
+                      {yieldPurpose === "reporting" ? "Reporting" : "Transaction"}
                     </Badge>
                   </div>
                   <div className="flex justify-between">
@@ -794,6 +985,18 @@ function YieldOperationsContent() {
                     <span className="font-mono font-medium text-green-600">
                       +{formatValue(yieldPreview?.grossYield || 0, selectedFund?.asset || "")} {selectedFund?.asset}
                     </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Total Fees:</span>
+                    <span className="font-mono">{formatValue(yieldPreview?.totalFees || 0, selectedFund?.asset || "")} {selectedFund?.asset}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">IB Fees:</span>
+                    <span className="font-mono text-purple-600">{formatValue(yieldPreview?.totalIbFees || 0, selectedFund?.asset || "")} {selectedFund?.asset}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">INDIGO FEES Credit:</span>
+                    <span className="font-mono text-blue-600">{formatValue(yieldPreview?.indigoFeesCredit || 0, selectedFund?.asset || "")} {selectedFund?.asset}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Investors:</span>
