@@ -3,8 +3,7 @@
  * Handles daily yield entry, preview, and distribution across investor positions
  * All values are in NATIVE TOKENS (BTC, ETH, USDT, etc.) - never fiat
  * 
- * IMPORTANT: Historical yield uses snapshot-based ownership percentages
- * to ensure correctness when backdating yield entries
+ * IMPORTANT: Preview now uses backend RPC for exact parity with apply
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +11,6 @@ import {
   ensureSnapshotExists, 
   lockPeriodSnapshot, 
   isPeriodLocked,
-  getPeriodOwnership,
   getFundPeriodSnapshot
 } from "@/services/operations/snapshotService";
 
@@ -30,6 +28,7 @@ export interface YieldCalculationInput {
 export interface YieldDistribution {
   investorId: string;
   investorName: string;
+  accountType?: string;
   currentBalance: number;
   allocationPercentage: number;
   feePercentage: number;
@@ -37,6 +36,36 @@ export interface YieldDistribution {
   feeAmount: number;
   netYield: number;
   newBalance: number;
+  positionDelta: number;
+  // IB fields
+  ibParentId?: string;
+  ibParentName?: string;
+  ibPercentage: number;
+  ibAmount: number;
+  ibSource?: 'from_platform_fees' | 'from_investor_yield';
+  // Idempotency
+  referenceId: string;
+  wouldSkip: boolean;
+}
+
+export interface IBCredit {
+  ibInvestorId: string;
+  ibInvestorName: string;
+  sourceInvestorId: string;
+  sourceInvestorName: string;
+  amount: number;
+  ibPercentage: number;
+  source: string;
+  referenceId: string;
+  wouldSkip: boolean;
+}
+
+export interface YieldTotals {
+  gross: number;
+  fees: number;
+  ibFees: number;
+  net: number;
+  indigoCredit: number;
 }
 
 export interface YieldCalculationResult {
@@ -47,14 +76,24 @@ export interface YieldCalculationResult {
   fundCode: string;
   fundAsset: string;
   yieldDate?: Date;
+  effectiveDate?: string;
+  purpose?: string;
+  isMonthEnd?: boolean;
   currentAUM: number;
   newAUM: number;
   grossYield: number;
   netYield: number;
   totalFees: number;
+  totalIbFees: number;
   yieldPercentage: number;
   investorCount: number;
   distributions: YieldDistribution[];
+  ibCredits: IBCredit[];
+  indigoFeesCredit: number;
+  indigoFeesId?: string;
+  existingConflicts: string[];
+  hasConflicts: boolean;
+  totals: YieldTotals;
   status: "preview" | "applied";
   snapshotInfo?: {
     snapshotId: string;
@@ -117,22 +156,19 @@ async function getPeriodIdForDate(targetDate: Date): Promise<string | null> {
 }
 
 /**
- * Preview yield distribution without applying changes.
- * Uses snapshot-based ownership if available for historical periods.
+ * Preview yield distribution using backend RPC for exact parity with apply.
+ * This is a read-only operation that returns computed distributions.
  */
 export async function previewYieldDistribution(
   input: YieldCalculationInput
 ): Promise<YieldCalculationResult> {
-  const { fundId, targetDate, newTotalAUM } = input;
+  const { fundId, targetDate, newTotalAUM, purpose = "reporting" } = input;
 
-  // Check if we should use snapshot-based ownership
+  // Get snapshot info for display
   const periodId = await getPeriodIdForDate(targetDate);
   let snapshotInfo: YieldCalculationResult["snapshotInfo"];
-  let useSnapshotOwnership = false;
-  let snapshotOwnership: Awaited<ReturnType<typeof getPeriodOwnership>> = null;
   
   if (periodId) {
-    // Check if a snapshot exists for this period
     const snapshot = await getFundPeriodSnapshot(fundId, periodId);
     if (snapshot) {
       snapshotInfo = {
@@ -141,116 +177,120 @@ export async function previewYieldDistribution(
         isLocked: snapshot.is_locked,
         periodId,
       };
-      
-      // Get snapshot ownership percentages
-      snapshotOwnership = await getPeriodOwnership(fundId, periodId);
-      if (snapshotOwnership && snapshotOwnership.length > 0) {
-        useSnapshotOwnership = true;
-      }
     }
   }
 
-  // Get investor positions for the fund
+  // Get current AUM to calculate gross yield
   const { data: positions, error: posError } = await supabase
     .from("investor_positions")
-    .select(
-      `
-        investor_id,
-        current_value,
-        fund_class,
-        shares,
-        profile:profiles(first_name,last_name,email)
-      `
-    )
+    .select("current_value")
     .eq("fund_id", fundId)
     .gt("current_value", 0);
 
   if (posError) {
-    console.error("Error fetching positions for preview:", posError);
-    throw new Error(`Failed to preview yield: ${posError.message}`);
+    throw new Error(`Failed to fetch positions: ${posError.message}`);
   }
 
-  const currentAUM =
-    positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
-  const grossYield = Math.max(newTotalAUM - currentAUM, 0);
-  const yieldPercentage = currentAUM > 0 ? (grossYield / currentAUM) * 100 : 0;
+  const currentAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
+  const grossYieldAmount = Math.max(newTotalAUM - currentAUM, 0);
 
-  // Build a map of snapshot ownership if using snapshots
-  const ownershipMap = new Map<string, number>();
-  if (useSnapshotOwnership && snapshotOwnership) {
-    snapshotOwnership.forEach((o) => {
-      ownershipMap.set(o.investor_id, o.ownership_pct / 100);
-    });
+  if (grossYieldAmount <= 0) {
+    throw new Error("New AUM must be greater than current AUM to distribute yield");
   }
 
-  // Resolve fees per investor using helper RPC
-  const distributions =
-    (positions || []).length > 0 && currentAUM > 0
-      ? await Promise.all(
-          (positions || []).map(async (p) => {
-            // Use snapshot ownership if available, otherwise calculate from current positions
-            let allocation: number;
-            if (useSnapshotOwnership && ownershipMap.has(p.investor_id)) {
-              allocation = ownershipMap.get(p.investor_id) || 0;
-            } else {
-              allocation = Number(p.current_value || 0) / currentAUM;
-            }
-            
-            const gross = grossYield * allocation;
-            let feePct = 0;
-            try {
-              const { data: feePctResult } = await (supabase.rpc as any)(
-                "_resolve_investor_fee_pct",
-                {
-                  p_date: formatDate(targetDate),
-                  p_fund_id: fundId,
-                  p_investor_id: p.investor_id,
-                }
-              );
-              feePct = Number(feePctResult || 0);
-            } catch (e) {
-              feePct = 0;
-            }
-            const feeAmount = gross * (feePct / 100);
-            const net = gross - feeAmount;
-            const profile = p.profile as any;
-            const investorName =
-              `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||
-              profile?.email ||
-              p.investor_id;
-            return {
-              investorId: p.investor_id,
-              investorName,
-              currentBalance: Number(p.current_value || 0),
-              allocationPercentage: allocation * 100,
-              feePercentage: feePct,
-              grossYield: gross,
-              feeAmount,
-              netYield: net,
-              newBalance: Number(p.current_value || 0) + net,
-            } as YieldDistribution;
-          })
-        )
-      : [];
+  // Get user ID
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error("Authentication required");
+  }
 
-  const totalFees = distributions.reduce((s, d) => s + d.feeAmount, 0);
-  const netYield = distributions.reduce((s, d) => s + d.netYield, 0);
+  // Call backend preview RPC
+  const { data, error } = await (supabase.rpc as any)("preview_daily_yield_to_fund_v2", {
+    p_fund_id: fundId,
+    p_date: formatDate(targetDate),
+    p_gross_amount: grossYieldAmount,
+    p_admin_id: user.id,
+    p_purpose: purpose,
+  });
+
+  if (error) {
+    console.error("Error previewing yield distribution:", error);
+    throw new Error(`Failed to preview yield: ${error.message}`);
+  }
+
+  if (!data.success) {
+    throw new Error(data.error || "Preview failed");
+  }
+
+  // Transform backend response to frontend format
+  const distributions: YieldDistribution[] = (data.distributions || []).map((d: any) => ({
+    investorId: d.investor_id,
+    investorName: d.investor_name,
+    accountType: d.account_type,
+    currentBalance: Number(d.current_balance || 0),
+    allocationPercentage: Number(d.allocation_percentage || 0),
+    feePercentage: Number(d.fee_percentage || 0),
+    grossYield: Number(d.gross_yield || 0),
+    feeAmount: Number(d.fee_amount || 0),
+    netYield: Number(d.net_yield || 0),
+    newBalance: Number(d.new_balance || 0),
+    positionDelta: Number(d.position_delta || 0),
+    ibParentId: d.ib_parent_id,
+    ibParentName: d.ib_parent_name,
+    ibPercentage: Number(d.ib_percentage || 0),
+    ibAmount: Number(d.ib_amount || 0),
+    ibSource: d.ib_source,
+    referenceId: d.reference_id,
+    wouldSkip: d.would_skip || false,
+  }));
+
+  const ibCredits: IBCredit[] = (data.ib_credits || []).map((c: any) => ({
+    ibInvestorId: c.ib_investor_id,
+    ibInvestorName: c.ib_investor_name,
+    sourceInvestorId: c.source_investor_id,
+    sourceInvestorName: c.source_investor_name,
+    amount: Number(c.amount || 0),
+    ibPercentage: Number(c.ib_percentage || 0),
+    source: c.source,
+    referenceId: c.reference_id,
+    wouldSkip: c.would_skip || false,
+  }));
+
+  const totals: YieldTotals = {
+    gross: Number(data.totals?.gross || 0),
+    fees: Number(data.totals?.fees || 0),
+    ibFees: Number(data.totals?.ib_fees || 0),
+    net: Number(data.totals?.net || 0),
+    indigoCredit: Number(data.totals?.indigo_credit || 0),
+  };
+
+  const yieldPercentage = currentAUM > 0 ? (grossYieldAmount / currentAUM) * 100 : 0;
 
   return {
     success: true,
     preview: true,
     fundId,
-    fundCode: "",
-    fundAsset: "",
+    fundCode: data.fund_code || "",
+    fundAsset: data.fund_asset || "",
     yieldDate: targetDate,
-    currentAUM,
-    newAUM: newTotalAUM,
-    grossYield,
-    netYield,
-    totalFees,
+    effectiveDate: data.effective_date,
+    purpose: data.purpose,
+    isMonthEnd: data.is_month_end,
+    currentAUM: Number(data.current_aum || currentAUM),
+    newAUM: Number(data.new_aum || newTotalAUM),
+    grossYield: grossYieldAmount,
+    netYield: totals.net,
+    totalFees: totals.fees,
+    totalIbFees: totals.ibFees,
     yieldPercentage,
     investorCount: distributions.length,
     distributions,
+    ibCredits,
+    indigoFeesCredit: Number(data.indigo_fees_credit || 0),
+    indigoFeesId: data.indigo_fees_id,
+    existingConflicts: data.existing_conflicts || [],
+    hasConflicts: data.has_conflicts || false,
+    totals,
     status: "preview",
     snapshotInfo,
   };
@@ -337,21 +377,17 @@ export async function applyYieldDistribution(
     }
   }
 
-  const distributions: YieldDistribution[] = (data as any[] | null || []).map((d) => ({
-    investorId: d.investor_id,
-    investorName: "",
-    currentBalance: 0,
-    allocationPercentage: 0,
-    feePercentage: 0,
-    grossYield: Number(d.gross_amount || 0),
-    feeAmount: Number(d.fee_amount || 0),
-    netYield: Number(d.net_amount || 0),
-    newBalance: 0,
-  }));
-
-  const grossYield = distributions.reduce((s, d) => s + d.grossYield, 0);
-  const totalFees = distributions.reduce((s, d) => s + d.feeAmount, 0);
-  const netYield = distributions.reduce((s, d) => s + d.netYield, 0);
+  // Parse response - apply returns JSONB now
+  const result = data as any;
+  
+  const distributions: YieldDistribution[] = [];
+  const totals: YieldTotals = {
+    gross: grossYieldAmount,
+    fees: Number(result?.total_fees || 0),
+    ibFees: Number(result?.total_ib_fees || 0),
+    net: grossYieldAmount - Number(result?.total_fees || 0) - Number(result?.total_ib_fees || 0),
+    indigoCredit: Number(result?.total_fees || 0),
+  };
 
   return {
     success: true,
@@ -359,14 +395,21 @@ export async function applyYieldDistribution(
     fundCode: "",
     fundAsset: "",
     yieldDate: targetDate,
+    purpose,
     currentAUM,
     newAUM: newTotalAUM,
-    grossYield,
-    netYield,
-    totalFees,
-    yieldPercentage: currentAUM > 0 ? (grossYield / currentAUM) * 100 : 0,
-    investorCount: distributions.length,
+    grossYield: grossYieldAmount,
+    netYield: totals.net,
+    totalFees: totals.fees,
+    totalIbFees: totals.ibFees,
+    yieldPercentage: currentAUM > 0 ? (grossYieldAmount / currentAUM) * 100 : 0,
+    investorCount: Number(result?.investors_updated || 0),
     distributions,
+    ibCredits: [],
+    indigoFeesCredit: totals.indigoCredit,
+    existingConflicts: [],
+    hasConflicts: false,
+    totals,
     status: "applied",
     snapshotInfo,
   };
@@ -498,48 +541,46 @@ export async function saveDraftAUMEntry(
 }
 
 /**
- * Get yield summary for a period
+ * Get active funds with their current positions
  */
-export async function getYieldSummary(
-  fundId: string,
-  startDate: Date,
-  endDate: Date
-): Promise<{
-  totalGrossYield: number;
-  totalNetYield: number;
-  totalFees: number;
-  avgYieldPercentage: number;
-  entryCount: number;
-}> {
-  const { data, error } = await supabase
-    .from("fund_daily_aum")
-    .select("aum_date, total_aum")
-    .eq("fund_id", fundId)
-    .gte("aum_date", formatDate(startDate))
-    .lte("aum_date", formatDate(endDate))
-    .order("aum_date", { ascending: true });
+export async function getActiveFundsWithPositions(): Promise<
+  Array<{
+    id: string;
+    code: string;
+    name: string;
+    asset: string;
+    totalAUM: number;
+    investorCount: number;
+  }>
+> {
+  const { data: funds, error } = await supabase
+    .from("funds")
+    .select("id, code, name, asset")
+    .eq("status", "active")
+    .order("code");
 
   if (error) {
-    console.error("Error fetching yield summary:", error);
-    throw new Error(`Failed to fetch yield summary: ${error.message}`);
+    throw new Error(`Failed to fetch funds: ${error.message}`);
   }
 
-  const entries = data || [];
-  let totalGrossYield = 0;
-  for (let i = 1; i < entries.length; i++) {
-    const prev = Number(entries[i - 1].total_aum || 0);
-    const curr = Number(entries[i].total_aum || 0);
-    totalGrossYield += curr - prev;
-  }
+  const fundsWithAUM = await Promise.all(
+    (funds || []).map(async (fund) => {
+      const { data: positions } = await supabase
+        .from("investor_positions")
+        .select("current_value, investor_id")
+        .eq("fund_id", fund.id)
+        .gt("current_value", 0);
 
-  return {
-    totalGrossYield,
-    totalNetYield: totalGrossYield, // fees tracked separately via fee schedule
-    totalFees: 0,
-    avgYieldPercentage:
-      entries.length > 1
-        ? (totalGrossYield / Number(entries[0].total_aum || 1)) * 100
-        : 0,
-    entryCount: entries.length,
-  };
+      const totalAUM = positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0;
+      const uniqueInvestors = new Set(positions?.map((p) => p.investor_id) || []);
+
+      return {
+        ...fund,
+        totalAUM,
+        investorCount: uniqueInvestors.size,
+      };
+    })
+  );
+
+  return fundsWithAUM.sort((a, b) => b.totalAUM - a.totalAUM);
 }

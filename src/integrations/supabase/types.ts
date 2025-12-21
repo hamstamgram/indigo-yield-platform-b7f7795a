@@ -5178,6 +5178,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      preview_daily_yield_to_fund_v2: {
+        Args: {
+          p_admin_id: string
+          p_date: string
+          p_fund_id: string
+          p_gross_amount: number
+          p_purpose?: string
+        }
+        Returns: Json
+      }
       process_excel_import_with_classes: {
         Args: { p_data: Json; p_import_type?: string }
         Returns: Json
