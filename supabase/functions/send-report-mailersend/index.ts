@@ -11,6 +11,7 @@ interface SendReportRequest {
   investor_id?: string;
   period_id?: string;
   delivery_mode?: "email_html" | "pdf_attachment" | "link_only" | "hybrid";
+  health_check?: boolean;
 }
 
 serve(async (req: Request): Promise<Response> => {
@@ -27,12 +28,95 @@ serve(async (req: Request): Promise<Response> => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+    // Create Supabase client with service role
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Parse request body first to check for health_check
+    const body: SendReportRequest = await req.json();
+
+    // Handle health check mode - admin auth still required but only pings MailerSend
+    if (body.health_check) {
+      // Verify admin access via JWT for health check too
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader) {
+        return new Response(JSON.stringify({ error: "Authorization required" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      
+      if (authError || !user) {
+        return new Response(JSON.stringify({ error: "Invalid token" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile?.is_admin) {
+        return new Response(JSON.stringify({ error: "Admin access required" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Check if MailerSend API token is configured
+      if (!MAILERSEND_API_TOKEN) {
+        return new Response(JSON.stringify({ 
+          status: "error", 
+          message: "MAILERSEND_API_TOKEN not configured" 
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Ping MailerSend API to verify token is valid
+      const healthCheckResponse = await fetch("https://api.mailersend.com/v1/api-quota", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${MAILERSEND_API_TOKEN}`,
+        },
+      });
+
+      if (healthCheckResponse.ok) {
+        const quotaData = await healthCheckResponse.json();
+        return new Response(JSON.stringify({ 
+          status: "ok",
+          message: "MailerSend API is reachable",
+          from_email: MAILERSEND_FROM_EMAIL,
+          from_name: MAILERSEND_FROM_NAME,
+          remaining_quota: quotaData.remaining,
+          total_quota: quotaData.total,
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      } else {
+        const errorText = await healthCheckResponse.text();
+        return new Response(JSON.stringify({ 
+          status: "error", 
+          message: `MailerSend API error: ${healthCheckResponse.status}`,
+          details: errorText,
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // Regular send flow - require API token
     if (!MAILERSEND_API_TOKEN) {
       throw new Error("MAILERSEND_API_TOKEN not configured");
     }
-
-    // Create Supabase client with service role
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // Verify admin access via JWT
     const authHeader = req.headers.get("Authorization");
@@ -66,9 +150,6 @@ serve(async (req: Request): Promise<Response> => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    // Parse request
-    const body: SendReportRequest = await req.json();
     const { delivery_id, investor_id, period_id, delivery_mode = "email_html" } = body;
 
     let deliveryRecord;
