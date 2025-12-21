@@ -9,13 +9,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { UserPlus } from "lucide-react";
-import InvestorForm, { InvestorFormValues } from "./InvestorForm";
 import { Asset } from "@/types/investorTypes";
-import { useToast } from "@/hooks/use-toast";
-import { createOrFindInvestorUser } from "@/services/admin/userService";
-import { portfolioService } from "@/services/core/PortfolioService";
-import { useInvestorInvite } from "@/hooks/useInvestorInvite";
-import { supabase } from "@/integrations/supabase/client";
+import AddInvestorWizard from "./wizard/AddInvestorWizard";
 
 interface AddInvestorDialogProps {
   assets: Asset[];
@@ -24,120 +19,34 @@ interface AddInvestorDialogProps {
 
 const AddInvestorDialog: React.FC<AddInvestorDialogProps> = ({ assets, onInvestorAdded }) => {
   const [open, setOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { toast } = useToast();
-  const { createInvite } = useInvestorInvite();
 
-  const handleSubmit = async (values: InvestorFormValues) => {
-    setErrorMessage(null);
-    try {
-      setIsLoading(true);
-
-      // Create user or find existing one
-      const userId = await createOrFindInvestorUser(values);
-
-      if (!userId) {
-        throw new Error("Failed to create or find auth user");
-      }
-
-      // Normalize balances to numbers before passing to portfolio creation
-      const numericBalances = Object.fromEntries(
-        Object.entries(values.balances || {}).map(([k, v]) => [k, Number(v) || 0])
-      );
-
-      // Create portfolio entries for this investor
-      // Pass the dynamic balances map and the full assets list
-      const portfolioCreated = await portfolioService.createPortfolioEntries(userId, numericBalances, assets);
-
-      if (!portfolioCreated) {
-        throw new Error("Failed to create portfolio entries");
-      }
-
-      // Save report recipient emails to investor_emails table
-      const reportEmails = values.report_emails || [];
-      if (reportEmails.length > 0) {
-        const emailRecords = reportEmails.map((email, index) => ({
-          investor_id: userId,
-          email: email.toLowerCase(),
-          is_primary: index === 0, // First email is primary
-          verified: false,
-        }));
-
-        const { error: emailError } = await supabase
-          .from("investor_emails")
-          .insert(emailRecords);
-
-        if (emailError) {
-          console.error("Failed to save report emails:", emailError);
-          // Don't throw - investor is already created, just log warning
-        }
-      }
-
-      // Also create an invite entry to track this investor
-      await createInvite({
-        id: userId,
-        email: values.email,
-        firstName: values.first_name,
-        lastName: values.last_name,
-      });
-
-      toast({
-        title: "Investor added",
-        description: `${values.first_name} ${values.last_name} has been added successfully.`,
-      });
-
-      // Close dialog first, then refresh data after a delay
-      setOpen(false);
-
-      // Refresh the parent component after dialog is closed
-      setTimeout(() => {
-        onInvestorAdded();
-      }, 1000);
-    } catch (error) {
-      console.error("Error adding investor:", error);
-      const message = error instanceof Error ? error.message : "Unknown error";
-      setErrorMessage(message);
-      toast({
-        title: "Error",
-        description: message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleOpenChange = (newOpen: boolean) => {
-    // Only allow closing if not currently loading
-    if (isLoading && !newOpen) return;
-    if (newOpen) {
-      setErrorMessage(null);
-    }
-    setOpen(newOpen);
+  const handleSuccess = () => {
+    setOpen(false);
+    setTimeout(() => {
+      onInvestorAdded();
+    }, 500);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
           <UserPlus className="h-4 w-4 mr-2" />
           Add Investor
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Investor</DialogTitle>
           <DialogDescription>
-            Create a new investor account and set initial portfolio balances.
+            Create a new investor account with IB linkage and initial positions
           </DialogDescription>
         </DialogHeader>
-        {errorMessage && (
-          <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-md text-sm">
-            {errorMessage}
-          </div>
-        )}
-        <InvestorForm onSubmit={handleSubmit} isLoading={isLoading} assets={assets} />
+        <AddInvestorWizard
+          assets={assets}
+          onSuccess={handleSuccess}
+          onCancel={() => setOpen(false)}
+        />
       </DialogContent>
     </Dialog>
   );
