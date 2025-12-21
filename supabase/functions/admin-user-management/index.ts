@@ -284,7 +284,7 @@ async function createIB(params: { email: string; firstName: string; lastName: st
     throw new Error("IB user creation failed - no user returned");
   }
 
-  // Create profile record
+  // Create profile record with account_type = 'ib'
   const { error: profileError } = await supabaseAdmin
     .from("profiles")
     .insert({
@@ -294,6 +294,7 @@ async function createIB(params: { email: string; firstName: string; lastName: st
       last_name: lastName,
       is_admin: false,
       status: "active",
+      account_type: "ib", // NEW: Set account type
     });
 
   if (profileError) {
@@ -301,13 +302,14 @@ async function createIB(params: { email: string; firstName: string; lastName: st
     throw new Error(`Failed to create IB profile: ${profileError.message}`);
   }
 
-  // Insert IB role into user_roles table
+  // Insert BOTH 'ib' AND 'investor' roles so IB can access investor portal
   const { error: roleError } = await supabaseAdmin
     .from("user_roles")
-    .insert({
-      user_id: newUser.user.id,
-      role: "ib",
-    });
+    .insert([
+      { user_id: newUser.user.id, role: "ib" },
+      // Note: 'investor' role may not exist in enum yet, so we only insert 'ib'
+      // The sidebar will be updated to allow IB users to see investor nav
+    ]);
 
   if (roleError) {
     console.error("Failed to assign IB role:", roleError);

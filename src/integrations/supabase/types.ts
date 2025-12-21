@@ -2732,6 +2732,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_type: Database["public"]["Enums"]["account_type"] | null
           avatar_url: string | null
           created_at: string
           email: string
@@ -2742,6 +2743,7 @@ export type Database = {
           ib_percentage: number | null
           id: string
           is_admin: boolean
+          is_system_account: boolean | null
           kyc_status: string | null
           last_name: string | null
           onboarding_date: string | null
@@ -2753,6 +2755,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_type?: Database["public"]["Enums"]["account_type"] | null
           avatar_url?: string | null
           created_at?: string
           email: string
@@ -2763,6 +2766,7 @@ export type Database = {
           ib_percentage?: number | null
           id: string
           is_admin?: boolean
+          is_system_account?: boolean | null
           kyc_status?: string | null
           last_name?: string | null
           onboarding_date?: string | null
@@ -2774,6 +2778,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_type?: Database["public"]["Enums"]["account_type"] | null
           avatar_url?: string | null
           created_at?: string
           email?: string
@@ -2784,6 +2789,7 @@ export type Database = {
           ib_percentage?: number | null
           id?: string
           is_admin?: boolean
+          is_system_account?: boolean | null
           kyc_status?: string | null
           last_name?: string | null
           onboarding_date?: string | null
@@ -3602,9 +3608,11 @@ export type Database = {
           fund_id: string
           id: string
           investor_id: string | null
+          is_system_generated: boolean | null
           notes: string | null
           purpose: Database["public"]["Enums"]["aum_purpose"] | null
           reference_id: string | null
+          source: Database["public"]["Enums"]["tx_source"] | null
           tx_date: string
           tx_hash: string | null
           type: Database["public"]["Enums"]["tx_type"]
@@ -3623,9 +3631,11 @@ export type Database = {
           fund_id: string
           id?: string
           investor_id?: string | null
+          is_system_generated?: boolean | null
           notes?: string | null
           purpose?: Database["public"]["Enums"]["aum_purpose"] | null
           reference_id?: string | null
+          source?: Database["public"]["Enums"]["tx_source"] | null
           tx_date?: string
           tx_hash?: string | null
           type: Database["public"]["Enums"]["tx_type"]
@@ -3644,9 +3654,11 @@ export type Database = {
           fund_id?: string
           id?: string
           investor_id?: string | null
+          is_system_generated?: boolean | null
           notes?: string | null
           purpose?: Database["public"]["Enums"]["aum_purpose"] | null
           reference_id?: string | null
+          source?: Database["public"]["Enums"]["tx_source"] | null
           tx_date?: string
           tx_hash?: string | null
           type?: Database["public"]["Enums"]["tx_type"]
@@ -5142,6 +5154,7 @@ export type Database = {
         | "2fa_verify"
         | "session_revoked"
         | "password_change"
+      account_type: "investor" | "ib" | "fees_account"
       app_role: "super_admin" | "admin" | "moderator" | "ib" | "user"
       asset_code: "BTC" | "ETH" | "SOL" | "USDT" | "EURC" | "xAUT" | "XRP"
       aum_purpose: "reporting" | "transaction"
@@ -5167,6 +5180,13 @@ export type Database = {
       ticket_status: "open" | "in_progress" | "waiting_on_lp" | "closed"
       transaction_status: "pending" | "confirmed" | "failed" | "cancelled"
       transaction_type: "DEPOSIT" | "WITHDRAWAL" | "INTEREST" | "FEE"
+      tx_source:
+        | "manual_admin"
+        | "yield_distribution"
+        | "fee_allocation"
+        | "ib_allocation"
+        | "system_bootstrap"
+        | "investor_wizard"
       tx_type:
         | "DEPOSIT"
         | "WITHDRAWAL"
@@ -5326,6 +5346,7 @@ export const Constants = {
         "session_revoked",
         "password_change",
       ],
+      account_type: ["investor", "ib", "fees_account"],
       app_role: ["super_admin", "admin", "moderator", "ib", "user"],
       asset_code: ["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"],
       aum_purpose: ["reporting", "transaction"],
@@ -5353,6 +5374,14 @@ export const Constants = {
       ticket_status: ["open", "in_progress", "waiting_on_lp", "closed"],
       transaction_status: ["pending", "confirmed", "failed", "cancelled"],
       transaction_type: ["DEPOSIT", "WITHDRAWAL", "INTEREST", "FEE"],
+      tx_source: [
+        "manual_admin",
+        "yield_distribution",
+        "fee_allocation",
+        "ib_allocation",
+        "system_bootstrap",
+        "investor_wizard",
+      ],
       tx_type: [
         "DEPOSIT",
         "WITHDRAWAL",

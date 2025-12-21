@@ -228,7 +228,7 @@ export async function createInvestorWithWizard(wizardData: WizardFormData): Prom
           console.error("Position creation error:", posError);
         }
 
-        // Create initial DEPOSIT transactions for audit trail
+        // Create initial DEPOSIT transactions for audit trail with source tracking
         const depositTransactions = funds.map((fund) => ({
           investor_id: investorId,
           fund_id: fund.id,
@@ -237,6 +237,8 @@ export async function createInvestorWithWizard(wizardData: WizardFormData): Prom
           amount: positions[fund.asset] || 0,
           tx_date: new Date().toISOString().split("T")[0],
           notes: "Initial position from investor wizard",
+          source: "investor_wizard" as const, // Track source of transaction
+          is_system_generated: false, // Admin-initiated, not system-generated
         }));
 
         const { error: txError } = await supabase

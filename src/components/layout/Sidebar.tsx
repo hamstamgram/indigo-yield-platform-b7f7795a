@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Search } from "lucide-react";
+import { X, Search, ArrowLeftRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import NavSection from "@/components/sidebar/NavSection";
@@ -7,6 +7,7 @@ import UserProfile from "@/components/sidebar/UserProfile";
 import LogoutButton from "@/components/sidebar/LogoutButton";
 import { adminNavGroups, investorNav, ibNav } from "@/config/navigation";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { NavItem } from "@/types/navigation";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -17,9 +18,15 @@ type SidebarProps = {
   isAdmin?: boolean;
 };
 
+type PortalView = "admin" | "ib" | "investor";
+
 const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps) => {
   const [userName, setUserName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
+  
+  // Portal view state for multi-role users (IBs)
+  const [portalView, setPortalView] = useState<PortalView>("investor");
 
   const navigate = useNavigate();
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -28,12 +35,44 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
   // Get user role for proper navigation rendering
   const { isIB, isSuperAdmin, isLoading: roleLoading } = useUserRole();
 
+  // Load saved portal view preference
+  useEffect(() => {
+    if (userId && isIB && !isAdmin) {
+      const savedView = localStorage.getItem(`portal_view_${userId}`);
+      if (savedView === "ib" || savedView === "investor") {
+        setPortalView(savedView);
+      } else {
+        // Default IB users to IB portal view
+        setPortalView("ib");
+      }
+    } else if (isAdmin) {
+      setPortalView("admin");
+    } else {
+      setPortalView("investor");
+    }
+  }, [userId, isIB, isAdmin]);
+
+  // Switch portal view and persist preference
+  const switchPortal = (view: PortalView) => {
+    setPortalView(view);
+    if (userId) {
+      localStorage.setItem(`portal_view_${userId}`, view);
+    }
+    // Navigate to appropriate dashboard
+    if (view === "ib") {
+      navigate("/ib");
+    } else if (view === "investor") {
+      navigate("/dashboard");
+    }
+  };
+
   useEffect(() => {
     const getUser = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (user) {
+        setUserId(user.id);
         const { data: profile, error } = await supabase
           .from("profiles")
           .select("first_name, last_name")
@@ -122,15 +161,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
     }
   }, [sidebarOpen]);
 
-  // Determine which navigation to show based on role
-  // Priority: Admin > IB > Investor
-  const getNavType = (): "admin" | "ib" | "investor" => {
+  // Determine active portal view
+  const getActivePortal = (): PortalView => {
     if (isAdmin) return "admin";
-    if (isIB) return "ib";
-    return "investor";
+    return portalView;
   };
 
-  const navType = getNavType();
+  const activePortal = getActivePortal();
+  
+  // Check if user has multiple portal options (IB users)
+  const hasMultiplePortals = isIB && !isAdmin;
 
   return (
     <>
@@ -154,9 +194,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
         tabIndex={-1}
         role="navigation"
         aria-label={
-          navType === "admin"
+          activePortal === "admin"
             ? "Admin navigation menu"
-            : navType === "ib"
+            : activePortal === "ib"
               ? "IB navigation menu"
               : "Main navigation menu"
         }
@@ -167,8 +207,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
             <div
               className="flex items-center gap-2 flex-1 cursor-pointer"
               onClick={() => {
-                if (navType === "admin") navigate("/admin");
-                else if (navType === "ib") navigate("/ib/dashboard");
+                if (activePortal === "admin") navigate("/admin");
+                else if (activePortal === "ib") navigate("/ib");
                 else navigate("/dashboard");
               }}
             >
@@ -187,8 +227,36 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
             </button>
           </div>
 
+          {/* Portal Switcher for IB users */}
+          {hasMultiplePortals && (
+            <div className="px-4 py-3 border-b border-sidebar-border">
+              <div className="flex gap-2">
+                <Button
+                  variant={portalView === "ib" ? "primary" : "ghost"}
+                  size="sm"
+                  className="flex-1 text-xs"
+                  onClick={() => switchPortal("ib")}
+                >
+                  IB Portal
+                </Button>
+                <Button
+                  variant={portalView === "investor" ? "primary" : "ghost"}
+                  size="sm"
+                  className="flex-1 text-xs"
+                  onClick={() => switchPortal("investor")}
+                >
+                  My Portfolio
+                </Button>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-sidebar-foreground/60 mt-2">
+                <ArrowLeftRight className="h-3 w-3" />
+                <span>Switch between portals</span>
+              </div>
+            </div>
+          )}
+
           {/* Search Bar (Admin only) */}
-          {navType === "admin" && (
+          {activePortal === "admin" && (
             <div className="px-4 py-3 border-b border-sidebar-border">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-sidebar-foreground/60" />
@@ -208,7 +276,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
           {/* Nav */}
           <nav className="flex-1 px-4 py-6 overflow-y-auto" role="menu">
             {/* Admin Navigation */}
-            {navType === "admin" && (
+            {activePortal === "admin" && (
               <>
                 {adminNavGroups.map((group) => {
                   const filteredItems = filterBySuperAdmin(
@@ -240,7 +308,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
             )}
 
             {/* IB Navigation */}
-            {navType === "ib" && (
+            {activePortal === "ib" && (
               <NavSection
                 title="IB Portal"
                 items={ibNav}
@@ -250,7 +318,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
             )}
 
             {/* Investor Navigation */}
-            {navType === "investor" && (
+            {activePortal === "investor" && (
               <NavSection
                 title="Menu"
                 items={investorNav}
@@ -266,7 +334,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
           </nav>
 
           {/* User Profile */}
-          <UserProfile userName={userName} isAdmin={navType === "admin"} />
+          <UserProfile userName={userName} isAdmin={activePortal === "admin"} />
         </div>
       </div>
     </>
