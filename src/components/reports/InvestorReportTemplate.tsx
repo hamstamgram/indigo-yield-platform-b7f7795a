@@ -207,19 +207,20 @@ export const InvestorReportTemplate: React.FC<InvestorReportTemplateProps> = ({ 
 
 /**
  * Renders the InvestorReportTemplate to an HTML string for email sending
- * Uses the exact HTML template structure provided
+ * Uses the exact HTML template structure with bgcolor fallbacks for email compatibility
  */
 export function renderReportToHtml(investor: InvestorData): string {
   const fundBlocksHtml = investor.funds.map((fund, index) => {
     const iconUrl = FUND_ICONS[fund.name] || FUND_ICONS["USDC YIELD FUND"];
-    const spacer = index > 0 ? '<tr><td style="height:20px;"></td></tr>' : '';
+    // Spacer is exactly 16px as per template requirement
+    const spacer = index > 0 ? '<tr><td style="height:16px;"></td></tr>' : '';
     
     return `${spacer}
                 <tr>
                   <td>
-                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0;" bgcolor="#ffffff">
                       <tr>
-                        <td style="padding:16px 20px;">
+                        <td style="padding:16px 20px;background-color:#ffffff;" bgcolor="#ffffff">
                           <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                             <tr>
                               <td width="36" valign="middle">
@@ -233,56 +234,56 @@ export function renderReportToHtml(investor: InvestorData): string {
                         </td>
                       </tr>
                       <tr>
-                        <td style="padding:0 20px 20px 20px;">
+                        <td style="padding:0 20px 20px 20px;background-color:#ffffff;" bgcolor="#ffffff">
                           <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;" class="mobile-table">
-                            <tr>
-                              <th scope="col" style="padding:10px 8px;text-align:left;font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;" class="mobile-header">Capital Account Summary</th>
-                              <th scope="col" style="padding:10px 8px;text-align:right;font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;" class="mobile-header">MTD (${fund.currency})</th>
-                              <th scope="col" style="padding:10px 8px;text-align:right;font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;" class="mobile-header">QTD (${fund.currency})</th>
-                              <th scope="col" style="padding:10px 8px;text-align:right;font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;" class="mobile-header">YTD (${fund.currency})</th>
-                              <th scope="col" style="padding:10px 8px;text-align:right;font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;" class="mobile-header">ITD (${fund.currency})</th>
-                            </tr>
-                            <tr>
-                              <td style="padding:10px 8px;font-size:13px;color:#334155;" class="mobile-cell">Beginning Balance</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;" class="mobile-cell">${fund.begin_balance_mtd}</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;" class="mobile-cell">${fund.begin_balance_qtd}</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;" class="mobile-cell">${fund.begin_balance_ytd}</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;" class="mobile-cell">${fund.begin_balance_itd}</td>
-                            </tr>
-                            <tr>
-                              <td style="padding:10px 8px;font-size:13px;color:#334155;" class="mobile-cell">Additions</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;" class="mobile-cell">${fund.additions_mtd}</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;" class="mobile-cell">${fund.additions_qtd}</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;" class="mobile-cell">${fund.additions_ytd}</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;" class="mobile-cell">${fund.additions_itd}</td>
-                            </tr>
-                            <tr>
-                              <td style="padding:10px 8px;font-size:13px;color:#334155;" class="mobile-cell">Redemptions</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;" class="mobile-cell">${fund.redemptions_mtd}</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;" class="mobile-cell">${fund.redemptions_qtd}</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;" class="mobile-cell">${fund.redemptions_ytd}</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;" class="mobile-cell">${fund.redemptions_itd}</td>
-                            </tr>
-                            <tr>
-                              <td style="padding:10px 8px;font-size:13px;color:#334155;" class="mobile-cell">Net Income</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.net_income_mtd)};" class="mobile-cell">${fund.net_income_mtd}</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.net_income_qtd)};" class="mobile-cell">${fund.net_income_qtd}</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.net_income_ytd)};" class="mobile-cell">${fund.net_income_ytd}</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.net_income_itd)};" class="mobile-cell">${fund.net_income_itd}</td>
-                            </tr>
-                            <tr style="border-top:1px solid #e2e8f0;">
-                              <td style="padding:10px 8px;font-size:13px;color:#334155;font-weight:600;border-top:1px solid #e2e8f0;" class="mobile-cell">Ending Balance</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;border-top:1px solid #e2e8f0;" class="mobile-cell">${fund.ending_balance_mtd}</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;border-top:1px solid #e2e8f0;" class="mobile-cell">${fund.ending_balance_qtd}</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;border-top:1px solid #e2e8f0;" class="mobile-cell">${fund.ending_balance_ytd}</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;border-top:1px solid #e2e8f0;" class="mobile-cell">${fund.ending_balance_itd}</td>
+                            <tr style="background-color:#0f172a;">
+                              <th scope="col" style="padding:10px 8px;text-align:left;font-size:11px;color:#ffffff;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;background-color:#0f172a;" bgcolor="#0f172a" class="mobile-header">Capital Account Summary</th>
+                              <th scope="col" style="padding:10px 8px;text-align:right;font-size:11px;color:#ffffff;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;background-color:#0f172a;" bgcolor="#0f172a" class="mobile-header">MTD (${fund.currency})</th>
+                              <th scope="col" style="padding:10px 8px;text-align:right;font-size:11px;color:#ffffff;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;background-color:#0f172a;" bgcolor="#0f172a" class="mobile-header">QTD (${fund.currency})</th>
+                              <th scope="col" style="padding:10px 8px;text-align:right;font-size:11px;color:#ffffff;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;background-color:#0f172a;" bgcolor="#0f172a" class="mobile-header">YTD (${fund.currency})</th>
+                              <th scope="col" style="padding:10px 8px;text-align:right;font-size:11px;color:#ffffff;text-transform:uppercase;font-weight:700;border-bottom:1px solid #e2e8f0;background-color:#0f172a;" bgcolor="#0f172a" class="mobile-header">ITD (${fund.currency})</th>
                             </tr>
                             <tr style="background-color:#f8fafc;">
-                              <td style="padding:10px 8px;font-size:13px;color:#334155;font-weight:600;" class="mobile-cell">Rate of Return</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.return_rate_mtd)};" class="mobile-cell">${fund.return_rate_mtd}</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.return_rate_qtd)};" class="mobile-cell">${fund.return_rate_qtd}</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.return_rate_ytd)};" class="mobile-cell">${fund.return_rate_ytd}</td>
-                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.return_rate_itd)};" class="mobile-cell">${fund.return_rate_itd}</td>
+                              <td style="padding:10px 8px;font-size:13px;color:#334155;background-color:#f8fafc;" bgcolor="#f8fafc" class="mobile-cell">Beginning Balance</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc" class="mobile-cell">${fund.begin_balance_mtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc" class="mobile-cell">${fund.begin_balance_qtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc" class="mobile-cell">${fund.begin_balance_ytd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc" class="mobile-cell">${fund.begin_balance_itd}</td>
+                            </tr>
+                            <tr style="background-color:#ffffff;">
+                              <td style="padding:10px 8px;font-size:13px;color:#334155;background-color:#ffffff;" bgcolor="#ffffff" class="mobile-cell">Additions</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#ffffff;" bgcolor="#ffffff" class="mobile-cell">${fund.additions_mtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#ffffff;" bgcolor="#ffffff" class="mobile-cell">${fund.additions_qtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#ffffff;" bgcolor="#ffffff" class="mobile-cell">${fund.additions_ytd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#ffffff;" bgcolor="#ffffff" class="mobile-cell">${fund.additions_itd}</td>
+                            </tr>
+                            <tr style="background-color:#f8fafc;">
+                              <td style="padding:10px 8px;font-size:13px;color:#334155;background-color:#f8fafc;" bgcolor="#f8fafc" class="mobile-cell">Redemptions</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc" class="mobile-cell">${fund.redemptions_mtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc" class="mobile-cell">${fund.redemptions_qtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc" class="mobile-cell">${fund.redemptions_ytd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc" class="mobile-cell">${fund.redemptions_itd}</td>
+                            </tr>
+                            <tr style="background-color:#ffffff;">
+                              <td style="padding:10px 8px;font-size:13px;color:#334155;background-color:#ffffff;" bgcolor="#ffffff" class="mobile-cell">Net Income</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.net_income_mtd)};background-color:#ffffff;" bgcolor="#ffffff" class="mobile-cell">${fund.net_income_mtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.net_income_qtd)};background-color:#ffffff;" bgcolor="#ffffff" class="mobile-cell">${fund.net_income_qtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.net_income_ytd)};background-color:#ffffff;" bgcolor="#ffffff" class="mobile-cell">${fund.net_income_ytd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.net_income_itd)};background-color:#ffffff;" bgcolor="#ffffff" class="mobile-cell">${fund.net_income_itd}</td>
+                            </tr>
+                            <tr style="background-color:#f8fafc;">
+                              <td style="padding:10px 8px;font-size:13px;color:#334155;font-weight:600;border-top:1px solid #e2e8f0;background-color:#f8fafc;" bgcolor="#f8fafc" class="mobile-cell">Ending Balance</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;border-top:1px solid #e2e8f0;background-color:#f8fafc;" bgcolor="#f8fafc" class="mobile-cell">${fund.ending_balance_mtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;border-top:1px solid #e2e8f0;background-color:#f8fafc;" bgcolor="#f8fafc" class="mobile-cell">${fund.ending_balance_qtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;border-top:1px solid #e2e8f0;background-color:#f8fafc;" bgcolor="#f8fafc" class="mobile-cell">${fund.ending_balance_ytd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;color:#1e293b;font-weight:600;border-top:1px solid #e2e8f0;background-color:#f8fafc;" bgcolor="#f8fafc" class="mobile-cell">${fund.ending_balance_itd}</td>
+                            </tr>
+                            <tr style="background-color:#ffffff;">
+                              <td style="padding:10px 8px;font-size:13px;color:#334155;font-weight:600;background-color:#ffffff;" bgcolor="#ffffff" class="mobile-cell">Rate of Return</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.return_rate_mtd)};background-color:#ffffff;" bgcolor="#ffffff" class="mobile-cell">${fund.return_rate_mtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.return_rate_qtd)};background-color:#ffffff;" bgcolor="#ffffff" class="mobile-cell">${fund.return_rate_qtd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.return_rate_ytd)};background-color:#ffffff;" bgcolor="#ffffff" class="mobile-cell">${fund.return_rate_ytd}</td>
+                              <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:${getValueColor(fund.return_rate_itd)};background-color:#ffffff;" bgcolor="#ffffff" class="mobile-cell">${fund.return_rate_itd}</td>
                             </tr>
                           </table>
                         </td>
@@ -325,17 +326,23 @@ export function renderReportToHtml(investor: InvestorData): string {
       .mobile-cell { font-size: 10px !important; padding: 6px 4px !important }
       .mobile-footer-text { font-size: 9px !important; }
     }
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
   </style>
 </head>
-<body style="margin:0;padding:0;width:100%;background-color:#ffffff;-webkit-font-smoothing:antialiased;">
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#ffffff;">
+<body style="margin:0;padding:0;width:100%;background-color:#f1f5f9;-webkit-font-smoothing:antialiased;" bgcolor="#f1f5f9">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#f1f5f9;" bgcolor="#f1f5f9">
     <tr>
       <td align="center" style="padding:24px 12px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="sm-w-full" style="max-width:600px;width:100%;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="sm-w-full" style="max-width:600px;width:100%;background-color:#ffffff;" bgcolor="#ffffff">
 
           <!-- Brand Header -->
           <tr>
-            <td style="background-color:#edf0fe;padding:20px 24px;border-radius:10px 10px 0 0;">
+            <td style="background-color:#edf0fe;padding:20px 24px;border-radius:10px 10px 0 0;" bgcolor="#edf0fe">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
                   <td valign="middle">
@@ -351,7 +358,7 @@ export function renderReportToHtml(investor: InvestorData): string {
 
           <!-- Investor Header -->
           <tr>
-            <td style="background-color:#f8fafc;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;padding:20px 24px;">
+            <td style="background-color:#f8fafc;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;padding:20px 24px;" bgcolor="#f8fafc">
               <p style="margin:0 0 4px 0;font-size:16px;font-weight:600;color:#334155;">Investor: ${investor.name}</p>
               <p style="margin:0;font-size:13px;line-height:1.5;color:#64748b;">Investor Statement for the Period Ended: <strong>${investor.reportDate}</strong></p>
             </td>
@@ -359,7 +366,7 @@ export function renderReportToHtml(investor: InvestorData): string {
 
           <!-- Main Content Area -->
           <tr>
-            <td style="padding:24px;background-color:#f8fafc;border-radius:0 0 10px 10px;border:1px solid #e2e8f0;border-top:0;">
+            <td style="padding:24px;background-color:#f8fafc;border-radius:0 0 10px 10px;border:1px solid #e2e8f0;border-top:0;" bgcolor="#f8fafc">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
 ${fundBlocksHtml}
               </table>
@@ -368,7 +375,7 @@ ${fundBlocksHtml}
 
           <!-- Disclaimer -->
           <tr>
-            <td style="padding:24px 0;">
+            <td style="padding:24px 0;background-color:#ffffff;" bgcolor="#ffffff">
               <p style="margin:0;font-size:11px;line-height:1.6;color:#94a3b8;text-align:center;" class="mobile-footer-text">
                 This document is not an offer to sell or a solicitation of an offer to buy any securities. Any such offer or solicitation will be made only by means of a complete offering document and only in those jurisdictions where permitted by law.
               </p>
@@ -377,7 +384,7 @@ ${fundBlocksHtml}
 
           <!-- Social Icons -->
           <tr>
-            <td align="center" style="padding-bottom:16px;">
+            <td align="center" style="padding-bottom:16px;background-color:#ffffff;" bgcolor="#ffffff">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td style="padding:0 10px;">
@@ -402,7 +409,7 @@ ${fundBlocksHtml}
 
           <!-- Copyright & Unsubscribe -->
           <tr>
-            <td align="center" style="padding-bottom:24px;">
+            <td align="center" style="padding-bottom:24px;background-color:#ffffff;" bgcolor="#ffffff">
               <p style="margin:0 0 8px 0;font-size:12px;color:#94a3b8;" class="mobile-footer-text">© 2025 Indigo Fund. All rights reserved.</p>
               <p style="margin:0;font-size:12px;" class="mobile-footer-text">
                 <a href="#" style="color:#6366f1;text-decoration:underline;">Unsubscribe</a>

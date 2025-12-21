@@ -1,5 +1,6 @@
 // Monthly Report Template V2 - Exact match to provided HTML design
 // Token-denominated only, no USD, no currency symbols
+// Email-safe with bgcolor fallbacks for Outlook compatibility
 
 // Fund icon URLs from CDN
 export const FUND_ICONS: Record<string, string> = {
@@ -112,13 +113,13 @@ export function getFundIconUrl(asset: string): string {
   return FUND_ICONS[asset.toUpperCase()] || FUND_ICONS["USDC"];
 }
 
-// Fund block spacer HTML
+// Fund block spacer HTML - exactly 16px as per template requirement
 export const FUND_BLOCK_SPACER = `<!-- SPACER -->
                 <tr>
-                  <td height="24"></td>
+                  <td style="height:16px;"></td>
                 </tr>`;
 
-// Generate a single fund block HTML
+// Generate a single fund block HTML with bgcolor fallbacks for email compatibility
 export function generateFundBlockHtml(data: {
   fundName: string;
   asset: string;
@@ -168,53 +169,53 @@ export function generateFundBlockHtml(data: {
                     <!-- Performance Table -->
                     <table width="100%" cellpadding="0" cellspacing="0" border="0" class="mobile-table" style="border-collapse: collapse; font-size: 13px;">
                       <tr style="background-color: #0f172a;">
-                        <th class="mobile-header" style="text-align: left; padding: 10px 8px; color: #ffffff; font-weight: 600; border-radius: 6px 0 0 0;">Capital Account Summary</th>
-                        <th class="mobile-header" style="text-align: right; padding: 10px 8px; color: #ffffff; font-weight: 600;">MTD (${asset})</th>
-                        <th class="mobile-header" style="text-align: right; padding: 10px 8px; color: #ffffff; font-weight: 600;">QTD (${asset})</th>
-                        <th class="mobile-header" style="text-align: right; padding: 10px 8px; color: #ffffff; font-weight: 600;">YTD (${asset})</th>
-                        <th class="mobile-header" style="text-align: right; padding: 10px 8px; color: #ffffff; font-weight: 600; border-radius: 0 6px 0 0;">ITD (${asset})</th>
+                        <th class="mobile-header" style="text-align: left; padding: 10px 8px; color: #ffffff; font-weight: 600; border-radius: 6px 0 0 0; background-color: #0f172a;" bgcolor="#0f172a">Capital Account Summary</th>
+                        <th class="mobile-header" style="text-align: right; padding: 10px 8px; color: #ffffff; font-weight: 600; background-color: #0f172a;" bgcolor="#0f172a">MTD (${asset})</th>
+                        <th class="mobile-header" style="text-align: right; padding: 10px 8px; color: #ffffff; font-weight: 600; background-color: #0f172a;" bgcolor="#0f172a">QTD (${asset})</th>
+                        <th class="mobile-header" style="text-align: right; padding: 10px 8px; color: #ffffff; font-weight: 600; background-color: #0f172a;" bgcolor="#0f172a">YTD (${asset})</th>
+                        <th class="mobile-header" style="text-align: right; padding: 10px 8px; color: #ffffff; font-weight: 600; border-radius: 0 6px 0 0; background-color: #0f172a;" bgcolor="#0f172a">ITD (${asset})</th>
                       </tr>
                       <tr style="background-color: #f8fafc;">
-                        <td class="mobile-cell" style="padding: 10px 8px; color: #475569; font-weight: 500;">Beginning Balance</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b;">${formatTokenValue(data.mtdBeginning, asset)}</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b;">${formatTokenValue(data.qtdBeginning, asset)}</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b;">${formatTokenValue(data.ytdBeginning, asset)}</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b;">${formatTokenValue(data.itdBeginning, asset)}</td>
+                        <td class="mobile-cell" style="padding: 10px 8px; color: #475569; font-weight: 500; background-color: #f8fafc;" bgcolor="#f8fafc">Beginning Balance</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; background-color: #f8fafc;" bgcolor="#f8fafc">${formatTokenValue(data.mtdBeginning, asset)}</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; background-color: #f8fafc;" bgcolor="#f8fafc">${formatTokenValue(data.qtdBeginning, asset)}</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; background-color: #f8fafc;" bgcolor="#f8fafc">${formatTokenValue(data.ytdBeginning, asset)}</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; background-color: #f8fafc;" bgcolor="#f8fafc">${formatTokenValue(data.itdBeginning, asset)}</td>
                       </tr>
                       <tr style="background-color: #ffffff;">
-                        <td class="mobile-cell" style="padding: 10px 8px; color: #475569; font-weight: 500;">Additions</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b;">${formatAdditionRedemption(data.mtdAdditions, asset)}</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b;">${formatAdditionRedemption(data.qtdAdditions, asset)}</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b;">${formatAdditionRedemption(data.ytdAdditions, asset)}</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b;">${formatAdditionRedemption(data.itdAdditions, asset)}</td>
+                        <td class="mobile-cell" style="padding: 10px 8px; color: #475569; font-weight: 500; background-color: #ffffff;" bgcolor="#ffffff">Additions</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; background-color: #ffffff;" bgcolor="#ffffff">${formatAdditionRedemption(data.mtdAdditions, asset)}</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; background-color: #ffffff;" bgcolor="#ffffff">${formatAdditionRedemption(data.qtdAdditions, asset)}</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; background-color: #ffffff;" bgcolor="#ffffff">${formatAdditionRedemption(data.ytdAdditions, asset)}</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; background-color: #ffffff;" bgcolor="#ffffff">${formatAdditionRedemption(data.itdAdditions, asset)}</td>
                       </tr>
                       <tr style="background-color: #f8fafc;">
-                        <td class="mobile-cell" style="padding: 10px 8px; color: #475569; font-weight: 500;">Redemptions</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b;">${formatAdditionRedemption(data.mtdRedemptions, asset)}</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b;">${formatAdditionRedemption(data.qtdRedemptions, asset)}</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b;">${formatAdditionRedemption(data.ytdRedemptions, asset)}</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b;">${formatAdditionRedemption(data.itdRedemptions, asset)}</td>
+                        <td class="mobile-cell" style="padding: 10px 8px; color: #475569; font-weight: 500; background-color: #f8fafc;" bgcolor="#f8fafc">Redemptions</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; background-color: #f8fafc;" bgcolor="#f8fafc">${formatAdditionRedemption(data.mtdRedemptions, asset)}</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; background-color: #f8fafc;" bgcolor="#f8fafc">${formatAdditionRedemption(data.qtdRedemptions, asset)}</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; background-color: #f8fafc;" bgcolor="#f8fafc">${formatAdditionRedemption(data.ytdRedemptions, asset)}</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; background-color: #f8fafc;" bgcolor="#f8fafc">${formatAdditionRedemption(data.itdRedemptions, asset)}</td>
                       </tr>
                       <tr style="background-color: #ffffff;">
-                        <td class="mobile-cell" style="padding: 10px 8px; color: #475569; font-weight: 500;">Net Income</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px;">${formatNetIncomeWithStyle(data.mtdNetIncome, asset)}</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px;">${formatNetIncomeWithStyle(data.qtdNetIncome, asset)}</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px;">${formatNetIncomeWithStyle(data.ytdNetIncome, asset)}</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px;">${formatNetIncomeWithStyle(data.itdNetIncome, asset)}</td>
+                        <td class="mobile-cell" style="padding: 10px 8px; color: #475569; font-weight: 500; background-color: #ffffff;" bgcolor="#ffffff">Net Income</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; background-color: #ffffff;" bgcolor="#ffffff">${formatNetIncomeWithStyle(data.mtdNetIncome, asset)}</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; background-color: #ffffff;" bgcolor="#ffffff">${formatNetIncomeWithStyle(data.qtdNetIncome, asset)}</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; background-color: #ffffff;" bgcolor="#ffffff">${formatNetIncomeWithStyle(data.ytdNetIncome, asset)}</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; background-color: #ffffff;" bgcolor="#ffffff">${formatNetIncomeWithStyle(data.itdNetIncome, asset)}</td>
                       </tr>
                       <tr style="background-color: #f8fafc;">
-                        <td class="mobile-cell" style="padding: 10px 8px; color: #475569; font-weight: 600;">Ending Balance</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; font-weight: 600;">${formatTokenValue(data.mtdEnding, asset)}</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; font-weight: 600;">${formatTokenValue(data.qtdEnding, asset)}</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; font-weight: 600;">${formatTokenValue(data.ytdEnding, asset)}</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; font-weight: 600;">${formatTokenValue(data.itdEnding, asset)}</td>
+                        <td class="mobile-cell" style="padding: 10px 8px; color: #475569; font-weight: 600; background-color: #f8fafc;" bgcolor="#f8fafc">Ending Balance</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; font-weight: 600; background-color: #f8fafc;" bgcolor="#f8fafc">${formatTokenValue(data.mtdEnding, asset)}</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; font-weight: 600; background-color: #f8fafc;" bgcolor="#f8fafc">${formatTokenValue(data.qtdEnding, asset)}</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; font-weight: 600; background-color: #f8fafc;" bgcolor="#f8fafc">${formatTokenValue(data.ytdEnding, asset)}</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; color: #1e293b; font-weight: 600; background-color: #f8fafc;" bgcolor="#f8fafc">${formatTokenValue(data.itdEnding, asset)}</td>
                       </tr>
                       <tr style="background-color: #ffffff;">
-                        <td class="mobile-cell" style="padding: 10px 8px; color: #475569; font-weight: 500; border-radius: 0 0 0 6px;">Rate of Return</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px;">${formatRateOfReturnWithStyle(data.mtdRor)}</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px;">${formatRateOfReturnWithStyle(data.qtdRor)}</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px;">${formatRateOfReturnWithStyle(data.ytdRor)}</td>
-                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; border-radius: 0 0 6px 0;">${formatRateOfReturnWithStyle(data.itdRor)}</td>
+                        <td class="mobile-cell" style="padding: 10px 8px; color: #475569; font-weight: 500; border-radius: 0 0 0 6px; background-color: #ffffff;" bgcolor="#ffffff">Rate of Return</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; background-color: #ffffff;" bgcolor="#ffffff">${formatRateOfReturnWithStyle(data.mtdRor)}</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; background-color: #ffffff;" bgcolor="#ffffff">${formatRateOfReturnWithStyle(data.qtdRor)}</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; background-color: #ffffff;" bgcolor="#ffffff">${formatRateOfReturnWithStyle(data.ytdRor)}</td>
+                        <td class="mobile-cell" style="text-align: right; padding: 10px 8px; border-radius: 0 0 6px 0; background-color: #ffffff;" bgcolor="#ffffff">${formatRateOfReturnWithStyle(data.itdRor)}</td>
                       </tr>
                     </table>
 
@@ -223,7 +224,7 @@ export function generateFundBlockHtml(data: {
                 <!-- END: Fund Block (${asset}) -->`;
 }
 
-// Main template generator
+// Main template generator with bgcolor fallbacks for email compatibility
 export function generateMonthlyReportHtml(data: {
   investorName: string;
   periodEndedLong: string;
@@ -265,21 +266,32 @@ export function generateMonthlyReportHtml(data: {
       .mobile-cell { font-size: 10px !important; padding: 6px 4px !important }
       .mobile-footer-text { font-size: 9px !important; }
     }
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
   </style>
 </head>
-<body style="margin: 0; padding: 0; width: 100%; background-color: #f1f5f9;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f1f5f9;">
+<body style="margin: 0; padding: 0; width: 100%; background-color: #f1f5f9;" bgcolor="#f1f5f9">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f1f5f9;" bgcolor="#f1f5f9">
     <tr>
       <td align="center" style="padding: 32px 16px;">
         <!-- Main Container -->
-        <table role="presentation" class="sm-w-full" width="640" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+        <table role="presentation" class="sm-w-full" width="640" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);" bgcolor="#ffffff">
 
-          <!-- Header Bar -->
+          <!-- Header Bar with VML fallback for Outlook gradient -->
           <tr>
             <td style="padding: 0;">
-              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 12px 12px 0 0;">
+              <!--[if mso]>
+              <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroked="false" style="width:640px;height:68px;">
+              <v:fill type="gradient" color="#6366f1" color2="#8b5cf6" angle="135"/>
+              <v:textbox inset="0,0,0,0" style="mso-fit-shape-to-text:true">
+              <![endif]-->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); background-color: #6366f1; border-radius: 12px 12px 0 0;" bgcolor="#6366f1">
                 <tr>
-                  <td style="padding: 20px 24px;">
+                  <td style="padding: 20px 24px; background-color: #6366f1;" bgcolor="#6366f1">
                     <table width="100%" cellpadding="0" cellspacing="0" border="0">
                       <tr>
                         <td width="50%">
@@ -293,12 +305,16 @@ export function generateMonthlyReportHtml(data: {
                   </td>
                 </tr>
               </table>
+              <!--[if mso]>
+              </v:textbox>
+              </v:rect>
+              <![endif]-->
             </td>
           </tr>
 
           <!-- Investor Info Card -->
           <tr>
-            <td style="padding: 24px;">
+            <td style="padding: 24px; background-color: #ffffff;" bgcolor="#ffffff">
               <p style="margin: 0 0 4px 0; font-size: 15px; color: #1e293b; font-weight: 600;">Investor: ${data.investorName}</p>
               <p style="margin: 0; font-size: 13px; color: #64748b;">Investor Statement for the Period Ended: ${data.periodEndedLong}</p>
             </td>
@@ -306,7 +322,7 @@ export function generateMonthlyReportHtml(data: {
 
           <!-- Fund Blocks Container -->
           <tr>
-            <td style="padding: 0 24px 24px 24px;">
+            <td style="padding: 0 24px 24px 24px; background-color: #ffffff;" bgcolor="#ffffff">
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
 
                 <!-- Fund Blocks -->
@@ -318,10 +334,10 @@ ${fundBlocksHtml}
 
           <!-- Disclaimer -->
           <tr>
-            <td style="padding: 0 24px 24px 24px;">
-              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc; border-radius: 8px;">
+            <td style="padding: 0 24px 24px 24px; background-color: #ffffff;" bgcolor="#ffffff">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc; border-radius: 8px;" bgcolor="#f8fafc">
                 <tr>
-                  <td style="padding: 16px;">
+                  <td style="padding: 16px; background-color: #f8fafc;" bgcolor="#f8fafc">
                     <p class="mobile-footer-text" style="margin: 0; font-size: 11px; color: #64748b; line-height: 1.5;">This document is not an offer to sell or a solicitation of an offer to buy any securities. Any such offer or solicitation will be made only by means of a complete offering document and only in those jurisdictions where permitted by law.</p>
                   </td>
                 </tr>
@@ -331,7 +347,7 @@ ${fundBlocksHtml}
 
           <!-- Social Icons -->
           <tr>
-            <td style="padding: 0 24px 24px 24px;">
+            <td style="padding: 0 24px 24px 24px; background-color: #ffffff;" bgcolor="#ffffff">
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="center">
@@ -362,7 +378,7 @@ ${fundBlocksHtml}
 
           <!-- Copyright -->
           <tr>
-            <td style="padding: 0 24px 24px 24px; text-align: center;">
+            <td style="padding: 0 24px 24px 24px; text-align: center; background-color: #ffffff;" bgcolor="#ffffff">
               <p class="mobile-footer-text" style="margin: 0 0 8px 0; font-size: 12px; color: #64748b;">© 2025 Indigo Fund. All rights reserved.</p>
               <p class="mobile-footer-text" style="margin: 0;">
                 <a href="#" style="font-size: 11px; color: #6366f1; text-decoration: none;">Unsubscribe</a>
@@ -379,7 +395,7 @@ ${fundBlocksHtml}
 </html>`;
 }
 
-// Validation function to ensure generated HTML contains required elements
+// Validation function to ensure generated HTML contains required elements and bgcolor attributes
 export function validateGeneratedHtml(html: string): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
   
@@ -400,12 +416,26 @@ export function validateGeneratedHtml(html: string): { valid: boolean; errors: s
     }
   }
   
-  // Check no USD or $ appears
+  // Check no USD or $ appears (except in stylesheets)
   if (html.includes("$") && !html.includes("stylesheet")) {
     errors.push("Found '$' symbol in HTML (not allowed - token-denominated only)");
   }
   if (html.includes("USD") && !html.includes("USDC") && !html.includes("USDT")) {
     errors.push("Found 'USD' in HTML (not allowed - use asset symbols only)");
+  }
+  
+  // Validate bgcolor fallbacks are present for email compatibility
+  const requiredBgColors = [
+    { style: 'background-color: #f1f5f9', bgcolor: 'bgcolor="#f1f5f9"', name: 'Outer background' },
+    { style: 'background-color: #ffffff', bgcolor: 'bgcolor="#ffffff"', name: 'White areas' },
+    { style: 'background-color: #f8fafc', bgcolor: 'bgcolor="#f8fafc"', name: 'Light gray areas' },
+    { style: 'background-color: #0f172a', bgcolor: 'bgcolor="#0f172a"', name: 'Table header' },
+  ];
+  
+  for (const bg of requiredBgColors) {
+    if (html.includes(bg.style) && !html.includes(bg.bgcolor)) {
+      errors.push(`${bg.name}: Found ${bg.style} without matching ${bg.bgcolor}`);
+    }
   }
   
   return {
