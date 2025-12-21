@@ -132,7 +132,20 @@ export interface CreateTransactionParams {
   referenceId?: string;
   txHash?: string;
   notes?: string;
+  txSubtype?: "first_investment" | "deposit" | "redemption" | "full_redemption" | "fee_charge" | "yield_credit" | "adjustment";
 }
+
+// Default tx_subtype based on transaction type
+const getDefaultTxSubtype = (type: string): string => {
+  switch (type) {
+    case "DEPOSIT": return "deposit";
+    case "WITHDRAWAL": return "redemption";
+    case "FEE": return "fee_charge";
+    case "INTEREST":
+    case "YIELD": return "yield_credit";
+    default: return "adjustment";
+  }
+};
 
 export async function createAdminTransaction(
   params: CreateTransactionParams
@@ -146,10 +159,14 @@ export async function createAdminTransaction(
       return { success: false, error: "You must be logged in to create transactions" };
     }
 
+    // Always set explicit tx_subtype - admin deposits should NEVER be "first_investment"
+    const txSubtype = params.txSubtype || getDefaultTxSubtype(params.type);
+
     const { error } = await supabase.from("transactions_v2").insert({
       investor_id: params.investorId,
       fund_id: params.fundId,
       type: params.type as any,
+      tx_subtype: txSubtype,
       asset: params.asset,
       amount: params.amount,
       tx_date: params.txDate,

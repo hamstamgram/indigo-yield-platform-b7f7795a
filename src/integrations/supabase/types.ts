@@ -3842,6 +3842,7 @@ export type Database = {
           transfer_id: string | null
           tx_date: string
           tx_hash: string | null
+          tx_subtype: string | null
           type: Database["public"]["Enums"]["tx_type"]
           value_date: string
           visibility_scope: Database["public"]["Enums"]["visibility_scope"]
@@ -3869,6 +3870,7 @@ export type Database = {
           transfer_id?: string | null
           tx_date?: string
           tx_hash?: string | null
+          tx_subtype?: string | null
           type: Database["public"]["Enums"]["tx_type"]
           value_date?: string
           visibility_scope?: Database["public"]["Enums"]["visibility_scope"]
@@ -3896,6 +3898,7 @@ export type Database = {
           transfer_id?: string | null
           tx_date?: string
           tx_hash?: string | null
+          tx_subtype?: string | null
           type?: Database["public"]["Enums"]["tx_type"]
           value_date?: string
           visibility_scope?: Database["public"]["Enums"]["visibility_scope"]
