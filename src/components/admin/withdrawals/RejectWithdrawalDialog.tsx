@@ -72,7 +72,10 @@ export function RejectWithdrawalDialog({
             <div>
               <Label className="text-sm font-medium">Requested Amount</Label>
               <p className="text-sm text-muted-foreground">
-                ${withdrawal.requested_amount.toLocaleString()}
+                {withdrawal.requested_amount.toLocaleString(undefined, { 
+                  minimumFractionDigits: 2, 
+                  maximumFractionDigits: 8 
+                })} {withdrawal.asset || 'tokens'}
               </p>
             </div>
             <div>
