@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { createAdminTransaction } from "@/services/shared/transactionService";
 import { Loader2 } from "lucide-react";
+import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 
 // Transaction validation schema
 const transactionSchema = z.object({
@@ -102,6 +103,12 @@ export function AddTransactionDialog({
   const txnType = watch("txn_type");
 
   const onSubmit = async (data: TransactionFormData) => {
+    // Block manual deposits to INDIGO FEES account
+    if (investorId === INDIGO_FEES_ACCOUNT_ID && data.txn_type === "DEPOSIT") {
+      toast.error("INDIGO FEES cannot receive manual deposits. Fee credits are system-generated only.");
+      return;
+    }
+    
     try {
       setLoading(true);
 

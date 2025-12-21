@@ -307,8 +307,7 @@ async function createIB(params: { email: string; firstName: string; lastName: st
     .from("user_roles")
     .insert([
       { user_id: newUser.user.id, role: "ib" },
-      // Note: 'investor' role may not exist in enum yet, so we only insert 'ib'
-      // The sidebar will be updated to allow IB users to see investor nav
+      { user_id: newUser.user.id, role: "investor" },
     ]);
 
   if (roleError) {

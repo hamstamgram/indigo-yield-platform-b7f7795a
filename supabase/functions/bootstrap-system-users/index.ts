@@ -270,9 +270,10 @@ async function bootstrapIBAccount(ib: { email: string; firstName: string; lastNa
     account_type: "ib",
   });
 
-  // Add both IB and investor roles
+  // Add both IB and investor roles for dual-role access
   await supabaseAdmin.from("user_roles").insert([
     { user_id: newUser.user.id, role: "ib" },
+    { user_id: newUser.user.id, role: "investor" },
   ]);
 
   return {
