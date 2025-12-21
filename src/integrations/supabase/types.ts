@@ -1060,6 +1060,20 @@ export type Database = {
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
+          {
+            foreignKeyName: "fund_daily_aum_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_daily_aum_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["fund_id"]
+          },
         ]
       }
       fund_daily_aum_archive: {

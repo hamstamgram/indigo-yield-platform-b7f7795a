@@ -89,8 +89,32 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
   const [availablePeriods, setAvailablePeriods] = useState<string[]>([]);
   const [addTxDialogOpen, setAddTxDialogOpen] = useState(false);
   const [defaultFundId, setDefaultFundId] = useState<string>("");
+  const [periodId, setPeriodId] = useState<string | null>(null);
 
-  const periodId = format(selectedDate, "yyyy-MM");
+  // Lookup period UUID from statement_periods based on selected date
+  useEffect(() => {
+    const lookupPeriodId = async () => {
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth() + 1;
+      
+      const { data, error } = await supabase
+        .from("statement_periods")
+        .select("id")
+        .eq("year", year)
+        .eq("month", month)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error looking up period:", error);
+        setPeriodId(null);
+        return;
+      }
+      
+      setPeriodId(data?.id || null);
+    };
+    
+    lookupPeriodId();
+  }, [selectedDate]);
 
   // Fetch positions
   const fetchPositions = useCallback(async () => {
@@ -125,6 +149,12 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
 
   // Fetch performance data for selected period
   const fetchPerformance = useCallback(async () => {
+    // Skip if periodId is not yet resolved
+    if (!periodId) {
+      setPerformance([]);
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from("investor_fund_performance")
@@ -377,7 +407,7 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
                 assetCode={position.asset}
                 currentBalance={position.current_value}
                 investorId={investorId}
-                periodId={periodId}
+                periodId={periodId || undefined}
                 performanceId={perfRecord?.id}
                 performance={perfRecord}
                 feePercent={getFeeForFund(position.fund_id)}
