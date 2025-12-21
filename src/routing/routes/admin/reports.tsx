@@ -11,7 +11,9 @@ const HistoricalReportsDashboard = lazy(
   () => import("@/components/admin/investors/HistoricalReportsDashboard")
 );
 
-// Removed missing routes: AdminReports, AdminBatchReportsPage, PDFGenerationDemo (Assuming it's also gone or not needed)
+const ReportDeliveryCenter = lazy(
+  () => import("@/components/admin/reports/ReportDeliveryCenter")
+);
 
 export function ReportsRoutes() {
   return (
@@ -21,6 +23,14 @@ export function ReportsRoutes() {
         element={
           <AdminRoute>
             <HistoricalReportsDashboard />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/reports/delivery"
+        element={
+          <AdminRoute>
+            <ReportDeliveryCenter />
           </AdminRoute>
         }
       />

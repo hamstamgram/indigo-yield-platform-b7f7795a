@@ -3135,6 +3135,44 @@ export type Database = {
           },
         ]
       }
+      report_delivery_audit: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          delivery_id: string
+          details: Json | null
+          from_status: string | null
+          id: string
+          to_status: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          delivery_id: string
+          details?: Json | null
+          from_status?: string | null
+          id?: string
+          to_status: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          delivery_id?: string
+          details?: Json | null
+          from_status?: string | null
+          id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_delivery_audit_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "statement_email_delivery"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_schedules: {
         Row: {
           created_at: string | null
@@ -3277,48 +3315,78 @@ export type Database = {
       }
       statement_email_delivery: {
         Row: {
+          attempt_count: number
+          channel: string
           created_at: string | null
+          created_by: string | null
+          error_code: string | null
           error_message: string | null
           failed_at: string | null
           id: string
           investor_id: string
+          last_attempt_at: string | null
+          locked_at: string | null
+          locked_by: string | null
+          metadata: Json
           period_id: string
+          provider_message_id: string | null
           recipient_email: string
           retry_count: number | null
           sent_at: string | null
           statement_id: string
           status: string | null
           subject: string
+          updated_at: string
           user_id: string
         }
         Insert: {
+          attempt_count?: number
+          channel?: string
           created_at?: string | null
+          created_by?: string | null
+          error_code?: string | null
           error_message?: string | null
           failed_at?: string | null
           id?: string
           investor_id: string
+          last_attempt_at?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
+          metadata?: Json
           period_id: string
+          provider_message_id?: string | null
           recipient_email: string
           retry_count?: number | null
           sent_at?: string | null
           statement_id: string
           status?: string | null
           subject: string
+          updated_at?: string
           user_id: string
         }
         Update: {
+          attempt_count?: number
+          channel?: string
           created_at?: string | null
+          created_by?: string | null
+          error_code?: string | null
           error_message?: string | null
           failed_at?: string | null
           id?: string
           investor_id?: string
+          last_attempt_at?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
+          metadata?: Json
           period_id?: string
+          provider_message_id?: string | null
           recipient_email?: string
           retry_count?: number | null
           sent_at?: string | null
           statement_id?: string
           status?: string | null
           subject?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -4700,6 +4768,21 @@ export type Database = {
         Args: { p_date: string; p_fund_id: string; p_investor_id: string }
         Returns: number
       }
+      acquire_delivery_batch: {
+        Args: {
+          p_batch_size?: number
+          p_channel?: string
+          p_period_id: string
+          p_worker_id?: string
+        }
+        Returns: {
+          attempt_count: number
+          id: string
+          investor_id: string
+          recipient_email: string
+          statement_id: string
+        }[]
+      }
       add_fund_to_investor: {
         Args: {
           p_cost_basis?: number
@@ -4809,6 +4892,7 @@ export type Database = {
         Args: { p_amount: number; p_fund_id: string; p_investor_id: string }
         Returns: Json
       }
+      cancel_delivery: { Args: { p_delivery_id: string }; Returns: Json }
       cancel_withdrawal_by_admin: {
         Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
         Returns: boolean
@@ -4914,6 +4998,7 @@ export type Database = {
           last_name: string
         }[]
       }
+      get_delivery_stats: { Args: { p_period_id: string }; Returns: Json }
       get_fund_composition: {
         Args: { p_date: string; p_fund_id: string }
         Returns: {
@@ -5178,6 +5263,20 @@ export type Database = {
         }
         Returns: undefined
       }
+      mark_delivery_result: {
+        Args: {
+          p_delivery_id: string
+          p_error_code?: string
+          p_error_message?: string
+          p_provider_message_id?: string
+          p_success: boolean
+        }
+        Returns: Json
+      }
+      mark_sent_manually: {
+        Args: { p_delivery_id: string; p_note?: string }
+        Returns: Json
+      }
       preview_daily_yield_to_fund_v2: {
         Args: {
           p_admin_id: string
@@ -5201,14 +5300,28 @@ export type Database = {
           net_amount: number
         }[]
       }
+      queue_statement_deliveries: {
+        Args: {
+          p_channel?: string
+          p_fund_id?: string
+          p_investor_ids?: string[]
+          p_period_id: string
+        }
+        Returns: Json
+      }
       reject_withdrawal: {
         Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
         Returns: boolean
+      }
+      requeue_stale_sending: {
+        Args: { p_minutes?: number; p_period_id: string }
+        Returns: Json
       }
       reset_all_investor_positions: {
         Args: { p_admin_id: string; p_confirmation_code: string }
         Returns: Json
       }
+      retry_delivery: { Args: { p_delivery_id: string }; Returns: Json }
       send_daily_rate_notifications: {
         Args: { p_rate_date: string }
         Returns: number
