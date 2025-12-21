@@ -327,6 +327,26 @@ function UnifiedInvestorsContent() {
             className="pl-8 h-9"
           />
         </div>
+
+        {/* Quick filter counts */}
+        <div className="flex items-center gap-1">
+          <Button
+            variant={statusFilter === "active" ? "secondary" : "ghost"}
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => setFilter("status", statusFilter === "active" ? "all" : "active")}
+          >
+            Active: {enrichedInvestors.filter(i => i.fundsHeldCount > 0).length}
+          </Button>
+          <Button
+            variant={statusFilter === "inactive" ? "secondary" : "ghost"}
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => setFilter("status", statusFilter === "inactive" ? "all" : "inactive")}
+          >
+            No positions: {enrichedInvestors.filter(i => i.fundsHeldCount === 0).length}
+          </Button>
+        </div>
         
         <Select value={fundFilter} onValueChange={(v) => setFilter("fund", v)}>
           <SelectTrigger className="w-[140px] h-9">
@@ -339,17 +359,6 @@ function UnifiedInvestorsContent() {
                 {fund.name}
               </SelectItem>
             ))}
-          </SelectContent>
-        </Select>
-        
-        <Select value={statusFilter} onValueChange={(v) => setFilter("status", v)}>
-          <SelectTrigger className="w-[140px] h-9">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
           </SelectContent>
         </Select>
 

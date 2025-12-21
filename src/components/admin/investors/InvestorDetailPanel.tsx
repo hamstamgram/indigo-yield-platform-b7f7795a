@@ -17,7 +17,10 @@ import {
   Loader2,
   AlertCircle,
   RotateCcw,
+  Copy,
+  Check,
 } from "lucide-react";
+import { useState as useStateCopy } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { InvestorSummaryV2, forceDeleteInvestorUser } from "@/services/admin";
 import { InvestorTabs } from "./InvestorTabs";
@@ -40,6 +43,18 @@ export function InvestorDetailPanel({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [pendingWithdrawalsCount, setPendingWithdrawalsCount] = useState(0);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyId = async () => {
+    if (!investorId) return;
+    try {
+      await navigator.clipboard.writeText(investorId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error("Failed to copy ID");
+    }
+  };
 
   // Load pending withdrawals count
   const loadPendingWithdrawals = useCallback(async () => {
@@ -149,7 +164,22 @@ export function InvestorDetailPanel({
                 {investorSummary.status || "active"}
               </Badge>
             </div>
-            <p className="text-sm text-muted-foreground truncate">{investorSummary.email}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground truncate">{investorSummary.email}</p>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5 shrink-0"
+                onClick={handleCopyId}
+                title="Copy investor ID"
+              >
+                {copied ? (
+                  <Check className="h-3 w-3 text-green-500" />
+                ) : (
+                  <Copy className="h-3 w-3 text-muted-foreground" />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
