@@ -216,7 +216,7 @@ export function PositionResetDialog() {
               </Card>
               <Card>
                 <CardContent className="pt-4">
-                  <div className="text-2xl font-bold">{formatCurrency(preview.total_aum)}</div>
+                  <div className="text-2xl font-bold">{formatTokenAmount(preview.total_aum)}</div>
                   <div className="text-sm text-muted-foreground">Total AUM</div>
                 </CardContent>
               </Card>
@@ -312,7 +312,7 @@ export function PositionResetDialog() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Previous AUM:</span>
-                <span className="font-medium">{formatCurrency(result.total_aum_before)}</span>
+                <span className="font-medium">{formatTokenAmount(result.total_aum_before)}</span>
               </div>
             </div>
 

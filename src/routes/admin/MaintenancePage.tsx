@@ -207,7 +207,7 @@ export default function MaintenancePage() {
                       {entry.affected_counts?.positions_reset ?? "—"}
                     </TableCell>
                     <TableCell className="text-right">
-                      {formatCurrency(entry.affected_counts?.total_aum_before)}
+                      {formatTokenAmount(entry.affected_counts?.total_aum_before)}
                     </TableCell>
                     <TableCell className="font-mono text-xs">
                       {entry.reset_batch_id.slice(0, 8)}...
