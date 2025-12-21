@@ -3,7 +3,7 @@
  * Lists all yield records with filtering and editing capabilities
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { 
@@ -14,7 +14,8 @@ import {
   Check,
   X,
   AlertCircle,
-  TrendingUp 
+  TrendingUp,
+  RefreshCw
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -66,6 +67,8 @@ import {
   AumPurpose,
   YieldFilters,
 } from "@/services/admin/recordedYieldsService";
+import { YieldCorrectionPanel } from "@/components/admin/yields/YieldCorrectionPanel";
+import { getYieldCorrectionHistory, CorrectionHistoryItem } from "@/services/admin/yieldCorrectionService";
 
 interface Fund {
   id: string;
@@ -87,6 +90,8 @@ function RecordedYieldsContent() {
   const [editReason, setEditReason] = useState("");
   const [historyRecord, setHistoryRecord] = useState<YieldRecord | null>(null);
   const [canEdit, setCanEdit] = useState(false);
+  const [correctionRecord, setCorrectionRecord] = useState<YieldRecord | null>(null);
+  const [correctionHistoryRecord, setCorrectionHistoryRecord] = useState<YieldRecord | null>(null);
 
   const { user } = useAuth();
 
@@ -134,6 +139,39 @@ function RecordedYieldsContent() {
     queryFn: () => (historyRecord ? getYieldEditHistory(historyRecord.id) : Promise.resolve([])),
     enabled: !!historyRecord,
   });
+
+  // Fetch correction history for all yields (for badge display)
+  const { data: correctionHistory = [] } = useQuery({
+    queryKey: ["yield-corrections", filters.fundId],
+    queryFn: () => getYieldCorrectionHistory(filters.fundId === "all" ? undefined : filters.fundId),
+  });
+
+  // Fetch correction history for a specific record
+  const { data: recordCorrectionHistory = [], isLoading: isLoadingCorrectionHistory } = useQuery({
+    queryKey: ["yield-correction-history", correctionHistoryRecord?.fund_id, correctionHistoryRecord?.aum_date, correctionHistoryRecord?.purpose],
+    queryFn: () => correctionHistoryRecord 
+      ? getYieldCorrectionHistory(correctionHistoryRecord.fund_id, correctionHistoryRecord.aum_date, correctionHistoryRecord.aum_date)
+      : Promise.resolve([]),
+    enabled: !!correctionHistoryRecord,
+  });
+
+  // Build a map of corrected records (fund_id + date + purpose -> correction count)
+  const correctedRecordsMap = useMemo(() => {
+    const map = new Map<string, { count: number; lastCorrectedAt: string }>();
+    correctionHistory.forEach((c) => {
+      const key = `${c.fund_id}:${c.effective_date}:${c.purpose}`;
+      const existing = map.get(key);
+      if (!existing || new Date(c.applied_at) > new Date(existing.lastCorrectedAt)) {
+        map.set(key, { 
+          count: (existing?.count || 0) + 1, 
+          lastCorrectedAt: c.applied_at 
+        });
+      } else {
+        map.set(key, { ...existing, count: existing.count + 1 });
+      }
+    });
+    return map;
+  }, [correctionHistory]);
 
   // Update mutation
   const updateMutation = useMutation({
@@ -256,10 +294,10 @@ function RecordedYieldsContent() {
             </div>
 
             <Button
-              variant="outline"
-              size="sm"
-              onClick={() => clearFilters()}
-            >
+                variant="ghost"
+                size="sm"
+                onClick={() => clearFilters()}
+              >
               <Filter className="h-4 w-4 mr-1" />
               Reset
             </Button>
@@ -307,90 +345,117 @@ function RecordedYieldsContent() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {yields.map((record) => (
-                    <TableRow key={record.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <CryptoIcon symbol={record.fund_asset || ""} className="h-5 w-5" />
-                          <div>
-                            <p className="font-medium">{record.fund_name}</p>
-                            <p className="text-xs text-muted-foreground">{record.fund_asset}</p>
+                  {yields.map((record) => {
+                    const correctionKey = `${record.fund_id}:${record.aum_date}:${record.purpose}`;
+                    const correctionInfo = correctedRecordsMap.get(correctionKey);
+                    
+                    return (
+                      <TableRow key={record.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <CryptoIcon symbol={record.fund_asset || ""} className="h-5 w-5" />
+                            <div>
+                              <p className="font-medium">{record.fund_name}</p>
+                              <p className="text-xs text-muted-foreground">{record.fund_asset}</p>
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(record.aum_date), "MMM d, yyyy")}
-                      </TableCell>
-                      <TableCell className="text-right font-mono">
-                        {formatValue(record.total_aum, record.fund_asset)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={record.purpose === "reporting" ? "default" : "secondary"}
-                          className={
-                            record.purpose === "reporting"
-                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                              : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
-                          }
-                        >
-                          {record.purpose === "reporting" ? "🟢 Reporting" : "🟠 Transaction"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {record.is_month_end ? (
-                          <Check className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <X className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">
-                        {record.source || "-"}
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          <p>{format(new Date(record.created_at), "MMM d, yyyy")}</p>
-                          {record.created_by_name && (
-                            <p className="text-xs text-muted-foreground">{record.created_by_name}</p>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {format(new Date(record.aum_date), "MMM d, yyyy")}
+                            {correctionInfo && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Badge 
+                                      variant="outline" 
+                                      className="text-xs cursor-pointer bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800"
+                                      onClick={() => setCorrectionHistoryRecord(record)}
+                                    >
+                                      <RefreshCw className="h-3 w-3 mr-1" />
+                                      {correctionInfo.count}x Corrected
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    Last corrected: {format(new Date(correctionInfo.lastCorrectedAt), "MMM d, yyyy HH:mm")}
+                                    <br />Click to view correction history
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-mono">
+                          {formatValue(record.total_aum, record.fund_asset)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={record.purpose === "reporting" ? "default" : "secondary"}
+                            className={
+                              record.purpose === "reporting"
+                                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                            }
+                          >
+                            {record.purpose === "reporting" ? "🟢 Reporting" : "🟠 Transaction"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {record.is_month_end ? (
+                            <Check className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <X className="h-4 w-4 text-muted-foreground" />
                           )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => setHistoryRecord(record)}
-                                >
-                                  <History className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>View edit history</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-
-                          {canEdit && (
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">
+                          {record.source || "-"}
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            <p>{format(new Date(record.created_at), "MMM d, yyyy")}</p>
+                            {record.created_by_name && (
+                              <p className="text-xs text-muted-foreground">{record.created_by_name}</p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => openEditDialog(record)}
+                                    onClick={() => setHistoryRecord(record)}
                                   >
-                                    <Pencil className="h-4 w-4" />
+                                    <History className="h-4 w-4" />
                                   </Button>
                                 </TooltipTrigger>
-                                <TooltipContent>Edit record</TooltipContent>
+                                <TooltipContent>View edit history</TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+
+                            {canEdit && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => setCorrectionRecord(record)}
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Correct yield</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
@@ -555,6 +620,90 @@ function RecordedYieldsContent() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Correction History Dialog */}
+      <Dialog open={!!correctionHistoryRecord} onOpenChange={(o) => !o && setCorrectionHistoryRecord(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RefreshCw className="h-5 w-5" />
+              Correction History
+            </DialogTitle>
+            <DialogDescription>
+              {correctionHistoryRecord?.fund_name} - {correctionHistoryRecord?.aum_date} ({correctionHistoryRecord?.purpose})
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 max-h-[500px] overflow-y-auto">
+            {isLoadingCorrectionHistory ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            ) : recordCorrectionHistory.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>No corrections for this record</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recordCorrectionHistory.map((c: CorrectionHistoryItem) => (
+                  <div key={c.correction_id} className="border rounded-lg p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
+                          {c.status}
+                        </Badge>
+                        <span className="text-sm font-medium">
+                          {format(new Date(c.applied_at), "MMM d, yyyy HH:mm")}
+                        </span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        by {c.applied_by_name || "System"}
+                      </span>
+                    </div>
+                    
+                    {c.reason && (
+                      <p className="text-sm text-muted-foreground italic">"{c.reason}"</p>
+                    )}
+                    
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div className="bg-muted/50 rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground mb-1">Old AUM</p>
+                        <p className="font-mono">{c.old_aum?.toLocaleString(undefined, { maximumFractionDigits: 8 })}</p>
+                      </div>
+                      <div className="bg-muted/50 rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground mb-1">New AUM</p>
+                        <p className="font-mono">{c.new_aum?.toLocaleString(undefined, { maximumFractionDigits: 8 })}</p>
+                      </div>
+                      <div className={`rounded-lg p-3 ${(c.delta_aum || 0) >= 0 ? "bg-green-50 dark:bg-green-900/20" : "bg-red-50 dark:bg-red-900/20"}`}>
+                        <p className="text-xs text-muted-foreground mb-1">Delta</p>
+                        <p className={`font-mono ${(c.delta_aum || 0) >= 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
+                          {(c.delta_aum || 0) > 0 ? "+" : ""}{c.delta_aum?.toLocaleString(undefined, { maximumFractionDigits: 8 })}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="text-xs text-muted-foreground">
+                      Affected {c.investors_affected} investor{c.investors_affected !== 1 ? "s" : ""}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Yield Correction Panel */}
+      <YieldCorrectionPanel
+        record={correctionRecord}
+        open={!!correctionRecord}
+        onOpenChange={(open) => !open && setCorrectionRecord(null)}
+        onCorrectionApplied={() => {
+          queryClient.invalidateQueries({ queryKey: ["recorded-yields"] });
+          queryClient.invalidateQueries({ queryKey: ["yield-corrections"] });
+        }}
+      />
     </div>
   );
 }
