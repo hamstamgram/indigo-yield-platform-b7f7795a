@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +39,7 @@ import { toast } from "sonner";
 import { format, subMonths, addMonths, startOfMonth } from "date-fns";
 import { FundPositionCard } from "./FundPositionCard";
 import { InvestorFeeManager } from "./InvestorFeeManager";
+import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
 
 interface InvestorYieldManagerProps {
   investorId: string;
@@ -77,6 +79,7 @@ interface FeeScheduleEntry {
 
 export function InvestorYieldManager({ investorId, investorName }: InvestorYieldManagerProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(true);
   const [positions, setPositions] = useState<Position[]>([]);
   const [performance, setPerformance] = useState<PerformanceRecord[]>([]);
@@ -84,6 +87,8 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
   const [selectedDate, setSelectedDate] = useState<Date>(startOfMonth(new Date()));
   const [showFeeManager, setShowFeeManager] = useState(false);
   const [availablePeriods, setAvailablePeriods] = useState<string[]>([]);
+  const [addTxDialogOpen, setAddTxDialogOpen] = useState(false);
+  const [defaultFundId, setDefaultFundId] = useState<string>("");
 
   const periodId = format(selectedDate, "yyyy-MM");
 
@@ -354,7 +359,7 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
               <Button
                 variant="outline"
                 className="mt-4"
-                onClick={() => navigate(`/admin/transactions?investorId=${investorId}&action=add`)}
+                onClick={() => setAddTxDialogOpen(true)}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Transaction
@@ -382,6 +387,20 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
           })
         )}
       </div>
+
+      {/* Add Transaction Modal */}
+      <AddTransactionDialog
+        open={addTxDialogOpen}
+        onOpenChange={setAddTxDialogOpen}
+        investorId={investorId}
+        fundId={defaultFundId || (positions[0]?.fund_id || "")}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["admin-transactions-history"] });
+          queryClient.invalidateQueries({ queryKey: ["investor-positions", investorId] });
+          handleDataUpdate();
+          setAddTxDialogOpen(false);
+        }}
+      />
     </div>
   );
 }

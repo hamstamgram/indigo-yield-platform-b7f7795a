@@ -5,8 +5,8 @@
  */
 
 import { useState, useEffect, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -27,11 +27,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, Search, ChevronLeft, ChevronRight, ExternalLink, CreditCard } from "lucide-react";
+import { Loader2, Search, ChevronLeft, ChevronRight, ExternalLink, CreditCard, Plus } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { supabase } from "@/integrations/supabase/client";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { format, startOfMonth, endOfMonth, subMonths, startOfYear } from "date-fns";
+import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
 
 type TransactionType = "DEPOSIT" | "WITHDRAWAL" | "FEE" | "INTEREST" | "ADJUSTMENT";
 
@@ -47,10 +48,10 @@ interface Transaction {
   displayType: string;
   amount: number;
   txDate: string;
-  status: string | null;
   notes: string | null;
   createdAt: string;
   createdBy: string | null;
+  visibilityScope: string;
 }
 
 interface Fund {
@@ -64,6 +65,8 @@ const PAGE_SIZE = 50;
 
 function TransactionHistoryContent() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [funds, setFunds] = useState<Fund[]>([]);
   const [selectedFund, setSelectedFund] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
@@ -72,6 +75,28 @@ function TransactionHistoryContent() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(0);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [dialogInvestorId, setDialogInvestorId] = useState<string>("");
+  const [dialogFundId, setDialogFundId] = useState<string>("");
+
+  // Check URL for action=add to auto-open modal
+  useEffect(() => {
+    const action = searchParams.get("action");
+    const investorId = searchParams.get("investorId") || "";
+    const fundId = searchParams.get("fundId") || "";
+    
+    if (action === "add") {
+      setDialogInvestorId(investorId);
+      setDialogFundId(fundId || (funds.length > 0 ? funds[0].id : ""));
+      setAddDialogOpen(true);
+      // Clear the action param after opening
+      setSearchParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        newParams.delete("action");
+        return newParams;
+      }, { replace: true });
+    }
+  }, [searchParams, funds, setSearchParams]);
 
   // Load funds
   useEffect(() => {
@@ -122,7 +147,7 @@ function TransactionHistoryContent() {
       let query = supabase
         .from("transactions_v2")
         .select(`
-          id, investor_id, fund_id, type, asset, amount, tx_date, status, notes, created_at, created_by,
+          id, investor_id, fund_id, type, asset, amount, tx_date, notes, created_at, created_by, visibility_scope,
           profiles!fk_transactions_v2_profile (email, first_name, last_name)
         `, { count: "exact" })
         .order("tx_date", { ascending: false })
@@ -204,10 +229,10 @@ function TransactionHistoryContent() {
           displayType,
           amount: Number(tx.amount),
           txDate: tx.tx_date,
-          status: tx.status,
           notes: tx.notes,
           createdAt: tx.created_at,
           createdBy: tx.created_by,
+          visibilityScope: tx.visibility_scope || "investor_visible",
         };
       });
 
@@ -268,14 +293,15 @@ function TransactionHistoryContent() {
     }
   };
 
-  const getStatusBadge = (status: string | null) => {
-    if (!status) return null;
-    const variant = status === "completed" || status === "posted" 
-      ? "default" 
-      : status === "pending" 
-        ? "secondary" 
-        : "destructive";
-    return <Badge variant={variant} className="text-xs">{status}</Badge>;
+  const handleAddTransactionSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin-transactions-history"] });
+    setAddDialogOpen(false);
+  };
+
+  const handleOpenAddDialog = () => {
+    setDialogInvestorId("");
+    setDialogFundId(funds.length > 0 ? funds[0].id : "");
+    setAddDialogOpen(true);
   };
 
   const handleInvestorClick = (investorId: string) => {
@@ -376,9 +402,15 @@ function TransactionHistoryContent() {
       {/* Transactions Table */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>
-            {totalCount.toLocaleString()} Transaction{totalCount !== 1 ? "s" : ""}
-          </CardTitle>
+          <div className="flex items-center gap-4">
+            <CardTitle>
+              {totalCount.toLocaleString()} Transaction{totalCount !== 1 ? "s" : ""}
+            </CardTitle>
+            <Button onClick={handleOpenAddDialog} size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Transaction
+            </Button>
+          </div>
           
           {/* Pagination Controls */}
           {totalPages > 1 && (
@@ -420,14 +452,13 @@ function TransactionHistoryContent() {
                     <TableHead className="min-w-[120px]">Fund</TableHead>
                     <TableHead className="min-w-[130px]">Type</TableHead>
                     <TableHead className="text-right min-w-[140px]">Amount</TableHead>
-                    <TableHead className="min-w-[100px]">Status</TableHead>
                     <TableHead className="min-w-[200px]">Notes</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredTransactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         No transactions found
                       </TableCell>
                     </TableRow>
@@ -471,9 +502,6 @@ function TransactionHistoryContent() {
                           </span>
                           <span className="text-muted-foreground ml-1">{tx.asset}</span>
                         </TableCell>
-                        <TableCell>
-                          {getStatusBadge(tx.status)}
-                        </TableCell>
                         <TableCell className="max-w-[200px] truncate text-muted-foreground">
                           {tx.notes || "—"}
                         </TableCell>
@@ -508,6 +536,15 @@ function TransactionHistoryContent() {
           </Button>
         </div>
       )}
+
+      {/* Add Transaction Modal */}
+      <AddTransactionDialog
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
+        investorId={dialogInvestorId}
+        fundId={dialogFundId}
+        onSuccess={handleAddTransactionSuccess}
+      />
     </div>
   );
 }
