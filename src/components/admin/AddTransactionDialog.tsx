@@ -26,7 +26,8 @@ import { toast } from "sonner";
 import { createAdminTransaction } from "@/services/shared/transactionService";
 import { Loader2 } from "lucide-react";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
-import { useActiveFunds, formatFundLabel } from "@/hooks/useActiveFunds";
+import { useActiveFunds } from "@/hooks/useActiveFunds";
+import { getAssetLogo } from "@/utils/assets";
 
 // Transaction validation schema
 const transactionSchema = z.object({
@@ -216,7 +217,14 @@ export function AddTransactionDialog({
               <SelectContent>
                 {funds?.map((fund) => (
                   <SelectItem key={fund.id} value={fund.id}>
-                    {formatFundLabel(fund)}
+                    <div className="flex items-center gap-2">
+                      <img 
+                        src={getAssetLogo(fund.asset)} 
+                        alt={fund.asset}
+                        className="h-5 w-5 rounded-full"
+                      />
+                      <span>{fund.asset}</span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
