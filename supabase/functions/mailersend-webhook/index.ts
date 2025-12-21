@@ -96,10 +96,15 @@ serve(async (req: Request): Promise<Response> => {
           .join("");
         
         if (signature !== expectedSignature) {
-          console.error("Webhook signature verification failed");
-          // Log failed attempt but still process (some webhook configs vary)
+          console.error("Webhook signature verification failed - rejecting request");
+          return new Response(JSON.stringify({ error: "Invalid signature" }), {
+            status: 401,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
         }
       }
+    } else {
+      console.warn("MAILERSEND_WEBHOOK_SIGNING_SECRET not configured - signature verification skipped");
     }
 
     // Parse webhook payload
@@ -217,26 +222,41 @@ serve(async (req: Request): Promise<Response> => {
       console.error("Failed to update delivery record:", updateError);
     }
 
-    // Log event to report_delivery_events
-    const { error: eventError } = await supabase
+    // Log event to report_delivery_events with idempotency check
+    const eventType = payload.type.replace("activity.", "");
+    
+    // Check for existing event (idempotency)
+    const { data: existingEvent } = await supabase
       .from("report_delivery_events")
-      .insert({
-        delivery_id: delivery.id,
-        provider_message_id: messageId,
-        event_type: payload.type.replace("activity.", ""),
-        event_data: {
-          recipient: payload.data?.email?.recipient?.email,
-          subject: payload.data?.email?.subject,
-          status: payload.data?.email?.status,
-          morph: payload.data?.morph,
-          webhook_id: payload.webhook_id,
-          domain_id: payload.domain_id,
-        },
-        occurred_at: eventTime,
-      });
+      .select("id")
+      .eq("delivery_id", delivery.id)
+      .eq("event_type", eventType)
+      .eq("occurred_at", eventTime)
+      .maybeSingle();
 
-    if (eventError) {
-      console.error("Failed to log delivery event:", eventError);
+    if (!existingEvent) {
+      const { error: eventError } = await supabase
+        .from("report_delivery_events")
+        .insert({
+          delivery_id: delivery.id,
+          provider_message_id: messageId,
+          event_type: eventType,
+          event_data: {
+            recipient: payload.data?.email?.recipient?.email,
+            subject: payload.data?.email?.subject,
+            status: payload.data?.email?.status,
+            morph: payload.data?.morph,
+            webhook_id: payload.webhook_id,
+            domain_id: payload.domain_id,
+          },
+          occurred_at: eventTime,
+        });
+
+      if (eventError) {
+        console.error("Failed to log delivery event:", eventError);
+      }
+    } else {
+      console.log(`Event ${eventType} at ${eventTime} already logged for delivery ${delivery.id}, skipping`);
     }
 
     console.log(`Processed ${payload.type} for delivery ${delivery.id}`);
