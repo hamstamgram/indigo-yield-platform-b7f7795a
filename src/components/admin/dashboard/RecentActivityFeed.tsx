@@ -50,7 +50,7 @@ export function RecentActivityFeed() {
           id,
           type,
           amount,
-          asset_code,
+          asset,
           created_at,
           profile:profiles!fk_transactions_v2_profile(first_name, last_name, email)
         `)
@@ -82,13 +82,15 @@ export function RecentActivityFeed() {
         let type: ActivityItem["type"] = "transaction";
         let title = "Transaction";
 
-        if (t.type === "deposit" || t.type === "addition") {
+        // Compare uppercase since DB stores uppercase types
+        const txType = (t.type || "").toUpperCase();
+        if (txType === "DEPOSIT" || txType === "ADDITION") {
           type = "deposit";
           title = "Deposit";
-        } else if (t.type === "withdrawal" || t.type === "redemption") {
+        } else if (txType === "WITHDRAWAL" || txType === "REDEMPTION") {
           type = "withdrawal";
           title = "Withdrawal";
-        } else if (t.type === "yield" || t.type === "income") {
+        } else if (txType === "YIELD" || txType === "INCOME" || txType === "INTEREST") {
           type = "yield";
           title = "Yield Applied";
         }
@@ -101,7 +103,7 @@ export function RecentActivityFeed() {
           timestamp: new Date(t.created_at),
           metadata: {
             amount: t.amount,
-            asset: t.asset_code,
+            asset: t.asset,
             investorName,
           },
         });

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -84,6 +85,7 @@ export function AddTransactionDialog({
   onSuccess,
 }: AddTransactionDialogProps) {
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -127,6 +129,11 @@ export function AddTransactionDialog({
       if (!result.success) {
         throw new Error(result.error || "Failed to create transaction");
       }
+
+      // Invalidate relevant queries to refresh data everywhere
+      queryClient.invalidateQueries({ queryKey: ["admin-transactions-history"] });
+      queryClient.invalidateQueries({ queryKey: ["investor-positions"] });
+      queryClient.invalidateQueries({ queryKey: ["investor-transactions"] });
 
       toast.success("Transaction created successfully");
       reset();

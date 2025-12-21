@@ -4,8 +4,9 @@
  * Overview, Ledger, Positions, Withdrawals, Reports, Settings
  */
 
-import { useCallback } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -22,6 +23,8 @@ import InvestorPositionsTab from "./InvestorPositionsTab";
 import { InvestorWithdrawalsTab } from "./InvestorWithdrawalsTab";
 import { InvestorReportsTab } from "./InvestorReportsTab";
 import { InvestorSettingsTab } from "./InvestorSettingsTab";
+import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface InvestorTabsProps {
   investorId: string;
@@ -53,11 +56,28 @@ export function InvestorTabs({
   pendingWithdrawalsCount = 0,
 }: InvestorTabsProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [addTxDialogOpen, setAddTxDialogOpen] = useState(false);
+  const [defaultFundId, setDefaultFundId] = useState<string>("");
   
   // Use URL param for tab if available, otherwise default
   const tabParam = searchParams.get("tab");
   const activeTab = TAB_KEYS.includes(tabParam as TabKey) ? tabParam as TabKey : defaultTab as TabKey;
+
+  // Fetch default fund for investor
+  useEffect(() => {
+    const fetchDefaultFund = async () => {
+      const { data } = await supabase
+        .from("investor_positions")
+        .select("fund_id")
+        .eq("investor_id", investorId)
+        .limit(1)
+        .maybeSingle();
+      if (data?.fund_id) setDefaultFundId(data.fund_id);
+    };
+    fetchDefaultFund();
+  }, [investorId]);
 
   const handleTabChange = useCallback((value: string) => {
     setSearchParams((prev) => {
@@ -76,9 +96,16 @@ export function InvestorTabs({
   }, [navigate, investorId]);
 
   const handleAddTransaction = useCallback(() => {
-    // Navigate to transactions page with add action
-    navigate(`/admin/transactions?investorId=${investorId}&action=add`);
-  }, [navigate, investorId]);
+    // Open modal directly instead of navigating
+    setAddTxDialogOpen(true);
+  }, []);
+
+  const handleAddTxSuccess = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["admin-transactions-history"] });
+    queryClient.invalidateQueries({ queryKey: ["investor-positions", investorId] });
+    onDataChange?.();
+    setAddTxDialogOpen(false);
+  }, [queryClient, investorId, onDataChange]);
 
   const tabTriggerClass = compact
     ? "text-xs px-2 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
@@ -161,6 +188,15 @@ export function InvestorTabs({
           compact={compact}
         />
       </TabsContent>
+
+      {/* Add Transaction Modal */}
+      <AddTransactionDialog
+        open={addTxDialogOpen}
+        onOpenChange={setAddTxDialogOpen}
+        investorId={investorId}
+        fundId={defaultFundId}
+        onSuccess={handleAddTxSuccess}
+      />
     </Tabs>
   );
 }

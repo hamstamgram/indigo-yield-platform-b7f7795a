@@ -150,7 +150,6 @@ export async function createAdminTransaction(
       investor_id: params.investorId,
       fund_id: params.fundId,
       type: params.type as any,
-      txn_type: params.type,
       asset: params.asset,
       amount: params.amount,
       tx_date: params.txDate,
