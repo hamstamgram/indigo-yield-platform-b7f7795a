@@ -179,11 +179,13 @@ Deno.serve(async (req) => {
     // Step 4: Get transactions for calculations
     // IMPORTANT: Only include 'reporting' purpose transactions for statement calculations
     // This ensures transaction-purpose yield entries don't appear in investor statements
+    // FIX: Changed from .or("purpose.is.null,purpose.eq.reporting") to strictly filter reporting only
+    // Legacy transactions without purpose should be migrated, not implicitly included
     const { data: transactions, error: txError } = await supabase
       .from("transactions_v2")
       .select("*")
       .lte("tx_date", mtdEnd.toISOString().split("T")[0])
-      .or("purpose.is.null,purpose.eq.reporting") // Include legacy (null) + reporting only
+      .eq("purpose", "reporting") // STRICT: Only reporting purpose transactions
       .order("tx_date", { ascending: true });
 
     if (txError) throw txError;
