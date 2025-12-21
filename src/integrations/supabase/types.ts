@@ -1332,6 +1332,7 @@ export type Database = {
           id: string
           inception_date: string
           lock_period_days: number | null
+          logo_url: string | null
           mgmt_fee_bps: number | null
           min_investment: number | null
           name: string
@@ -1349,6 +1350,7 @@ export type Database = {
           id?: string
           inception_date?: string
           lock_period_days?: number | null
+          logo_url?: string | null
           mgmt_fee_bps?: number | null
           min_investment?: number | null
           name: string
@@ -1366,6 +1368,7 @@ export type Database = {
           id?: string
           inception_date?: string
           lock_period_days?: number | null
+          logo_url?: string | null
           mgmt_fee_bps?: number | null
           min_investment?: number | null
           name?: string
