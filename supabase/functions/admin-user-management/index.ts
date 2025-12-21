@@ -100,6 +100,9 @@ serve(async (req) => {
       case "createUser":
         result = await createUser(params as CreateUserRequest);
         break;
+      case "createIB":
+        result = await createIB(params as { email: string; firstName: string; lastName: string });
+        break;
       case "updateUser":
         result = await updateUser(params as UpdateUserRequest);
         break;
@@ -254,6 +257,73 @@ async function createUser(params: CreateUserRequest): Promise<any> {
     invite_code: inviteCode,
     message: `Investor account created successfully for ${email}. ${sendWelcomeEmail ? "Welcome email sent." : "No email sent."}`,
     invite_id: invite?.id,
+  };
+}
+
+async function createIB(params: { email: string; firstName: string; lastName: string }): Promise<any> {
+  const { email, firstName, lastName } = params;
+  console.log(`Creating IB account for ${email}`);
+
+  // Create user via Supabase Admin API
+  const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+    email,
+    email_confirm: false,
+    user_metadata: {
+      first_name: firstName,
+      last_name: lastName,
+      is_ib: true,
+      created_by_admin: true,
+    },
+  });
+
+  if (createError) {
+    throw new Error(`Failed to create IB user: ${createError.message}`);
+  }
+
+  if (!newUser.user) {
+    throw new Error("IB user creation failed - no user returned");
+  }
+
+  // Create profile record
+  const { error: profileError } = await supabaseAdmin
+    .from("profiles")
+    .insert({
+      id: newUser.user.id,
+      email: email,
+      first_name: firstName,
+      last_name: lastName,
+      is_admin: false,
+      status: "active",
+    });
+
+  if (profileError) {
+    await supabaseAdmin.auth.admin.deleteUser(newUser.user.id);
+    throw new Error(`Failed to create IB profile: ${profileError.message}`);
+  }
+
+  // Insert IB role into user_roles table
+  const { error: roleError } = await supabaseAdmin
+    .from("user_roles")
+    .insert({
+      user_id: newUser.user.id,
+      role: "ib",
+    });
+
+  if (roleError) {
+    console.error("Failed to assign IB role:", roleError);
+    // Clean up
+    await supabaseAdmin.from("profiles").delete().eq("id", newUser.user.id);
+    await supabaseAdmin.auth.admin.deleteUser(newUser.user.id);
+    throw new Error(`Failed to assign IB role: ${roleError.message}`);
+  }
+
+  console.log(`Successfully created IB account for ${email} with ID ${newUser.user.id}`);
+
+  return {
+    success: true,
+    user_id: newUser.user.id,
+    email: email,
+    message: `IB account created successfully for ${email}`,
   };
 }
 
