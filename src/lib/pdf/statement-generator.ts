@@ -571,11 +571,15 @@ export class StatementPDFGenerator {
     this.generatePageFooter();
   }
 
-  private formatCurrency(amount: number): string {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
+  private formatCurrency(amount: number, asset?: string): string {
+    // Token-denominated formatting - no USD currency symbols
+    const formatted = new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 8,
     }).format(amount);
+    
+    // Append asset symbol if provided
+    return asset ? `${formatted} ${asset}` : formatted;
   }
 
   private formatPercent(value: number): string {
