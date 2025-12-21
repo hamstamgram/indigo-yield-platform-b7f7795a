@@ -211,7 +211,7 @@ export async function getIBReferrals(ibInvestorId: string): Promise<
 }
 
 /**
- * Get all investors who can be IB parents (excluding the investor themselves and their referrals to prevent cycles)
+ * Get all investors who can be IB parents (must have IB role, excluding the investor themselves)
  */
 export async function getAvailableIBParents(investorId: string): Promise<
   Array<{
@@ -220,12 +220,29 @@ export async function getAvailableIBParents(investorId: string): Promise<
     name: string;
   }>
 > {
-  // Get all profiles that are not this investor
+  // Step 1: Get users with IB role from user_roles table
+  const { data: ibRoles, error: rolesError } = await supabase
+    .from("user_roles")
+    .select("user_id")
+    .eq("role", "ib");
+
+  if (rolesError) {
+    console.error("Error fetching IB roles:", rolesError);
+    return [];
+  }
+
+  if (!ibRoles || ibRoles.length === 0) {
+    return [];
+  }
+
+  const ibUserIds = ibRoles.map((r) => r.user_id);
+
+  // Step 2: Get profiles for IB users (excluding current investor)
   const { data, error } = await supabase
     .from("profiles")
     .select("id, email, first_name, last_name")
+    .in("id", ibUserIds)
     .neq("id", investorId)
-    .eq("is_admin", false)
     .order("email");
 
   if (error) {

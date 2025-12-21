@@ -93,15 +93,39 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
   };
 
   const handleSave = async () => {
+    // Validation: IB percentage required if IB parent is set
+    if (ibParentId && ibPercentage <= 0) {
+      toast({
+        title: "Validation Error",
+        description: "IB commission percentage is required when an IB parent is set",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validation: percentage range
+    if (ibPercentage < 0 || ibPercentage > 100) {
+      toast({
+        title: "Validation Error",
+        description: "IB commission must be between 0% and 100%",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSaving(true);
     try {
       const result = await updateInvestorIBConfig(investorId, ibParentId, ibPercentage);
       
       if (result.success) {
         toast({
-          title: "IB Settings Updated",
-          description: "The IB configuration has been saved successfully.",
+          title: "IB Settings Saved",
+          description: ibParentId 
+            ? `Assigned IB parent with ${ibPercentage}% commission`
+            : "IB parent removed successfully",
         });
+        // Refresh data to show updated values
+        await loadData();
         onUpdate?.();
       } else {
         throw new Error(result.error || "Failed to update IB settings");
