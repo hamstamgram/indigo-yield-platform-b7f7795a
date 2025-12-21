@@ -360,7 +360,7 @@ Deno.serve(async (req) => {
     const investorIds = Array.from(investorPerformanceMap.keys());
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
-      .select("id, full_name, email")
+      .select("id, name, email")
       .in("id", investorIds);
 
     if (profilesError) {
@@ -382,7 +382,7 @@ Deno.serve(async (req) => {
 
     for (const [investorId, records] of investorPerformanceMap.entries()) {
       const profile = profileMap.get(investorId);
-      const investorName = profile?.full_name || profile?.email || "Investor";
+      const investorName = profile?.name || profile?.email || "Investor";
       
       // Build fund data for HTML generation
       const fundNames: string[] = [];
