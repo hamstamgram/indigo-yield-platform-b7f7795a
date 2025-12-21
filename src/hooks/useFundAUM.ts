@@ -49,6 +49,8 @@ export function useFundAUM() {
     queryFn: fetchFundsWithAUM,
     staleTime: 30000, // 30 seconds
     refetchInterval: 60000, // Refetch every minute
+    retry: 3, // Retry failed requests
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   // Real-time subscription to investor_positions changes
@@ -77,6 +79,7 @@ export function useFundAUM() {
   return {
     funds: query.data || [],
     isLoading: query.isLoading,
+    isError: query.isError,
     error: query.error,
     refetch: query.refetch,
     lastUpdated: query.dataUpdatedAt ? new Date(query.dataUpdatedAt) : null,

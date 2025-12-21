@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, ArrowUpDown, ArrowUp, ArrowDown, Radio } from "lucide-react";
+import { Calendar as CalendarIcon, ArrowUpDown, ArrowUp, ArrowDown, Radio, AlertCircle, RefreshCw, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useFundAUM, FundAUMData } from "@/hooks/useFundAUM";
 import { formatAUM } from "@/utils/formatters";
+import { toast } from "sonner";
 
 interface FlowData {
   fund_id: string;
@@ -50,7 +51,16 @@ export const FinancialSnapshot: React.FC = () => {
   const [loadingFlows, setLoadingFlows] = useState(false);
 
   // Use unified AUM hook - single source of truth
-  const { funds, isLoading: loadingAUM, lastUpdated } = useFundAUM();
+  const { funds, isLoading: loadingAUM, isError, error, refetch, lastUpdated } = useFundAUM();
+
+  // Show error toast on fetch failure
+  useEffect(() => {
+    if (isError && error) {
+      toast.error("Failed to load fund data", {
+        description: "Please try again or contact support if the issue persists.",
+      });
+    }
+  }, [isError, error]);
 
   // Composition State
   const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
@@ -273,8 +283,38 @@ export const FinancialSnapshot: React.FC = () => {
         </div>
       )}
 
+      {/* Error State */}
+      {isError && !loadingAUM && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">Failed to Load Fund Data</h3>
+            <p className="text-muted-foreground text-center mb-4 max-w-md">
+              There was an error fetching fund information. This may be a temporary issue.
+            </p>
+            <Button onClick={() => refetch()} variant="outline" className="gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Empty State - No Active Funds */}
+      {!loadingAUM && !isError && funds.filter(f => f.status === 'active').length === 0 && (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <TrendingUp className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">No Active Funds</h3>
+            <p className="text-muted-foreground text-center max-w-md">
+              There are no active funds configured yet. Create a fund to start tracking AUM.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Snapshot Cards Grid - Using unified AUM data */}
-      {!loadingAUM && (
+      {!loadingAUM && !isError && funds.filter(f => f.status === 'active').length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {funds.filter(f => f.status === 'active').map((fund) => {
             const flows = flowData.get(fund.id);
