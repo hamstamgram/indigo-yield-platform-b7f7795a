@@ -417,7 +417,7 @@ export async function getLatestFundAUM(fundId: string): Promise<FundDailyAUM | n
 
   if (error) {
     console.error("Error fetching latest AUM:", error);
-    return null;
+    throw new Error(`Failed to fetch latest AUM: ${error.message}`);
   }
 
   return data as FundDailyAUM | null;

@@ -11,7 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Receipt, Calendar } from "lucide-react";
+import { Search, Receipt } from "lucide-react";
+import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
 import { Link } from "react-router-dom";
 import { ResponsiveTable } from "@/components/ui/responsive-table";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -201,7 +202,7 @@ export default function InvestorTransactionsPage() {
       <Card>
         <CardContent className="pt-6">
           {isLoading ? (
-            <div className="py-12 text-center text-muted-foreground">Loading...</div>
+            <PageLoadingSpinner />
           ) : items && items.length > 0 ? (
             <ResponsiveTable
               data={items}
