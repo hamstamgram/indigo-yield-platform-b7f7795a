@@ -119,6 +119,18 @@ export function formatAssetAmount(amount: number, symbol: string): string {
 }
 
 /**
+ * Format a signed amount with +/- prefix
+ * e.g. formatSignedAssetAmount(-1500.5, 'USDT') => "-1,500.50 USDT"
+ * e.g. formatSignedAssetAmount(1500.5, 'USDT') => "+1,500.50 USDT"
+ */
+export function formatSignedAssetAmount(amount: number, symbol: string): string {
+  const formatted = formatAssetAmount(Math.abs(amount), symbol);
+  if (amount < 0) return `-${formatted}`;
+  if (amount > 0) return `+${formatted}`;
+  return formatted;
+}
+
+/**
  * Get asset decimals for formatting
  */
 export function getAssetDecimals(symbol: string): number {

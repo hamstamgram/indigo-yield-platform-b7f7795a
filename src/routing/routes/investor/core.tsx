@@ -1,46 +1,61 @@
 /**
  * Core Investor Routes
- * Dashboard, statements, transactions, and account management
+ * New investor portal routes
  */
 
-import { Route } from "react-router-dom";
+import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { ProtectedRoute } from "../../ProtectedRoute";
 
-// Core pages
-const Dashboard = lazy(() => import("@/routes/dashboard/DashboardPage"));
+// New investor pages
+const InvestorOverviewPage = lazy(() => import("@/routes/investor/InvestorOverviewPage"));
+const InvestorPortfolioPage = lazy(() => import("@/routes/investor/InvestorPortfolioPage"));
+const InvestorPerformancePage = lazy(() => import("@/routes/investor/InvestorPerformancePage"));
+const InvestorTransactionsPage = lazy(() => import("@/routes/investor/InvestorTransactionsPage"));
 const StatementsPage = lazy(() => import("@/routes/investor/statements/StatementsPage"));
-const TransactionsPage = lazy(() => import("@/routes/transactions/TransactionsPage"));
+const InvestorDocumentsPage = lazy(() => import("@/routes/investor/InvestorDocumentsPage"));
+const InvestorSettingsPage = lazy(() => import("@/routes/investor/InvestorSettingsPage"));
 const TransactionDetailsPage = lazy(() => import("@/routes/transactions/TransactionDetailsPage"));
-const PendingTransactionsPage = lazy(() => import("@/routes/transactions/PendingTransactionsPage"));
-const PendingTransactionDetailsPage = lazy(
-  () => import("@/routes/transactions/PendingTransactionDetailsPage")
-);
-const AccountPage = lazy(() => import("@/routes/investor/account/AccountPage"));
 const FundDetailsPage = lazy(() => import("@/routes/investor/funds/FundDetailsPage"));
 
 export function CoreInvestorRoutes() {
   return (
     <>
+      {/* New investor routes */}
       <Route
-        path="/dashboard"
+        path="/investor"
         element={
           <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-      {/* Fund Details Route */}
-      <Route
-        path="/funds/:assetId"
-        element={
-          <ProtectedRoute>
-            <FundDetailsPage />
+            <InvestorOverviewPage />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/statements"
+        path="/investor/portfolio"
+        element={
+          <ProtectedRoute>
+            <InvestorPortfolioPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/investor/performance"
+        element={
+          <ProtectedRoute>
+            <InvestorPerformancePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/investor/transactions"
+        element={
+          <ProtectedRoute>
+            <InvestorTransactionsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/investor/statements"
         element={
           <ProtectedRoute>
             <StatementsPage />
@@ -48,13 +63,30 @@ export function CoreInvestorRoutes() {
         }
       />
       <Route
-        path="/transactions"
+        path="/investor/documents"
         element={
           <ProtectedRoute>
-            <TransactionsPage />
+            <InvestorDocumentsPage />
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/investor/settings"
+        element={
+          <ProtectedRoute>
+            <InvestorSettingsPage />
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Legacy redirects */}
+      <Route path="/dashboard" element={<Navigate to="/investor" replace />} />
+      <Route path="/statements" element={<Navigate to="/investor/statements" replace />} />
+      <Route path="/transactions" element={<Navigate to="/investor/transactions" replace />} />
+      <Route path="/account" element={<Navigate to="/investor/settings" replace />} />
+      <Route path="/portfolio/analytics" element={<Navigate to="/investor/performance" replace />} />
+      
+      {/* Detail routes */}
       <Route
         path="/transactions/:id"
         element={
@@ -64,26 +96,10 @@ export function CoreInvestorRoutes() {
         }
       />
       <Route
-        path="/transactions/pending"
+        path="/funds/:assetId"
         element={
           <ProtectedRoute>
-            <PendingTransactionsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/transactions/pending/:type/:id"
-        element={
-          <ProtectedRoute>
-            <PendingTransactionDetailsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/account"
-        element={
-          <ProtectedRoute>
-            <AccountPage />
+            <FundDetailsPage />
           </ProtectedRoute>
         }
       />
