@@ -4822,11 +4822,7 @@ export type Database = {
         Returns: Json
       }
       complete_withdrawal: {
-        Args: {
-          p_admin_notes?: string
-          p_request_id: string
-          p_tx_hash?: string
-        }
+        Args: { p_notes?: string; p_request_id: string; p_tx_hash?: string }
         Returns: boolean
       }
       create_admin_invite: { Args: { p_email: string }; Returns: string }

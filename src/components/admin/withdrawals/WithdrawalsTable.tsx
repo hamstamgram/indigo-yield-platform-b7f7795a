@@ -19,10 +19,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
+import { Search, CheckCircle, XCircle, Play, CheckCircle2, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { ApproveWithdrawalDialog } from "./ApproveWithdrawalDialog";
 import { RejectWithdrawalDialog } from "./RejectWithdrawalDialog";
+import { StartProcessingDialog } from "./StartProcessingDialog";
+import { CompleteWithdrawalDialog } from "./CompleteWithdrawalDialog";
 
 interface Fund {
   id: string;
@@ -60,6 +62,8 @@ export function WithdrawalsTable({
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<Withdrawal | null>(null);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [processingDialogOpen, setProcessingDialogOpen] = useState(false);
+  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
 
   const handleApprove = (withdrawal: Withdrawal) => {
     setSelectedWithdrawal(withdrawal);
@@ -69,6 +73,16 @@ export function WithdrawalsTable({
   const handleReject = (withdrawal: Withdrawal) => {
     setSelectedWithdrawal(withdrawal);
     setRejectDialogOpen(true);
+  };
+
+  const handleStartProcessing = (withdrawal: Withdrawal) => {
+    setSelectedWithdrawal(withdrawal);
+    setProcessingDialogOpen(true);
+  };
+
+  const handleComplete = (withdrawal: Withdrawal) => {
+    setSelectedWithdrawal(withdrawal);
+    setCompleteDialogOpen(true);
   };
 
   return (
@@ -212,10 +226,24 @@ export function WithdrawalsTable({
                         </>
                       )}
                       {withdrawal.status === "approved" && (
-                        <Badge variant="outline" className="text-green-600">
-                          <Clock className="h-3 w-3 mr-1" />
-                          Awaiting Processing
-                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleStartProcessing(withdrawal)}
+                        >
+                          <Play className="h-4 w-4 mr-1 text-blue-600" />
+                          Start Processing
+                        </Button>
+                      )}
+                      {withdrawal.status === "processing" && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleComplete(withdrawal)}
+                        >
+                          <CheckCircle2 className="h-4 w-4 mr-1 text-green-600" />
+                          Complete
+                        </Button>
                       )}
                     </div>
                   </TableCell>
@@ -237,6 +265,18 @@ export function WithdrawalsTable({
           <RejectWithdrawalDialog
             open={rejectDialogOpen}
             onOpenChange={setRejectDialogOpen}
+            withdrawal={selectedWithdrawal}
+            onSuccess={onRefresh}
+          />
+          <StartProcessingDialog
+            open={processingDialogOpen}
+            onOpenChange={setProcessingDialogOpen}
+            withdrawal={selectedWithdrawal}
+            onSuccess={onRefresh}
+          />
+          <CompleteWithdrawalDialog
+            open={completeDialogOpen}
+            onOpenChange={setCompleteDialogOpen}
             withdrawal={selectedWithdrawal}
             onSuccess={onRefresh}
           />
