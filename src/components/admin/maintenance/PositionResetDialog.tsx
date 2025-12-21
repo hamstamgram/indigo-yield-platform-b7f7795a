@@ -50,12 +50,10 @@ export function PositionResetDialog() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const formatCurrency = (value: number) => {
+  const formatTokenAmount = (value: number) => {
     return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      maximumFractionDigits: 8,
     }).format(value);
   };
 
