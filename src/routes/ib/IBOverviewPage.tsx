@@ -81,7 +81,8 @@ export default function IBOverviewPage() {
       const byAsset: Record<string, { total: number; pending: number; paid: number }> = {};
       
       for (const allocation of data || []) {
-        const asset = (allocation.funds as any)?.asset || "USDT";
+        const asset = (allocation.funds as any)?.asset;
+        if (!asset) continue; // Skip allocations with missing fund data
         if (!byAsset[asset]) {
           byAsset[asset] = { total: 0, pending: 0, paid: 0 };
         }
@@ -139,7 +140,8 @@ export default function IBOverviewPage() {
       for (const allocation of data || []) {
         const investorId = allocation.source_investor_id;
         const profile = allocation.profiles as any;
-        const asset = (allocation.funds as any)?.asset || "USDT";
+        const asset = (allocation.funds as any)?.asset;
+        if (!asset) continue; // Skip allocations with missing fund data
 
         if (!byInvestor[investorId]) {
           const name = profile

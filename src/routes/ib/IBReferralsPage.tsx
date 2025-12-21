@@ -21,9 +21,10 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
-import { Search, Users, ChevronRight, ChevronLeft } from "lucide-react";
+import { Search, Users, ChevronRight, ChevronLeft, UserPlus } from "lucide-react";
 
 interface Referral {
   id: string;
@@ -83,7 +84,8 @@ export default function IBReferralsPage() {
         const fundIds = new Set<string>();
         
         for (const pos of investorPositions) {
-          const asset = (pos.funds as any)?.asset || "USDT";
+          const asset = (pos.funds as any)?.asset;
+          if (!asset) continue; // Skip positions with missing fund data
           fundIds.add(pos.fund_id);
           if (!holdings[asset]) holdings[asset] = 0;
           holdings[asset] += Number(pos.current_value);
@@ -234,10 +236,16 @@ export default function IBReferralsPage() {
                 </div>
               )}
             </>
-          ) : (
+          ) : search ? (
             <p className="text-muted-foreground text-center py-12">
-              {search ? "No referrals match your search" : "You don't have any referrals yet"}
+              No referrals match your search
             </p>
+          ) : (
+            <EmptyState
+              icon={UserPlus}
+              title="No referrals yet"
+              description="When you refer investors to the platform, they will appear here. Share your referral link to start earning commissions."
+            />
           )}
         </CardContent>
       </Card>
