@@ -140,9 +140,21 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
         effective_date: newFeeEffectiveDate,
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle specific constraint violations
+        if (error.code === '23P01') {
+          // Exclusion constraint violation - overlapping date range
+          toast.error("Fee schedule overlaps with an existing entry. Choose a different effective date or the previous schedule will be auto-closed.");
+          return;
+        } else if (error.code === '23505') {
+          // Unique constraint violation
+          toast.error("A fee schedule already exists for this fund and date.");
+          return;
+        }
+        throw error;
+      }
 
-      toast.success("Fee schedule entry added");
+      toast.success(`Fee schedule saved: ${feeValue}% effective ${newFeeEffectiveDate}`);
       setNewFeePercent("");
       setNewFeeFundId("all");
       setNewFeeEffectiveDate(new Date().toISOString().split("T")[0]);

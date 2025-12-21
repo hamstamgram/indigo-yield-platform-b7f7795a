@@ -150,17 +150,16 @@ function UnifiedInvestorsContent() {
         withdrawalCounts.set(w.investor_id, (withdrawalCounts.get(w.investor_id) || 0) + 1);
       });
 
-      // Batch fetch last transactions
-      const { data: transactions } = await supabase
-        .from("transactions_v2")
-        .select("investor_id, tx_date")
-        .in("investor_id", investorIds)
-        .order("tx_date", { ascending: false });
+      // Fetch last_activity_at directly from profiles (now tracked via triggers)
+      const { data: profilesWithActivity } = await supabase
+        .from("profiles")
+        .select("id, last_activity_at")
+        .in("id", investorIds);
 
-      const lastTxDates = new Map<string, string>();
-      (transactions || []).forEach(tx => {
-        if (!lastTxDates.has(tx.investor_id)) {
-          lastTxDates.set(tx.investor_id, tx.tx_date);
+      const lastActivityDates = new Map<string, string>();
+      (profilesWithActivity || []).forEach(p => {
+        if (p.last_activity_at) {
+          lastActivityDates.set(p.id, p.last_activity_at);
         }
       });
 
@@ -211,7 +210,7 @@ function UnifiedInvestorsContent() {
       const enriched: EnrichedInvestor[] = investorsData.map(inv => ({
         ...inv,
         fundsHeldCount: posMap.get(inv.id)?.length || 0,
-        lastActivityDate: lastTxDates.get(inv.id) || null,
+        lastActivityDate: lastActivityDates.get(inv.id) || null,
         pendingWithdrawals: withdrawalCounts.get(inv.id) || 0,
         lastReportPeriod: lastReports.get(inv.id) || null,
         ibParentName: investorIbParents.get(inv.id) || null,

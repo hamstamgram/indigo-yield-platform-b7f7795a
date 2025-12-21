@@ -1883,6 +1883,7 @@ export type Database = {
         Row: {
           created_at: string
           effective_date: string
+          end_date: string | null
           fee_pct: number
           fund_id: string | null
           id: string
@@ -1892,6 +1893,7 @@ export type Database = {
         Insert: {
           created_at?: string
           effective_date: string
+          end_date?: string | null
           fee_pct: number
           fund_id?: string | null
           id?: string
@@ -1901,6 +1903,7 @@ export type Database = {
         Update: {
           created_at?: string
           effective_date?: string
+          end_date?: string | null
           fee_pct?: number
           fund_id?: string | null
           id?: string
@@ -2814,6 +2817,7 @@ export type Database = {
           is_admin: boolean
           is_system_account: boolean | null
           kyc_status: string | null
+          last_activity_at: string | null
           last_name: string | null
           onboarding_date: string | null
           phone: string | null
@@ -2838,6 +2842,7 @@ export type Database = {
           is_admin?: boolean
           is_system_account?: boolean | null
           kyc_status?: string | null
+          last_activity_at?: string | null
           last_name?: string | null
           onboarding_date?: string | null
           phone?: string | null
@@ -2862,6 +2867,7 @@ export type Database = {
           is_admin?: boolean
           is_system_account?: boolean | null
           kyc_status?: string | null
+          last_activity_at?: string | null
           last_name?: string | null
           onboarding_date?: string | null
           phone?: string | null
