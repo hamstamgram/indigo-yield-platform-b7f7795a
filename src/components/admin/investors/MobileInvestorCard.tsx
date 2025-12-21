@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Asset } from "@/types/investorTypes";
 import { InvestorSummaryV2 } from "@/services/admin/adminService";
-import InvestorAssetDropdown from "./InvestorAssetDropdown";
+import FundAssetDropdown from "./FundAssetDropdown";
 
 interface MobileInvestorCardProps {
   investor: InvestorSummaryV2;
@@ -42,14 +42,6 @@ const MobileInvestorCard = ({
     });
     return initialBalances;
   });
-
-  // Get list of asset IDs that this investor already has
-  const existingAssetIds = Object.keys(investor.portfolioDetails.assetBreakdown)
-    .map((symbol) => {
-      const asset = assets.find((a) => a.symbol.toUpperCase() === symbol.toUpperCase());
-      return asset ? asset.id : -1;
-    })
-    .filter((id) => id !== -1);
 
   const handleBalanceChange = (symbol: string, value: string) => {
     setBalances((prev) => ({
@@ -187,11 +179,9 @@ const MobileInvestorCard = ({
               <Send className="h-4 w-4 mr-1" />
               Send Invite
             </Button>
-            <InvestorAssetDropdown
-              userId={investor.id}
-              assets={assets}
-              existingAssets={existingAssetIds}
-              onAssetAdded={onSaveSuccess}
+            <FundAssetDropdown
+              investorId={investor.id}
+              onFundAdded={onSaveSuccess}
             />
           </>
         )}

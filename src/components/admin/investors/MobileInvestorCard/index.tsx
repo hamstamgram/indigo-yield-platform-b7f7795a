@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Asset, Investor } from "@/types/investorTypes";
-import InvestorAssetDropdown from "../InvestorAssetDropdown";
+import FundAssetDropdown from "../FundAssetDropdown";
 import InvestorInfo from "./InvestorInfo";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { getAllFunds, updateInvestorPosition } from "@/services/fundService";
@@ -49,16 +49,6 @@ const MobileInvestorCard = ({
     });
     return initialBalances;
   });
-
-  // Get list of asset IDs that this investor already has
-  const existingAssetIds = investor.portfolio_summary
-    ? Object.keys(investor.portfolio_summary)
-        .map((symbol) => {
-          const asset = assets.find((a) => a.symbol.toUpperCase() === symbol);
-          return asset ? asset.id : -1;
-        })
-        .filter((id) => id !== -1)
-    : [];
 
   const handleBalanceChange = (symbol: string, value: string) => {
     setBalances((prev) => ({
@@ -117,16 +107,11 @@ const MobileInvestorCard = ({
         if (newBalance > 0 || hasExistingPosition) {
           const result = await updateInvestorPosition(investor.id, fund.id, {
             current_value: newBalance,
-            // Also update cost basis if it's a new position or we want to sync it
-            // For simplicity in this quick editor, we might just update current value
-            // But usually cost basis should track deposits. 
-            // Let's update shares too to keep 1:1 parity if that's the model
             shares: newBalance 
           });
 
           if (!result.success) {
             console.error(`Failed to update position for ${symbol}:`, result.error);
-            // We don't throw here to allow partial success, but could log errors
           }
         }
       });
@@ -228,11 +213,9 @@ const MobileInvestorCard = ({
               <Send className="h-4 w-4 mr-1" />
               Send Invite
             </Button>
-            <InvestorAssetDropdown
-              userId={investor.id}
-              assets={assets}
-              existingAssets={existingAssetIds}
-              onAssetAdded={onSaveSuccess}
+            <FundAssetDropdown
+              investorId={investor.id}
+              onFundAdded={onSaveSuccess}
             />
           </>
         )}
