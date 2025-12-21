@@ -1,6 +1,7 @@
 /**
  * Fund Management Page
- * Admin page for managing funds: create, archive, restore
+ * Admin page for managing funds: create, edit, archive, restore
+ * Token-denominated only - fees managed per-investor, not per-fund
  */
 
 import { useState, useEffect } from "react";
@@ -33,7 +34,7 @@ import {
   RotateCcw,
   PieChart,
   Users,
-  DollarSign,
+  Pencil,
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -41,6 +42,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/context";
 import { CreateFundDialog } from "@/components/admin/funds/CreateFundDialog";
+import { EditFundDialog } from "@/components/admin/funds/EditFundDialog";
 import { format } from "date-fns";
 
 interface FundWithMetrics {
@@ -51,8 +53,8 @@ interface FundWithMetrics {
   fund_class: string;
   status: string;
   inception_date: string;
-  mgmt_fee_bps: number | null;
-  perf_fee_bps: number | null;
+  logo_url?: string | null;
+  created_at?: string | null;
   total_aum: number;
   investor_count: number;
 }
@@ -70,6 +72,7 @@ function FundManagementContent() {
   const [funds, setFunds] = useState<FundWithMetrics[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [editingFund, setEditingFund] = useState<FundWithMetrics | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
@@ -89,7 +92,7 @@ function FundManagementContent() {
     try {
       const { data: fundsData, error } = await supabase
         .from("funds")
-        .select("id, code, name, asset, fund_class, status, inception_date, mgmt_fee_bps, perf_fee_bps")
+        .select("id, code, name, asset, fund_class, status, inception_date, logo_url, created_at")
         .order("status")
         .order("code");
 
@@ -209,8 +212,6 @@ function FundManagementContent() {
 
   const activeFunds = funds.filter((f) => f.status === "active");
   const archivedFunds = funds.filter((f) => f.status === "deprecated");
-  const totalAUM = activeFunds.reduce((sum, f) => sum + f.total_aum, 0);
-  const totalInvestors = new Set(activeFunds.flatMap((f) => [])).size; // This would need to be calculated differently
 
   return (
     <div className="space-y-6">
@@ -218,7 +219,7 @@ function FundManagementContent() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Fund Management</h1>
-          <p className="text-muted-foreground">Create, archive, and manage yield funds</p>
+          <p className="text-muted-foreground">Create, edit, and manage yield funds</p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)}>
           <Plus className="mr-2 h-4 w-4" />
@@ -226,8 +227,8 @@ function FundManagementContent() {
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Stats Cards - Removed Fee Structure card */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Funds</CardTitle>
@@ -253,17 +254,6 @@ function FundManagementContent() {
             <p className="text-xs text-muted-foreground">Across all active funds</p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Fee Structure</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">2% / 20%</div>
-            <p className="text-xs text-muted-foreground">Default management / performance</p>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Funds Table */}
@@ -271,7 +261,7 @@ function FundManagementContent() {
         <CardHeader>
           <CardTitle>All Funds</CardTitle>
           <CardDescription>
-            Manage fund status and configuration
+            Manage fund metadata. Fees are configured per investor, not per fund.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -290,11 +280,12 @@ function FundManagementContent() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Fund</TableHead>
-                  <TableHead>Asset</TableHead>
+                  <TableHead>Ticker</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Inception</TableHead>
+                  <TableHead>Created</TableHead>
                   <TableHead className="text-right">AUM</TableHead>
                   <TableHead className="text-right">Investors</TableHead>
-                  <TableHead>Inception</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -306,65 +297,88 @@ function FundManagementContent() {
                   return (
                     <TableRow key={fund.id} className={fund.status === "deprecated" ? "opacity-60" : ""}>
                       <TableCell>
-                        <div>
-                          <div className="font-medium">{fund.code}</div>
-                          <div className="text-sm text-muted-foreground">{fund.name}</div>
+                        <div className="flex items-center gap-3">
+                          {fund.logo_url ? (
+                            <img
+                              src={fund.logo_url}
+                              alt={fund.name}
+                              className="h-8 w-8 rounded-full object-cover"
+                            />
+                          ) : (
+                            <CryptoIcon symbol={fund.asset} />
+                          )}
+                          <div>
+                            <div className="font-medium">{fund.name}</div>
+                            <div className="text-xs text-muted-foreground">{fund.code}</div>
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <CryptoIcon symbol={fund.asset} />
-                          <span>{fund.asset}</span>
-                        </div>
+                        <span className="font-mono">{fund.asset}</span>
                       </TableCell>
                       <TableCell>
                         <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
                       </TableCell>
-                      <TableCell className="text-right font-mono">
-                        {formatAssetValue(fund.total_aum, fund.asset)} {fund.asset}
-                      </TableCell>
-                      <TableCell className="text-right">{fund.investor_count}</TableCell>
                       <TableCell>
                         {fund.inception_date
                           ? format(new Date(fund.inception_date), "MMM d, yyyy")
                           : "-"}
                       </TableCell>
+                      <TableCell>
+                        {fund.created_at
+                          ? format(new Date(fund.created_at), "MMM d, yyyy")
+                          : "-"}
+                      </TableCell>
+                      <TableCell className="text-right font-mono">
+                        {formatAssetValue(fund.total_aum, fund.asset)} {fund.asset}
+                      </TableCell>
+                      <TableCell className="text-right">{fund.investor_count}</TableCell>
                       <TableCell className="text-right">
-                        {fund.status === "active" ? (
+                        <div className="flex items-center justify-end gap-2">
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            onClick={() => handleArchive(fund)}
+                            onClick={() => setEditingFund(fund)}
                             disabled={isLoading}
                           >
-                            {isLoading ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <>
-                                <Archive className="mr-1 h-4 w-4" />
-                                Archive
-                              </>
-                            )}
+                            <Pencil className="h-4 w-4" />
                           </Button>
-                        ) : fund.status === "deprecated" ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleRestore(fund)}
-                            disabled={isLoading}
-                          >
-                            {isLoading ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <>
-                                <RotateCcw className="mr-1 h-4 w-4" />
-                                Restore
-                              </>
-                            )}
-                          </Button>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
-                        )}
+                          {fund.status === "active" ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleArchive(fund)}
+                              disabled={isLoading}
+                            >
+                              {isLoading ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <Archive className="mr-1 h-4 w-4" />
+                                  Archive
+                                </>
+                              )}
+                            </Button>
+                          ) : fund.status === "deprecated" ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRestore(fund)}
+                              disabled={isLoading}
+                            >
+                              {isLoading ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <RotateCcw className="mr-1 h-4 w-4" />
+                                  Restore
+                                </>
+                              )}
+                            </Button>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -384,6 +398,18 @@ function FundManagementContent() {
           setShowCreateDialog(false);
         }}
         existingAssets={funds.filter((f) => f.status === "active").map((f) => f.asset)}
+      />
+
+      {/* Edit Fund Dialog */}
+      <EditFundDialog
+        open={!!editingFund}
+        onOpenChange={(open) => !open && setEditingFund(null)}
+        fund={editingFund}
+        onSuccess={() => {
+          loadFunds();
+          setEditingFund(null);
+        }}
+        existingTickers={funds.filter((f) => f.status === "active").map((f) => f.asset)}
       />
 
       {/* Confirmation Dialog */}
