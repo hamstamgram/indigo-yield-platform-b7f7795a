@@ -7,7 +7,6 @@ import { Route } from "react-router-dom";
 import { lazy } from "react";
 
 // Core pages loaded immediately
-import Index from "@/routes/Index";
 import Login from "@/routes/Login";
 import NotFound from "@/routes/NotFound";
 
@@ -22,10 +21,6 @@ const InvestorInvite = lazy(() => import("@/routes/InvestorInvite"));
 // Public info pages
 const Terms = lazy(() => import("@/routes/Terms"));
 const Privacy = lazy(() => import("@/routes/Privacy"));
-const Contact = lazy(() => import("@/routes/Contact"));
-const About = lazy(() => import("@/routes/About"));
-const Strategies = lazy(() => import("@/routes/Strategies"));
-const FAQ = lazy(() => import("@/routes/FAQ"));
 const Health = lazy(() => import("@/routes/Health"));
 const Status = lazy(() => import("@/routes/Status"));
 
@@ -37,7 +32,7 @@ export function PublicRoutes() {
   return (
     <>
       {/* Landing & Authentication */}
-      <Route path="/" element={<Index />} />
+      <Route path="/" element={<Login />} />
       <Route path="/login" element={<Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
@@ -49,10 +44,6 @@ export function PublicRoutes() {
       <Route path="/status" element={<Status />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/privacy" element={<Privacy />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/strategies" element={<Strategies />} />
-      <Route path="/faq" element={<FAQ />} />
 
       {/* 404 route */}
       <Route path="*" element={<NotFound />} />

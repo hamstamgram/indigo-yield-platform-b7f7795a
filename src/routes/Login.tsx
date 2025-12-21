@@ -268,8 +268,16 @@ export default function Login() {
           </CardFooter>
         </Card>
 
-        <div className="mt-8 text-center text-sm text-gray-600">
+        <div className="mt-8 text-center text-sm text-muted-foreground space-y-2">
           <p>Investor Portal - Invitation Only Access</p>
+          <div className="flex justify-center space-x-4">
+            <Link to="/terms" className="hover:text-foreground hover:underline">
+              Terms
+            </Link>
+            <Link to="/privacy" className="hover:text-foreground hover:underline">
+              Privacy
+            </Link>
+          </div>
         </div>
       </div>
     </div>
