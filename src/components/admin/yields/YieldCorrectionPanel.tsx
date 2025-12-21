@@ -1,0 +1,248 @@
+/**
+ * Yield Correction Panel
+ * Side panel for previewing and applying yield corrections
+ */
+
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { X, Loader2, Eye, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { CryptoIcon } from "@/components/CryptoIcons";
+import { toast } from "sonner";
+import { YieldRecord } from "@/services/admin/recordedYieldsService";
+import {
+  previewYieldCorrection,
+  applyYieldCorrection,
+  CorrectionPreview,
+  formatTokenAmount,
+} from "@/services/admin/yieldCorrectionService";
+import { YieldCorrectionPreview } from "./YieldCorrectionPreview";
+import { CorrectionConfirmDialog } from "./CorrectionConfirmDialog";
+
+interface YieldCorrectionPanelProps {
+  record: YieldRecord | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCorrectionApplied: () => void;
+}
+
+export function YieldCorrectionPanel({
+  record,
+  open,
+  onOpenChange,
+  onCorrectionApplied,
+}: YieldCorrectionPanelProps) {
+  const [newAum, setNewAum] = useState("");
+  const [reason, setReason] = useState("");
+  const [preview, setPreview] = useState<CorrectionPreview | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  // Reset state when record changes
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      setNewAum("");
+      setReason("");
+      setPreview(null);
+      setShowConfirmDialog(false);
+    } else if (record) {
+      setNewAum(record.total_aum.toString());
+    }
+    onOpenChange(isOpen);
+  };
+
+  // Preview mutation
+  const previewMutation = useMutation({
+    mutationFn: async () => {
+      if (!record) throw new Error("No record selected");
+      const newAumValue = parseFloat(newAum);
+      if (isNaN(newAumValue) || newAumValue < 0) {
+        throw new Error("Invalid AUM value");
+      }
+      return previewYieldCorrection(record.fund_id, record.aum_date, record.purpose, newAumValue);
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        setPreview(data);
+      } else {
+        toast.error(data.error || "Preview failed");
+      }
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Preview failed");
+    },
+  });
+
+  // Apply mutation
+  const applyMutation = useMutation({
+    mutationFn: async (confirmation: string) => {
+      if (!record || !preview?.summary) throw new Error("No preview available");
+      const newAumValue = parseFloat(newAum);
+      return applyYieldCorrection(
+        record.fund_id,
+        record.aum_date,
+        record.purpose,
+        newAumValue,
+        reason,
+        confirmation
+      );
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success(data.message || "Correction applied successfully");
+        setShowConfirmDialog(false);
+        handleOpenChange(false);
+        onCorrectionApplied();
+      } else {
+        toast.error(data.error || "Failed to apply correction");
+      }
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Failed to apply correction");
+    },
+  });
+
+  const handlePreview = () => {
+    previewMutation.mutate();
+  };
+
+  const handleApply = (confirmation: string) => {
+    applyMutation.mutate(confirmation);
+  };
+
+  const hasChanges = record && parseFloat(newAum) !== record.total_aum;
+  const delta = record ? parseFloat(newAum) - record.total_aum : 0;
+
+  return (
+    <>
+      <Sheet open={open} onOpenChange={handleOpenChange}>
+        <SheetContent side="right" className="w-full sm:max-w-2xl overflow-hidden flex flex-col">
+          <SheetHeader className="pb-4 border-b">
+            <SheetTitle className="flex items-center gap-2">
+              <CryptoIcon symbol={record?.fund_asset || ""} className="h-5 w-5" />
+              Correct Yield Record
+            </SheetTitle>
+            <SheetDescription>
+              {record && (
+                <>
+                  {record.fund_name} • {format(new Date(record.aum_date), "MMMM d, yyyy")} •{" "}
+                  <Badge variant={record.purpose === "reporting" ? "default" : "secondary"} className="text-xs">
+                    {record.purpose}
+                  </Badge>
+                </>
+              )}
+            </SheetDescription>
+          </SheetHeader>
+
+          <ScrollArea className="flex-1 py-4">
+            <div className="space-y-6 pr-4">
+              {/* Current vs New AUM */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">Current AUM ({record?.fund_asset})</Label>
+                  <div className="p-3 rounded-lg bg-muted font-mono text-lg">
+                    {record ? formatTokenAmount(record.total_aum, record.fund_asset) : "-"}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-aum">New AUM ({record?.fund_asset})</Label>
+                  <Input
+                    id="new-aum"
+                    type="number"
+                    step="any"
+                    value={newAum}
+                    onChange={(e) => {
+                      setNewAum(e.target.value);
+                      setPreview(null); // Clear preview when value changes
+                    }}
+                    className="font-mono text-lg"
+                  />
+                </div>
+              </div>
+
+              {/* Delta indicator */}
+              {hasChanges && !isNaN(delta) && (
+                <div
+                  className={`flex items-center gap-2 p-3 rounded-lg ${
+                    delta > 0
+                      ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400"
+                      : delta < 0
+                        ? "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400"
+                        : "bg-muted"
+                  }`}
+                >
+                  <span className="text-sm font-medium">Delta:</span>
+                  <span className="font-mono">
+                    {delta > 0 ? "+" : ""}
+                    {formatTokenAmount(delta, record?.fund_asset)} {record?.fund_asset}
+                  </span>
+                </div>
+              )}
+
+              {/* Preview button */}
+              <Button
+                onClick={handlePreview}
+                disabled={!hasChanges || previewMutation.isPending}
+                className="w-full"
+                variant="secondary"
+              >
+                {previewMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Eye className="h-4 w-4 mr-2" />
+                )}
+                Preview Impact
+              </Button>
+
+              {/* Preview error */}
+              {preview && !preview.success && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive">
+                  <AlertCircle className="h-5 w-5" />
+                  <span className="text-sm">{preview.error}</span>
+                </div>
+              )}
+
+              {/* Preview results */}
+              {preview?.success && preview.summary && preview.investor_rows && preview.tx_diffs && preview.report_impacts && (
+                <>
+                  <YieldCorrectionPreview
+                    summary={preview.summary}
+                    investorRows={preview.investor_rows}
+                    txDiffs={preview.tx_diffs}
+                    reportImpacts={preview.report_impacts}
+                  />
+
+                  {/* Apply button */}
+                  <Button
+                    onClick={() => setShowConfirmDialog(true)}
+                    className="w-full"
+                    variant="primary"
+                  >
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Apply Correction
+                  </Button>
+                </>
+              )}
+            </div>
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
+
+      {/* Confirmation dialog */}
+      <CorrectionConfirmDialog
+        open={showConfirmDialog}
+        onOpenChange={setShowConfirmDialog}
+        isMonthClosed={preview?.summary?.is_month_closed || false}
+        reason={reason}
+        onReasonChange={setReason}
+        onConfirm={handleApply}
+        isPending={applyMutation.isPending}
+      />
+    </>
+  );
+}

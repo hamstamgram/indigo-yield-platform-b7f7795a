@@ -3826,8 +3826,10 @@ export type Database = {
           asset: string
           balance_after: number | null
           balance_before: number | null
+          correction_id: string | null
           created_at: string | null
           created_by: string | null
+          distribution_id: string | null
           fund_class: string | null
           fund_id: string
           id: string
@@ -3851,8 +3853,10 @@ export type Database = {
           asset: string
           balance_after?: number | null
           balance_before?: number | null
+          correction_id?: string | null
           created_at?: string | null
           created_by?: string | null
+          distribution_id?: string | null
           fund_class?: string | null
           fund_id: string
           id?: string
@@ -3876,8 +3880,10 @@ export type Database = {
           asset?: string
           balance_after?: number | null
           balance_before?: number | null
+          correction_id?: string | null
           created_at?: string | null
           created_by?: string | null
+          distribution_id?: string | null
           fund_class?: string | null
           fund_id?: string
           id?: string
@@ -4489,6 +4495,169 @@ export type Database = {
           },
         ]
       }
+      yield_corrections: {
+        Row: {
+          applied_at: string | null
+          applied_by: string | null
+          correction_distribution_id: string
+          created_at: string
+          created_by: string
+          delta_aum: number
+          delta_gross_yield: number
+          id: string
+          investors_affected: number
+          new_aum: number
+          new_gross_yield: number
+          old_aum: number
+          old_gross_yield: number
+          original_distribution_id: string
+          preview_json: Json
+          reason: string
+          rolled_back_at: string | null
+          rolled_back_by: string | null
+          status: string
+          total_fee_delta: number
+          total_ib_delta: number
+        }
+        Insert: {
+          applied_at?: string | null
+          applied_by?: string | null
+          correction_distribution_id: string
+          created_at?: string
+          created_by: string
+          delta_aum: number
+          delta_gross_yield?: number
+          id?: string
+          investors_affected?: number
+          new_aum: number
+          new_gross_yield?: number
+          old_aum: number
+          old_gross_yield?: number
+          original_distribution_id: string
+          preview_json: Json
+          reason: string
+          rolled_back_at?: string | null
+          rolled_back_by?: string | null
+          status?: string
+          total_fee_delta?: number
+          total_ib_delta?: number
+        }
+        Update: {
+          applied_at?: string | null
+          applied_by?: string | null
+          correction_distribution_id?: string
+          created_at?: string
+          created_by?: string
+          delta_aum?: number
+          delta_gross_yield?: number
+          id?: string
+          investors_affected?: number
+          new_aum?: number
+          new_gross_yield?: number
+          old_aum?: number
+          old_gross_yield?: number
+          original_distribution_id?: string
+          preview_json?: Json
+          reason?: string
+          rolled_back_at?: string | null
+          rolled_back_by?: string | null
+          status?: string
+          total_fee_delta?: number
+          total_ib_delta?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yield_corrections_correction_distribution_id_fkey"
+            columns: ["correction_distribution_id"]
+            isOneToOne: false
+            referencedRelation: "yield_distributions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_corrections_original_distribution_id_fkey"
+            columns: ["original_distribution_id"]
+            isOneToOne: false
+            referencedRelation: "yield_distributions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      yield_distributions: {
+        Row: {
+          created_at: string
+          created_by: string
+          distribution_type: string
+          effective_date: string
+          fund_id: string
+          gross_yield: number
+          id: string
+          is_month_end: boolean
+          parent_distribution_id: string | null
+          previous_aum: number | null
+          purpose: Database["public"]["Enums"]["aum_purpose"]
+          reason: string | null
+          recorded_aum: number
+          status: string
+          summary_json: Json | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          distribution_type: string
+          effective_date: string
+          fund_id: string
+          gross_yield?: number
+          id?: string
+          is_month_end?: boolean
+          parent_distribution_id?: string | null
+          previous_aum?: number | null
+          purpose: Database["public"]["Enums"]["aum_purpose"]
+          reason?: string | null
+          recorded_aum: number
+          status?: string
+          summary_json?: Json | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          distribution_type?: string
+          effective_date?: string
+          fund_id?: string
+          gross_yield?: number
+          id?: string
+          is_month_end?: boolean
+          parent_distribution_id?: string | null
+          previous_aum?: number | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"]
+          reason?: string | null
+          recorded_aum?: number
+          status?: string
+          summary_json?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yield_distributions_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_distributions_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "yield_distributions_parent_distribution_id_fkey"
+            columns: ["parent_distribution_id"]
+            isOneToOne: false
+            referencedRelation: "yield_distributions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       yield_edit_audit: {
         Row: {
           created_at: string
@@ -4924,6 +5093,17 @@ export type Database = {
           positions_updated: number
         }[]
       }
+      apply_yield_correction: {
+        Args: {
+          p_confirmation: string
+          p_date: string
+          p_fund_id: string
+          p_new_aum: number
+          p_purpose: string
+          p_reason: string
+        }
+        Returns: Json
+      }
       apply_yield_with_ib: {
         Args: {
           p_created_by?: string
@@ -5227,6 +5407,27 @@ export type Database = {
           status: string
         }[]
       }
+      get_yield_corrections: {
+        Args: { p_date_from?: string; p_date_to?: string; p_fund_id?: string }
+        Returns: {
+          applied_at: string
+          applied_by_name: string
+          correction_id: string
+          delta_aum: number
+          effective_date: string
+          fund_asset: string
+          fund_id: string
+          fund_name: string
+          investors_affected: number
+          new_aum: number
+          old_aum: number
+          purpose: string
+          reason: string
+          status: string
+          total_fee_delta: number
+          total_ib_delta: number
+        }[]
+      }
       handle_ledger_transaction: {
         Args: {
           p_amount: number
@@ -5343,6 +5544,15 @@ export type Database = {
           p_fund_id: string
           p_gross_amount: number
           p_purpose?: string
+        }
+        Returns: Json
+      }
+      preview_yield_correction: {
+        Args: {
+          p_date: string
+          p_fund_id: string
+          p_new_aum: number
+          p_purpose: string
         }
         Returns: Json
       }
