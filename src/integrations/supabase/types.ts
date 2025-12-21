@@ -156,7 +156,7 @@ export type Database = {
           record_id: string | null
           table_name: string
           user_agent: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           action: string
@@ -167,7 +167,7 @@ export type Database = {
           record_id?: string | null
           table_name: string
           user_agent?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           action?: string
@@ -178,7 +178,7 @@ export type Database = {
           record_id?: string | null
           table_name?: string
           user_agent?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -503,7 +503,7 @@ export type Database = {
           id: string
           status: string | null
           transaction_hash: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           amount: number
@@ -513,7 +513,7 @@ export type Database = {
           id?: string
           status?: string | null
           transaction_hash?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           amount?: number
@@ -523,7 +523,7 @@ export type Database = {
           id?: string
           status?: string | null
           transaction_hash?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -3007,7 +3007,7 @@ export type Database = {
           id: string
           metadata: Json | null
           report_id: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           action: string
@@ -3015,7 +3015,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           report_id?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           action?: string
@@ -3023,7 +3023,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           report_id?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
