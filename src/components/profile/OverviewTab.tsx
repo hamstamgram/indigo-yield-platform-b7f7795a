@@ -204,18 +204,18 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
             <CardContent className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Total Invested</span>
-                <span className="font-semibold">${stats.totalInvested.toLocaleString()}</span>
+                <span className="font-semibold font-mono">{stats.totalInvested.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Current Value</span>
-                <span className="font-semibold">${stats.totalValue.toLocaleString()}</span>
+                <span className="font-semibold font-mono">{stats.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Total Return</span>
                 <span
-                  className={`font-semibold ${stats.totalReturn >= 0 ? "text-green-600" : "text-red-600"}`}
+                  className={`font-semibold font-mono ${stats.totalReturn >= 0 ? "text-green-600" : "text-red-600"}`}
                 >
-                  ${Math.abs(stats.totalReturn).toLocaleString()}
+                  {Math.abs(stats.totalReturn).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </div>
               <Separator />

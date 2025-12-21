@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getAssetLogo } from "@/utils/assets";
+import { formatTokenAmount } from "@/utils/formatters";
 
 export interface AssetBalance {
   symbol: string;
@@ -21,18 +22,6 @@ interface PortfolioHeroProps {
   /** If true, shows "as of" label instead of "Last updated" */
   isFinalizedData?: boolean;
 }
-
-const formatTokenAmount = (val: number, symbol: string) => {
-  // Use appropriate decimal places based on asset type
-  const decimals = symbol.toUpperCase() === 'BTC' ? 8 
-    : ['ETH', 'SOL', 'XRP'].includes(symbol.toUpperCase()) ? 6 
-    : 2;
-  
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: decimals,
-  }).format(val);
-};
 
 const formatPct = (val: number) => {
   const sign = val > 0 ? "+" : "";
