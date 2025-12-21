@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkAdminAccess, createAdminDeniedResponse } from "../_shared/admin-check.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -74,25 +75,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Use service role client to check if user is admin via user_roles table
+    // Use service role client for admin check via profiles.is_admin
+    // This is consistent with other admin functions and works for users with multiple roles
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    const { data: userRole, error: roleError } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .in("role", ["admin", "super_admin"])
-      .maybeSingle();
-
-    if (roleError || !userRole) {
-      console.error("Admin check failed:", roleError || "User is not admin");
-      return new Response(
-        JSON.stringify({ error: "Admin access required" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    const adminCheck = await checkAdminAccess(supabase, user.id);
+    
+    if (!adminCheck.isAdmin) {
+      console.error("Admin check failed:", adminCheck.error || "User is not admin", 
+        "User:", user.email, "ID:", user.id);
+      return createAdminDeniedResponse(corsHeaders, 
+        "You must be an administrator to generate performance reports");
     }
 
-    console.log(`Admin ${user.email} generating performance data`);
+    console.log(`Admin ${adminCheck.email} generating performance data`);
 
     const { periodYear, periodMonth }: RequestBody = await req.json();
 
