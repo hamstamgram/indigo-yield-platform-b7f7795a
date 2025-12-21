@@ -205,10 +205,22 @@ export async function createInvestorWithWizard(wizardData: WizardFormData): Prom
 
     // First, we need to find the actual fund IDs for each asset symbol
     if (positionsToCreate.length > 0) {
-      const { data: funds } = await supabase
+      // CRITICAL: Only select ACTIVE funds to prevent duplicate positions on deprecated funds
+      const { data: allFunds } = await supabase
         .from("funds")
         .select("id, asset")
+        .eq("status", "active")  // ONLY active funds
         .in("asset", Object.keys(positions).filter(s => positions[s] > 0));
+
+      // Deduplicate funds by asset - ensure only ONE fund per asset
+      // This is a safety guard in case there are somehow multiple active funds per asset
+      const fundsByAsset = new Map<string, { id: string; asset: string }>();
+      allFunds?.forEach(fund => {
+        if (!fundsByAsset.has(fund.asset)) {
+          fundsByAsset.set(fund.asset, fund);
+        }
+      });
+      const funds = Array.from(fundsByAsset.values());
 
       if (funds && funds.length > 0) {
         const fundPositions = funds.map((fund) => ({

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
 import {
   Table,
   TableBody,
@@ -38,7 +38,6 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
   const [selectedPosition, setSelectedPosition] = useState<any>(null);
   const [deletePosition, setDeletePosition] = useState<{ fundId: string; fundName: string } | null>(null);
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   // Fetch Positions - filter out zero-value positions
   const { data: positions, isLoading } = useQuery({
@@ -118,9 +117,16 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
     setIsEditOpen(true);
   };
 
-  // Navigate to Add Transaction page with investor pre-selected
+  // State for inline Add Transaction modal
+  const [showAddTxDialog, setShowAddTxDialog] = useState(false);
+  const [selectedFundForTx, setSelectedFundForTx] = useState<string | null>(null);
+
+  // Open Add Transaction modal instead of navigating
   const handleAddTransaction = () => {
-    navigate(`/admin/transactions?investorId=${investorId}&action=add`);
+    // Default to first position's fund if available
+    const defaultFundId = positions?.[0]?.fund_id;
+    setSelectedFundForTx(defaultFundId || null);
+    setShowAddTxDialog(true);
   };
 
   if (isLoading) {
@@ -244,6 +250,18 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Inline Add Transaction Dialog */}
+      <AddTransactionDialog
+        open={showAddTxDialog}
+        onOpenChange={setShowAddTxDialog}
+        investorId={investorId}
+        fundId={selectedFundForTx || ""}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["investor-positions", investorId] });
+          setShowAddTxDialog(false);
+        }}
+      />
     </div>
   );
 }

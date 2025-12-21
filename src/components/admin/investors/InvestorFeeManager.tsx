@@ -131,10 +131,12 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
 
     setIsAdding(true);
     try {
+      // STANDARDIZED: fee_pct is stored as 0-100 (e.g., 18 = 18%)
+      // No conversion needed - store the value as entered
       const { error } = await supabase.from("investor_fee_schedule").insert({
         investor_id: investorId,
         fund_id: newFeeFundId === "all" ? null : newFeeFundId,
-        fee_pct: feeValue / 100, // Convert to decimal
+        fee_pct: feeValue, // Store as percent (0-100)
         effective_date: newFeeEffectiveDate,
       });
 
@@ -190,7 +192,8 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
           <div>
             <p className="text-xs text-muted-foreground">Current Active Fee</p>
             <p className="text-xl font-bold font-mono">
-              {currentFee ? `${(currentFee.fee_pct * 100).toFixed(2)}%` : "2.00% (default)"}
+              {/* STANDARDIZED: fee_pct stored as 0-100, display directly */}
+              {currentFee ? `${currentFee.fee_pct.toFixed(2)}%` : "2.00% (default)"}
             </p>
           </div>
           {currentFee?.fund && (
@@ -283,7 +286,8 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
                           )}
                         </TableCell>
                         <TableCell className="text-xs py-2 font-mono">
-                          {(entry.fee_pct * 100).toFixed(2)}%
+                          {/* STANDARDIZED: fee_pct stored as 0-100, display directly */}
+                          {entry.fee_pct.toFixed(2)}%
                         </TableCell>
                         <TableCell className="text-xs py-2">
                           {format(new Date(entry.effective_date), "MMM d, yyyy")}
