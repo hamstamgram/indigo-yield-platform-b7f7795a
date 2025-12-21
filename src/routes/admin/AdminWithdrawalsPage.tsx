@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { WithdrawalStatsComponent } from "@/components/admin/withdrawals/WithdrawalStats";
 import { WithdrawalsTable } from "@/components/admin/withdrawals/WithdrawalsTable";
+import { CreateWithdrawalDialog } from "@/components/admin/withdrawals/CreateWithdrawalDialog";
 import { withdrawalService } from "@/services/investor/withdrawalService";
 import { Withdrawal, WithdrawalFilters, WithdrawalStats } from "@/types/withdrawal";
 import { toast } from "sonner";
-import { ArrowDownToLine } from "lucide-react";
+import { ArrowDownToLine, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/layout/PageHeader";
@@ -29,6 +31,7 @@ export default function AdminWithdrawalsPage() {
     pending_by_asset: [],
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   // URL-persisted filters
   const { filters: urlFilters, setFilter } = useUrlFilters({
@@ -87,12 +90,23 @@ export default function AdminWithdrawalsPage() {
     loadData();
   }, [filters]);
 
+  const handleCreateSuccess = () => {
+    setCreateDialogOpen(false);
+    loadData();
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader 
         title="Withdrawal Management"
         subtitle="Review and process investor withdrawal requests"
         icon={ArrowDownToLine}
+        actions={
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Withdrawal
+          </Button>
+        }
       />
 
       <WithdrawalStatsComponent stats={stats} isLoading={isLoading} />
@@ -112,6 +126,12 @@ export default function AdminWithdrawalsPage() {
           />
         </CardContent>
       </Card>
+
+      <CreateWithdrawalDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onSuccess={handleCreateSuccess}
+      />
     </div>
   );
 }
