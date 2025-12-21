@@ -1,0 +1,168 @@
+{
+  "generated": "2024-12-21",
+  "purpose": "Complete inventory of all routes with guards and navigation visibility",
+  "routes": [
+    {
+      "path": "/",
+      "component": "Index",
+      "guard": "AuthGuard",
+      "redirectsTo": "/dashboard (if authenticated) or /login",
+      "navVisible": false
+    },
+    {
+      "path": "/login",
+      "component": "Login",
+      "guard": "none (public)",
+      "navVisible": false
+    },
+    {
+      "path": "/register",
+      "component": "Register",
+      "guard": "none (public)",
+      "navVisible": false
+    },
+    {
+      "path": "/dashboard",
+      "component": "Dashboard",
+      "guard": "AuthGuard",
+      "navVisible": true,
+      "navLabel": "Dashboard",
+      "navIcon": "Home"
+    },
+    {
+      "path": "/statements",
+      "component": "StatementsPage",
+      "guard": "AuthGuard",
+      "navVisible": true,
+      "navLabel": "Statements",
+      "navIcon": "FileText",
+      "note": "Filters purpose='reporting' only"
+    },
+    {
+      "path": "/transactions",
+      "component": "TransactionsPage",
+      "guard": "AuthGuard",
+      "navVisible": true,
+      "navLabel": "Transactions",
+      "navIcon": "ArrowUpDown"
+    },
+    {
+      "path": "/portfolio",
+      "component": "PortfolioPage",
+      "guard": "AuthGuard",
+      "navVisible": true,
+      "navLabel": "Portfolio",
+      "navIcon": "Briefcase"
+    },
+    {
+      "path": "/settings",
+      "component": "SettingsPage",
+      "guard": "AuthGuard",
+      "navVisible": true,
+      "navLabel": "Settings",
+      "navIcon": "Settings"
+    },
+    {
+      "path": "/admin",
+      "component": "AdminLayout",
+      "guard": "AdminGuard",
+      "navVisible": true,
+      "navLabel": "Admin",
+      "navIcon": "Shield",
+      "requiresRole": ["admin", "super_admin"]
+    },
+    {
+      "path": "/admin/dashboard",
+      "component": "AdminDashboard",
+      "guard": "AdminGuard",
+      "navVisible": true,
+      "navLabel": "Overview",
+      "parentNav": "Admin"
+    },
+    {
+      "path": "/admin/investors",
+      "component": "UnifiedInvestorsPage",
+      "guard": "AdminGuard",
+      "navVisible": true,
+      "navLabel": "Investors",
+      "parentNav": "Admin",
+      "note": "2-panel layout with detail panel"
+    },
+    {
+      "path": "/admin/investors/:id",
+      "component": "InvestorManagement",
+      "guard": "AdminGuard",
+      "navVisible": false,
+      "note": "Investor workspace with 6 tabs"
+    },
+    {
+      "path": "/admin/funds",
+      "component": "FundsPage",
+      "guard": "AdminGuard",
+      "navVisible": true,
+      "navLabel": "Funds",
+      "parentNav": "Admin"
+    },
+    {
+      "path": "/admin/yields",
+      "component": "YieldsPage",
+      "guard": "AdminGuard",
+      "navVisible": true,
+      "navLabel": "Yields",
+      "parentNav": "Admin"
+    },
+    {
+      "path": "/admin/investor-reports",
+      "component": "InvestorReportsPage",
+      "guard": "AdminGuard",
+      "navVisible": true,
+      "navLabel": "Reports",
+      "parentNav": "Admin"
+    },
+    {
+      "path": "/admin/withdrawals",
+      "component": "WithdrawalsPage",
+      "guard": "AdminGuard",
+      "navVisible": true,
+      "navLabel": "Withdrawals",
+      "parentNav": "Admin"
+    },
+    {
+      "path": "/admin/audit",
+      "component": "AuditLogPage",
+      "guard": "AdminGuard",
+      "navVisible": true,
+      "navLabel": "Audit Log",
+      "parentNav": "Admin"
+    },
+    {
+      "path": "/admin/settings",
+      "component": "AdminSettingsPage",
+      "guard": "AdminGuard",
+      "navVisible": true,
+      "navLabel": "Settings",
+      "parentNav": "Admin"
+    }
+  ],
+  "guards": {
+    "AuthGuard": {
+      "description": "Requires authenticated user via Supabase auth",
+      "implementation": "src/components/auth/AuthGuard.tsx",
+      "redirectsTo": "/login"
+    },
+    "AdminGuard": {
+      "description": "Requires authenticated user with admin or super_admin role",
+      "implementation": "src/components/auth/AdminGuard.tsx",
+      "checksTable": "user_roles",
+      "requiredRoles": ["admin", "super_admin"],
+      "redirectsTo": "/dashboard"
+    }
+  },
+  "summary": {
+    "totalRoutes": 18,
+    "publicRoutes": 2,
+    "authenticatedRoutes": 8,
+    "adminRoutes": 10,
+    "allAdminRoutesGuarded": true
+  }
+}
