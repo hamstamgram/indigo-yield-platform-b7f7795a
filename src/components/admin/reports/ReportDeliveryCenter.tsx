@@ -187,7 +187,7 @@ export default function ReportDeliveryCenter() {
 
   // Fetch deliveries
   const { data: deliveries = [], isLoading: deliveriesLoading, refetch: refetchDeliveries } = useQuery({
-    queryKey: ["deliveries", selectedPeriodId, statusFilter, channelFilter, searchQuery],
+    queryKey: ["deliveries", selectedPeriodId, statusFilter, channelFilter, deliveryModeFilter, searchQuery],
     queryFn: async () => {
       if (!selectedPeriodId) return [];
       
@@ -206,6 +206,9 @@ export default function ReportDeliveryCenter() {
       }
       if (channelFilter !== "all") {
         query = query.eq("channel", channelFilter);
+      }
+      if (deliveryModeFilter !== "all") {
+        query = query.eq("delivery_mode", deliveryModeFilter);
       }
       if (searchQuery) {
         query = query.or(`recipient_email.ilike.%${searchQuery}%`);
@@ -456,8 +459,12 @@ export default function ReportDeliveryCenter() {
                   <SelectItem value="queued">Queued</SelectItem>
                   <SelectItem value="sending">Sending</SelectItem>
                   <SelectItem value="sent">Sent</SelectItem>
+                  <SelectItem value="delivered">Delivered</SelectItem>
                   <SelectItem value="failed">Failed</SelectItem>
+                  <SelectItem value="bounced">Bounced</SelectItem>
+                  <SelectItem value="complained">Complained</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="skipped">Skipped</SelectItem>
                 </SelectContent>
               </Select>
             </div>

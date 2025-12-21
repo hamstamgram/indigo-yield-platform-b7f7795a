@@ -103,9 +103,9 @@ serve(async (req) => {
     }
 
     // Check minimum deposit requirement
-    const minimumDeposit = 1000; // $1,000 minimum
+    const minimumDeposit = 1000;
     if (depositRequest.amount < minimumDeposit) {
-      throw new Error(`Minimum deposit amount is $${minimumDeposit.toLocaleString()}`);
+      throw new Error(`Minimum deposit amount is ${minimumDeposit.toLocaleString()} ${depositRequest.currency}`);
     }
 
     // Verify investor account is active
@@ -345,7 +345,7 @@ async function sendDepositNotificationEmail(
       template: "deposit_initiated",
       variables: {
         name: investor.first_name,
-        amount: `$${amount.toLocaleString()}`,
+        amount: amount.toLocaleString(),
         paymentMethod: paymentMethod.replace("_", " "),
         reference: depositId,
       },
