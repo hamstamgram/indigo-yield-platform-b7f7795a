@@ -415,8 +415,28 @@ const InvestorReports = () => {
       await fetchReports();
     } catch (error: any) {
       console.error("Error generating reports:", error);
-      toast.error("Generation Failed", {
-        description: error.message || "Failed to generate performance data",
+      
+      // Parse error for specific messaging
+      let errorTitle = "Generation Failed";
+      let errorMessage = "Failed to generate performance data";
+      
+      const errorStr = error?.message || error?.toString() || "";
+      
+      if (errorStr.includes("403") || errorStr.includes("Admin access required") || errorStr.includes("ADMIN_REQUIRED")) {
+        errorTitle = "Access Denied";
+        errorMessage = "You don't have administrator permissions to generate reports. Please contact your system administrator.";
+      } else if (errorStr.includes("401") || errorStr.includes("Authorization") || errorStr.includes("token")) {
+        errorTitle = "Session Expired";
+        errorMessage = "Your session has expired. Please refresh the page and try again.";
+      } else if (errorStr.includes("non-2xx") || errorStr.includes("FunctionsHttpError")) {
+        errorTitle = "Service Error";
+        errorMessage = "The report generation service encountered an error. Please try again or contact support.";
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorTitle, {
+        description: errorMessage,
       });
     } finally {
       setGeneratingReports(false);
