@@ -221,7 +221,6 @@ export function YieldCorrectionPanel({
                   <Button
                     onClick={() => setShowConfirmDialog(true)}
                     className="w-full"
-                    variant="primary"
                   >
                     <CheckCircle2 className="h-4 w-4 mr-2" />
                     Apply Correction
