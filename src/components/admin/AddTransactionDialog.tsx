@@ -22,12 +22,29 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { toast } from "sonner";
 import { createAdminTransaction } from "@/services/shared/transactionService";
-import { Loader2 } from "lucide-react";
+import { Loader2, Check, ChevronsUpDown } from "lucide-react";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 import { useActiveFunds } from "@/hooks/useActiveFunds";
 import { getAssetLogo } from "@/utils/assets";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
+
+interface InvestorOption {
+  id: string;
+  email: string;
+  displayName: string;
+}
 
 // Transaction validation schema
 const transactionSchema = z.object({
@@ -70,8 +87,8 @@ type TransactionFormData = z.infer<typeof transactionSchema>;
 interface AddTransactionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  investorId: string;
-  fundId: string;
+  investorId?: string;
+  fundId?: string;
   onSuccess: () => void;
 }
 
@@ -83,6 +100,11 @@ export function AddTransactionDialog({
   onSuccess,
 }: AddTransactionDialogProps) {
   const [loading, setLoading] = useState(false);
+  const [investors, setInvestors] = useState<InvestorOption[]>([]);
+  const [selectedInvestorId, setSelectedInvestorId] = useState<string>("");
+  const [investorSearchOpen, setInvestorSearchOpen] = useState(false);
+  const [isLoadingInvestors, setIsLoadingInvestors] = useState(false);
+  const [investorError, setInvestorError] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { data: funds, isLoading: fundsLoading } = useActiveFunds();
 
@@ -97,13 +119,56 @@ export function AddTransactionDialog({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
       tx_date: new Date().toISOString().split("T")[0],
-      fund_id: fundId,
+      fund_id: fundId || "",
       asset: "",
     },
   });
 
   const txnType = watch("txn_type");
   const selectedFundId = watch("fund_id");
+
+  // Load investors when dialog opens
+  useEffect(() => {
+    if (open) {
+      loadInvestors();
+      // Set initial investor if provided
+      if (investorId) {
+        setSelectedInvestorId(investorId);
+      } else {
+        setSelectedInvestorId("");
+      }
+      setInvestorError(null);
+    }
+  }, [open, investorId]);
+
+  const loadInvestors = async () => {
+    setIsLoadingInvestors(true);
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, email, first_name, last_name")
+        .eq("is_admin", false)
+        .order("email");
+
+      if (error) throw error;
+
+      const options: InvestorOption[] = (data || []).map((p) => ({
+        id: p.id,
+        email: p.email || "",
+        displayName: p.first_name && p.last_name 
+          ? `${p.first_name} ${p.last_name}` 
+          : p.email || p.id,
+      }));
+      setInvestors(options);
+    } catch (error) {
+      console.error("Failed to load investors:", error);
+      toast.error("Failed to load investors");
+    } finally {
+      setIsLoadingInvestors(false);
+    }
+  };
+
+  const selectedInvestor = investors.find((i) => i.id === selectedInvestorId);
 
   // Set initial fund and asset when dialog opens or fundId prop changes
   useEffect(() => {
@@ -127,8 +192,15 @@ export function AddTransactionDialog({
   }, [selectedFundId, funds, setValue]);
 
   const onSubmit = async (data: TransactionFormData) => {
+    // Validate investor selection
+    if (!selectedInvestorId) {
+      setInvestorError("Please select an investor");
+      return;
+    }
+    setInvestorError(null);
+
     // Block manual deposits to INDIGO FEES account
-    if (investorId === INDIGO_FEES_ACCOUNT_ID && data.txn_type === "DEPOSIT") {
+    if (selectedInvestorId === INDIGO_FEES_ACCOUNT_ID && data.txn_type === "DEPOSIT") {
       toast.error("INDIGO FEES cannot receive manual deposits. Fee credits are system-generated only.");
       return;
     }
@@ -137,7 +209,7 @@ export function AddTransactionDialog({
       setLoading(true);
 
       const result = await createAdminTransaction({
-        investorId,
+        investorId: selectedInvestorId,
         fundId: data.fund_id,
         type: data.txn_type as "DEPOSIT" | "WITHDRAWAL" | "YIELD" | "INTEREST" | "FEE",
         asset: data.asset,
@@ -159,6 +231,7 @@ export function AddTransactionDialog({
 
       toast.success("Transaction created successfully");
       reset();
+      setSelectedInvestorId("");
       onSuccess();
       onOpenChange(false);
     } catch (error) {
@@ -171,6 +244,8 @@ export function AddTransactionDialog({
 
   const handleCancel = () => {
     reset();
+    setSelectedInvestorId("");
+    setInvestorError(null);
     onOpenChange(false);
   };
 
@@ -180,11 +255,85 @@ export function AddTransactionDialog({
         <DialogHeader>
           <DialogTitle>Add Transaction</DialogTitle>
           <DialogDescription>
-            Manually create a transaction for this investor. All fields are validated and logged.
+            Manually create a transaction for an investor. All fields are validated and logged.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Investor Selector */}
+          <div className="space-y-2">
+            <Label>Investor *</Label>
+            <Popover open={investorSearchOpen} onOpenChange={setInvestorSearchOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={investorSearchOpen}
+                  className={cn(
+                    "w-full justify-between",
+                    investorError && "border-destructive"
+                  )}
+                  disabled={isLoadingInvestors}
+                >
+                  {isLoadingInvestors ? (
+                    <span className="text-muted-foreground">Loading investors...</span>
+                  ) : selectedInvestor ? (
+                    <span className="truncate">
+                      {selectedInvestor.displayName}
+                      {selectedInvestor.displayName !== selectedInvestor.email && (
+                        <span className="ml-1 text-muted-foreground">
+                          ({selectedInvestor.email})
+                        </span>
+                      )}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">Select investor...</span>
+                  )}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[400px] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search by name or email..." />
+                  <CommandList>
+                    <CommandEmpty>No investor found.</CommandEmpty>
+                    <CommandGroup>
+                      {investors.map((investor) => (
+                        <CommandItem
+                          key={investor.id}
+                          value={`${investor.displayName} ${investor.email}`}
+                          onSelect={() => {
+                            setSelectedInvestorId(investor.id);
+                            setInvestorError(null);
+                            setInvestorSearchOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedInvestorId === investor.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <div className="flex flex-col">
+                            <span>{investor.displayName}</span>
+                            {investor.displayName !== investor.email && (
+                              <span className="text-xs text-muted-foreground">
+                                {investor.email}
+                              </span>
+                            )}
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            {investorError && (
+              <p className="text-sm text-destructive">{investorError}</p>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="txn_type">Transaction Type *</Label>
             <Select value={txnType} onValueChange={(value) => setValue("txn_type", value as any)}>
@@ -299,7 +448,7 @@ export function AddTransactionDialog({
             <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || fundsLoading}>
+            <Button type="submit" disabled={loading || fundsLoading || isLoadingInvestors}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Transaction
             </Button>
