@@ -82,11 +82,11 @@ export function InvestorWithdrawalsTab({ investorId }: InvestorWithdrawalsTabPro
     setLoading(true);
     try {
       // Use existing withdrawal service with investor filter
-      const allWithdrawals = await withdrawalService.getWithdrawals({
+      const result = await withdrawalService.getWithdrawals({
         status: statusFilter,
       });
       // Filter to this investor
-      const filtered = allWithdrawals.filter((w) => w.investor_id === investorId);
+      const filtered = result.data.filter((w) => w.investor_id === investorId);
       setWithdrawals(filtered);
     } catch (error) {
       console.error("Error loading withdrawals:", error);

@@ -1,16 +1,24 @@
 import { supabase } from "@/integrations/supabase/client";
-import { Withdrawal, WithdrawalFilters, WithdrawalStats } from "@/types/withdrawal";
+import { Withdrawal, WithdrawalFilters, WithdrawalStats, PaginatedWithdrawals, WithdrawalAuditLog } from "@/types/withdrawal";
+
+const DEFAULT_PAGE_SIZE = 20;
 
 export const withdrawalService = {
   /**
-   * Get all withdrawal requests with optional filters
+   * Get paginated withdrawal requests with optional filters
    */
-  async getWithdrawals(filters?: WithdrawalFilters): Promise<Withdrawal[]> {
-    // Use JOIN to fetch investor data in single query (fixes N+1)
+  async getWithdrawals(filters?: WithdrawalFilters): Promise<PaginatedWithdrawals> {
+    const page = filters?.page || 1;
+    const pageSize = filters?.pageSize || DEFAULT_PAGE_SIZE;
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    // Build query with count
     let query = supabase
       .from("withdrawal_requests")
-      .select("*, profile:profiles!fk_withdrawal_requests_profile(first_name, last_name, email)") // Join profiles
-      .order("request_date", { ascending: false });
+      .select("*, profile:profiles!fk_withdrawal_requests_profile(first_name, last_name, email), fund:funds(name, code, asset)", { count: "exact" })
+      .order("request_date", { ascending: false })
+      .range(from, to);
 
     if (filters?.status && filters.status !== "all") {
       query = query.eq("status", filters.status);
@@ -20,33 +28,42 @@ export const withdrawalService = {
       query = query.eq("fund_id", filters.fund_id);
     }
 
-    const { data, error } = await query;
+    const { data, error, count } = await query;
 
     if (error) throw error;
 
     // Map the joined data to flat structure
-    const withdrawalsWithProfiles = (data || []).map((withdrawal) => {
+    let withdrawals = (data || []).map((withdrawal) => {
       const profile = withdrawal.profile as {
         first_name?: string;
         last_name?: string;
         email?: string;
       } | null;
+      const fund = withdrawal.fund as {
+        name?: string;
+        code?: string;
+        asset?: string;
+      } | null;
+      
       const investor_name = profile?.first_name || profile?.last_name
         ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim()
         : profile?.email || "Unknown";
       
+      const { profile: _p, fund: _f, ...rest } = withdrawal;
       return {
-        ...withdrawal,
-        investor_name: investor_name,
+        ...rest,
+        investor_name,
         investor_email: profile?.email || "",
-        profile: undefined, // Remove nested object
-      };
+        fund_name: fund?.name || "",
+        fund_code: fund?.code || "",
+        asset: fund?.asset || "",
+      } as Withdrawal;
     });
 
-    // Apply search filter
+    // Apply search filter (client-side for now, already paginated)
     if (filters?.search) {
       const searchLower = filters.search.toLowerCase();
-      return withdrawalsWithProfiles.filter(
+      withdrawals = withdrawals.filter(
         (w) =>
           w.investor_name?.toLowerCase().includes(searchLower) ||
           w.investor_email?.toLowerCase().includes(searchLower) ||
@@ -54,7 +71,90 @@ export const withdrawalService = {
       );
     }
 
-    return withdrawalsWithProfiles;
+    const totalCount = count || 0;
+
+    return {
+      data: withdrawals,
+      totalCount,
+      page,
+      pageSize,
+      totalPages: Math.ceil(totalCount / pageSize),
+    };
+  },
+
+  /**
+   * Get a single withdrawal by ID with full details
+   */
+  async getWithdrawalById(id: string): Promise<Withdrawal | null> {
+    const { data, error } = await supabase
+      .from("withdrawal_requests")
+      .select("*, profile:profiles!fk_withdrawal_requests_profile(first_name, last_name, email), fund:funds(name, code, asset)")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") return null;
+      throw error;
+    }
+
+    const profile = data.profile as {
+      first_name?: string;
+      last_name?: string;
+      email?: string;
+    } | null;
+    const fund = data.fund as {
+      name?: string;
+      code?: string;
+      asset?: string;
+    } | null;
+
+    const investor_name = profile?.first_name || profile?.last_name
+      ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim()
+      : profile?.email || "Unknown";
+
+    const { profile: _p, fund: _f, ...rest } = data;
+    return {
+      ...rest,
+      investor_name,
+      investor_email: profile?.email || "",
+      fund_name: fund?.name || "",
+      fund_code: fund?.code || "",
+      asset: fund?.asset || "",
+    } as Withdrawal;
+  },
+
+  /**
+   * Get audit logs for a specific withdrawal
+   */
+  async getWithdrawalAuditLogs(withdrawalId: string): Promise<WithdrawalAuditLog[]> {
+    const { data, error } = await supabase
+      .from("withdrawal_audit_logs")
+      .select("*, actor:profiles!withdrawal_audit_logs_actor_id_fkey(first_name, last_name, email)")
+      .eq("request_id", withdrawalId)
+      .order("created_at", { ascending: true });
+
+    if (error) throw error;
+
+    return (data || []).map((log) => {
+      const actor = log.actor as {
+        first_name?: string;
+        last_name?: string;
+        email?: string;
+      } | null;
+
+      const actor_name = actor?.first_name || actor?.last_name
+        ? `${actor.first_name || ""} ${actor.last_name || ""}`.trim()
+        : actor?.email || "System";
+
+      const { actor: _a, ...rest } = log;
+      return {
+        ...rest,
+        action: log.action as WithdrawalAuditLog["action"],
+        details: log.details as Record<string, unknown> | null,
+        actor_name,
+        actor_email: actor?.email || "",
+      } as WithdrawalAuditLog;
+    });
   },
 
   /**
@@ -79,9 +179,9 @@ export const withdrawalService = {
     const assetAmounts: Record<string, number> = {};
 
     data?.forEach((withdrawal) => {
-      const status = withdrawal.status as string;
-      if (status in stats && typeof stats[status as keyof WithdrawalStats] === "number") {
-        (stats as any)[status]++;
+      const status = withdrawal.status as keyof Pick<WithdrawalStats, "pending" | "approved" | "processing" | "completed" | "rejected">;
+      if (status in stats && typeof stats[status] === "number") {
+        (stats[status] as number)++;
       }
       // Group pending amounts by asset
       if (withdrawal.status === "pending" || withdrawal.status === "approved") {

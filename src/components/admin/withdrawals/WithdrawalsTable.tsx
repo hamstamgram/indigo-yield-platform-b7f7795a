@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, CheckCircle, XCircle, Play, CheckCircle2, Loader2 } from "lucide-react";
+import { Search, CheckCircle, XCircle, Play, CheckCircle2, Loader2, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { ApproveWithdrawalDialog } from "./ApproveWithdrawalDialog";
 import { RejectWithdrawalDialog } from "./RejectWithdrawalDialog";
@@ -33,6 +33,14 @@ interface Fund {
   asset: string;
 }
 
+interface PaginationProps {
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}
+
 interface WithdrawalsTableProps {
   withdrawals: Withdrawal[];
   isLoading: boolean;
@@ -40,6 +48,8 @@ interface WithdrawalsTableProps {
   onFiltersChange: (filters: WithdrawalFilters) => void;
   onRefresh: () => void;
   funds?: Fund[];
+  pagination?: PaginationProps;
+  onViewDetails?: (withdrawal: Withdrawal) => void;
 }
 
 const statusColors: Record<WithdrawalStatus, string> = {
@@ -58,6 +68,8 @@ export function WithdrawalsTable({
   onFiltersChange,
   onRefresh,
   funds = [],
+  pagination,
+  onViewDetails,
 }: WithdrawalsTableProps) {
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<Withdrawal | null>(null);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);

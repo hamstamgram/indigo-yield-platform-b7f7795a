@@ -18,7 +18,7 @@ export interface Withdrawal {
   notes: string | null;
   admin_notes: string | null;
   request_date: string;
-  processed_date?: string | null;
+  processed_at?: string | null;
   tx_hash: string | null;
   rejection_reason: string | null;
   cancellation_reason: string | null;
@@ -40,6 +40,8 @@ export interface WithdrawalFilters {
   search?: string;
   status?: WithdrawalStatus | "all";
   fund_id?: string;
+  page?: number;
+  pageSize?: number;
 }
 
 export interface PendingByAsset {
@@ -54,4 +56,37 @@ export interface WithdrawalStats {
   completed: number;
   rejected: number;
   pending_by_asset: PendingByAsset[];
+}
+
+export interface PaginatedWithdrawals {
+  data: Withdrawal[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export type WithdrawalAuditAction =
+  | "create"
+  | "approve"
+  | "reject"
+  | "processing"
+  | "complete"
+  | "cancel"
+  | "update";
+
+export interface WithdrawalAuditLog {
+  id: string;
+  request_id: string;
+  action: WithdrawalAuditAction;
+  actor_id: string;
+  details: Record<string, unknown> | null;
+  created_at: string;
+  actor_name?: string;
+  actor_email?: string;
+}
+  created_at: string;
+  // Joined data
+  actor_name?: string;
+  actor_email?: string;
 }
