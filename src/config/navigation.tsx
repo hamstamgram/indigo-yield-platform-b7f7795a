@@ -17,6 +17,8 @@ import {
   FolderOpen,
   PieChart,
   Wallet,
+  Coins,
+  LayoutDashboard,
 } from "lucide-react";
 import { NavItem } from "@/types/navigation";
 
@@ -43,7 +45,11 @@ export const investorNav: NavItem[] = [
 // IB (Introducing Broker) NAVIGATION
 // ============================================
 export const ibNav: NavItem[] = [
-  { title: "IB Dashboard", href: "/ib/dashboard", icon: <BarChart3 className="h-5 w-5" /> },
+  { title: "Overview", href: "/ib", icon: <LayoutDashboard className="h-5 w-5" /> },
+  { title: "Referrals", href: "/ib/referrals", icon: <Users className="h-5 w-5" /> },
+  { title: "Commissions", href: "/ib/commissions", icon: <Coins className="h-5 w-5" /> },
+  { title: "Payout History", href: "/ib/payouts", icon: <Wallet className="h-5 w-5" /> },
+  { title: "Settings", href: "/ib/settings", icon: <Settings className="h-5 w-5" /> },
 ];
 
 // ============================================
