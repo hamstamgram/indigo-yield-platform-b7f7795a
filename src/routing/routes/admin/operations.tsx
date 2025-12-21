@@ -11,6 +11,7 @@ const YieldOperationsPage = lazy(() => import("@/routes/admin/YieldOperationsPag
 const InvestorReports = lazy(() => import("@/routes/admin/InvestorReports"));
 const DailyRatesManagement = lazy(() => import("@/routes/admin/DailyRatesManagement"));
 const RecordedYieldsPage = lazy(() => import("@/routes/admin/RecordedYieldsPage"));
+const FundManagementPage = lazy(() => import("@/routes/admin/FundManagementPage"));
 
 export function OperationsRoutes() {
   return (
@@ -21,6 +22,16 @@ export function OperationsRoutes() {
         element={
           <AdminRoute>
             <YieldOperationsPage />
+          </AdminRoute>
+        }
+      />
+
+      {/* Fund Management */}
+      <Route
+        path="/admin/funds"
+        element={
+          <AdminRoute>
+            <FundManagementPage />
           </AdminRoute>
         }
       />
@@ -58,7 +69,6 @@ export function OperationsRoutes() {
       {/* Redirects for consolidated pages */}
       <Route path="/admin/monthly-data-entry" element={<Navigate to="/admin/yield" replace />} />
       <Route path="/admin/operations" element={<Navigate to="/admin/yield" replace />} />
-      <Route path="/admin/funds" element={<Navigate to="/admin/yield" replace />} />
       <Route path="/admin/yield-settings" element={<Navigate to="/admin/yield" replace />} />
       <Route path="/admin/requests" element={<Navigate to="/admin/withdrawals" replace />} />
       <Route path="/admin/statements" element={<Navigate to="/admin/investor-reports" replace />} />

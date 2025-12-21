@@ -133,6 +133,12 @@ export const adminNavGroups: NavGroup[] = [
     icon: DollarSign,
     items: [
       {
+        title: "Fund Management",
+        href: "/admin/funds",
+        icon: <PieChart className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
         title: "INDIGO Fees",
         href: "/admin/fees",
         icon: <CreditCard className="h-5 w-5" />,
