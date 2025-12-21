@@ -391,28 +391,21 @@ export function validatePercentage(
 export { Decimal };
 
 /**
- * USAGE EXAMPLES:
- *
- * // Basic calculations
- * const principal = toDecimal('1000.00');
- * const rate = toDecimal('0.05'); // 5%
- * const yield = calculateYield(principal, rate, 365);
- * console.log(formatMoney(yield)); // "$50.00"
- *
- * // Portfolio value
- * const positions = [
- *   { amount: '1.5', priceUsd: '35000.00' }, // 1.5 BTC
- *   { amount: '10.0', priceUsd: '1800.00' }  // 10 ETH
- * ];
- * const total = calculatePortfolioValue(positions);
- * console.log(formatMoney(total)); // "$70,500.00"
- *
- * // Fee calculation
- * const amount = toDecimal('1000.00');
- * const fee = calculateFee(amount, '0.25'); // 0.25%
- * console.log(formatMoney(fee)); // "$2.50"
- *
- * // Database storage
- * const dbValue = toDbFormat(yield); // "50.00000000"
- * const parsed = fromDbFormat(dbValue); // Decimal("50.00000000")
+ * Token-Only Formatting Guidelines
+ * ================================
+ * 
+ * This codebase uses token-denominated accounting. All values are displayed
+ * in native token units (BTC, ETH, USDT, etc.), NOT converted to fiat currencies.
+ * 
+ * CORRECT USAGE:
+ * - formatTokenAmount(1.5, 'BTC')  → "1.50000000 BTC"
+ * - formatTokenAmount(100, 'USDT') → "100.00 USDT"
+ * 
+ * DEPRECATED (DO NOT USE in investor-facing code):
+ * - formatMoney() - Only for legacy admin contexts
+ * - formatCurrency() - Only for legacy admin contexts
+ * - Any Intl.NumberFormat with style: 'currency'
+ * 
+ * All investor-facing code MUST use formatTokenAmount() or getAssetConfig()
+ * to ensure proper token display without fiat conversion.
  */
