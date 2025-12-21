@@ -7,8 +7,6 @@ import { Users, Activity, Loader2, CheckCircle2, Clock, TrendingUp } from "lucid
 import { Card, CardContent } from "@/components/ui/card";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { FinancialSnapshot } from "@/components/admin/FinancialSnapshot";
-import { PendingActionsPanel } from "@/components/admin/dashboard/PendingActionsPanel";
-import { RecentActivityFeed } from "@/components/admin/dashboard/RecentActivityFeed";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import PageHeader from "@/components/layout/PageHeader";
 
@@ -99,23 +97,8 @@ function AdminDashboardContent() {
         </Card>
       </div>
 
-      {/* Command Center 2-Column Layout */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Column 1: Pending Actions */}
-        <div className="lg:col-span-1">
-          <PendingActionsPanel />
-        </div>
-
-        {/* Column 2: Recent Activity */}
-        <div className="lg:col-span-1">
-          <RecentActivityFeed />
-        </div>
-      </div>
-
-      {/* Financial Snapshot - Full Width Below */}
-      <div className="pt-4">
-        <FinancialSnapshot />
-      </div>
+      {/* Financial Snapshot - Fund Cards */}
+      <FinancialSnapshot />
     </div>
   );
 }
