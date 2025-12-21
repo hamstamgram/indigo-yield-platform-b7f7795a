@@ -5232,6 +5232,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      system_health_check: { Args: never; Returns: Json }
       test_profiles_access: {
         Args: never
         Returns: {

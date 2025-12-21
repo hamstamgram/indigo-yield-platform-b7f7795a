@@ -11,6 +11,9 @@ const AdminSettingsNew = lazy(() => import("@/routes/admin/AdminSettings"));
 const AdminAuditLogs = lazy(() => import("@/routes/admin/AdminAuditLogs"));
 const MaintenancePage = lazy(() => import("@/routes/admin/MaintenancePage"));
 const AdminListPage = lazy(() => import("@/routes/admin/settings/AdminList"));
+const AdminToolsPage = lazy(() => import("@/routes/admin/settings/AdminToolsPage"));
+const AdminInvitesPage = lazy(() => import("@/routes/admin/settings/AdminInvitesPage"));
+const SystemHealthPage = lazy(() => import("@/routes/admin/system-health/SystemHealthPage"));
 
 export function SystemRoutes() {
   return (
@@ -31,6 +34,36 @@ export function SystemRoutes() {
         element={
           <AdminRoute>
             <AdminListPage />
+          </AdminRoute>
+        }
+      />
+
+      {/* Admin Tools */}
+      <Route
+        path="/admin/settings/tools"
+        element={
+          <AdminRoute>
+            <AdminToolsPage />
+          </AdminRoute>
+        }
+      />
+
+      {/* Admin Invites */}
+      <Route
+        path="/admin/settings/invites"
+        element={
+          <AdminRoute>
+            <AdminInvitesPage />
+          </AdminRoute>
+        }
+      />
+
+      {/* System Health */}
+      <Route
+        path="/admin/system-health"
+        element={
+          <AdminRoute>
+            <SystemHealthPage />
           </AdminRoute>
         }
       />
@@ -58,8 +91,7 @@ export function SystemRoutes() {
       {/* Redirects for consolidated/removed pages */}
       <Route path="/admin/audit" element={<Navigate to="/admin/audit-logs" replace />} />
       <Route path="/admin/users" element={<Navigate to="/admin/settings-platform" replace />} />
-      <Route path="/admin/system-health" element={<Navigate to="/admin" replace />} />
-      <Route path="/admin/invite" element={<Navigate to="/admin/investors" replace />} />
+      <Route path="/admin/settings/audit" element={<Navigate to="/admin/audit-logs" replace />} />
     </>
   );
 }

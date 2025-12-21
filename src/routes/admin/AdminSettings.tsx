@@ -122,13 +122,13 @@ function AdminSettingsContent() {
     {
       title: "Admin Invites",
       description: "Invite new administrators",
-      href: "/admin/settings/invite",
+      href: "/admin/settings/invites",
       icon: Users,
     },
     {
       title: "Audit Logs",
       description: "View system audit trail",
-      href: "/admin/settings/audit",
+      href: "/admin/audit-logs",
       icon: FileText,
     },
     {
