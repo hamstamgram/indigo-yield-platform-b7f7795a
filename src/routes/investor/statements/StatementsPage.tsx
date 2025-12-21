@@ -56,7 +56,7 @@ const StatementsPage = () => {
         `)
         .eq("investor_id", user.id)
         .eq("period.year", parseInt(selectedYear))
-        .or("purpose.is.null,purpose.eq.reporting")
+        .eq("purpose", "reporting")
         .order("period(period_end_date)", { ascending: false });
 
       if (selectedAsset !== "all") {
