@@ -10,6 +10,8 @@ import * as path from 'path';
 const INVESTOR_DIRS = [
   'src/routes/investor',
   'src/components/investor',
+  'src/routes/ib',
+  'src/components/ib',
 ];
 
 const FORBIDDEN_PATTERNS = [

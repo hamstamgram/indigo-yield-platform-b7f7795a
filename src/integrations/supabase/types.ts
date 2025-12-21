@@ -5155,7 +5155,13 @@ export type Database = {
         | "session_revoked"
         | "password_change"
       account_type: "investor" | "ib" | "fees_account"
-      app_role: "super_admin" | "admin" | "moderator" | "ib" | "user"
+      app_role:
+        | "super_admin"
+        | "admin"
+        | "moderator"
+        | "ib"
+        | "user"
+        | "investor"
       asset_code: "BTC" | "ETH" | "SOL" | "USDT" | "EURC" | "xAUT" | "XRP"
       aum_purpose: "reporting" | "transaction"
       benchmark_type: "BTC" | "ETH" | "STABLE" | "CUSTOM"
@@ -5347,7 +5353,7 @@ export const Constants = {
         "password_change",
       ],
       account_type: ["investor", "ib", "fees_account"],
-      app_role: ["super_admin", "admin", "moderator", "ib", "user"],
+      app_role: ["super_admin", "admin", "moderator", "ib", "user", "investor"],
       asset_code: ["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"],
       aum_purpose: ["reporting", "transaction"],
       benchmark_type: ["BTC", "ETH", "STABLE", "CUSTOM"],
