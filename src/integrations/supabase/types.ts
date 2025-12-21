@@ -5578,6 +5578,10 @@ export type Database = {
         }
         Returns: Json
       }
+      regenerate_reports_for_correction: {
+        Args: { p_correction_id: string }
+        Returns: Json
+      }
       reject_withdrawal: {
         Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
         Returns: boolean
@@ -5591,6 +5595,10 @@ export type Database = {
         Returns: Json
       }
       retry_delivery: { Args: { p_delivery_id: string }; Returns: Json }
+      rollback_yield_correction: {
+        Args: { p_correction_id: string; p_reason?: string }
+        Returns: Json
+      }
       send_daily_rate_notifications: {
         Args: { p_rate_date: string }
         Returns: number

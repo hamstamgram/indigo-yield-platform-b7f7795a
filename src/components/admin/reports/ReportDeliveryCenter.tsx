@@ -137,7 +137,7 @@ const DELIVERY_MODES: { value: DeliveryMode; label: string; description: string 
   { value: "email_html", label: "HTML Email", description: "Full report in email body" },
   { value: "link_only", label: "Link Only", description: "Email with link to view report" },
   { value: "hybrid", label: "HTML + Link", description: "Full report with view link" },
-  { value: "pdf_attachment", label: "PDF Attachment", description: "Report as PDF attachment (coming soon)" },
+  { value: "pdf_attachment", label: "PDF Attachment", description: "Report as PDF attachment" },
 ];
 
 export default function ReportDeliveryCenter() {
@@ -633,7 +633,6 @@ export default function ReportDeliveryCenter() {
                       <SelectItem 
                         key={mode.value} 
                         value={mode.value}
-                        disabled={mode.value === "pdf_attachment"}
                       >
                         <div className="flex flex-col">
                           <span>{mode.label}</span>

@@ -17,7 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { FlaskConical, Send, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { FlaskConical, Send, Loader2, FileText, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface TestEmailSectionProps {
   selectedPeriodId: string;
@@ -116,55 +117,72 @@ export function TestEmailSection({ selectedPeriodId, selectedDeliveryMode }: Tes
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex-1">
-            <Label className="text-xs text-muted-foreground sr-only">Select Investor</Label>
-            <Select 
-              value={selectedInvestorId} 
-              onValueChange={setSelectedInvestorId}
-              disabled={isLoading || investorsWithStatements.length === 0}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={
-                  isLoading 
-                    ? "Loading investors..." 
-                    : investorsWithStatements.length === 0 
-                      ? "No statements for this period" 
-                      : "Select an investor..."
-                } />
-              </SelectTrigger>
-              <SelectContent>
-                {investorsWithStatements.map((inv) => (
-                  <SelectItem key={inv.investor_id} value={inv.investor_id}>
-                    <div className="flex flex-col">
-                      <span>{inv.investor_name}</span>
-                      <span className="text-xs text-muted-foreground">{inv.email}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        {/* Empty state when no statements exist */}
+        {!isLoading && investorsWithStatements.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-6 text-center space-y-3">
+            <div className="rounded-full bg-muted p-3">
+              <FileText className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="font-medium text-sm">No statements generated</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Generate statements first before sending test emails
+              </p>
+            </div>
+            <Link to="/admin/investor-reports">
+              <Button variant="outline" size="sm" className="mt-2">
+                Generate Statements
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </Link>
           </div>
-          <Button
-            onClick={() => sendTestMutation.mutate({ 
-              investorId: selectedInvestorId, 
-              periodId: selectedPeriodId 
-            })}
-            disabled={!selectedInvestorId || sendTestMutation.isPending}
-            className="shrink-0"
-          >
-            {sendTestMutation.isPending ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4 mr-2" />
+        ) : (
+          <>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1">
+                <Label className="text-xs text-muted-foreground sr-only">Select Investor</Label>
+                <Select 
+                  value={selectedInvestorId} 
+                  onValueChange={setSelectedInvestorId}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={isLoading ? "Loading investors..." : "Select an investor..."} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {investorsWithStatements.map((inv) => (
+                      <SelectItem key={inv.investor_id} value={inv.investor_id}>
+                        <div className="flex flex-col">
+                          <span>{inv.investor_name}</span>
+                          <span className="text-xs text-muted-foreground">{inv.email}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                onClick={() => sendTestMutation.mutate({ 
+                  investorId: selectedInvestorId, 
+                  periodId: selectedPeriodId 
+                })}
+                disabled={!selectedInvestorId || sendTestMutation.isPending}
+                className="shrink-0"
+              >
+                {sendTestMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4 mr-2" />
+                )}
+                Send Test Email
+              </Button>
+            </div>
+            {selectedInvestor && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Will send to: <span className="font-medium">{selectedInvestor.email}</span>
+              </p>
             )}
-            Send Test Email
-          </Button>
-        </div>
-        {selectedInvestor && (
-          <p className="text-xs text-muted-foreground mt-2">
-            Will send to: <span className="font-medium">{selectedInvestor.email}</span>
-          </p>
+          </>
         )}
       </CardContent>
     </Card>
