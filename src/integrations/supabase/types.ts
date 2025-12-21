@@ -3173,6 +3173,44 @@ export type Database = {
           },
         ]
       }
+      report_delivery_events: {
+        Row: {
+          created_at: string | null
+          delivery_id: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          occurred_at: string
+          provider_message_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          delivery_id: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          occurred_at: string
+          provider_message_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          delivery_id?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          occurred_at?: string
+          provider_message_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_delivery_events_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "statement_email_delivery"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_schedules: {
         Row: {
           created_at: string | null
@@ -3316,9 +3354,14 @@ export type Database = {
       statement_email_delivery: {
         Row: {
           attempt_count: number
+          bounce_type: string | null
+          bounced_at: string | null
           channel: string
+          clicked_at: string | null
           created_at: string | null
           created_by: string | null
+          delivered_at: string | null
+          delivery_mode: string | null
           error_code: string | null
           error_message: string | null
           failed_at: string | null
@@ -3328,7 +3371,9 @@ export type Database = {
           locked_at: string | null
           locked_by: string | null
           metadata: Json
+          opened_at: string | null
           period_id: string
+          provider: string | null
           provider_message_id: string | null
           recipient_email: string
           retry_count: number | null
@@ -3341,9 +3386,14 @@ export type Database = {
         }
         Insert: {
           attempt_count?: number
+          bounce_type?: string | null
+          bounced_at?: string | null
           channel?: string
+          clicked_at?: string | null
           created_at?: string | null
           created_by?: string | null
+          delivered_at?: string | null
+          delivery_mode?: string | null
           error_code?: string | null
           error_message?: string | null
           failed_at?: string | null
@@ -3353,7 +3403,9 @@ export type Database = {
           locked_at?: string | null
           locked_by?: string | null
           metadata?: Json
+          opened_at?: string | null
           period_id: string
+          provider?: string | null
           provider_message_id?: string | null
           recipient_email: string
           retry_count?: number | null
@@ -3366,9 +3418,14 @@ export type Database = {
         }
         Update: {
           attempt_count?: number
+          bounce_type?: string | null
+          bounced_at?: string | null
           channel?: string
+          clicked_at?: string | null
           created_at?: string | null
           created_by?: string | null
+          delivered_at?: string | null
+          delivery_mode?: string | null
           error_code?: string | null
           error_message?: string | null
           failed_at?: string | null
@@ -3378,7 +3435,9 @@ export type Database = {
           locked_at?: string | null
           locked_by?: string | null
           metadata?: Json
+          opened_at?: string | null
           period_id?: string
+          provider?: string | null
           provider_message_id?: string | null
           recipient_email?: string
           retry_count?: number | null

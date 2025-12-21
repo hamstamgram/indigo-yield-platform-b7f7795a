@@ -62,3 +62,9 @@ verify_jwt = true
 
 [functions.process-report-delivery-queue]
 verify_jwt = true
+
+[functions.send-report-mailersend]
+verify_jwt = true
+
+[functions.mailersend-webhook]
+verify_jwt = false
