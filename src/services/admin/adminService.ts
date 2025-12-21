@@ -264,7 +264,7 @@ class AdminServiceV2 {
       });
     } catch (error) {
       console.error("Error fetching fund performance:", error);
-      return [];
+      throw error; // Throw instead of silently returning empty array
     }
   }
 

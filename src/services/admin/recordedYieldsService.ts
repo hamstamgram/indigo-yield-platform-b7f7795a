@@ -204,7 +204,7 @@ export async function getYieldEditHistory(recordId: string): Promise<any[]> {
 
   if (error) {
     console.error("Error fetching yield edit history:", error);
-    return [];
+    throw new Error(`Failed to fetch edit history: ${error.message}`);
   }
 
   return data || [];
