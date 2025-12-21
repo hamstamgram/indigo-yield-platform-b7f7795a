@@ -141,26 +141,28 @@ export function WithdrawalRequestForm({
         }
       }
 
-      // 4. Insert Withdrawal Request
-      const { data: request, error: insertError } = await supabase
-        .from("withdrawal_requests")
-        .insert({
-          investor_id: investorId,
-          fund_id: availableBalance.fund_id,
-          requested_amount: requested.toNumber(),
-          requested_shares: requested.toNumber(),
-          withdrawal_type: "partial",
-          fund_class: availableBalance.asset_symbol, // align with fund asset
-          status: "pending",
-          destination_address: data.destinationAddress,
-          reason: data.reason,
-          notes: data.notes,
-          request_date: new Date().toISOString(),
-        })
-        .select()
-        .single();
+      // 4. Create Withdrawal Request via RPC (validates lock periods, pending requests, etc.)
+      // Include destination address and reason in notes since those columns don't exist
+      const combinedNotes = [
+        data.reason ? `Reason: ${data.reason}` : null,
+        data.destinationAddress ? `Destination: ${data.destinationAddress}` : null,
+        data.notes || null,
+      ].filter(Boolean).join('\n');
+      
+      const { data: requestId, error: rpcError } = await supabase.rpc(
+        "create_withdrawal_request",
+        {
+          p_investor_id: investorId,
+          p_fund_id: availableBalance.fund_id,
+          p_amount: requested.toNumber(),
+          p_type: "partial",
+          p_notes: combinedNotes || null,
+        }
+      );
 
-      if (insertError) throw insertError;
+      if (rpcError) throw rpcError;
+      
+      const request = { id: requestId };
 
       // 5. Log Audit Event
       await auditLogService.logEvent({

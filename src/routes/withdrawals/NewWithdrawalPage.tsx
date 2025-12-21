@@ -39,11 +39,11 @@ export default function NewWithdrawalPage() {
 
       if (error) throw error;
 
+      // Token-denominated only - no USD values
       return data.map((pos: any) => ({
         fund_id: pos.fund_id,
         asset_symbol: pos.funds?.asset || "UNKNOWN",
         amount: Number(pos.shares),
-        value_usd: Number(pos.current_value),
       })) as WithdrawalPosition[];
     },
   });
