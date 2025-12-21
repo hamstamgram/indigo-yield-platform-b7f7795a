@@ -26,18 +26,15 @@ import { toast } from "sonner";
 import { createAdminTransaction } from "@/services/shared/transactionService";
 import { Loader2 } from "lucide-react";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
+import { useActiveFunds, formatFundLabel } from "@/hooks/useActiveFunds";
 
 // Transaction validation schema
 const transactionSchema = z.object({
   txn_type: z.enum(["DEPOSIT", "WITHDRAWAL", "YIELD", "INTEREST", "FEE"], {
     required_error: "Transaction type is required",
   }),
-  asset: z
-    .string()
-    .trim()
-    .min(1, "Asset is required")
-    .max(10, "Asset code must be less than 10 characters")
-    .regex(/^[A-Z0-9]+$/, "Asset code must be uppercase letters and numbers only"),
+  fund_id: z.string().uuid("Please select a valid fund"),
+  asset: z.string().min(1, "Asset is required"),
   amount: z
     .string()
     .trim()
@@ -86,6 +83,7 @@ export function AddTransactionDialog({
 }: AddTransactionDialogProps) {
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
+  const { data: funds, isLoading: fundsLoading } = useActiveFunds();
 
   const {
     register,
@@ -98,11 +96,34 @@ export function AddTransactionDialog({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
       tx_date: new Date().toISOString().split("T")[0],
-      asset: "BTC",
+      fund_id: fundId,
+      asset: "",
     },
   });
 
   const txnType = watch("txn_type");
+  const selectedFundId = watch("fund_id");
+
+  // Set initial fund and asset when dialog opens or fundId prop changes
+  useEffect(() => {
+    if (fundId && funds) {
+      setValue("fund_id", fundId);
+      const fund = funds.find(f => f.id === fundId);
+      if (fund) {
+        setValue("asset", fund.asset);
+      }
+    }
+  }, [fundId, funds, setValue]);
+
+  // Update asset when fund selection changes
+  useEffect(() => {
+    if (selectedFundId && funds) {
+      const fund = funds.find(f => f.id === selectedFundId);
+      if (fund) {
+        setValue("asset", fund.asset);
+      }
+    }
+  }, [selectedFundId, funds, setValue]);
 
   const onSubmit = async (data: TransactionFormData) => {
     // Block manual deposits to INDIGO FEES account
@@ -116,7 +137,7 @@ export function AddTransactionDialog({
 
       const result = await createAdminTransaction({
         investorId,
-        fundId,
+        fundId: data.fund_id,
         type: data.txn_type as "DEPOSIT" | "WITHDRAWAL" | "YIELD" | "INTEREST" | "FEE",
         asset: data.asset,
         amount: Number(data.amount),
@@ -182,30 +203,41 @@ export function AddTransactionDialog({
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="asset">Asset *</Label>
-              <Input
-                id="asset"
-                placeholder="e.g., BTC, ETH"
-                {...register("asset")}
-                className={errors.asset ? "border-destructive" : ""}
-              />
-              {errors.asset && <p className="text-sm text-destructive">{errors.asset.message}</p>}
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="fund_id">Fund *</Label>
+            <Select 
+              value={selectedFundId} 
+              onValueChange={(value) => setValue("fund_id", value)}
+              disabled={fundsLoading}
+            >
+              <SelectTrigger className={errors.fund_id ? "border-destructive" : ""}>
+                <SelectValue placeholder={fundsLoading ? "Loading funds..." : "Select fund"} />
+              </SelectTrigger>
+              <SelectContent>
+                {funds?.map((fund) => (
+                  <SelectItem key={fund.id} value={fund.id}>
+                    {formatFundLabel(fund)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.fund_id && (
+              <p className="text-sm text-destructive">{errors.fund_id.message}</p>
+            )}
+            <input type="hidden" {...register("asset")} />
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="amount">Amount *</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.00000001"
-                placeholder="0.00"
-                {...register("amount")}
-                className={errors.amount ? "border-destructive" : ""}
-              />
-              {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="amount">Amount *</Label>
+            <Input
+              id="amount"
+              type="number"
+              step="0.00000001"
+              placeholder="0.00"
+              {...register("amount")}
+              className={errors.amount ? "border-destructive" : ""}
+            />
+            {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
           </div>
 
           <div className="space-y-2">
@@ -259,7 +291,7 @@ export function AddTransactionDialog({
             <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || fundsLoading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Transaction
             </Button>

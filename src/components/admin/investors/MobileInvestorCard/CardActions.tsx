@@ -1,14 +1,12 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Send, Save } from "lucide-react";
-import InvestorAssetDropdown from "../InvestorAssetDropdown";
+import FundAssetDropdown from "../FundAssetDropdown";
 
 interface CardActionsProps {
   isEditing: boolean;
   isSaving: boolean;
   userId: string;
-  existingAssets: number[];
-  assets: any[];
   onEdit: () => void;
   onSave: () => void;
   onSendEmail: (email: string) => void;
@@ -20,8 +18,6 @@ const CardActions: React.FC<CardActionsProps> = ({
   isEditing,
   isSaving,
   userId,
-  existingAssets,
-  assets,
   onEdit,
   onSave,
   onSendEmail,
@@ -50,11 +46,9 @@ const CardActions: React.FC<CardActionsProps> = ({
             <Send className="h-4 w-4 mr-1" />
             Send Invite
           </Button>
-          <InvestorAssetDropdown
-            userId={userId}
-            assets={assets}
-            existingAssets={existingAssets}
-            onAssetAdded={onAssetAdded}
+          <FundAssetDropdown
+            investorId={userId}
+            onFundAdded={onAssetAdded}
           />
         </>
       )}
