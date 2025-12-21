@@ -63,13 +63,11 @@ export default function MaintenancePage() {
     fetchHistory();
   }, []);
 
-  const formatCurrency = (value: number | undefined) => {
+  const formatTokenAmount = (value: number | undefined) => {
     if (value === undefined) return "N/A";
     return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 8,
     }).format(value);
   };
 
