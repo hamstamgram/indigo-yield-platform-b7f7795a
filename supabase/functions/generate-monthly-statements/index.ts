@@ -1,28 +1,31 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { STATEMENT_TEMPLATE, SUPPORTED_ASSETS, generateFundSectionHtml } from "../_shared/statement-template.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import {
+  generateMonthlyReportHtml,
+  generateFundBlockHtml,
+  extractAssetFromFundName,
+  validateGeneratedHtml,
+} from "../_shared/monthly-report-template-v2.ts";
 
-// Helper to format numbers with commas and decimals
-const formatNum = (num: number, decimals: number = 4): string => {
-  if (num === 0) return "-";
-  return num.toLocaleString("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
-};
-
-// Helper to format with color styling for positive/negative values
-const formatWithStyle = (num: number, decimals: number = 4, isPercent: boolean = false): string => {
-  if (num === 0) return "-";
+// Format period ended date as "October 31st, 2025"
+function formatPeriodEndedLong(date: Date): string {
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  const month = months[date.getMonth()];
+  const day = date.getDate();
+  const year = date.getFullYear();
   
-  const formatted = isPercent 
-    ? `${num >= 0 ? "" : ""}${num.toFixed(2)}%`
-    : `${num >= 0 ? "+" : ""}${formatNum(num, decimals)}`;
+  // Add ordinal suffix
+  let suffix = "th";
+  if (day === 1 || day === 21 || day === 31) suffix = "st";
+  else if (day === 2 || day === 22) suffix = "nd";
+  else if (day === 3 || day === 23) suffix = "rd";
   
-  const color = num >= 0 ? "#16a34a" : "#ef4444";
-  return `<span style="color:${color}">${formatted}</span>`;
-};
+  return `${month} ${day}${suffix}, ${year}`;
+}
 
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req.headers.get("origin"));
@@ -83,89 +86,66 @@ serve(async (req) => {
 
     console.log(`Found ${fundPerformance?.length || 0} fund performance records`);
 
-    // Determine which assets this investor has
-    const investorAssets = new Set<string>();
-    
-    if (fundPerformance && fundPerformance.length > 0) {
-      fundPerformance.forEach(fp => {
-        // Extract asset from fund_name (e.g., "BTC YIELD FUND" -> "BTC")
-        const asset = fp.fund_name?.split(" ")[0];
-        if (asset && SUPPORTED_ASSETS.includes(asset)) {
-          investorAssets.add(asset);
-        }
-      });
-    }
-
-    const assetsToShow = investorAssets.size > 0 
-      ? Array.from(investorAssets).filter(a => SUPPORTED_ASSETS.includes(a))
-      : [];
-
-    if (assetsToShow.length === 0) {
+    if (!fundPerformance || fundPerformance.length === 0) {
       console.log("No fund positions found for investor");
       throw new Error("No fund positions found for this investor");
     }
 
-    const templateData: Record<string, string> = {
-      INVESTOR_NAME: investorName,
-      INVESTOR_EMAIL: investorEmail,
-      PERIOD_END_DATE: mtdEnd.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
-    };
+    // Generate fund blocks for each fund the investor has
+    const fundBlocks: string[] = [];
+    const assetsIncluded: string[] = [];
 
-    // Generate fund sections HTML
-    let fundSectionsHtml = "";
+    for (const fp of fundPerformance) {
+      const fundName = fp.fund_name || "UNKNOWN FUND";
+      const asset = extractAssetFromFundName(fundName);
+      assetsIncluded.push(asset);
 
-    // Helper to extract metrics from fund performance data
-    const getMetrics = (performance: typeof fundPerformance[0] | undefined, prefix: string) => {
-      if (!performance) return { begin: 0, add: 0, redeem: 0, income: 0, end: 0, rate: 0 };
-      return {
-        begin: Number(performance[`${prefix}_beginning_balance`]) || 0,
-        add: Number(performance[`${prefix}_additions`]) || 0,
-        redeem: Number(performance[`${prefix}_redemptions`]) || 0,
-        income: Number(performance[`${prefix}_net_income`]) || 0,
-        end: Number(performance[`${prefix}_ending_balance`]) || 0,
-        rate: Number(performance[`${prefix}_rate_of_return`]) || 0,
-      };
-    };
+      const fundBlock = generateFundBlockHtml({
+        fundName: fundName.toUpperCase(),
+        asset,
+        mtdBeginning: fp.mtd_beginning_balance,
+        qtdBeginning: fp.qtd_beginning_balance,
+        ytdBeginning: fp.ytd_beginning_balance,
+        itdBeginning: fp.itd_beginning_balance,
+        mtdAdditions: fp.mtd_additions,
+        qtdAdditions: fp.qtd_additions,
+        ytdAdditions: fp.ytd_additions,
+        itdAdditions: fp.itd_additions,
+        mtdRedemptions: fp.mtd_redemptions,
+        qtdRedemptions: fp.qtd_redemptions,
+        ytdRedemptions: fp.ytd_redemptions,
+        itdRedemptions: fp.itd_redemptions,
+        mtdNetIncome: fp.mtd_net_income,
+        qtdNetIncome: fp.qtd_net_income,
+        ytdNetIncome: fp.ytd_net_income,
+        itdNetIncome: fp.itd_net_income,
+        mtdEnding: fp.mtd_ending_balance,
+        qtdEnding: fp.qtd_ending_balance,
+        ytdEnding: fp.ytd_ending_balance,
+        itdEnding: fp.itd_ending_balance,
+        mtdRor: fp.mtd_rate_of_return,
+        qtdRor: fp.qtd_rate_of_return,
+        ytdRor: fp.ytd_rate_of_return,
+        itdRor: fp.itd_rate_of_return,
+      });
 
-    assetsToShow.forEach((asset) => {
-      // Find performance data for this asset
-      const assetPerformance = fundPerformance?.find(fp => 
-        fp.fund_name?.toUpperCase().startsWith(asset)
-      );
+      fundBlocks.push(fundBlock);
+    }
 
-      // Get metrics for each period directly from fund_performance
-      const mtd = getMetrics(assetPerformance, "mtd");
-      const qtd = getMetrics(assetPerformance, "qtd");
-      const ytd = getMetrics(assetPerformance, "ytd");
-      const itd = getMetrics(assetPerformance, "itd");
-
-      // Map to Template Keys
-      const mapKeys = (periodName: string, data: typeof mtd) => {
-        templateData[`${asset}_BEGIN_${periodName}`] = formatNum(data.begin);
-        templateData[`${asset}_ADD_${periodName}`] = formatNum(data.add);
-        templateData[`${asset}_REDEEM_${periodName}`] = formatNum(data.redeem);
-        templateData[`${asset}_INCOME_${periodName}`] = formatNum(data.income);
-        templateData[`${asset}_INCOME_${periodName}_STYLED`] = formatWithStyle(data.income);
-        templateData[`${asset}_END_${periodName}`] = formatNum(data.end);
-        templateData[`${asset}_RATE_${periodName}`] = formatNum(data.rate, 2);
-        templateData[`${asset}_RATE_${periodName}_STYLED`] = formatWithStyle(data.rate, 2, true);
-      };
-
-      mapKeys("MTD", mtd);
-      mapKeys("QTD", qtd);
-      mapKeys("YTD", ytd);
-      mapKeys("ITD", itd);
-
-      fundSectionsHtml += generateFundSectionHtml(asset);
+    // Generate full HTML using V2 template
+    const htmlContent = generateMonthlyReportHtml({
+      investorName,
+      periodEndedLong: formatPeriodEndedLong(mtdEnd),
+      fundBlocks,
     });
 
-    // Inject into Template
-    let htmlContent = STATEMENT_TEMPLATE.replace("{{FUND_SECTIONS}}", fundSectionsHtml);
-    
-    Object.entries(templateData).forEach(([key, value]) => {
-      const regex = new RegExp(`{{${key}}}`, "g");
-      htmlContent = htmlContent.replace(regex, value);
-    });
+    // Validate generated HTML
+    const validation = validateGeneratedHtml(htmlContent);
+    if (!validation.valid) {
+      console.warn("HTML validation warnings:", validation.errors);
+    }
+
+    console.log(`Generated statement with ${fundBlocks.length} fund blocks for assets: ${assetsIncluded.join(", ")}`);
 
     return new Response(
       JSON.stringify({
@@ -173,7 +153,7 @@ serve(async (req) => {
         html: htmlContent,
         investorName,
         investorEmail,
-        assetsIncluded: assetsToShow,
+        assetsIncluded,
         message: "Statement generated successfully",
       }),
       {
