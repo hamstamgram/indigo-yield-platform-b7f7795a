@@ -30,6 +30,7 @@ export default function InvestorOverviewPage() {
         .from("transactions_v2")
         .select("id, type, amount, asset, tx_date")
         .eq("investor_id", user.id)
+        .eq("visibility_scope", "investor_visible")
         .order("tx_date", { ascending: false })
         .limit(5);
 

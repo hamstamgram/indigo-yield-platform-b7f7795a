@@ -44,7 +44,8 @@ export default function InvestorTransactionsPage() {
       const { data } = await supabase
         .from("transactions_v2")
         .select("asset")
-        .eq("investor_id", user.id);
+        .eq("investor_id", user.id)
+        .eq("visibility_scope", "investor_visible");
 
       const uniqueAssets = new Set<string>();
       data?.forEach((d) => {
@@ -64,7 +65,8 @@ export default function InvestorTransactionsPage() {
       let query = supabase
         .from("transactions_v2")
         .select("*")
-        .eq("investor_id", user.id);
+        .eq("investor_id", user.id)
+        .eq("visibility_scope", "investor_visible");
 
       if (searchTerm) {
         query = query.or(`asset.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%`);

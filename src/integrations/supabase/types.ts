@@ -2742,6 +2742,7 @@ export type Database = {
           ib_parent_id: string | null
           ib_percentage: number | null
           id: string
+          include_in_reporting: boolean
           is_admin: boolean
           is_system_account: boolean | null
           kyc_status: string | null
@@ -2765,6 +2766,7 @@ export type Database = {
           ib_parent_id?: string | null
           ib_percentage?: number | null
           id: string
+          include_in_reporting?: boolean
           is_admin?: boolean
           is_system_account?: boolean | null
           kyc_status?: string | null
@@ -2788,6 +2790,7 @@ export type Database = {
           ib_parent_id?: string | null
           ib_percentage?: number | null
           id?: string
+          include_in_reporting?: boolean
           is_admin?: boolean
           is_system_account?: boolean | null
           kyc_status?: string | null
@@ -3613,10 +3616,12 @@ export type Database = {
           purpose: Database["public"]["Enums"]["aum_purpose"] | null
           reference_id: string | null
           source: Database["public"]["Enums"]["tx_source"] | null
+          transfer_id: string | null
           tx_date: string
           tx_hash: string | null
           type: Database["public"]["Enums"]["tx_type"]
           value_date: string
+          visibility_scope: Database["public"]["Enums"]["visibility_scope"]
         }
         Insert: {
           amount: number
@@ -3636,10 +3641,12 @@ export type Database = {
           purpose?: Database["public"]["Enums"]["aum_purpose"] | null
           reference_id?: string | null
           source?: Database["public"]["Enums"]["tx_source"] | null
+          transfer_id?: string | null
           tx_date?: string
           tx_hash?: string | null
           type: Database["public"]["Enums"]["tx_type"]
           value_date?: string
+          visibility_scope?: Database["public"]["Enums"]["visibility_scope"]
         }
         Update: {
           amount?: number
@@ -3659,10 +3666,12 @@ export type Database = {
           purpose?: Database["public"]["Enums"]["aum_purpose"] | null
           reference_id?: string | null
           source?: Database["public"]["Enums"]["tx_source"] | null
+          transfer_id?: string | null
           tx_date?: string
           tx_hash?: string | null
           type?: Database["public"]["Enums"]["tx_type"]
           value_date?: string
+          visibility_scope?: Database["public"]["Enums"]["visibility_scope"]
         }
         Relationships: [
           {
@@ -4934,6 +4943,16 @@ export type Database = {
           total_reports: number
         }[]
       }
+      get_reporting_eligible_investors: {
+        Args: { p_period_id: string }
+        Returns: {
+          eligibility_reason: string
+          email: string
+          investor_id: string
+          investor_name: string
+          is_eligible: boolean
+        }[]
+      }
       get_statement_period_summary: {
         Args: { p_period_id: string }
         Returns: {
@@ -4977,6 +4996,23 @@ export type Database = {
         Returns: boolean
       }
       has_super_admin_role: { Args: { p_user_id: string }; Returns: boolean }
+      internal_route_to_fees: {
+        Args: {
+          p_admin_id: string
+          p_amount: number
+          p_effective_date: string
+          p_from_investor_id: string
+          p_fund_id: string
+          p_reason: string
+        }
+        Returns: {
+          credit_tx_id: string
+          debit_tx_id: string
+          message: string
+          success: boolean
+          transfer_id: string
+        }[]
+      }
       is_2fa_required: { Args: { p_user_id: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_admin_for_jwt: { Args: never; Returns: boolean }
@@ -5202,6 +5238,7 @@ export type Database = {
         | "FEE_CREDIT"
         | "IB_CREDIT"
         | "YIELD"
+      visibility_scope: "investor_visible" | "admin_only"
       withdrawal_action:
         | "create"
         | "approve"
@@ -5398,6 +5435,7 @@ export const Constants = {
         "IB_CREDIT",
         "YIELD",
       ],
+      visibility_scope: ["investor_visible", "admin_only"],
       withdrawal_action: [
         "create",
         "approve",
