@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Withdrawal } from "@/types/withdrawal";
 import {
   Dialog,
@@ -12,9 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { withdrawalService } from "@/services/investor/withdrawalService";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 
 interface ApproveWithdrawalDialogProps {
   open: boolean;
@@ -31,10 +32,28 @@ export function ApproveWithdrawalDialog({
 }: ApproveWithdrawalDialogProps) {
   const [processedAmount, setProcessedAmount] = useState(withdrawal.requested_amount.toString());
   const [adminNotes, setAdminNotes] = useState("");
+  const [confirmText, setConfirmText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Reset state when dialog opens with new withdrawal
+  useEffect(() => {
+    if (open) {
+      setProcessedAmount(withdrawal.requested_amount.toString());
+      setAdminNotes("");
+      setConfirmText("");
+    }
+  }, [open, withdrawal.requested_amount]);
+
+  const isConfirmed = confirmText.toUpperCase() === "APPROVE";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isConfirmed) {
+      toast.error("Please type APPROVE to confirm");
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
@@ -101,6 +120,30 @@ export function ApproveWithdrawalDialog({
                 rows={3}
               />
             </div>
+            
+            {/* Typed Confirmation Gate */}
+            <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-800 dark:text-amber-200">
+                <strong>Confirmation Required</strong>
+                <p className="mt-1 text-sm">
+                  This action cannot be undone. Type <strong>APPROVE</strong> below to confirm.
+                </p>
+              </AlertDescription>
+            </Alert>
+            
+            <div>
+              <Label htmlFor="confirmText">Type APPROVE to confirm *</Label>
+              <Input
+                id="confirmText"
+                type="text"
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+                placeholder="APPROVE"
+                className={confirmText && !isConfirmed ? "border-destructive" : ""}
+                required
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button
@@ -111,7 +154,7 @@ export function ApproveWithdrawalDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting || !isConfirmed}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
