@@ -147,18 +147,58 @@ async function checkStorage(): Promise<SystemHealth> {
 }
 
 /**
- * Check email service (via edge functions)
+ * Check MailerSend email service (via edge function health check)
  */
 async function checkEmail(): Promise<SystemHealth> {
-  // Email service check would require an actual edge function call
-  // For now, we'll mark it as operational since we can't easily test it without side effects
-  return {
-    name: "Email Service",
-    status: "operational",
-    uptime: 98.5,
-    lastChecked: new Date(),
-    message: "Status not actively monitored",
-  };
+  const startTime = Date.now();
+  try {
+    const { data, error } = await supabase.functions.invoke("send-report-mailersend", {
+      body: { health_check: true }
+    });
+    
+    const responseTime = Date.now() - startTime;
+
+    if (error) {
+      return {
+        name: "Email Service (MailerSend)",
+        status: "down",
+        uptime: null,
+        lastChecked: new Date(),
+        message: error.message || "Health check failed",
+        responseTime,
+      };
+    }
+
+    if (data?.status === "ok") {
+      const status: ServiceStatus = responseTime > 2000 ? "degraded" : "operational";
+      return {
+        name: "Email Service (MailerSend)",
+        status,
+        uptime: status === "operational" ? 99.5 : 95.0,
+        lastChecked: new Date(),
+        message: status === "degraded" ? "Slow response from MailerSend" : undefined,
+        responseTime,
+      };
+    }
+
+    return {
+      name: "Email Service (MailerSend)",
+      status: "degraded",
+      uptime: 95.0,
+      lastChecked: new Date(),
+      message: data?.message || "Unexpected response",
+      responseTime,
+    };
+  } catch (error) {
+    return {
+      name: "Email Service (MailerSend)",
+      status: "down",
+      uptime: null,
+      lastChecked: new Date(),
+      message: "Service unavailable",
+      responseTime: Date.now() - startTime,
+    };
+  }
 }
 
 /**
