@@ -109,6 +109,22 @@ export interface CorrectionHistoryItem {
   applied_by_name: string;
 }
 
+export interface RollbackResult {
+  success: boolean;
+  error?: string;
+  rollback_distribution_id?: string;
+  transactions_reversed?: number;
+  message?: string;
+}
+
+export interface RegenerateResult {
+  success: boolean;
+  error?: string;
+  statements_regenerated?: number;
+  investors_affected?: number;
+  message?: string;
+}
+
 /**
  * Preview yield correction without applying changes
  */
@@ -159,6 +175,48 @@ export async function applyYieldCorrection(
   }
 
   return data as unknown as CorrectionResult;
+}
+
+/**
+ * Rollback a yield correction by reversing all delta transactions
+ * Note: This calls the rollback_yield_correction RPC which needs to be created
+ */
+export async function rollbackYieldCorrection(
+  correctionId: string,
+  reason: string
+): Promise<RollbackResult> {
+  // Use generic rpc call since the function may not exist in types yet
+  const { data, error } = await (supabase.rpc as CallableFunction)("rollback_yield_correction", {
+    p_correction_id: correctionId,
+    p_reason: reason,
+  });
+
+  if (error) {
+    console.error("Rollback yield correction error:", error);
+    return { success: false, error: error.message };
+  }
+
+  return data as unknown as RollbackResult;
+}
+
+/**
+ * Regenerate affected reports after a correction
+ * Note: This calls the regenerate_reports_for_correction RPC which needs to be created
+ */
+export async function regenerateAffectedReports(
+  correctionId: string
+): Promise<RegenerateResult> {
+  // Use generic rpc call since the function may not exist in types yet
+  const { data, error } = await (supabase.rpc as CallableFunction)("regenerate_reports_for_correction", {
+    p_correction_id: correctionId,
+  });
+
+  if (error) {
+    console.error("Regenerate reports error:", error);
+    return { success: false, error: error.message };
+  }
+
+  return data as unknown as RegenerateResult;
 }
 
 /**

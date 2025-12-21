@@ -68,3 +68,6 @@ verify_jwt = true
 
 [functions.mailersend-webhook]
 verify_jwt = false
+
+[functions.refresh-delivery-status]
+verify_jwt = true

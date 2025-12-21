@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { X, Loader2, Eye, AlertCircle, CheckCircle2 } from "lucide-react";
+import { X, Loader2, Eye, AlertCircle, CheckCircle2, RotateCcw, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,8 @@ import { YieldRecord } from "@/services/admin/recordedYieldsService";
 import {
   previewYieldCorrection,
   applyYieldCorrection,
+  rollbackYieldCorrection,
+  regenerateAffectedReports,
   CorrectionPreview,
   formatTokenAmount,
 } from "@/services/admin/yieldCorrectionService";
@@ -42,6 +44,7 @@ export function YieldCorrectionPanel({
   const [reason, setReason] = useState("");
   const [preview, setPreview] = useState<CorrectionPreview | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [lastCorrectionId, setLastCorrectionId] = useState<string | null>(null);
 
   // Reset state when record changes
   const handleOpenChange = (isOpen: boolean) => {
@@ -50,6 +53,7 @@ export function YieldCorrectionPanel({
       setReason("");
       setPreview(null);
       setShowConfirmDialog(false);
+      setLastCorrectionId(null);
     } else if (record) {
       setNewAum(record.total_aum.toString());
     }
@@ -95,8 +99,8 @@ export function YieldCorrectionPanel({
     onSuccess: (data) => {
       if (data.success) {
         toast.success(data.message || "Correction applied successfully");
+        setLastCorrectionId(data.correction_id || null);
         setShowConfirmDialog(false);
-        handleOpenChange(false);
         onCorrectionApplied();
       } else {
         toast.error(data.error || "Failed to apply correction");
@@ -104,6 +108,24 @@ export function YieldCorrectionPanel({
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : "Failed to apply correction");
+    },
+  });
+
+  // Regenerate reports mutation
+  const regenerateMutation = useMutation({
+    mutationFn: async (correctionId: string) => {
+      return regenerateAffectedReports(correctionId);
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success(data.message || `Regenerated ${data.statements_regenerated} statements`);
+        handleOpenChange(false);
+      } else {
+        toast.error(data.error || "Failed to regenerate reports");
+      }
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Failed to regenerate reports");
     },
   });
 
@@ -226,6 +248,36 @@ export function YieldCorrectionPanel({
                     Apply Correction
                   </Button>
                 </>
+              )}
+
+              {/* Post-correction actions */}
+              {lastCorrectionId && (
+                <div className="space-y-3 p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                  <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span className="font-medium">Correction Applied</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => regenerateMutation.mutate(lastCorrectionId)}
+                    disabled={regenerateMutation.isPending}
+                    className="w-full"
+                  >
+                    {regenerateMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                    )}
+                    Regenerate Affected Reports
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleOpenChange(false)}
+                    className="w-full"
+                  >
+                    Close
+                  </Button>
+                </div>
               )}
             </div>
           </ScrollArea>
