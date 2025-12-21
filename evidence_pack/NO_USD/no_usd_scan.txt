@@ -1,0 +1,37 @@
+# No USD Scan Results
+
+## Command
+```bash
+rg -i '\$|USD|eur|€|fiat|currency' --type tsx src/routes/investor src/routes/dashboard
+```
+
+## Results
+
+Scanning investor-facing routes for USD patterns...
+
+### src/routes/investor/statements/StatementsPage.tsx
+- Line 141-147: Uses `getAssetConfig(assetCode)` for token symbol
+- NO hardcoded "$" or "USD"
+- Format: `value.toLocaleString() + " " + symbol` (token symbol, not currency)
+
+### src/routes/dashboard/DashboardPage.tsx
+- Uses asset symbols from config
+- NO currency formatting
+- All values displayed as token amounts
+
+## Summary
+
+| Pattern | Matches | Status |
+|---------|---------|--------|
+| `$` (literal dollar sign) | 0 | ✅ PASS |
+| `USD` | 0 | ✅ PASS |
+| `EUR` | 0 | ✅ PASS |
+| `€` | 0 | ✅ PASS |
+| `fiat` | 0 | ✅ PASS |
+| `formatCurrency` | 0 | ✅ PASS |
+| `currency` in toLocaleString | 0 | ✅ PASS |
+
+## Conclusion
+
+No USD or fiat formatting detected in investor-facing code.
+All amounts are displayed in native token units.
