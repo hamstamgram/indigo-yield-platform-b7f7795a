@@ -10,6 +10,7 @@
  * - Color-coded values (green positive, red negative)
  * - Responsive design
  * - Professional branding
+ * - Email-safe with bgcolor fallbacks and MSO conditionals
  */
 
 import { toDecimal } from "@/utils/financial";
@@ -136,7 +137,7 @@ function formatPercentage(value: string | number | Decimal): string {
 }
 
 /**
- * Generate fund section HTML
+ * Generate fund section HTML with email-safe bgcolor attributes
  */
 function generateFundSection(fund: FundPerformance): string {
   const currency = FUND_CURRENCY[fund.fund_name] || "USD";
@@ -156,7 +157,7 @@ function generateFundSection(fund: FundPerformance): string {
   return `
   <!-- ${fund.fund_name} -->
   <tr>
-    <td style="background-color:#ffffff; border-radius:10px; padding:20px; border: 1px solid #e2e8f0;">
+    <td style="background-color:#ffffff; border-radius:10px; padding:20px; border: 1px solid #e2e8f0;" bgcolor="#ffffff">
       <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
         <tr>
           <td style="width:40px;" valign="middle">
@@ -178,46 +179,46 @@ function generateFundSection(fund: FundPerformance): string {
           <th scope="col" class="mobile-header" style="padding:10px 8px;text-align:right;font-size:12px;color:#64748b;text-transform:uppercase;font-weight:700;">ITD (${currency})</th>
         </tr>
         <tr>
-          <td class="mobile-cell" style="padding:8px;font-size:14px;color:#334155;">Beginning Balance</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${formatStatementNumber(fund.mtd_beginning_balance)}</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${formatStatementNumber(fund.qtd_beginning_balance)}</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${formatStatementNumber(fund.ytd_beginning_balance)}</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${formatStatementNumber(fund.itd_beginning_balance)}</td>
+          <td class="mobile-cell" style="padding:8px;font-size:14px;color:#334155;" bgcolor="#ffffff">Beginning Balance</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;" bgcolor="#ffffff">${formatStatementNumber(fund.mtd_beginning_balance)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;" bgcolor="#ffffff">${formatStatementNumber(fund.qtd_beginning_balance)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;" bgcolor="#ffffff">${formatStatementNumber(fund.ytd_beginning_balance)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;" bgcolor="#ffffff">${formatStatementNumber(fund.itd_beginning_balance)}</td>
         </tr>
         <tr>
-          <td class="mobile-cell" style="padding:8px;font-size:14px;color:#334155;">Additions</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${formatStatementNumber(fund.mtd_additions)}</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${formatStatementNumber(fund.qtd_additions)}</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${formatStatementNumber(fund.ytd_additions)}</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${formatStatementNumber(fund.itd_additions)}</td>
+          <td class="mobile-cell" style="padding:8px;font-size:14px;color:#334155;background-color:#f8fafc;" bgcolor="#f8fafc">Additions</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatStatementNumber(fund.mtd_additions)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatStatementNumber(fund.qtd_additions)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatStatementNumber(fund.ytd_additions)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;background-color:#f8fafc;" bgcolor="#f8fafc">${formatStatementNumber(fund.itd_additions)}</td>
         </tr>
         <tr>
-          <td class="mobile-cell" style="padding:8px;font-size:14px;color:#334155;">Redemptions</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${formatStatementNumber(fund.mtd_redemptions)}</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${formatStatementNumber(fund.qtd_redemptions)}</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${formatStatementNumber(fund.ytd_redemptions)}</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;">${formatStatementNumber(fund.itd_redemptions)}</td>
+          <td class="mobile-cell" style="padding:8px;font-size:14px;color:#334155;" bgcolor="#ffffff">Redemptions</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;" bgcolor="#ffffff">${formatStatementNumber(fund.mtd_redemptions)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;" bgcolor="#ffffff">${formatStatementNumber(fund.qtd_redemptions)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;" bgcolor="#ffffff">${formatStatementNumber(fund.ytd_redemptions)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:#1e293b;" bgcolor="#ffffff">${formatStatementNumber(fund.itd_redemptions)}</td>
         </tr>
         <tr>
-          <td class="mobile-cell" style="padding:8px;font-size:14px;color:#334155;">Net Income</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${mtdIncomeColor};font-weight:700;">${formatStatementNumber(fund.mtd_net_income)}</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${qtdIncomeColor};font-weight:700;">${formatStatementNumber(fund.qtd_net_income)}</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${ytdIncomeColor};font-weight:700;">${formatStatementNumber(fund.ytd_net_income)}</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${itdIncomeColor};font-weight:700;">${formatStatementNumber(fund.itd_net_income)}</td>
+          <td class="mobile-cell" style="padding:8px;font-size:14px;color:#334155;background-color:#f8fafc;" bgcolor="#f8fafc">Net Income</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${mtdIncomeColor};font-weight:700;background-color:#f8fafc;" bgcolor="#f8fafc">${formatStatementNumber(fund.mtd_net_income)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${qtdIncomeColor};font-weight:700;background-color:#f8fafc;" bgcolor="#f8fafc">${formatStatementNumber(fund.qtd_net_income)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${ytdIncomeColor};font-weight:700;background-color:#f8fafc;" bgcolor="#f8fafc">${formatStatementNumber(fund.ytd_net_income)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${itdIncomeColor};font-weight:700;background-color:#f8fafc;" bgcolor="#f8fafc">${formatStatementNumber(fund.itd_net_income)}</td>
         </tr>
         <tr style="border-top:1px solid #e2e8f0;">
-          <td class="mobile-cell" style="padding:10px 8px;font-size:14px;color:#1e293b;font-weight:700;">Ending Balance</td>
-          <td class="mobile-cell" style="padding:10px 8px;text-align:right;font-size:14px;color:#1e293b;font-weight:700;">${formatStatementNumber(fund.mtd_ending_balance)}</td>
-          <td class="mobile-cell" style="padding:10px 8px;text-align:right;font-size:14px;color:#1e293b;font-weight:700;">${formatStatementNumber(fund.qtd_ending_balance)}</td>
-          <td class="mobile-cell" style="padding:10px 8px;text-align:right;font-size:14px;color:#1e293b;font-weight:700;">${formatStatementNumber(fund.ytd_ending_balance)}</td>
-          <td class="mobile-cell" style="padding:10px 8px;text-align:right;font-size:14px;color:#1e293b;font-weight:700;">${formatStatementNumber(fund.itd_ending_balance)}</td>
+          <td class="mobile-cell" style="padding:10px 8px;font-size:14px;color:#1e293b;font-weight:700;" bgcolor="#ffffff">Ending Balance</td>
+          <td class="mobile-cell" style="padding:10px 8px;text-align:right;font-size:14px;color:#1e293b;font-weight:700;" bgcolor="#ffffff">${formatStatementNumber(fund.mtd_ending_balance)}</td>
+          <td class="mobile-cell" style="padding:10px 8px;text-align:right;font-size:14px;color:#1e293b;font-weight:700;" bgcolor="#ffffff">${formatStatementNumber(fund.qtd_ending_balance)}</td>
+          <td class="mobile-cell" style="padding:10px 8px;text-align:right;font-size:14px;color:#1e293b;font-weight:700;" bgcolor="#ffffff">${formatStatementNumber(fund.ytd_ending_balance)}</td>
+          <td class="mobile-cell" style="padding:10px 8px;text-align:right;font-size:14px;color:#1e293b;font-weight:700;" bgcolor="#ffffff">${formatStatementNumber(fund.itd_ending_balance)}</td>
         </tr>
         <tr>
-          <td class="mobile-cell" style="padding:8px;font-size:14px;color:#334155;">Rate of Return</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${mtdRorColor};font-weight:700;">${formatPercentage(fund.mtd_rate_of_return)}</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${qtdRorColor};font-weight:700;">${formatPercentage(fund.qtd_rate_of_return)}</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${ytdRorColor};font-weight:700;">${formatPercentage(fund.ytd_rate_of_return)}</td>
-          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${itdRorColor};font-weight:700;">${formatPercentage(fund.itd_rate_of_return)}</td>
+          <td class="mobile-cell" style="padding:8px;font-size:14px;color:#334155;background-color:#f8fafc;" bgcolor="#f8fafc">Rate of Return</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${mtdRorColor};font-weight:700;background-color:#f8fafc;" bgcolor="#f8fafc">${formatPercentage(fund.mtd_rate_of_return)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${qtdRorColor};font-weight:700;background-color:#f8fafc;" bgcolor="#f8fafc">${formatPercentage(fund.qtd_rate_of_return)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${ytdRorColor};font-weight:700;background-color:#f8fafc;" bgcolor="#f8fafc">${formatPercentage(fund.ytd_rate_of_return)}</td>
+          <td class="mobile-cell" style="padding:8px;text-align:right;font-size:14px;color:${itdRorColor};font-weight:700;background-color:#f8fafc;" bgcolor="#f8fafc">${formatPercentage(fund.itd_rate_of_return)}</td>
         </tr>
       </table>
     </td>
@@ -226,7 +227,8 @@ function generateFundSection(fund: FundPerformance): string {
 }
 
 /**
- * Generate complete monthly statement HTML email
+ * Generate complete monthly statement HTML email with all email-safe attributes
+ * Includes: DOCTYPE, meta tags, MSO conditionals, bgcolor fallbacks, print CSS
  */
 export function generateMonthlyStatementHTML(data: MonthlyStatementData): string {
   // Generate all fund sections
@@ -246,13 +248,35 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
 <html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
   <meta charset="utf-8">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+  <!--[if mso]>
+  <xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
+  <style>
+    td,th,div,p,a,h1,h2,h3,h4,h5,h6 {font-family: "Segoe UI", sans-serif !important; mso-line-height-rule: exactly;}
+  </style>
+  <![endif]-->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
     body, table, td, p, h1, h2 {
       font-family: 'Montserrat', Arial, sans-serif;
     }
+    
+    /* Print styles for PDF export */
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      body {
+        background-color: #f1f5f9 !important;
+      }
+    }
+    
+    /* Responsive styles */
     @media (max-width:600px) {
       .sm-w-full { width: 100% !important }
       .mobile-logo { height: 22px !important; width: auto !important }
@@ -270,9 +294,9 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
     }
   </style>
 </head>
-<body style="margin:0;padding:0;width:100%;background-color:#ffffff;">
+<body style="margin:0;padding:0;width:100%;background-color:#f1f5f9;" bgcolor="#f1f5f9">
 
-  <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;font-family:'Montserrat',Arial,sans-serif;">
+  <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;background-color:#f1f5f9;font-family:'Montserrat',Arial,sans-serif;" bgcolor="#f1f5f9">
     <tr>
       <td align="center" style="padding:24px 12px;">
 
@@ -281,7 +305,7 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
 
           <!-- Brand Header -->
           <tr>
-            <td style="background-color:#edf0fe; padding:20px 24px; border-radius: 10px 10px 0 0;">
+            <td style="background-color:#edf0fe; padding:20px 24px; border-radius: 10px 10px 0 0;" bgcolor="#edf0fe">
               <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
                 <tr>
                   <td valign="middle">
@@ -298,7 +322,7 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
 
           <!-- Investor Header -->
           <tr>
-            <td style="background-color:#f8fafc; border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; padding:20px 24px;">
+            <td style="background-color:#f8fafc; border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; padding:20px 24px;" bgcolor="#f8fafc">
               <p style="margin:0 0 4px 0;font-size:16px;font-weight:600;color:#334155;">Investor: ${data.investor_name}</p>
               <p style="margin:0;font-size:13px;line-height:1.5;color:#64748b;">Investor Statement for the Period Ended: <strong>${data.period_ended}</strong></p>
             </td>
@@ -306,7 +330,7 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
 
           <!-- Main Content Area -->
           <tr>
-            <td style="padding:24px; background-color: #f8fafc; border-radius: 0 0 10px 10px; border: 1px solid #e2e8f0; border-top: 0;">
+            <td style="padding:24px; background-color: #f8fafc; border-radius: 0 0 10px 10px; border: 1px solid #e2e8f0; border-top: 0;" bgcolor="#f8fafc">
               <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
 
                 ${fundSections}
@@ -315,8 +339,10 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
             </td>
           </tr>
 
-          <!-- Footer -->
+          <!-- Footer Spacer -->
           <tr><td style="height:24px;"></td></tr>
+          
+          <!-- Disclaimer -->
           <tr>
             <td style="padding:0 24px;">
               <p class="mobile-footer-text" style="margin: 0; font-size:12px; color: #64748b; line-height: 1.6; text-align: center;">
@@ -324,7 +350,10 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
               </p>
             </td>
           </tr>
+          
           <tr><td style="height:20px;"></td></tr>
+          
+          <!-- Social Links -->
           <tr>
             <td align="center">
               <table role="presentation" cellpadding="0" cellspacing="0">
@@ -351,7 +380,10 @@ export function generateMonthlyStatementHTML(data: MonthlyStatementData): string
               </table>
             </td>
           </tr>
+          
           <tr><td style="height:20px;"></td></tr>
+          
+          <!-- Copyright -->
           <tr>
             <td align="center">
               <p class="mobile-footer-text" style="margin: 0 0 8px 0; font-size:12px; color: #94a3b8;">© 2025 Indigo Fund. All rights reserved.</p>
@@ -384,27 +416,122 @@ export function generateStatementPreview(dataOrHtml: MonthlyStatementData | stri
   const previewNotice = `
   <div style="background-color:#fef3c7;border:2px solid #f59e0b;border-radius:8px;padding:16px;margin:20px auto;max-width:600px;text-align:center;">
     <p style="margin:0;font-size:14px;color:#92400e;font-weight:600;">⚠️ PREVIEW MODE</p>
-    <p style="margin:4px 0 0;font-size:12px;color:#78350f;">This is a preview. Statement has not been sent.</p>
-  </div>
-  `;
+    <p style="margin:8px 0 0 0;font-size:12px;color:#92400e;">This is a preview. The final version will be emailed to the investor.</p>
+  </div>`;
 
-  // FIX: Insert AFTER the complete opening body tag, not inside it
-  // This preserves the body's inline styles (background-color, etc.)
-  return html.replace(/<body([^>]*)>/i, `<body$1>${previewNotice}`);
+  // Insert preview notice after opening body tag
+  return html.replace(
+    /<body([^>]*)>/i,
+    `<body$1>\n${previewNotice}`
+  );
 }
 
 /**
- * Validate that generated HTML contains required styling markers
+ * Validate generated HTML contains all required elements for email compatibility
  */
-export function validateStatementHtml(html: string): { valid: boolean; missing: string[] } {
-  const REQUIRED_MARKERS = [
-    "background-color:#edf0fe",      // Header background
-    "background-color:#f8fafc",      // Content background  
-    "font-family:'Montserrat'",      // Font
-    "border: 1px solid #e2e8f0",     // Borders
-    "@media (max-width:600px)",      // Responsive rules
+export function validateGeneratedHtml(html: string): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  
+  const requiredElements = [
+    { pattern: '<!DOCTYPE html>', name: 'DOCTYPE declaration' },
+    { pattern: 'x-apple-disable-message-reformatting', name: 'Apple Mail meta tag' },
+    { pattern: 'format-detection', name: 'Format detection meta tag' },
+    { pattern: "font-family: 'Montserrat'", name: 'Montserrat font family' },
+    { pattern: 'fonts.googleapis.com/css2?family=Montserrat', name: 'Google Fonts link' },
+    { pattern: 'bgcolor="#f1f5f9"', name: 'Body bgcolor fallback' },
+    { pattern: 'bgcolor="#edf0fe"', name: 'Header bgcolor fallback' },
+    { pattern: 'bgcolor="#f8fafc"', name: 'Content bgcolor fallback' },
+    { pattern: 'bgcolor="#ffffff"', name: 'Fund block bgcolor fallback' },
+    { pattern: '<!--[if mso]>', name: 'MSO conditional start' },
+    { pattern: '<![endif]-->', name: 'MSO conditional end' },
+    { pattern: 'print-color-adjust: exact', name: 'Print CSS' },
+    { pattern: '<style>', name: 'Style block' },
+    { pattern: 'background-color:#edf0fe', name: 'Header background color' },
+    { pattern: 'border-radius:10px', name: 'Border radius styling' },
   ];
   
-  const missing = REQUIRED_MARKERS.filter(marker => !html.includes(marker));
-  return { valid: missing.length === 0, missing };
+  for (const element of requiredElements) {
+    if (!html.includes(element.pattern)) {
+      errors.push(`Missing: ${element.name} (${element.pattern})`);
+    }
+  }
+  
+  // Check for forbidden patterns (USD outside of asset names)
+  const htmlWithoutAssetNames = html.replace(/USD[CT]/g, '').replace(/stylesheet/g, '');
+  if (htmlWithoutAssetNames.includes('USD') || htmlWithoutAssetNames.includes('$')) {
+    errors.push('Contains USD or $ symbol (token-denominated only)');
+  }
+  
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+}
+
+/**
+ * Convert statement data from DB format to generator format
+ */
+export function convertToStatementData(
+  investorName: string,
+  periodEnded: string,
+  performanceData: Array<{
+    fund_name: string;
+    mtd_beginning_balance: number | null;
+    mtd_additions: number | null;
+    mtd_redemptions: number | null;
+    mtd_net_income: number | null;
+    mtd_ending_balance: number | null;
+    mtd_rate_of_return: number | null;
+    qtd_beginning_balance: number | null;
+    qtd_additions: number | null;
+    qtd_redemptions: number | null;
+    qtd_net_income: number | null;
+    qtd_ending_balance: number | null;
+    qtd_rate_of_return: number | null;
+    ytd_beginning_balance: number | null;
+    ytd_additions: number | null;
+    ytd_redemptions: number | null;
+    ytd_net_income: number | null;
+    ytd_ending_balance: number | null;
+    ytd_rate_of_return: number | null;
+    itd_beginning_balance: number | null;
+    itd_additions: number | null;
+    itd_redemptions: number | null;
+    itd_net_income: number | null;
+    itd_ending_balance: number | null;
+    itd_rate_of_return: number | null;
+  }>
+): MonthlyStatementData {
+  return {
+    investor_name: investorName,
+    investor_email: '',
+    period_ended: periodEnded,
+    funds: performanceData.map(fund => ({
+      fund_name: fund.fund_name,
+      mtd_beginning_balance: String(fund.mtd_beginning_balance ?? 0),
+      mtd_additions: String(fund.mtd_additions ?? 0),
+      mtd_redemptions: String(fund.mtd_redemptions ?? 0),
+      mtd_net_income: String(fund.mtd_net_income ?? 0),
+      mtd_ending_balance: String(fund.mtd_ending_balance ?? 0),
+      mtd_rate_of_return: String(fund.mtd_rate_of_return ?? 0),
+      qtd_beginning_balance: String(fund.qtd_beginning_balance ?? 0),
+      qtd_additions: String(fund.qtd_additions ?? 0),
+      qtd_redemptions: String(fund.qtd_redemptions ?? 0),
+      qtd_net_income: String(fund.qtd_net_income ?? 0),
+      qtd_ending_balance: String(fund.qtd_ending_balance ?? 0),
+      qtd_rate_of_return: String(fund.qtd_rate_of_return ?? 0),
+      ytd_beginning_balance: String(fund.ytd_beginning_balance ?? 0),
+      ytd_additions: String(fund.ytd_additions ?? 0),
+      ytd_redemptions: String(fund.ytd_redemptions ?? 0),
+      ytd_net_income: String(fund.ytd_net_income ?? 0),
+      ytd_ending_balance: String(fund.ytd_ending_balance ?? 0),
+      ytd_rate_of_return: String(fund.ytd_rate_of_return ?? 0),
+      itd_beginning_balance: String(fund.itd_beginning_balance ?? 0),
+      itd_additions: String(fund.itd_additions ?? 0),
+      itd_redemptions: String(fund.itd_redemptions ?? 0),
+      itd_net_income: String(fund.itd_net_income ?? 0),
+      itd_ending_balance: String(fund.itd_ending_balance ?? 0),
+      itd_rate_of_return: String(fund.itd_rate_of_return ?? 0),
+    })),
+  };
 }
