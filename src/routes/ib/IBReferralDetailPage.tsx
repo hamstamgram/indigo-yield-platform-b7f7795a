@@ -197,7 +197,7 @@ export default function IBReferralDetailPage() {
               <TableBody>
                 {positions.map((pos) => {
                   const fund = pos.funds as any;
-                  const asset = fund?.asset || "USD";
+                  const asset = fund?.asset || "USDT";
                   return (
                     <TableRow key={pos.fund_id}>
                       <TableCell className="font-medium">{fund?.name || pos.fund_id}</TableCell>
@@ -248,7 +248,7 @@ export default function IBReferralDetailPage() {
               <TableBody>
                 {commissions.map((comm) => {
                   const fund = comm.funds as any;
-                  const asset = fund?.asset || "USD";
+                  const asset = fund?.asset || "USDT";
                   return (
                     <TableRow key={comm.id}>
                       <TableCell>

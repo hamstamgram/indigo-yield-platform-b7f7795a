@@ -125,7 +125,7 @@ export default function IBCommissionsPage() {
           periodStart: alloc.period_start,
           periodEnd: alloc.period_end,
           fundName: fund?.name || "Unknown",
-          asset: fund?.asset || "USD",
+          asset: fund?.asset || "USDT",
           investorName,
           sourceNetIncome: Number(alloc.source_net_income),
           ibPercentage: Number(alloc.ib_percentage),

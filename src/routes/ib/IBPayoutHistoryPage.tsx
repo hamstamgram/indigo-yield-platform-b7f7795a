@@ -70,7 +70,7 @@ export default function IBPayoutHistoryPage() {
         return {
           id: w.id,
           amount: Number(w.processed_amount || w.requested_amount),
-          asset: fund?.asset || "USD",
+          asset: fund?.asset || "USDT",
           fundName: fund?.name || "Unknown",
           status: w.status,
           requestedAt: w.request_date,

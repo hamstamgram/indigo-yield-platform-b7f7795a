@@ -241,6 +241,7 @@ export async function createInvestorWithWizard(wizardData: WizardFormData): Prom
         }
 
         // Create initial DEPOSIT transactions for audit trail with source tracking
+        // Include reference_id for idempotency - prevents duplicates if wizard retried
         const depositTransactions = funds.map((fund) => ({
           investor_id: investorId,
           fund_id: fund.id,
@@ -251,6 +252,7 @@ export async function createInvestorWithWizard(wizardData: WizardFormData): Prom
           notes: "Initial position from investor wizard",
           source: "investor_wizard" as const, // Track source of transaction
           is_system_generated: false, // Admin-initiated, not system-generated
+          reference_id: `wizard_initial_${investorId}_${fund.asset}`, // Idempotency key
         }));
 
         const { error: txError } = await supabase

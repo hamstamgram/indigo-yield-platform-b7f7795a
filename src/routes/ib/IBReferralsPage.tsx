@@ -83,7 +83,7 @@ export default function IBReferralsPage() {
         const fundIds = new Set<string>();
         
         for (const pos of investorPositions) {
-          const asset = (pos.funds as any)?.asset || "USD";
+          const asset = (pos.funds as any)?.asset || "USDT";
           fundIds.add(pos.fund_id);
           if (!holdings[asset]) holdings[asset] = 0;
           holdings[asset] += Number(pos.current_value);
