@@ -5,7 +5,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { DollarSign, Briefcase, Clock, FileText, Users, Percent } from "lucide-react";
+import { Coins, Briefcase, Clock, FileText, Users, Percent } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface InvestorKpiChipsProps {
@@ -27,21 +27,21 @@ export function InvestorKpiChips({
   hasFeeSchedule,
   compact = false,
 }: InvestorKpiChipsProps) {
-  const formatCurrency = (value: number) => {
+  const formatValue = (value: number) => {
     if (value >= 1000000) {
-      return `$${(value / 1000000).toFixed(2)}M`;
+      return `${(value / 1000000).toFixed(2)}M`;
     }
     if (value >= 1000) {
-      return `$${(value / 1000).toFixed(1)}K`;
+      return `${(value / 1000).toFixed(1)}K`;
     }
-    return `$${value.toFixed(2)}`;
+    return value.toFixed(2);
   };
 
   const chips = [
     {
       label: "Total AUM",
-      value: formatCurrency(totalAum),
-      icon: DollarSign,
+      value: formatValue(totalAum),
+      icon: Coins,
       variant: "default" as const,
     },
     {
