@@ -144,10 +144,11 @@ function TransactionHistoryContent() {
     queryKey: ["admin-transactions-history", selectedFund, selectedType, dateFrom, dateTo, page],
     queryFn: async () => {
       // Build query with deterministic ordering: tx_date DESC, id DESC
+      // Include tx_subtype for explicit labeling (no more heuristics!)
       let query = supabase
         .from("transactions_v2")
         .select(`
-          id, investor_id, fund_id, type, asset, amount, tx_date, notes, created_at, created_by, visibility_scope,
+          id, investor_id, fund_id, type, tx_subtype, asset, amount, tx_date, notes, created_at, created_by, visibility_scope,
           profiles!fk_transactions_v2_profile (email, first_name, last_name)
         `, { count: "exact" })
         .order("tx_date", { ascending: false })
@@ -170,49 +171,31 @@ function TransactionHistoryContent() {
       const { data, error, count } = await query;
       if (error) throw error;
 
-      // Track first deposits per investor+fund to categorize as "First Investment"
-      // Need to fetch all deposits for these investors to determine first
-      const investorIds = [...new Set((data || []).map((tx: any) => tx.investor_id))];
-      
-      const firstDeposits = new Map<string, string>();
-      
-      if (investorIds.length > 0) {
-        // Get first deposit per investor+fund combo
-        const { data: allDeposits } = await supabase
-          .from("transactions_v2")
-          .select("id, investor_id, fund_id, asset, tx_date")
-          .eq("type", "DEPOSIT")
-          .in("investor_id", investorIds)
-          .order("tx_date", { ascending: true })
-          .order("id", { ascending: true });
-        
-        (allDeposits || []).forEach((tx: any) => {
-          const key = `${tx.investor_id}-${tx.fund_id || tx.asset}`;
-          if (!firstDeposits.has(key)) {
-            firstDeposits.set(key, tx.id);
-          }
-        });
-      }
+      // Map tx_subtype to display labels (explicit, not inferred!)
+      const subtypeDisplayMap: Record<string, string> = {
+        'first_investment': 'First Investment',
+        'deposit': 'Top-up',
+        'redemption': 'Withdrawal',
+        'full_redemption': 'Withdrawal All',
+        'fee_charge': 'Fee',
+        'yield_credit': 'Interest/Yield',
+        'adjustment': 'Adjustment',
+      };
 
       const transactions = (data || []).map((tx: any): Transaction => {
         const profile = tx.profiles;
         const fund = funds.find(f => f.id === tx.fund_id);
-        const key = `${tx.investor_id}-${tx.fund_id || tx.asset}`;
         
-        // Determine display type
+        // Use explicit tx_subtype for display - NO HEURISTICS!
         let displayType = tx.type;
-        if (tx.type === "DEPOSIT") {
-          displayType = firstDeposits.get(key) === tx.id ? "First Investment" : "Top-up";
-        } else if (tx.type === "WITHDRAWAL") {
-          // Check if this is a full withdrawal based on notes or amount logic
-          const isFullWithdrawal = tx.notes?.toLowerCase().includes("full") || 
-                                   tx.notes?.toLowerCase().includes("all") ||
-                                   tx.notes?.toLowerCase().includes("complete");
-          displayType = isFullWithdrawal ? "Withdrawal All" : "Withdrawal";
-        } else if (tx.type === "INTEREST") {
-          displayType = "Interest/Yield";
-        } else if (tx.type === "FEE") {
-          displayType = "Fee";
+        if (tx.tx_subtype && subtypeDisplayMap[tx.tx_subtype]) {
+          displayType = subtypeDisplayMap[tx.tx_subtype];
+        } else {
+          // Fallback for any data without tx_subtype (legacy safety)
+          if (tx.type === "DEPOSIT") displayType = "Top-up";
+          else if (tx.type === "WITHDRAWAL") displayType = "Withdrawal";
+          else if (tx.type === "INTEREST") displayType = "Interest/Yield";
+          else if (tx.type === "FEE") displayType = "Fee";
         }
 
         return {
