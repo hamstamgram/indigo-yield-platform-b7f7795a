@@ -192,7 +192,7 @@ export function CreateWithdrawalDialog({
         fund_id: p.fund_id,
         current_value: Number(p.current_value) || 0,
         shares: Number(p.shares) || 0,
-        fund: p.funds || { name: "Unknown", code: "UNK", asset: "USDT" },
+        fund: p.funds || { name: "Unknown", code: "UNK", asset: "N/A" },
       }));
 
       setPositions(mappedPositions);

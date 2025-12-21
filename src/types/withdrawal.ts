@@ -31,6 +31,9 @@ export interface Withdrawal {
   // Joined data
   investor_name?: string;
   investor_email?: string;
+  fund_name?: string;
+  fund_code?: string;
+  asset?: string;
 }
 
 export interface WithdrawalFilters {
