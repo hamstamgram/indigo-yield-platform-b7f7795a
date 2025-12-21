@@ -40,7 +40,9 @@ import {
   Coins,
   Mail,
   Pencil,
+  Inbox,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
@@ -615,6 +617,12 @@ const InvestorReports = () => {
         <TabsContent value="html-reports" className="mt-6 space-y-6">
           {/* HTML Reports Tab Content */}
           <div className="flex justify-end gap-2">
+            <Link to="/admin/reports/delivery">
+              <Button variant="outline">
+                <Inbox className="h-4 w-4 mr-2" />
+                Delivery Center
+              </Button>
+            </Link>
             <Button onClick={fetchReports} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
