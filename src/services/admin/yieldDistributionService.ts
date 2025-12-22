@@ -208,14 +208,13 @@ export async function previewYieldDistribution(
     throw new Error("Authentication required");
   }
 
-  // Call backend preview RPC
-  // Cast p_purpose explicitly to avoid PostgreSQL function overload mismatch (uuid = text error)
+  // Call backend preview RPC with correct 4-parameter signature
+  // DB function: preview_daily_yield_to_fund_v2(p_fund_id uuid, p_date date, p_new_aum numeric, p_purpose text)
   const { data, error } = await (supabase.rpc as any)("preview_daily_yield_to_fund_v2", {
     p_fund_id: fundId,
     p_date: formatDate(targetDate),
-    p_gross_amount: grossYieldAmount,
-    p_admin_id: user.id,
-    p_purpose: purpose as "reporting" | "transaction", // Explicit cast to match expected enum
+    p_new_aum: newTotalAUM,  // Pass new AUM - DB calculates gross yield internally
+    p_purpose: purpose,
   });
 
   if (error) {
