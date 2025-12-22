@@ -77,6 +77,12 @@ export const adminNavGroups: NavGroup[] = [
         icon: <PieChart className="h-5 w-5" />,
         adminOnly: true,
       },
+      {
+        title: "INDIGO Fees",
+        href: "/admin/fees",
+        icon: <DollarSign className="h-5 w-5" />,
+        adminOnly: true,
+      },
     ],
   },
   {
@@ -111,12 +117,6 @@ export const adminNavGroups: NavGroup[] = [
         title: "IB Management",
         href: "/admin/ib-management",
         icon: <Briefcase className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "INDIGO Fees",
-        href: "/admin/fees",
-        icon: <DollarSign className="h-5 w-5" />,
         adminOnly: true,
       },
     ],
