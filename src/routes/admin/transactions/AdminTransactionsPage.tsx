@@ -42,6 +42,8 @@ import { format, startOfMonth, endOfMonth, subMonths, startOfYear } from "date-f
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
 import { VoidTransactionDialog } from "@/components/admin/transactions/VoidTransactionDialog";
 import { EditTransactionDialog } from "@/components/admin/transactions/EditTransactionDialog";
+import { useSortableColumns } from "@/hooks/useSortableColumns";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 
 type TransactionType = "DEPOSIT" | "WITHDRAWAL" | "FEE" | "INTEREST" | "ADJUSTMENT";
 
@@ -275,6 +277,12 @@ function TransactionHistoryContent() {
     });
   }, [transactions, searchTerm, selectedDisplayType]);
 
+  // Sortable columns hook
+  const { sortConfig, requestSort, sortedData } = useSortableColumns(filteredTransactions, {
+    column: 'txDate',
+    direction: 'desc',
+  });
+
   const formatAmount = (amount: number, asset: string, type: string) => {
     const isNegative = type === "WITHDRAWAL" || type === "FEE";
     const sign = isNegative ? "-" : "+";
@@ -468,11 +476,46 @@ function TransactionHistoryContent() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-[120px]">Date</TableHead>
-                    <TableHead className="min-w-[180px]">Investor</TableHead>
-                    <TableHead className="min-w-[120px]">Fund</TableHead>
-                    <TableHead className="min-w-[130px]">Type</TableHead>
-                    <TableHead className="text-right min-w-[140px]">Amount</TableHead>
+                    <SortableTableHead
+                      column="txDate"
+                      currentSort={sortConfig}
+                      onSort={requestSort}
+                      className="min-w-[120px]"
+                    >
+                      Date
+                    </SortableTableHead>
+                    <SortableTableHead
+                      column="investorName"
+                      currentSort={sortConfig}
+                      onSort={requestSort}
+                      className="min-w-[180px]"
+                    >
+                      Investor
+                    </SortableTableHead>
+                    <SortableTableHead
+                      column="fundName"
+                      currentSort={sortConfig}
+                      onSort={requestSort}
+                      className="min-w-[120px]"
+                    >
+                      Fund
+                    </SortableTableHead>
+                    <SortableTableHead
+                      column="displayType"
+                      currentSort={sortConfig}
+                      onSort={requestSort}
+                      className="min-w-[130px]"
+                    >
+                      Type
+                    </SortableTableHead>
+                    <SortableTableHead
+                      column="amount"
+                      currentSort={sortConfig}
+                      onSort={requestSort}
+                      className="text-right min-w-[140px]"
+                    >
+                      Amount
+                    </SortableTableHead>
                     <TableHead className="min-w-[200px]">Notes</TableHead>
                     <TableHead className="w-[50px]">Actions</TableHead>
                   </TableRow>
@@ -485,7 +528,7 @@ function TransactionHistoryContent() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredTransactions.map((tx) => (
+                    sortedData.map((tx) => (
                       <TableRow key={tx.id} className={tx.isVoided ? "opacity-50 bg-muted/30" : ""}>
                         <TableCell className="whitespace-nowrap">
                           {format(new Date(tx.txDate), "MMM d, yyyy")}
