@@ -37,13 +37,14 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
     transaction_hash: "",
   });
 
-  // Fetch users for dropdown
+  // Fetch users for dropdown (exclude system accounts like INDIGO FEES)
   const { data: users } = useQuery({
     queryKey: ["users-for-deposits"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, email")
+        .select("id, first_name, last_name, email, is_system_account")
+        .eq("is_system_account", false)
         .order("first_name");
 
       if (error) throw error;
