@@ -53,10 +53,14 @@ export function toInvestorProfiles(rows: SupabaseProfile[]): InvestorProfile[] {
 
 /**
  * Get display name from investor profile
+ * Falls back to email prefix when name is empty for better UX
  */
 export function getInvestorDisplayName(profile: InvestorProfile | SupabaseProfile): string {
   const firstName = profile.first_name || "";
   const lastName = profile.last_name || "";
   const fullName = `${firstName} ${lastName}`.trim();
-  return fullName || profile.email;
+  if (fullName) return fullName;
+  // Use email prefix as fallback instead of full email
+  const emailPrefix = profile.email.split("@")[0];
+  return emailPrefix || profile.email;
 }

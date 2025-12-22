@@ -41,9 +41,9 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       userAgent: navigator.userAgent,
     });
 
-    // Set up security monitoring
+    // Set up security monitoring - log to console only, not DB (to avoid flooding audit_log)
     const handleSecurityViolation = (event: SecurityPolicyViolationEvent) => {
-      logSecurityEvent("CSP_VIOLATION", {
+      console.warn("[CSP Violation]", {
         violatedDirective: event.violatedDirective,
         blockedURI: event.blockedURI,
         documentURI: event.documentURI,
