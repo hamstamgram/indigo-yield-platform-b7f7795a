@@ -6069,6 +6069,10 @@ export type Database = {
         Args: { p_correction_id: string; p_reason: string }
         Returns: Json
       }
+      route_withdrawal_to_fees: {
+        Args: { p_admin_notes?: string; p_withdrawal_id: string }
+        Returns: Json
+      }
       send_daily_rate_notifications: {
         Args: { p_rate_date: string }
         Returns: number
