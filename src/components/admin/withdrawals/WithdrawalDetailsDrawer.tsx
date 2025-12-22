@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { withdrawalService } from "@/services/investor/withdrawalService";
 import { Withdrawal, WithdrawalStatus } from "@/types/withdrawal";
@@ -14,8 +15,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, X, ExternalLink, Copy, CheckCircle, XCircle, Play, CheckCircle2 } from "lucide-react";
+import { Loader2, X, ExternalLink, Copy, CheckCircle, XCircle, Play, CheckCircle2, ArrowRightLeft } from "lucide-react";
 import { WithdrawalAuditTimeline } from "./WithdrawalAuditTimeline";
+import { RouteToFeesDialog } from "./RouteToFeesDialog";
 import { toast } from "sonner";
 
 interface WithdrawalDetailsDrawerProps {
@@ -40,7 +42,9 @@ export function WithdrawalDetailsDrawer({
   onOpenChange,
   onAction,
 }: WithdrawalDetailsDrawerProps) {
-  const { data: withdrawal, isLoading, error } = useQuery({
+  const [routeToFeesOpen, setRouteToFeesOpen] = useState(false);
+  
+  const { data: withdrawal, isLoading, error, refetch } = useQuery({
     queryKey: ["withdrawal-details", withdrawalId],
     queryFn: () => (withdrawalId ? withdrawalService.getWithdrawalById(withdrawalId) : null),
     enabled: !!withdrawalId && open,
@@ -51,6 +55,10 @@ export function WithdrawalDetailsDrawer({
     navigator.clipboard.writeText(text);
     toast.success(`${label} copied to clipboard`);
   };
+  
+  const canRouteToFees = withdrawal?.status === "approved" || 
+                          withdrawal?.status === "processing" || 
+                          withdrawal?.status === "completed";
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -228,6 +236,19 @@ export function WithdrawalDetailsDrawer({
                         Complete
                       </Button>
                     )}
+                    
+                    {/* Route to INDIGO FEES - available for approved/processing/completed */}
+                    {canRouteToFees && (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => setRouteToFeesOpen(true)}
+                        className="border-primary/50 text-primary hover:bg-primary/10"
+                      >
+                        <ArrowRightLeft className="h-4 w-4 mr-1" />
+                        Route to INDIGO FEES
+                      </Button>
+                    )}
                   </div>
                 )}
 
@@ -243,6 +264,14 @@ export function WithdrawalDetailsDrawer({
           </div>
         </div>
       </DrawerContent>
+      
+      {/* Route to INDIGO FEES Dialog */}
+      <RouteToFeesDialog
+        open={routeToFeesOpen}
+        onOpenChange={setRouteToFeesOpen}
+        withdrawal={withdrawal || null}
+        onSuccess={() => refetch()}
+      />
     </Drawer>
   );
 }
