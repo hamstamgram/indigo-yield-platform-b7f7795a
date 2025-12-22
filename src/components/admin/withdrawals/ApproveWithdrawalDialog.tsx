@@ -13,9 +13,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
 import { withdrawalService } from "@/services/investor/withdrawalService";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { Loader2, AlertTriangle, ArrowRightLeft } from "lucide-react";
 
 interface ApproveWithdrawalDialogProps {
   open: boolean;
@@ -34,6 +36,7 @@ export function ApproveWithdrawalDialog({
   const [adminNotes, setAdminNotes] = useState("");
   const [confirmText, setConfirmText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [routeToFees, setRouteToFees] = useState(false);
 
   // Reset state when dialog opens with new withdrawal
   useEffect(() => {
@@ -41,6 +44,7 @@ export function ApproveWithdrawalDialog({
       setProcessedAmount(withdrawal.requested_amount.toString());
       setAdminNotes("");
       setConfirmText("");
+      setRouteToFees(false);
     }
   }, [open, withdrawal.requested_amount]);
 
@@ -65,6 +69,27 @@ export function ApproveWithdrawalDialog({
 
       await withdrawalService.approveWithdrawal(withdrawal.id, amount, adminNotes);
       toast.success("Withdrawal approved successfully");
+
+      // If route to fees is checked, call the RPC
+      if (routeToFees) {
+        const { data, error } = await supabase.rpc("route_withdrawal_to_fees", {
+          p_withdrawal_id: withdrawal.id,
+          p_admin_notes: adminNotes ? `${adminNotes} (routed on approval)` : "Routed to INDIGO FEES on approval",
+        });
+
+        if (error) {
+          console.error("Route to fees error:", error);
+          toast.error("Approved but failed to route to INDIGO FEES: " + error.message);
+        } else {
+          const result = data as { success: boolean; already_routed?: boolean; message: string };
+          if (result.already_routed) {
+            toast.info(result.message);
+          } else {
+            toast.success("Withdrawal routed to INDIGO FEES");
+          }
+        }
+      }
+
       onSuccess();
       onOpenChange(false);
     } catch (error) {
@@ -119,6 +144,24 @@ export function ApproveWithdrawalDialog({
                 placeholder="Add any notes about this approval..."
                 rows={3}
               />
+            </div>
+
+            {/* Route to INDIGO FEES Option */}
+            <div className="flex items-center space-x-2 p-3 bg-muted/50 rounded-lg">
+              <Checkbox
+                id="routeToFees"
+                checked={routeToFees}
+                onCheckedChange={(checked) => setRouteToFees(checked === true)}
+              />
+              <div className="flex-1">
+                <Label htmlFor="routeToFees" className="flex items-center gap-2 cursor-pointer">
+                  <ArrowRightLeft className="h-4 w-4 text-primary" />
+                  Route to INDIGO FEES after approval
+                </Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Creates internal transactions to transfer funds to the INDIGO FEES account
+                </p>
+              </div>
             </div>
             
             {/* Typed Confirmation Gate */}

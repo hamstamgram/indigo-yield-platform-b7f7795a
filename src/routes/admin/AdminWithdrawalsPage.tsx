@@ -9,6 +9,9 @@ import { ApproveWithdrawalDialog } from "@/components/admin/withdrawals/ApproveW
 import { RejectWithdrawalDialog } from "@/components/admin/withdrawals/RejectWithdrawalDialog";
 import { StartProcessingDialog } from "@/components/admin/withdrawals/StartProcessingDialog";
 import { CompleteWithdrawalDialog } from "@/components/admin/withdrawals/CompleteWithdrawalDialog";
+import { EditWithdrawalDialog } from "@/components/admin/withdrawals/EditWithdrawalDialog";
+import { DeleteWithdrawalDialog } from "@/components/admin/withdrawals/DeleteWithdrawalDialog";
+import { RouteToFeesDialog } from "@/components/admin/withdrawals/RouteToFeesDialog";
 import { withdrawalService } from "@/services/investor/withdrawalService";
 import { Withdrawal, WithdrawalFilters, WithdrawalStats, PaginatedWithdrawals } from "@/types/withdrawal";
 import { toast } from "sonner";
@@ -58,6 +61,9 @@ export default function AdminWithdrawalsPage() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [processingDialogOpen, setProcessingDialogOpen] = useState(false);
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [routeToFeesDialogOpen, setRouteToFeesDialogOpen] = useState(false);
 
   // URL-persisted filters including page - using stable reference from outside component
   const { filters: urlFilters, setFilter, setFilters: setUrlFilters } = useUrlFilters(URL_FILTER_OPTIONS);
@@ -176,6 +182,21 @@ export default function AdminWithdrawalsPage() {
     setCompleteDialogOpen(true);
   };
 
+  const handleTableEdit = (withdrawal: Withdrawal) => {
+    setSelectedWithdrawal(withdrawal);
+    setEditDialogOpen(true);
+  };
+
+  const handleTableDelete = (withdrawal: Withdrawal) => {
+    setSelectedWithdrawal(withdrawal);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleTableRouteToFees = (withdrawal: Withdrawal) => {
+    setSelectedWithdrawal(withdrawal);
+    setRouteToFeesDialogOpen(true);
+  };
+
   const handleActionSuccess = () => {
     loadData();
     setSelectedWithdrawal(null);
@@ -221,6 +242,9 @@ export default function AdminWithdrawalsPage() {
             onReject={handleTableReject}
             onStartProcessing={handleTableStartProcessing}
             onComplete={handleTableComplete}
+            onEdit={handleTableEdit}
+            onDelete={handleTableDelete}
+            onRouteToFees={handleTableRouteToFees}
           />
         </CardContent>
       </Card>
@@ -261,6 +285,24 @@ export default function AdminWithdrawalsPage() {
           <CompleteWithdrawalDialog
             open={completeDialogOpen}
             onOpenChange={setCompleteDialogOpen}
+            withdrawal={selectedWithdrawal}
+            onSuccess={handleActionSuccess}
+          />
+          <EditWithdrawalDialog
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            withdrawal={selectedWithdrawal}
+            onSuccess={handleActionSuccess}
+          />
+          <DeleteWithdrawalDialog
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+            withdrawal={selectedWithdrawal}
+            onSuccess={handleActionSuccess}
+          />
+          <RouteToFeesDialog
+            open={routeToFeesDialogOpen}
+            onOpenChange={setRouteToFeesDialogOpen}
             withdrawal={selectedWithdrawal}
             onSuccess={handleActionSuccess}
           />

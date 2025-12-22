@@ -17,8 +17,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Search, CheckCircle, XCircle, Play, CheckCircle2, Loader2, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { 
+  Search, CheckCircle, XCircle, Play, CheckCircle2, Loader2, Eye, 
+  ChevronLeft, ChevronRight, MoreHorizontal, Pencil, Trash2, ArrowRightLeft 
+} from "lucide-react";
 import { format } from "date-fns";
 
 interface Fund {
@@ -50,6 +60,9 @@ interface WithdrawalsTableProps {
   onReject?: (withdrawal: Withdrawal) => void;
   onStartProcessing?: (withdrawal: Withdrawal) => void;
   onComplete?: (withdrawal: Withdrawal) => void;
+  onEdit?: (withdrawal: Withdrawal) => void;
+  onDelete?: (withdrawal: Withdrawal) => void;
+  onRouteToFees?: (withdrawal: Withdrawal) => void;
 }
 
 const statusColors: Record<WithdrawalStatus, string> = {
@@ -74,7 +87,14 @@ export function WithdrawalsTable({
   onReject,
   onStartProcessing,
   onComplete,
+  onEdit,
+  onDelete,
+  onRouteToFees,
 }: WithdrawalsTableProps) {
+  const canEdit = (status: WithdrawalStatus) => status === "pending" || status === "approved";
+  const canDelete = (status: WithdrawalStatus) => status !== "completed";
+  const canRouteToFees = (status: WithdrawalStatus) => 
+    status === "approved" || status === "processing" || status === "completed";
 
   return (
     <div className="space-y-4">
@@ -197,57 +217,81 @@ export function WithdrawalsTable({
                     {withdrawal.notes || "-"}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      {onViewDetails && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onViewDetails(withdrawal)}
-                        >
-                          <Eye className="h-4 w-4" />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
                         </Button>
-                      )}
-                      {withdrawal.status === "pending" && onApprove && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onApprove(withdrawal)}
-                        >
-                          <CheckCircle className="h-4 w-4 mr-1 text-green-600" />
-                          Approve
-                        </Button>
-                      )}
-                      {withdrawal.status === "pending" && onReject && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onReject(withdrawal)}
-                        >
-                          <XCircle className="h-4 w-4 mr-1 text-red-600" />
-                          Reject
-                        </Button>
-                      )}
-                      {withdrawal.status === "approved" && onStartProcessing && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onStartProcessing(withdrawal)}
-                        >
-                          <Play className="h-4 w-4 mr-1 text-blue-600" />
-                          Start Processing
-                        </Button>
-                      )}
-                      {withdrawal.status === "processing" && onComplete && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onComplete(withdrawal)}
-                        >
-                          <CheckCircle2 className="h-4 w-4 mr-1 text-green-600" />
-                          Complete
-                        </Button>
-                      )}
-                    </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {onViewDetails && (
+                          <DropdownMenuItem onClick={() => onViewDetails(withdrawal)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
+                        )}
+                        
+                        {canEdit(withdrawal.status) && onEdit && (
+                          <DropdownMenuItem onClick={() => onEdit(withdrawal)}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                        )}
+
+                        <DropdownMenuSeparator />
+
+                        {withdrawal.status === "pending" && onApprove && (
+                          <DropdownMenuItem onClick={() => onApprove(withdrawal)}>
+                            <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                            Approve
+                          </DropdownMenuItem>
+                        )}
+                        
+                        {withdrawal.status === "pending" && onReject && (
+                          <DropdownMenuItem onClick={() => onReject(withdrawal)}>
+                            <XCircle className="h-4 w-4 mr-2 text-red-600" />
+                            Reject
+                          </DropdownMenuItem>
+                        )}
+                        
+                        {withdrawal.status === "approved" && onStartProcessing && (
+                          <DropdownMenuItem onClick={() => onStartProcessing(withdrawal)}>
+                            <Play className="h-4 w-4 mr-2 text-blue-600" />
+                            Start Processing
+                          </DropdownMenuItem>
+                        )}
+                        
+                        {withdrawal.status === "processing" && onComplete && (
+                          <DropdownMenuItem onClick={() => onComplete(withdrawal)}>
+                            <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+                            Complete
+                          </DropdownMenuItem>
+                        )}
+
+                        {canRouteToFees(withdrawal.status) && onRouteToFees && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => onRouteToFees(withdrawal)}>
+                              <ArrowRightLeft className="h-4 w-4 mr-2 text-primary" />
+                              Route to INDIGO FEES
+                            </DropdownMenuItem>
+                          </>
+                        )}
+
+                        {canDelete(withdrawal.status) && onDelete && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => onDelete(withdrawal)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))
