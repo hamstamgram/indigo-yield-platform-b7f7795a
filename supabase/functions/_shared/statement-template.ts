@@ -76,8 +76,10 @@ function getAssetCode(fundName: string): string {
   if (name.includes('SOL')) return 'SOL';
   if (name.includes('EURC')) return 'EURC';
   if (name.includes('XRP')) return 'XRP';
-  if (name.includes('XAUT')) return 'XAUT';
-  return 'USD';
+  if (name.includes('XAUT') || name.includes('XAUT')) return 'XAUT';
+  // Extract first word as asset code instead of hardcoded USD fallback
+  const firstWord = fundName.split(' ')[0].toUpperCase();
+  return SUPPORTED_ASSETS.includes(firstWord) ? firstWord : firstWord;
 }
 
 function getFundDisplayName(fundName: string): string {
