@@ -69,7 +69,7 @@ import {
   RefreshCcw,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { TestEmailSection } from "./TestEmailSection";
+
 
 interface DeliveryRecord {
   id: string;
@@ -609,12 +609,6 @@ export default function ReportDeliveryCenter() {
       {/* Action Panel */}
       {selectedPeriodId && (
         <div className="space-y-4">
-          {/* Test Email Section */}
-          <TestEmailSection 
-            selectedPeriodId={selectedPeriodId}
-            selectedDeliveryMode={selectedDeliveryMode}
-          />
-          
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
