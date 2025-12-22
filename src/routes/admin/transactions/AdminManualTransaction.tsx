@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -14,19 +15,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { adminTransactionService } from "@/services/admin/adminTransactionService";
-import { Loader2, ArrowRightLeft, DollarSign } from "lucide-react";
+import { createAdminTransaction } from "@/services/shared/transactionService";
+import { Loader2, ArrowRightLeft, Info } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-// Form Schema
+// Form Schema - aligned with AddTransactionDialog
 const transactionSchema = z.object({
   investorId: z.string().min(1, "Investor is required"),
   fundId: z.string().min(1, "Fund is required"),
-  type: z.enum(["DEPOSIT", "WITHDRAWAL"]),
+  type: z.enum(["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"]),
   amount: z.string().refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
     message: "Amount must be a positive number",
   }),
+  txDate: z.string().min(1, "Transaction date is required"),
   description: z.string().optional(),
   txHash: z.string().optional(),
 });
@@ -35,88 +39,162 @@ type TransactionFormValues = z.infer<typeof transactionSchema>;
 
 export default function AdminManualTransaction() {
   const [investors, setInvestors] = useState<{ id: string; name: string; email: string }[]>([]);
-  const [funds, setFunds] = useState<{ id: string; name: string; code: string }[]>([]);
+  const [funds, setFunds] = useState<{ id: string; name: string; code: string; asset: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentBalance, setCurrentBalance] = useState<number | null>(null);
+  const [isCheckingBalance, setIsCheckingBalance] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
       type: "DEPOSIT",
       amount: "",
+      txDate: new Date().toISOString().split("T")[0],
       description: "",
       txHash: "",
     },
   });
 
+  const selectedInvestorId = form.watch("investorId");
+  const selectedFundId = form.watch("fundId");
+  const txnType = form.watch("type");
+
+  // Check investor's current balance when investor/fund changes
   useEffect(() => {
-      const fetchData = async () => {
-        try {
-          // Fetch Investors directly from profiles table
-          const { data: profilesData, error: profilesError } = await supabase
-            .from("profiles")
-            .select("id, first_name, last_name, email")
-            .eq("status", "active")
-            .eq("is_admin", false)
-            .order("first_name");
+    const checkBalance = async () => {
+      if (!selectedInvestorId || !selectedFundId) {
+        setCurrentBalance(null);
+        return;
+      }
+      
+      setIsCheckingBalance(true);
+      try {
+        const { data } = await supabase
+          .from("investor_positions")
+          .select("current_value")
+          .eq("investor_id", selectedInvestorId)
+          .eq("fund_id", selectedFundId)
+          .maybeSingle();
+        
+        setCurrentBalance(data?.current_value ?? 0);
+      } catch (error) {
+        console.error("Error checking balance:", error);
+        setCurrentBalance(0);
+      } finally {
+        setIsCheckingBalance(false);
+      }
+    };
     
-          if (profilesError) throw profilesError;
+    checkBalance();
+  }, [selectedInvestorId, selectedFundId]);
+
+  // Auto-select transaction type based on balance
+  useEffect(() => {
+    if (currentBalance === null || isCheckingBalance) return;
     
-          // Fetch Funds
-          const { data: fundsData, error: fundsError } = await supabase
-            .from("funds")
-            .select("id, name, code")
-            .eq("status", "active");
-    
-          if (fundsError) throw fundsError;
-    
-          if (profilesData) {
-            setInvestors(
-              profilesData.map((p) => ({
-                id: p.id,
-                name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
-                email: p.email,
-              }))
-            );
-          }
-    
-          if (fundsData) {
-            setFunds(fundsData);
-          }
-        } catch (error) {
-          console.error("Error fetching data:", error);
-        } finally {
-          setIsLoading(false);
+    if (currentBalance === 0 && txnType === "DEPOSIT") {
+      form.setValue("type", "FIRST_INVESTMENT");
+    } else if (currentBalance > 0 && txnType === "FIRST_INVESTMENT") {
+      form.setValue("type", "DEPOSIT");
+    }
+  }, [currentBalance, isCheckingBalance, txnType, form]);
+
+  const isFirstInvestment = currentBalance !== null && currentBalance === 0;
+  const hasExistingPosition = currentBalance !== null && currentBalance > 0;
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch Investors directly from profiles table
+        const { data: profilesData, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, first_name, last_name, email")
+          .eq("status", "active")
+          .eq("is_admin", false)
+          .order("first_name");
+
+        if (profilesError) throw profilesError;
+
+        // Fetch Funds
+        const { data: fundsData, error: fundsError } = await supabase
+          .from("funds")
+          .select("id, name, code, asset")
+          .eq("status", "active");
+
+        if (fundsError) throw fundsError;
+
+        if (profilesData) {
+          setInvestors(
+            profilesData.map((p) => ({
+              id: p.id,
+              name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
+              email: p.email,
+            }))
+          );
         }
-      };    fetchData();
+
+        if (fundsData) {
+          setFunds(fundsData);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const onSubmit = async (data: TransactionFormValues) => {
     setIsSubmitting(true);
     try {
-      await adminTransactionService.createTransaction({
-        investorId: data.investorId,
-        fundId: data.fundId,
+      const selectedFund = funds.find(f => f.id === data.fundId);
+      if (!selectedFund) {
+        throw new Error("Selected fund not found");
+      }
+
+      // Use the unified createAdminTransaction service
+      await createAdminTransaction({
+        investor_id: data.investorId,
+        fund_id: data.fundId,
         type: data.type,
         amount: parseFloat(data.amount),
-        description: data.description,
-        txHash: data.txHash,
+        tx_date: data.txDate,
+        asset: selectedFund.asset,
+        notes: data.description,
+        tx_hash: data.txHash,
       });
+
+      // Comprehensive cache invalidation - matches AddTransactionDialog
+      queryClient.invalidateQueries({ queryKey: ["investor-ledger"] });
+      queryClient.invalidateQueries({ queryKey: ["investor-ledger", data.investorId] });
+      queryClient.invalidateQueries({ queryKey: ["investor-positions"] });
+      queryClient.invalidateQueries({ queryKey: ["investor-positions", data.investorId] });
+      queryClient.invalidateQueries({ queryKey: ["fund-aum"] });
+      queryClient.invalidateQueries({ queryKey: ["fund-aum-unified"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
 
       toast({
         title: "Transaction Created",
-        description: `Successfully created ${data.type.toLowerCase()} of ${data.amount}.`,
+        description: `Successfully created ${data.type.toLowerCase().replace(/_/g, ' ')} of ${data.amount} ${selectedFund.asset}.`,
       });
 
       form.reset({
         type: "DEPOSIT",
         amount: "",
+        txDate: new Date().toISOString().split("T")[0],
         description: "",
         txHash: "",
-        investorId: "", // Reset selections too if desired
+        investorId: "",
         fundId: "",
       });
+      setCurrentBalance(null);
     } catch (error: any) {
       console.error("Transaction error:", error);
       toast({
@@ -130,7 +208,12 @@ export default function AdminManualTransaction() {
   };
 
   if (isLoading) {
-    return <div className="p-8 text-center">Loading form data...</div>;
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <span className="ml-2 text-muted-foreground">Loading form data...</span>
+      </div>
+    );
   }
 
   return (
@@ -152,8 +235,8 @@ export default function AdminManualTransaction() {
             <div className="space-y-2">
               <Label>Investor</Label>
               <Select
+                value={form.watch("investorId") || ""}
                 onValueChange={(val) => form.setValue("investorId", val)}
-                defaultValue={form.getValues("investorId")}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Investor" />
@@ -167,7 +250,7 @@ export default function AdminManualTransaction() {
                 </SelectContent>
               </Select>
               {form.formState.errors.investorId && (
-                <p className="text-sm text-red-500">{form.formState.errors.investorId.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.investorId.message}</p>
               )}
             </div>
 
@@ -175,8 +258,8 @@ export default function AdminManualTransaction() {
             <div className="space-y-2">
               <Label>Fund</Label>
               <Select
+                value={form.watch("fundId") || ""}
                 onValueChange={(val) => form.setValue("fundId", val)}
-                defaultValue={form.getValues("fundId")}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Fund" />
@@ -190,24 +273,63 @@ export default function AdminManualTransaction() {
                 </SelectContent>
               </Select>
               {form.formState.errors.fundId && (
-                <p className="text-sm text-red-500">{form.formState.errors.fundId.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.fundId.message}</p>
               )}
             </div>
 
+            {/* Balance indicator */}
+            {selectedInvestorId && selectedFundId && (
+              <Alert variant="default" className="py-2">
+                <Info className="h-4 w-4" />
+                <AlertDescription className="text-sm">
+                  {isCheckingBalance ? (
+                    "Checking balance..."
+                  ) : isFirstInvestment ? (
+                    <span className="text-amber-600 dark:text-amber-400">
+                      <strong>No existing position</strong> — Use "First Investment" for deposits
+                    </span>
+                  ) : (
+                    <span>
+                      <strong>Current balance:</strong> {currentBalance?.toFixed(8)} — Use "Deposit" for top-ups
+                    </span>
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
-              {/* Type Selection */}
+              {/* Type Selection - aligned with AddTransactionDialog */}
               <div className="space-y-2">
                 <Label>Type</Label>
                 <Select
-                  onValueChange={(val: "DEPOSIT" | "WITHDRAWAL") => form.setValue("type", val)}
-                  defaultValue={form.getValues("type")}
+                  value={form.watch("type") || ""}
+                  onValueChange={(val: "FIRST_INVESTMENT" | "DEPOSIT" | "WITHDRAWAL") => form.setValue("type", val)}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="DEPOSIT">Deposit</SelectItem>
-                    <SelectItem value="WITHDRAWAL">Withdrawal</SelectItem>
+                    <SelectItem 
+                      value="FIRST_INVESTMENT"
+                      disabled={hasExistingPosition}
+                      className={cn(hasExistingPosition && "opacity-50")}
+                    >
+                      First Investment {hasExistingPosition && "(position exists)"}
+                    </SelectItem>
+                    <SelectItem 
+                      value="DEPOSIT"
+                      disabled={isFirstInvestment}
+                      className={cn(isFirstInvestment && "opacity-50")}
+                    >
+                      Deposit / Top-up {isFirstInvestment && "(no position yet)"}
+                    </SelectItem>
+                    <SelectItem 
+                      value="WITHDRAWAL"
+                      disabled={isFirstInvestment}
+                      className={cn(isFirstInvestment && "opacity-50")}
+                    >
+                      Withdrawal {isFirstInvestment && "(no position)"}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -215,20 +337,28 @@ export default function AdminManualTransaction() {
               {/* Amount Input */}
               <div className="space-y-2">
                 <Label>Amount</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    {...form.register("amount")}
-                    placeholder="0.00"
-                    className="pl-9"
-                    type="number"
-                    step="any"
-                  />
-                </div>
+                <Input
+                  {...form.register("amount")}
+                  placeholder="0.00000000"
+                  type="number"
+                  step="any"
+                />
                 {form.formState.errors.amount && (
-                  <p className="text-sm text-red-500">{form.formState.errors.amount.message}</p>
+                  <p className="text-sm text-destructive">{form.formState.errors.amount.message}</p>
                 )}
               </div>
+            </div>
+
+            {/* Transaction Date */}
+            <div className="space-y-2">
+              <Label>Transaction Date</Label>
+              <Input
+                {...form.register("txDate")}
+                type="date"
+              />
+              {form.formState.errors.txDate && (
+                <p className="text-sm text-destructive">{form.formState.errors.txDate.message}</p>
+              )}
             </div>
 
             {/* Optional Fields */}

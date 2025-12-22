@@ -373,21 +373,17 @@ export function AddTransactionDialog({
     try {
       setLoading(true);
 
-      // Convert FIRST_INVESTMENT to DEPOSIT with proper subtype
-      const actualType = data.txn_type === "FIRST_INVESTMENT" ? "DEPOSIT" : data.txn_type;
-      const txSubtype = data.txn_type === "FIRST_INVESTMENT" ? "first_investment" : undefined;
-
+      // The service now handles FIRST_INVESTMENT -> DEPOSIT mapping internally
       const result = await createAdminTransaction({
-        investorId: selectedInvestorId,
-        fundId: data.fund_id,
-        type: actualType as "DEPOSIT" | "WITHDRAWAL" | "YIELD" | "INTEREST" | "FEE",
+        investor_id: selectedInvestorId,
+        fund_id: data.fund_id,
+        type: data.txn_type as "FIRST_INVESTMENT" | "DEPOSIT" | "WITHDRAWAL" | "YIELD" | "INTEREST" | "FEE",
         asset: data.asset,
         amount: Number(data.amount),
-        txDate: data.tx_date,
-        referenceId: data.reference_id || undefined,
-        txHash: data.tx_hash || undefined,
+        tx_date: data.tx_date,
+        reference_id: data.reference_id || undefined,
+        tx_hash: data.tx_hash || undefined,
         notes: data.notes || undefined,
-        txSubtype: txSubtype,
       });
 
       if (!result.success) {

@@ -123,21 +123,22 @@ export async function calculateTransactionSummary(): Promise<TransactionSummary>
  * Create a transaction (admin use)
  */
 export interface CreateTransactionParams {
-  investorId: string;
-  fundId: string;
-  type: "DEPOSIT" | "WITHDRAWAL" | "YIELD" | "INTEREST" | "FEE";
+  investor_id: string;
+  fund_id: string;
+  type: "FIRST_INVESTMENT" | "DEPOSIT" | "WITHDRAWAL" | "YIELD" | "INTEREST" | "FEE";
   asset: string;
   amount: number;
-  txDate: string;
-  referenceId?: string;
-  txHash?: string;
+  tx_date: string;
+  reference_id?: string;
+  tx_hash?: string;
   notes?: string;
-  txSubtype?: "first_investment" | "deposit" | "redemption" | "full_redemption" | "fee_charge" | "yield_credit" | "adjustment";
+  tx_subtype?: "first_investment" | "deposit" | "redemption" | "full_redemption" | "fee_charge" | "yield_credit" | "adjustment";
 }
 
 // Default tx_subtype based on transaction type
 const getDefaultTxSubtype = (type: string): string => {
   switch (type) {
+    case "FIRST_INVESTMENT": return "first_investment";
     case "DEPOSIT": return "deposit";
     case "WITHDRAWAL": return "redemption";
     case "FEE": return "fee_charge";
@@ -145,6 +146,12 @@ const getDefaultTxSubtype = (type: string): string => {
     case "YIELD": return "yield_credit";
     default: return "adjustment";
   }
+};
+
+// Map FIRST_INVESTMENT to DEPOSIT for database (the distinction is in tx_subtype)
+const mapTypeForDb = (type: string): string => {
+  if (type === "FIRST_INVESTMENT") return "DEPOSIT";
+  return type;
 };
 
 export async function createAdminTransaction(
@@ -159,20 +166,22 @@ export async function createAdminTransaction(
       return { success: false, error: "You must be logged in to create transactions" };
     }
 
-    // Always set explicit tx_subtype - admin deposits should NEVER be "first_investment"
-    const txSubtype = params.txSubtype || getDefaultTxSubtype(params.type);
+    // Set tx_subtype based on transaction type (FIRST_INVESTMENT maps to first_investment subtype)
+    const txSubtype = params.tx_subtype || getDefaultTxSubtype(params.type);
+    // Map FIRST_INVESTMENT to DEPOSIT for DB enum compliance
+    const dbType = mapTypeForDb(params.type);
 
     const { error } = await supabase.from("transactions_v2").insert({
-      investor_id: params.investorId,
-      fund_id: params.fundId,
-      type: params.type as any,
+      investor_id: params.investor_id,
+      fund_id: params.fund_id,
+      type: dbType as any,
       tx_subtype: txSubtype,
       asset: params.asset,
       amount: params.amount,
-      tx_date: params.txDate,
-      value_date: params.txDate,
-      reference_id: params.referenceId || null,
-      tx_hash: params.txHash || null,
+      tx_date: params.tx_date,
+      value_date: params.tx_date,
+      reference_id: params.reference_id || null,
+      tx_hash: params.tx_hash || null,
       notes: params.notes || null,
       created_by: user.id,
       approved_by: user.id,
