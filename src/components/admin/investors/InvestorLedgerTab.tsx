@@ -45,6 +45,8 @@ import {
   MoreHorizontal,
   Pencil,
   Ban,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -84,6 +86,7 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
   });
 
   const [showFilters, setShowFilters] = useState(false);
+  const [showVoided, setShowVoided] = useState(false);
   const [addTxDialogOpen, setAddTxDialogOpen] = useState(false);
   const [defaultFundId, setDefaultFundId] = useState<string>("");
   
@@ -108,7 +111,8 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
     txPurpose: getFilter("txPurpose"),
     dateFrom: getFilter("dateFrom"),
     dateTo: getFilter("dateTo"),
-  }), [getFilter]);
+    showVoided,
+  }), [getFilter, showVoided]);
 
   // Use React Query hook for transactions
   const {
@@ -248,6 +252,20 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
           >
             <Plus className="h-4 w-4 mr-1" />
             Add Transaction
+          </Button>
+          {/* Show Voided Toggle */}
+          <Button
+            variant={showVoided ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setShowVoided(!showVoided)}
+            title={showVoided ? "Hide voided transactions" : "Show voided transactions"}
+          >
+            {showVoided ? (
+              <Eye className="h-4 w-4 mr-1" />
+            ) : (
+              <EyeOff className="h-4 w-4 mr-1" />
+            )}
+            {showVoided ? "Showing Voided" : "Show Voided"}
           </Button>
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={clearFilters}>
