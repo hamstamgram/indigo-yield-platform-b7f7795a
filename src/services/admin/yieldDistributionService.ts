@@ -133,21 +133,25 @@ function formatDate(date: Date): string {
  * Get period ID for a given date
  */
 async function getPeriodIdForDate(targetDate: Date): Promise<string | null> {
-  const dateStr = formatDate(targetDate);
+  // Query using year and month columns (statement_periods doesn't have period_start_date/period_end_date)
+  const year = targetDate.getFullYear();
+  const month = targetDate.getMonth() + 1; // JavaScript months are 0-indexed
+  
   const { data, error } = await supabase
     .from("statement_periods")
     .select("id")
-    .lte("period_start_date", dateStr)
-    .gte("period_end_date", dateStr)
+    .eq("year", year)
+    .eq("month", month)
     .maybeSingle();
   
   if (error || !data) {
-    // Try to find the period that ends after this date
+    // Try to find the next available period
     const { data: nextPeriod } = await supabase
       .from("statement_periods")
       .select("id")
-      .gte("period_end_date", dateStr)
-      .order("period_end_date", { ascending: true })
+      .or(`year.gt.${year},and(year.eq.${year},month.gte.${month})`)
+      .order("year", { ascending: true })
+      .order("month", { ascending: true })
       .limit(1)
       .maybeSingle();
     return nextPeriod?.id || null;

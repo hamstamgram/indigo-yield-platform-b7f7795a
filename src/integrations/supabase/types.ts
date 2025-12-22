@@ -5459,7 +5459,7 @@ export type Database = {
           p_date: string
           p_fund_id: string
           p_gross_amount: number
-          p_purpose?: string
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
         }
         Returns: Json
       }
@@ -5581,6 +5581,14 @@ export type Database = {
         Returns: Json
       }
       delete_withdrawal:
+        | {
+            Args: {
+              p_admin_id?: string
+              p_reason?: string
+              p_request_id: string
+            }
+            Returns: Json
+          }
         | {
             Args: {
               p_actor_id?: string
@@ -6002,6 +6010,20 @@ export type Database = {
             }
             Returns: Json
           }
+      preview_investor_balances: {
+        Args: { p_fund_id?: string }
+        Returns: {
+          account_type: string
+          allocation_pct: number
+          cost_basis: number
+          current_value: number
+          fund_code: string
+          fund_id: string
+          investor_id: string
+          investor_name: string
+          unrealized_pnl: number
+        }[]
+      }
       preview_yield_correction: {
         Args: {
           p_date: string
@@ -6169,6 +6191,15 @@ export type Database = {
         Returns: boolean
       }
       update_withdrawal:
+        | {
+            Args: {
+              p_admin_id?: string
+              p_admin_notes?: string
+              p_request_id: string
+              p_status: string
+            }
+            Returns: Json
+          }
         | {
             Args: {
               p_actor_id?: string
