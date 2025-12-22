@@ -150,6 +150,7 @@ export function isInvestorWithProfile(
 
 /**
  * Get display name from investor (with or without profile)
+ * Falls back to email prefix when name is empty for better UX
  */
 export function getInvestorDisplayName(investor: Investor | InvestorWithProfile): string {
   if (isInvestorWithProfile(investor)) {
@@ -160,5 +161,8 @@ export function getInvestorDisplayName(investor: Investor | InvestorWithProfile)
     if (first_name) return first_name;
     if (last_name) return last_name;
   }
-  return investor.name || investor.email;
+  if (investor.name) return investor.name;
+  // Use email prefix as fallback instead of full email
+  const emailPrefix = investor.email.split("@")[0];
+  return emailPrefix || investor.email;
 }
