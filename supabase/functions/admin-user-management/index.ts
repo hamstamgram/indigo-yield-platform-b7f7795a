@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.3";
-
-// CORS headers for web app access
+import { checkAdminAccess, createAdminDeniedResponse } from "../_shared/admin-check.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-csrf-token",
@@ -80,15 +79,9 @@ serve(async (req) => {
       throw new Error("Invalid authorization token");
     }
 
-    // Check admin status
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .select("is_admin")
-      .eq("id", user.id)
-      .single();
-    
-    const isAdmin = profile?.is_admin;
-    if (profileError || !isAdmin) {
+    // Check admin status using canonical admin check
+    const adminCheck = await checkAdminAccess(supabaseAdmin, user.id);
+    if (!adminCheck.isAdmin) {
       throw new Error("Admin access required");
     }
 
