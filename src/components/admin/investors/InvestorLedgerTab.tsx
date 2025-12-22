@@ -1,9 +1,10 @@
 /**
  * Investor Ledger Tab (formerly Transactions Tab)
  * Shows transaction history with URL-persisted filters
+ * Uses React Query for proper cache invalidation
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,25 +40,13 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
-import { useQueryClient } from "@tanstack/react-query";
+import { useInvestorLedger } from "@/hooks/useInvestorLedger";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
 
 interface InvestorLedgerTabProps {
   investorId: string;
   investorName?: string;
   onDataChange?: () => void;
-}
-
-interface Transaction {
-  id: string;
-  tx_date: string;
-  type: string;
-  amount: number;
-  purpose: string | null;
-  reference_id: string | null;
-  notes: string | null;
-  asset: string;
-  fund?: { name: string; asset: string } | null;
 }
 
 const TX_TYPES = [
@@ -79,18 +68,30 @@ const TX_PURPOSE = [
 ];
 
 export function InvestorLedgerTab({ investorId, investorName, onDataChange }: InvestorLedgerTabProps) {
-  const queryClient = useQueryClient();
   const { filters, setFilter, clearFilters, hasActiveFilters, getFilter } = useUrlFilters({
     keys: ["txType", "txPurpose", "dateFrom", "dateTo"],
   });
 
-  const [loading, setLoading] = useState(true);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [showFilters, setShowFilters] = useState(false);
-  const [queryError, setQueryError] = useState<string | null>(null);
-  const [rawQueryCount, setRawQueryCount] = useState<number>(0);
   const [addTxDialogOpen, setAddTxDialogOpen] = useState(false);
   const [defaultFundId, setDefaultFundId] = useState<string>("");
+
+  // Convert URL filters to hook filters
+  const ledgerFilters = useMemo(() => ({
+    txType: getFilter("txType"),
+    txPurpose: getFilter("txPurpose"),
+    dateFrom: getFilter("dateFrom"),
+    dateTo: getFilter("dateTo"),
+  }), [getFilter]);
+
+  // Use React Query hook for transactions
+  const {
+    transactions,
+    isLoading: loading,
+    error,
+    refetch,
+    invalidateAll,
+  } = useInvestorLedger(investorId, ledgerFilters);
 
   // Fetch default fund for this investor
   useEffect(() => {
@@ -106,93 +107,6 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
     fetchDefaultFund();
   }, [investorId]);
 
-  // Load transactions with filters
-  const loadTransactions = useCallback(async () => {
-    setLoading(true);
-    setQueryError(null);
-    
-    try {
-      let query = supabase
-        .from("transactions_v2")
-        .select(`
-          id,
-          tx_date,
-          type,
-          amount,
-          purpose,
-          reference_id,
-          notes,
-          asset,
-          is_voided,
-          fund:funds(name, asset)
-        `)
-        .eq("investor_id", investorId)
-        .eq("is_voided", false) // Exclude voided transactions
-        .order("tx_date", { ascending: false })
-        .limit(100);
-
-      // Apply filters - cast to proper enum type
-      const txType = getFilter("txType");
-      if (txType && txType !== "all") {
-        query = query.eq("type", txType as any);
-      }
-
-      const txPurpose = getFilter("txPurpose");
-      if (txPurpose && txPurpose !== "all") {
-        query = query.eq("purpose", txPurpose as "reporting" | "transaction");
-      }
-
-      const dateFrom = getFilter("dateFrom");
-      if (dateFrom) {
-        query = query.gte("tx_date", dateFrom);
-      }
-
-      const dateTo = getFilter("dateTo");
-      if (dateTo) {
-        query = query.lte("tx_date", dateTo);
-      }
-
-      const { data, error, count } = await query;
-
-      if (error) {
-        console.error("[InvestorLedgerTab] Query error:", error);
-        setQueryError(error.message);
-        setTransactions([]);
-        setRawQueryCount(0);
-        return;
-      }
-
-      // Track both raw count and parsed result for mismatch detection
-      const rawCount = data?.length || 0;
-      setRawQueryCount(rawCount);
-      
-      console.log(`[InvestorLedgerTab] Loaded ${rawCount} transactions for investor ${investorId}`);
-      
-      // Safely parse and set transactions
-      const parsedTransactions: Transaction[] = [];
-      for (const item of (data || [])) {
-        try {
-          parsedTransactions.push(item as Transaction);
-        } catch (parseError) {
-          console.error("[InvestorLedgerTab] Failed to parse transaction:", item, parseError);
-        }
-      }
-      
-      setTransactions(parsedTransactions);
-    } catch (error) {
-      console.error("[InvestorLedgerTab] Unexpected error:", error);
-      setQueryError(error instanceof Error ? error.message : "Unknown error loading transactions");
-      setTransactions([]);
-      setRawQueryCount(0);
-    } finally {
-      setLoading(false);
-    }
-  }, [investorId, getFilter]);
-
-  useEffect(() => {
-    loadTransactions();
-  }, [loadTransactions, filters]);
-
   // Subscribe to real-time updates
   useEffect(() => {
     const channel = supabase
@@ -206,7 +120,7 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
           filter: `investor_id=eq.${investorId}`,
         },
         () => {
-          loadTransactions();
+          invalidateAll();
           onDataChange?.();
         }
       )
@@ -215,25 +129,18 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [investorId, loadTransactions, onDataChange]);
+  }, [investorId, invalidateAll, onDataChange]);
 
   const handleAddTxSuccess = useCallback(() => {
-    // Invalidate all related queries
-    queryClient.invalidateQueries({ queryKey: ["admin-transactions-history"] });
-    queryClient.invalidateQueries({ queryKey: ["investor-positions", investorId] });
-    queryClient.invalidateQueries({ queryKey: ["investor-transactions", investorId] });
-    queryClient.invalidateQueries({ queryKey: ["fund-aum"] });
-    
-    // Reload local data
-    loadTransactions();
+    invalidateAll();
     onDataChange?.();
     setAddTxDialogOpen(false);
-  }, [queryClient, investorId, loadTransactions, onDataChange]);
+  }, [invalidateAll, onDataChange]);
 
   const handleResetAndRefresh = useCallback(() => {
     clearFilters();
-    loadTransactions();
-  }, [clearFilters, loadTransactions]);
+    refetch();
+  }, [clearFilters, refetch]);
 
   const getTypeIcon = (type: string) => {
     const lowerType = type.toLowerCase();
@@ -254,9 +161,6 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
       </Badge>
     );
   };
-
-  // Detect mismatch: query returned data but parsed/rendered count is different
-  const hasMismatch = !loading && rawQueryCount > 0 && transactions.length === 0;
 
   return (
     <div className="space-y-4">
@@ -300,28 +204,14 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
       </div>
 
       {/* Error Alert */}
-      {queryError && (
+      {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Query Error</AlertTitle>
           <AlertDescription>
-            Failed to load transactions: {queryError}
-            <Button variant="link" onClick={loadTransactions} className="ml-2 h-auto p-0">
+            {error.message}
+            <Button variant="link" onClick={() => refetch()} className="ml-2 h-auto p-0">
               Retry
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Mismatch Warning */}
-      {hasMismatch && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Data Mismatch</AlertTitle>
-          <AlertDescription>
-            {rawQueryCount} records exist but failed to render. This may be due to data parsing issues.
-            <Button variant="link" onClick={handleResetAndRefresh} className="ml-2 h-auto p-0">
-              Reset filters and retry
             </Button>
           </AlertDescription>
         </Alert>
@@ -411,7 +301,7 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
             <Skeleton key={i} className="h-12" />
           ))}
         </div>
-      ) : transactions.length === 0 && !hasMismatch ? (
+      ) : transactions.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
             <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-30" />
@@ -423,7 +313,7 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
             )}
           </CardContent>
         </Card>
-      ) : transactions.length > 0 && (
+      ) : (
         <div className="border rounded-md overflow-hidden">
           <Table>
             <TableHeader>

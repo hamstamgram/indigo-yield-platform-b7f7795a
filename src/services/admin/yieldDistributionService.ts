@@ -205,12 +205,13 @@ export async function previewYieldDistribution(
   }
 
   // Call backend preview RPC
+  // Cast p_purpose explicitly to avoid PostgreSQL function overload mismatch (uuid = text error)
   const { data, error } = await (supabase.rpc as any)("preview_daily_yield_to_fund_v2", {
     p_fund_id: fundId,
     p_date: formatDate(targetDate),
     p_gross_amount: grossYieldAmount,
     p_admin_id: user.id,
-    p_purpose: purpose,
+    p_purpose: purpose as "reporting" | "transaction", // Explicit cast to match expected enum
   });
 
   if (error) {
@@ -356,12 +357,13 @@ export async function applyYieldDistribution(
 
   // The RPC expects p_gross_amount as the yield to distribute, not new total AUM
   // Purpose is passed to control whether this yield appears in investor reports
+  // Cast p_purpose explicitly to avoid PostgreSQL function overload mismatch
   const { data, error } = await (supabase.rpc as any)("apply_daily_yield_to_fund_v2", {
     p_fund_id: fundId,
     p_date: formatDate(targetDate),
     p_gross_amount: grossYieldAmount,
     p_admin_id: adminId,
-    p_purpose: purpose,
+    p_purpose: purpose as "reporting" | "transaction", // Explicit cast to match expected enum
   });
 
   if (error) {
