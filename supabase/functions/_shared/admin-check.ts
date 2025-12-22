@@ -8,10 +8,11 @@ export interface AdminCheckResult {
 }
 
 /**
- * Check if the authenticated user is an admin using profiles.is_admin
+ * CANONICAL ADMIN CHECK - Use this across ALL edge functions
  * 
- * This is the canonical admin check for all edge functions.
- * Uses profiles.is_admin for consistency - works correctly for users with multiple roles.
+ * This function checks admin status using BOTH methods for consistency:
+ * 1. Primary: user_roles table (preferred, role-based access control)
+ * 2. Fallback: profiles.is_admin flag (legacy support)
  * 
  * IMPORTANT: Must be called with a service role client to bypass RLS.
  * 
@@ -24,18 +25,49 @@ export async function checkAdminAccess(
   userId: string
 ): Promise<AdminCheckResult> {
   try {
-    const { data: profile, error } = await supabase
+    // Step 1: Check user_roles table first (preferred method)
+    const { data: userRoles, error: rolesError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+
+    if (rolesError) {
+      console.error("Admin check - roles query error:", rolesError.message);
+      // Continue to fallback check
+    }
+
+    const hasAdminRole = userRoles?.some(
+      (r: { role: string }) => r.role === "admin" || r.role === "super_admin"
+    );
+
+    if (hasAdminRole) {
+      // Get email for logging
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("id", userId)
+        .single();
+
+      return {
+        isAdmin: true,
+        email: profile?.email,
+        userId,
+      };
+    }
+
+    // Step 2: Fallback to profiles.is_admin (legacy support)
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("is_admin, email")
       .eq("id", userId)
       .single();
 
-    if (error) {
-      console.error("Admin check query error:", error.message);
+    if (profileError) {
+      console.error("Admin check - profile query error:", profileError.message);
       return { 
         isAdmin: false, 
         userId,
-        error: error.message 
+        error: profileError.message 
       };
     }
 
@@ -52,12 +84,13 @@ export async function checkAdminAccess(
       email: profile.email,
       userId,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
     console.error("Admin check exception:", err);
     return { 
       isAdmin: false, 
       userId,
-      error: err.message || "Unknown error" 
+      error: errorMessage
     };
   }
 }

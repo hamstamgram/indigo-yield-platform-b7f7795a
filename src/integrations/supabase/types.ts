@@ -3446,13 +3446,19 @@ export type Database = {
         Row: {
           completed_at: string | null
           created_at: string | null
+          eligible_count: number | null
           error_message: string | null
+          failed_count: number | null
           id: string
           investors_generated: number | null
           investors_skipped: number | null
           investors_total: number | null
           metadata: Json | null
           period_id: string
+          provider: string | null
+          queued_count: number | null
+          run_type: string | null
+          sent_count: number | null
           started_at: string
           status: string
           triggered_by: string | null
@@ -3460,13 +3466,19 @@ export type Database = {
         Insert: {
           completed_at?: string | null
           created_at?: string | null
+          eligible_count?: number | null
           error_message?: string | null
+          failed_count?: number | null
           id?: string
           investors_generated?: number | null
           investors_skipped?: number | null
           investors_total?: number | null
           metadata?: Json | null
           period_id: string
+          provider?: string | null
+          queued_count?: number | null
+          run_type?: string | null
+          sent_count?: number | null
           started_at?: string
           status?: string
           triggered_by?: string | null
@@ -3474,13 +3486,19 @@ export type Database = {
         Update: {
           completed_at?: string | null
           created_at?: string | null
+          eligible_count?: number | null
           error_message?: string | null
+          failed_count?: number | null
           id?: string
           investors_generated?: number | null
           investors_skipped?: number | null
           investors_total?: number | null
           metadata?: Json | null
           period_id?: string
+          provider?: string | null
+          queued_count?: number | null
+          run_type?: string | null
+          sent_count?: number | null
           started_at?: string
           status?: string
           triggered_by?: string | null

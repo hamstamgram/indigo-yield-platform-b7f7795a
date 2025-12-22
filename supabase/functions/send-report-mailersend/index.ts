@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkAdminAccess, createAdminDeniedResponse } from "../_shared/admin-check.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -142,17 +143,10 @@ serve(async (req: Request): Promise<Response> => {
         });
       }
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("is_admin")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile?.is_admin) {
-        return new Response(JSON.stringify({ error: "Admin access required" }), {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      // Use canonical admin check (checks user_roles first, then profiles.is_admin)
+      const adminCheck = await checkAdminAccess(supabase, user.id);
+      if (!adminCheck.isAdmin) {
+        return createAdminDeniedResponse(corsHeaders, "Health check requires admin access");
       }
 
       // Check if MailerSend API token is configured
@@ -224,18 +218,10 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    // Check admin status
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("is_admin, email")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile?.is_admin) {
-      return new Response(JSON.stringify({ error: "Admin access required" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Check admin status using canonical admin check
+    const adminCheck = await checkAdminAccess(supabase, user.id);
+    if (!adminCheck.isAdmin) {
+      return createAdminDeniedResponse(corsHeaders, "Sending reports requires admin access");
     }
     const { delivery_id, investor_id, period_id, delivery_mode = "email_html" } = body;
 
