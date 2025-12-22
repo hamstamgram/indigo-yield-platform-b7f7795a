@@ -69,6 +69,7 @@ import {
   RefreshCcw,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 
 interface DeliveryRecord {
@@ -154,26 +155,50 @@ export default function ReportDeliveryCenter() {
   const [confirmAction, setConfirmAction] = useState<{ type: string; ids: string[] } | null>(null);
   const [sendProgress, setSendProgress] = useState<{ current: number; total: number; sent: number; failed: number } | null>(null);
 
-  // Fetch periods
-  const { data: periods = [] } = useQuery({
-    queryKey: ["statement-periods"],
+  // Fetch periods with statement counts
+  const { data: periodsWithCounts = [] } = useQuery({
+    queryKey: ["statement-periods-with-counts"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: periodsData, error: periodsError } = await supabase
         .from("statement_periods")
         .select("id, period_name, year, month")
         .order("year", { ascending: false })
         .order("month", { ascending: false });
-      if (error) throw error;
-      return data as Period[];
+      if (periodsError) throw periodsError;
+      
+      // Get statement counts for each period
+      const periodsWithStatementCounts = await Promise.all(
+        (periodsData || []).map(async (period) => {
+          const { count } = await supabase
+            .from("generated_statements")
+            .select("id", { count: "exact", head: true })
+            .eq("period_id", period.id);
+          return { ...period, statementCount: count || 0 };
+        })
+      );
+      
+      return periodsWithStatementCounts as (Period & { statementCount: number })[];
     },
   });
 
-  // Auto-select most recent period
+  const periods = periodsWithCounts;
+
+  // Auto-select period with statements (smart selection)
   useEffect(() => {
-    if (periods.length > 0 && !selectedPeriodId) {
-      setSelectedPeriodId(periods[0].id);
+    if (periodsWithCounts.length > 0 && !selectedPeriodId) {
+      // Find the most recent period that has statements
+      const periodWithStatements = periodsWithCounts.find(p => p.statementCount > 0);
+      if (periodWithStatements) {
+        setSelectedPeriodId(periodWithStatements.id);
+      } else {
+        // Fallback to most recent period if none have statements
+        setSelectedPeriodId(periodsWithCounts[0].id);
+      }
     }
-  }, [periods, selectedPeriodId]);
+  }, [periodsWithCounts, selectedPeriodId]);
+
+  // Get selected period's statement count
+  const selectedPeriodStatementCount = periodsWithCounts.find(p => p.id === selectedPeriodId)?.statementCount || 0;
 
   // Fetch delivery stats
   const { data: stats, isLoading: statsLoading } = useQuery({
@@ -543,7 +568,14 @@ export default function ReportDeliveryCenter() {
                 <SelectContent>
                   {periods.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
-                      {p.period_name}
+                      <span className="flex items-center gap-2">
+                        {p.period_name}
+                        {p.statementCount > 0 ? (
+                          <span className="text-muted-foreground text-xs">({p.statementCount} statements)</span>
+                        ) : (
+                          <span className="text-destructive text-xs">(no statements)</span>
+                        )}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -600,6 +632,21 @@ export default function ReportDeliveryCenter() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Warning when period has no statements */}
+      {selectedPeriodId && selectedPeriodStatementCount === 0 && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>No Statements Generated</AlertTitle>
+          <AlertDescription>
+            This period has no generated statements. Go to{" "}
+            <Link to="/admin/investor-reports" className="underline font-medium">
+              Investor Reports
+            </Link>{" "}
+            to generate statements first, or select a different period.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Progress & KPI Section */}
       {selectedPeriodId && (
