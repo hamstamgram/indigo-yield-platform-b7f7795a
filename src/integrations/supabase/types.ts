@@ -5580,14 +5580,23 @@ export type Database = {
         Args: { p_confirmation: string; p_transaction_id: string }
         Returns: Json
       }
-      delete_withdrawal: {
-        Args: {
-          p_hard_delete?: boolean
-          p_reason: string
-          p_withdrawal_id: string
-        }
-        Returns: Json
-      }
+      delete_withdrawal:
+        | {
+            Args: {
+              p_actor_id?: string
+              p_reason?: string
+              p_withdrawal_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_hard_delete?: boolean
+              p_reason: string
+              p_withdrawal_id: string
+            }
+            Returns: Json
+          }
       dispatch_report_delivery_run: {
         Args: { p_channel?: string; p_period_id: string }
         Returns: Json
@@ -6149,16 +6158,26 @@ export type Database = {
         }
         Returns: boolean
       }
-      update_withdrawal: {
-        Args: {
-          p_notes?: string
-          p_reason?: string
-          p_requested_amount?: number
-          p_withdrawal_id: string
-          p_withdrawal_type?: string
-        }
-        Returns: Json
-      }
+      update_withdrawal:
+        | {
+            Args: {
+              p_actor_id?: string
+              p_amount?: number
+              p_notes?: string
+              p_withdrawal_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_notes?: string
+              p_reason?: string
+              p_requested_amount?: number
+              p_withdrawal_id: string
+              p_withdrawal_type?: string
+            }
+            Returns: Json
+          }
       use_invite_code: {
         Args: { p_invite_code: string; p_user_id: string }
         Returns: boolean

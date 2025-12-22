@@ -71,6 +71,12 @@ export const adminNavGroups: NavGroup[] = [
         icon: <BarChart3 className="h-5 w-5" />,
         adminOnly: true,
       },
+      {
+        title: "Fund Management",
+        href: "/admin/funds",
+        icon: <PieChart className="h-5 w-5" />,
+        adminOnly: true,
+      },
     ],
   },
   {
@@ -101,6 +107,18 @@ export const adminNavGroups: NavGroup[] = [
         icon: <ArrowLeftRight className="h-5 w-5" />,
         adminOnly: true,
       },
+      {
+        title: "IB Management",
+        href: "/admin/ib-management",
+        icon: <Briefcase className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
+        title: "INDIGO Fees",
+        href: "/admin/fees",
+        icon: <DollarSign className="h-5 w-5" />,
+        adminOnly: true,
+      },
     ],
   },
   {
@@ -129,36 +147,6 @@ export const adminNavGroups: NavGroup[] = [
         title: "Report Delivery",
         href: "/admin/reports/delivery",
         icon: <Mail className="h-5 w-5" />,
-        adminOnly: true,
-      },
-    ],
-  },
-  {
-    title: "Partners",
-    icon: Briefcase,
-    items: [
-      {
-        title: "IB Management",
-        href: "/admin/ib-management",
-        icon: <Users className="h-5 w-5" />,
-        adminOnly: true,
-      },
-    ],
-  },
-  {
-    title: "Finance",
-    icon: DollarSign,
-    items: [
-      {
-        title: "Fund Management",
-        href: "/admin/funds",
-        icon: <PieChart className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
-        title: "INDIGO Fees",
-        href: "/admin/fees",
-        icon: <CreditCard className="h-5 w-5" />,
         adminOnly: true,
       },
     ],
