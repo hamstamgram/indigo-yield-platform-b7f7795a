@@ -59,9 +59,16 @@ export function CorrectionConfirmDialog({
             <AlertTriangle className="h-5 w-5 text-amber-500" />
             Confirm Yield Correction
           </DialogTitle>
-          <DialogDescription>
-            This action will post delta transactions and update investor positions.
-            {isMonthClosed && " This is a closed month correction requiring Super Admin."}
+          <DialogDescription className="space-y-2">
+            <span className="block">
+              This action will create a <strong>new distribution version</strong> with delta 
+              transactions to adjust investor positions.
+            </span>
+            {isMonthClosed && (
+              <span className="block text-amber-600 dark:text-amber-400 font-medium">
+                ⚠️ This is a closed month correction requiring Super Admin approval.
+              </span>
+            )}
           </DialogDescription>
         </DialogHeader>
 
