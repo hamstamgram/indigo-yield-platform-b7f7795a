@@ -95,6 +95,7 @@ function TransactionHistoryContent() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [dialogInvestorId, setDialogInvestorId] = useState<string>("");
   const [dialogFundId, setDialogFundId] = useState<string>("");
+  const [showVoided, setShowVoided] = useState(false);
 
   // Check URL for action=add to auto-open modal
   useEffect(() => {
@@ -158,7 +159,7 @@ function TransactionHistoryContent() {
   };
 
   const { data: result, isLoading } = useQuery({
-    queryKey: ["admin-transactions-history", selectedFund, selectedType, dateFrom, dateTo, page],
+    queryKey: ["admin-transactions-history", selectedFund, selectedType, dateFrom, dateTo, page, showVoided],
     queryFn: async () => {
       // Build query with deterministic ordering: tx_date DESC, id DESC
       // Include tx_subtype for explicit labeling (no more heuristics!)
@@ -169,10 +170,14 @@ function TransactionHistoryContent() {
           id, investor_id, fund_id, type, tx_subtype, asset, amount, tx_date, notes, tx_hash, created_at, created_by, visibility_scope, is_voided, is_system_generated,
           profiles!fk_transactions_v2_profile (email, first_name, last_name)
         `, { count: "exact" })
-        .eq("is_voided", false) // Exclude voided transactions by default
         .order("tx_date", { ascending: false })
         .order("id", { ascending: false })
         .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+      // Only filter out voided if not showing them
+      if (!showVoided) {
+        query = query.eq("is_voided", false);
+      }
 
       if (selectedFund !== "all") {
         query = query.eq("fund_id", selectedFund);
@@ -325,11 +330,22 @@ function TransactionHistoryContent() {
       <Card>
         <CardContent className="p-4 space-y-4">
           {/* Quick Date Filters */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm" onClick={setThisMonth}>This Month</Button>
             <Button variant="outline" size="sm" onClick={setLastMonth}>Last Month</Button>
             <Button variant="outline" size="sm" onClick={setYTD}>YTD</Button>
             <Button variant="ghost" size="sm" onClick={clearFilters}>Clear All</Button>
+            <div className="ml-auto flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showVoided}
+                  onChange={(e) => { setShowVoided(e.target.checked); setPage(0); }}
+                  className="rounded border-muted-foreground"
+                />
+                <span className="text-muted-foreground">Show voided</span>
+              </label>
+            </div>
           </div>
           
           {/* Main Filters */}
@@ -470,7 +486,7 @@ function TransactionHistoryContent() {
                     </TableRow>
                   ) : (
                     filteredTransactions.map((tx) => (
-                      <TableRow key={tx.id}>
+                      <TableRow key={tx.id} className={tx.isVoided ? "opacity-50 bg-muted/30" : ""}>
                         <TableCell className="whitespace-nowrap">
                           {format(new Date(tx.txDate), "MMM d, yyyy")}
                           {tx.createdAt && (
@@ -498,12 +514,19 @@ function TransactionHistoryContent() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={getTypeBadgeVariant(tx.displayType)}>
-                            {tx.displayType}
-                          </Badge>
+                          <div className="flex items-center gap-1">
+                            <Badge variant={getTypeBadgeVariant(tx.displayType)}>
+                              {tx.displayType}
+                            </Badge>
+                            {tx.isVoided && (
+                              <Badge variant="destructive" className="text-[10px]">
+                                VOIDED
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-right font-mono">
-                          <span className={tx.type === "WITHDRAWAL" || tx.type === "FEE" ? "text-destructive" : "text-green-600"}>
+                          <span className={tx.isVoided ? "line-through text-muted-foreground" : (tx.type === "WITHDRAWAL" || tx.type === "FEE" ? "text-destructive" : "text-green-600")}>
                             {formatAmount(tx.amount, tx.asset, tx.type)}
                           </span>
                           <span className="text-muted-foreground ml-1">{tx.asset}</span>
@@ -512,35 +535,39 @@ function TransactionHistoryContent() {
                           {tx.notes || "—"}
                         </TableCell>
                         <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedTx(tx);
-                                  setEditDialogOpen(true);
-                                }}
-                                disabled={tx.isSystemGenerated}
-                              >
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedTx(tx);
-                                  setVoidDialogOpen(true);
-                                }}
-                                className="text-destructive"
-                              >
-                                <Ban className="mr-2 h-4 w-4" />
-                                Void
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          {!tx.isVoided ? (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedTx(tx);
+                                    setEditDialogOpen(true);
+                                  }}
+                                  disabled={tx.isSystemGenerated}
+                                >
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedTx(tx);
+                                    setVoidDialogOpen(true);
+                                  }}
+                                  className="text-destructive"
+                                >
+                                  <Ban className="mr-2 h-4 w-4" />
+                                  Void
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))
