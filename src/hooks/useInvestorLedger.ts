@@ -22,6 +22,7 @@ interface LedgerFilters {
   txPurpose?: string;
   dateFrom?: string;
   dateTo?: string;
+  showVoided?: boolean;
 }
 
 /**
@@ -36,7 +37,8 @@ export function useInvestorLedger(investorId: string, filters: LedgerFilters = {
   const query = useQuery<Transaction[], Error>({
     queryKey,
     queryFn: async () => {
-      let query = supabase
+      // Build query with optional voided filter
+      let dbQuery = supabase
         .from("transactions_v2")
         .select(`
           id,
@@ -53,31 +55,49 @@ export function useInvestorLedger(investorId: string, filters: LedgerFilters = {
           fund:funds(name, asset)
         `)
         .eq("investor_id", investorId)
-        .eq("is_voided", false)
         .order("tx_date", { ascending: false })
         .limit(100);
 
+      // Only filter out voided if showVoided is not true
+      if (!filters.showVoided) {
+        dbQuery = dbQuery.eq("is_voided", false);
+      }
+
       // Apply filters
       if (filters.txType && filters.txType !== "all") {
-        query = query.eq("type", filters.txType as any);
+        dbQuery = dbQuery.eq("type", filters.txType as any);
       }
 
       if (filters.txPurpose && filters.txPurpose !== "all") {
-        query = query.eq("purpose", filters.txPurpose as "reporting" | "transaction");
+        dbQuery = dbQuery.eq("purpose", filters.txPurpose as "reporting" | "transaction");
       }
 
       if (filters.dateFrom) {
-        query = query.gte("tx_date", filters.dateFrom);
+        dbQuery = dbQuery.gte("tx_date", filters.dateFrom);
       }
 
       if (filters.dateTo) {
-        query = query.lte("tx_date", filters.dateTo);
+        dbQuery = dbQuery.lte("tx_date", filters.dateTo);
       }
 
-      const { data, error } = await query;
+      const { data, error } = await dbQuery;
 
       if (error) {
+        console.error("[useInvestorLedger] Query failed:", {
+          investorId,
+          filters,
+          error: error.message,
+        });
         throw new Error(`Failed to load transactions: ${error.message}`);
+      }
+
+      // Diagnostic logging for empty results
+      if ((!data || data.length === 0) && process.env.NODE_ENV === "development") {
+        console.info("[useInvestorLedger] Empty result:", {
+          investorId,
+          filters,
+          showVoided: filters.showVoided ?? false,
+        });
       }
 
       return (data || []) as Transaction[];
