@@ -54,6 +54,8 @@ import {
 import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { useSortableColumns } from "@/hooks/useSortableColumns";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 
 interface Fund {
   id: string;
@@ -281,6 +283,12 @@ function UnifiedInvestorsContent() {
     });
   }, [enrichedInvestors, searchTerm, fundFilter, statusFilter, ibFilter, hasWithdrawalsFilter, investorPositions]);
 
+  // Sortable columns hook
+  const { sortConfig, requestSort, sortedData } = useSortableColumns(filteredInvestors, {
+    column: 'lastName',
+    direction: 'asc',
+  });
+
   const handleRowClick = (investor: EnrichedInvestor) => {
     setSelectedInvestorId(investor.id);
   };
@@ -405,13 +413,62 @@ function UnifiedInvestorsContent() {
             <Table>
               <TableHeader className="sticky top-0 bg-background z-10">
                 <TableRow>
-                  <TableHead className="w-[250px]">Investor</TableHead>
-                  <TableHead className="w-[80px] text-center">Status</TableHead>
-                  <TableHead className="w-[70px] text-center">Funds</TableHead>
-                  <TableHead className="w-[100px]">Last Activity</TableHead>
-                  <TableHead className="w-[90px] text-center">Pending WD</TableHead>
-                  <TableHead className="w-[100px]">Last Report</TableHead>
-                  <TableHead className="w-[120px]">IB Parent</TableHead>
+                  <SortableTableHead
+                    column="lastName"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="w-[250px]"
+                  >
+                    Investor
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="fundsHeldCount"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="w-[80px] text-center"
+                  >
+                    Status
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="fundsHeldCount"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="w-[70px] text-center"
+                  >
+                    Funds
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="lastActivityDate"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="w-[100px]"
+                  >
+                    Last Activity
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="pendingWithdrawals"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="w-[90px] text-center"
+                  >
+                    Pending WD
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="lastReportPeriod"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="w-[100px]"
+                  >
+                    Last Report
+                  </SortableTableHead>
+                  <SortableTableHead
+                    column="ibParentName"
+                    currentSort={sortConfig}
+                    onSort={requestSort}
+                    className="w-[120px]"
+                  >
+                    IB Parent
+                  </SortableTableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -422,7 +479,7 @@ function UnifiedInvestorsContent() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredInvestors.map((investor) => (
+                  sortedData.map((investor) => (
                     <TableRow
                       key={investor.id}
                       className={cn(
@@ -459,7 +516,7 @@ function UnifiedInvestorsContent() {
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {investor.lastActivityDate
-                          ? format(new Date(investor.lastActivityDate), "MMM d, yy")
+                          ? format(new Date(investor.lastActivityDate), "MMM d, yy HH:mm")
                           : "—"}
                       </TableCell>
                       <TableCell className="text-center">
