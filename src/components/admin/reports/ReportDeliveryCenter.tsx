@@ -70,7 +70,10 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
+// MailerSend trial account limits (typical)
+const MAILERSEND_TRIAL_LIMIT = 100; // emails per month for trial accounts
 
 interface DeliveryRecord {
   id: string;
@@ -587,6 +590,33 @@ export default function ReportDeliveryCenter() {
           Refresh
         </Button>
       </div>
+
+      {/* MailerSend Quota Guidance Banner */}
+      <Alert className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/30">
+        <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+        <AlertTitle className="text-blue-800 dark:text-blue-300">MailerSend Trial Account Limits</AlertTitle>
+        <AlertDescription className="text-blue-700 dark:text-blue-400">
+          <p className="mb-2">
+            Trial accounts are limited to approximately {MAILERSEND_TRIAL_LIMIT} emails per month. 
+            If you encounter "quota exceeded" errors, you can:
+          </p>
+          <ul className="list-disc list-inside space-y-1 text-sm">
+            <li>
+              <a 
+                href="https://app.mailersend.com/billing" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="underline hover:text-blue-900 dark:hover:text-blue-200"
+              >
+                Upgrade your MailerSend plan
+              </a>
+              {" "}for higher limits
+            </li>
+            <li>Wait until next month when your quota resets</li>
+            <li>Check your current usage in the MailerSend dashboard</li>
+          </ul>
+        </AlertDescription>
+      </Alert>
 
       {/* Period Selector & Filters */}
       <Card>
