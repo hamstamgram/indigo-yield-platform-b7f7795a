@@ -3211,6 +3211,73 @@ export type Database = {
           },
         ]
       }
+      report_runs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          investors_generated: number | null
+          investors_skipped: number | null
+          investors_total: number | null
+          metadata: Json | null
+          period_id: string
+          started_at: string
+          status: string
+          triggered_by: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          investors_generated?: number | null
+          investors_skipped?: number | null
+          investors_total?: number | null
+          metadata?: Json | null
+          period_id: string
+          started_at?: string
+          status?: string
+          triggered_by?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          investors_generated?: number | null
+          investors_skipped?: number | null
+          investors_total?: number | null
+          metadata?: Json | null
+          period_id?: string
+          started_at?: string
+          status?: string
+          triggered_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_runs_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "statement_periods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_runs_triggered_by_fkey"
+            columns: ["triggered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_runs_triggered_by_fkey"
+            columns: ["triggered_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+        ]
+      }
       report_schedules: {
         Row: {
           created_at: string | null

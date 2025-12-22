@@ -315,16 +315,29 @@ serve(async (req: Request): Promise<Response> => {
       if (existingDelivery) {
         deliveryRecord = existingDelivery;
       } else {
-        // Create new delivery record
+        // Build subject and recipient info for the delivery record
+        const monthNames = ["January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"];
+        const periodNameForRecord = `${monthNames[period.month - 1]} ${period.year}`;
+        const investorNameForRecord = [investor.first_name, investor.last_name]
+          .filter(Boolean)
+          .join(" ") || investor.email || "Investor";
+        const subjectForRecord = `INDIGO Monthly Report – ${periodNameForRecord} – ${investorNameForRecord}`;
+        
+        // Create new delivery record BEFORE sending (required fields included)
         const { data: newDelivery, error: createError } = await supabase
           .from("statement_email_delivery")
           .insert({
             investor_id,
             period_id,
             statement_id: statement.id,
+            user_id: investor_id,
+            recipient_email: investor.email,
+            subject: subjectForRecord,
             status: "QUEUED",
             provider: "mailersend",
             delivery_mode,
+            channel: "email",
             created_by: user.id,
           })
           .select()
@@ -334,6 +347,7 @@ serve(async (req: Request): Promise<Response> => {
           throw new Error(`Failed to create delivery record: ${createError.message}`);
         }
         deliveryRecord = newDelivery;
+        console.log(`Created delivery record ${newDelivery.id} BEFORE sending`);
       }
     } else {
       throw new Error("Either delivery_id or (investor_id + period_id) required");
