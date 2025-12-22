@@ -123,9 +123,11 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
           reference_id,
           notes,
           asset,
+          is_voided,
           fund:funds(name, asset)
         `)
         .eq("investor_id", investorId)
+        .eq("is_voided", false) // Exclude voided transactions
         .order("tx_date", { ascending: false })
         .limit(100);
 

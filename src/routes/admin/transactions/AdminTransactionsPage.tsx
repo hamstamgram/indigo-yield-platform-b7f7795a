@@ -2,6 +2,7 @@
  * Admin Transaction History Page
  * Complete chronological ledger of all investor transactions
  * Categories: First Investment | Top-up | Withdrawal | Withdrawal All
+ * Features: View, Edit, Void transactions with audit trail
  */
 
 import { useState, useEffect, useMemo } from "react";
@@ -27,12 +28,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, Search, ChevronLeft, ChevronRight, ExternalLink, CreditCard, Plus } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Loader2, Search, ChevronLeft, ChevronRight, ExternalLink, CreditCard, Plus, MoreHorizontal, Pencil, Ban, AlertTriangle } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { supabase } from "@/integrations/supabase/client";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { format, startOfMonth, endOfMonth, subMonths, startOfYear } from "date-fns";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
+import { VoidTransactionDialog } from "@/components/admin/transactions/VoidTransactionDialog";
+import { EditTransactionDialog } from "@/components/admin/transactions/EditTransactionDialog";
 
 type TransactionType = "DEPOSIT" | "WITHDRAWAL" | "FEE" | "INTEREST" | "ADJUSTMENT";
 
@@ -49,9 +58,12 @@ interface Transaction {
   amount: number;
   txDate: string;
   notes: string | null;
+  txHash?: string | null;
   createdAt: string;
   createdBy: string | null;
   visibilityScope: string;
+  isVoided: boolean;
+  isSystemGenerated: boolean;
 }
 
 interface Fund {
@@ -68,6 +80,11 @@ function TransactionHistoryContent() {
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [funds, setFunds] = useState<Fund[]>([]);
+  
+  // Edit/Void dialog state
+  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+  const [voidDialogOpen, setVoidDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedFund, setSelectedFund] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedDisplayType, setSelectedDisplayType] = useState<string>("all");
@@ -145,12 +162,14 @@ function TransactionHistoryContent() {
     queryFn: async () => {
       // Build query with deterministic ordering: tx_date DESC, id DESC
       // Include tx_subtype for explicit labeling (no more heuristics!)
+      // Include is_voided and is_system_generated for edit/void logic
       let query = supabase
         .from("transactions_v2")
         .select(`
-          id, investor_id, fund_id, type, tx_subtype, asset, amount, tx_date, notes, created_at, created_by, visibility_scope,
+          id, investor_id, fund_id, type, tx_subtype, asset, amount, tx_date, notes, tx_hash, created_at, created_by, visibility_scope, is_voided, is_system_generated,
           profiles!fk_transactions_v2_profile (email, first_name, last_name)
         `, { count: "exact" })
+        .eq("is_voided", false) // Exclude voided transactions by default
         .order("tx_date", { ascending: false })
         .order("id", { ascending: false })
         .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
@@ -213,9 +232,12 @@ function TransactionHistoryContent() {
           amount: Number(tx.amount),
           txDate: tx.tx_date,
           notes: tx.notes,
+          txHash: tx.tx_hash,
           createdAt: tx.created_at,
           createdBy: tx.created_by,
           visibilityScope: tx.visibility_scope || "investor_visible",
+          isVoided: tx.is_voided || false,
+          isSystemGenerated: tx.is_system_generated || false,
         };
       });
 
@@ -436,6 +458,7 @@ function TransactionHistoryContent() {
                     <TableHead className="min-w-[130px]">Type</TableHead>
                     <TableHead className="text-right min-w-[140px]">Amount</TableHead>
                     <TableHead className="min-w-[200px]">Notes</TableHead>
+                    <TableHead className="w-[50px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -488,6 +511,37 @@ function TransactionHistoryContent() {
                         <TableCell className="max-w-[200px] truncate text-muted-foreground">
                           {tx.notes || "—"}
                         </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedTx(tx);
+                                  setEditDialogOpen(true);
+                                }}
+                                disabled={tx.isSystemGenerated}
+                              >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedTx(tx);
+                                  setVoidDialogOpen(true);
+                                }}
+                                className="text-destructive"
+                              >
+                                <Ban className="mr-2 h-4 w-4" />
+                                Void
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
                       </TableRow>
                     ))
                   )}
@@ -527,6 +581,28 @@ function TransactionHistoryContent() {
         investorId={dialogInvestorId}
         fundId={dialogFundId}
         onSuccess={handleAddTransactionSuccess}
+      />
+
+      {/* Edit Transaction Modal */}
+      <EditTransactionDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        transaction={selectedTx}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["admin-transactions-history"] });
+          queryClient.invalidateQueries({ queryKey: ["investor-positions"] });
+        }}
+      />
+
+      {/* Void Transaction Modal */}
+      <VoidTransactionDialog
+        open={voidDialogOpen}
+        onOpenChange={setVoidDialogOpen}
+        transaction={selectedTx}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["admin-transactions-history"] });
+          queryClient.invalidateQueries({ queryKey: ["investor-positions"] });
+        }}
       />
     </div>
   );
