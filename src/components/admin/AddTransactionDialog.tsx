@@ -394,11 +394,17 @@ export function AddTransactionDialog({
         throw new Error(result.error || "Failed to create transaction");
       }
 
-      // Invalidate relevant queries to refresh data everywhere
+      // Invalidate all relevant queries to refresh data everywhere
+      // Must include specific investor ID for proper cache invalidation
       queryClient.invalidateQueries({ queryKey: ["admin-transactions-history"] });
       queryClient.invalidateQueries({ queryKey: ["investor-positions"] });
+      queryClient.invalidateQueries({ queryKey: ["investor-positions", selectedInvestorId] });
       queryClient.invalidateQueries({ queryKey: ["investor-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["investor-transactions", selectedInvestorId] });
+      queryClient.invalidateQueries({ queryKey: ["investor-ledger"] });
+      queryClient.invalidateQueries({ queryKey: ["investor-ledger", selectedInvestorId] });
       queryClient.invalidateQueries({ queryKey: ["fund-aum"] });
+      queryClient.invalidateQueries({ queryKey: ["fund-aum-unified"] });
 
       toast.success("Transaction created successfully");
       reset();

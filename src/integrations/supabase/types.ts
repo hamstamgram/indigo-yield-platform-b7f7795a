@@ -5951,40 +5951,16 @@ export type Database = {
         Args: { p_delivery_id: string; p_note?: string }
         Returns: Json
       }
-      preview_daily_yield_to_fund_v2:
-        | {
-            Args: {
-              p_admin_id: string
-              p_date: string
-              p_fund_id: string
-              p_gross_amount: number
-              p_purpose?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_effective_date: string
-              p_fund_id: string
-              p_gross_rate: number
-              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-            }
-            Returns: {
-              beginning_balance: number
-              email: string
-              ending_balance: number
-              fee_amount: number
-              fee_pct: number
-              final_net_yield: number
-              gross_yield: number
-              ib_amount: number
-              ib_investor_id: string
-              ib_pct: number
-              investor_id: string
-              investor_name: string
-              net_yield: number
-            }[]
-          }
+      preview_daily_yield_to_fund_v2: {
+        Args: {
+          p_admin_id: string
+          p_date: string
+          p_fund_id: string
+          p_gross_amount: number
+          p_purpose?: string
+        }
+        Returns: Json
+      }
       preview_yield_correction: {
         Args: {
           p_date: string

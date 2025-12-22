@@ -162,6 +162,10 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
     );
   };
 
+  // Diagnostic: detect count/render mismatch (dev only)
+  const isDev = import.meta.env.DEV;
+  const queryDataCount = transactions.length;
+
   return (
     <div className="space-y-4">
       {/* Header with Add Transaction Button and Filters Toggle */}
@@ -202,6 +206,22 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
           </Button>
         </div>
       </div>
+
+      {/* Dev Diagnostic: Mismatch Banner */}
+      {isDev && !loading && queryDataCount === 0 && !error && (
+        <Alert variant="default" className="bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800">
+          <AlertCircle className="h-4 w-4 text-amber-600" />
+          <AlertTitle className="text-amber-800 dark:text-amber-400">Debug: No transactions rendered</AlertTitle>
+          <AlertDescription className="text-amber-700 dark:text-amber-300 text-xs font-mono">
+            <div>Investor ID: {investorId}</div>
+            <div>Filters: {JSON.stringify(ledgerFilters)}</div>
+            <div>Query returned {queryDataCount} items</div>
+            <Button variant="link" onClick={() => refetch()} className="h-auto p-0 text-amber-600">
+              Force Refresh
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Error Alert */}
       {error && (
