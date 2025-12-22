@@ -21,6 +21,9 @@ import {
   Coins,
   LayoutDashboard,
   Mail,
+  Wrench,
+  UserPlus,
+  HeartPulse,
 } from "lucide-react";
 import { NavItem } from "@/types/navigation";
 
@@ -171,15 +174,34 @@ export const adminNavGroups: NavGroup[] = [
         adminOnly: true,
       },
       {
+        title: "System Health",
+        href: "/admin/system-health",
+        icon: <HeartPulse className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
         title: "Settings",
         href: "/admin/settings-platform",
         icon: <Settings className="h-5 w-5" />,
         adminOnly: true,
       },
       {
+        title: "Admin Tools",
+        href: "/admin/settings/tools",
+        icon: <Wrench className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
         title: "Admin Management",
         href: "/admin/settings/admins",
         icon: <Shield className="h-5 w-5" />,
+        adminOnly: true,
+        superAdminOnly: true,
+      },
+      {
+        title: "Admin Invites",
+        href: "/admin/settings/invites",
+        icon: <UserPlus className="h-5 w-5" />,
         adminOnly: true,
         superAdminOnly: true,
       },
