@@ -30,7 +30,6 @@ const editSchema = z.object({
   notes: z.string().optional(),
   tx_hash: z.string().optional(),
   reason: z.string().min(1, "Edit reason is required"),
-  confirmText: z.string(),
 });
 
 type EditFormData = z.infer<typeof editSchema>;
@@ -59,22 +58,19 @@ export function EditTransactionDialog({
   onSuccess,
 }: EditTransactionDialogProps) {
   const [loading, setLoading] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
 
   const {
     register,
     handleSubmit,
-    watch,
     reset,
     formState: { errors },
   } = useForm<EditFormData>({
     resolver: zodResolver(editSchema),
     defaultValues: {
-      confirmText: "",
       reason: "",
     },
   });
-
-  const confirmText = watch("confirmText");
 
   // Reset form when transaction changes
   useEffect(() => {
@@ -85,15 +81,15 @@ export function EditTransactionDialog({
         notes: transaction.notes || "",
         tx_hash: transaction.txHash || "",
         reason: "",
-        confirmText: "",
       });
+      setConfirmText("");
     }
   }, [transaction, reset]);
 
   const onSubmit = async (data: EditFormData) => {
     if (!transaction) return;
 
-    if (data.confirmText !== "EDIT") {
+    if (confirmText !== "EDIT") {
       toast.error("Please type EDIT to confirm");
       return;
     }
@@ -143,6 +139,7 @@ export function EditTransactionDialog({
 
   const handleClose = () => {
     reset();
+    setConfirmText("");
     onOpenChange(false);
   };
 
@@ -245,11 +242,8 @@ export function EditTransactionDialog({
             <Input
               id="confirmText"
               placeholder="Type EDIT"
-              {...register("confirmText")}
-              onChange={(e) => {
-                const event = { ...e, target: { ...e.target, value: e.target.value.toUpperCase() } };
-                register("confirmText").onChange(event);
-              }}
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
             />
           </div>
 
