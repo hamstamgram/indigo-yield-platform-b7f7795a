@@ -18,12 +18,13 @@ export const CSP_POLICY = {
   // Removed 'unsafe-inline' for better XSS protection
   // Modern bundlers like Vite handle all script bundling
   "script-src": "'self' https://nkfimvovosdehmyyjubn.supabase.co",
-  // Removed 'unsafe-inline' - use CSS modules or styled-components instead
-  "style-src": "'self'",
+  // Allow 'unsafe-inline' for Tailwind/styled components and Google Fonts stylesheets
+  "style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src": "'self' data: https:",
   "connect-src":
     "'self' https://nkfimvovosdehmyyjubn.supabase.co wss://nkfimvovosdehmyyjubn.supabase.co",
-  "font-src": "'self' data:",
+  // Allow Google Fonts and font data URIs
+  "font-src": "'self' data: https://fonts.gstatic.com",
   "object-src": "'none'",
   "media-src": "'self'",
   "frame-src": "'none'",

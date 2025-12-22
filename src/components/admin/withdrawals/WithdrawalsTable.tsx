@@ -25,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { TruncatedText } from "@/components/ui/truncated-text";
 import { 
   Search, CheckCircle, XCircle, Play, CheckCircle2, Loader2, Eye, 
   ChevronLeft, ChevronRight, MoreHorizontal, Pencil, Trash2, ArrowRightLeft 
@@ -182,12 +183,14 @@ export function WithdrawalsTable({
                 <TableRow key={withdrawal.id}>
                   <TableCell>
                     <div className="flex flex-col max-w-[200px]">
-                      <span className="font-medium truncate" title={withdrawal.investor_name}>
-                        {withdrawal.investor_name}
-                      </span>
-                      <span className="text-sm text-muted-foreground truncate" title={withdrawal.investor_email}>
-                        {withdrawal.investor_email}
-                      </span>
+                      <TruncatedText 
+                        text={withdrawal.investor_name} 
+                        className="font-medium"
+                      />
+                      <TruncatedText 
+                        text={withdrawal.investor_email} 
+                        className="text-sm text-muted-foreground"
+                      />
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">

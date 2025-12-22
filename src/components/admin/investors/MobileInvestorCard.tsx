@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Asset } from "@/types/investorTypes";
 import { InvestorSummaryV2 } from "@/services/admin/adminService";
+import { TruncatedText } from "@/components/ui/truncated-text";
 import FundAssetDropdown from "./FundAssetDropdown";
 
 interface MobileInvestorCardProps {
@@ -120,8 +121,10 @@ const MobileInvestorCard = ({
   return (
     <Card className="mb-4">
       <CardContent className="pt-4">
-        <div className="font-medium text-lg mb-2">{name}</div>
-        <div className="text-sm text-muted-foreground mb-4">{investor.email}</div>
+        <div className="font-medium text-lg mb-2 max-w-full">
+          <TruncatedText text={name} maxLength={30} />
+        </div>
+        <div className="text-sm text-muted-foreground mb-4 truncate">{investor.email}</div>
 
         <div className="space-y-3">
           {assets.map((asset) => (
