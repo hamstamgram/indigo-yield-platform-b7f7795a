@@ -690,6 +690,52 @@ export default function ReportDeliveryCenter() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              {/* Visual Workflow Indicator */}
+              <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg border">
+                <div className="flex items-center gap-6 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                      (stats?.statements_generated ?? 0) > 0 
+                        ? "bg-green-500 text-white" 
+                        : "bg-muted text-muted-foreground"
+                    }`}>
+                      {(stats?.statements_generated ?? 0) > 0 ? "✓" : "1"}
+                    </div>
+                    <span className={(stats?.statements_generated ?? 0) > 0 ? "font-medium" : "text-muted-foreground"}>
+                      Generate ({stats?.statements_generated ?? 0})
+                    </span>
+                  </div>
+                  <div className="w-8 h-px bg-border" />
+                  <div className="flex items-center gap-2">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                      (stats?.queued ?? 0) > 0 
+                        ? "bg-yellow-500 text-white" 
+                        : (stats?.sent ?? 0) > 0 
+                          ? "bg-green-500 text-white"
+                          : "bg-muted text-muted-foreground"
+                    }`}>
+                      {(stats?.sent ?? 0) > 0 ? "✓" : "2"}
+                    </div>
+                    <span className={(stats?.queued ?? 0) > 0 || (stats?.sent ?? 0) > 0 ? "font-medium" : "text-muted-foreground"}>
+                      Queue ({stats?.queued ?? 0})
+                    </span>
+                  </div>
+                  <div className="w-8 h-px bg-border" />
+                  <div className="flex items-center gap-2">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                      (stats?.sent ?? 0) > 0 
+                        ? "bg-green-500 text-white" 
+                        : "bg-muted text-muted-foreground"
+                    }`}>
+                      {(stats?.sent ?? 0) > 0 ? "✓" : "3"}
+                    </div>
+                    <span className={(stats?.sent ?? 0) > 0 ? "font-medium" : "text-muted-foreground"}>
+                      Sent ({stats?.sent ?? 0})
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               {/* Delivery Mode Selector */}
               <div className="flex items-center gap-4">
                 <Label className="text-sm font-medium min-w-fit">Delivery Mode:</Label>
@@ -744,15 +790,29 @@ export default function ReportDeliveryCenter() {
 
                 <Button
                   variant="secondary"
-                  onClick={() => processMutation.mutate({ periodId: selectedPeriodId, deliveryMode: selectedDeliveryMode })}
-                  disabled={processMutation.isPending || (stats?.queued ?? 0) === 0}
+                  onClick={async () => {
+                    // Auto-queue first if queue is empty but statements exist
+                    if ((stats?.queued ?? 0) === 0 && (stats?.statements_generated ?? 0) > 0) {
+                      toast.info("Queueing statements first...");
+                      await queueMutation.mutateAsync({ periodId: selectedPeriodId, channel: "email" });
+                      // Small delay to let the queue populate
+                      await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+                    processMutation.mutate({ periodId: selectedPeriodId, deliveryMode: selectedDeliveryMode });
+                  }}
+                  disabled={processMutation.isPending || queueMutation.isPending || (stats?.statements_generated ?? 0) === 0}
                 >
-                  {processMutation.isPending ? (
+                  {processMutation.isPending || queueMutation.isPending ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   ) : (
                     <SendHorizonal className="h-4 w-4 mr-2" />
                   )}
-                  Send via MailerSend ({stats?.queued ?? 0})
+                  {(stats?.queued ?? 0) > 0 
+                    ? `Send via MailerSend (${stats?.queued ?? 0})`
+                    : (stats?.statements_generated ?? 0) > 0
+                      ? "Queue & Send via MailerSend"
+                      : "No statements to send"
+                  }
                 </Button>
 
                 <Button
