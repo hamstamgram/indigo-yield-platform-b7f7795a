@@ -25,6 +25,12 @@ interface Fund {
   asset: string;
 }
 
+// Stable reference for URL filter options - MUST be outside component to prevent infinite re-renders
+const URL_FILTER_OPTIONS = {
+  keys: ["status", "fund", "page"] as string[],
+  defaults: { status: "all", page: "1" },
+};
+
 export default function AdminWithdrawalsPage() {
   const [paginatedData, setPaginatedData] = useState<PaginatedWithdrawals>({
     data: [],
@@ -53,11 +59,8 @@ export default function AdminWithdrawalsPage() {
   const [processingDialogOpen, setProcessingDialogOpen] = useState(false);
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
 
-  // URL-persisted filters including page
-  const { filters: urlFilters, setFilter, setFilters: setUrlFilters } = useUrlFilters({
-    keys: ["status", "fund", "page"],
-    defaults: { status: "all", page: "1" },
-  });
+  // URL-persisted filters including page - using stable reference from outside component
+  const { filters: urlFilters, setFilter, setFilters: setUrlFilters } = useUrlFilters(URL_FILTER_OPTIONS);
 
   const filters: WithdrawalFilters = useMemo(() => ({
     status: (urlFilters.status as WithdrawalFilters["status"]) || "all",
@@ -152,6 +155,27 @@ export default function AdminWithdrawalsPage() {
     }
   };
 
+  // Table row action handlers
+  const handleTableApprove = (withdrawal: Withdrawal) => {
+    setSelectedWithdrawal(withdrawal);
+    setApproveDialogOpen(true);
+  };
+
+  const handleTableReject = (withdrawal: Withdrawal) => {
+    setSelectedWithdrawal(withdrawal);
+    setRejectDialogOpen(true);
+  };
+
+  const handleTableStartProcessing = (withdrawal: Withdrawal) => {
+    setSelectedWithdrawal(withdrawal);
+    setProcessingDialogOpen(true);
+  };
+
+  const handleTableComplete = (withdrawal: Withdrawal) => {
+    setSelectedWithdrawal(withdrawal);
+    setCompleteDialogOpen(true);
+  };
+
   const handleActionSuccess = () => {
     loadData();
     setSelectedWithdrawal(null);
@@ -193,6 +217,10 @@ export default function AdminWithdrawalsPage() {
               onPageChange: setPage,
             }}
             onViewDetails={handleViewDetails}
+            onApprove={handleTableApprove}
+            onReject={handleTableReject}
+            onStartProcessing={handleTableStartProcessing}
+            onComplete={handleTableComplete}
           />
         </CardContent>
       </Card>

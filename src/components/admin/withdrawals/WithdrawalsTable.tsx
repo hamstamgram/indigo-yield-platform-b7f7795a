@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Withdrawal, WithdrawalFilters, WithdrawalStatus } from "@/types/withdrawal";
 import { getAssetLogo } from "@/utils/assets";
 import {
@@ -21,10 +20,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Search, CheckCircle, XCircle, Play, CheckCircle2, Loader2, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
-import { ApproveWithdrawalDialog } from "./ApproveWithdrawalDialog";
-import { RejectWithdrawalDialog } from "./RejectWithdrawalDialog";
-import { StartProcessingDialog } from "./StartProcessingDialog";
-import { CompleteWithdrawalDialog } from "./CompleteWithdrawalDialog";
 
 interface Fund {
   id: string;
@@ -50,6 +45,11 @@ interface WithdrawalsTableProps {
   funds?: Fund[];
   pagination?: PaginationProps;
   onViewDetails?: (withdrawal: Withdrawal) => void;
+  // Action callbacks - dialogs are handled by parent component
+  onApprove?: (withdrawal: Withdrawal) => void;
+  onReject?: (withdrawal: Withdrawal) => void;
+  onStartProcessing?: (withdrawal: Withdrawal) => void;
+  onComplete?: (withdrawal: Withdrawal) => void;
 }
 
 const statusColors: Record<WithdrawalStatus, string> = {
@@ -70,32 +70,11 @@ export function WithdrawalsTable({
   funds = [],
   pagination,
   onViewDetails,
+  onApprove,
+  onReject,
+  onStartProcessing,
+  onComplete,
 }: WithdrawalsTableProps) {
-  const [selectedWithdrawal, setSelectedWithdrawal] = useState<Withdrawal | null>(null);
-  const [approveDialogOpen, setApproveDialogOpen] = useState(false);
-  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
-  const [processingDialogOpen, setProcessingDialogOpen] = useState(false);
-  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
-
-  const handleApprove = (withdrawal: Withdrawal) => {
-    setSelectedWithdrawal(withdrawal);
-    setApproveDialogOpen(true);
-  };
-
-  const handleReject = (withdrawal: Withdrawal) => {
-    setSelectedWithdrawal(withdrawal);
-    setRejectDialogOpen(true);
-  };
-
-  const handleStartProcessing = (withdrawal: Withdrawal) => {
-    setSelectedWithdrawal(withdrawal);
-    setProcessingDialogOpen(true);
-  };
-
-  const handleComplete = (withdrawal: Withdrawal) => {
-    setSelectedWithdrawal(withdrawal);
-    setCompleteDialogOpen(true);
-  };
 
   return (
     <div className="space-y-4">
@@ -132,9 +111,9 @@ export function WithdrawalsTable({
         {/* Fund Filter */}
         {funds.length > 0 && (
           <Select
-            value={(filters as any).fundId || "all"}
+            value={filters.fund_id || "all"}
             onValueChange={(value) =>
-              onFiltersChange({ ...filters, fundId: value === "all" ? undefined : value } as any)
+              onFiltersChange({ ...filters, fund_id: value === "all" ? undefined : value })
             }
           >
             <SelectTrigger className="w-full sm:w-[180px]">
@@ -226,41 +205,41 @@ export function WithdrawalsTable({
                           <Eye className="h-4 w-4" />
                         </Button>
                       )}
-                      {withdrawal.status === "pending" && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleApprove(withdrawal)}
-                          >
-                            <CheckCircle className="h-4 w-4 mr-1 text-green-600" />
-                            Approve
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleReject(withdrawal)}
-                          >
-                            <XCircle className="h-4 w-4 mr-1 text-red-600" />
-                            Reject
-                          </Button>
-                        </>
-                      )}
-                      {withdrawal.status === "approved" && (
+                      {withdrawal.status === "pending" && onApprove && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleStartProcessing(withdrawal)}
+                          onClick={() => onApprove(withdrawal)}
+                        >
+                          <CheckCircle className="h-4 w-4 mr-1 text-green-600" />
+                          Approve
+                        </Button>
+                      )}
+                      {withdrawal.status === "pending" && onReject && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onReject(withdrawal)}
+                        >
+                          <XCircle className="h-4 w-4 mr-1 text-red-600" />
+                          Reject
+                        </Button>
+                      )}
+                      {withdrawal.status === "approved" && onStartProcessing && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onStartProcessing(withdrawal)}
                         >
                           <Play className="h-4 w-4 mr-1 text-blue-600" />
                           Start Processing
                         </Button>
                       )}
-                      {withdrawal.status === "processing" && (
+                      {withdrawal.status === "processing" && onComplete && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleComplete(withdrawal)}
+                          onClick={() => onComplete(withdrawal)}
                         >
                           <CheckCircle2 className="h-4 w-4 mr-1 text-green-600" />
                           Complete
@@ -309,34 +288,6 @@ export function WithdrawalsTable({
         </div>
       )}
 
-      {selectedWithdrawal && (
-        <>
-          <ApproveWithdrawalDialog
-            open={approveDialogOpen}
-            onOpenChange={setApproveDialogOpen}
-            withdrawal={selectedWithdrawal}
-            onSuccess={onRefresh}
-          />
-          <RejectWithdrawalDialog
-            open={rejectDialogOpen}
-            onOpenChange={setRejectDialogOpen}
-            withdrawal={selectedWithdrawal}
-            onSuccess={onRefresh}
-          />
-          <StartProcessingDialog
-            open={processingDialogOpen}
-            onOpenChange={setProcessingDialogOpen}
-            withdrawal={selectedWithdrawal}
-            onSuccess={onRefresh}
-          />
-          <CompleteWithdrawalDialog
-            open={completeDialogOpen}
-            onOpenChange={setCompleteDialogOpen}
-            withdrawal={selectedWithdrawal}
-            onSuccess={onRefresh}
-          />
-        </>
-      )}
     </div>
   );
 }
