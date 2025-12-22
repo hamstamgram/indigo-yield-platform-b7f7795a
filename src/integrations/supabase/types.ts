@@ -5598,6 +5598,16 @@ export type Database = {
         }
         Returns: Json
       }
+      edit_transaction: {
+        Args: {
+          p_notes?: string
+          p_reference_id?: string
+          p_transaction_id: string
+          p_tx_date?: string
+          p_tx_hash?: string
+        }
+        Returns: Json
+      }
       encrypt_totp_secret: { Args: { secret_text: string }; Returns: string }
       ensure_admin: { Args: never; Returns: undefined }
       finalize_statement_period: {
@@ -6041,6 +6051,7 @@ export type Database = {
         Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
         Returns: boolean
       }
+      repair_all_positions: { Args: never; Returns: Json }
       requeue_stale_sending: {
         Args: { p_minutes?: number; p_period_id: string }
         Returns: Json
