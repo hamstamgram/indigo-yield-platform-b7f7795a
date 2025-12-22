@@ -486,7 +486,8 @@ export function MonthlyStatementManager() {
                   <CardTitle>Investor Statements</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
+                  <div className="overflow-x-auto rounded-md border">
+                    <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Investor</TableHead>
@@ -574,6 +575,7 @@ export function MonthlyStatementManager() {
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
                 </CardContent>
               </Card>
             </>
