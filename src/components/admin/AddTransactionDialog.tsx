@@ -352,14 +352,6 @@ export function AddTransactionDialog({
     }
     setInvestorError(null);
 
-    // Check AUM requirement for deposit/withdrawal transactions
-    const requiresAum = ["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"].includes(data.txn_type);
-    if (requiresAum && aumExists === false) {
-      setShowAumForm(true);
-      toast.error("Please record AUM for this fund and date before creating the transaction");
-      return;
-    }
-
     // Block manual deposits to INDIGO FEES account
     if (selectedInvestorId === INDIGO_FEES_ACCOUNT_ID && (data.txn_type === "DEPOSIT" || data.txn_type === "FIRST_INVESTMENT")) {
       toast.error("INDIGO FEES cannot receive manual deposits. Fee credits are system-generated only.");
@@ -378,6 +370,35 @@ export function AddTransactionDialog({
     
     try {
       setLoading(true);
+
+      // Auto-create AUM record if it doesn't exist (for deposit/withdrawal transactions)
+      const requiresAum = ["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"].includes(data.txn_type);
+      if (requiresAum && aumExists === false) {
+        console.log("Auto-creating AUM record for transaction...");
+        try {
+          const user = await supabase.auth.getUser();
+          // Use 0 as default AUM - the transaction will update the position anyway
+          await saveDraftAUMEntry(
+            data.fund_id,
+            new Date(data.tx_date),
+            0,
+            "Auto-created for transaction",
+            user.data.user?.id
+          );
+          setAumExists(true);
+          console.log("AUM record auto-created successfully");
+        } catch (aumError) {
+          console.error("Failed to auto-create AUM:", aumError);
+          const errorMsg = aumError instanceof Error ? aumError.message : "Failed to create AUM record";
+          if (errorMsg.includes("Permission denied") || errorMsg.includes("policy")) {
+            toast.error("Permission denied: Admin access required to create transactions.");
+          } else {
+            toast.error(`Failed to prepare transaction: ${errorMsg}`);
+          }
+          setLoading(false);
+          return;
+        }
+      }
 
       // The service now handles FIRST_INVESTMENT -> DEPOSIT mapping internally
       const result = await createAdminTransaction({
