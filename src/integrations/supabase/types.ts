@@ -5599,7 +5599,7 @@ export type Database = {
       }
       retry_delivery: { Args: { p_delivery_id: string }; Returns: Json }
       rollback_yield_correction: {
-        Args: { p_correction_id: string; p_reason?: string }
+        Args: { p_correction_id: string; p_reason: string }
         Returns: Json
       }
       send_daily_rate_notifications: {
