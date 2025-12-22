@@ -28,10 +28,10 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
         variant="ghost"
         size="icon"
         onClick={toggleSidebar}
-        className="lg:hidden mr-3 -ml-1"
+        className="lg:hidden mr-3 -ml-1 hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary active:bg-primary/20 transition-colors"
         aria-label="Toggle menu"
       >
-        <Menu className="h-5 w-5" />
+        <Menu className="h-5 w-5 text-foreground" />
       </Button>
 
       {/* Mobile logo */}

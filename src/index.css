@@ -85,6 +85,16 @@
 
     /* Modern Radius */
     --radius: 1rem; /* 16px - Larger, app-like corners */
+
+    /* Sidebar Colors - High Contrast Navigation */
+    --sidebar: 231 48% 48%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 231 48% 35%;
+    --sidebar-accent: 231 48% 55%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 231 48% 40%;
+    --sidebar-ring: 0 0% 100%;
   }
 
   .dark {
@@ -119,6 +129,16 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 231 48% 60%;
+
+    /* Sidebar Colors - Dark Mode */
+    --sidebar: 222 47% 15%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 231 48% 60%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 222 47% 22%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 222 47% 20%;
+    --sidebar-ring: 231 48% 60%;
   }
 }
 
