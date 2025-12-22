@@ -294,7 +294,26 @@ export default function ReportDeliveryCenter() {
       queryClient.invalidateQueries({ queryKey: ["delivery-stats"] });
     },
     onError: (error) => {
-      toast.error(`Failed to send: ${error.message}`);
+      const errorMessage = error.message || "Unknown error";
+      // Parse common MailerSend errors for better user guidance
+      if (errorMessage.includes("quota") || errorMessage.includes("limit") || errorMessage.includes("402")) {
+        toast.error("MailerSend quota exceeded", {
+          description: "Your MailerSend trial account has reached its sending limit. Upgrade your plan at mailersend.com to continue sending.",
+          duration: 8000,
+        });
+      } else if (errorMessage.includes("401") || errorMessage.includes("unauthorized")) {
+        toast.error("MailerSend authentication failed", {
+          description: "Check your MAILERSEND_API_TOKEN secret is valid.",
+          duration: 6000,
+        });
+      } else if (errorMessage.includes("domain") || errorMessage.includes("sender")) {
+        toast.error("MailerSend domain not verified", {
+          description: "Verify your sending domain at mailersend.com/domains.",
+          duration: 6000,
+        });
+      } else {
+        toast.error(`Failed to send: ${errorMessage}`);
+      }
     },
   });
 
@@ -415,7 +434,21 @@ export default function ReportDeliveryCenter() {
     },
     onError: (error) => {
       setSendProgress(null);
-      toast.error(`Failed to process: ${error.message}`);
+      const errorMessage = error.message || "Unknown error";
+      // Parse common MailerSend errors for better user guidance
+      if (errorMessage.includes("quota") || errorMessage.includes("limit") || errorMessage.includes("402")) {
+        toast.error("MailerSend quota exceeded", {
+          description: "Your MailerSend trial account has reached its sending limit. Upgrade your plan at mailersend.com to continue sending.",
+          duration: 8000,
+        });
+      } else if (errorMessage.includes("401") || errorMessage.includes("unauthorized")) {
+        toast.error("MailerSend authentication failed", {
+          description: "Check your MAILERSEND_API_TOKEN secret is valid.",
+          duration: 6000,
+        });
+      } else {
+        toast.error(`Failed to process: ${errorMessage}`);
+      }
     },
   });
 
