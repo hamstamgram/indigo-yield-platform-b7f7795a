@@ -8,7 +8,7 @@ export class DepositService {
       .select(
         `
         *,
-        profile:profiles (
+        profile:profiles!fk_transactions_v2_profile (
           first_name,
           last_name,
           email
@@ -71,7 +71,7 @@ export class DepositService {
       .select(
         `
         *,
-        profile:profiles (
+        profile:profiles!fk_transactions_v2_profile (
           first_name,
           last_name,
           email
