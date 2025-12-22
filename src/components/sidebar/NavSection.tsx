@@ -134,9 +134,9 @@ const NavSection = ({
                 onKeyDown={(e) => handleKeyDown(e, item.href)}
                 disabled={isLoading}
                 className={cn(
-                  "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-3 group relative focus:outline-none focus:ring-2 focus:ring-sidebar-ring",
+                  "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-3 group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1",
                   isItemActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md ring-1 ring-sidebar-ring/30"
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                   isLoading && "opacity-60 cursor-wait"
                 )}
