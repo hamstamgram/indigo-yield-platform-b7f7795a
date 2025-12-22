@@ -635,13 +635,12 @@ const InvestorReports = () => {
               <FileText className="h-4 w-4 mr-2" />
               {generatingReports ? "Generating..." : "Generate Reports"}
             </Button>
-            <Button
-              onClick={handleSendReports}
-              disabled={sendingReports || stats.reportsGenerated === 0}
-            >
-              <Send className="h-4 w-4 mr-2" />
-              {sendingReports ? "Sending..." : `Send Reports (${stats.reportsGenerated})`}
-            </Button>
+            <Link to="/admin/reports/delivery">
+              <Button disabled={stats.reportsGenerated === 0}>
+                <Send className="h-4 w-4 mr-2" />
+                Send Reports → Delivery Center
+              </Button>
+            </Link>
           </div>
 
           {/* Summary Cards */}
