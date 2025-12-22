@@ -160,6 +160,7 @@ export function InvestorTabs({
       <TabsContent value="transactions" className="mt-0">
         <InvestorLedgerTab
           investorId={investorId}
+          investorName={investorName}
           onDataChange={onDataChange}
         />
       </TabsContent>
