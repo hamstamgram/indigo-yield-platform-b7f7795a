@@ -56,7 +56,8 @@ export function WithdrawalDetailsDrawer({
     toast.success(`${label} copied to clipboard`);
   };
   
-  const canRouteToFees = withdrawal?.status === "approved" || 
+  const canRouteToFees = withdrawal?.status === "pending" ||
+                          withdrawal?.status === "approved" || 
                           withdrawal?.status === "processing" || 
                           withdrawal?.status === "completed";
 
@@ -241,18 +242,21 @@ export function WithdrawalDetailsDrawer({
                       </Button>
                     )}
                     
-                    {/* Route to INDIGO FEES - available for approved/processing/completed */}
-                    {canRouteToFees && (
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => setRouteToFeesOpen(true)}
-                        className="border-primary/50 text-primary hover:bg-primary/10"
-                      >
-                        <ArrowRightLeft className="h-4 w-4 mr-1" />
-                        Route to INDIGO FEES
-                      </Button>
-                    )}
+                  </div>
+                )}
+
+                {/* Route to INDIGO FEES - always visible for valid statuses */}
+                {canRouteToFees && (
+                  <div className="flex gap-2 pt-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setRouteToFeesOpen(true)}
+                      className="border-primary/50 text-primary hover:bg-primary/10"
+                    >
+                      <ArrowRightLeft className="h-4 w-4 mr-1" />
+                      Route to INDIGO FEES
+                    </Button>
                   </div>
                 )}
 
