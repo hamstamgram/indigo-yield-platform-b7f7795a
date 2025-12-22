@@ -6093,6 +6093,15 @@ export type Database = {
         Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
         Returns: boolean
       }
+      reopen_fund_reporting_month: {
+        Args: {
+          p_admin_id: string
+          p_fund_id: string
+          p_month_start: string
+          p_reason?: string
+        }
+        Returns: Json
+      }
       repair_all_positions: { Args: never; Returns: Json }
       requeue_stale_sending: {
         Args: { p_minutes?: number; p_period_id: string }

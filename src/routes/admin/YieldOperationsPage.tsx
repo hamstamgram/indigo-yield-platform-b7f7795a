@@ -66,6 +66,7 @@ import {
   ArrowRightLeft,
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
+import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -109,13 +110,20 @@ function YieldOperationsContent() {
   // Month closure state
   const [reportingMonth, setReportingMonth] = useState<string>("");
   const [closeMonthLoading, setCloseMonthLoading] = useState(false);
+  const [reopenMonthLoading, setReopenMonthLoading] = useState(false);
+  const [showReopenConfirm, setShowReopenConfirm] = useState(false);
+  const [reopenReason, setReopenReason] = useState("");
   const { 
     closureStatus, 
     checkMonthClosed, 
-    closeReportingMonth, 
+    closeReportingMonth,
+    reopenReportingMonth,
     getAvailableMonths,
     setClosureStatus 
   } = useMonthClosure();
+  
+  // Super admin check for reopen functionality
+  const { isSuperAdmin } = useSuperAdmin();
 
   // Confirmation dialog state
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -260,6 +268,28 @@ function YieldOperationsContent() {
       }
     } finally {
       setCloseMonthLoading(false);
+    }
+  };
+
+  // Handle reopening the reporting month (superadmin only)
+  const handleReopenMonth = async () => {
+    if (!selectedFund || !reportingMonth || !user || !isSuperAdmin) return;
+    
+    setReopenMonthLoading(true);
+    try {
+      const result = await reopenReportingMonth(
+        selectedFund.id,
+        new Date(reportingMonth),
+        user.id,
+        reopenReason || "Reopened via Yield Operations UI"
+      );
+      
+      if (result.success) {
+        setShowReopenConfirm(false);
+        setReopenReason("");
+      }
+    } finally {
+      setReopenMonthLoading(false);
     }
   };
 
@@ -719,6 +749,23 @@ function YieldOperationsContent() {
                     Close Month
                   </Button>
                 )}
+                
+                {/* Reopen Month Button - Only for superadmin when month is closed */}
+                {yieldPurpose === "reporting" && reportingMonth && closureStatus?.is_closed && isSuperAdmin && (
+                  <Button
+                    onClick={() => setShowReopenConfirm(true)}
+                    disabled={reopenMonthLoading}
+                    variant="outline"
+                    className="border-red-500 text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                  >
+                    {reopenMonthLoading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <LockOpen className="h-4 w-4 mr-2" />
+                    )}
+                    Reopen Month
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -1044,6 +1091,54 @@ function YieldOperationsContent() {
                 <CheckCircle className="h-4 w-4 mr-2" />
               )}
               Confirm & Apply
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reopen Month Confirmation Dialog */}
+      <AlertDialog open={showReopenConfirm} onOpenChange={setShowReopenConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+              <LockOpen className="h-5 w-5" />
+              Reopen Closed Month
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4 pt-2">
+                <div className="flex items-start gap-2 p-3 rounded-md bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 text-sm">
+                  <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <span>
+                    <strong>Warning:</strong> Reopening this month will allow new yield distributions and edits. 
+                    This action is logged and should only be done for corrections.
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="reopen-reason">Reason for reopening:</Label>
+                  <Input
+                    id="reopen-reason"
+                    value={reopenReason}
+                    onChange={(e) => setReopenReason(e.target.value)}
+                    placeholder="e.g., Correcting yield calculation error"
+                  />
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button
+              onClick={handleReopenMonth}
+              disabled={reopenMonthLoading}
+              variant="destructive"
+            >
+              {reopenMonthLoading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <LockOpen className="h-4 w-4 mr-2" />
+              )}
+              Reopen Month
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

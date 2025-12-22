@@ -26,6 +26,13 @@ export interface CloseMonthResult {
   closed_at?: string;
 }
 
+export interface ReopenMonthResult {
+  success: boolean;
+  error?: string;
+  closure_id?: string;
+  month_start?: string;
+}
+
 /**
  * Hook for checking and closing fund reporting months
  */
@@ -111,6 +118,51 @@ export function useMonthClosure() {
   }, [checkMonthClosed]);
 
   /**
+   * Reopen a closed fund's reporting month (superadmin only)
+   */
+  const reopenReportingMonth = useCallback(async (
+    fundId: string,
+    monthStart: Date,
+    adminId: string,
+    reason?: string
+  ): Promise<ReopenMonthResult> => {
+    setLoading(true);
+    try {
+      const monthStartStr = monthStart.toISOString().split("T")[0];
+
+      const { data, error } = await (supabase.rpc as any)("reopen_fund_reporting_month", {
+        p_fund_id: fundId,
+        p_month_start: monthStartStr,
+        p_admin_id: adminId,
+        p_reason: reason || null,
+      });
+
+      if (error) {
+        console.error("Error reopening month:", error);
+        return { success: false, error: error.message };
+      }
+
+      const result = data as ReopenMonthResult;
+      
+      if (result.success) {
+        // Refresh status
+        await checkMonthClosed(fundId, monthStart);
+        toast.success("Month reopened successfully");
+      } else {
+        toast.error(result.error || "Failed to reopen month");
+      }
+
+      return result;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to reopen month";
+      toast.error(message);
+      return { success: false, error: message };
+    } finally {
+      setLoading(false);
+    }
+  }, [checkMonthClosed]);
+
+  /**
    * Get available months for closing (last 12 months)
    */
   const getAvailableMonths = useCallback((): { value: string; label: string }[] => {
@@ -132,6 +184,7 @@ export function useMonthClosure() {
     closureStatus,
     checkMonthClosed,
     closeReportingMonth,
+    reopenReportingMonth,
     getAvailableMonths,
     setClosureStatus,
   };
