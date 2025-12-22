@@ -232,6 +232,9 @@ export function EditTransactionDialog({
               {...register("reason")}
               rows={2}
             />
+            <p className="text-xs text-muted-foreground">
+              Required for audit trail
+            </p>
             {errors.reason && (
               <p className="text-sm text-destructive">{errors.reason.message}</p>
             )}
