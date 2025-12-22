@@ -332,7 +332,13 @@ export function AddTransactionDialog({
       queryClient.invalidateQueries({ queryKey: ["fund-aum"] });
     } catch (error) {
       console.error("Error recording AUM:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to record AUM");
+      const errorMsg = error instanceof Error ? error.message : "Failed to record AUM";
+      // Show more helpful message for permission errors
+      if (errorMsg.includes("Permission denied") || errorMsg.includes("policy")) {
+        toast.error("Permission denied: You need admin access to record AUM.");
+      } else {
+        toast.error(errorMsg);
+      }
     } finally {
       setIsRecordingAum(false);
     }

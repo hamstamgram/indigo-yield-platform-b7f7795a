@@ -536,7 +536,11 @@ export async function saveDraftAUMEntry(
 
   if (error) {
     console.error("Error saving draft AUM entry:", error);
-    throw new Error(`Failed to save draft: ${error.message}`);
+    // Check for RLS/permission errors
+    if (error.code === '42501' || error.message?.includes('policy')) {
+      throw new Error("Permission denied: Admin access required to record AUM.");
+    }
+    throw new Error(`Failed to save AUM: ${error.message}`);
   }
 
   return data as FundDailyAUM;
