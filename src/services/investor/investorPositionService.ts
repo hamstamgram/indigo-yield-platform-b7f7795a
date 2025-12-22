@@ -43,7 +43,8 @@ export async function fetchInvestorPositions(investorId: string): Promise<Invest
     )
     .eq("investor_id", investorId)
     // Filter out zero-value positions (deleted or fully withdrawn)
-    .or("current_value.gt.0,cost_basis.gt.0,shares.gt.0");
+    // Include negative values (debt/overdraft) by checking neq.0
+    .or("current_value.neq.0,cost_basis.neq.0,shares.neq.0");
 
   if (error) throw error;
   return (data as InvestorPositionRow[]) || [];
