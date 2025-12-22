@@ -26,6 +26,8 @@ export function DepositStats() {
     );
   }
 
+  const assetCount = Object.keys(stats?.by_asset || {}).length;
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card>
@@ -36,7 +38,7 @@ export function DepositStats() {
         <CardContent>
           <div className="text-2xl font-bold">{stats?.total || 0}</div>
           <p className="text-xs text-muted-foreground">
-            ${(stats?.total_amount || 0).toLocaleString()} total value
+            Across {assetCount} asset{assetCount !== 1 ? "s" : ""}
           </p>
         </CardContent>
       </Card>
