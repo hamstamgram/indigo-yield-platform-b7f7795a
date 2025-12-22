@@ -32,9 +32,16 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { createAdminTransaction } from "@/services/shared/transactionService";
 import { fetchInvestorsForSelector } from "@/services/investor/investorPositionService";
+import { saveDraftAUMEntry } from "@/services/admin/yieldDistributionService";
 import { Loader2, Check, ChevronsUpDown, AlertTriangle, Info } from "lucide-react";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 import { useActiveFunds } from "@/hooks/useActiveFunds";
@@ -109,6 +116,14 @@ export function AddTransactionDialog({
   const [investorError, setInvestorError] = useState<string | null>(null);
   const [currentBalance, setCurrentBalance] = useState<number | null>(null);
   const [isCheckingBalance, setIsCheckingBalance] = useState(false);
+  
+  // AUM check state
+  const [aumExists, setAumExists] = useState<boolean | null>(null);
+  const [isCheckingAum, setIsCheckingAum] = useState(false);
+  const [showAumForm, setShowAumForm] = useState(false);
+  const [aumValue, setAumValue] = useState<string>("");
+  const [isRecordingAum, setIsRecordingAum] = useState(false);
+  
   const queryClient = useQueryClient();
   const { data: funds, isLoading: fundsLoading } = useActiveFunds();
 
@@ -130,6 +145,7 @@ export function AddTransactionDialog({
 
   const txnType = watch("txn_type");
   const selectedFundId = watch("fund_id");
+  const txDate = watch("tx_date");
 
   // Check investor's current balance in selected fund
   useEffect(() => {
@@ -160,6 +176,70 @@ export function AddTransactionDialog({
     checkBalance();
   }, [selectedInvestorId, selectedFundId]);
 
+  // Check AUM existence when fund and date are selected
+  useEffect(() => {
+    const checkAumExists = async () => {
+      if (!selectedFundId || !txDate) {
+        setAumExists(null);
+        setShowAumForm(false);
+        return;
+      }
+      
+      setIsCheckingAum(true);
+      try {
+        const { data, error } = await supabase
+          .from("fund_daily_aum")
+          .select("id")
+          .eq("fund_id", selectedFundId)
+          .eq("aum_date", txDate)
+          .eq("purpose", "transaction")
+          .maybeSingle();
+        
+        if (error) {
+          console.error("Error checking AUM:", error);
+          setAumExists(null);
+        } else {
+          setAumExists(!!data);
+        }
+      } catch (error) {
+        console.error("Error checking AUM:", error);
+        setAumExists(null);
+      } finally {
+        setIsCheckingAum(false);
+      }
+    };
+    
+    checkAumExists();
+    setShowAumForm(false); // Reset form visibility on fund/date change
+  }, [selectedFundId, txDate]);
+
+  // Auto-select transaction type based on balance
+  useEffect(() => {
+    if (currentBalance === null || isCheckingBalance) return;
+    
+    // Only auto-select if no type is selected yet
+    if (!txnType) {
+      if (currentBalance === 0) {
+        setValue("txn_type", "FIRST_INVESTMENT");
+      }
+    }
+    // Clear invalid selection when balance changes
+    else if (currentBalance === 0 && txnType === "DEPOSIT") {
+      setValue("txn_type", "FIRST_INVESTMENT");
+    }
+    else if (currentBalance > 0 && txnType === "FIRST_INVESTMENT") {
+      setValue("txn_type", "DEPOSIT");
+    }
+  }, [currentBalance, isCheckingBalance, txnType, setValue]);
+
+  // Clear transaction type when fund changes (balance may differ)
+  useEffect(() => {
+    if (selectedFundId && !fundId) {
+      // Only clear if fund wasn't pre-selected
+      setValue("txn_type", undefined as any);
+    }
+  }, [selectedFundId, fundId, setValue]);
+
   // Determine if this is a first investment scenario
   const isFirstInvestment = currentBalance !== null && currentBalance === 0;
   const hasExistingPosition = currentBalance !== null && currentBalance > 0;
@@ -176,6 +256,9 @@ export function AddTransactionDialog({
       }
       setInvestorError(null);
       setCurrentBalance(null);
+      setAumExists(null);
+      setShowAumForm(false);
+      setAumValue("");
     }
   }, [open, investorId]);
 
@@ -193,6 +276,7 @@ export function AddTransactionDialog({
   };
 
   const selectedInvestor = investors.find((i) => i.id === selectedInvestorId);
+  const selectedFund = funds?.find((f) => f.id === selectedFundId);
 
   // Set initial fund and asset when dialog opens or fundId prop changes
   useEffect(() => {
@@ -215,6 +299,45 @@ export function AddTransactionDialog({
     }
   }, [selectedFundId, funds, setValue]);
 
+  // Handle AUM recording
+  const handleRecordAum = async () => {
+    if (!aumValue || !selectedFundId || !txDate) {
+      toast.error("Please enter an AUM value");
+      return;
+    }
+
+    const numericAum = Number(aumValue);
+    if (isNaN(numericAum) || numericAum < 0) {
+      toast.error("AUM must be a valid positive number");
+      return;
+    }
+
+    setIsRecordingAum(true);
+    try {
+      const user = await supabase.auth.getUser();
+      await saveDraftAUMEntry(
+        selectedFundId,
+        new Date(txDate),
+        numericAum,
+        "Recorded for transaction creation",
+        user.data.user?.id
+      );
+      
+      setAumExists(true);
+      setShowAumForm(false);
+      setAumValue("");
+      toast.success("AUM recorded successfully");
+      
+      // Invalidate AUM queries
+      queryClient.invalidateQueries({ queryKey: ["fund-aum"] });
+    } catch (error) {
+      console.error("Error recording AUM:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to record AUM");
+    } finally {
+      setIsRecordingAum(false);
+    }
+  };
+
   const onSubmit = async (data: TransactionFormData) => {
     // Validate investor selection
     if (!selectedInvestorId) {
@@ -222,6 +345,14 @@ export function AddTransactionDialog({
       return;
     }
     setInvestorError(null);
+
+    // Check AUM requirement for deposit/withdrawal transactions
+    const requiresAum = ["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"].includes(data.txn_type);
+    if (requiresAum && aumExists === false) {
+      setShowAumForm(true);
+      toast.error("Please record AUM for this fund and date before creating the transaction");
+      return;
+    }
 
     // Block manual deposits to INDIGO FEES account
     if (selectedInvestorId === INDIGO_FEES_ACCOUNT_ID && (data.txn_type === "DEPOSIT" || data.txn_type === "FIRST_INVESTMENT")) {
@@ -273,6 +404,9 @@ export function AddTransactionDialog({
       reset();
       setSelectedInvestorId("");
       setCurrentBalance(null);
+      setAumExists(null);
+      setShowAumForm(false);
+      setAumValue("");
       onSuccess();
       onOpenChange(false);
     } catch (error) {
@@ -287,12 +421,22 @@ export function AddTransactionDialog({
     reset();
     setSelectedInvestorId("");
     setInvestorError(null);
+    setAumExists(null);
+    setShowAumForm(false);
+    setAumValue("");
     onOpenChange(false);
+  };
+
+  // Format investor display with truncation
+  const formatInvestorDisplay = (investor: InvestorOption) => {
+    const displayName = investor.displayName;
+    const showEmail = displayName !== investor.email;
+    return { displayName, email: showEmail ? investor.email : null };
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add Transaction</DialogTitle>
           <DialogDescription>
@@ -319,14 +463,28 @@ export function AddTransactionDialog({
                   {isLoadingInvestors ? (
                     <span className="text-muted-foreground">Loading investors...</span>
                   ) : selectedInvestor ? (
-                    <span className="truncate">
-                      {selectedInvestor.displayName}
-                      {selectedInvestor.displayName !== selectedInvestor.email && (
-                        <span className="ml-1 text-muted-foreground">
-                          ({selectedInvestor.email})
-                        </span>
-                      )}
-                    </span>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="flex items-center gap-1 min-w-0 max-w-[350px]">
+                            <span className="truncate font-medium">
+                              {selectedInvestor.displayName}
+                            </span>
+                            {selectedInvestor.displayName !== selectedInvestor.email && (
+                              <span className="text-muted-foreground text-xs truncate max-w-[150px]">
+                                ({selectedInvestor.email})
+                              </span>
+                            )}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="max-w-[400px]">
+                          <p className="font-medium">{selectedInvestor.displayName}</p>
+                          {selectedInvestor.displayName !== selectedInvestor.email && (
+                            <p className="text-sm text-muted-foreground">{selectedInvestor.email}</p>
+                          )}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   ) : (
                     <span className="text-muted-foreground">Select investor...</span>
                   )}
@@ -339,32 +497,35 @@ export function AddTransactionDialog({
                   <CommandList>
                     <CommandEmpty>No investor found.</CommandEmpty>
                     <CommandGroup>
-                      {investors.map((investor) => (
-                        <CommandItem
-                          key={investor.id}
-                          value={`${investor.displayName} ${investor.email}`}
-                          onSelect={() => {
-                            setSelectedInvestorId(investor.id);
-                            setInvestorError(null);
-                            setInvestorSearchOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              selectedInvestorId === investor.id ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          <div className="flex flex-col">
-                            <span>{investor.displayName}</span>
-                            {investor.displayName !== investor.email && (
-                              <span className="text-xs text-muted-foreground">
-                                {investor.email}
-                              </span>
-                            )}
-                          </div>
-                        </CommandItem>
-                      ))}
+                      {investors.map((investor) => {
+                        const { displayName, email } = formatInvestorDisplay(investor);
+                        return (
+                          <CommandItem
+                            key={investor.id}
+                            value={`${investor.displayName} ${investor.email}`}
+                            onSelect={() => {
+                              setSelectedInvestorId(investor.id);
+                              setInvestorError(null);
+                              setInvestorSearchOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4 shrink-0",
+                                selectedInvestorId === investor.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            <div className="flex flex-col min-w-0 flex-1">
+                              <span className="truncate">{displayName}</span>
+                              {email && (
+                                <span className="text-xs text-muted-foreground truncate">
+                                  {email}
+                                </span>
+                              )}
+                            </div>
+                          </CommandItem>
+                        );
+                      })}
                     </CommandGroup>
                   </CommandList>
                 </Command>
@@ -403,14 +564,32 @@ export function AddTransactionDialog({
               </SelectTrigger>
               <SelectContent>
                 {/* Show First Investment if no position exists */}
-                <SelectItem value="FIRST_INVESTMENT" disabled={hasExistingPosition}>
+                <SelectItem 
+                  value="FIRST_INVESTMENT" 
+                  disabled={hasExistingPosition}
+                  className={cn(
+                    hasExistingPosition && "opacity-50"
+                  )}
+                >
                   First Investment {hasExistingPosition && "(position exists)"}
                 </SelectItem>
                 {/* Show Deposit/Top-up if position exists */}
-                <SelectItem value="DEPOSIT" disabled={isFirstInvestment}>
+                <SelectItem 
+                  value="DEPOSIT" 
+                  disabled={isFirstInvestment}
+                  className={cn(
+                    isFirstInvestment && "opacity-50"
+                  )}
+                >
                   Deposit / Top-up {isFirstInvestment && "(no position yet)"}
                 </SelectItem>
-                <SelectItem value="WITHDRAWAL" disabled={isFirstInvestment}>
+                <SelectItem 
+                  value="WITHDRAWAL" 
+                  disabled={isFirstInvestment}
+                  className={cn(
+                    isFirstInvestment && "opacity-50"
+                  )}
+                >
                   Withdrawal {isFirstInvestment && "(no position)"}
                 </SelectItem>
                 <SelectItem value="YIELD">Yield</SelectItem>
@@ -478,6 +657,81 @@ export function AddTransactionDialog({
             {errors.tx_date && <p className="text-sm text-destructive">{errors.tx_date.message}</p>}
           </div>
 
+          {/* AUM Warning and Inline Form */}
+          {selectedFundId && txDate && (
+            <>
+              {isCheckingAum && (
+                <Alert className="py-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <AlertDescription>Checking AUM for this date...</AlertDescription>
+                </Alert>
+              )}
+              
+              {!isCheckingAum && aumExists === false && (
+                <Alert variant="destructive" className="py-3">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription className="space-y-3">
+                    <p>
+                      <strong>No AUM recorded</strong> for {selectedFund?.asset || "this fund"} on {txDate}.
+                      Transactions require AUM data for proper allocation calculations.
+                    </p>
+                    
+                    {!showAumForm ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowAumForm(true)}
+                        className="mt-2"
+                      >
+                        Record AUM Now
+                      </Button>
+                    ) : (
+                      <div className="space-y-2 pt-2 border-t border-destructive/20">
+                        <Label htmlFor="aum_value" className="text-sm">
+                          Total Fund AUM ({selectedFund?.asset || "tokens"})
+                        </Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="aum_value"
+                            type="number"
+                            step="0.00000001"
+                            placeholder="Enter AUM value"
+                            value={aumValue}
+                            onChange={(e) => setAumValue(e.target.value)}
+                            className="flex-1"
+                            disabled={isRecordingAum}
+                          />
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={handleRecordAum}
+                            disabled={isRecordingAum || !aumValue}
+                          >
+                            {isRecordingAum && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Record
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          This will create an AUM record for yield distribution calculations.
+                        </p>
+                      </div>
+                    )}
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {!isCheckingAum && aumExists === true && (
+                <Alert className="py-2 border-green-500/50 bg-green-50 dark:bg-green-950/20">
+                  <Check className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-700 dark:text-green-400">
+                    AUM recorded for {txDate}
+                  </AlertDescription>
+                </Alert>
+              )}
+            </>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="reference_id">Reference ID</Label>
             <Input
@@ -518,7 +772,10 @@ export function AddTransactionDialog({
             <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || fundsLoading || isLoadingInvestors}>
+            <Button 
+              type="submit" 
+              disabled={loading || fundsLoading || isLoadingInvestors || (aumExists === false && showAumForm)}
+            >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Transaction
             </Button>
@@ -528,3 +785,5 @@ export function AddTransactionDialog({
     </Dialog>
   );
 }
+
+export default AddTransactionDialog;
