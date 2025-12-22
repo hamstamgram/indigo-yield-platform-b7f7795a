@@ -54,8 +54,8 @@ export function VoidTransactionDialog({
       return;
     }
 
-    if (!reason.trim()) {
-      toast.error("Void reason is required");
+    if (reason.trim().length < 3) {
+      toast.error("Void reason must be at least 3 characters");
       return;
     }
 
@@ -133,6 +133,12 @@ export function VoidTransactionDialog({
               onChange={(e) => setReason(e.target.value)}
               rows={3}
             />
+            <p className="text-xs text-muted-foreground">
+              Minimum 3 characters required for audit trail
+            </p>
+            {reason.trim().length > 0 && reason.trim().length < 3 && (
+              <p className="text-sm text-destructive">Reason must be at least 3 characters</p>
+            )}
           </div>
 
           {/* Confirmation */}
@@ -154,7 +160,7 @@ export function VoidTransactionDialog({
           <Button
             variant="destructive"
             onClick={handleVoid}
-            disabled={loading || confirmText !== "VOID" || !reason.trim()}
+            disabled={loading || confirmText !== "VOID" || reason.trim().length < 3}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Void Transaction
