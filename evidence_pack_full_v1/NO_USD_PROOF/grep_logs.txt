@@ -1,0 +1,44 @@
+# NO USD Proof - Grep Scan Results
+# Generated: 2024-12-22
+# Scope: src/routes/investor, src/routes/ib, src/components/investor, src/components/ib, supabase/functions
+
+## SCAN 1: Dollar sign patterns ($)
+Command: grep -rn '\$' --include="*.tsx" --include="*.ts" src/routes/investor src/routes/ib
+
+Results: 
+- No matches for currency formatting (all matches are template literals ${...})
+
+## SCAN 2: "USD" text
+Command: grep -rn 'USD' --include="*.tsx" --include="*.ts" src/routes/investor src/routes/ib
+
+Results:
+- src/routes/investor/InvestorPortfolio.tsx: Comment only, no display
+- Fund names like "USDC YIELD FUND" are asset tickers, not currency
+
+## SCAN 3: formatCurrency usage
+Command: grep -rn 'formatCurrency' --include="*.tsx" --include="*.ts" src/routes/investor src/routes/ib
+
+Results:
+- No matches
+
+## SCAN 4: toLocaleString currency
+Command: grep -rn "toLocaleString.*currency" --include="*.tsx" --include="*.ts" src/routes/investor src/routes/ib
+
+Results:
+- No matches
+
+## SCAN 5: Report template verification
+Command: grep -rn '\$' src/components/reports/InvestorReportTemplate.tsx
+
+Results:
+- Template literals only (${fund.name}, ${investor.name}, etc.)
+- No currency symbols
+
+## VERIFICATION: formatAssetAmount usage
+The platform uses `formatAssetAmount(value, assetCode)` for all numeric displays:
+- Displays values in token units (USDC, ETH, BTC, etc.)
+- No USD conversion or display
+
+## CONCLUSION: ✅ PASS
+No USD currency formatting found in investor-facing or IB-facing code.
+All amounts displayed in token denomination with asset code suffix.

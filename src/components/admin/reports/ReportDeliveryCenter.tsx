@@ -22,6 +22,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
+import { useSortableColumns } from "@/hooks/useSortableColumns";
 import {
   Dialog,
   DialogContent,
@@ -223,7 +225,11 @@ export default function ReportDeliveryCenter() {
     enabled: !!selectedPeriodId,
   });
 
-  // Mutations
+  // Sortable columns for the deliveries table
+  const { sortConfig, requestSort, sortedData: sortedDeliveries } = useSortableColumns(
+    deliveries,
+    { column: 'created_at', direction: 'desc' }
+  );
   const queueMutation = useMutation({
     mutationFn: async ({ periodId, channel }: { periodId: string; channel: string }) => {
       const { data, error } = await supabase.rpc("queue_statement_deliveries", {
@@ -752,19 +758,33 @@ export default function ReportDeliveryCenter() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Investor</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Mode</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-center">Attempts</TableHead>
-                    <TableHead>Sent</TableHead>
-                    <TableHead>Delivered</TableHead>
+                    <SortableTableHead column="profiles.first_name" currentSort={sortConfig} onSort={requestSort}>
+                      Investor
+                    </SortableTableHead>
+                    <SortableTableHead column="recipient_email" currentSort={sortConfig} onSort={requestSort}>
+                      Email
+                    </SortableTableHead>
+                    <SortableTableHead column="delivery_mode" currentSort={sortConfig} onSort={requestSort}>
+                      Mode
+                    </SortableTableHead>
+                    <SortableTableHead column="status" currentSort={sortConfig} onSort={requestSort}>
+                      Status
+                    </SortableTableHead>
+                    <SortableTableHead column="attempt_count" currentSort={sortConfig} onSort={requestSort} className="text-center">
+                      Attempts
+                    </SortableTableHead>
+                    <SortableTableHead column="sent_at" currentSort={sortConfig} onSort={requestSort}>
+                      Sent
+                    </SortableTableHead>
+                    <SortableTableHead column="delivered_at" currentSort={sortConfig} onSort={requestSort}>
+                      Delivered
+                    </SortableTableHead>
                     <TableHead>Error</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {deliveries.map((delivery) => {
+                  {sortedDeliveries.map((delivery) => {
                     const statusConfig = getStatusConfig(delivery.status);
                     const StatusIcon = statusConfig.icon;
                     return (

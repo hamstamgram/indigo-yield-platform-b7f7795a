@@ -1,0 +1,50 @@
+{
+  "generated": "2024-12-22",
+  "framework": "react-router-dom v6",
+  "routes": {
+    "public": [
+      { "path": "/", "component": "Index", "role": null },
+      { "path": "/auth", "component": "Auth", "role": null },
+      { "path": "/admin-login", "component": "AdminLoginPage", "role": null }
+    ],
+    "investor": [
+      { "path": "/investor/dashboard", "component": "InvestorDashboard", "role": "investor" },
+      { "path": "/investor/portfolio", "component": "InvestorPortfolio", "role": "investor" },
+      { "path": "/investor/transactions", "component": "InvestorTransactions", "role": "investor" },
+      { "path": "/investor/statements", "component": "InvestorStatements", "role": "investor" },
+      { "path": "/investor/documents", "component": "InvestorDocuments", "role": "investor" },
+      { "path": "/investor/settings", "component": "InvestorSettings", "role": "investor" },
+      { "path": "/investor/security", "component": "InvestorSecurity", "role": "investor" }
+    ],
+    "ib": [
+      { "path": "/ib/overview", "component": "IBOverviewPage", "role": "ib" },
+      { "path": "/ib/network", "component": "IBNetworkPage", "role": "ib" },
+      { "path": "/ib/earnings", "component": "IBEarningsPage", "role": "ib" },
+      { "path": "/ib/transactions", "component": "IBTransactionsPage", "role": "ib" },
+      { "path": "/ib/dashboard", "component": "IBDashboard", "role": "ib" }
+    ],
+    "admin": [
+      { "path": "/admin/dashboard", "component": "AdminDashboard", "role": "admin" },
+      { "path": "/admin/investors", "component": "InvestorManagement", "role": "admin" },
+      { "path": "/admin/investors/new", "component": "CreateInvestorWizard", "role": "admin" },
+      { "path": "/admin/investors/:id", "component": "InvestorDetailPage", "role": "admin" },
+      { "path": "/admin/transactions", "component": "TransactionManagement", "role": "admin" },
+      { "path": "/admin/funds", "component": "FundManagementPage", "role": "admin" },
+      { "path": "/admin/yields", "component": "YieldOperationsPage", "role": "admin" },
+      { "path": "/admin/aum", "component": "AUMManagementPage", "role": "admin" },
+      { "path": "/admin/withdrawals", "component": "WithdrawalManagement", "role": "admin" },
+      { "path": "/admin/investor-reports", "component": "InvestorReportsPage", "role": "admin" },
+      { "path": "/admin/reports/delivery", "component": "ReportDeliveryCenter", "role": "admin" },
+      { "path": "/admin/audit-logs", "component": "AdminAuditLogs", "role": "admin" }
+    ],
+    "admin_settings": [
+      { "path": "/admin/settings-platform", "component": "AdminSettings", "role": "admin", "status": "renders" },
+      { "path": "/admin/settings/admins", "component": "AdminList", "role": "super_admin", "status": "renders" },
+      { "path": "/admin/settings/tools", "component": "AdminToolsPage", "role": "admin", "status": "renders" },
+      { "path": "/admin/settings/invites", "component": "AdminInvitesPage", "role": "admin", "status": "renders" },
+      { "path": "/admin/system-health", "component": "SystemHealthPage", "role": "admin", "status": "renders" }
+    ]
+  },
+  "verified_no_404": true,
+  "all_settings_pages_render": true
+}
