@@ -538,9 +538,16 @@ export default function ReportDeliveryCenter() {
 
   const retryAllFailed = async () => {
     const failedDeliveries = deliveries.filter(d => d.status.toLowerCase() === "failed");
+    let retried = 0;
     for (const d of failedDeliveries) {
-      await retryMutation.mutateAsync(d.id);
+      try {
+        await retryMutation.mutateAsync(d.id);
+        retried++;
+      } catch {
+        // Continue with next
+      }
     }
+    toast.success(`Requeued ${retried} of ${failedDeliveries.length} failed deliveries`);
     setConfirmAction(null);
   };
 
@@ -772,7 +779,7 @@ export default function ReportDeliveryCenter() {
               </CardContent>
             </Card>
 
-            <Card className="bg-destructive/5 border-destructive/20">
+            <Card className={`bg-destructive/5 border-destructive/20 ${(stats?.failed ?? 0) > 0 ? 'animate-pulse' : ''}`}>
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center gap-2 mb-1">
                   <XOctagon className="h-4 w-4 text-destructive" />
@@ -1050,15 +1057,15 @@ export default function ReportDeliveryCenter() {
                             ? format(new Date(delivery.delivered_at), "MMM d, HH:mm")
                             : "-"}
                         </TableCell>
-                        <TableCell className="max-w-[120px]">
+                        <TableCell className="max-w-[160px]">
                           {delivery.error_message ? (
-                            <span
-                              className="text-xs text-destructive truncate cursor-pointer hover:underline block"
+                            <div
+                              className="text-xs text-destructive bg-destructive/10 px-2 py-1 rounded truncate cursor-pointer hover:underline"
                               title={delivery.error_message}
                               onClick={() => setSelectedDelivery(delivery)}
                             >
-                              {delivery.error_message.slice(0, 25)}...
-                            </span>
+                              {delivery.error_message.slice(0, 40)}...
+                            </div>
                           ) : (
                             <span className="text-muted-foreground">-</span>
                           )}

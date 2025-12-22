@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizeHtml } from "@/utils/sanitize";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -200,7 +201,7 @@ const StatementsPage = () => {
         throw new Error("Pop-up blocked. Please allow pop-ups for this site.");
       }
 
-      printWindow.document.write(htmlWithPrintStyles);
+      printWindow.document.write(sanitizeHtml(htmlWithPrintStyles));
       printWindow.document.close();
 
       // Wait for content to load, then trigger print dialog
