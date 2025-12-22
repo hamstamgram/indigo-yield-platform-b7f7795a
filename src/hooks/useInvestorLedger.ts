@@ -14,6 +14,7 @@ export interface Transaction {
   is_voided: boolean;
   tx_hash?: string | null;
   is_system_generated?: boolean;
+  visibility_scope?: string | null;
   fund?: { name: string; asset: string } | null;
 }
 
@@ -52,6 +53,7 @@ export function useInvestorLedger(investorId: string, filters: LedgerFilters = {
           is_voided,
           tx_hash,
           is_system_generated,
+          visibility_scope,
           fund:funds(name, asset)
         `)
         .eq("investor_id", investorId)
@@ -124,9 +126,19 @@ export function useInvestorLedger(investorId: string, filters: LedgerFilters = {
     queryClient.invalidateQueries({ queryKey: ["fund-aum-unified"] });
   }, [queryClient, investorId]);
 
+  /**
+   * Force refetch that bypasses stale time
+   * Use when user manually requests fresh data
+   */
+  const forceRefetch = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey });
+    return query.refetch();
+  }, [queryClient, queryKey, query]);
+
   return {
     ...query,
     transactions: query.data || [],
     invalidateAll,
+    forceRefetch,
   };
 }

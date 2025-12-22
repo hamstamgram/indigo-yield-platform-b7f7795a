@@ -47,7 +47,9 @@ import {
   Ban,
   Eye,
   EyeOff,
+  Lock,
 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
@@ -121,7 +123,11 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
     error,
     refetch,
     invalidateAll,
+    forceRefetch,
   } = useInvestorLedger(investorId, ledgerFilters);
+  
+  // Also fetch unfiltered count to show filter impact
+  const { transactions: unfilteredTransactions } = useInvestorLedger(investorId, { showVoided: true });
 
   // Fetch default fund for this investor
   useEffect(() => {
@@ -175,10 +181,18 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
     setSelectedTransaction(null);
   }, [invalidateAll, onDataChange]);
 
-  const handleResetAndRefresh = useCallback(() => {
+  const handleResetAndRefresh = useCallback(async () => {
     clearFilters();
-    refetch();
-  }, [clearFilters, refetch]);
+    setShowVoided(false);
+    await forceRefetch();
+    toast({
+      title: "Data refreshed",
+      description: "Transaction list has been updated.",
+    });
+  }, [clearFilters, forceRefetch]);
+
+  // Calculate hidden transaction count
+  const hiddenCount = unfilteredTransactions.length - transactions.length;
 
   // Prepare transaction for edit/void dialog
   const openEditDialog = useCallback((tx: typeof transactions[0]) => {
@@ -289,8 +303,35 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
         </div>
       </div>
 
-      {/* Diagnostic: Mismatch Banner (visible to admins when query empty but expected data) */}
-      {!loading && queryDataCount === 0 && !error && hasActiveFilters && (
+      {/* Diagnostic: Filter Impact Banner */}
+      {!loading && hiddenCount > 0 && (
+        <Alert variant="default" className="bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800">
+          <AlertCircle className="h-4 w-4 text-blue-600" />
+          <AlertTitle className="text-blue-800 dark:text-blue-400">
+            {hiddenCount} transaction{hiddenCount !== 1 ? 's' : ''} hidden by filters
+          </AlertTitle>
+          <AlertDescription className="text-blue-700 dark:text-blue-300 text-sm">
+            <div className="flex items-center gap-2">
+              <span>
+                Showing {transactions.length} of {unfilteredTransactions.length} total transactions.
+                {!showVoided && ' Voided transactions are hidden.'}
+              </span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleResetAndRefresh}
+                className="h-7 text-xs"
+              >
+                <RefreshCw className="h-3 w-3 mr-1" />
+                Clear Filters & Refresh
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Diagnostic: Empty with filters */}
+      {!loading && queryDataCount === 0 && !error && hasActiveFilters && hiddenCount === 0 && (
         <Alert variant="default" className="bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800">
           <AlertCircle className="h-4 w-4 text-amber-600" />
           <AlertTitle className="text-amber-800 dark:text-amber-400">No matching transactions</AlertTitle>
@@ -441,10 +482,16 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
                     {format(new Date(tx.tx_date), "MMM d, yyyy")}
                   </TableCell>
                   <TableCell className="py-2">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       {getTypeIcon(tx.type)}
                       <span className="capitalize">{tx.type.replace(/_/g, " ").toLowerCase()}</span>
-                      {tx.is_voided && <Badge variant="destructive" className="ml-1 text-[9px]">Voided</Badge>}
+                      {tx.is_voided && <Badge variant="destructive" className="text-[9px]">Voided</Badge>}
+                      {tx.visibility_scope === "admin_only" && (
+                        <Badge variant="outline" className="text-[9px] gap-0.5 text-muted-foreground border-muted-foreground/30">
+                          <Lock className="h-2.5 w-2.5" />
+                          Admin
+                        </Badge>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell className="py-2">
