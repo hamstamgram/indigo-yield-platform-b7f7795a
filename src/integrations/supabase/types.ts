@@ -5489,6 +5489,10 @@ export type Database = {
         Args: { encrypted_secret: string }
         Returns: string
       }
+      dispatch_report_delivery_run: {
+        Args: { p_channel?: string; p_period_id: string }
+        Returns: Json
+      }
       distribute_monthly_yield: {
         Args: {
           p_fund_id: string
