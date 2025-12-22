@@ -5990,26 +5990,15 @@ export type Database = {
         Args: { p_delivery_id: string; p_note?: string }
         Returns: Json
       }
-      preview_daily_yield_to_fund_v2:
-        | {
-            Args: {
-              p_admin_id: string
-              p_date: string
-              p_fund_id: string
-              p_gross_amount: number
-              p_purpose?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_date: string
-              p_fund_id: string
-              p_new_aum: number
-              p_purpose?: string
-            }
-            Returns: Json
-          }
+      preview_daily_yield_to_fund_v2: {
+        Args: {
+          p_date: string
+          p_fund_id: string
+          p_new_aum: number
+          p_purpose?: string
+        }
+        Returns: Json
+      }
       preview_investor_balances: {
         Args: { p_fund_id?: string }
         Returns: {
