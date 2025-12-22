@@ -33,6 +33,7 @@ interface FlowData {
   daily_inflows: number;
   daily_outflows: number;
   net_flow_24h: number;
+  aum: number; // Historical AUM for the selected date
 }
 
 interface InvestorComposition {
@@ -129,7 +130,7 @@ export const FinancialSnapshot: React.FC = () => {
 
       if (error) throw error;
 
-      // Store flows in a map by fund_id
+      // Store flows and historical AUM in a map by fund_id
       const flows = new Map<string, FlowData>();
       (snapshot || []).forEach((item: any) => {
         flows.set(item.fund_id, {
@@ -137,6 +138,7 @@ export const FinancialSnapshot: React.FC = () => {
           daily_inflows: item.daily_inflows || 0,
           daily_outflows: item.daily_outflows || 0,
           net_flow_24h: item.net_flow_24h || 0,
+          aum: item.aum || 0,
         });
       });
       setFlowData(flows);
@@ -220,12 +222,18 @@ export const FinancialSnapshot: React.FC = () => {
             Fund Financials
           </h2>
           <div className="flex items-center gap-2 text-muted-foreground">
-            <span>Live AUM with historical daily flows.</span>
-            {lastUpdated && (
-              <Badge variant="outline" className="text-xs gap-1">
-                <Radio className="h-2 w-2 text-green-500 animate-pulse" />
-                Live
-              </Badge>
+            {date && format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') ? (
+              <>
+                <span>Live AUM with daily flows.</span>
+                {lastUpdated && (
+                  <Badge variant="outline" className="text-xs gap-1">
+                    <Radio className="h-2 w-2 text-green-500 animate-pulse" />
+                    Live
+                  </Badge>
+                )}
+              </>
+            ) : (
+              <span>Historical AUM and flows for {date ? format(date, 'PPP') : 'selected date'}.</span>
             )}
           </div>
         </div>
@@ -339,20 +347,30 @@ export const FinancialSnapshot: React.FC = () => {
                   {selectedFundId === fund.id && <Badge className="bg-primary">Selected</Badge>}
                 </CardHeader>
                 <CardContent>
-                  {/* Main AUM - Live from unified hook */}
+                  {/* Main AUM - Historical or Live based on date */}
                   <div className="mt-4 mb-6">
-                    <div className="text-2xl font-bold text-foreground">
-                      {formatAUM(fund.latest_aum, fund.asset)}{" "}
-                      <span className="text-sm text-muted-foreground font-normal">{fund.asset}</span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-                        Total AUM
-                      </p>
-                      <Badge variant="outline" className="text-xs">
-                        {fund.investor_count} investors
-                      </Badge>
-                    </div>
+                    {(() => {
+                      const isToday = date && format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+                      const displayAUM = isToday ? fund.latest_aum : (flows?.aum ?? fund.latest_aum);
+                      return (
+                        <>
+                          <div className="text-2xl font-bold text-foreground">
+                            {formatAUM(displayAUM, fund.asset)}{" "}
+                            <span className="text-sm text-muted-foreground font-normal">{fund.asset}</span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                              {isToday ? 'Total AUM' : 'AUM on Date'}
+                            </p>
+                            {isToday && (
+                              <Badge variant="outline" className="text-xs">
+                                {fund.investor_count} investors
+                              </Badge>
+                            )}
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
 
                   {/* Daily Flows Grid */}
