@@ -5725,7 +5725,7 @@ export type Database = {
         }[]
       }
       get_historical_nav: {
-        Args: { target_date?: string }
+        Args: { target_date: string }
         Returns: {
           asset_code: string
           aum: number
