@@ -1,0 +1,28 @@
+import DOMPurify from 'dompurify';
+
+/**
+ * Sanitize HTML content to prevent XSS attacks
+ * Safe for rendering in iframes or document.write()
+ */
+export function sanitizeHtml(dirty: string): string {
+  return DOMPurify.sanitize(dirty, {
+    ALLOWED_TAGS: [
+      'html', 'head', 'body', 'style', 'title', 'meta',
+      'div', 'span', 'p', 'br', 'hr',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption', 'colgroup', 'col',
+      'ul', 'ol', 'li',
+      'strong', 'b', 'em', 'i', 'u', 'small', 'sub', 'sup',
+      'img', 'a',
+      'blockquote', 'pre', 'code',
+    ],
+    ALLOWED_ATTR: [
+      'style', 'class', 'id', 'href', 'src', 'alt', 'width', 'height',
+      'colspan', 'rowspan', 'align', 'valign', 'border', 'cellpadding', 'cellspacing',
+      'target', 'rel', 'title',
+    ],
+    ALLOW_DATA_ATTR: false,
+    FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button', 'textarea', 'select'],
+    FORBID_ATTR: ['onerror', 'onclick', 'onload', 'onmouseover', 'onfocus', 'onblur', 'onchange', 'onsubmit'],
+  });
+}

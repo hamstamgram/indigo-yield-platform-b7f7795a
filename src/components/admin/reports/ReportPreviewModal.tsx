@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { sanitizeHtml } from "@/utils/sanitize";
 import {
   Dialog,
   DialogContent,
@@ -102,7 +103,7 @@ export function ReportPreviewModal({
             }`}
           >
             <iframe
-              srcDoc={htmlContent}
+              srcDoc={sanitizeHtml(htmlContent)}
               className="w-full h-full min-h-[500px] bg-white"
               title="Statement Preview"
               sandbox="allow-same-origin"

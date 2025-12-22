@@ -529,7 +529,7 @@ function FeesOverviewContent() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                            <code className="text-xs bg-muted px-1.5 py-0.5 rounded truncate max-w-[100px] inline-block" title={allocation.distribution_id}>
                               {allocation.distribution_id.slice(0, 8)}...
                             </code>
                           </TableCell>
