@@ -101,6 +101,7 @@ export function useInvestorLedger(investorId: string, filters: LedgerFilters = {
     queryClient.invalidateQueries({ queryKey: ["investor-transactions"] });
     queryClient.invalidateQueries({ queryKey: ["admin-transactions-history"] });
     queryClient.invalidateQueries({ queryKey: ["fund-aum"] });
+    queryClient.invalidateQueries({ queryKey: ["fund-aum-unified"] });
   }, [queryClient, investorId]);
 
   return {

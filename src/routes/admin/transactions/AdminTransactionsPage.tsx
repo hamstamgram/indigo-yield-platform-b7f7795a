@@ -589,8 +589,12 @@ function TransactionHistoryContent() {
         onOpenChange={setEditDialogOpen}
         transaction={selectedTx}
         onSuccess={() => {
+          // Comprehensive cache invalidation for transaction edits
           queryClient.invalidateQueries({ queryKey: ["admin-transactions-history"] });
           queryClient.invalidateQueries({ queryKey: ["investor-positions"] });
+          queryClient.invalidateQueries({ queryKey: ["investor-ledger"] });
+          queryClient.invalidateQueries({ queryKey: ["fund-aum"] });
+          queryClient.invalidateQueries({ queryKey: ["fund-aum-unified"] });
         }}
       />
 
@@ -600,8 +604,12 @@ function TransactionHistoryContent() {
         onOpenChange={setVoidDialogOpen}
         transaction={selectedTx}
         onSuccess={() => {
+          // Comprehensive cache invalidation for voided transactions
           queryClient.invalidateQueries({ queryKey: ["admin-transactions-history"] });
           queryClient.invalidateQueries({ queryKey: ["investor-positions"] });
+          queryClient.invalidateQueries({ queryKey: ["investor-ledger"] });
+          queryClient.invalidateQueries({ queryKey: ["fund-aum"] });
+          queryClient.invalidateQueries({ queryKey: ["fund-aum-unified"] });
         }}
       />
     </div>
