@@ -90,6 +90,7 @@ interface Fund {
   asset: string;
   total_aum: number;
   investor_count: number;
+  aum_record_count?: number;
 }
 
 function YieldOperationsContent() {
@@ -152,12 +153,19 @@ function YieldOperationsContent() {
 
       if (error) throw error;
 
-      // Get AUM and investor count for each fund
+      // Get AUM, investor count, and AUM record count for each fund
       const fundsWithAUM = await Promise.all(
         (fundsData || []).map(async (fund) => {
+          // Fetch positions
           const { data: positions } = await supabase
             .from("investor_positions")
             .select("current_value, investor_id")
+            .eq("fund_id", fund.id);
+
+          // Fetch AUM record count
+          const { count: aumCount } = await supabase
+            .from("fund_daily_aum")
+            .select("*", { count: "exact", head: true })
             .eq("fund_id", fund.id);
 
           const total_aum = positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0;
@@ -167,6 +175,7 @@ function YieldOperationsContent() {
             ...fund,
             total_aum,
             investor_count: uniqueInvestors.size,
+            aum_record_count: aumCount || 0,
           };
         })
       );
@@ -508,6 +517,23 @@ function YieldOperationsContent() {
           </DialogHeader>
 
           <div className="space-y-6 py-4">
+            {/* Warning: No AUM History */}
+            {selectedFund && selectedFund.aum_record_count === 0 && (
+              <div className="flex items-start gap-3 p-4 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700">
+                <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-medium text-amber-800 dark:text-amber-200">
+                    No AUM History for {selectedFund.name}
+                  </p>
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    This fund has no historical AUM records. Before distributing yield, you should record AUM data
+                    via the <span className="font-medium">Daily Rates Management</span> page or by completing this form.
+                    The first yield distribution will establish the baseline.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Step 1: Period & Purpose */}
             <div className="p-4 border rounded-lg bg-muted/20">
               <div className="flex items-center justify-between mb-4">
