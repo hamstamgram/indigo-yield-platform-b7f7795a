@@ -161,9 +161,11 @@ export function WithdrawalsTable({
               withdrawals.map((withdrawal) => (
                 <TableRow key={withdrawal.id}>
                   <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{withdrawal.investor_name}</span>
-                      <span className="text-sm text-muted-foreground">
+                    <div className="flex flex-col max-w-[200px]">
+                      <span className="font-medium truncate" title={withdrawal.investor_name}>
+                        {withdrawal.investor_name}
+                      </span>
+                      <span className="text-sm text-muted-foreground truncate" title={withdrawal.investor_email}>
                         {withdrawal.investor_email}
                       </span>
                     </div>
