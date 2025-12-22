@@ -4134,6 +4134,47 @@ export type Database = {
           },
         ]
       }
+      transaction_mutations: {
+        Row: {
+          action: string
+          actor_id: string
+          after_data: Json | null
+          before_data: Json
+          created_at: string
+          id: string
+          reason: string
+          transaction_id: string
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          after_data?: Json | null
+          before_data: Json
+          created_at?: string
+          id?: string
+          reason: string
+          transaction_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          after_data?: Json | null
+          before_data?: Json
+          created_at?: string
+          id?: string
+          reason?: string
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_mutations_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions_v2"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions_v2: {
         Row: {
           amount: number
@@ -4151,6 +4192,7 @@ export type Database = {
           id: string
           investor_id: string | null
           is_system_generated: boolean | null
+          is_voided: boolean
           notes: string | null
           purpose: Database["public"]["Enums"]["aum_purpose"] | null
           reference_id: string | null
@@ -4162,6 +4204,9 @@ export type Database = {
           type: Database["public"]["Enums"]["tx_type"]
           value_date: string
           visibility_scope: Database["public"]["Enums"]["visibility_scope"]
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
         }
         Insert: {
           amount: number
@@ -4179,6 +4224,7 @@ export type Database = {
           id?: string
           investor_id?: string | null
           is_system_generated?: boolean | null
+          is_voided?: boolean
           notes?: string | null
           purpose?: Database["public"]["Enums"]["aum_purpose"] | null
           reference_id?: string | null
@@ -4190,6 +4236,9 @@ export type Database = {
           type: Database["public"]["Enums"]["tx_type"]
           value_date?: string
           visibility_scope?: Database["public"]["Enums"]["visibility_scope"]
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
         }
         Update: {
           amount?: number
@@ -4207,6 +4256,7 @@ export type Database = {
           id?: string
           investor_id?: string | null
           is_system_generated?: boolean | null
+          is_voided?: boolean
           notes?: string | null
           purpose?: Database["public"]["Enums"]["aum_purpose"] | null
           reference_id?: string | null
@@ -4218,6 +4268,9 @@ export type Database = {
           type?: Database["public"]["Enums"]["tx_type"]
           value_date?: string
           visibility_scope?: Database["public"]["Enums"]["visibility_scope"]
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
         }
         Relationships: [
           {
@@ -6079,6 +6132,10 @@ export type Database = {
               error: true
             } & "Could not choose the best candidate function between: public.update_investor_aum_percentages(p_fund_id => text), public.update_investor_aum_percentages(p_fund_id => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
           }
+      update_transaction: {
+        Args: { p_reason: string; p_transaction_id: string; p_updates: Json }
+        Returns: Json
+      }
       update_user_profile_secure: {
         Args: {
           p_first_name?: string
@@ -6111,6 +6168,10 @@ export type Database = {
           expected: number
           status: string
         }[]
+      }
+      void_transaction: {
+        Args: { p_reason: string; p_transaction_id: string }
+        Returns: Json
       }
     }
     Enums: {
