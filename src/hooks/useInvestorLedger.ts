@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback } from "react";
 
-interface Transaction {
+export interface Transaction {
   id: string;
   tx_date: string;
   type: string;
@@ -12,6 +12,8 @@ interface Transaction {
   notes: string | null;
   asset: string;
   is_voided: boolean;
+  tx_hash?: string | null;
+  is_system_generated?: boolean;
   fund?: { name: string; asset: string } | null;
 }
 
@@ -46,6 +48,8 @@ export function useInvestorLedger(investorId: string, filters: LedgerFilters = {
           notes,
           asset,
           is_voided,
+          tx_hash,
+          is_system_generated,
           fund:funds(name, asset)
         `)
         .eq("investor_id", investorId)

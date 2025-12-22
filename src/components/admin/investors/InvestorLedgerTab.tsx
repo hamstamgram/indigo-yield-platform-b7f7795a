@@ -27,6 +27,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   BookOpen,
   Filter,
   X,
@@ -36,12 +42,17 @@ import {
   Calendar,
   Plus,
   AlertCircle,
+  MoreHorizontal,
+  Pencil,
+  Ban,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { useInvestorLedger } from "@/hooks/useInvestorLedger";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
+import { EditTransactionDialog } from "@/components/admin/transactions/EditTransactionDialog";
+import { VoidTransactionDialog } from "@/components/admin/transactions/VoidTransactionDialog";
 
 interface InvestorLedgerTabProps {
   investorId: string;
@@ -75,6 +86,21 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
   const [showFilters, setShowFilters] = useState(false);
   const [addTxDialogOpen, setAddTxDialogOpen] = useState(false);
   const [defaultFundId, setDefaultFundId] = useState<string>("");
+  
+  // Edit and Void dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [voidDialogOpen, setVoidDialogOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<{
+    id: string;
+    type: string;
+    amount: number;
+    asset: string;
+    investorName: string;
+    txDate: string;
+    notes: string | null;
+    txHash?: string | null;
+    isSystemGenerated?: boolean;
+  } | null>(null);
 
   // Convert URL filters to hook filters
   const ledgerFilters = useMemo(() => ({
@@ -137,10 +163,49 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
     setAddTxDialogOpen(false);
   }, [invalidateAll, onDataChange]);
 
+  const handleEditVoidSuccess = useCallback(() => {
+    invalidateAll();
+    onDataChange?.();
+    setEditDialogOpen(false);
+    setVoidDialogOpen(false);
+    setSelectedTransaction(null);
+  }, [invalidateAll, onDataChange]);
+
   const handleResetAndRefresh = useCallback(() => {
     clearFilters();
     refetch();
   }, [clearFilters, refetch]);
+
+  // Prepare transaction for edit/void dialog
+  const openEditDialog = useCallback((tx: typeof transactions[0]) => {
+    setSelectedTransaction({
+      id: tx.id,
+      type: tx.type,
+      amount: tx.amount,
+      asset: tx.asset,
+      investorName: investorName || "Unknown",
+      txDate: tx.tx_date,
+      notes: tx.notes || null,
+      txHash: tx.tx_hash || null,
+      isSystemGenerated: tx.is_system_generated || false,
+    });
+    setEditDialogOpen(true);
+  }, [investorName]);
+
+  const openVoidDialog = useCallback((tx: typeof transactions[0]) => {
+    setSelectedTransaction({
+      id: tx.id,
+      type: tx.type,
+      amount: tx.amount,
+      asset: tx.asset,
+      investorName: investorName || "Unknown",
+      txDate: tx.tx_date,
+      notes: tx.notes || null,
+      txHash: tx.tx_hash || null,
+      isSystemGenerated: tx.is_system_generated || false,
+    });
+    setVoidDialogOpen(true);
+  }, [investorName]);
 
   const getTypeIcon = (type: string) => {
     const lowerType = type.toLowerCase();
@@ -343,11 +408,12 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
                 <TableHead className="text-xs h-9">Fund</TableHead>
                 <TableHead className="text-xs h-9 text-right">Amount</TableHead>
                 <TableHead className="text-xs h-9">Purpose</TableHead>
+                <TableHead className="text-xs h-9 w-[60px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {transactions.map((tx) => (
-                <TableRow key={tx.id} className="text-xs">
+                <TableRow key={tx.id} className={`text-xs ${tx.is_voided ? "opacity-50 line-through" : ""}`}>
                   <TableCell className="py-2 font-mono">
                     {format(new Date(tx.tx_date), "MMM d, yyyy")}
                   </TableCell>
@@ -355,6 +421,7 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
                     <div className="flex items-center gap-1.5">
                       {getTypeIcon(tx.type)}
                       <span className="capitalize">{tx.type.replace(/_/g, " ").toLowerCase()}</span>
+                      {tx.is_voided && <Badge variant="destructive" className="ml-1 text-[9px]">Voided</Badge>}
                     </div>
                   </TableCell>
                   <TableCell className="py-2">
@@ -368,6 +435,30 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
                   </TableCell>
                   <TableCell className="py-2">
                     {getPurposeBadge(tx.purpose)}
+                  </TableCell>
+                  <TableCell className="py-2">
+                    {!tx.is_voided && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-6 w-6">
+                            <MoreHorizontal className="h-3.5 w-3.5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => openEditDialog(tx)}>
+                            <Pencil className="h-3.5 w-3.5 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => openVoidDialog(tx)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Ban className="h-3.5 w-3.5 mr-2" />
+                            Void
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -383,6 +474,22 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
         investorId={investorId}
         fundId={defaultFundId}
         onSuccess={handleAddTxSuccess}
+      />
+
+      {/* Edit Transaction Dialog */}
+      <EditTransactionDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        transaction={selectedTransaction}
+        onSuccess={handleEditVoidSuccess}
+      />
+
+      {/* Void Transaction Dialog */}
+      <VoidTransactionDialog
+        open={voidDialogOpen}
+        onOpenChange={setVoidDialogOpen}
+        transaction={selectedTransaction}
+        onSuccess={handleEditVoidSuccess}
       />
     </div>
   );
