@@ -275,6 +275,131 @@ export type Database = {
         }
         Relationships: []
       }
+      correction_runs: {
+        Row: {
+          applied_at: string | null
+          applied_by: string | null
+          correction_distribution_id: string | null
+          created_at: string | null
+          created_by: string
+          delta_aum: number
+          fund_id: string
+          id: string
+          input_hash: string
+          investors_affected: number | null
+          new_aum: number
+          old_aum: number
+          original_distribution_id: string | null
+          period_end: string
+          period_id: string | null
+          period_start: string
+          preview_json: Json | null
+          purpose: Database["public"]["Enums"]["aum_purpose"]
+          reason: string | null
+          status: string
+          total_fee_delta: number | null
+          total_ib_delta: number | null
+        }
+        Insert: {
+          applied_at?: string | null
+          applied_by?: string | null
+          correction_distribution_id?: string | null
+          created_at?: string | null
+          created_by: string
+          delta_aum: number
+          fund_id: string
+          id?: string
+          input_hash: string
+          investors_affected?: number | null
+          new_aum: number
+          old_aum: number
+          original_distribution_id?: string | null
+          period_end: string
+          period_id?: string | null
+          period_start: string
+          preview_json?: Json | null
+          purpose: Database["public"]["Enums"]["aum_purpose"]
+          reason?: string | null
+          status?: string
+          total_fee_delta?: number | null
+          total_ib_delta?: number | null
+        }
+        Update: {
+          applied_at?: string | null
+          applied_by?: string | null
+          correction_distribution_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          delta_aum?: number
+          fund_id?: string
+          id?: string
+          input_hash?: string
+          investors_affected?: number | null
+          new_aum?: number
+          old_aum?: number
+          original_distribution_id?: string | null
+          period_end?: string
+          period_id?: string | null
+          period_start?: string
+          preview_json?: Json | null
+          purpose?: Database["public"]["Enums"]["aum_purpose"]
+          reason?: string | null
+          status?: string
+          total_fee_delta?: number | null
+          total_ib_delta?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correction_runs_applied_by_fkey"
+            columns: ["applied_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correction_runs_applied_by_fkey"
+            columns: ["applied_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "correction_runs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correction_runs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "correction_runs_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correction_runs_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "correction_runs_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "statement_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_nav: {
         Row: {
           aum: number
@@ -2254,6 +2379,112 @@ export type Database = {
           },
           {
             foreignKeyName: "investor_invites_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+        ]
+      }
+      investor_month_snapshots: {
+        Row: {
+          additions: number
+          avg_capital: number
+          beginning_balance: number
+          created_at: string | null
+          days_in_period: number
+          days_invested: number
+          distribution_id: string | null
+          ending_balance: number
+          fee_pct: number | null
+          fund_id: string
+          ib_parent_id: string | null
+          ib_percentage: number | null
+          id: string
+          investor_id: string
+          period_end: string
+          period_start: string
+          redemptions: number
+          source: string | null
+        }
+        Insert: {
+          additions?: number
+          avg_capital?: number
+          beginning_balance?: number
+          created_at?: string | null
+          days_in_period?: number
+          days_invested?: number
+          distribution_id?: string | null
+          ending_balance?: number
+          fee_pct?: number | null
+          fund_id: string
+          ib_parent_id?: string | null
+          ib_percentage?: number | null
+          id?: string
+          investor_id: string
+          period_end: string
+          period_start: string
+          redemptions?: number
+          source?: string | null
+        }
+        Update: {
+          additions?: number
+          avg_capital?: number
+          beginning_balance?: number
+          created_at?: string | null
+          days_in_period?: number
+          days_invested?: number
+          distribution_id?: string | null
+          ending_balance?: number
+          fee_pct?: number | null
+          fund_id?: string
+          ib_parent_id?: string | null
+          ib_percentage?: number | null
+          id?: string
+          investor_id?: string
+          period_end?: string
+          period_start?: string
+          redemptions?: number
+          source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investor_month_snapshots_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_month_snapshots_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "investor_month_snapshots_ib_parent_id_fkey"
+            columns: ["ib_parent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_month_snapshots_ib_parent_id_fkey"
+            columns: ["ib_parent_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "investor_month_snapshots_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_month_snapshots_investor_id_fkey"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
@@ -5174,6 +5405,18 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_yield_correction_v2: {
+        Args: {
+          p_confirmation: string
+          p_fund_id: string
+          p_new_aum: number
+          p_period_end: string
+          p_period_start: string
+          p_purpose: string
+          p_reason: string
+        }
+        Returns: Json
+      }
       apply_yield_with_ib: {
         Args: {
           p_created_by?: string
@@ -5220,6 +5463,16 @@ export type Database = {
       complete_withdrawal: {
         Args: { p_notes?: string; p_request_id: string; p_tx_hash?: string }
         Returns: boolean
+      }
+      compute_correction_input_hash: {
+        Args: {
+          p_fund_id: string
+          p_new_aum: number
+          p_period_end: string
+          p_period_start: string
+          p_purpose: string
+        }
+        Returns: string
       }
       create_admin_invite: { Args: { p_email: string }; Returns: string }
       create_withdrawal_request: {
@@ -5626,6 +5879,16 @@ export type Database = {
         }
         Returns: Json
       }
+      preview_yield_correction_v2: {
+        Args: {
+          p_fund_id: string
+          p_new_aum: number
+          p_period_end: string
+          p_period_start: string
+          p_purpose: string
+        }
+        Returns: Json
+      }
       process_excel_import_with_classes: {
         Args: { p_data: Json; p_import_type?: string }
         Returns: Json
@@ -5647,6 +5910,29 @@ export type Database = {
           p_period_id: string
         }
         Returns: Json
+      }
+      rebuild_investor_period_balances: {
+        Args: {
+          p_fund_id: string
+          p_period_end: string
+          p_period_start: string
+          p_purpose: Database["public"]["Enums"]["aum_purpose"]
+        }
+        Returns: {
+          additions: number
+          avg_capital: number
+          beginning_balance: number
+          days_in_period: number
+          days_invested: number
+          email: string
+          ending_balance: number
+          fee_pct: number
+          ib_parent_id: string
+          ib_percentage: number
+          investor_id: string
+          investor_name: string
+          redemptions: number
+        }[]
       }
       regenerate_reports_for_correction: {
         Args: { p_correction_id: string }

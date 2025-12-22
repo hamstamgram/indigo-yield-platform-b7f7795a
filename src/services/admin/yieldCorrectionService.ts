@@ -1,6 +1,7 @@
 /**
- * Yield Correction Service
+ * Yield Correction Service V2
  * Provides preview and apply operations for yield corrections
+ * Uses time-weighted ownership and historical snapshots
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +10,9 @@ export interface CorrectionSummary {
   fund_id: string;
   fund_name: string;
   fund_asset: string;
-  effective_date: string;
+  period_start: string;
+  period_end: string;
+  effective_date?: string; // Legacy compatibility
   purpose: string;
   old_aum: number;
   new_aum: number;
@@ -23,24 +26,35 @@ export interface CorrectionSummary {
   total_net_delta: number;
   is_month_closed: boolean;
   original_distribution_id?: string;
+  input_hash?: string;
 }
 
 export interface InvestorImpactRow {
   investor_id: string;
   investor_name: string;
   email: string;
+  // Time-weighted fields (new)
+  beginning_balance: number;
+  additions: number;
+  redemptions: number;
+  avg_capital: number;
+  // Position and share
   position_value: number;
   share_pct: number;
+  // Gross yield
   old_gross: number;
   new_gross: number;
   delta_gross: number;
+  // Fees
   fee_pct: number;
   old_fee: number;
   new_fee: number;
   delta_fee: number;
+  // Net yield
   old_net: number;
   new_net: number;
   delta_net: number;
+  // IB
   ib_parent_id: string | null;
   ib_pct: number;
   old_ib: number;
@@ -67,6 +81,17 @@ export interface ReportImpact {
   tables_affected: string[];
 }
 
+export interface Reconciliation {
+  sum_gross_yield: number;
+  fund_gross_yield: number;
+  gross_yield_match: boolean;
+  sum_fees: number;
+  sum_ib: number;
+  platform_fees: number;
+  sum_net_yield: number;
+  conservation_check: boolean;
+}
+
 export interface CorrectionPreview {
   success: boolean;
   error?: string;
@@ -74,6 +99,7 @@ export interface CorrectionPreview {
   investor_rows?: InvestorImpactRow[];
   tx_diffs?: TransactionDiff[];
   report_impacts?: ReportImpact[];
+  reconciliation?: Reconciliation;
 }
 
 export interface CorrectionResult {
@@ -87,6 +113,8 @@ export interface CorrectionResult {
   total_fee_delta?: number;
   total_ib_delta?: number;
   is_month_closed?: boolean;
+  input_hash?: string;
+  reconciliation?: Reconciliation;
   message?: string;
 }
 
@@ -126,23 +154,26 @@ export interface RegenerateResult {
 }
 
 /**
- * Preview yield correction without applying changes
+ * Preview yield correction V2 with time-weighted ownership
+ * Uses historical snapshots and proper period boundaries
  */
-export async function previewYieldCorrection(
+export async function previewYieldCorrectionV2(
   fundId: string,
-  date: string,
+  periodStart: string,
+  periodEnd: string,
   purpose: string,
   newAum: number
 ): Promise<CorrectionPreview> {
-  const { data, error } = await supabase.rpc("preview_yield_correction", {
+  const { data, error } = await supabase.rpc("preview_yield_correction_v2", {
     p_fund_id: fundId,
-    p_date: date,
+    p_period_start: periodStart,
+    p_period_end: periodEnd,
     p_purpose: purpose,
     p_new_aum: newAum,
   });
 
   if (error) {
-    console.error("Preview yield correction error:", error);
+    console.error("Preview yield correction V2 error:", error);
     return { success: false, error: error.message };
   }
 
@@ -150,7 +181,56 @@ export async function previewYieldCorrection(
 }
 
 /**
- * Apply yield correction with delta transactions
+ * Apply yield correction V2 with idempotency
+ */
+export async function applyYieldCorrectionV2(
+  fundId: string,
+  periodStart: string,
+  periodEnd: string,
+  purpose: string,
+  newAum: number,
+  reason: string,
+  confirmation: string
+): Promise<CorrectionResult> {
+  const { data, error } = await supabase.rpc("apply_yield_correction_v2", {
+    p_fund_id: fundId,
+    p_period_start: periodStart,
+    p_period_end: periodEnd,
+    p_purpose: purpose,
+    p_new_aum: newAum,
+    p_reason: reason,
+    p_confirmation: confirmation,
+  });
+
+  if (error) {
+    console.error("Apply yield correction V2 error:", error);
+    return { success: false, error: error.message };
+  }
+
+  return data as unknown as CorrectionResult;
+}
+
+/**
+ * Legacy preview function - calls V2 with date as both start and end
+ */
+export async function previewYieldCorrection(
+  fundId: string,
+  date: string,
+  purpose: string,
+  newAum: number
+): Promise<CorrectionPreview> {
+  // For legacy calls, use date as period_end and compute period_start as first of month
+  const periodEnd = date;
+  const dateObj = new Date(date);
+  const periodStart = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1)
+    .toISOString()
+    .split("T")[0];
+
+  return previewYieldCorrectionV2(fundId, periodStart, periodEnd, purpose, newAum);
+}
+
+/**
+ * Legacy apply function - calls V2 with date as both start and end
  */
 export async function applyYieldCorrection(
   fundId: string,
@@ -160,32 +240,31 @@ export async function applyYieldCorrection(
   reason: string,
   confirmation: string
 ): Promise<CorrectionResult> {
-  const { data, error } = await supabase.rpc("apply_yield_correction", {
-    p_fund_id: fundId,
-    p_date: date,
-    p_purpose: purpose,
-    p_new_aum: newAum,
-    p_reason: reason,
-    p_confirmation: confirmation,
-  });
+  // For legacy calls, use date as period_end and compute period_start as first of month
+  const periodEnd = date;
+  const dateObj = new Date(date);
+  const periodStart = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1)
+    .toISOString()
+    .split("T")[0];
 
-  if (error) {
-    console.error("Apply yield correction error:", error);
-    return { success: false, error: error.message };
-  }
-
-  return data as unknown as CorrectionResult;
+  return applyYieldCorrectionV2(
+    fundId,
+    periodStart,
+    periodEnd,
+    purpose,
+    newAum,
+    reason,
+    confirmation
+  );
 }
 
 /**
  * Rollback a yield correction by reversing all delta transactions
- * Note: This calls the rollback_yield_correction RPC which needs to be created
  */
 export async function rollbackYieldCorrection(
   correctionId: string,
   reason: string
 ): Promise<RollbackResult> {
-  // Use generic rpc call since the function may not exist in types yet
   const { data, error } = await (supabase.rpc as CallableFunction)("rollback_yield_correction", {
     p_correction_id: correctionId,
     p_reason: reason,
@@ -201,12 +280,10 @@ export async function rollbackYieldCorrection(
 
 /**
  * Regenerate affected reports after a correction
- * Note: This calls the regenerate_reports_for_correction RPC which needs to be created
  */
 export async function regenerateAffectedReports(
   correctionId: string
 ): Promise<RegenerateResult> {
-  // Use generic rpc call since the function may not exist in types yet
   const { data, error } = await (supabase.rpc as CallableFunction)("regenerate_reports_for_correction", {
     p_correction_id: correctionId,
   });
@@ -253,7 +330,7 @@ export function formatTokenAmount(amount: number, asset?: string): string {
 }
 
 /**
- * Export investor impact to CSV
+ * Export investor impact to CSV with time-weighted fields
  */
 export function exportInvestorImpactToCsv(
   rows: InvestorImpactRow[],
@@ -263,6 +340,10 @@ export function exportInvestorImpactToCsv(
     "Investor ID",
     "Investor Name",
     "Email",
+    "Beginning Balance",
+    "Additions",
+    "Redemptions",
+    "Avg Capital",
     "Position Value",
     "Share %",
     "Old Gross",
@@ -287,6 +368,10 @@ export function exportInvestorImpactToCsv(
       row.investor_id,
       `"${row.investor_name}"`,
       row.email,
+      row.beginning_balance,
+      row.additions,
+      row.redemptions,
+      row.avg_capital,
       row.position_value,
       row.share_pct,
       row.old_gross,
@@ -307,9 +392,13 @@ export function exportInvestorImpactToCsv(
     ].join(",")
   );
 
+  const periodLabel = summary.period_start && summary.period_end
+    ? `${summary.period_start} to ${summary.period_end}`
+    : summary.effective_date || "N/A";
+
   return [
     `# Yield Correction Preview - ${summary.fund_name} (${summary.fund_asset})`,
-    `# Date: ${summary.effective_date}, Purpose: ${summary.purpose}`,
+    `# Period: ${periodLabel}, Purpose: ${summary.purpose}`,
     `# Old AUM: ${summary.old_aum}, New AUM: ${summary.new_aum}, Delta: ${summary.delta_aum}`,
     "",
     headers,
@@ -346,9 +435,13 @@ export function exportTransactionDiffsToCsv(
     ].join(",")
   );
 
+  const periodLabel = summary.period_start && summary.period_end
+    ? `${summary.period_start} to ${summary.period_end}`
+    : summary.effective_date || "N/A";
+
   return [
     `# Transaction Diffs - ${summary.fund_name} (${summary.fund_asset})`,
-    `# Date: ${summary.effective_date}, Purpose: ${summary.purpose}`,
+    `# Period: ${periodLabel}, Purpose: ${summary.purpose}`,
     "",
     headers,
     ...dataRows,
