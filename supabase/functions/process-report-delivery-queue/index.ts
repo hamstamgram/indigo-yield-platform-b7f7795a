@@ -115,11 +115,34 @@ serve(async (req: Request) => {
     }
 
     if (!deliveries || deliveries.length === 0) {
-      console.log("No queued deliveries found");
+      console.log("ERROR: No queued deliveries found for period", period_id);
+      
+      // Check WHY there are no queued deliveries
+      const { data: statementsCount } = await serviceClient
+        .from("generated_statements")
+        .select("id", { count: "exact", head: true })
+        .eq("period_id", period_id);
+      
+      const { data: allDeliveries } = await serviceClient
+        .from("statement_email_delivery")
+        .select("status", { count: "exact" })
+        .eq("period_id", period_id);
+      
+      const totalStatements = statementsCount?.length || 0;
+      const existingDeliveries = allDeliveries?.length || 0;
+      
       return new Response(
         JSON.stringify({
-          success: true,
-          message: "No queued deliveries found",
+          success: false,
+          error: "No queued deliveries found",
+          reason: existingDeliveries === 0 
+            ? "Queue is empty. Click 'Queue Remaining Statements' first to populate the delivery queue."
+            : `All ${existingDeliveries} deliveries have already been processed (none in 'queued' status).`,
+          details: {
+            statements_generated: totalStatements,
+            deliveries_exist: existingDeliveries,
+            queued_count: 0,
+          },
           processed: 0,
           sent: 0,
           failed: 0,

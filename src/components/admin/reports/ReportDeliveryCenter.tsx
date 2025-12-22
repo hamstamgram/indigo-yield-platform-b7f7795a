@@ -313,9 +313,28 @@ export default function ReportDeliveryCenter() {
       return { sent, failed, total: queued.length };
     },
     onSuccess: (data) => {
-      toast.success("Queue processed via MailerSend", {
-        description: `${data.sent} sent, ${data.failed} failed`,
-      });
+      // Prevent silent success - show appropriate message based on results
+      if (data.total === 0) {
+        toast.error("No emails to send", {
+          description: "The delivery queue is empty. Click 'Queue Remaining Statements' first.",
+        });
+      } else if (data.sent === 0 && data.failed > 0) {
+        toast.error(`All ${data.failed} emails failed to send`, {
+          description: "Check delivery details for error messages.",
+        });
+      } else if (data.sent === 0 && data.failed === 0) {
+        toast.warning("No emails were processed", {
+          description: "Queue may have been empty or already processed.",
+        });
+      } else if (data.failed > 0) {
+        toast.warning(`Sent ${data.sent} emails, ${data.failed} failed`, {
+          description: "Some emails failed - check details for errors.",
+        });
+      } else {
+        toast.success(`Successfully sent ${data.sent} emails`, {
+          description: "All queued emails have been delivered.",
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ["deliveries"] });
       queryClient.invalidateQueries({ queryKey: ["delivery-stats"] });
     },
