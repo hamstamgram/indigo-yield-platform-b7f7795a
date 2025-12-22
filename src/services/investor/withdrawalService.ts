@@ -209,7 +209,7 @@ export const withdrawalService = {
     const { error } = await supabase.rpc('approve_withdrawal', {
       p_request_id: withdrawalId,
       p_approved_amount: processedAmount,
-      p_notes: adminNotes || null
+      p_admin_notes: adminNotes || null
     });
 
     if (error) {
@@ -225,7 +225,7 @@ export const withdrawalService = {
     const { error } = await supabase.rpc('reject_withdrawal', {
       p_request_id: withdrawalId,
       p_reason: reason,
-      p_notes: adminNotes || null
+      p_admin_notes: adminNotes || null
     });
 
     if (error) {
@@ -245,7 +245,7 @@ export const withdrawalService = {
     const { error } = await supabase.rpc('start_processing_withdrawal', {
       p_request_id: withdrawalId,
       p_processed_amount: null,
-      p_notes: adminNotes || null,
+      p_admin_notes: adminNotes || null,
       p_expected_completion: null,
       p_tx_hash: txHash || null
     });
@@ -263,7 +263,7 @@ export const withdrawalService = {
     const { error } = await supabase.rpc('complete_withdrawal', {
       p_request_id: withdrawalId,
       p_tx_hash: txHash || null,
-      p_notes: adminNotes || null
+      p_admin_notes: adminNotes || null
     });
 
     if (error) {
@@ -279,7 +279,7 @@ export const withdrawalService = {
     const { error } = await supabase.rpc('cancel_withdrawal_by_admin', {
       p_request_id: withdrawalId,
       p_reason: reason,
-      p_notes: adminNotes || null
+      p_admin_notes: adminNotes || null
     });
 
     if (error) {
