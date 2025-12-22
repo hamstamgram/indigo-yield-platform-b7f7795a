@@ -13,6 +13,10 @@ export type {
   WithdrawalRequest,
 } from "./investorDataService";
 
+// Investor position service
+export { fetchInvestorPositions, fetchInvestorsForSelector } from "./investorPositionService";
+export type { InvestorPositionRow } from "./investorPositionService";
+
 // Legacy investor service
 export { checkAdminStatus, fetchInvestors, fetchPendingInvites } from "./investorService";
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { useInvestorPositions } from "@/hooks/useInvestorPositions";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
 import {
   Table,
@@ -18,33 +18,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 export default function InvestorPositionsTab({ investorId }: { investorId: string }) {
   const queryClient = useQueryClient();
 
-  // Fetch Positions - filter out zero-value positions
-  const { data: positions, isLoading } = useQuery({
-    queryKey: ["investor-positions", investorId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("investor_positions")
-        .select(
-          `
-          investor_id,
-          fund_id,
-          shares,
-          cost_basis,
-          current_value,
-          realized_pnl,
-          fund_class,
-          updated_at,
-          funds ( id, name, asset )
-        `
-        )
-        .eq("investor_id", investorId)
-        // Filter out zero-value positions (deleted or fully withdrawn)
-        .or("current_value.gt.0,cost_basis.gt.0,shares.gt.0");
-
-      if (error) throw error;
-      return data;
-    },
-  });
+  // Use extracted hook for positions
+  const { data: positions, isLoading } = useInvestorPositions(investorId);
 
   // State for inline Add Transaction modal
   const [showAddTxDialog, setShowAddTxDialog] = useState(false);
@@ -103,9 +78,9 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
               <TableBody>
                 {positions.map((pos) => (
                   <TableRow key={`${pos.investor_id}-${pos.fund_id}`}>
-                    <TableCell className="font-medium">{(pos.funds as any)?.name}</TableCell>
+                    <TableCell className="font-medium">{pos.funds?.name}</TableCell>
                     <TableCell className="font-mono">{Number(pos.current_value).toFixed(8)}</TableCell>
-                    <TableCell>{((pos.funds as any)?.asset || "").toUpperCase()}</TableCell>
+                    <TableCell>{(pos.funds?.asset || "").toUpperCase()}</TableCell>
                     <TableCell className="text-green-600 font-mono">
                       +{Number(pos.realized_pnl || 0).toFixed(8)}
                     </TableCell>

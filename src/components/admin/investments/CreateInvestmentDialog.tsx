@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { investmentFormSchema, type InvestmentFormValues } from "@/lib/validations/investment";
+import { investmentFormSchema, type InvestmentFormValues } from "@/lib/validation/investment";
 import { type InvestmentFormData } from "@/types/investment";
 import { investmentService } from "@/services/investor/investmentService";
 import { supabase } from "@/integrations/supabase/client";

@@ -33,11 +33,11 @@ import {
 } from "@/components/ui/command";
 import { toast } from "sonner";
 import { createAdminTransaction } from "@/services/shared/transactionService";
+import { fetchInvestorsForSelector } from "@/services/investor/investorPositionService";
 import { Loader2, Check, ChevronsUpDown } from "lucide-react";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 import { useActiveFunds } from "@/hooks/useActiveFunds";
 import { getAssetLogo } from "@/utils/assets";
-import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 interface InvestorOption {
@@ -144,21 +144,7 @@ export function AddTransactionDialog({
   const loadInvestors = async () => {
     setIsLoadingInvestors(true);
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, email, first_name, last_name")
-        .eq("is_admin", false)
-        .order("email");
-
-      if (error) throw error;
-
-      const options: InvestorOption[] = (data || []).map((p) => ({
-        id: p.id,
-        email: p.email || "",
-        displayName: p.first_name && p.last_name 
-          ? `${p.first_name} ${p.last_name}` 
-          : p.email || p.id,
-      }));
+      const options = await fetchInvestorsForSelector();
       setInvestors(options);
     } catch (error) {
       console.error("Failed to load investors:", error);
