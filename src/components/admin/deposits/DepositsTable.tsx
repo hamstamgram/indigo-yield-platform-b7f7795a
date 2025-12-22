@@ -121,7 +121,7 @@ export function DepositsTable() {
                       <Badge variant="outline">{deposit.asset_symbol}</Badge>
                     </TableCell>
                     <TableCell className="font-semibold">
-                      {deposit.amount.toLocaleString()}
+                      {deposit.amount.toLocaleString()} {deposit.asset_symbol}
                     </TableCell>
                     <TableCell>{getStatusBadge(deposit.status)}</TableCell>
                     <TableCell>

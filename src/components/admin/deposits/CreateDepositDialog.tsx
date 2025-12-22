@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import {
   Dialog,
@@ -18,10 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { depositService } from "@/services/investor/depositService";
 import { supabase } from "@/integrations/supabase/client";
 import type { DepositFormData } from "@/types/deposit";
+import { format } from "date-fns";
 
 interface CreateDepositDialogProps {
   open: boolean;
@@ -36,6 +39,10 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
     amount: 0,
     transaction_hash: "",
   });
+  const [selectedFundId, setSelectedFundId] = useState<string>("");
+  const [aumValue, setAumValue] = useState<string>("");
+
+  const today = format(new Date(), "yyyy-MM-dd");
 
   // Fetch users for dropdown (exclude system accounts like INDIGO FEES)
   const { data: users } = useQuery({
@@ -68,24 +75,85 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
     enabled: open,
   });
 
+  // Check if AUM exists for the selected fund on today's date
+  const { data: aumRecord, isLoading: isCheckingAum } = useQuery({
+    queryKey: ["fund-aum-check", selectedFundId, today],
+    queryFn: async () => {
+      if (!selectedFundId) return null;
+      const { data, error } = await supabase
+        .from("fund_daily_aum")
+        .select("id, total_aum")
+        .eq("fund_id", selectedFundId)
+        .eq("aum_date", today)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedFundId && open,
+  });
+
+  const needsAum = selectedFundId && !isCheckingAum && !aumRecord;
+
+  // Create AUM mutation
+  const createAumMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedFundId || !aumValue) {
+        throw new Error("Fund and AUM value are required");
+      }
+      const { error } = await supabase.from("fund_daily_aum").insert({
+        fund_id: selectedFundId,
+        aum_date: today,
+        total_aum: parseFloat(aumValue),
+        source: "manual_deposit_dialog",
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["fund-aum-check", selectedFundId, today] });
+    },
+  });
+
   const createMutation = useMutation({
-    mutationFn: (data: DepositFormData) => depositService.createDeposit(data),
+    mutationFn: async (data: DepositFormData) => {
+      // If AUM is needed, create it first
+      if (needsAum && aumValue) {
+        await createAumMutation.mutateAsync();
+      }
+      return depositService.createDeposit(data);
+    },
     onSuccess: () => {
       toast.success("Deposit created successfully");
       queryClient.invalidateQueries({ queryKey: ["deposits"] });
       queryClient.invalidateQueries({ queryKey: ["deposit-stats"] });
       onOpenChange(false);
-      setFormData({
-        user_id: "",
-        asset_symbol: "",
-        amount: 0,
-        transaction_hash: "",
-      });
+      resetForm();
     },
     onError: (error: Error) => {
       toast.error(`Failed to create deposit: ${error.message}`);
     },
   });
+
+  const resetForm = () => {
+    setFormData({
+      user_id: "",
+      asset_symbol: "",
+      amount: 0,
+      transaction_hash: "",
+    });
+    setSelectedFundId("");
+    setAumValue("");
+  };
+
+  // Update asset_symbol and selectedFundId together when fund is selected
+  const handleFundChange = (fundId: string) => {
+    setSelectedFundId(fundId);
+    const fund = funds?.find((f) => f.id === fundId);
+    if (fund) {
+      setFormData({ ...formData, asset_symbol: (fund.asset || "").toUpperCase() });
+    }
+    setAumValue(""); // Reset AUM value when fund changes
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,8 +163,22 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
       return;
     }
 
+    if (needsAum && !aumValue) {
+      toast.error("Please enter the fund AUM before creating the deposit");
+      return;
+    }
+
     createMutation.mutate(formData);
   };
+
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) {
+      resetForm();
+    }
+  }, [open]);
+
+  const selectedFund = funds?.find((f) => f.id === selectedFundId);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -129,16 +211,13 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="asset_symbol">Fund / Asset *</Label>
-              <Select
-                value={formData.asset_symbol}
-                onValueChange={(value) => setFormData({ ...formData, asset_symbol: value })}
-              >
+              <Select value={selectedFundId} onValueChange={handleFundChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a fund" />
                 </SelectTrigger>
                 <SelectContent>
                   {funds?.map((fund) => (
-                    <SelectItem key={fund.id} value={(fund.asset || "").toUpperCase()}>
+                    <SelectItem key={fund.id} value={fund.id}>
                       {fund.name} ({(fund.asset || "").toUpperCase()})
                     </SelectItem>
                   ))}
@@ -160,6 +239,38 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
             </div>
           </div>
 
+          {/* AUM Warning and Input */}
+          {needsAum && (
+            <Alert variant="destructive" className="bg-warning/10 border-warning">
+              <AlertTriangle className="h-4 w-4 text-warning" />
+              <AlertDescription className="ml-2">
+                <div className="space-y-3">
+                  <p className="font-medium">
+                    No AUM record for {selectedFund?.name || "this fund"} on {today}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Enter the current fund AUM to record this deposit:
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="aum_value" className="text-sm whitespace-nowrap">
+                      Fund AUM ({selectedFund?.asset?.toUpperCase()}):
+                    </Label>
+                    <Input
+                      id="aum_value"
+                      type="number"
+                      step="0.00000001"
+                      min="0"
+                      value={aumValue}
+                      onChange={(e) => setAumValue(e.target.value)}
+                      className="w-48"
+                      placeholder="Enter AUM"
+                    />
+                  </div>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="transaction_hash">Transaction Hash</Label>
             <Input
@@ -175,7 +286,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={createMutation.isPending}>
+            <Button type="submit" disabled={createMutation.isPending || isCheckingAum}>
               {createMutation.isPending ? "Creating..." : "Create Deposit"}
             </Button>
           </DialogFooter>
