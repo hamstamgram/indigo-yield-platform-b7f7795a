@@ -211,15 +211,21 @@ function YieldOperationsContent() {
   };
 
   // Validate effective date is within reporting month
+  // Use startOfDay for consistent timezone handling to avoid edge cases
   const validateEffectiveDate = (): { valid: boolean; error?: string } => {
     if (yieldPurpose !== "reporting" || !reportingMonth) {
       return { valid: true };
     }
     
-    const monthStart = new Date(reportingMonth);
+    // Parse dates consistently - normalize to start of day to avoid timezone edge cases
+    const monthStart = startOfMonth(new Date(reportingMonth + "T12:00:00")); // Noon to avoid DST issues
     const monthEnd = endOfMonth(monthStart);
     
-    if (!isWithinInterval(aumDate, { start: monthStart, end: monthEnd })) {
+    // Normalize aumDate to noon to avoid timezone boundary issues
+    const normalizedAumDate = new Date(aumDate);
+    normalizedAumDate.setHours(12, 0, 0, 0);
+    
+    if (!isWithinInterval(normalizedAumDate, { start: monthStart, end: monthEnd })) {
       return {
         valid: false,
         error: `Effective date must be within ${format(monthStart, "MMMM yyyy")} (${format(monthStart, "MMM d")} - ${format(monthEnd, "MMM d")})`,
