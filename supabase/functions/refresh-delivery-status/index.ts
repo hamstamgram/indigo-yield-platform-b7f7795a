@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkAdminAccess, createAdminDeniedResponse } from "../_shared/admin-check.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -45,17 +46,10 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("is_admin")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile?.is_admin) {
-      return new Response(JSON.stringify({ error: "Admin access required" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Use shared admin check
+    const adminCheck = await checkAdminAccess(supabase, user.id);
+    if (!adminCheck.isAdmin) {
+      return createAdminDeniedResponse(corsHeaders, adminCheck.error);
     }
 
     const body: RefreshRequest = await req.json();
