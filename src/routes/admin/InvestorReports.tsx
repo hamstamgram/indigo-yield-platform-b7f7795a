@@ -27,6 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   FileText,
   Send,
@@ -41,6 +42,7 @@ import {
   Mail,
   Pencil,
   Inbox,
+  AlertCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -104,7 +106,6 @@ interface InvestorReport {
 const InvestorReports = () => {
   const [loading, setLoading] = useState(true);
   const [reports, setReports] = useState<InvestorReport[]>([]);
-  const [sendingReports, setSendingReports] = useState(false);
   const [generatingReports, setGeneratingReports] = useState(false);
   const [selectedInvestor, setSelectedInvestor] = useState<InvestorReport | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -445,98 +446,6 @@ const InvestorReports = () => {
     }
   };
 
-  // Send reports via email (placeholder for email integration)
-  const handleSendReports = async () => {
-    setSendingReports(true);
-    try {
-      const reportsToSend = reports.filter((r) => r.has_reports);
-
-      if (reportsToSend.length === 0) {
-        toast.error("No Reports to Send", {
-          description: "Generate reports first before sending",
-        });
-        return;
-      }
-
-      // Calculate total recipients (all emails for all investors with reports)
-      let totalRecipients = 0;
-      const emailBatchData: Array<{
-        investorId: string;
-        investorName: string;
-        recipientEmails: string[];
-        htmlContent: string;
-      }> = [];
-
-      // Prepare batches
-      for (const report of reportsToSend) {
-        // Get all recipient emails (verified + primary)
-        const recipientEmails = report.investor_emails
-          .filter((e) => e.verified || e.is_primary) // Send to verified emails + primary email
-          .map((e) => e.email);
-
-        // Fallback to legacy email if no emails found
-        if (recipientEmails.length === 0 && report.investor_email) {
-          recipientEmails.push(report.investor_email);
-        }
-
-        if (recipientEmails.length === 0) continue;
-
-        totalRecipients += recipientEmails.length;
-
-        // Generate HTML Content using new template
-        const investorData: InvestorData = {
-          name: report.investor_name,
-          reportDate: format(parseISO(`${selectedMonth}-01`), "MMMM d, yyyy"),
-          funds: report.assets.map(transformToInvestorFund),
-        };
-
-        const htmlContent = renderReportToHtml(investorData);
-
-        emailBatchData.push({
-          investorId: report.investor_id,
-          investorName: report.investor_name,
-          recipientEmails,
-          htmlContent,
-        });
-      }
-
-      // Send emails via Edge Function (using multi-recipient format)
-      let sentCount = 0;
-      let failedCount = 0;
-      
-      for (const batch of emailBatchData) {
-        // Send to all recipients in one API call
-        const { error } = await supabase.functions.invoke("send-investor-report", {
-          body: {
-            to: batch.recipientEmails,  // Array of recipients
-            investorId: batch.investorId,
-            investorName: batch.investorName,
-            reportMonth: selectedMonth, // YYYY-MM
-            htmlContent: batch.htmlContent,
-          },
-        });
-
-        if (error) {
-          console.error(`Failed to send to ${batch.investorName}:`, error);
-          failedCount++;
-        } else {
-          sentCount += batch.recipientEmails.length;
-        }
-      }
-
-      toast.success("Reports Sent", {
-        description: `Successfully sent ${sentCount} emails to investors.`,
-      });
-    } catch (error: any) {
-      console.error("Error sending reports:", error);
-      toast.error("Send Failed", {
-        description: error.message || "Failed to send monthly reports",
-      });
-    } finally {
-      setSendingReports(false);
-    }
-  };
-
   // View report details
   const handleViewDetails = (investor: InvestorReport) => {
     setSelectedInvestor(investor);
@@ -602,9 +511,26 @@ const InvestorReports = () => {
       <div>
         <h1 className="text-3xl font-bold">Investor Reports</h1>
         <p className="text-muted-foreground">
-          View, generate, and send monthly statements to investors.
+          View, generate, and preview monthly statements for investors.
         </p>
       </div>
+
+      {/* Delivery Center Banner */}
+      <Alert className="bg-primary/5 border-primary/20">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Email Delivery Moved</AlertTitle>
+        <AlertDescription className="flex items-center justify-between">
+          <span>
+            Report email sending has been moved to the Report Delivery Center for better tracking and reliability.
+          </span>
+          <Link to="/admin/reports/delivery">
+            <Button size="sm" className="ml-4">
+              <Send className="h-4 w-4 mr-2" />
+              Go to Delivery Center
+            </Button>
+          </Link>
+        </AlertDescription>
+      </Alert>
 
       <Tabs defaultValue="html-reports" className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-1">
@@ -617,12 +543,6 @@ const InvestorReports = () => {
         <TabsContent value="html-reports" className="mt-6 space-y-6">
           {/* HTML Reports Tab Content */}
           <div className="flex justify-end gap-2">
-            <Link to="/admin/reports/delivery">
-              <Button variant="outline">
-                <Inbox className="h-4 w-4 mr-2" />
-                Delivery Center
-              </Button>
-            </Link>
             <Button onClick={fetchReports} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
@@ -635,12 +555,6 @@ const InvestorReports = () => {
               <FileText className="h-4 w-4 mr-2" />
               {generatingReports ? "Generating..." : "Generate Reports"}
             </Button>
-            <Link to="/admin/reports/delivery">
-              <Button disabled={stats.reportsGenerated === 0}>
-                <Send className="h-4 w-4 mr-2" />
-                Send Reports → Delivery Center
-              </Button>
-            </Link>
           </div>
 
           {/* Summary Cards */}
