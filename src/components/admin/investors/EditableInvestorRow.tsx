@@ -5,6 +5,7 @@ import { Trash2 } from "lucide-react";
 import { Asset } from "@/types/investorTypes";
 import { InvestorSummaryV2 } from "@/services/admin/adminService";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import { TruncatedText } from "@/components/ui/truncated-text";
 import InviteInvestorDialog from "./InviteInvestorDialog";
 import {
   AlertDialog,
@@ -50,7 +51,9 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
 
   return (
     <TableRow key={investor.id}>
-      <TableCell className="font-medium">{name}</TableCell>
+      <TableCell className="font-medium max-w-[200px]">
+        <TruncatedText text={name} className="block" />
+      </TableCell>
 
       {/* Asset balances with logos */}
       {assets.map((asset) => {
