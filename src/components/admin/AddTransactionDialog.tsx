@@ -31,14 +31,16 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { createAdminTransaction } from "@/services/shared/transactionService";
 import { fetchInvestorsForSelector } from "@/services/investor/investorPositionService";
-import { Loader2, Check, ChevronsUpDown } from "lucide-react";
+import { Loader2, Check, ChevronsUpDown, AlertTriangle, Info } from "lucide-react";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 import { useActiveFunds } from "@/hooks/useActiveFunds";
 import { getAssetLogo } from "@/utils/assets";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface InvestorOption {
   id: string;
@@ -48,7 +50,7 @@ interface InvestorOption {
 
 // Transaction validation schema
 const transactionSchema = z.object({
-  txn_type: z.enum(["DEPOSIT", "WITHDRAWAL", "YIELD", "INTEREST", "FEE"], {
+  txn_type: z.enum(["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL", "YIELD", "INTEREST", "FEE"], {
     required_error: "Transaction type is required",
   }),
   fund_id: z.string().uuid("Please select a valid fund"),
@@ -105,6 +107,8 @@ export function AddTransactionDialog({
   const [investorSearchOpen, setInvestorSearchOpen] = useState(false);
   const [isLoadingInvestors, setIsLoadingInvestors] = useState(false);
   const [investorError, setInvestorError] = useState<string | null>(null);
+  const [currentBalance, setCurrentBalance] = useState<number | null>(null);
+  const [isCheckingBalance, setIsCheckingBalance] = useState(false);
   const queryClient = useQueryClient();
   const { data: funds, isLoading: fundsLoading } = useActiveFunds();
 
@@ -127,6 +131,39 @@ export function AddTransactionDialog({
   const txnType = watch("txn_type");
   const selectedFundId = watch("fund_id");
 
+  // Check investor's current balance in selected fund
+  useEffect(() => {
+    const checkBalance = async () => {
+      if (!selectedInvestorId || !selectedFundId) {
+        setCurrentBalance(null);
+        return;
+      }
+      
+      setIsCheckingBalance(true);
+      try {
+        const { data } = await supabase
+          .from("investor_positions")
+          .select("current_value")
+          .eq("investor_id", selectedInvestorId)
+          .eq("fund_id", selectedFundId)
+          .maybeSingle();
+        
+        setCurrentBalance(data?.current_value ?? 0);
+      } catch (error) {
+        console.error("Error checking balance:", error);
+        setCurrentBalance(0);
+      } finally {
+        setIsCheckingBalance(false);
+      }
+    };
+    
+    checkBalance();
+  }, [selectedInvestorId, selectedFundId]);
+
+  // Determine if this is a first investment scenario
+  const isFirstInvestment = currentBalance !== null && currentBalance === 0;
+  const hasExistingPosition = currentBalance !== null && currentBalance > 0;
+
   // Load investors when dialog opens
   useEffect(() => {
     if (open) {
@@ -138,6 +175,7 @@ export function AddTransactionDialog({
         setSelectedInvestorId("");
       }
       setInvestorError(null);
+      setCurrentBalance(null);
     }
   }, [open, investorId]);
 
@@ -186,24 +224,39 @@ export function AddTransactionDialog({
     setInvestorError(null);
 
     // Block manual deposits to INDIGO FEES account
-    if (selectedInvestorId === INDIGO_FEES_ACCOUNT_ID && data.txn_type === "DEPOSIT") {
+    if (selectedInvestorId === INDIGO_FEES_ACCOUNT_ID && (data.txn_type === "DEPOSIT" || data.txn_type === "FIRST_INVESTMENT")) {
       toast.error("INDIGO FEES cannot receive manual deposits. Fee credits are system-generated only.");
+      return;
+    }
+
+    // Validate transaction type based on current balance
+    if (isFirstInvestment && data.txn_type === "DEPOSIT") {
+      toast.error("Use 'First Investment' when investor has no existing position in this fund.");
+      return;
+    }
+    if (hasExistingPosition && data.txn_type === "FIRST_INVESTMENT") {
+      toast.error("Cannot use 'First Investment' - investor already has a position. Use 'Deposit' instead.");
       return;
     }
     
     try {
       setLoading(true);
 
+      // Convert FIRST_INVESTMENT to DEPOSIT with proper subtype
+      const actualType = data.txn_type === "FIRST_INVESTMENT" ? "DEPOSIT" : data.txn_type;
+      const txSubtype = data.txn_type === "FIRST_INVESTMENT" ? "first_investment" : undefined;
+
       const result = await createAdminTransaction({
         investorId: selectedInvestorId,
         fundId: data.fund_id,
-        type: data.txn_type as "DEPOSIT" | "WITHDRAWAL" | "YIELD" | "INTEREST" | "FEE",
+        type: actualType as "DEPOSIT" | "WITHDRAWAL" | "YIELD" | "INTEREST" | "FEE",
         asset: data.asset,
         amount: Number(data.amount),
         txDate: data.tx_date,
         referenceId: data.reference_id || undefined,
         txHash: data.tx_hash || undefined,
         notes: data.notes || undefined,
+        txSubtype: txSubtype,
       });
 
       if (!result.success) {
@@ -214,10 +267,12 @@ export function AddTransactionDialog({
       queryClient.invalidateQueries({ queryKey: ["admin-transactions-history"] });
       queryClient.invalidateQueries({ queryKey: ["investor-positions"] });
       queryClient.invalidateQueries({ queryKey: ["investor-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["fund-aum"] });
 
       toast.success("Transaction created successfully");
       reset();
       setSelectedInvestorId("");
+      setCurrentBalance(null);
       onSuccess();
       onOpenChange(false);
     } catch (error) {
@@ -320,6 +375,26 @@ export function AddTransactionDialog({
             )}
           </div>
 
+          {/* Balance indicator */}
+          {selectedInvestorId && selectedFundId && (
+            <Alert variant={isFirstInvestment ? "default" : "default"} className="py-2">
+              <Info className="h-4 w-4" />
+              <AlertDescription className="text-sm">
+                {isCheckingBalance ? (
+                  "Checking balance..."
+                ) : isFirstInvestment ? (
+                  <span className="text-amber-600 dark:text-amber-400">
+                    <strong>No existing position</strong> — Use "First Investment" for deposits
+                  </span>
+                ) : (
+                  <span>
+                    <strong>Current balance:</strong> {currentBalance?.toFixed(8)} — Use "Deposit" for top-ups
+                  </span>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="txn_type">Transaction Type *</Label>
             <Select value={txnType} onValueChange={(value) => setValue("txn_type", value as any)}>
@@ -327,8 +402,17 @@ export function AddTransactionDialog({
                 <SelectValue placeholder="Select transaction type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="DEPOSIT">Deposit</SelectItem>
-                <SelectItem value="WITHDRAWAL">Withdrawal</SelectItem>
+                {/* Show First Investment if no position exists */}
+                <SelectItem value="FIRST_INVESTMENT" disabled={hasExistingPosition}>
+                  First Investment {hasExistingPosition && "(position exists)"}
+                </SelectItem>
+                {/* Show Deposit/Top-up if position exists */}
+                <SelectItem value="DEPOSIT" disabled={isFirstInvestment}>
+                  Deposit / Top-up {isFirstInvestment && "(no position yet)"}
+                </SelectItem>
+                <SelectItem value="WITHDRAWAL" disabled={isFirstInvestment}>
+                  Withdrawal {isFirstInvestment && "(no position)"}
+                </SelectItem>
                 <SelectItem value="YIELD">Yield</SelectItem>
                 <SelectItem value="INTEREST">Interest</SelectItem>
                 <SelectItem value="FEE">Fee</SelectItem>
