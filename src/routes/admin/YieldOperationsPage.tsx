@@ -80,6 +80,7 @@ import {
 import { useMonthClosure } from "@/hooks/useMonthClosure";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
+import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 
 interface Fund {
   id: string;
@@ -89,9 +90,6 @@ interface Fund {
   total_aum: number;
   investor_count: number;
 }
-
-// INDIGO FEES account ID
-const INDIGO_FEES_ID = "169bb053-36cb-4f6e-93ea-831f0dfeaf1d";
 
 function YieldOperationsContent() {
   const [funds, setFunds] = useState<Fund[]>([]);
@@ -335,7 +333,7 @@ function YieldOperationsContent() {
     return distributions.filter((d) => {
       // Filter by system accounts
       if (!showSystemAccounts) {
-        const isSystemAccount = d.investorId === INDIGO_FEES_ID || 
+        const isSystemAccount = d.investorId === INDIGO_FEES_ACCOUNT_ID || 
           d.accountType === "fees_account" ||
           d.investorName?.toLowerCase().includes("indigo fees");
         if (isSystemAccount) return false;
@@ -357,7 +355,7 @@ function YieldOperationsContent() {
   
   // Check if investor is a system/IB account
   const isSystemAccount = (d: YieldDistribution) => {
-    return d.investorId === INDIGO_FEES_ID || 
+    return d.investorId === INDIGO_FEES_ACCOUNT_ID || 
       d.accountType === "fees_account" ||
       d.investorName?.toLowerCase().includes("indigo fees");
   };
