@@ -5354,17 +5354,29 @@ export type Database = {
           previous_balance: number
         }[]
       }
-      admin_create_transaction: {
-        Args: {
-          p_amount: number
-          p_fund_id: string
-          p_investor_id: string
-          p_notes?: string
-          p_shares?: number
-          p_transaction_type: string
-        }
-        Returns: string
-      }
+      admin_create_transaction:
+        | {
+            Args: {
+              p_amount: number
+              p_fund_id: string
+              p_investor_id: string
+              p_notes?: string
+              p_shares?: number
+              p_transaction_type: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_amount: number
+              p_fund_id: string
+              p_investor_id: string
+              p_notes?: string
+              p_transaction_type: string
+              p_tx_date?: string
+            }
+            Returns: string
+          }
       apply_daily_yield_to_fund:
         | {
             Args: {
@@ -5465,6 +5477,10 @@ export type Database = {
       cancel_delivery: { Args: { p_delivery_id: string }; Returns: Json }
       cancel_withdrawal_by_admin: {
         Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
+        Returns: boolean
+      }
+      check_aum_exists_for_date: {
+        Args: { p_date: string; p_fund_id: string }
         Returns: boolean
       }
       check_is_admin: { Args: { user_id: string }; Returns: boolean }
@@ -5882,16 +5898,40 @@ export type Database = {
         Args: { p_delivery_id: string; p_note?: string }
         Returns: Json
       }
-      preview_daily_yield_to_fund_v2: {
-        Args: {
-          p_admin_id: string
-          p_date: string
-          p_fund_id: string
-          p_gross_amount: number
-          p_purpose?: string
-        }
-        Returns: Json
-      }
+      preview_daily_yield_to_fund_v2:
+        | {
+            Args: {
+              p_admin_id: string
+              p_date: string
+              p_fund_id: string
+              p_gross_amount: number
+              p_purpose?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_effective_date: string
+              p_fund_id: string
+              p_gross_rate: number
+              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+            }
+            Returns: {
+              beginning_balance: number
+              email: string
+              ending_balance: number
+              fee_amount: number
+              fee_pct: number
+              final_net_yield: number
+              gross_yield: number
+              ib_amount: number
+              ib_investor_id: string
+              ib_pct: number
+              investor_id: string
+              investor_name: string
+              net_yield: number
+            }[]
+          }
       preview_yield_correction: {
         Args: {
           p_date: string
@@ -5955,6 +5995,14 @@ export type Database = {
           investor_name: string
           redemptions: number
         }[]
+      }
+      recompute_investor_position: {
+        Args: { p_fund_id: string; p_investor_id: string }
+        Returns: undefined
+      }
+      recompute_investor_positions_for_investor: {
+        Args: { p_investor_id: string }
+        Returns: undefined
       }
       regenerate_reports_for_correction: {
         Args: { p_correction_id: string }
