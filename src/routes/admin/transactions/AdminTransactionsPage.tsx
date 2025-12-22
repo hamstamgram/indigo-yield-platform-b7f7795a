@@ -34,7 +34,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, Search, ChevronLeft, ChevronRight, ExternalLink, CreditCard, Plus, MoreHorizontal, Pencil, Ban, AlertTriangle } from "lucide-react";
+import { Loader2, Search, ChevronLeft, ChevronRight, ExternalLink, CreditCard, Plus, MoreHorizontal, Pencil, Ban, AlertTriangle, Lock } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { supabase } from "@/integrations/supabase/client";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -557,13 +557,19 @@ function TransactionHistoryContent() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 flex-wrap">
                             <Badge variant={getTypeBadgeVariant(tx.displayType)}>
                               {tx.displayType}
                             </Badge>
                             {tx.isVoided && (
                               <Badge variant="destructive" className="text-[10px]">
                                 VOIDED
+                              </Badge>
+                            )}
+                            {tx.visibilityScope === "admin_only" && (
+                              <Badge variant="outline" className="text-[10px] gap-0.5 text-muted-foreground border-muted-foreground/30">
+                                <Lock className="h-2.5 w-2.5" />
+                                Admin
                               </Badge>
                             )}
                           </div>
