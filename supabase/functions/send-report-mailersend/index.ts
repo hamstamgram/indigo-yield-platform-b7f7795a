@@ -103,6 +103,8 @@ startxref
 }
 
 serve(async (req: Request): Promise<Response> => {
+  const requestId = crypto.randomUUID().slice(0, 8);
+  
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -116,11 +118,30 @@ serve(async (req: Request): Promise<Response> => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+    // Enhanced logging - request received
+    console.log(JSON.stringify({
+      event: "request_received",
+      request_id: requestId,
+      timestamp: new Date().toISOString(),
+      mailersend_configured: !!MAILERSEND_API_TOKEN,
+      from_email: MAILERSEND_FROM_EMAIL,
+    }));
+
     // Create Supabase client with service role
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // Parse request body first to check for health_check
     const body: SendReportRequest = await req.json();
+    
+    console.log(JSON.stringify({
+      event: "request_parsed",
+      request_id: requestId,
+      delivery_id: body.delivery_id,
+      investor_id: body.investor_id,
+      period_id: body.period_id,
+      delivery_mode: body.delivery_mode,
+      health_check: body.health_check,
+    }));
 
     // Handle health check mode - admin auth still required but only pings MailerSend
     if (body.health_check) {
@@ -422,7 +443,15 @@ This is an automated message from Indigo Yield.
       }
     }
 
-    console.log(`Sending report to ${recipientEmail} via MailerSend...`);
+    console.log(JSON.stringify({
+      event: "sending_email",
+      request_id: requestId,
+      recipient: recipientEmail,
+      investor_name: investorName,
+      subject,
+      delivery_mode,
+      delivery_id: deliveryRecord.id,
+    }));
 
     // Call MailerSend API
     const mailersendResponse = await fetch("https://api.mailersend.com/v1/email", {
@@ -438,11 +467,23 @@ This is an automated message from Indigo Yield.
     const messageId = mailersendResponse.headers.get("X-Message-Id");
     const responseStatus = mailersendResponse.status;
 
-    console.log(`MailerSend response: status=${responseStatus}, messageId=${messageId}`);
+    console.log(JSON.stringify({
+      event: "mailersend_response",
+      request_id: requestId,
+      status: responseStatus,
+      message_id: messageId,
+      delivery_id: deliveryRecord.id,
+    }));
 
     if (!mailersendResponse.ok) {
       const errorBody = await mailersendResponse.text();
-      console.error("MailerSend error:", errorBody);
+      console.error(JSON.stringify({
+        event: "mailersend_error",
+        request_id: requestId,
+        status: responseStatus,
+        error: errorBody,
+        delivery_id: deliveryRecord.id,
+      }));
 
       // Update delivery record with failure
       await supabase

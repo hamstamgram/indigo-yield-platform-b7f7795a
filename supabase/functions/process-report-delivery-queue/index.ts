@@ -16,6 +16,8 @@ interface ProcessRequest {
 }
 
 serve(async (req: Request) => {
+  const requestId = crypto.randomUUID().slice(0, 8);
+  
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
@@ -27,6 +29,13 @@ serve(async (req: Request) => {
     const MAILERSEND_FROM_NAME = Deno.env.get("MAILERSEND_FROM_NAME") || "Indigo Yield";
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    console.log(JSON.stringify({
+      event: "queue_processor_started",
+      request_id: requestId,
+      timestamp: new Date().toISOString(),
+      mailersend_configured: !!MAILERSEND_API_TOKEN,
+    }));
 
     if (!MAILERSEND_API_TOKEN) {
       throw new Error("MAILERSEND_API_TOKEN not configured");
@@ -90,7 +99,15 @@ serve(async (req: Request) => {
       });
     }
 
-    console.log(`Processing delivery queue for period ${period_id}, batch_size=${batch_size}, mode=${delivery_mode}`);
+    console.log(JSON.stringify({
+      event: "processing_queue",
+      request_id: requestId,
+      period_id,
+      batch_size,
+      delivery_mode,
+      channel,
+      user_id: user.id,
+    }));
 
     // Fetch queued deliveries with all required data
     const { data: deliveries, error: fetchError } = await serviceClient
@@ -115,7 +132,12 @@ serve(async (req: Request) => {
     }
 
     if (!deliveries || deliveries.length === 0) {
-      console.log("ERROR: No queued deliveries found for period", period_id);
+      console.log(JSON.stringify({
+        event: "no_queued_deliveries",
+        request_id: requestId,
+        period_id,
+        message: "No queued deliveries found - queue may be empty or already processed",
+      }));
       
       // Check WHY there are no queued deliveries
       const { data: statementsCount } = await serviceClient
