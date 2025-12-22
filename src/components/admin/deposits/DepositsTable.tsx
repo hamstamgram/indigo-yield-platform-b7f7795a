@@ -18,10 +18,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, CheckCircle, XCircle } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Search, CheckCircle, XCircle, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { depositService } from "@/services/investor/depositService";
 import { ApproveDepositDialog } from "./ApproveDepositDialog";
 import { RejectDepositDialog } from "./RejectDepositDialog";
+import { EditTransactionDialog } from "@/components/admin/transactions/EditTransactionDialog";
+import { VoidTransactionDialog } from "@/components/admin/transactions/VoidTransactionDialog";
 import type { Deposit, DepositStatus } from "@/types/deposit";
 import { format } from "date-fns";
 
@@ -29,15 +38,28 @@ export function DepositsTable() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<DepositStatus | "all">("all");
   const [selectedDeposit, setSelectedDeposit] = useState<Deposit | null>(null);
-  const [action, setAction] = useState<"approve" | "reject" | null>(null);
+  const [action, setAction] = useState<"approve" | "reject" | "edit" | "void" | null>(null);
 
-  const { data: deposits, isLoading } = useQuery({
+  const { data: deposits, isLoading, refetch } = useQuery({
     queryKey: ["deposits", { search, status: statusFilter }],
     queryFn: () =>
       depositService.getDeposits({
         search,
         status: statusFilter === "all" ? undefined : statusFilter,
       }),
+  });
+
+  // Map deposit to transaction format for edit/void dialogs
+  const mapDepositToTransaction = (deposit: Deposit) => ({
+    id: deposit.id,
+    type: "DEPOSIT",
+    amount: deposit.amount,
+    asset: deposit.asset_symbol,
+    investorName: deposit.user_name || "Unknown",
+    txDate: deposit.created_at.split("T")[0],
+    notes: null,
+    txHash: deposit.transaction_hash,
+    isSystemGenerated: false,
   });
 
   const getStatusBadge = (status: DepositStatus) => {
@@ -53,13 +75,23 @@ export function DepositsTable() {
     }
   };
 
+  const handleDialogClose = () => {
+    setSelectedDeposit(null);
+    setAction(null);
+  };
+
+  const handleSuccess = () => {
+    refetch();
+    handleDialogClose();
+  };
+
   if (isLoading) {
     return <div className="text-center py-8">Loading deposits...</div>;
   }
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="space-y-4" data-testid="depositstable" role="region">
         <div className="flex items-center gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -135,30 +167,60 @@ export function DepositsTable() {
                     </TableCell>
                     <TableCell>{format(new Date(deposit.created_at), "MMM d, yyyy")}</TableCell>
                     <TableCell className="text-right">
-                      {deposit.status === "pending" && (
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
                             onClick={() => {
                               setSelectedDeposit(deposit);
-                              setAction("approve");
+                              setAction("edit");
                             }}
                           >
-                            <CheckCircle className="h-4 w-4 text-success" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          
+                          {deposit.status === "pending" && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedDeposit(deposit);
+                                  setAction("approve");
+                                }}
+                              >
+                                <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
+                                Approve
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedDeposit(deposit);
+                                  setAction("reject");
+                                }}
+                              >
+                                <XCircle className="mr-2 h-4 w-4 text-destructive" />
+                                Reject
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
                             onClick={() => {
                               setSelectedDeposit(deposit);
-                              setAction("reject");
+                              setAction("void");
                             }}
+                            className="text-destructive focus:text-destructive"
                           >
-                            <XCircle className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      )}
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Void
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
@@ -168,31 +230,47 @@ export function DepositsTable() {
         </div>
       </div>
 
+      {/* Approve Dialog */}
       {selectedDeposit && action === "approve" && (
         <ApproveDepositDialog
           deposit={selectedDeposit}
           open={action === "approve"}
           onOpenChange={(open) => {
-            if (!open) {
-              setSelectedDeposit(null);
-              setAction(null);
-            }
+            if (!open) handleDialogClose();
           }}
         />
       )}
 
+      {/* Reject Dialog */}
       {selectedDeposit && action === "reject" && (
         <RejectDepositDialog
           deposit={selectedDeposit}
           open={action === "reject"}
           onOpenChange={(open) => {
-            if (!open) {
-              setSelectedDeposit(null);
-              setAction(null);
-            }
+            if (!open) handleDialogClose();
           }}
         />
       )}
+
+      {/* Edit Dialog - uses transaction dialog */}
+      <EditTransactionDialog
+        open={action === "edit" && !!selectedDeposit}
+        onOpenChange={(open) => {
+          if (!open) handleDialogClose();
+        }}
+        transaction={selectedDeposit ? mapDepositToTransaction(selectedDeposit) : null}
+        onSuccess={handleSuccess}
+      />
+
+      {/* Void Dialog - uses transaction dialog */}
+      <VoidTransactionDialog
+        open={action === "void" && !!selectedDeposit}
+        onOpenChange={(open) => {
+          if (!open) handleDialogClose();
+        }}
+        transaction={selectedDeposit ? mapDepositToTransaction(selectedDeposit) : null}
+        onSuccess={handleSuccess}
+      />
     </>
   );
 }
