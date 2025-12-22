@@ -5474,6 +5474,16 @@ export type Database = {
             }
             Returns: Json
           }
+        | {
+            Args: {
+              p_created_by?: string
+              p_date: string
+              p_fund_id: string
+              p_new_aum: number
+              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+            }
+            Returns: Json
+          }
       apply_daily_yield_with_fees: {
         Args: {
           p_fee_rate?: number
@@ -6001,15 +6011,25 @@ export type Database = {
         Args: { p_delivery_id: string; p_note?: string }
         Returns: Json
       }
-      preview_daily_yield_to_fund_v2: {
-        Args: {
-          p_date: string
-          p_fund_id: string
-          p_new_aum: number
-          p_purpose?: string
-        }
-        Returns: Json
-      }
+      preview_daily_yield_to_fund_v2:
+        | {
+            Args: {
+              p_date: string
+              p_fund_id: string
+              p_new_aum: number
+              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_date: string
+              p_fund_id: string
+              p_new_aum: number
+              p_purpose?: string
+            }
+            Returns: Json
+          }
       preview_investor_balances: {
         Args: { p_fund_id?: string }
         Returns: {
