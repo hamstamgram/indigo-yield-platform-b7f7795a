@@ -273,11 +273,11 @@ export default function ReportDeliveryCenter() {
     },
   });
 
-  // Batch send via MailerSend
+  // Batch send via MailerSend - auto-queues if queue is empty
   const processMutation = useMutation({
     mutationFn: async ({ periodId, deliveryMode }: { periodId: string; deliveryMode: DeliveryMode }) => {
       // Get queued deliveries for period
-      const { data: queued, error: queryError } = await supabase
+      let { data: queued, error: queryError } = await supabase
         .from("statement_email_delivery")
         .select("id")
         .eq("period_id", periodId)
@@ -285,8 +285,54 @@ export default function ReportDeliveryCenter() {
         .limit(25);
       
       if (queryError) throw queryError;
+      
+      // AUTO-QUEUE: If queue is empty, automatically queue remaining statements first
       if (!queued || queued.length === 0) {
-        return { sent: 0, failed: 0, total: 0 };
+        console.log("[ReportDeliveryCenter] Queue empty, auto-queueing statements...");
+        
+        const { data: queueResult, error: queueError } = await supabase.rpc("queue_statement_deliveries", {
+          p_period_id: periodId,
+          p_channel: "email",
+        });
+        
+        if (queueError) {
+          console.error("[ReportDeliveryCenter] Auto-queue failed:", queueError);
+          throw new Error(`Failed to auto-queue: ${queueError.message}`);
+        }
+        
+        const result = queueResult as { queued_count: number; skipped_missing_email: number; already_exists_count: number };
+        console.log("[ReportDeliveryCenter] Auto-queue result:", result);
+        
+        if (result.queued_count === 0) {
+          // Still nothing to send after queueing
+          return { 
+            sent: 0, 
+            failed: 0, 
+            total: 0, 
+            autoQueued: true,
+            queueResult: result,
+            reason: result.already_exists_count > 0 
+              ? `All ${result.already_exists_count} statements already processed`
+              : result.skipped_missing_email > 0
+                ? `${result.skipped_missing_email} investors have no email address`
+                : "No statements generated for this period"
+          };
+        }
+        
+        // Re-fetch queued deliveries after auto-queue
+        const refetch = await supabase
+          .from("statement_email_delivery")
+          .select("id")
+          .eq("period_id", periodId)
+          .or("status.eq.queued,status.eq.QUEUED")
+          .limit(25);
+        
+        if (refetch.error) throw refetch.error;
+        queued = refetch.data;
+      }
+      
+      if (!queued || queued.length === 0) {
+        return { sent: 0, failed: 0, total: 0, reason: "No eligible deliveries after queueing" };
       }
 
       setSendProgress({ current: 0, total: queued.length, sent: 0, failed: 0 });
@@ -314,25 +360,29 @@ export default function ReportDeliveryCenter() {
     },
     onSuccess: (data) => {
       // Prevent silent success - show appropriate message based on results
-      if (data.total === 0) {
+      const result = data as { sent: number; failed: number; total: number; autoQueued?: boolean; reason?: string };
+      
+      if (result.total === 0) {
         toast.error("No emails to send", {
-          description: "The delivery queue is empty. Click 'Queue Remaining Statements' first.",
+          description: result.reason || "No eligible statements found for delivery.",
         });
-      } else if (data.sent === 0 && data.failed > 0) {
-        toast.error(`All ${data.failed} emails failed to send`, {
+      } else if (result.sent === 0 && result.failed > 0) {
+        toast.error(`All ${result.failed} emails failed to send`, {
           description: "Check delivery details for error messages.",
         });
-      } else if (data.sent === 0 && data.failed === 0) {
+      } else if (result.sent === 0 && result.failed === 0) {
         toast.warning("No emails were processed", {
-          description: "Queue may have been empty or already processed.",
+          description: result.reason || "Queue may have been empty or already processed.",
         });
-      } else if (data.failed > 0) {
-        toast.warning(`Sent ${data.sent} emails, ${data.failed} failed`, {
+      } else if (result.failed > 0) {
+        toast.warning(`Sent ${result.sent} emails, ${result.failed} failed`, {
           description: "Some emails failed - check details for errors.",
         });
       } else {
-        toast.success(`Successfully sent ${data.sent} emails`, {
-          description: "All queued emails have been delivered.",
+        toast.success(`Successfully sent ${result.sent} emails`, {
+          description: result.autoQueued 
+            ? "Auto-queued and delivered all statements."
+            : "All queued emails have been delivered.",
         });
       }
       queryClient.invalidateQueries({ queryKey: ["deliveries"] });
