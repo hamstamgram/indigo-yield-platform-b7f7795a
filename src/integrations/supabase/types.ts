@@ -5576,6 +5576,10 @@ export type Database = {
         Args: { encrypted_secret: string }
         Returns: string
       }
+      delete_transaction: {
+        Args: { p_confirmation: string; p_transaction_id: string }
+        Returns: Json
+      }
       dispatch_report_delivery_run: {
         Args: { p_channel?: string; p_period_id: string }
         Returns: Json
