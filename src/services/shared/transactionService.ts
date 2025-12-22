@@ -166,10 +166,34 @@ export async function createAdminTransaction(
       return { success: false, error: "You must be logged in to create transactions" };
     }
 
-    // Set tx_subtype based on transaction type (FIRST_INVESTMENT maps to first_investment subtype)
-    const txSubtype = params.tx_subtype || getDefaultTxSubtype(params.type);
     // Map FIRST_INVESTMENT to DEPOSIT for DB enum compliance
     const dbType = mapTypeForDb(params.type);
+    
+    // For DEPOSIT/WITHDRAWAL, use the adjust_investor_position RPC
+    // This properly updates both transactions_v2 AND investor_positions
+    if (dbType === "DEPOSIT" || dbType === "WITHDRAWAL") {
+      const delta = dbType === "DEPOSIT" ? params.amount : -params.amount;
+      const note = params.notes || `${dbType} of ${params.amount} ${params.asset}`;
+      
+      const rpcCall = (supabase.rpc as any).bind(supabase);
+      const { error } = await rpcCall("adjust_investor_position", {
+        p_investor_id: params.investor_id,
+        p_fund_id: params.fund_id,
+        p_delta: delta,
+        p_note: note,
+        p_admin_id: user.id,
+      });
+      
+      if (error) {
+        console.error("adjust_investor_position error:", error);
+        throw error;
+      }
+      
+      return { success: true };
+    }
+    
+    // For other transaction types (YIELD, INTEREST, FEE), use direct insert
+    const txSubtype = params.tx_subtype || getDefaultTxSubtype(params.type);
 
     const { error } = await supabase.from("transactions_v2").insert({
       investor_id: params.investor_id,
