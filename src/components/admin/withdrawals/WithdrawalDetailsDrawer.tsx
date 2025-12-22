@@ -120,8 +120,12 @@ export function WithdrawalDetailsDrawer({
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground mb-2">Investor</h3>
                   <div className="space-y-1">
-                    <p className="font-medium">{withdrawal.investor_name}</p>
-                    <p className="text-sm text-muted-foreground">{withdrawal.investor_email}</p>
+                    <p className="font-medium truncate max-w-full" title={withdrawal.investor_name}>
+                      {withdrawal.investor_name}
+                    </p>
+                    <p className="text-sm text-muted-foreground truncate max-w-full" title={withdrawal.investor_email}>
+                      {withdrawal.investor_email}
+                    </p>
                     <button
                       onClick={() => copyToClipboard(withdrawal.investor_id, "Investor ID")}
                       className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
