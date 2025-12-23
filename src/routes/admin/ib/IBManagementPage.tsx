@@ -90,36 +90,66 @@ export default function IBManagementPage() {
         .select("ib_parent_id")
         .in("ib_parent_id", ibUserIds);
 
-      // Get IB allocations with fund info to determine asset
-      const { data: allocations, error: allocError } = await supabase
+      // Get IB earnings from transactions_v2 (primary source - always populated)
+      const { data: ibCredits, error: txError } = await supabase
+        .from("transactions_v2")
+        .select("investor_id, amount, fund_id, asset")
+        .in("investor_id", ibUserIds)
+        .eq("type", "IB_CREDIT");
+
+      // Also check ib_allocations for audit trail (may be empty for older data)
+      const { data: allocations } = await supabase
         .from("ib_allocations")
         .select("ib_investor_id, ib_fee_amount, fund_id")
         .in("ib_investor_id", ibUserIds);
 
-      // Get funds to map fund_id -> asset
-      const fundIds = [...new Set((allocations || []).map((a) => a.fund_id).filter(Boolean))];
+      // Get funds to map fund_id -> asset (fallback for allocations without asset)
+      const allFundIds = [
+        ...new Set([
+          ...(ibCredits || []).map((t) => t.fund_id).filter(Boolean),
+          ...(allocations || []).map((a) => a.fund_id).filter(Boolean),
+        ]),
+      ];
       const { data: funds } = await supabase
         .from("funds")
         .select("id, asset")
-        .in("id", fundIds);
+        .in("id", allFundIds.length > 0 ? allFundIds : ["__none__"]);
 
       const fundToAsset = new Map<string, string>();
       funds?.forEach((f) => fundToAsset.set(f.id, f.asset));
 
-      // Aggregate data per IB with per-asset earnings
+      // Aggregate data per IB with per-asset earnings from transactions_v2
       const ibProfiles: IBProfile[] = (profiles || []).map((p) => {
         const refs = (referrals || []).filter((r) => r.ib_parent_id === p.id);
-        const allocs = (allocations || []).filter((a) => a.ib_investor_id === p.id);
-        const activeFunds = [...new Set(allocs.map((a) => a.fund_id).filter(Boolean))] as string[];
+        
+        // Primary: Use transactions_v2 IB_CREDIT for earnings
+        const txEarnings = (ibCredits || []).filter((t) => t.investor_id === p.id);
+        const activeFundIds = [...new Set(txEarnings.map((t) => t.fund_id).filter(Boolean))] as string[];
 
-        // Group earnings by asset
+        // Group earnings by asset from transactions
         const earningsByAsset: EarningsByAsset = {};
-        allocs.forEach((a) => {
-          if (a.fund_id) {
-            const asset = fundToAsset.get(a.fund_id) || "UNKNOWN";
-            earningsByAsset[asset] = (earningsByAsset[asset] || 0) + Number(a.ib_fee_amount || 0);
-          }
+        txEarnings.forEach((t) => {
+          // Prefer asset from transaction, fallback to fund lookup
+          const asset = t.asset || (t.fund_id ? fundToAsset.get(t.fund_id) : null) || "UNKNOWN";
+          earningsByAsset[asset] = (earningsByAsset[asset] || 0) + Number(t.amount || 0);
         });
+
+        // Fallback: If no tx earnings but allocations exist, use those
+        if (Object.keys(earningsByAsset).length === 0) {
+          const allocs = (allocations || []).filter((a) => a.ib_investor_id === p.id);
+          allocs.forEach((a) => {
+            if (a.fund_id) {
+              const asset = fundToAsset.get(a.fund_id) || "UNKNOWN";
+              earningsByAsset[asset] = (earningsByAsset[asset] || 0) + Number(a.ib_fee_amount || 0);
+            }
+          });
+          // Also add allocations funds to active funds
+          allocs.forEach((a) => {
+            if (a.fund_id && !activeFundIds.includes(a.fund_id)) {
+              activeFundIds.push(a.fund_id);
+            }
+          });
+        }
 
         return {
           id: p.id,
@@ -129,7 +159,7 @@ export default function IBManagementPage() {
           createdAt: p.created_at,
           referralCount: refs.length,
           earningsByAsset,
-          activeFunds,
+          activeFunds: activeFundIds,
         };
       });
 
