@@ -19,6 +19,7 @@ export interface InvestorSummaryV2 {
   status: string;
   onboardingDate: string | null;
   lastStatementDate: string | null;
+  isSystemAccount?: boolean;
   portfolioDetails: {
     assetBreakdown: Record<string, number>;
     performanceMetrics: {
@@ -82,6 +83,7 @@ class AdminServiceV2 {
         status: summary.status,
         onboardingDate: summary.onboardingDate || null,
         lastStatementDate: null,
+        isSystemAccount: summary.isSystemAccount || false,
         portfolioDetails: {
           assetBreakdown: summary.assetBreakdown || {},
           performanceMetrics: {

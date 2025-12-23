@@ -70,6 +70,7 @@ interface EnrichedInvestor extends InvestorSummaryV2 {
   pendingWithdrawals: number;
   lastReportPeriod: string | null;
   ibParentName: string | null;
+  isSystemAccount?: boolean;
 }
 
 function UnifiedInvestorsContent() {
@@ -490,13 +491,26 @@ function UnifiedInvestorsContent() {
                     >
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                            <User className="h-4 w-4 text-primary" />
+                          <div className={cn(
+                            "h-8 w-8 rounded-full flex items-center justify-center shrink-0",
+                            investor.isSystemAccount ? "bg-amber-500/10" : "bg-primary/10"
+                          )}>
+                            <User className={cn(
+                              "h-4 w-4",
+                              investor.isSystemAccount ? "text-amber-600" : "text-primary"
+                            )} />
                           </div>
                           <div className="min-w-0">
-                            <p className="font-medium truncate">
-                              {investor.firstName} {investor.lastName}
-                            </p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="font-medium truncate">
+                                {investor.firstName} {investor.lastName}
+                              </p>
+                              {investor.isSystemAccount && (
+                                <Badge variant="outline" className="text-[9px] h-4 px-1 shrink-0 border-amber-500 text-amber-600">
+                                  System
+                                </Badge>
+                              )}
+                            </div>
                             <p className="text-xs text-muted-foreground truncate">
                               {investor.email}
                             </p>

@@ -30,6 +30,7 @@ export interface InvestorSummary {
   positionCount: number;
   assetBreakdown: Record<string, number>;
   onboardingDate?: string | null;
+  isSystemAccount?: boolean;
 }
 
 export interface PortfolioPerformance {
@@ -234,11 +235,12 @@ export class InvestorDataService {
    */
   async getAllInvestorsWithSummary(): Promise<InvestorSummary[]> {
     try {
-      // Step 1: Get all investors (profiles with role=user usually, or filtering admin)
+      // Step 1: Get all investors including system accounts (like INDIGO FEES)
+      // We filter out is_admin=true but include account_type='fees_account'
       const { data: investors, error } = await supabase
         .from("profiles")
-        .select("id, email, first_name, last_name, status, onboarding_date, created_at")
-        .eq("is_admin", false) // Assuming we only want investors
+        .select("id, email, first_name, last_name, status, onboarding_date, created_at, account_type")
+        .eq("is_admin", false) // Include all non-admin accounts (investors + system accounts)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -295,6 +297,7 @@ export class InvestorDataService {
         });
 
         const fullName = `${investor.first_name || ""} ${investor.last_name || ""}`.trim();
+        const isSystemAccount = investor.account_type === 'fees_account';
 
         return {
           id: investor.id,
@@ -307,6 +310,7 @@ export class InvestorDataService {
           positionCount: positions.length,
           assetBreakdown,
           onboardingDate: investor.onboarding_date || investor.created_at,
+          isSystemAccount,
         };
       });
 
