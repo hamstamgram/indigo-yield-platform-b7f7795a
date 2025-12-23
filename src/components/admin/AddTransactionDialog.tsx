@@ -32,6 +32,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
@@ -53,6 +54,7 @@ interface InvestorOption {
   id: string;
   email: string;
   displayName: string;
+  isSystemAccount?: boolean;
 }
 
 // Transaction validation schema
@@ -545,7 +547,14 @@ export function AddTransactionDialog({
                               )}
                             />
                             <div className="flex flex-col min-w-0 flex-1">
-                              <span className="truncate">{displayName}</span>
+                              <div className="flex items-center gap-1.5">
+                                <span className="truncate">{displayName}</span>
+                                {investor.isSystemAccount && (
+                                  <Badge variant="outline" className="text-[9px] h-4 px-1 shrink-0">
+                                    System
+                                  </Badge>
+                                )}
+                              </div>
                               {email && (
                                 <span className="text-xs text-muted-foreground truncate">
                                   {email}
