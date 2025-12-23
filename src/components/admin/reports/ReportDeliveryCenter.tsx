@@ -71,6 +71,7 @@ import {
 import { Link } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info } from "lucide-react";
+import { DeliveryExclusionStats } from "./DeliveryExclusionStats";
 
 // MailerSend trial account limits (typical)
 const MAILERSEND_TRIAL_LIMIT = 100; // emails per month for trial accounts
@@ -790,6 +791,11 @@ export default function ReportDeliveryCenter() {
             </Card>
           </div>
         </div>
+      )}
+
+      {/* Exclusion Stats Panel - Shows why emails aren't being sent */}
+      {selectedPeriodId && (
+        <DeliveryExclusionStats periodId={selectedPeriodId} />
       )}
 
       {/* Action Panel */}
