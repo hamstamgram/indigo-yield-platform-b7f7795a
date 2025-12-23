@@ -4964,7 +4964,7 @@ export type Database = {
           purpose: Database["public"]["Enums"]["aum_purpose"]
           reason?: string | null
           recorded_aum: number
-          status?: string
+          status: string
           summary_json?: Json | null
           void_reason?: string | null
           voided_at?: string | null
@@ -5467,36 +5467,23 @@ export type Database = {
         }
         Returns: string
       }
-      adjust_investor_position:
-        | {
-            Args: {
-              p_amount: number
-              p_created_by?: string
-              p_fund_id: string
-              p_investor_id: string
-              p_notes?: string
-              p_tx_date?: string
-              p_tx_type: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_admin_id: string
-              p_delta: number
-              p_fund_id: string
-              p_investor_id: string
-              p_note: string
-              p_tx_date?: string
-              p_tx_type?: string
-            }
-            Returns: {
-              fund_id: string
-              investor_id: string
-              new_balance: number
-              previous_balance: number
-            }[]
-          }
+      adjust_investor_position: {
+        Args: {
+          p_admin_id: string
+          p_delta: number
+          p_fund_id: string
+          p_investor_id: string
+          p_note: string
+          p_tx_date?: string
+          p_tx_type?: string
+        }
+        Returns: {
+          fund_id: string
+          investor_id: string
+          new_balance: number
+          previous_balance: number
+        }[]
+      }
       admin_create_transaction: {
         Args: {
           p_amount: number
@@ -6362,7 +6349,13 @@ export type Database = {
         | "completed"
         | "rejected"
         | "cancelled"
-      yield_distribution_status: "draft" | "applied" | "voided"
+      yield_distribution_status:
+        | "draft"
+        | "applied"
+        | "voided"
+        | "previewed"
+        | "corrected"
+        | "rolled_back"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -6566,7 +6559,14 @@ export const Constants = {
         "rejected",
         "cancelled",
       ],
-      yield_distribution_status: ["draft", "applied", "voided"],
+      yield_distribution_status: [
+        "draft",
+        "applied",
+        "voided",
+        "previewed",
+        "corrected",
+        "rolled_back",
+      ],
     },
   },
 } as const
