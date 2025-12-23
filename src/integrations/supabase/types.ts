@@ -5430,29 +5430,20 @@ export type Database = {
             }
             Returns: string
           }
-      apply_daily_yield_to_fund:
-        | {
-            Args: {
-              p_daily_rate: number
-              p_fund_id: string
-              p_rate_date: string
-            }
-            Returns: number
-          }
-        | {
-            Args: {
-              p_admin_id: string
-              p_date: string
-              p_fund_id: string
-              p_gross_amount: number
-            }
-            Returns: {
-              fee_amount: number
-              gross_amount: number
-              investor_id: string
-              net_amount: number
-            }[]
-          }
+      apply_daily_yield_to_fund: {
+        Args: {
+          p_admin_id: string
+          p_date: string
+          p_fund_id: string
+          p_gross_amount: number
+        }
+        Returns: {
+          fee_amount: number
+          gross_amount: number
+          investor_id: string
+          net_amount: number
+        }[]
+      }
       apply_daily_yield_to_fund_v2: {
         Args: {
           p_date: string
@@ -5579,31 +5570,14 @@ export type Database = {
         Args: { p_confirmation: string; p_transaction_id: string }
         Returns: Json
       }
-      delete_withdrawal:
-        | {
-            Args: {
-              p_admin_id?: string
-              p_reason?: string
-              p_request_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_actor_id?: string
-              p_reason?: string
-              p_withdrawal_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_hard_delete?: boolean
-              p_reason: string
-              p_withdrawal_id: string
-            }
-            Returns: Json
-          }
+      delete_withdrawal: {
+        Args: {
+          p_hard_delete?: boolean
+          p_reason: string
+          p_withdrawal_id: string
+        }
+        Returns: Json
+      }
       dispatch_report_delivery_run: {
         Args: { p_channel?: string; p_period_id: string }
         Returns: Json
@@ -6187,35 +6161,16 @@ export type Database = {
         }
         Returns: boolean
       }
-      update_withdrawal:
-        | {
-            Args: {
-              p_admin_id?: string
-              p_admin_notes?: string
-              p_request_id: string
-              p_status: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_actor_id?: string
-              p_amount?: number
-              p_notes?: string
-              p_withdrawal_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_notes?: string
-              p_reason?: string
-              p_requested_amount?: number
-              p_withdrawal_id: string
-              p_withdrawal_type?: string
-            }
-            Returns: Json
-          }
+      update_withdrawal: {
+        Args: {
+          p_notes?: string
+          p_reason?: string
+          p_requested_amount?: number
+          p_withdrawal_id: string
+          p_withdrawal_type?: string
+        }
+        Returns: Json
+      }
       use_invite_code: {
         Args: { p_invite_code: string; p_user_id: string }
         Returns: boolean
