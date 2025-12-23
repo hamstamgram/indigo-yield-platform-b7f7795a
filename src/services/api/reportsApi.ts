@@ -20,44 +20,22 @@ import {
 export class ReportsApi {
   /**
    * Get available report definitions
+   * @deprecated report_definitions table has been removed. Returns empty array.
    */
   static async getReportDefinitions(
-    includeAdminOnly: boolean = false
+    _includeAdminOnly: boolean = false
   ): Promise<ReportDefinition[]> {
-    // Cast to any to avoid "Type instantiation is excessively deep" error
-    let query = (supabase as any).from("report_definitions").select("*").eq("is_active", true);
-
-    if (!includeAdminOnly) {
-      query = query.eq("is_admin_only", false);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error("Error fetching report definitions:", error);
-      return [];
-    }
-
-    return (data || []).map(this.mapReportDefinition);
+    console.warn("getReportDefinitions: report_definitions table removed, returning empty array");
+    return [];
   }
 
   /**
    * Get single report definition
+   * @deprecated report_definitions table has been removed. Returns null.
    */
-  static async getReportDefinition(reportType: ReportType): Promise<ReportDefinition | null> {
-    // Cast to any to avoid "Type instantiation is excessively deep" error
-    const { data, error } = await (supabase as any)
-      .from("report_definitions")
-      .select("*")
-      .eq("report_type", reportType)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Error fetching report definition:", error);
-      return null;
-    }
-
-    return data ? this.mapReportDefinition(data) : null;
+  static async getReportDefinition(_reportType: ReportType): Promise<ReportDefinition | null> {
+    console.warn("getReportDefinition: report_definitions table removed, returning null");
+    return null;
   }
 
   /**
