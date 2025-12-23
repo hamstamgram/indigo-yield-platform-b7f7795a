@@ -17,7 +17,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, Loader2, Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -115,11 +121,37 @@ export function VoidTransactionDialog({
           </Alert>
 
           {transaction.isSystemGenerated && (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                This is a system-generated transaction. Voiding may not be allowed.
-              </AlertDescription>
+            <Alert variant="destructive" className="border-destructive/50">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <AlertDescription className="font-medium">
+                    System-generated transaction
+                  </AlertDescription>
+                  <p className="text-xs text-destructive/80 mt-1">
+                    This transaction was automatically created by yield distributions, fee calculations, 
+                    or IB allocations. Voiding system transactions is blocked to maintain ledger integrity.
+                  </p>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button 
+                          type="button"
+                          className="text-xs underline text-destructive/70 hover:text-destructive mt-1.5 flex items-center gap-1"
+                        >
+                          <Info className="h-3 w-3" />
+                          Why can't I void this?
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="max-w-[300px] text-xs">
+                        <p>System transactions are linked to yield distribution periods and correction runs. 
+                        Voiding them would create inconsistencies in investor statements and AUM calculations.</p>
+                        <p className="mt-1.5 font-medium">Instead, use "Yield Correction" to properly adjust past distributions with full audit trail.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
             </Alert>
           )}
 
