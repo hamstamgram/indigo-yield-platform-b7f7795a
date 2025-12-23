@@ -19,7 +19,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { createAdminTransaction } from "@/services/shared/transactionService";
-import { Loader2, ArrowRightLeft, Info } from "lucide-react";
+import { saveDraftAUMEntry } from "@/services/admin/yieldDistributionService";
+import { Loader2, ArrowRightLeft, Info, AlertTriangle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Form Schema - aligned with AddTransactionDialog
@@ -44,6 +45,14 @@ export default function AdminManualTransaction() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentBalance, setCurrentBalance] = useState<number | null>(null);
   const [isCheckingBalance, setIsCheckingBalance] = useState(false);
+  
+  // AUM check state
+  const [aumExists, setAumExists] = useState<boolean | null>(null);
+  const [isCheckingAum, setIsCheckingAum] = useState(false);
+  const [showAumForm, setShowAumForm] = useState(false);
+  const [aumValue, setAumValue] = useState<string>("");
+  const [isRecordingAum, setIsRecordingAum] = useState(false);
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -61,6 +70,100 @@ export default function AdminManualTransaction() {
   const selectedInvestorId = form.watch("investorId");
   const selectedFundId = form.watch("fundId");
   const txnType = form.watch("type");
+  const txDate = form.watch("txDate");
+
+  // Check AUM existence when fund and date are selected
+  useEffect(() => {
+    const checkAumExists = async () => {
+      if (!selectedFundId || !txDate) {
+        setAumExists(null);
+        setShowAumForm(false);
+        return;
+      }
+      
+      setIsCheckingAum(true);
+      try {
+        const { data, error } = await supabase
+          .from("fund_daily_aum")
+          .select("id")
+          .eq("fund_id", selectedFundId)
+          .eq("aum_date", txDate)
+          .eq("purpose", "transaction")
+          .maybeSingle();
+        
+        if (error) {
+          console.error("Error checking AUM:", error);
+          setAumExists(null);
+        } else {
+          setAumExists(!!data);
+        }
+      } catch (error) {
+        console.error("Error checking AUM:", error);
+        setAumExists(null);
+      } finally {
+        setIsCheckingAum(false);
+      }
+    };
+    
+    checkAumExists();
+    setShowAumForm(false);
+  }, [selectedFundId, txDate]);
+
+  // Handle AUM recording
+  const handleRecordAum = async () => {
+    if (!aumValue || !selectedFundId || !txDate) {
+      toast({
+        title: "Error",
+        description: "Please enter an AUM value",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const numericAum = Number(aumValue);
+    if (isNaN(numericAum) || numericAum < 0) {
+      toast({
+        title: "Error",
+        description: "AUM must be a valid positive number",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsRecordingAum(true);
+    try {
+      const user = await supabase.auth.getUser();
+      await saveDraftAUMEntry(
+        selectedFundId,
+        new Date(txDate),
+        numericAum,
+        "Recorded for transaction creation",
+        user.data.user?.id
+      );
+      
+      setAumExists(true);
+      setShowAumForm(false);
+      setAumValue("");
+      toast({
+        title: "Success",
+        description: "AUM recorded successfully",
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ["fund-aum"] });
+    } catch (error) {
+      console.error("Error recording AUM:", error);
+      const errorMsg = error instanceof Error ? error.message : "Failed to record AUM";
+      toast({
+        title: "Error",
+        description: errorMsg.includes("Permission") 
+          ? "Permission denied: Admin access required." 
+          : errorMsg,
+        variant: "destructive",
+      });
+    } finally {
+      setIsRecordingAum(false);
+    }
+  };
 
   // Check investor's current balance when investor/fund changes
   useEffect(() => {
@@ -157,8 +260,38 @@ export default function AdminManualTransaction() {
         throw new Error("Selected fund not found");
       }
 
+      // Auto-create AUM record if it doesn't exist (for deposit/withdrawal transactions)
+      const requiresAum = ["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"].includes(data.type);
+      if (requiresAum && aumExists === false) {
+        console.log("Auto-creating AUM record for transaction...");
+        try {
+          const user = await supabase.auth.getUser();
+          await saveDraftAUMEntry(
+            data.fundId,
+            new Date(data.txDate),
+            0,
+            "Auto-created for transaction",
+            user.data.user?.id
+          );
+          setAumExists(true);
+          console.log("AUM record auto-created successfully");
+        } catch (aumError) {
+          console.error("Failed to auto-create AUM:", aumError);
+          const errorMsg = aumError instanceof Error ? aumError.message : "Failed to create AUM record";
+          toast({
+            title: "Error",
+            description: errorMsg.includes("Permission") 
+              ? "Permission denied: Admin access required." 
+              : `Failed to prepare transaction: ${errorMsg}`,
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       // Use the unified createAdminTransaction service
-      await createAdminTransaction({
+      const result = await createAdminTransaction({
         investor_id: data.investorId,
         fund_id: data.fundId,
         type: data.type,
@@ -168,6 +301,10 @@ export default function AdminManualTransaction() {
         notes: data.description,
         tx_hash: data.txHash,
       });
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to create transaction");
+      }
 
       // Comprehensive cache invalidation - matches AddTransactionDialog
       queryClient.invalidateQueries({ queryKey: ["investor-ledger"] });
@@ -195,6 +332,9 @@ export default function AdminManualTransaction() {
         fundId: "",
       });
       setCurrentBalance(null);
+      setAumExists(null);
+      setShowAumForm(false);
+      setAumValue("");
     } catch (error: any) {
       console.error("Transaction error:", error);
       toast({
@@ -361,6 +501,78 @@ export default function AdminManualTransaction() {
               )}
             </div>
 
+            {/* AUM Warning and Inline Form */}
+            {selectedFundId && txDate && (
+              <>
+                {isCheckingAum && (
+                  <Alert className="py-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <AlertDescription>Checking AUM for this date...</AlertDescription>
+                  </Alert>
+                )}
+                
+                {!isCheckingAum && aumExists === false && (
+                  <Alert variant="destructive" className="py-3">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription className="space-y-3">
+                      <p>
+                        <strong>No AUM recorded</strong> for this fund on {txDate}.
+                        Transactions require AUM data for proper allocation calculations.
+                      </p>
+                      
+                      {!showAumForm ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowAumForm(true)}
+                          className="mt-2"
+                        >
+                          Record AUM Now
+                        </Button>
+                      ) : (
+                        <div className="space-y-2 pt-2 border-t border-destructive/20">
+                          <Label htmlFor="aum_value" className="text-sm">
+                            Total Fund AUM
+                          </Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="aum_value"
+                              type="number"
+                              step="0.00000001"
+                              placeholder="Enter AUM value"
+                              value={aumValue}
+                              onChange={(e) => setAumValue(e.target.value)}
+                              className="flex-1"
+                              disabled={isRecordingAum}
+                            />
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={handleRecordAum}
+                              disabled={isRecordingAum || !aumValue}
+                            >
+                              {isRecordingAum && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                              Record
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                {!isCheckingAum && aumExists === true && (
+                  <Alert className="py-2 border-green-500/50 bg-green-50 dark:bg-green-950/20">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-700 dark:text-green-400">
+                      AUM recorded for {txDate}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </>
+            )}
+
             {/* Optional Fields */}
             <div className="space-y-2">
               <Label>Transaction Hash (Optional)</Label>
@@ -372,7 +584,11 @@ export default function AdminManualTransaction() {
               <Textarea {...form.register("description")} placeholder="Admin notes..." />
             </div>
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isSubmitting || (aumExists === false && showAumForm)}
+            >
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
