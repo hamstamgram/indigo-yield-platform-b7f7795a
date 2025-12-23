@@ -169,9 +169,32 @@ export async function createAdminTransaction(
     // Map FIRST_INVESTMENT to DEPOSIT for DB enum compliance
     const dbType = mapTypeForDb(params.type);
     
-    // For DEPOSIT/WITHDRAWAL, use the adjust_investor_position RPC
+    // For DEPOSIT/WITHDRAWAL, validate position state and use the adjust_investor_position RPC
     // This properly updates both transactions_v2 AND investor_positions
     if (dbType === "DEPOSIT" || dbType === "WITHDRAWAL") {
+      // Check current position to validate transaction type
+      const { data: position } = await supabase
+        .from("investor_positions")
+        .select("current_value")
+        .eq("investor_id", params.investor_id)
+        .eq("fund_id", params.fund_id)
+        .maybeSingle();
+      
+      const hasPosition = position && position.current_value > 0;
+      
+      // Validate: FIRST_INVESTMENT requires no position, DEPOSIT requires existing position
+      if (params.type === "FIRST_INVESTMENT" && hasPosition) {
+        console.warn("[createAdminTransaction] FIRST_INVESTMENT used with existing position, converting to DEPOSIT");
+      }
+      if (params.type === "DEPOSIT" && !hasPosition) {
+        // Block TOP_UP when balance is zero - require FIRST_INVESTMENT
+        console.error("[createAdminTransaction] DEPOSIT blocked - investor has no position in this fund");
+        return { 
+          success: false, 
+          error: "Cannot create Deposit for investor with no existing position. Use 'First Investment' instead." 
+        };
+      }
+      
       const delta = dbType === "DEPOSIT" ? params.amount : -params.amount;
       const note = params.notes || `${dbType} of ${params.amount} ${params.asset}`;
       
