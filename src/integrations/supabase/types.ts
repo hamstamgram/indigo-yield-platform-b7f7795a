@@ -816,9 +816,11 @@ export type Database = {
           fund_id: string
           id: string
           investor_id: string
+          is_voided: boolean | null
           period_end: string
           period_start: string
           purpose: Database["public"]["Enums"]["aum_purpose"]
+          voided_at: string | null
         }
         Insert: {
           base_net_income: number
@@ -833,9 +835,11 @@ export type Database = {
           fund_id: string
           id?: string
           investor_id: string
+          is_voided?: boolean | null
           period_end: string
           period_start: string
           purpose: Database["public"]["Enums"]["aum_purpose"]
+          voided_at?: string | null
         }
         Update: {
           base_net_income?: number
@@ -850,9 +854,11 @@ export type Database = {
           fund_id?: string
           id?: string
           investor_id?: string
+          is_voided?: boolean | null
           period_end?: string
           period_start?: string
           purpose?: Database["public"]["Enums"]["aum_purpose"]
+          voided_at?: string | null
         }
         Relationships: [
           {
@@ -1133,6 +1139,7 @@ export type Database = {
           fund_id: string
           id: string
           is_month_end: boolean | null
+          is_voided: boolean | null
           nav_per_share: number | null
           purpose: Database["public"]["Enums"]["aum_purpose"]
           source: string | null
@@ -1140,6 +1147,9 @@ export type Database = {
           total_shares: number | null
           updated_at: string | null
           updated_by: string | null
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
         }
         Insert: {
           as_of_date?: string | null
@@ -1149,6 +1159,7 @@ export type Database = {
           fund_id: string
           id?: string
           is_month_end?: boolean | null
+          is_voided?: boolean | null
           nav_per_share?: number | null
           purpose?: Database["public"]["Enums"]["aum_purpose"]
           source?: string | null
@@ -1156,6 +1167,9 @@ export type Database = {
           total_shares?: number | null
           updated_at?: string | null
           updated_by?: string | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
         }
         Update: {
           as_of_date?: string | null
@@ -1165,6 +1179,7 @@ export type Database = {
           fund_id?: string
           id?: string
           is_month_end?: boolean | null
+          is_voided?: boolean | null
           nav_per_share?: number | null
           purpose?: Database["public"]["Enums"]["aum_purpose"]
           source?: string | null
@@ -1172,6 +1187,9 @@ export type Database = {
           total_shares?: number | null
           updated_at?: string | null
           updated_by?: string | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
         }
         Relationships: [
           {
@@ -1201,6 +1219,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "withdrawal_queue"
             referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fund_daily_aum_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_daily_aum_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
         ]
       }
@@ -1681,6 +1713,7 @@ export type Database = {
           ib_investor_id: string
           ib_percentage: number
           id: string
+          is_voided: boolean | null
           period_end: string | null
           period_id: string | null
           period_start: string | null
@@ -1688,6 +1721,7 @@ export type Database = {
           source: string | null
           source_investor_id: string
           source_net_income: number
+          voided_at: string | null
         }
         Insert: {
           created_at?: string | null
@@ -1699,6 +1733,7 @@ export type Database = {
           ib_investor_id: string
           ib_percentage: number
           id?: string
+          is_voided?: boolean | null
           period_end?: string | null
           period_id?: string | null
           period_start?: string | null
@@ -1706,6 +1741,7 @@ export type Database = {
           source?: string | null
           source_investor_id: string
           source_net_income: number
+          voided_at?: string | null
         }
         Update: {
           created_at?: string | null
@@ -1717,6 +1753,7 @@ export type Database = {
           ib_investor_id?: string
           ib_percentage?: number
           id?: string
+          is_voided?: boolean | null
           period_end?: string | null
           period_id?: string | null
           period_start?: string | null
@@ -1724,6 +1761,7 @@ export type Database = {
           source?: string | null
           source_investor_id?: string
           source_net_income?: number
+          voided_at?: string | null
         }
         Relationships: [
           {
@@ -4971,6 +5009,9 @@ export type Database = {
           recorded_aum: number
           status: string
           summary_json: Json | null
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
         }
         Insert: {
           created_at?: string
@@ -4988,6 +5029,9 @@ export type Database = {
           recorded_aum: number
           status?: string
           summary_json?: Json | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
         }
         Update: {
           created_at?: string
@@ -5005,6 +5049,9 @@ export type Database = {
           recorded_aum?: number
           status?: string
           summary_json?: Json | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
         }
         Relationships: [
           {
@@ -5027,6 +5074,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "yield_distributions"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_distributions_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_distributions_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
           },
         ]
       }
@@ -6174,6 +6235,15 @@ export type Database = {
         Args: { p_fund_id: string; p_new_baseline: number }
         Returns: boolean
       }
+      update_fund_daily_aum: {
+        Args: {
+          p_admin_id: string
+          p_new_total_aum: number
+          p_reason: string
+          p_record_id: string
+        }
+        Returns: Json
+      }
       update_investor_aum_percentages: {
         Args: { p_fund_id: string }
         Returns: number
@@ -6224,6 +6294,10 @@ export type Database = {
           expected: number
           status: string
         }[]
+      }
+      void_fund_daily_aum: {
+        Args: { p_admin_id: string; p_reason: string; p_record_id: string }
+        Returns: Json
       }
       void_transaction: {
         Args: { p_reason: string; p_transaction_id: string }
