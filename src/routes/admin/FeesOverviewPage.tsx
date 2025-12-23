@@ -4,7 +4,7 @@
  * and audit trail with full distribution history
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -23,11 +23,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, DollarSign, Users, TrendingUp, Wallet, FileText, ArrowUpRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, Wallet, FileText, TrendingUp, ArrowUpRight, Calendar, Download, AlertCircle, Info } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { supabase } from "@/integrations/supabase/client";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { format } from "date-fns";
+import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 
 interface FeeRecord {
@@ -95,6 +98,14 @@ function FeesOverviewContent() {
   const [feeAllocations, setFeeAllocations] = useState<FeeAllocation[]>([]);
   const [yieldEarned, setYieldEarned] = useState<YieldEarned[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
+  
+  // Date filtering
+  const [dateFrom, setDateFrom] = useState<string>(() => 
+    format(startOfMonth(subMonths(new Date(), 3)), "yyyy-MM-dd")
+  );
+  const [dateTo, setDateTo] = useState<string>(() => 
+    format(endOfMonth(new Date()), "yyyy-MM-dd")
+  );
 
   const loadData = async () => {
     setLoading(true);
@@ -125,7 +136,7 @@ function FeesOverviewContent() {
         `)
         .in("type", ["FEE", "FEE_CREDIT", "IB_CREDIT"])
         .order("created_at", { ascending: false })
-        .limit(500);
+        .limit(1000);
 
       if (feeTxError) throw feeTxError;
 
@@ -170,7 +181,7 @@ function FeesOverviewContent() {
 
       setFees(feeRecords);
 
-      // Calculate summaries by asset
+      // Calculate summaries by asset (from all data, not filtered)
       const summaryMap = new Map<string, FeeSummary>();
       feeRecords.forEach((fee) => {
         const existing = summaryMap.get(fee.asset) || {
@@ -292,16 +303,70 @@ function FeesOverviewContent() {
     loadData();
   }, []);
 
-  const filteredFees =
-    selectedFund === "all"
-      ? fees
-      : fees.filter((f) => f.fundId === selectedFund);
+  // Filter fees by date range and fund
+  const filteredFees = useMemo(() => {
+    return fees.filter((fee) => {
+      // Fund filter
+      if (selectedFund !== "all" && fee.fundId !== selectedFund) {
+        return false;
+      }
+      // Date filter
+      const feeDate = parseISO(fee.txDate || fee.createdAt);
+      const fromDate = parseISO(dateFrom);
+      const toDate = parseISO(dateTo);
+      return isWithinInterval(feeDate, { start: fromDate, end: toDate });
+    });
+  }, [fees, selectedFund, dateFrom, dateTo]);
+
+  // Calculate filtered summaries
+  const filteredSummaries = useMemo(() => {
+    const summaryMap = new Map<string, FeeSummary>();
+    filteredFees.forEach((fee) => {
+      const existing = summaryMap.get(fee.asset) || {
+        assetCode: fee.asset,
+        totalAmount: 0,
+        transactionCount: 0,
+      };
+      existing.totalAmount += fee.amount;
+      existing.transactionCount += 1;
+      summaryMap.set(fee.asset, existing);
+    });
+    return Array.from(summaryMap.values());
+  }, [filteredFees]);
 
   const formatAmount = (amount: number, asset: string) => {
     if (asset === "BTC") {
       return amount.toLocaleString("en-US", { minimumFractionDigits: 6, maximumFractionDigits: 8 });
     }
     return amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+  };
+
+  const handleExportCSV = () => {
+    const headers = ["Date", "Investor", "Email", "Fund", "Asset", "Type", "Amount", "Purpose", "Visibility"];
+    const rows = filteredFees.map(fee => [
+      fee.txDate || fee.createdAt,
+      fee.investorName,
+      fee.investorEmail,
+      fee.fundName,
+      fee.asset,
+      fee.type,
+      fee.amount.toString(),
+      fee.purpose,
+      fee.visibilityScope
+    ]);
+    
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+    ].join("\n");
+    
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `indigo-fees-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -329,29 +394,7 @@ function FeesOverviewContent() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 mt-4">
-          {/* Summary Cards */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {feeSummaries.map((summary) => (
-              <Card key={summary.assetCode}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <CryptoIcon symbol={summary.assetCode} className="h-10 w-10" />
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase">{summary.assetCode} Fees</p>
-                      <p className="text-xl font-mono font-bold">
-                        {formatAmount(summary.totalAmount, summary.assetCode)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {summary.transactionCount} transactions
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* INDIGO Fees Account Balance */}
+          {/* INDIGO Fees Account Balance - moved to top */}
           <Card className="border-primary/30 bg-primary/5">
             <CardHeader className="pb-3">
               <div className="flex items-center gap-3">
@@ -375,33 +418,137 @@ function FeesOverviewContent() {
                     </div>
                   ))
                 ) : (
-                  <p className="text-muted-foreground col-span-4">No balances recorded yet</p>
+                  <div className="col-span-4 flex items-center gap-3 p-4 rounded-lg bg-muted/50 text-muted-foreground">
+                    <Info className="h-5 w-5" />
+                    <div>
+                      <p className="font-medium">No balances recorded yet</p>
+                      <p className="text-sm">Fee balances will appear after yield distributions.</p>
+                    </div>
+                  </div>
                 )}
               </div>
             </CardContent>
           </Card>
 
+          {/* Date Filter and Summary Cards */}
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Date Filter */}
+            <Card className="lg:w-80 shrink-0">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium">Date Range</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs">From</Label>
+                    <Input
+                      type="date"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">To</Label>
+                    <Input
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 text-xs"
+                    onClick={() => {
+                      setDateFrom(format(startOfMonth(subMonths(new Date(), 1)), "yyyy-MM-dd"));
+                      setDateTo(format(endOfMonth(subMonths(new Date(), 1)), "yyyy-MM-dd"));
+                    }}
+                  >
+                    Last Month
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 text-xs"
+                    onClick={() => {
+                      setDateFrom(format(startOfMonth(new Date()), "yyyy-MM-dd"));
+                      setDateTo(format(endOfMonth(new Date()), "yyyy-MM-dd"));
+                    }}
+                  >
+                    This Month
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Summary Cards */}
+            <div className="flex-1 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredSummaries.length > 0 ? (
+                filteredSummaries.map((summary) => (
+                  <Card key={summary.assetCode}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <CryptoIcon symbol={summary.assetCode} className="h-10 w-10" />
+                        <div>
+                          <p className="text-xs text-muted-foreground uppercase">{summary.assetCode} Fees</p>
+                          <p className="text-xl font-mono font-bold">
+                            {formatAmount(summary.totalAmount, summary.assetCode)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {summary.transactionCount} transactions
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Card className="md:col-span-2 lg:col-span-3">
+                  <CardContent className="p-6 flex items-center justify-center text-muted-foreground">
+                    <div className="text-center">
+                      <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>No fee transactions in selected date range</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+
           {/* Fee Records Table */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <CardTitle>Fee Transactions</CardTitle>
-                  <CardDescription>Individual fee deductions from investor accounts</CardDescription>
+                  <CardDescription>Individual fee deductions and credits</CardDescription>
                 </div>
-                <Select value={selectedFund} onValueChange={setSelectedFund}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Filter by fund" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Funds</SelectItem>
-                    {funds.map((fund) => (
-                      <SelectItem key={fund.id} value={fund.id}>
-                        {fund.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-2">
+                  <Select value={selectedFund} onValueChange={setSelectedFund}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Filter by fund" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Funds</SelectItem>
+                      {funds.map((fund) => (
+                        <SelectItem key={fund.id} value={fund.id}>
+                          {fund.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={filteredFees.length === 0}>
+                    <Download className="h-4 w-4 mr-1" />
+                    Export
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -423,9 +570,11 @@ function FeesOverviewContent() {
                       <TableRow>
                         <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                           <div className="space-y-2">
+                            <AlertCircle className="h-8 w-8 mx-auto opacity-50" />
                             <p>No fee transactions found</p>
-                            <p className="text-xs">
+                            <p className="text-xs max-w-md mx-auto">
                               Fee transactions (FEE, FEE_CREDIT, IB_CREDIT) are created during yield distributions.
+                              Try adjusting the date range or run a yield distribution to generate fee records.
                             </p>
                           </div>
                         </TableCell>
@@ -478,6 +627,11 @@ function FeesOverviewContent() {
                   </TableBody>
                 </Table>
               </div>
+              {filteredFees.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-2 text-right">
+                  Showing {filteredFees.length} of {fees.length} total transactions
+                </p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -496,29 +650,39 @@ function FeesOverviewContent() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border max-h-[600px] overflow-y-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Period</TableHead>
-                      <TableHead>Distribution ID</TableHead>
-                      <TableHead>Fund</TableHead>
-                      <TableHead>Source Investor</TableHead>
-                      <TableHead className="text-right">Base Income</TableHead>
-                      <TableHead className="text-right">Fee %</TableHead>
-                      <TableHead className="text-right">Fee Amount</TableHead>
-                      <TableHead>Purpose</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {feeAllocations.length === 0 ? (
+              {feeAllocations.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="font-medium mb-2">No fee allocations recorded yet</p>
+                  <p className="text-sm max-w-md mx-auto">
+                    Fee allocations are created during month-end reporting yield distributions.
+                    Once a distribution is run, detailed allocation records will appear here for audit purposes.
+                  </p>
+                  <div className="mt-4 p-4 bg-muted/50 rounded-lg max-w-md mx-auto text-left">
+                    <p className="text-xs font-medium text-foreground mb-2">Alternative Data Source:</p>
+                    <p className="text-xs">
+                      Fee transactions from <code className="bg-background px-1 rounded">transactions_v2</code> are 
+                      displayed in the Overview tab. These provide a complete record of all fee movements.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-md border max-h-[600px] overflow-y-auto">
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                          No fee allocations recorded yet. Allocations are created during month-end reporting yield distributions.
-                        </TableCell>
+                        <TableHead>Period</TableHead>
+                        <TableHead>Distribution ID</TableHead>
+                        <TableHead>Fund</TableHead>
+                        <TableHead>Source Investor</TableHead>
+                        <TableHead className="text-right">Base Income</TableHead>
+                        <TableHead className="text-right">Fee %</TableHead>
+                        <TableHead className="text-right">Fee Amount</TableHead>
+                        <TableHead>Purpose</TableHead>
                       </TableRow>
-                    ) : (
-                      feeAllocations.map((allocation) => (
+                    </TableHeader>
+                    <TableBody>
+                      {feeAllocations.map((allocation) => (
                         <TableRow key={allocation.id}>
                           <TableCell>
                             <div className="text-sm">
@@ -562,11 +726,11 @@ function FeesOverviewContent() {
                             </Badge>
                           </TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -615,9 +779,10 @@ function FeesOverviewContent() {
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <ArrowUpRight className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>No yield earned yet</p>
-                  <p className="text-sm mt-1">
+                  <p className="font-medium mb-1">No yield earned yet</p>
+                  <p className="text-sm max-w-md mx-auto">
                     Yield will be earned when month-end reporting distributions include INDIGO FEES positions.
+                    The account needs a balance first, which comes from fee collections.
                   </p>
                 </div>
               )}
