@@ -15,7 +15,8 @@ import {
   X,
   AlertCircle,
   TrendingUp,
-  RefreshCw
+  RefreshCw,
+  Ban
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -69,6 +70,10 @@ import {
 } from "@/services/admin/recordedYieldsService";
 import { YieldCorrectionPanel } from "@/components/admin/yields/YieldCorrectionPanel";
 import { getYieldCorrectionHistory, CorrectionHistoryItem } from "@/services/admin/yieldCorrectionService";
+import { VoidYieldDialog } from "@/components/admin/yields/VoidYieldDialog";
+import { EditYieldDialog } from "@/components/admin/yields/EditYieldDialog";
+import { YieldActionsColumn } from "@/components/admin/yields/YieldActionsColumn";
+import { voidYieldRecord, updateYieldAum } from "@/services/admin/yieldManagementService";
 
 interface Fund {
   id: string;
@@ -92,6 +97,8 @@ function RecordedYieldsContent() {
   const [canEdit, setCanEdit] = useState(false);
   const [correctionRecord, setCorrectionRecord] = useState<YieldRecord | null>(null);
   const [correctionHistoryRecord, setCorrectionHistoryRecord] = useState<YieldRecord | null>(null);
+  const [voidRecord, setVoidRecord] = useState<YieldRecord | null>(null);
+  const [editAumRecord, setEditAumRecord] = useState<YieldRecord | null>(null);
 
   const { user } = useAuth();
 
@@ -198,6 +205,38 @@ function RecordedYieldsContent() {
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : "Failed to update");
+    },
+  });
+
+  // Void mutation
+  const voidMutation = useMutation({
+    mutationFn: async (reason: string) => {
+      if (!voidRecord) throw new Error("No record selected");
+      return voidYieldRecord(voidRecord.id, reason);
+    },
+    onSuccess: () => {
+      toast.success("Yield record voided successfully");
+      setVoidRecord(null);
+      queryClient.invalidateQueries({ queryKey: ["recorded-yields"] });
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Failed to void record");
+    },
+  });
+
+  // Edit AUM mutation
+  const editAumMutation = useMutation({
+    mutationFn: async ({ newAum, reason }: { newAum: number; reason: string }) => {
+      if (!editAumRecord) throw new Error("No record selected");
+      return updateYieldAum(editAumRecord.id, newAum, reason);
+    },
+    onSuccess: () => {
+      toast.success("Yield AUM updated successfully");
+      setEditAumRecord(null);
+      queryClient.invalidateQueries({ queryKey: ["recorded-yields"] });
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Failed to update AUM");
     },
   });
 
@@ -419,38 +458,23 @@ function RecordedYieldsContent() {
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setHistoryRecord(record)}
-                                  >
-                                    <History className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>View edit history</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-
-                            {canEdit && (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => setCorrectionRecord(record)}
-                                    >
-                                      <Pencil className="h-4 w-4" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>Correct yield</TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            )}
+                          <YieldActionsColumn
+                            record={record}
+                            canEdit={canEdit}
+                            onEdit={(r) => setEditAumRecord(r)}
+                            onVoid={(r) => setVoidRecord(r)}
+                            onViewHistory={(r) => setHistoryRecord(r)}
+                            onCorrect={(r) => setCorrectionRecord(r)}
+                            isVoided={(record as any).is_voided}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -703,6 +727,28 @@ function RecordedYieldsContent() {
           queryClient.invalidateQueries({ queryKey: ["recorded-yields"] });
           queryClient.invalidateQueries({ queryKey: ["yield-corrections"] });
         }}
+      />
+
+      {/* Void Yield Dialog */}
+      <VoidYieldDialog
+        record={voidRecord}
+        open={!!voidRecord}
+        onOpenChange={(open) => !open && setVoidRecord(null)}
+        onConfirm={async (reason) => {
+          await voidMutation.mutateAsync(reason);
+        }}
+        isPending={voidMutation.isPending}
+      />
+
+      {/* Edit AUM Dialog */}
+      <EditYieldDialog
+        record={editAumRecord}
+        open={!!editAumRecord}
+        onOpenChange={(open) => !open && setEditAumRecord(null)}
+        onSave={async (newAum, reason) => {
+          await editAumMutation.mutateAsync({ newAum, reason });
+        }}
+        isPending={editAumMutation.isPending}
       />
     </div>
   );
