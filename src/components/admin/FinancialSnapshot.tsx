@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { useFundAUM, FundAUMData } from "@/hooks/useFundAUM";
 import { formatAUM } from "@/utils/formatters";
 import { toast } from "sonner";
+import { TruncatedText } from "@/components/ui/truncated-text";
 
 interface FlowData {
   fund_id: string;
@@ -488,8 +489,18 @@ export const FinancialSnapshot: React.FC = () => {
                   sortedCompositionData.map((investor, idx) => (
                     <TableRow key={idx}>
                       <TableCell>
-                        <div className="font-medium">{investor.investor_name}</div>
-                        <div className="text-xs text-muted-foreground">{investor.email}</div>
+                        <div className="max-w-[200px]">
+                          <TruncatedText 
+                            text={investor.investor_name}
+                            className="font-medium"
+                            maxWidth="200px"
+                          />
+                          <TruncatedText 
+                            text={investor.email}
+                            className="text-xs text-muted-foreground"
+                            maxWidth="200px"
+                          />
+                        </div>
                       </TableCell>
                       <TableCell className="text-right font-mono">
                         {selectedFund && formatAUM(investor.balance, selectedFund.asset)}
