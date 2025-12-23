@@ -5483,15 +5483,6 @@ export type Database = {
             }
             Returns: Json
           }
-        | {
-            Args: {
-              p_date: string
-              p_fund_id: string
-              p_new_aum: number
-              p_purpose?: string
-            }
-            Returns: Json
-          }
       apply_daily_yield_with_fees: {
         Args: {
           p_fee_rate?: number
