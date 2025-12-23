@@ -114,7 +114,7 @@ serve(async (req) => {
       user_id: user.id,
       secret_encrypted: encryptedSecret,
       enabled: false,
-      verified: false,
+      verified_at: null,
       created_at: new Date().toISOString(),
     });
 

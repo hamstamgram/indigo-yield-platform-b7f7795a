@@ -178,7 +178,6 @@ serve(async (req) => {
       const { error: updateError } = await supabaseClient
         .from("user_totp_settings")
         .update({
-          verified: true,
           enabled: true,
           verified_at: new Date().toISOString(),
         })

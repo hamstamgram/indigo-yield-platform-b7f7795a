@@ -58,11 +58,11 @@ serve(async (req) => {
     // Get stored TOTP secret
     const { data: totpData, error: totpError } = await supabaseClient
       .from("user_totp_settings")
-      .select("secret_encrypted, verified")
+      .select("secret_encrypted, verified_at")
       .eq("user_id", user.id)
       .single();
 
-    if (totpError || !totpData || !totpData.verified) {
+    if (totpError || !totpData || !totpData.verified_at) {
       return new Response(JSON.stringify({ error: "TOTP not enabled" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -113,7 +113,7 @@ serve(async (req) => {
       const { error: disableError } = await supabaseClient
         .from("user_totp_settings")
         .update({
-          verified: false,
+          verified_at: null,
           enabled: false,
           disabled_at: new Date().toISOString(),
         })

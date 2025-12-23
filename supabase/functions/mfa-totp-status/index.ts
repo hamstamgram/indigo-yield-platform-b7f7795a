@@ -50,7 +50,7 @@ serve(async (req) => {
     // Check if user has TOTP enabled
     const { data: totpData, error: totpError } = await supabaseClient
       .from("user_totp_settings")
-      .select("enabled, verified")
+      .select("enabled, verified_at")
       .eq("user_id", user.id)
       .maybeSingle();
 
@@ -58,14 +58,14 @@ serve(async (req) => {
       console.error("TOTP status check error:", totpError);
       return new Response(JSON.stringify({ error: "Internal server error" }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
       });
     }
 
     let status: "disabled" | "pending" | "enabled" = "disabled";
 
     if (totpData) {
-      if (totpData.verified) {
+      if (totpData.verified_at) {
         status = "enabled";
       } else {
         status = "pending";
