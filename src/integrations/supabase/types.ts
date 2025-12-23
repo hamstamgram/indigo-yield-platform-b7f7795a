@@ -5395,6 +5395,18 @@ export type Database = {
       adjust_investor_position:
         | {
             Args: {
+              p_amount: number
+              p_created_by?: string
+              p_fund_id: string
+              p_investor_id: string
+              p_notes?: string
+              p_tx_date?: string
+              p_tx_type: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
               p_admin_id: string
               p_delta: number
               p_fund_id: string
@@ -5981,9 +5993,9 @@ export type Database = {
       }
       preview_daily_yield_to_fund_v2: {
         Args: {
-          p_date: string
           p_fund_id: string
-          p_new_aum: number
+          p_gross_return_pct: number
+          p_nav_date: string
           p_purpose?: string
         }
         Returns: Json
