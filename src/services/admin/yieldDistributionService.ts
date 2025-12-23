@@ -209,11 +209,11 @@ export async function previewYieldDistribution(
   }
 
   // Call backend preview RPC with correct 4-parameter signature
-  // DB function: preview_daily_yield_to_fund_v2(p_fund_id uuid, p_date date, p_new_aum numeric, p_purpose text)
+  // DB function: preview_daily_yield_to_fund_v2(p_fund_id uuid, p_date date, p_gross_yield numeric, p_purpose text)
   const { data, error } = await (supabase.rpc as any)("preview_daily_yield_to_fund_v2", {
     p_fund_id: fundId,
     p_date: formatDate(targetDate),
-    p_new_aum: newTotalAUM,  // Pass new AUM - DB calculates gross yield internally
+    p_gross_yield: grossYieldAmount,  // Pass calculated gross yield amount
     p_purpose: purpose,
   });
 
