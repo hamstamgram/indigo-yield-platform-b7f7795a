@@ -7,16 +7,13 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { 
-  Pencil, 
-  History, 
   Filter, 
   Loader2, 
   Check,
   X,
   AlertCircle,
   TrendingUp,
-  RefreshCw,
-  Ban
+  RefreshCw
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -45,7 +42,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Tooltip,
@@ -53,16 +49,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Textarea } from "@/components/ui/textarea";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useAuth } from "@/lib/auth/context";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
 import {
   getYieldRecords,
-  updateYieldRecord,
-  getYieldEditHistory,
   canEditYields,
   YieldRecord,
   AumPurpose,
@@ -84,23 +76,12 @@ interface Fund {
 
 function RecordedYieldsContent() {
   const [funds, setFunds] = useState<Fund[]>([]);
-  const [editingRecord, setEditingRecord] = useState<YieldRecord | null>(null);
-  const [editValues, setEditValues] = useState<{
-    total_aum: string;
-    aum_date: string;
-    purpose: AumPurpose;
-    is_month_end: boolean;
-    source: string;
-  }>({ total_aum: "", aum_date: "", purpose: "transaction", is_month_end: false, source: "" });
-  const [editReason, setEditReason] = useState("");
   const [historyRecord, setHistoryRecord] = useState<YieldRecord | null>(null);
   const [canEdit, setCanEdit] = useState(false);
   const [correctionRecord, setCorrectionRecord] = useState<YieldRecord | null>(null);
   const [correctionHistoryRecord, setCorrectionHistoryRecord] = useState<YieldRecord | null>(null);
   const [voidRecord, setVoidRecord] = useState<YieldRecord | null>(null);
   const [editAumRecord, setEditAumRecord] = useState<YieldRecord | null>(null);
-
-  const { user } = useAuth();
 
   // URL-persisted filters
   const { filters: urlFilters, setFilter, clearFilters } = useUrlFilters({
@@ -140,13 +121,6 @@ function RecordedYieldsContent() {
     queryFn: () => getYieldRecords(filters),
   });
 
-  // Fetch edit history
-  const { data: editHistory = [], isLoading: isLoadingHistory } = useQuery({
-    queryKey: ["yield-history", historyRecord?.id],
-    queryFn: () => (historyRecord ? getYieldEditHistory(historyRecord.id) : Promise.resolve([])),
-    enabled: !!historyRecord,
-  });
-
   // Fetch correction history for all yields (for badge display)
   const { data: correctionHistory = [] } = useQuery({
     queryKey: ["yield-corrections", filters.fundId],
@@ -180,34 +154,6 @@ function RecordedYieldsContent() {
     return map;
   }, [correctionHistory]);
 
-  // Update mutation
-  const updateMutation = useMutation({
-    mutationFn: async () => {
-      if (!editingRecord || !user) throw new Error("Missing data");
-      return updateYieldRecord(
-        editingRecord.id,
-        {
-          total_aum: parseFloat(editValues.total_aum),
-          aum_date: editValues.aum_date,
-          purpose: editValues.purpose,
-          is_month_end: editValues.is_month_end,
-          source: editValues.source || undefined,
-        },
-        user.id,
-        editReason || undefined
-      );
-    },
-    onSuccess: () => {
-      toast.success("Yield record updated");
-      setEditingRecord(null);
-      setEditReason("");
-      queryClient.invalidateQueries({ queryKey: ["recorded-yields"] });
-    },
-    onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Failed to update");
-    },
-  });
-
   // Void mutation
   const voidMutation = useMutation({
     mutationFn: async (reason: string) => {
@@ -239,18 +185,6 @@ function RecordedYieldsContent() {
       toast.error(error instanceof Error ? error.message : "Failed to update AUM");
     },
   });
-
-  const openEditDialog = (record: YieldRecord) => {
-    setEditingRecord(record);
-    setEditValues({
-      total_aum: record.total_aum.toString(),
-      aum_date: record.aum_date,
-      purpose: record.purpose,
-      is_month_end: record.is_month_end,
-      source: record.source || "",
-    });
-    setEditReason("");
-  };
 
   const formatValue = (value: number, asset?: string) => {
     if (asset === "BTC") {
@@ -333,10 +267,10 @@ function RecordedYieldsContent() {
             </div>
 
             <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => clearFilters()}
-              >
+              variant="ghost"
+              size="sm"
+              onClick={() => clearFilters()}
+            >
               <Filter className="h-4 w-4 mr-1" />
               Reset
             </Button>
@@ -387,9 +321,10 @@ function RecordedYieldsContent() {
                   {yields.map((record) => {
                     const correctionKey = `${record.fund_id}:${record.aum_date}:${record.purpose}`;
                     const correctionInfo = correctedRecordsMap.get(correctionKey);
+                    const isVoided = (record as any).is_voided;
                     
                     return (
-                      <TableRow key={record.id}>
+                      <TableRow key={record.id} className={isVoided ? "opacity-50" : ""}>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <CryptoIcon symbol={record.fund_asset || ""} className="h-5 w-5" />
@@ -402,7 +337,12 @@ function RecordedYieldsContent() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             {format(new Date(record.aum_date), "MMM d, yyyy")}
-                            {correctionInfo && (
+                            {isVoided && (
+                              <Badge variant="destructive" className="text-xs">
+                                Voided
+                              </Badge>
+                            )}
+                            {correctionInfo && !isVoided && (
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -465,17 +405,8 @@ function RecordedYieldsContent() {
                             onVoid={(r) => setVoidRecord(r)}
                             onViewHistory={(r) => setHistoryRecord(r)}
                             onCorrect={(r) => setCorrectionRecord(r)}
-                            isVoided={(record as any).is_voided}
+                            isVoided={isVoided}
                           />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -486,164 +417,6 @@ function RecordedYieldsContent() {
           )}
         </CardContent>
       </Card>
-
-      {/* Edit Dialog */}
-      <Dialog open={!!editingRecord} onOpenChange={(o) => !o && setEditingRecord(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Yield Record</DialogTitle>
-            <DialogDescription>
-              Modify the yield entry. All changes are logged for audit.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>AUM ({editingRecord?.fund_asset})</Label>
-                <Input
-                  type="number"
-                  step="any"
-                  value={editValues.total_aum}
-                  onChange={(e) => setEditValues({ ...editValues, total_aum: e.target.value })}
-                  className="font-mono"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Effective Date</Label>
-                <Input
-                  type="date"
-                  value={editValues.aum_date}
-                  onChange={(e) => setEditValues({ ...editValues, aum_date: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Purpose</Label>
-                <Select
-                  value={editValues.purpose}
-                  onValueChange={(v) => setEditValues({ ...editValues, purpose: v as AumPurpose })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="reporting">🟢 Reporting (Month-end)</SelectItem>
-                    <SelectItem value="transaction">🟠 Transaction (Operational)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Month End</Label>
-                <Select
-                  value={editValues.is_month_end ? "yes" : "no"}
-                  onValueChange={(v) =>
-                    setEditValues({ ...editValues, is_month_end: v === "yes" })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="yes">Yes</SelectItem>
-                    <SelectItem value="no">No</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Source / Notes</Label>
-              <Input
-                value={editValues.source}
-                onChange={(e) => setEditValues({ ...editValues, source: e.target.value })}
-                placeholder="e.g., manual, excel_import"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>
-                Reason for Edit <span className="text-muted-foreground">(optional)</span>
-              </Label>
-              <Textarea
-                value={editReason}
-                onChange={(e) => setEditReason(e.target.value)}
-                placeholder="Explain why this change is needed..."
-                rows={2}
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingRecord(null)}>
-              Cancel
-            </Button>
-            <Button onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
-              {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* History Dialog */}
-      <Dialog open={!!historyRecord} onOpenChange={(o) => !o && setHistoryRecord(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit History</DialogTitle>
-            <DialogDescription>
-              {historyRecord?.fund_name} - {historyRecord?.aum_date}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="py-4 max-h-96 overflow-y-auto">
-            {isLoadingHistory ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin" />
-              </div>
-            ) : editHistory.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>No edit history for this record</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {editHistory.map((h: any) => (
-                  <div key={h.id} className="border rounded-lg p-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">
-                        {format(new Date(h.edited_at), "MMM d, yyyy HH:mm")}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        by {h.editor?.first_name} {h.editor?.last_name}
-                      </span>
-                    </div>
-                    {h.edit_reason && (
-                      <p className="text-sm text-muted-foreground">Reason: {h.edit_reason}</p>
-                    )}
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div>
-                        <p className="font-medium">Previous</p>
-                        <pre className="bg-muted p-2 rounded text-[10px] overflow-auto max-h-24">
-                          {JSON.stringify(h.previous_values, null, 2)}
-                        </pre>
-                      </div>
-                      <div>
-                        <p className="font-medium">New</p>
-                        <pre className="bg-muted p-2 rounded text-[10px] overflow-auto max-h-24">
-                          {JSON.stringify(h.new_values, null, 2)}
-                        </pre>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Correction History Dialog */}
       <Dialog open={!!correctionHistoryRecord} onOpenChange={(o) => !o && setCorrectionHistoryRecord(null)}>
