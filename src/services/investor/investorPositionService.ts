@@ -53,25 +53,37 @@ export async function fetchInvestorPositions(investorId: string): Promise<Invest
 /**
  * Fetch all investors for dropdown selectors
  * Returns non-admin profiles with basic info
+ * Includes system accounts (like INDIGO FEES) for admin visibility
  */
-export async function fetchInvestorsForSelector(): Promise<{
+export async function fetchInvestorsForSelector(includeSystemAccounts = true): Promise<{
   id: string;
   email: string;
   displayName: string;
+  isSystemAccount?: boolean;
 }[]> {
-  const { data, error } = await supabase
+  let query = supabase
     .from("profiles")
-    .select("id, email, first_name, last_name")
+    .select("id, email, first_name, last_name, account_type")
     .eq("is_admin", false)
     .order("email");
 
+  const { data, error } = await query;
+
   if (error) throw error;
 
-  return (data || []).map((p) => ({
-    id: p.id,
-    email: p.email || "",
-    displayName: p.first_name && p.last_name 
-      ? `${p.first_name} ${p.last_name}` 
-      : p.email || p.id,
-  }));
+  return (data || [])
+    .filter(p => {
+      // Always include regular investors
+      if (p.account_type !== 'fees_account') return true;
+      // Only include system accounts if requested
+      return includeSystemAccounts;
+    })
+    .map((p) => ({
+      id: p.id,
+      email: p.email || "",
+      displayName: p.first_name && p.last_name 
+        ? `${p.first_name} ${p.last_name}` 
+        : p.email || p.id,
+      isSystemAccount: p.account_type === 'fees_account',
+    }));
 }

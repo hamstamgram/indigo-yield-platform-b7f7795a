@@ -198,6 +198,7 @@ export async function createAdminTransaction(
       const delta = dbType === "DEPOSIT" ? params.amount : -params.amount;
       const note = params.notes || `${dbType} of ${params.amount} ${params.asset}`;
       
+      // Use the 7-param signature that includes tx_type and tx_date for proper validation
       const rpcCall = (supabase.rpc as any).bind(supabase);
       const { error } = await rpcCall("adjust_investor_position", {
         p_investor_id: params.investor_id,
@@ -205,6 +206,8 @@ export async function createAdminTransaction(
         p_delta: delta,
         p_note: note,
         p_admin_id: user.id,
+        p_tx_type: dbType,
+        p_tx_date: params.tx_date,
       });
       
       if (error) {
