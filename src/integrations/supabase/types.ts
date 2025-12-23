@@ -5392,21 +5392,39 @@ export type Database = {
         }
         Returns: string
       }
-      adjust_investor_position: {
-        Args: {
-          p_admin_id: string
-          p_delta: number
-          p_fund_id: string
-          p_investor_id: string
-          p_note: string
-        }
-        Returns: {
-          fund_id: string
-          investor_id: string
-          new_balance: number
-          previous_balance: number
-        }[]
-      }
+      adjust_investor_position:
+        | {
+            Args: {
+              p_admin_id: string
+              p_delta: number
+              p_fund_id: string
+              p_investor_id: string
+              p_note: string
+            }
+            Returns: {
+              fund_id: string
+              investor_id: string
+              new_balance: number
+              previous_balance: number
+            }[]
+          }
+        | {
+            Args: {
+              p_admin_id: string
+              p_delta: number
+              p_fund_id: string
+              p_investor_id: string
+              p_note: string
+              p_tx_date?: string
+              p_tx_type?: string
+            }
+            Returns: {
+              fund_id: string
+              investor_id: string
+              new_balance: number
+              previous_balance: number
+            }[]
+          }
       admin_create_transaction: {
         Args: {
           p_amount: number

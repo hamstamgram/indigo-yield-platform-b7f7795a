@@ -1,10 +1,17 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export async function adjustPosition(
-  input: { investor_id: string; fund_id: string; delta: number; note?: string },
+  input: { 
+    investor_id: string; 
+    fund_id: string; 
+    delta: number; 
+    note?: string;
+    tx_type?: string;
+    tx_date?: string;
+  },
   adminId: string
 ) {
-  const { investor_id, fund_id, delta, note } = input;
+  const { investor_id, fund_id, delta, note, tx_type, tx_date } = input;
   const rpcCall = (supabase.rpc as any).bind(supabase);
   const { data, error } = await rpcCall("adjust_investor_position", {
     p_investor_id: investor_id,
@@ -12,6 +19,8 @@ export async function adjustPosition(
     p_delta: delta,
     p_note: note || "",
     p_admin_id: adminId,
+    p_tx_type: tx_type || "ADJUSTMENT",
+    p_tx_date: tx_date || new Date().toISOString().split('T')[0],
   });
   if (error) {
     console.error("adjustPosition error", error);
