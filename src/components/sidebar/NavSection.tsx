@@ -136,7 +136,7 @@ const NavSection = ({
                 className={cn(
                   "w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-3 group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1",
                   isItemActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg font-semibold"
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg font-semibold ring-1 ring-sidebar-primary/50"
                     : "text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                   isLoading && "opacity-60 cursor-wait"
                 )}
@@ -145,14 +145,14 @@ const NavSection = ({
                 tabIndex={0}
               >
                 <span className={cn(
-                  "flex items-center shrink-0",
-                  isItemActive && "text-primary"
+                  "flex items-center shrink-0 transition-colors",
+                  isItemActive ? "text-sidebar-primary-foreground" : ""
                 )}>
                   {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : item.icon}
                 </span>
                 <span className="flex-1 truncate">{item.title}</span>
                 {isItemActive && (
-                  <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full" />
+                  <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-5 bg-sidebar-primary-foreground rounded-r-full" />
                 )}
               </button>
             </li>
