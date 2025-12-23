@@ -497,23 +497,12 @@ export class InvestorDataService {
     return data || [];
   }
 
-  // Get current yield rates for all assets
+  /**
+   * @deprecated yield_settings table has been removed. Returns empty array.
+   */
   async getCurrentYieldRates(): Promise<any[]> {
-    const { data, error } = await supabase
-      .from("yield_settings")
-      .select("id, rate_bps, frequency, effective_from");
-
-    if (error) {
-      console.warn("getCurrentYieldRates: Error fetching yield settings:", error);
-      return [];
-    }
-
-    return (data || []).map((setting) => ({
-      asset_symbol: "USD", // Default since no asset_code column in current view
-      asset_name: "USD Yield",
-      daily_rate: (setting.rate_bps || 0) / 10000 / 365,
-      annual_rate: (setting.rate_bps || 0) / 100,
-    }));
+    console.warn("getCurrentYieldRates: yield_settings table removed, returning empty array");
+    return [];
   }
 
   // Get investor documents (statements, etc.)
@@ -531,25 +520,12 @@ export class InvestorDataService {
     return data || [];
   }
 
-  // Get portfolio performance over time (from portfolio_history)
-  async getPortfolioPerformanceHistory(days: number = 30): Promise<any[]> {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) return [];
-
-    const investorId = user.user.id;
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
-
-    // Break type chain to avoid TS2589
-    const queryBuilder: any = supabase.from("portfolio_history");
-    const { data, error } = await queryBuilder
-      .select("*")
-      .eq("investor_id", investorId)
-      .gte("snapshot_date", startDate.toISOString().split("T")[0])
-      .order("snapshot_date", { ascending: true });
-
-    if (error) throw error;
-    return data || [];
+  /**
+   * @deprecated portfolio_history table has been removed. Returns empty array.
+   */
+  async getPortfolioPerformanceHistory(_days: number = 30): Promise<any[]> {
+    console.warn("getPortfolioPerformanceHistory: portfolio_history table removed, returning empty array");
+    return [];
   }
 }
 

@@ -687,48 +687,6 @@ export type Database = {
         }
         Relationships: []
       }
-      email_logs: {
-        Row: {
-          created_at: string | null
-          delivered_at: string | null
-          error: string | null
-          id: string
-          message_id: string | null
-          metadata: Json | null
-          recipient: string
-          sent_at: string | null
-          status: string | null
-          subject: string
-          template: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          delivered_at?: string | null
-          error?: string | null
-          id?: string
-          message_id?: string | null
-          metadata?: Json | null
-          recipient: string
-          sent_at?: string | null
-          status?: string | null
-          subject: string
-          template?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          delivered_at?: string | null
-          error?: string | null
-          id?: string
-          message_id?: string | null
-          metadata?: Json | null
-          recipient?: string
-          sent_at?: string | null
-          status?: string | null
-          subject?: string
-          template?: string | null
-        }
-        Relationships: []
-      }
       excel_import_log: {
         Row: {
           class_summary: Json | null
@@ -2739,47 +2697,6 @@ export type Database = {
           },
         ]
       }
-      portfolio_history: {
-        Row: {
-          asset_id: number
-          balance: number
-          created_at: string
-          date: string
-          id: string
-          usd_value: number | null
-          user_id: string
-          yield_applied: number | null
-        }
-        Insert: {
-          asset_id: number
-          balance: number
-          created_at?: string
-          date: string
-          id?: string
-          usd_value?: number | null
-          user_id: string
-          yield_applied?: number | null
-        }
-        Update: {
-          asset_id?: number
-          balance?: number
-          created_at?: string
-          date?: string
-          id?: string
-          usd_value?: number | null
-          user_id?: string
-          yield_applied?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "portfolio_history_asset_id_fkey"
-            columns: ["asset_id"]
-            isOneToOne: false
-            referencedRelation: "assets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       position_reset_log: {
         Row: {
           admin_user_id: string
@@ -3038,60 +2955,6 @@ export type Database = {
         }
         Relationships: []
       }
-      report_definitions: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          description: string | null
-          id: string
-          is_active: boolean | null
-          is_admin_only: boolean | null
-          name: string
-          template_config: Json | null
-          template_type: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          is_admin_only?: boolean | null
-          name: string
-          template_config?: Json | null
-          template_type: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          is_admin_only?: boolean | null
-          name?: string
-          template_config?: Json | null
-          template_type?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "report_definitions_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "report_definitions_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "v_investor_kpis"
-            referencedColumns: ["investor_id"]
-          },
-        ]
-      }
       report_delivery_audit: {
         Row: {
           actor_id: string | null
@@ -3202,15 +3065,7 @@ export type Database = {
           schedule_type?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "report_schedules_report_definition_id_fkey"
-            columns: ["report_definition_id"]
-            isOneToOne: false
-            referencedRelation: "report_definitions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reports: {
         Row: {
@@ -4591,33 +4446,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      yield_settings: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          effective_from: string
-          frequency: string
-          id: string
-          rate_bps: number
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          effective_from?: string
-          frequency?: string
-          id?: string
-          rate_bps: number
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          effective_from?: string
-          frequency?: string
-          id?: string
-          rate_bps?: number
-        }
-        Relationships: []
       }
     }
     Views: {

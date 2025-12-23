@@ -1,13 +1,15 @@
 /**
  * Admin Email Tracking Page
  * Track and monitor all emails sent to investors
+ * 
+ * Uses statement_email_delivery table as the primary data source
  *
  * Features:
  * - View email logs with detailed information
- * - Filter by email type, status, date range
+ * - Filter by status, date range
  * - Search by recipient or subject
  * - Export logs to CSV
- * - View email content preview
+ * - View email details
  * - Statistics dashboard
  */
 
@@ -27,7 +29,7 @@ import {
   TrendingUp,
   BarChart3,
   AlertCircle,
-  ExternalLink,
+  MousePointerClick,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,30 +62,30 @@ import {
 // TYPES & INTERFACES
 // =====================================================
 
-interface EmailLog {
+interface EmailDelivery {
   id: string;
   recipient_email: string;
-  recipient_name: string | null;
   subject: string;
-  email_type: string | null;
-  report_month: string | null;
-  sent_by: string | null;
-  sent_at: string;
   status: string;
-  external_id: string | null;
+  channel: string;
+  provider: string | null;
+  provider_message_id: string | null;
+  sent_at: string | null;
+  delivered_at: string | null;
+  opened_at: string | null;
+  clicked_at: string | null;
+  bounced_at: string | null;
+  failed_at: string | null;
   error_message: string | null;
+  error_code: string | null;
+  bounce_type: string | null;
   created_at: string;
+  investor_id: string;
 }
 
 interface EmailFilters {
   search: string;
-  emailType:
-    | "all"
-    | "investor_report"
-    | "onboarding_welcome"
-    | "password_reset"
-    | "withdrawal_confirmation";
-  status: "all" | "sent" | "delivered" | "failed" | "bounced";
+  status: "all" | "PENDING" | "SENT" | "DELIVERED" | "OPENED" | "CLICKED" | "BOUNCED" | "FAILED";
   dateFrom?: string;
   dateTo?: string;
 }
@@ -91,6 +93,7 @@ interface EmailFilters {
 interface EmailStats {
   totalSent: number;
   delivered: number;
+  opened: number;
   failed: number;
   bounced: number;
   successRate: number;
@@ -99,7 +102,7 @@ interface EmailStats {
 
 interface EmailPreviewDialog {
   open: boolean;
-  emailLog: EmailLog | null;
+  delivery: EmailDelivery | null;
 }
 
 // =====================================================
@@ -109,120 +112,104 @@ interface EmailPreviewDialog {
 export default function AdminEmailTrackingPage() {
   const [filters, setFilters] = useState<EmailFilters>({
     search: "",
-    emailType: "all",
     status: "all",
   });
 
   const [previewDialog, setPreviewDialog] = useState<EmailPreviewDialog>({
     open: false,
-    emailLog: null,
+    delivery: null,
   });
 
   // =====================================================
   // DATA FETCHING
   // =====================================================
 
-  // Fetch email statistics
+  // Fetch email statistics from statement_email_delivery
   const { data: stats } = useQuery<EmailStats>({
     queryKey: ["email-stats"],
     queryFn: async () => {
-      // email_logs table may not exist, return defaults
-      try {
-        const { data, error } = await (supabase as any).from("email_logs").select("status, sent_at");
+      const { data, error } = await supabase
+        .from("statement_email_delivery")
+        .select("status, sent_at, created_at");
 
-        if (error) {
-          console.warn("Error fetching email stats:", error);
-          return {
-            totalSent: 0,
-            delivered: 0,
-            failed: 0,
-            bounced: 0,
-            successRate: 0,
-            todayCount: 0,
-          };
-        }
-
-        const today = new Date().toISOString().split("T")[0];
-
-        const stats: EmailStats = {
-          totalSent: data?.length || 0,
-          delivered: 0,
-          failed: 0,
-          bounced: 0,
-          successRate: 0,
-          todayCount: 0,
-        };
-
-        data?.forEach((log: any) => {
-          if (log.status === "sent" || log.status === "delivered") stats.delivered++;
-          if (log.status === "failed") stats.failed++;
-          if (log.status === "bounced") stats.bounced++;
-          if (log.sent_at && log.sent_at.startsWith(today)) stats.todayCount++;
-        });
-
-        stats.successRate =
-          stats.totalSent > 0 ? Math.round((stats.delivered / stats.totalSent) * 100) : 0;
-
-        return stats;
-      } catch (e) {
+      if (error) {
+        console.error("Error fetching email stats:", error);
         return {
           totalSent: 0,
           delivered: 0,
+          opened: 0,
           failed: 0,
           bounced: 0,
           successRate: 0,
           todayCount: 0,
         };
       }
+
+      const today = new Date().toISOString().split("T")[0];
+
+      const stats: EmailStats = {
+        totalSent: data?.length || 0,
+        delivered: 0,
+        opened: 0,
+        failed: 0,
+        bounced: 0,
+        successRate: 0,
+        todayCount: 0,
+      };
+
+      data?.forEach((log) => {
+        if (log.status === "DELIVERED" || log.status === "SENT") stats.delivered++;
+        if (log.status === "OPENED" || log.status === "CLICKED") stats.opened++;
+        if (log.status === "FAILED") stats.failed++;
+        if (log.status === "BOUNCED") stats.bounced++;
+        const logDate = log.sent_at || log.created_at;
+        if (logDate && logDate.startsWith(today)) stats.todayCount++;
+      });
+
+      stats.successRate =
+        stats.totalSent > 0 ? Math.round((stats.delivered / stats.totalSent) * 100) : 0;
+
+      return stats;
     },
     refetchInterval: 30000,
   });
 
-  // Fetch email logs
-  const { data: emailLogs, isLoading: logsLoading } = useQuery<EmailLog[]>({
-    queryKey: ["email-logs", filters],
+  // Fetch email deliveries
+  const { data: emailDeliveries, isLoading: logsLoading } = useQuery<EmailDelivery[]>({
+    queryKey: ["email-deliveries", filters],
     queryFn: async () => {
-      try {
-        let query = (supabase as any)
-          .from("email_logs")
-          .select("*")
-          .order("sent_at", { ascending: false })
-          .limit(100);
+      let query = supabase
+        .from("statement_email_delivery")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
 
-        if (filters.emailType !== "all") {
-          query = query.eq("email_type", filters.emailType);
-        }
+      if (filters.status !== "all") {
+        query = query.eq("status", filters.status);
+      }
 
-        if (filters.status !== "all") {
-          query = query.eq("status", filters.status);
-        }
+      if (filters.search) {
+        query = query.or(
+          `recipient_email.ilike.%${filters.search}%,subject.ilike.%${filters.search}%`
+        );
+      }
 
-        if (filters.search) {
-          query = query.or(
-            `recipient_email.ilike.%${filters.search}%,subject.ilike.%${filters.search}%`
-          );
-        }
+      if (filters.dateFrom) {
+        query = query.gte("created_at", filters.dateFrom);
+      }
 
-        if (filters.dateFrom) {
-          query = query.gte("sent_at", filters.dateFrom);
-        }
+      if (filters.dateTo) {
+        query = query.lte("created_at", filters.dateTo);
+      }
 
-        if (filters.dateTo) {
-          query = query.lte("sent_at", filters.dateTo);
-        }
-
-        const { data, error } = await query;
+      const { data, error } = await query;
 
       if (error) {
-        console.warn("Error fetching email logs:", error);
+        console.error("Error fetching email deliveries:", error);
         return [];
       }
 
-        return (data as any[]) || [];
-      } catch (e) {
-        console.warn("Email logs table may not exist:", e);
-        return [];
-      }
+      return data || [];
     },
   });
 
@@ -231,17 +218,18 @@ export default function AdminEmailTrackingPage() {
   // =====================================================
 
   const handleExportCSV = () => {
-    if (!emailLogs || emailLogs.length === 0) return;
+    if (!emailDeliveries || emailDeliveries.length === 0) return;
 
     // Create CSV content
-    const headers = ["Date", "Recipient", "Subject", "Type", "Status", "Error"];
-    const rows = emailLogs.map((log) => [
-      new Date(log.sent_at).toLocaleString(),
-      log.recipient_email,
-      log.subject,
-      log.email_type || "N/A",
-      log.status,
-      log.error_message || "",
+    const headers = ["Date", "Recipient", "Subject", "Status", "Delivered At", "Opened At", "Error"];
+    const rows = emailDeliveries.map((d) => [
+      new Date(d.created_at).toLocaleString(),
+      d.recipient_email,
+      d.subject,
+      d.status,
+      d.delivered_at ? new Date(d.delivered_at).toLocaleString() : "",
+      d.opened_at ? new Date(d.opened_at).toLocaleString() : "",
+      d.error_message || "",
     ]);
 
     const csvContent = [
@@ -254,13 +242,13 @@ export default function AdminEmailTrackingPage() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `email-logs-${new Date().toISOString().split("T")[0]}.csv`;
+    a.download = `email-deliveries-${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
 
-  const handlePreview = (emailLog: EmailLog) => {
-    setPreviewDialog({ open: true, emailLog });
+  const handlePreview = (delivery: EmailDelivery) => {
+    setPreviewDialog({ open: true, delivery });
   };
 
   // =====================================================
@@ -269,13 +257,16 @@ export default function AdminEmailTrackingPage() {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: any; icon: any; label: string }> = {
-      sent: { variant: "secondary", icon: Send, label: "Sent" },
-      delivered: { variant: "default", icon: CheckCircle2, label: "Delivered" },
-      failed: { variant: "destructive", icon: XCircle, label: "Failed" },
-      bounced: { variant: "destructive", icon: AlertCircle, label: "Bounced" },
+      PENDING: { variant: "secondary", icon: Send, label: "Pending" },
+      SENT: { variant: "secondary", icon: Send, label: "Sent" },
+      DELIVERED: { variant: "default", icon: CheckCircle2, label: "Delivered" },
+      OPENED: { variant: "default", icon: Eye, label: "Opened" },
+      CLICKED: { variant: "default", icon: MousePointerClick, label: "Clicked" },
+      FAILED: { variant: "destructive", icon: XCircle, label: "Failed" },
+      BOUNCED: { variant: "destructive", icon: AlertCircle, label: "Bounced" },
     };
 
-    const config = variants[status] || variants.sent;
+    const config = variants[status] || variants.PENDING;
     const Icon = config.icon;
 
     return (
@@ -286,7 +277,8 @@ export default function AdminEmailTrackingPage() {
     );
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "-";
     return new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -294,17 +286,6 @@ export default function AdminEmailTrackingPage() {
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
-
-  const getEmailTypeLabel = (type: string | null) => {
-    const types: Record<string, string> = {
-      investor_report: "Investor Report",
-      onboarding_welcome: "Welcome Email",
-      password_reset: "Password Reset",
-      withdrawal_confirmation: "Withdrawal",
-      security_alert: "Security Alert",
-    };
-    return types[type || ""] || type || "Unknown";
   };
 
   // =====================================================
@@ -321,14 +302,14 @@ export default function AdminEmailTrackingPage() {
             Monitor and track all emails sent to investors
           </p>
         </div>
-        <Button onClick={handleExportCSV} disabled={!emailLogs || emailLogs.length === 0}>
+        <Button onClick={handleExportCSV} disabled={!emailDeliveries || emailDeliveries.length === 0}>
           <Download className="h-4 w-4 mr-2" />
           Export CSV
         </Button>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid gap-4 md:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Sent</CardTitle>
@@ -346,6 +327,16 @@ export default function AdminEmailTrackingPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{stats?.delivered || 0}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Opened</CardTitle>
+            <Eye className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{stats?.opened || 0}</div>
           </CardContent>
         </Card>
 
@@ -398,22 +389,6 @@ export default function AdminEmailTrackingPage() {
             </div>
           </div>
           <Select
-            value={filters.emailType}
-            onValueChange={(value: any) => setFilters({ ...filters, emailType: value })}
-          >
-            <SelectTrigger className="w-[200px]">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Email type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="investor_report">Investor Report</SelectItem>
-              <SelectItem value="onboarding_welcome">Welcome Email</SelectItem>
-              <SelectItem value="password_reset">Password Reset</SelectItem>
-              <SelectItem value="withdrawal_confirmation">Withdrawal</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
             value={filters.status}
             onValueChange={(value: any) => setFilters({ ...filters, status: value })}
           >
@@ -423,10 +398,13 @@ export default function AdminEmailTrackingPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="sent">Sent</SelectItem>
-              <SelectItem value="delivered">Delivered</SelectItem>
-              <SelectItem value="failed">Failed</SelectItem>
-              <SelectItem value="bounced">Bounced</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="SENT">Sent</SelectItem>
+              <SelectItem value="DELIVERED">Delivered</SelectItem>
+              <SelectItem value="OPENED">Opened</SelectItem>
+              <SelectItem value="CLICKED">Clicked</SelectItem>
+              <SelectItem value="FAILED">Failed</SelectItem>
+              <SelectItem value="BOUNCED">Bounced</SelectItem>
             </SelectContent>
           </Select>
         </CardContent>
@@ -435,7 +413,7 @@ export default function AdminEmailTrackingPage() {
       {/* Email Logs Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Email Logs ({emailLogs?.length || 0})</CardTitle>
+          <CardTitle>Email Deliveries ({emailDeliveries?.length || 0})</CardTitle>
           <CardDescription>View all emails sent from the platform</CardDescription>
         </CardHeader>
         <CardContent>
@@ -443,52 +421,40 @@ export default function AdminEmailTrackingPage() {
             <div className="flex items-center justify-center py-8">
               <BarChart3 className="h-6 w-6 animate-pulse text-muted-foreground" />
             </div>
-          ) : emailLogs && emailLogs.length > 0 ? (
+          ) : emailDeliveries && emailDeliveries.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
                   <TableHead>Recipient</TableHead>
                   <TableHead>Subject</TableHead>
-                  <TableHead>Type</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Delivered</TableHead>
+                  <TableHead>Opened</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {emailLogs.map((log) => (
-                  <TableRow key={log.id}>
+                {emailDeliveries.map((delivery) => (
+                  <TableRow key={delivery.id}>
                     <TableCell className="text-sm text-muted-foreground">
-                      {formatDate(log.sent_at)}
+                      {formatDate(delivery.created_at)}
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-medium text-sm">
-                          {log.recipient_name || "Unknown"}
-                        </span>
-                        <span className="text-xs text-muted-foreground">{log.recipient_email}</span>
-                      </div>
+                      <span className="text-sm">{delivery.recipient_email}</span>
                     </TableCell>
-                    <TableCell className="max-w-xs truncate">{log.subject}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{getEmailTypeLabel(log.email_type)}</Badge>
+                    <TableCell className="max-w-xs truncate">{delivery.subject}</TableCell>
+                    <TableCell>{getStatusBadge(delivery.status)}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {formatDate(delivery.delivered_at)}
                     </TableCell>
-                    <TableCell>{getStatusBadge(log.status)}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {formatDate(delivery.opened_at)}
+                    </TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="ghost" onClick={() => handlePreview(log)}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        {log.external_id && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => window.open(`https://mailerlite.com`, "_blank")}
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
+                      <Button size="sm" variant="ghost" onClick={() => handlePreview(delivery)}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -497,71 +463,70 @@ export default function AdminEmailTrackingPage() {
           ) : (
             <div className="text-center py-8">
               <Mail className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground">No email logs found</p>
+              <p className="text-muted-foreground">No email deliveries found</p>
             </div>
           )}
         </CardContent>
       </Card>
 
       {/* Email Preview Dialog */}
-      <Dialog
-        open={previewDialog.open}
-        onOpenChange={(open) => setPreviewDialog({ open, emailLog: null })}
-      >
-        <DialogContent className="max-w-3xl">
+      <Dialog open={previewDialog.open} onOpenChange={(open) => setPreviewDialog({ open, delivery: null })}>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Email Details</DialogTitle>
-            <DialogDescription>View email information and delivery status</DialogDescription>
+            <DialogDescription>
+              {previewDialog.delivery?.subject}
+            </DialogDescription>
           </DialogHeader>
-
-          {previewDialog.emailLog && (
+          {previewDialog.delivery && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="text-sm font-medium text-gray-700">Recipient:</span>
-                  <p className="text-sm mt-1">{previewDialog.emailLog.recipient_email}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Recipient</p>
+                  <p>{previewDialog.delivery.recipient_email}</p>
                 </div>
                 <div>
-                  <span className="text-sm font-medium text-gray-700">Status:</span>
-                  <p className="text-sm mt-1">{getStatusBadge(previewDialog.emailLog.status)}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Status</p>
+                  {getStatusBadge(previewDialog.delivery.status)}
                 </div>
                 <div>
-                  <span className="text-sm font-medium text-gray-700">Subject:</span>
-                  <p className="text-sm mt-1">{previewDialog.emailLog.subject}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Created</p>
+                  <p>{formatDate(previewDialog.delivery.created_at)}</p>
                 </div>
                 <div>
-                  <span className="text-sm font-medium text-gray-700">Type:</span>
-                  <p className="text-sm mt-1">
-                    {getEmailTypeLabel(previewDialog.emailLog.email_type)}
-                  </p>
+                  <p className="text-sm font-medium text-muted-foreground">Sent</p>
+                  <p>{formatDate(previewDialog.delivery.sent_at)}</p>
                 </div>
                 <div>
-                  <span className="text-sm font-medium text-gray-700">Sent At:</span>
-                  <p className="text-sm mt-1">{formatDate(previewDialog.emailLog.sent_at)}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Delivered</p>
+                  <p>{formatDate(previewDialog.delivery.delivered_at)}</p>
                 </div>
-                {previewDialog.emailLog.report_month && (
-                  <div>
-                    <span className="text-sm font-medium text-gray-700">Report Month:</span>
-                    <p className="text-sm mt-1">{previewDialog.emailLog.report_month}</p>
-                  </div>
-                )}
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Opened</p>
+                  <p>{formatDate(previewDialog.delivery.opened_at)}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Provider</p>
+                  <p>{previewDialog.delivery.provider || "N/A"}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Channel</p>
+                  <p>{previewDialog.delivery.channel}</p>
+                </div>
               </div>
-
-              {previewDialog.emailLog.error_message && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <span className="text-sm font-medium text-red-700">Error:</span>
-                  <p className="text-sm text-red-600 mt-1">
-                    {previewDialog.emailLog.error_message}
-                  </p>
+              {previewDialog.delivery.error_message && (
+                <div className="p-3 bg-destructive/10 rounded-lg">
+                  <p className="text-sm font-medium text-destructive">Error</p>
+                  <p className="text-sm">{previewDialog.delivery.error_message}</p>
+                  {previewDialog.delivery.error_code && (
+                    <p className="text-xs text-muted-foreground mt-1">Code: {previewDialog.delivery.error_code}</p>
+                  )}
                 </div>
               )}
-
-              {previewDialog.emailLog.external_id && (
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <span className="text-sm font-medium text-blue-700">External ID:</span>
-                  <p className="text-sm text-blue-600 mt-1 font-mono">
-                    {previewDialog.emailLog.external_id}
-                  </p>
+              {previewDialog.delivery.bounce_type && (
+                <div className="p-3 bg-orange-500/10 rounded-lg">
+                  <p className="text-sm font-medium text-orange-600">Bounce Type</p>
+                  <p className="text-sm">{previewDialog.delivery.bounce_type}</p>
                 </div>
               )}
             </div>
