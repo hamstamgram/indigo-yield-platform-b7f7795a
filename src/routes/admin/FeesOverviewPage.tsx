@@ -26,7 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Wallet, FileText, TrendingUp, ArrowUpRight, Calendar, Download, AlertCircle, Info } from "lucide-react";
+import { Loader2, Wallet, FileText, TrendingUp, ArrowUpRight, Calendar, Download, AlertCircle, Info, ArrowRightLeft } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { supabase } from "@/integrations/supabase/client";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -88,6 +88,28 @@ interface YieldEarned {
   transactionCount: number;
 }
 
+interface RoutingAuditEntry {
+  id: string;
+  action: string;
+  actor_user: string | null;
+  created_at: string;
+  entity_id: string | null;
+  old_values: Record<string, unknown> | null;
+  new_values: Record<string, unknown> | null;
+  meta: Record<string, unknown> | null;
+  actor_profile?: {
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+  } | null;
+}
+
+interface RoutingSummary {
+  totalAmount: number;
+  totalCount: number;
+  byAsset: Record<string, { amount: number; count: number }>;
+}
+
 function FeesOverviewContent() {
   const [loading, setLoading] = useState(true);
   const [fees, setFees] = useState<FeeRecord[]>([]);
@@ -97,6 +119,12 @@ function FeesOverviewContent() {
   const [indigoFeesBalance, setIndigoFeesBalance] = useState<Record<string, number>>({});
   const [feeAllocations, setFeeAllocations] = useState<FeeAllocation[]>([]);
   const [yieldEarned, setYieldEarned] = useState<YieldEarned[]>([]);
+  const [routingAuditEntries, setRoutingAuditEntries] = useState<RoutingAuditEntry[]>([]);
+  const [routingSummary, setRoutingSummary] = useState<RoutingSummary>({
+    totalAmount: 0,
+    totalCount: 0,
+    byAsset: {},
+  });
   const [activeTab, setActiveTab] = useState("overview");
   
   // Date filtering
@@ -134,7 +162,7 @@ function FeesOverviewContent() {
           visibility_scope,
           created_at
         `)
-        .in("type", ["FEE", "FEE_CREDIT", "IB_CREDIT"])
+        .in("type", ["FEE", "FEE_CREDIT", "IB_CREDIT", "INTERNAL_WITHDRAWAL", "INTERNAL_CREDIT"])
         .order("created_at", { ascending: false })
         .limit(1000);
 
@@ -259,6 +287,71 @@ function FeesOverviewContent() {
           };
         });
         setFeeAllocations(enrichedAllocations);
+      }
+
+      // Load routing audit entries from audit_log for route_to_fees actions
+      const { data: routingAuditData, error: routingError } = await supabase
+        .from("audit_log")
+        .select("*")
+        .eq("action", "route_to_fees")
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (routingError) {
+        console.warn("Could not load routing audit entries:", routingError);
+      }
+
+      // Enrich routing audit with actor profiles
+      if (routingAuditData && routingAuditData.length > 0) {
+        const actorIds = [...new Set(routingAuditData.map(r => r.actor_user).filter(Boolean))];
+        
+        const { data: actorProfiles } = await supabase
+          .from("profiles")
+          .select("id, email, first_name, last_name")
+          .in("id", actorIds);
+
+        const actorMap = new Map((actorProfiles || []).map(p => [p.id, p]));
+
+        const enrichedRoutingEntries: RoutingAuditEntry[] = routingAuditData.map((entry: any) => ({
+          id: entry.id,
+          action: entry.action,
+          actor_user: entry.actor_user,
+          created_at: entry.created_at,
+          entity_id: entry.entity_id,
+          old_values: entry.old_values,
+          new_values: entry.new_values,
+          meta: entry.meta,
+          actor_profile: entry.actor_user ? actorMap.get(entry.actor_user) : null,
+        }));
+
+        setRoutingAuditEntries(enrichedRoutingEntries);
+
+        // Calculate routing summary
+        const summary: RoutingSummary = {
+          totalAmount: 0,
+          totalCount: enrichedRoutingEntries.length,
+          byAsset: {},
+        };
+
+        enrichedRoutingEntries.forEach((entry) => {
+          const meta = (entry.meta || {}) as Record<string, unknown>;
+          const newValues = (entry.new_values || {}) as Record<string, unknown>;
+          const amount = Number(meta.amount || newValues.amount || 0);
+          const asset = (meta.asset_code as string) || (newValues.asset_code as string) || "USD";
+
+          summary.totalAmount += amount;
+
+          if (!summary.byAsset[asset]) {
+            summary.byAsset[asset] = { amount: 0, count: 0 };
+          }
+          summary.byAsset[asset].amount += amount;
+          summary.byAsset[asset].count += 1;
+        });
+
+        setRoutingSummary(summary);
+      } else {
+        setRoutingAuditEntries([]);
+        setRoutingSummary({ totalAmount: 0, totalCount: 0, byAsset: {} });
       }
 
       // Load yield earned by INDIGO FEES account (transactions)
@@ -390,45 +483,115 @@ function FeesOverviewContent() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="audit">Audit Trail</TabsTrigger>
+          <TabsTrigger value="routing" className="flex items-center gap-1.5">
+            <ArrowRightLeft className="h-3.5 w-3.5" />
+            Internal Routing
+            {routingSummary.totalCount > 0 && (
+              <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                {routingSummary.totalCount}
+              </Badge>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="yield">Yield Earned</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 mt-4">
-          {/* INDIGO Fees Account Balance - moved to top */}
-          <Card className="border-primary/30 bg-primary/5">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-3">
-                <Wallet className="h-6 w-6 text-primary" />
-                <div>
-                  <CardTitle>INDIGO Fees Account Balance</CardTitle>
-                  <CardDescription>Current fund positions (fees + yield earned)</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-4">
-                {Object.entries(indigoFeesBalance).length > 0 ? (
-                  Object.entries(indigoFeesBalance).map(([asset, balance]) => (
-                    <div key={asset} className="flex items-center gap-3 p-3 rounded-lg bg-background">
-                      <CryptoIcon symbol={asset} className="h-8 w-8" />
-                      <div>
-                        <p className="font-mono font-semibold">{formatAmount(balance, asset)}</p>
-                        <p className="text-xs text-muted-foreground">{asset}</p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="col-span-4 flex items-center gap-3 p-4 rounded-lg bg-muted/50 text-muted-foreground">
-                    <Info className="h-5 w-5" />
-                    <div>
-                      <p className="font-medium">No balances recorded yet</p>
-                      <p className="text-sm">Fee balances will appear after yield distributions.</p>
-                    </div>
+          {/* Summary Cards Row */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {/* INDIGO Fees Account Balance */}
+            <Card className="border-primary/30 bg-primary/5 lg:col-span-2">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-3">
+                  <Wallet className="h-6 w-6 text-primary" />
+                  <div>
+                    <CardTitle className="text-base">INDIGO Fees Account Balance</CardTitle>
+                    <CardDescription className="text-xs">Current fund positions</CardDescription>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {Object.entries(indigoFeesBalance).length > 0 ? (
+                    Object.entries(indigoFeesBalance).map(([asset, balance]) => (
+                      <div key={asset} className="flex items-center gap-3 p-2.5 rounded-lg bg-background">
+                        <CryptoIcon symbol={asset} className="h-7 w-7" />
+                        <div>
+                          <p className="font-mono font-semibold text-sm">{formatAmount(balance, asset)}</p>
+                          <p className="text-xs text-muted-foreground">{asset}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-2 flex items-center gap-3 p-3 rounded-lg bg-muted/50 text-muted-foreground">
+                      <Info className="h-4 w-4" />
+                      <p className="text-sm">No balances recorded yet</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Internal Routing Summary Card */}
+            <Card className={routingSummary.totalCount > 0 ? "border-orange-500/30 bg-orange-500/5" : ""}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-3">
+                  <ArrowRightLeft className={`h-6 w-6 ${routingSummary.totalCount > 0 ? "text-orange-500" : "text-muted-foreground"}`} />
+                  <div>
+                    <CardTitle className="text-base">Internal Routing</CardTitle>
+                    <CardDescription className="text-xs">Withdrawals routed to INDIGO</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <p className={`text-2xl font-mono font-bold ${routingSummary.totalCount > 0 ? "text-orange-600" : "text-muted-foreground"}`}>
+                    ${routingSummary.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {routingSummary.totalCount} withdrawal{routingSummary.totalCount !== 1 ? "s" : ""} routed
+                  </p>
+                  {Object.keys(routingSummary.byAsset).length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {Object.entries(routingSummary.byAsset).map(([asset, data]) => (
+                        <Badge key={asset} variant="outline" className="text-xs">
+                          {asset}: {data.count}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Quick Stats */}
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="h-6 w-6 text-emerald-500" />
+                  <div>
+                    <CardTitle className="text-base">Yield Earned</CardTitle>
+                    <CardDescription className="text-xs">On fee balances</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {yieldEarned.length > 0 ? (
+                    <>
+                      <p className="text-2xl font-mono font-bold text-emerald-600">
+                        +{yieldEarned.reduce((sum, y) => sum + y.totalYieldEarned, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {yieldEarned.reduce((sum, y) => sum + y.transactionCount, 0)} distributions
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No yield earned yet</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Date Filter and Summary Cards */}
           <div className="flex flex-col lg:flex-row gap-4">
@@ -731,6 +894,160 @@ function FeesOverviewContent() {
                   </Table>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="routing" className="space-y-6 mt-4">
+          {/* Routing Summary by Asset */}
+          {Object.keys(routingSummary.byAsset).length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Routing by Asset</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-4">
+                  {Object.entries(routingSummary.byAsset).map(([asset, data]) => (
+                    <div key={asset} className="flex items-center gap-3 px-4 py-3 rounded-lg bg-muted">
+                      <CryptoIcon symbol={asset} className="h-6 w-6" />
+                      <div>
+                        <p className="font-mono font-semibold">
+                          {formatAmount(data.amount, asset)} {asset}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {data.count} routing{data.count !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Routing Audit Trail Table */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <ArrowRightLeft className="h-6 w-6 text-orange-500" />
+                <div>
+                  <CardTitle>Internal Routing Audit Trail</CardTitle>
+                  <CardDescription>
+                    Tracks all withdrawals routed to INDIGO Fees account instead of external payout
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {routingAuditEntries.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <ArrowRightLeft className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="font-medium mb-2">No internal routing events recorded</p>
+                  <p className="text-sm max-w-md mx-auto">
+                    When withdrawals are routed to INDIGO FEES instead of external payout, 
+                    they will appear here for audit purposes.
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-md border max-h-[600px] overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Admin</TableHead>
+                        <TableHead>Source Investor</TableHead>
+                        <TableHead>Withdrawal ID</TableHead>
+                        <TableHead>Asset</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {routingAuditEntries.map((entry) => {
+                        const meta = (entry.meta || {}) as Record<string, unknown>;
+                        const newValues = (entry.new_values || {}) as Record<string, unknown>;
+                        const oldValues = (entry.old_values || {}) as Record<string, unknown>;
+                        
+                        const amount = Number(meta.amount || newValues.amount || 0);
+                        const asset = (meta.asset_code as string) || (newValues.asset_code as string) || "USD";
+                        const sourceInvestorName = (meta.source_investor_name as string) || 
+                          (meta.investor_name as string) || 
+                          (oldValues.investor_name as string) || "";
+                        const sourceInvestorEmail = (meta.source_investor_email as string) || 
+                          (meta.investor_email as string) || 
+                          (oldValues.investor_email as string) || "";
+                        const withdrawalId = entry.entity_id || (meta.withdrawal_id as string) || "-";
+
+                        return (
+                          <TableRow key={entry.id}>
+                            <TableCell className="whitespace-nowrap">
+                              {format(new Date(entry.created_at), "MMM d, yyyy HH:mm")}
+                            </TableCell>
+                            <TableCell>
+                              {entry.actor_profile ? (
+                                <div>
+                                  <p className="text-sm font-medium">
+                                    {`${entry.actor_profile.first_name || ""} ${entry.actor_profile.last_name || ""}`.trim() || entry.actor_profile.email}
+                                  </p>
+                                  {entry.actor_profile.email && entry.actor_profile.first_name && (
+                                    <p className="text-xs text-muted-foreground">{entry.actor_profile.email}</p>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground">System</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <p className="text-sm font-medium">{sourceInvestorName || "Unknown"}</p>
+                                {sourceInvestorEmail && (
+                                  <p className="text-xs text-muted-foreground">{sourceInvestorEmail}</p>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <code className="text-xs bg-muted px-1.5 py-0.5 rounded truncate max-w-[100px] inline-block" title={withdrawalId}>
+                                {withdrawalId.slice(0, 8)}...
+                              </code>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <CryptoIcon symbol={asset} className="h-4 w-4" />
+                                <Badge variant="outline">{asset}</Badge>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right font-mono font-semibold">
+                              {formatAmount(amount, asset)}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* How Internal Routing Works */}
+          <Card>
+            <CardHeader>
+              <CardTitle>How Internal Routing Works</CardTitle>
+            </CardHeader>
+            <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+              <ol className="space-y-2 text-sm text-muted-foreground">
+                <li>
+                  <strong className="text-foreground">Withdrawal Request:</strong> An investor requests a withdrawal from their fund position.
+                </li>
+                <li>
+                  <strong className="text-foreground">Admin Routes to INDIGO:</strong> Instead of processing as external payout, admin routes the withdrawal to INDIGO Fees account.
+                </li>
+                <li>
+                  <strong className="text-foreground">Internal Transfer:</strong> An INTERNAL_WITHDRAWAL is created for the source investor, and an INTERNAL_CREDIT is created for INDIGO FEES.
+                </li>
+                <li>
+                  <strong className="text-foreground">Audit Trail:</strong> The routing action is recorded in the audit log for compliance and reconciliation.
+                </li>
+              </ol>
             </CardContent>
           </Card>
         </TabsContent>
