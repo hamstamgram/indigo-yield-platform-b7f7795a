@@ -6236,6 +6236,7 @@ export type Database = {
         | "ib_allocation"
         | "system_bootstrap"
         | "investor_wizard"
+        | "internal_routing"
       tx_type:
         | "DEPOSIT"
         | "WITHDRAWAL"
@@ -6434,6 +6435,7 @@ export const Constants = {
         "ib_allocation",
         "system_bootstrap",
         "investor_wizard",
+        "internal_routing",
       ],
       tx_type: [
         "DEPOSIT",
