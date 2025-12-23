@@ -7,6 +7,7 @@ import { Users, Activity, Loader2, CheckCircle2, Clock, TrendingUp } from "lucid
 import { Card, CardContent } from "@/components/ui/card";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { FinancialSnapshot } from "@/components/admin/FinancialSnapshot";
+import { TwoFactorWarningBanner } from "@/components/admin/TwoFactorWarningBanner";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import PageHeader from "@/components/layout/PageHeader";
 
@@ -23,7 +24,8 @@ function AdminDashboardContent() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* 2FA Warning Banner for Admins */}
+      <TwoFactorWarningBanner />
       <PageHeader 
         title="Command Center" 
         subtitle="Platform overview and operational status"
