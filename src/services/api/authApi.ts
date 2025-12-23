@@ -174,18 +174,19 @@ export async function updateUserProfile(
 
 /**
  * Check if user is admin
- * Note: Uses profiles.is_admin column since admin_users table doesn't exist
+ * Uses user_roles table for role-based access control
  */
 export async function checkIsAdmin(userId: string): Promise<boolean> {
   try {
     const { data, error } = await supabase
-      .from("profiles")
-      .select("is_admin")
-      .eq("id", userId)
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .in("role", ["admin", "super_admin"])
       .maybeSingle();
 
     if (error) throw error;
-    return !!data?.is_admin;
+    return !!data;
   } catch (error) {
     console.error("Error checking admin status:", error);
     return false;
