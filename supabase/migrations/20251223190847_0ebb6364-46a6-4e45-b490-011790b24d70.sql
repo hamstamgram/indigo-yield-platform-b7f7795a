@@ -1,0 +1,2 @@
+
+ALTER TABLE yield_distributions DROP CONSTRAINT IF EXISTS yield_distributions_status_check
