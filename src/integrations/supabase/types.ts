@@ -2683,7 +2683,7 @@ export type Database = {
           fund_class: string | null
           fund_id: string
           high_water_mark: number | null
-          investor_id: string | null
+          investor_id: string
           last_transaction_date: string | null
           lock_until_date: string | null
           mgmt_fees_paid: number | null
@@ -2700,7 +2700,7 @@ export type Database = {
           fund_class?: string | null
           fund_id: string
           high_water_mark?: number | null
-          investor_id?: string | null
+          investor_id: string
           last_transaction_date?: string | null
           lock_until_date?: string | null
           mgmt_fees_paid?: number | null
@@ -2717,7 +2717,7 @@ export type Database = {
           fund_class?: string | null
           fund_id?: string
           high_water_mark?: number | null
-          investor_id?: string | null
+          investor_id?: string
           last_transaction_date?: string | null
           lock_until_date?: string | null
           mgmt_fees_paid?: number | null
@@ -5211,7 +5211,62 @@ export type Database = {
           source_table: string | null
           user_id: string | null
         }
-        Relationships: []
+        Insert: {
+          actor_user?: string | null
+          created_at?: string | null
+          entity?: string | null
+          entity_id?: never
+          event_id?: string | null
+          meta?: never
+          new_values?: Json | null
+          old_values?: Json | null
+          operation?: string | null
+          source_table?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          actor_user?: string | null
+          created_at?: string | null
+          entity?: string | null
+          entity_id?: never
+          event_id?: string | null
+          meta?: never
+          new_values?: Json | null
+          old_values?: Json | null
+          operation?: string | null
+          source_table?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["actor_user"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["actor_user"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+        ]
       }
       import_status: {
         Row: {
@@ -5354,14 +5409,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "investor_fund_performance_investor_id_fkey"
+            foreignKeyName: "fk_investor_positions_profile"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "investor_fund_performance_investor_id_fkey"
+            foreignKeyName: "fk_investor_positions_profile"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
@@ -5473,21 +5528,6 @@ export type Database = {
               p_fund_id: string
               p_investor_id: string
               p_note: string
-            }
-            Returns: {
-              fund_id: string
-              investor_id: string
-              new_balance: number
-              previous_balance: number
-            }[]
-          }
-        | {
-            Args: {
-              p_admin_id: string
-              p_delta: number
-              p_fund_id: string
-              p_investor_id: string
-              p_note: string
               p_tx_date?: string
               p_tx_type?: string
             }
@@ -5523,27 +5563,16 @@ export type Database = {
           net_amount: number
         }[]
       }
-      apply_daily_yield_to_fund_v2:
-        | {
-            Args: {
-              p_admin_id: string
-              p_date: string
-              p_fund_id: string
-              p_gross_amount: number
-              p_purpose?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_date: string
-              p_fund_id: string
-              p_gross_yield: number
-              p_notes?: string
-              p_purpose?: string
-            }
-            Returns: Json
-          }
+      apply_daily_yield_to_fund_v2: {
+        Args: {
+          p_admin_id: string
+          p_date: string
+          p_fund_id: string
+          p_gross_amount: number
+          p_purpose?: string
+        }
+        Returns: Json
+      }
       apply_daily_yield_with_fees: {
         Args: {
           p_fee_rate?: number
@@ -5632,26 +5661,16 @@ export type Database = {
         Args: { p_notes?: string; p_request_id: string; p_tx_hash?: string }
         Returns: boolean
       }
-      compute_correction_input_hash:
-        | {
-            Args: {
-              p_date: string
-              p_fund_id: string
-              p_new_aum: number
-              p_purpose: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_fund_id: string
-              p_new_aum: number
-              p_period_end: string
-              p_period_start: string
-              p_purpose: string
-            }
-            Returns: string
-          }
+      compute_correction_input_hash: {
+        Args: {
+          p_fund_id: string
+          p_new_aum: number
+          p_period_end: string
+          p_period_start: string
+          p_purpose: string
+        }
+        Returns: string
+      }
       create_admin_invite: { Args: { p_email: string }; Returns: string }
       create_withdrawal_request: {
         Args: {
@@ -5662,6 +5681,10 @@ export type Database = {
           p_type?: string
         }
         Returns: string
+      }
+      current_user_is_admin_or_owner: {
+        Args: { check_user_id: string }
+        Returns: boolean
       }
       decrypt_totp_secret: {
         Args: { encrypted_secret: string }
@@ -6380,6 +6403,7 @@ export type Database = {
         | "completed"
         | "rejected"
         | "cancelled"
+      yield_distribution_status: "draft" | "applied" | "voided"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -6583,6 +6607,7 @@ export const Constants = {
         "rejected",
         "cancelled",
       ],
+      yield_distribution_status: ["draft", "applied", "voided"],
     },
   },
 } as const
