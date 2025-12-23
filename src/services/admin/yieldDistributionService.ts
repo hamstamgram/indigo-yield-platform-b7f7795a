@@ -360,13 +360,13 @@ export async function applyYieldDistribution(
 
   // The RPC expects p_gross_amount as the yield to distribute, not new total AUM
   // Purpose is passed to control whether this yield appears in investor reports
-  // Cast p_purpose explicitly to avoid PostgreSQL function overload mismatch
+  // Updated to match new 5-param signature: (p_fund_id, p_date, p_gross_amount, p_admin_id, p_purpose)
   const { data, error } = await (supabase.rpc as any)("apply_daily_yield_to_fund_v2", {
     p_fund_id: fundId,
     p_date: formatDate(targetDate),
     p_gross_amount: grossYieldAmount,
     p_admin_id: adminId,
-    p_purpose: purpose as "reporting" | "transaction", // Explicit cast to match expected enum
+    p_purpose: purpose, // Uses correct column mappings now
   });
 
   if (error) {
