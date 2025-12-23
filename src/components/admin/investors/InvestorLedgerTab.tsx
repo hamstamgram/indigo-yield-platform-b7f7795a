@@ -303,30 +303,45 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
         </div>
       </div>
 
-      {/* Diagnostic: Filter Impact Banner */}
+      {/* Diagnostic: Filter Impact Banner - More prominent */}
       {!loading && hiddenCount > 0 && (
-        <Alert variant="default" className="bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800">
-          <AlertCircle className="h-4 w-4 text-blue-600" />
-          <AlertTitle className="text-blue-800 dark:text-blue-400">
-            {hiddenCount} transaction{hiddenCount !== 1 ? 's' : ''} hidden by filters
-          </AlertTitle>
-          <AlertDescription className="text-blue-700 dark:text-blue-300 text-sm">
-            <div className="flex items-center gap-2">
-              <span>
-                Showing {transactions.length} of {unfilteredTransactions.length} total transactions.
-                {!showVoided && ' Voided transactions are hidden.'}
-              </span>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleResetAndRefresh}
-                className="h-7 text-xs"
-              >
-                <RefreshCw className="h-3 w-3 mr-1" />
-                Clear Filters & Refresh
-              </Button>
+        <Alert variant="default" className="bg-amber-50 border-amber-300 dark:bg-amber-950/30 dark:border-amber-700 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="p-1.5 rounded-full bg-amber-100 dark:bg-amber-900/50">
+              <Filter className="h-4 w-4 text-amber-600 dark:text-amber-400" />
             </div>
-          </AlertDescription>
+            <div className="flex-1">
+              <AlertTitle className="text-amber-800 dark:text-amber-300 font-semibold">
+                Filters Active — {hiddenCount} transaction{hiddenCount !== 1 ? 's' : ''} hidden
+              </AlertTitle>
+              <AlertDescription className="text-amber-700 dark:text-amber-400 text-sm mt-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span>Showing {transactions.length} of {unfilteredTransactions.length}.</span>
+                    {!showVoided && (
+                      <Badge variant="outline" className="text-[10px] bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300">
+                        Voided hidden
+                      </Badge>
+                    )}
+                    {hasActiveFilters && (
+                      <Badge variant="outline" className="text-[10px] bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300">
+                        Filters applied
+                      </Badge>
+                    )}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleResetAndRefresh}
+                    className="h-7 text-xs border-amber-400 dark:border-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/50"
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Clear All & Show Everything
+                  </Button>
+                </div>
+              </AlertDescription>
+            </div>
+          </div>
         </Alert>
       )}
 
