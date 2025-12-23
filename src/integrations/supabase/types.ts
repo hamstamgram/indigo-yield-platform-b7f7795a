@@ -5464,9 +5464,10 @@ export type Database = {
       }
       apply_daily_yield_to_fund_v2: {
         Args: {
+          p_admin_id: string
           p_date: string
           p_fund_id: string
-          p_new_aum: number
+          p_gross_amount: number
           p_purpose?: string
         }
         Returns: Json
@@ -5993,9 +5994,9 @@ export type Database = {
       }
       preview_daily_yield_to_fund_v2: {
         Args: {
+          p_date: string
           p_fund_id: string
-          p_gross_return_pct: number
-          p_nav_date: string
+          p_new_aum: number
           p_purpose?: string
         }
         Returns: Json
