@@ -5407,29 +5407,17 @@ export type Database = {
           previous_balance: number
         }[]
       }
-      admin_create_transaction:
-        | {
-            Args: {
-              p_amount: number
-              p_fund_id: string
-              p_investor_id: string
-              p_notes?: string
-              p_shares?: number
-              p_transaction_type: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_amount: number
-              p_fund_id: string
-              p_investor_id: string
-              p_notes?: string
-              p_transaction_type: string
-              p_tx_date?: string
-            }
-            Returns: string
-          }
+      admin_create_transaction: {
+        Args: {
+          p_amount: number
+          p_fund_id: string
+          p_investor_id: string
+          p_notes?: string
+          p_transaction_type: string
+          p_tx_date?: string
+        }
+        Returns: string
+      }
       apply_daily_yield_to_fund: {
         Args: {
           p_admin_id: string
@@ -5541,16 +5529,26 @@ export type Database = {
         Args: { p_notes?: string; p_request_id: string; p_tx_hash?: string }
         Returns: boolean
       }
-      compute_correction_input_hash: {
-        Args: {
-          p_fund_id: string
-          p_new_aum: number
-          p_period_end: string
-          p_period_start: string
-          p_purpose: string
-        }
-        Returns: string
-      }
+      compute_correction_input_hash:
+        | {
+            Args: {
+              p_date: string
+              p_fund_id: string
+              p_new_aum: number
+              p_purpose: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_fund_id: string
+              p_new_aum: number
+              p_period_end: string
+              p_period_start: string
+              p_purpose: string
+            }
+            Returns: string
+          }
       create_admin_invite: { Args: { p_email: string }; Returns: string }
       create_withdrawal_request: {
         Args: {
@@ -6134,19 +6132,10 @@ export type Database = {
         Args: { p_fund_id: string; p_new_baseline: number }
         Returns: boolean
       }
-      update_investor_aum_percentages:
-        | {
-            Args: { p_fund_id: string }
-            Returns: {
-              error: true
-            } & "Could not choose the best candidate function between: public.update_investor_aum_percentages(p_fund_id => text), public.update_investor_aum_percentages(p_fund_id => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
-          }
-        | {
-            Args: { p_fund_id: string }
-            Returns: {
-              error: true
-            } & "Could not choose the best candidate function between: public.update_investor_aum_percentages(p_fund_id => text), public.update_investor_aum_percentages(p_fund_id => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
-          }
+      update_investor_aum_percentages: {
+        Args: { p_fund_id: string }
+        Returns: number
+      }
       update_transaction: {
         Args: { p_reason: string; p_transaction_id: string; p_updates: Json }
         Returns: Json
