@@ -5477,6 +5477,16 @@ export type Database = {
             Args: {
               p_date: string
               p_fund_id: string
+              p_gross_yield: number
+              p_notes?: string
+              p_purpose?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_date: string
+              p_fund_id: string
               p_new_aum: number
               p_purpose?: string
             }
@@ -6006,7 +6016,7 @@ export type Database = {
         Args: {
           p_date: string
           p_fund_id: string
-          p_new_aum: number
+          p_gross_yield: number
           p_purpose?: string
         }
         Returns: Json
