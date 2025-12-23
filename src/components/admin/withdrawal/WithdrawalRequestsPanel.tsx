@@ -25,6 +25,7 @@ import { adminServiceV2 } from "@/services/admin/adminService";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { toast } from "sonner";
 import { Check, X, Play, Eye, Loader2 } from "lucide-react";
+import { TruncatedText } from "@/components/ui/truncated-text";
 
 interface WithdrawalRequestsPanelProps {
   onDataChange: () => void;
@@ -226,16 +227,26 @@ export function WithdrawalRequestsPanel({ onDataChange }: WithdrawalRequestsPane
                 {requests.map((request) => (
                   <TableRow key={request.id}>
                     <TableCell>
-                      <div>
-                        <div className="font-medium">{request.investor_name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {request.investor_email}
-                        </div>
+                      <div className="max-w-[180px]">
+                        <TruncatedText 
+                          text={request.investor_name} 
+                          className="font-medium"
+                          maxWidth="180px"
+                        />
+                        <TruncatedText 
+                          text={request.investor_email}
+                          className="text-sm text-muted-foreground"
+                          maxWidth="180px"
+                        />
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div>
-                        <div className="font-medium">{request.fund_name}</div>
+                      <div className="max-w-[150px]">
+                        <TruncatedText 
+                          text={request.fund_name}
+                          className="font-medium"
+                          maxWidth="150px"
+                        />
                         <div className="text-sm text-muted-foreground">
                           Class {request.fund_class}
                         </div>

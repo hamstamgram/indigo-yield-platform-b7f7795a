@@ -19,6 +19,7 @@ import { Loader2, X, ExternalLink, Copy, CheckCircle, XCircle, Play, CheckCircle
 import { WithdrawalAuditTimeline } from "./WithdrawalAuditTimeline";
 import { RouteToFeesDialog } from "./RouteToFeesDialog";
 import { toast } from "sonner";
+import { TruncatedText } from "@/components/ui/truncated-text";
 
 interface WithdrawalDetailsDrawerProps {
   withdrawalId: string | null;
@@ -121,12 +122,16 @@ export function WithdrawalDetailsDrawer({
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground mb-2">Investor</h3>
                   <div className="space-y-1">
-                    <p className="font-medium truncate max-w-full" title={withdrawal.investor_name}>
-                      {withdrawal.investor_name}
-                    </p>
-                    <p className="text-sm text-muted-foreground truncate max-w-full" title={withdrawal.investor_email}>
-                      {withdrawal.investor_email}
-                    </p>
+                    <TruncatedText 
+                      text={withdrawal.investor_name}
+                      className="font-medium"
+                      maxWidth="100%"
+                    />
+                    <TruncatedText 
+                      text={withdrawal.investor_email}
+                      className="text-sm text-muted-foreground"
+                      maxWidth="100%"
+                    />
                     <button
                       onClick={() => copyToClipboard(withdrawal.investor_id, "Investor ID")}
                       className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
