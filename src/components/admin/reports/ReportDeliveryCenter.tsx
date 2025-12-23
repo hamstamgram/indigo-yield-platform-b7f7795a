@@ -72,6 +72,7 @@ import { Link } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info } from "lucide-react";
 import { DeliveryExclusionStats } from "./DeliveryExclusionStats";
+import { TruncatedText } from "@/components/ui/truncated-text";
 
 // MailerSend trial account limits (typical)
 const MAILERSEND_TRIAL_LIMIT = 100; // emails per month for trial accounts
@@ -1035,11 +1036,11 @@ export default function ReportDeliveryCenter() {
                     const StatusIcon = statusConfig.icon;
                     return (
                       <TableRow key={delivery.id} className="group">
-                        <TableCell className="font-medium">
-                          {getInvestorName(delivery)}
+                        <TableCell className="font-medium max-w-[150px]">
+                          <TruncatedText text={getInvestorName(delivery)} />
                         </TableCell>
-                        <TableCell className="text-sm text-muted-foreground max-w-[160px] truncate">
-                          {delivery.recipient_email}
+                        <TableCell className="max-w-[180px]">
+                          <TruncatedText text={delivery.recipient_email} className="text-sm text-muted-foreground" />
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="capitalize text-xs">

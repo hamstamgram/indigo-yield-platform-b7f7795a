@@ -35,6 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Loader2, Search, ChevronLeft, ChevronRight, ExternalLink, CreditCard, Plus, MoreHorizontal, Pencil, Ban, AlertTriangle, Lock } from "lucide-react";
+import { TruncatedText } from "@/components/ui/truncated-text";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { supabase } from "@/integrations/supabase/client";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -541,13 +542,13 @@ function TransactionHistoryContent() {
                         <TableCell>
                           <button
                             onClick={() => handleInvestorClick(tx.investorId)}
-                            className="text-left hover:underline group"
+                            className="text-left hover:underline group max-w-[180px]"
                           >
                             <span className="font-medium flex items-center gap-1">
-                              {tx.investorName}
-                              <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              <TruncatedText text={tx.investorName} className="max-w-[150px]" />
+                              <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                             </span>
-                            <span className="text-xs text-muted-foreground block">{tx.investorEmail}</span>
+                            <TruncatedText text={tx.investorEmail} className="text-xs text-muted-foreground block max-w-[160px]" />
                           </button>
                         </TableCell>
                         <TableCell>
@@ -580,8 +581,12 @@ function TransactionHistoryContent() {
                           </span>
                           <span className="text-muted-foreground ml-1">{tx.asset}</span>
                         </TableCell>
-                        <TableCell className="max-w-[200px] truncate text-muted-foreground">
-                          {tx.notes || "—"}
+                        <TableCell className="max-w-[200px]">
+                          <TruncatedText 
+                            text={tx.notes || "—"} 
+                            className="text-muted-foreground" 
+                            maxWidth="200px"
+                          />
                         </TableCell>
                         <TableCell>
                           {!tx.isVoided ? (
