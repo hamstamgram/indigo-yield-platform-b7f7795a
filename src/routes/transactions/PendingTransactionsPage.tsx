@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Filter } from "lucide-react";
+import { Search, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 
@@ -95,17 +95,9 @@ export default function PendingTransactionsPage() {
           <h1 className="text-3xl font-bold">Pending Transactions</h1>
           <p className="text-muted-foreground">View pending deposits and withdrawals</p>
         </div>
-        <div className="flex gap-2">
-          <Button asChild variant="outline">
-            <Link to="/withdrawals/new">Request Withdrawal</Link>
-          </Button>
-          <Button asChild>
-            <Link to="/deposits/new">
-              <Plus className="mr-2 h-4 w-4" />
-              New Deposit
-            </Link>
-          </Button>
-        </div>
+        <Button asChild variant="outline">
+          <Link to="/withdrawals/new">Request Withdrawal</Link>
+        </Button>
       </div>
 
       <Card>
@@ -161,14 +153,9 @@ export default function PendingTransactionsPage() {
           ) : (
             <div className="py-12 text-center space-y-4">
               <p className="text-muted-foreground">No pending transactions found</p>
-              <div className="flex justify-center gap-4">
-                <Button asChild variant="outline">
-                  <Link to="/withdrawals/new">Request Withdrawal</Link>
-                </Button>
-                <Button asChild>
-                  <Link to="/deposits/new">Make a Deposit</Link>
-                </Button>
-              </div>
+              <Button asChild variant="outline">
+                <Link to="/withdrawals/new">Request Withdrawal</Link>
+              </Button>
             </div>
           )}
         </CardContent>
