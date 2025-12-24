@@ -544,21 +544,23 @@ function FeesOverviewContent() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <p className={`text-2xl font-mono font-bold ${routingSummary.totalCount > 0 ? "text-orange-600" : "text-muted-foreground"}`}>
-                    ${routingSummary.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
+                  {Object.keys(routingSummary.byAsset).length > 0 ? (
+                    <div className="space-y-1">
+                      {Object.entries(routingSummary.byAsset).map(([asset, data]) => (
+                        <div key={asset} className="flex items-center gap-2">
+                          <CryptoIcon symbol={asset} className="h-5 w-5" />
+                          <p className={`text-lg font-mono font-bold ${routingSummary.totalCount > 0 ? "text-orange-600" : "text-muted-foreground"}`}>
+                            {formatAmount(data.amount, asset)} {asset}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-lg font-mono text-muted-foreground">0.00</p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     {routingSummary.totalCount} withdrawal{routingSummary.totalCount !== 1 ? "s" : ""} routed
                   </p>
-                  {Object.keys(routingSummary.byAsset).length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {Object.entries(routingSummary.byAsset).map(([asset, data]) => (
-                        <Badge key={asset} variant="outline" className="text-xs">
-                          {asset}: {data.count}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
