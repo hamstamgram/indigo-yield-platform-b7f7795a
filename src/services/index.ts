@@ -32,7 +32,7 @@ export * from "./core";
 export * from "./api/reportsApi";
 export * from "./api/statementsApi";
 
-// Fund service (selective export to avoid conflicts with admin/fundService)
+// Fund view service (investor-focused operations, moved to investor/)
 export { 
   getAllFunds, 
   getFundById, 
@@ -44,5 +44,5 @@ export {
   getFundPerformanceSummary,
   getActiveFundsForList,
   getActiveInvestorPositions
-} from "./fundService";
-export type { InvestorPosition } from "./fundService";
+} from "./investor/fundViewService";
+export type { InvestorPosition } from "./investor/fundViewService";
