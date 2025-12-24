@@ -155,7 +155,7 @@ export class DepositService {
       if (insertError) throw insertError;
     }
 
-    const txDate = new Date().toISOString().split("T")[0];
+    const txDate = formData.tx_date || new Date().toISOString().split("T")[0];
 
     // Record transaction
     const { data, error } = await supabase

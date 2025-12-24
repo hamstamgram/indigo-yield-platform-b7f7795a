@@ -43,7 +43,9 @@ import { toast } from "sonner";
 import { createAdminTransaction } from "@/services/shared/transactionService";
 import { fetchInvestorsForSelector } from "@/services/investor/investorPositionService";
 import { saveDraftAUMEntry } from "@/services/admin/yieldDistributionService";
-import { Loader2, Check, ChevronsUpDown, AlertTriangle, Info } from "lucide-react";
+import { Loader2, Check, ChevronsUpDown, AlertTriangle, Info, CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 import { useActiveFunds } from "@/hooks/useActiveFunds";
 import { getAssetLogo } from "@/utils/assets";
@@ -685,13 +687,31 @@ export function AddTransactionDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tx_date">Transaction Date *</Label>
-            <Input
-              id="tx_date"
-              type="date"
-              {...register("tx_date")}
-              className={errors.tx_date ? "border-destructive" : ""}
-            />
+            <Label>Transaction Date *</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !txDate && "text-muted-foreground",
+                    errors.tx_date && "border-destructive"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {txDate ? format(new Date(txDate), "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={txDate ? new Date(txDate) : undefined}
+                  onSelect={(date) => date && setValue("tx_date", format(date, "yyyy-MM-dd"))}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
             {errors.tx_date && <p className="text-sm text-destructive">{errors.tx_date.message}</p>}
           </div>
 
