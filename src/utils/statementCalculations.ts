@@ -264,15 +264,8 @@ export function formatTokenAmount(amount: number, asset?: string, decimals?: num
   return asset ? `${formatted} ${asset}` : formatted;
 }
 
-/**
- * @deprecated Use formatTokenAmount instead - this platform uses native tokens, not fiat
- */
-export function formatCurrency(amount: number, decimals: number = 2): string {
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(amount);
-}
+// Deprecated function formatCurrency has been removed.
+// Use formatTokenAmount instead - this platform uses native tokens, not fiat.
 
 export function formatPercent(value: number, decimals: number = 2): string {
   // Handle NaN/Infinity cases

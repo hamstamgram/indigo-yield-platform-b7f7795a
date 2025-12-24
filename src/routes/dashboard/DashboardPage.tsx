@@ -6,7 +6,7 @@ import { PerformanceReportTable } from "@/components/investor/reports/Performanc
 import { useState } from "react";
 import { ReportsApi } from "@/services/api/reportsApi";
 import { toast } from "sonner";
-import { AssetPerformanceCard } from "@/components/shared/AssetPerformanceCard";
+import { AssetPerformanceCard } from "@/components/common/AssetPerformanceCard";
 import { useNavigate } from "react-router-dom";
 import { QuickActionsBar } from "@/components/investor/QuickActionsBar";
 import { PortfolioHero } from "@/components/investor/PortfolioHero";
