@@ -1,5 +1,8 @@
 import jsPDF from "jspdf";
-import { StatementData, formatCurrency, formatPercent } from "./statementCalculations";
+import { StatementData, formatTokenAmount, formatPercent } from "./statementCalculations";
+
+// Helper to format amounts consistently in PDF
+const formatAmount = (amount: number) => formatTokenAmount(amount);
 
 export async function generateStatementPDF(statementData: StatementData): Promise<Blob> {
   const pdf = new jsPDF({
@@ -76,13 +79,13 @@ export async function generateStatementPDF(statementData: StatementData): Promis
   pdf.setFont("helvetica", "normal");
 
   const summaryData = [
-    ["Beginning Balance", formatCurrency(statementData.summary.begin_balance)],
-    ["Deposits", formatCurrency(statementData.summary.additions)],
-    ["Withdrawals", formatCurrency(statementData.summary.redemptions)],
-    ["Interest Earned", formatCurrency(statementData.summary.net_income)],
-    ["Fees", formatCurrency(statementData.summary.fees)],
+    ["Beginning Balance", formatAmount(statementData.summary.begin_balance)],
+    ["Deposits", formatAmount(statementData.summary.additions)],
+    ["Withdrawals", formatAmount(statementData.summary.redemptions)],
+    ["Interest Earned", formatAmount(statementData.summary.net_income)],
+    ["Fees", formatAmount(statementData.summary.fees)],
     ["", ""],
-    ["Ending Balance", formatCurrency(statementData.summary.end_balance)],
+    ["Ending Balance", formatAmount(statementData.summary.end_balance)],
   ];
 
   summaryData.forEach((row) => {
@@ -146,12 +149,12 @@ export async function generateStatementPDF(statementData: StatementData): Promis
       pdf.setFont("helvetica", "normal");
 
       const assetData = [
-        ["Beginning Balance", formatCurrency(asset.begin_balance)],
-        ["Deposits", formatCurrency(asset.deposits)],
-        ["Withdrawals", formatCurrency(asset.withdrawals)],
-        ["Interest", formatCurrency(asset.interest)],
-        ["Fees", formatCurrency(asset.fees)],
-        ["Ending Balance", formatCurrency(asset.end_balance)],
+        ["Beginning Balance", formatAmount(asset.begin_balance)],
+        ["Deposits", formatAmount(asset.deposits)],
+        ["Withdrawals", formatAmount(asset.withdrawals)],
+        ["Interest", formatAmount(asset.interest)],
+        ["Fees", formatAmount(asset.fees)],
+        ["Ending Balance", formatAmount(asset.end_balance)],
       ];
 
       assetData.forEach((row) => {
@@ -203,11 +206,11 @@ export async function generateStatementPDF(statementData: StatementData): Promis
 
       const amountText =
         tx.type === "withdrawal" || tx.type === "fee"
-          ? `-${formatCurrency(tx.amount)}`
-          : formatCurrency(tx.amount);
+          ? `-${formatAmount(tx.amount)}`
+          : formatAmount(tx.amount);
 
       pdf.text(amountText, pageWidth - margin - 50, yPosition, { align: "right" });
-      pdf.text(formatCurrency(tx.running_balance || 0), pageWidth - margin - 20, yPosition, {
+      pdf.text(formatAmount(tx.running_balance || 0), pageWidth - margin - 20, yPosition, {
         align: "right",
       });
       yPosition += 5;

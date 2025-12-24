@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePerAssetStats } from "@/hooks/useInvestorPerformance";
 import { HoldingsByToken } from "@/components/investor/overview/HoldingsByToken";
 import { QuickCards } from "@/components/investor/overview/QuickCards";
-import { AssetPerformanceCard } from "@/components/shared/AssetPerformanceCard";
+import { AssetPerformanceCard } from "@/components/common/AssetPerformanceCard";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "@/components/layout/PageHeader";
 import { BarChart3 } from "lucide-react";

@@ -114,29 +114,8 @@ export async function updateFund(fundId: string, updates: Partial<Fund>) {
   return data as Fund;
 }
 
-/**
- * List daily NAV for a fund
- * @deprecated Workflow moved to Monthly Reports - Use investor_monthly_reports instead
- */
-export async function listDailyNav(
-  _fundId: string,
-  _startDate?: string,
-  _endDate?: string
-): Promise<DailyNav[]> {
-  throw new Error(
-    "listDailyNav is deprecated. Use Monthly Reports (investor_monthly_reports table) instead."
-  );
-}
-
-/**
- * Upsert daily NAV data
- * @deprecated Workflow moved to Monthly Reports - Use investor_monthly_reports instead
- */
-export async function upsertDailyNav(_rows: DailyNav[]): Promise<DailyNav[]> {
-  throw new Error(
-    "upsertDailyNav is deprecated. Use Monthly Reports (investor_monthly_reports table) instead."
-  );
-}
+// Deprecated functions listDailyNav and upsertDailyNav have been removed.
+// Use Monthly Reports (investor_monthly_reports table) instead.
 
 /**
  * Get fund KPIs
@@ -174,20 +153,8 @@ export async function getFundKPIs() {
   })) as FundKPI[];
 }
 
-/**
- * Calculate fund returns for a period
- * @deprecated Use getFundKPIs() for return calculations
- */
-export async function calculateFundReturns(
-  _fundId: string,
-  _startDate: string,
-  _endDate: string,
-  _net: boolean = true
-): Promise<number> {
-  throw new Error(
-    "calculateFundReturns is deprecated. Use getFundKPIs() or getFundPerformance() instead."
-  );
-}
+// Deprecated function calculateFundReturns has been removed.
+// Use getFundKPIs() or getFundPerformance() instead.
 
 /**
  * Get latest NAV for a fund
