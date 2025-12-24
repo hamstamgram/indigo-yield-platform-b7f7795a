@@ -147,7 +147,7 @@ function FeesOverviewContent() {
 
       setFunds(fundsData || []);
 
-      // Load fee-related transactions from transactions_v2
+      // Load fee-related transactions from transactions_v2 (exclude voided)
       const { data: feeTxData, error: feeTxError } = await supabase
         .from("transactions_v2")
         .select(`
@@ -160,9 +160,11 @@ function FeesOverviewContent() {
           tx_date,
           purpose,
           visibility_scope,
-          created_at
+          created_at,
+          is_voided
         `)
         .in("type", ["FEE", "FEE_CREDIT", "IB_CREDIT", "INTERNAL_WITHDRAWAL", "INTERNAL_CREDIT"])
+        .eq("is_voided", false)
         .order("created_at", { ascending: false })
         .limit(1000);
 
