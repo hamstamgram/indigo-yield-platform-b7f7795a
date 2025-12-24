@@ -22,6 +22,7 @@ export interface DepositFormData {
   amount: number;
   transaction_hash?: string;
   status?: DepositStatus;
+  tx_date?: string;
 }
 
 export interface DepositFilters {

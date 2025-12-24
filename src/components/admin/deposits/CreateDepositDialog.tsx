@@ -18,13 +18,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { depositService } from "@/services/investor/depositService";
 import { supabase } from "@/integrations/supabase/client";
 import type { DepositFormData } from "@/types/deposit";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface CreateDepositDialogProps {
   open: boolean;
@@ -41,8 +48,9 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
   });
   const [selectedFundId, setSelectedFundId] = useState<string>("");
   const [aumValue, setAumValue] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  const today = format(new Date(), "yyyy-MM-dd");
+  const formattedDate = format(selectedDate, "yyyy-MM-dd");
 
   // Fetch users for dropdown (exclude system accounts like INDIGO FEES)
   const { data: users } = useQuery({
@@ -75,16 +83,16 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
     enabled: open,
   });
 
-  // Check if AUM exists for the selected fund on today's date
+  // Check if AUM exists for the selected fund on selected date
   const { data: aumRecord, isLoading: isCheckingAum } = useQuery({
-    queryKey: ["fund-aum-check", selectedFundId, today],
+    queryKey: ["fund-aum-check", selectedFundId, formattedDate],
     queryFn: async () => {
       if (!selectedFundId) return null;
       const { data, error } = await supabase
         .from("fund_daily_aum")
         .select("id, total_aum")
         .eq("fund_id", selectedFundId)
-        .eq("aum_date", today)
+        .eq("aum_date", formattedDate)
         .maybeSingle();
 
       if (error) throw error;
@@ -103,14 +111,14 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
       }
       const { error } = await supabase.from("fund_daily_aum").insert({
         fund_id: selectedFundId,
-        aum_date: today,
+        aum_date: formattedDate,
         total_aum: parseFloat(aumValue),
         source: "manual_deposit_dialog",
       });
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["fund-aum-check", selectedFundId, today] });
+      queryClient.invalidateQueries({ queryKey: ["fund-aum-check", selectedFundId, formattedDate] });
     },
   });
 
@@ -120,7 +128,10 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
       if (needsAum && aumValue) {
         await createAumMutation.mutateAsync();
       }
-      return depositService.createDeposit(data);
+      return depositService.createDeposit({
+        ...data,
+        tx_date: formattedDate,
+      });
     },
     onSuccess: () => {
       toast.success("Deposit created successfully");
@@ -143,6 +154,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
     });
     setSelectedFundId("");
     setAumValue("");
+    setSelectedDate(new Date());
   };
 
   // Update asset_symbol and selectedFundId together when fund is selected
@@ -239,6 +251,46 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Transaction Date *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !selectedDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => date && setSelectedDate(date)}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="transaction_hash">Transaction Hash</Label>
+              <Input
+                id="transaction_hash"
+                value={formData.transaction_hash}
+                onChange={(e) => setFormData({ ...formData, transaction_hash: e.target.value })}
+                placeholder="Optional blockchain transaction hash"
+                maxLength={255}
+              />
+            </div>
+          </div>
+
           {/* AUM Warning and Input */}
           {needsAum && (
             <Alert variant="destructive" className="bg-warning/10 border-warning">
@@ -246,7 +298,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
               <AlertDescription className="ml-2">
                 <div className="space-y-3">
                   <p className="font-medium">
-                    No AUM record for {selectedFund?.name || "this fund"} on {today}
+                    No AUM record for {selectedFund?.name || "this fund"} on {formattedDate}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Enter the current fund AUM to record this deposit:
@@ -270,17 +322,6 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
               </AlertDescription>
             </Alert>
           )}
-
-          <div className="space-y-2">
-            <Label htmlFor="transaction_hash">Transaction Hash</Label>
-            <Input
-              id="transaction_hash"
-              value={formData.transaction_hash}
-              onChange={(e) => setFormData({ ...formData, transaction_hash: e.target.value })}
-              placeholder="Optional blockchain transaction hash"
-              maxLength={255}
-            />
-          </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

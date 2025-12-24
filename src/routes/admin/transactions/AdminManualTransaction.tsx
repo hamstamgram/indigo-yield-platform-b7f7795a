@@ -20,7 +20,10 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { createAdminTransaction } from "@/services/shared/transactionService";
 import { saveDraftAUMEntry } from "@/services/admin/yieldDistributionService";
-import { Loader2, ArrowRightLeft, Info, AlertTriangle, Check } from "lucide-react";
+import { Loader2, ArrowRightLeft, Info, AlertTriangle, Check, CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 // Form Schema - aligned with AddTransactionDialog
@@ -492,10 +495,29 @@ export default function AdminManualTransaction() {
             {/* Transaction Date */}
             <div className="space-y-2">
               <Label>Transaction Date</Label>
-              <Input
-                {...form.register("txDate")}
-                type="date"
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !txDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {txDate ? format(new Date(txDate), "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={txDate ? new Date(txDate) : undefined}
+                    onSelect={(date) => date && form.setValue("txDate", format(date, "yyyy-MM-dd"))}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
               {form.formState.errors.txDate && (
                 <p className="text-sm text-destructive">{form.formState.errors.txDate.message}</p>
               )}

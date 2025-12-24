@@ -10,9 +10,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { depositService } from "@/services/investor/depositService";
-import { PlusCircle, Loader2 } from "lucide-react";
+import { PlusCircle, Loader2, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface AdminDepositFormProps {
   investors: any[];
@@ -29,6 +37,7 @@ const AdminDepositForm: React.FC<AdminDepositFormProps> = ({ investors, assets, 
     tx_hash: "",
     notes: "",
   });
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,6 +65,7 @@ const AdminDepositForm: React.FC<AdminDepositFormProps> = ({ investors, assets, 
         asset_symbol: assetSymbol,
         amount: parseFloat(formData.amount),
         transaction_hash: formData.tx_hash || undefined,
+        tx_date: format(selectedDate, "yyyy-MM-dd"),
       });
 
       const symbolLabel = (selectedAsset?.symbol || "ASSET").toUpperCase();
@@ -72,6 +82,7 @@ const AdminDepositForm: React.FC<AdminDepositFormProps> = ({ investors, assets, 
         tx_hash: "",
         notes: "",
       });
+      setSelectedDate(new Date());
 
       if (onSuccess) onSuccess();
     } catch (error: any) {
@@ -154,16 +165,44 @@ const AdminDepositForm: React.FC<AdminDepositFormProps> = ({ investors, assets, 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tx_hash">Transaction Hash</Label>
-              <Input
-                id="tx_hash"
-                type="text"
-                placeholder="Optional blockchain transaction hash"
-                value={formData.tx_hash}
-                onChange={(e) => setFormData({ ...formData, tx_hash: e.target.value })}
-                disabled={loading}
-              />
+              <Label>Transaction Date *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    disabled={loading}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !selectedDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => date && setSelectedDate(date)}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="tx_hash">Transaction Hash</Label>
+            <Input
+              id="tx_hash"
+              type="text"
+              placeholder="Optional blockchain transaction hash"
+              value={formData.tx_hash}
+              onChange={(e) => setFormData({ ...formData, tx_hash: e.target.value })}
+              disabled={loading}
+            />
           </div>
 
           <div className="space-y-2">
