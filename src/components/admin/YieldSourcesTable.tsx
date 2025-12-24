@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { YieldSource } from "@/models/assetTypes";
+import { YieldSource } from "@/types/asset";
 
 interface YieldSourcesTableProps {
   loading: boolean;

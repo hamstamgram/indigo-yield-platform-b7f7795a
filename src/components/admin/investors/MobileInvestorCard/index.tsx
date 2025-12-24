@@ -9,7 +9,7 @@ import { Asset, Investor } from "@/types/investorTypes";
 import FundAssetDropdown from "../FundAssetDropdown";
 import InvestorInfo from "./InvestorInfo";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { getAllFunds, updateInvestorPosition } from "@/services/fundService";
+import { getAllFunds, updateInvestorPosition } from "@/services/investor/fundViewService";
 
 interface MobileInvestorCardProps {
   investor: Investor;

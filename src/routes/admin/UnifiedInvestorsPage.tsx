@@ -50,7 +50,7 @@ import { Asset } from "@/types/investorTypes";
 import {
   getActiveFundsForList,
   getActiveInvestorPositions,
-} from "@/services/fundService";
+} from "@/services/investor/fundViewService";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";

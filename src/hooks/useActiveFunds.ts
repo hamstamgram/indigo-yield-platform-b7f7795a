@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getAllFunds, type Fund } from "@/services/fundService";
+import { getAllFunds, type Fund } from "@/services/investor/fundViewService";
 
 /**
  * Hook to fetch active funds for dropdowns and selectors

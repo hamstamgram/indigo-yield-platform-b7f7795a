@@ -4,7 +4,15 @@
  */
 
 import html2canvas from "html2canvas";
-import { ChartExportOptions } from "./types";
+
+export interface ChartExportOptions {
+  width: number;
+  height: number;
+  format: "png" | "jpeg";
+  quality?: number;
+  backgroundColor?: string;
+  scale?: number;
+}
 
 export class ChartExporter {
   /**
