@@ -6725,6 +6725,10 @@ export type Database = {
         Args: { p_minutes?: number; p_period_id: string }
         Returns: Json
       }
+      reset_all_data_keep_profiles: {
+        Args: { p_admin_id: string; p_confirmation_code: string }
+        Returns: Json
+      }
       reset_all_investor_positions: {
         Args: { p_admin_id: string; p_confirmation_code: string }
         Returns: Json

@@ -174,7 +174,48 @@ serve(async (req) => {
       });
     }
     
-    return new Response(JSON.stringify({ error: "Invalid action. Use: preview, execute, or history" }), { 
+    // FULL RESET - Clears ALL transactional data, keeps profiles
+    if (action === "full-reset") {
+      if (confirmationCode !== "FULL RESET") {
+        console.log("[reset-positions] Invalid full reset confirmation code");
+        return new Response(JSON.stringify({ 
+          error: "Invalid confirmation. Type exactly: FULL RESET" 
+        }), { 
+          status: 400, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        });
+      }
+      
+      console.log(`[reset-positions] Executing FULL RESET by admin ${profile.email}`);
+      
+      // Call the comprehensive reset function
+      const { data, error } = await supabase.rpc("reset_all_data_keep_profiles", {
+        p_admin_id: user.id,
+        p_confirmation_code: confirmationCode
+      });
+      
+      if (error) {
+        console.error("[reset-positions] Full reset error:", error);
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: error.message 
+        }), { 
+          status: 500, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        });
+      }
+      
+      console.log("[reset-positions] Full reset completed successfully:", data);
+      
+      return new Response(JSON.stringify({
+        success: true,
+        result: data
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+    
+    return new Response(JSON.stringify({ error: "Invalid action. Use: preview, execute, full-reset, or history" }), { 
       status: 400, 
       headers: { ...corsHeaders, "Content-Type": "application/json" } 
     });
