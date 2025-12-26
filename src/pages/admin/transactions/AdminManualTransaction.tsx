@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 import { supabase } from "@/integrations/supabase/client";
 import { createAdminTransaction } from "@/services/shared/transactionService";
 import { saveDraftAUMEntry } from "@/services/admin/yieldDistributionService";

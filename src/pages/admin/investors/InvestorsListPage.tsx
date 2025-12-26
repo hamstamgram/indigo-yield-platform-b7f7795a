@@ -7,7 +7,7 @@ import { Search } from "lucide-react";
 import { adminServiceV2, InvestorSummaryV2, deleteInvestorUser } from "@/services/admin";
 import { assetService } from "@/services/shared";
 import { Asset } from "@/types/investorTypes";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 
 export default function InvestorsListPage() {
   const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);

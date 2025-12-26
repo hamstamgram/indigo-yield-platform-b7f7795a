@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 import { supabase } from "@/integrations/supabase/client";
 import { formatAssetAmount, getAssetLogo, getAssetName } from "@/utils/assets"; // Import utilities
 import { Loader2, TrendingUp, Calendar, Coins } from "lucide-react";

@@ -16,7 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 import { depositService } from "@/services/investor/depositService";
 import { PlusCircle, Loader2, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";

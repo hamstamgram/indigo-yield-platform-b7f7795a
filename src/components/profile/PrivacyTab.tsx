@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 import { useAuth } from "@/lib/auth/context";
 import { supabase } from "@/integrations/supabase/client";
 

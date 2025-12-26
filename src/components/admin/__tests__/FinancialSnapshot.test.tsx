@@ -33,7 +33,7 @@ vi.mock('sonner', () => ({
   },
 }));
 
-import { useFundAUM } from '@/hooks/useFundAUM';
+import { useFundAUM } from '@/hooks';
 
 const mockUseFundAUM = useFundAUM as ReturnType<typeof vi.fn>;
 

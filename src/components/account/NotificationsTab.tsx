@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 
 const NotificationsTab = () => {
   const [emailNotifications, setEmailNotifications] = useState(true);
