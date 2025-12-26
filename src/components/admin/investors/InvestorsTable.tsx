@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
 import EditableInvestorRow from "./EditableInvestorRow";
 import InvestorsTableHeader from "./InvestorsTableHeader";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks";
 import MobileInvestorCard from "./MobileInvestorCard";
 import { InvestorSummaryV2 } from "@/services/admin";
 import { Asset } from "@/types/investorTypes";

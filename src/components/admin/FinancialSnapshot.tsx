@@ -24,7 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { useFundAUM, FundAUMData } from "@/hooks/useFundAUM";
+import { useFundAUM, type FundAUMData } from "@/hooks";
 import { formatAUM } from "@/utils/formatters";
 import { toast } from "sonner";
 import { TruncatedText } from "@/components/ui/truncated-text";

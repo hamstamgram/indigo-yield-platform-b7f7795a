@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useKeyboardShortcuts, SHORTCUTS } from "@/hooks/useKeyboardShortcuts";
+import { useKeyboardShortcuts, SHORTCUTS } from "@/hooks";
 import { useAuth } from "@/lib/auth/context";
 import { CommandPalette } from "./CommandPalette";
 import { ActionBar } from "./ActionBar";

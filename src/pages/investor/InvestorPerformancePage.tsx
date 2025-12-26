@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { usePerAssetStats } from "@/hooks/useInvestorPerformance";
+import { usePerAssetStats } from "@/hooks";
 import { PeriodSelector, PERIOD_LABELS, type PerformancePeriod } from "@/components/investor/performance/PeriodSelector";
 import { PerformanceCard } from "@/components/investor/performance/PerformanceCard";
 import { EmptyState } from "@/components/ui/empty-state";

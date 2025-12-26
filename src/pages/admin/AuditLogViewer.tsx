@@ -21,7 +21,7 @@ import {
 import { FileText, Filter, Calendar, User, Activity, Database, Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
 import { auditLogService, AuditLogEntry, AuditLogFilters } from "@/services/shared/auditLogService";
-import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
+import { useRealtimeSubscription } from "@/hooks";
 
 const AuditLogViewer = () => {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);

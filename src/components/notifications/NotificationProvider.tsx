@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useNotifications } from "@/hooks";
 import type { Notification } from "@/lib/typeAdapters/notificationAdapter";
 import type { NotificationSettings } from "@/types/notifications";
 

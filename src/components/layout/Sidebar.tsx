@@ -9,9 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { NavItem } from "@/types/navigation";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useUserRole } from "@/hooks";
 import { useAuth } from "@/lib/auth/context";
-import { useCurrentProfile } from "@/hooks/data";
+import { useCurrentProfile } from "@/hooks";
 type SidebarProps = {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;

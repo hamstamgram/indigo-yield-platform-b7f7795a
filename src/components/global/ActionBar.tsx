@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
 import { supabase } from "@/integrations/supabase/client";
-import { formatShortcut, SHORTCUTS } from "@/hooks/useKeyboardShortcuts";
+import { formatShortcut, SHORTCUTS } from "@/hooks";
 import { format } from "date-fns";
 
 interface ActionBarProps {

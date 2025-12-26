@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useToast } from "@/hooks/ui/use-toast";
+import { useToast } from "@/hooks";
 import { Asset } from "@/types/investorTypes";
 import { adminServiceV2, InvestorSummaryV2 } from "@/services/admin/adminService";
 import { useInvestorSearch } from "./useInvestorSearch";

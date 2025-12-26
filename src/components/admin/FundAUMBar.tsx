@@ -6,7 +6,7 @@
 
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useFundAUM } from "@/hooks/useFundAUM";
+import { useFundAUM } from "@/hooks";
 import { formatAUMCompact } from "@/utils/formatters";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";

@@ -43,7 +43,7 @@ import { format, startOfMonth, endOfMonth, subMonths, startOfYear } from "date-f
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
 import { VoidTransactionDialog } from "@/components/admin/transactions/VoidTransactionDialog";
 import { EditTransactionDialog } from "@/components/admin/transactions/EditTransactionDialog";
-import { useSortableColumns } from "@/hooks/useSortableColumns";
+import { useSortableColumns } from "@/hooks";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
 
 type TransactionType = "DEPOSIT" | "WITHDRAWAL" | "FEE" | "INTEREST" | "ADJUSTMENT";

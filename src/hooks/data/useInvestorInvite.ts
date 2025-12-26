@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useToast } from "@/hooks/ui/use-toast";
+import { useToast } from "@/hooks";
 import { supabase } from "@/integrations/supabase/client";
 
 interface InvestorInfo {

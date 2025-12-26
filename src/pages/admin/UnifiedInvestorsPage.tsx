@@ -43,7 +43,7 @@ import { AdminGuard } from "@/components/admin/AdminGuard";
 import { adminServiceV2, InvestorSummaryV2 } from "@/services/admin/adminService";
 import AddInvestorDialog from "@/components/admin/investors/AddInvestorDialog";
 import { InvestorDetailPanel } from "@/components/admin/investors/InvestorDetailPanel";
-import { useAdminStats } from "@/hooks/useAdminStats";
+import { useAdminStats, useUrlFilters, useSortableColumns } from "@/hooks";
 import { cn } from "@/lib/utils";
 import { assetService } from "@/services/shared/assetService";
 import { Asset } from "@/types/investorTypes";
@@ -51,10 +51,8 @@ import {
   getActiveFundsForList,
   getActiveInvestorPositions,
 } from "@/services/investor/fundViewService";
-import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { useSortableColumns } from "@/hooks/useSortableColumns";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
 
 interface Fund {

@@ -1,4 +1,4 @@
-import { useInvestorPerformance, usePerAssetStats } from "@/hooks/useInvestorPerformance";
+import { useInvestorPerformance, usePerAssetStats } from "@/hooks";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";

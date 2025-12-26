@@ -47,7 +47,7 @@ import {
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useUrlFilters } from "@/hooks/useUrlFilters";
+import { useUrlFilters } from "@/hooks";
 import { format, subMonths, parseISO } from "date-fns";
 import { renderReportToHtml } from "@/components/reports/InvestorReportTemplate";
 import { InvestorData, InvestorFund } from "@/types/investor-report";

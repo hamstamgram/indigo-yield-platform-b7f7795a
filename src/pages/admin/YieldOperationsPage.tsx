@@ -78,7 +78,7 @@ import {
   YieldDistribution,
   IBCredit,
 } from "@/services/admin/yieldDistributionService";
-import { useMonthClosure } from "@/hooks/useMonthClosure";
+import { useMonthClosure } from "@/hooks";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
