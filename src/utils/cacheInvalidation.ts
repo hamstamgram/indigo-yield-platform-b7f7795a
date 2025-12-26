@@ -4,7 +4,15 @@
  */
 
 import { QueryClient } from "@tanstack/react-query";
-import { QUERY_KEYS, YIELD_RELATED_KEYS, INVESTOR_RELATED_KEYS, STATEMENT_RELATED_KEYS, DELIVERY_RELATED_KEYS } from "@/constants/queryKeys";
+import { 
+  QUERY_KEYS, 
+  YIELD_RELATED_KEYS, 
+  INVESTOR_RELATED_KEYS, 
+  STATEMENT_RELATED_KEYS, 
+  DELIVERY_RELATED_KEYS,
+  ASSET_RELATED_KEYS,
+  WITHDRAWAL_RELATED_KEYS,
+} from "@/constants/queryKeys";
 
 /**
  * Invalidate all yield-related queries after yield distribution operations
@@ -39,6 +47,8 @@ export function invalidateAfterTransaction(
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions(investorId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorDetail(investorId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investor(investorId) });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorLedger(investorId) });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorQuickView(investorId) });
   }
   
   // Fund-specific
@@ -49,14 +59,12 @@ export function invalidateAfterTransaction(
   
   // General position and fund queries
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions() });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorLedger() });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundDailyAum() });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundAumAll });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundAumUnified });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dashboardStats });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
-  
-  // Also invalidate investor ledger queries (common pattern)
-  queryClient.invalidateQueries({ queryKey: ["investor-ledger"] });
-  queryClient.invalidateQueries({ queryKey: ["fund-aum"] });
-  queryClient.invalidateQueries({ queryKey: ["fund-aum-unified"] });
 }
 
 /**
@@ -66,14 +74,17 @@ export function invalidateAfterTransaction(
 export function invalidateAfterWithdrawal(
   queryClient: QueryClient, 
   investorId?: string,
-  fundId?: string
+  fundId?: string,
+  withdrawalId?: string
 ): void {
   // Withdrawal-specific queries
-  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.withdrawals });
-  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.withdrawalRequests });
-  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.withdrawalRequestsAdmin });
-  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pendingWithdrawals });
-  queryClient.invalidateQueries({ queryKey: ["withdrawal-stats"] });
+  WITHDRAWAL_RELATED_KEYS.forEach(key =>
+    queryClient.invalidateQueries({ queryKey: key })
+  );
+  
+  if (withdrawalId) {
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.withdrawalDetails(withdrawalId) });
+  }
   
   // Also invalidate transaction and position queries since withdrawals affect balances
   invalidateAfterTransaction(queryClient, investorId, fundId);
@@ -108,12 +119,14 @@ export function invalidateAfterIBOperation(
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ibSettings });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ibReferrals() });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ibCommissions() });
-  queryClient.invalidateQueries({ queryKey: ["admin-ib-payouts"] });
-  queryClient.invalidateQueries({ queryKey: ["ib-commission-summary"] });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminIbPayouts });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ibCommissionSummary });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ibProfile() });
   
   if (ibId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ibReferrals(ibId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ibCommissions(ibId) });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ibProfile(ibId) });
   }
   
   if (investorId) {
@@ -148,11 +161,17 @@ export function invalidateAfterMonthClosure(
  * Invalidate all investor-related queries
  * Use after bulk investor operations
  */
-export function invalidateInvestorData(queryClient: QueryClient): void {
+export function invalidateInvestorData(queryClient: QueryClient, investorId?: string): void {
   INVESTOR_RELATED_KEYS.forEach(key =>
     queryClient.invalidateQueries({ queryKey: key })
   );
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profiles });
+  
+  if (investorId) {
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investor(investorId) });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorQuickView(investorId) });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorDetail(investorId) });
+  }
 }
 
 /**
@@ -195,6 +214,46 @@ export function invalidateAfterDeliveryOp(
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.deliveries(periodId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.deliveryStats(periodId) });
   }
+}
+
+/**
+ * Invalidate queries after asset operations
+ * Use after: createAsset, updateAsset, addAssetPrice
+ */
+export function invalidateAfterAssetOp(
+  queryClient: QueryClient,
+  assetId?: string
+): void {
+  ASSET_RELATED_KEYS.forEach(key =>
+    queryClient.invalidateQueries({ queryKey: key })
+  );
+  
+  if (assetId) {
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.assetPrices(assetId) });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.latestPrice(assetId) });
+  }
+}
+
+/**
+ * Invalidate queries after daily rate operations
+ * Use after: saveDailyRate
+ */
+export function invalidateAfterDailyRateOp(
+  queryClient: QueryClient,
+  date?: string
+): void {
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.recentDailyRates });
+  if (date) {
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dailyRate(date) });
+  }
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dailyRate() });
+}
+
+/**
+ * Invalidate queries after admin invite operations
+ */
+export function invalidateAfterAdminInviteOp(queryClient: QueryClient): void {
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminInvites });
 }
 
 /**

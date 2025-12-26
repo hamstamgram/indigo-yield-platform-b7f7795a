@@ -24,6 +24,8 @@ import { assetService } from "@/services/shared/assetService";
 import type { Asset, AssetPrice, AssetPriceFormData } from "@/types/asset";
 import { format } from "date-fns";
 import { TrendingUp, DollarSign } from "lucide-react";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { invalidateAfterAssetOp } from "@/utils/cacheInvalidation";
 
 interface AssetPriceDialogProps {
   asset: Asset;
@@ -41,13 +43,13 @@ export function AssetPriceDialog({ asset, open, onOpenChange }: AssetPriceDialog
   });
 
   const { data: prices, isLoading } = useQuery({
-    queryKey: ["asset-prices", asset.asset_id],
+    queryKey: QUERY_KEYS.assetPrices(asset.asset_id),
     queryFn: () => assetService.getAssetPrices(asset.asset_id, 50),
     enabled: open,
   });
 
   const { data: latestPrice } = useQuery({
-    queryKey: ["latest-price", asset.asset_id],
+    queryKey: QUERY_KEYS.latestPrice(asset.asset_id),
     queryFn: () => assetService.getLatestPrice(asset.asset_id),
     enabled: open,
   });
@@ -56,8 +58,7 @@ export function AssetPriceDialog({ asset, open, onOpenChange }: AssetPriceDialog
     mutationFn: (data: AssetPriceFormData) => assetService.addAssetPrice(data),
     onSuccess: () => {
       toast.success("Price added successfully");
-      queryClient.invalidateQueries({ queryKey: ["asset-prices", asset.asset_id] });
-      queryClient.invalidateQueries({ queryKey: ["latest-price", asset.asset_id] });
+      invalidateAfterAssetOp(queryClient, asset.asset_id);
       setShowAddForm(false);
       setPriceData({
         asset_id: asset.asset_id,

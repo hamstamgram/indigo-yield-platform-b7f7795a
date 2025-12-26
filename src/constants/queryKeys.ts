@@ -10,17 +10,31 @@ export const QUERY_KEYS = {
   activeFunds: ["funds", "active"] as const,
   fund: (id: string) => ["funds", id] as const,
   fundAum: (fundId: string) => ["fund-aum", fundId] as const,
+  fundAumAll: ["fund-aum"] as const,
+  fundAumUnified: ["fund-aum-unified"] as const,
   fundDailyAum: (fundId?: string) => fundId 
     ? ["fund-daily-aum", fundId] as const 
     : ["fund-daily-aum"] as const,
 
   // ============ Investors ============
   investors: ["investors"] as const,
+  investorList: ["investor-list"] as const,
+  investorsAll: ["investors-all"] as const,
+  investorsSelector: (includeSystem?: boolean) => includeSystem !== undefined
+    ? ["investors-selector", includeSystem] as const
+    : ["investors-selector"] as const,
   investor: (id: string) => ["investor", id] as const,
   investorPositions: (fundId?: string) => fundId 
     ? ["investor-positions", fundId] as const 
     : ["investor-positions"] as const,
   investorDetail: (id: string) => ["investor-detail", id] as const,
+  investorQuickView: (id: string) => ["investor-quick-view", id] as const,
+  investorLedger: (id?: string) => id
+    ? ["investor-ledger", id] as const
+    : ["investor-ledger"] as const,
+  investorRecentActivity: (id: string, limit?: number) => limit
+    ? ["investor-recent-activity", id, limit] as const
+    : ["investor-recent-activity", id] as const,
 
   // ============ Transactions ============
   transactions: ["transactions"] as const,
@@ -40,6 +54,8 @@ export const QUERY_KEYS = {
   yieldCorrections: (fundId?: string) => fundId 
     ? ["yield-corrections", fundId] as const 
     : ["yield-corrections"] as const,
+  yieldCorrectionHistory: (fundId?: string, startDate?: string, endDate?: string) => 
+    ["yield-correction-history", fundId, startDate, endDate] as const,
 
   // ============ Allocations ============
   feeAllocations: (fundId?: string) => fundId 
@@ -54,6 +70,8 @@ export const QUERY_KEYS = {
   withdrawalRequests: ["withdrawal-requests"] as const,
   withdrawalRequestsAdmin: ["withdrawal-requests-admin"] as const,
   pendingWithdrawals: ["pending-withdrawals"] as const,
+  withdrawalDetails: (id: string) => ["withdrawal-details", id] as const,
+  withdrawalStats: ["withdrawal-stats"] as const,
 
   // ============ Deposits ============
   deposits: ["deposits"] as const,
@@ -67,16 +85,22 @@ export const QUERY_KEYS = {
   // ============ IB (Introducing Broker) ============
   ibSettings: ["ib-settings"] as const,
   ibSettingsInvestor: (investorId: string) => ["ib-settings", investorId] as const,
+  ibProfile: (userId?: string) => userId
+    ? ["ib-profile", userId] as const
+    : ["ib-profile"] as const,
   ibReferrals: (ibId?: string) => ibId 
     ? ["ib-referrals", ibId] as const 
     : ["ib-referrals"] as const,
   ibCommissions: (ibId?: string) => ibId 
     ? ["ib-commissions", ibId] as const 
     : ["ib-commissions"] as const,
+  ibCommissionSummary: ["ib-commission-summary"] as const,
+  adminIbPayouts: ["admin-ib-payouts"] as const,
 
   // ============ Reports & Statements ============
   reports: ["reports"] as const,
   statements: ["statements"] as const,
+  statementsAdmin: ["statements-admin"] as const,
   statementsMonth: (month: string) => ["statements", month] as const,
   statementPeriods: ["statement-periods"] as const,
   statementPeriodsWithCounts: ["statement-periods-with-counts"] as const,
@@ -93,6 +117,21 @@ export const QUERY_KEYS = {
 
   // ============ Month Closure ============
   monthClosure: (fundId: string, month: string) => ["month-closure", fundId, month] as const,
+
+  // ============ Assets ============
+  assets: ["assets"] as const,
+  assetStats: ["asset-stats"] as const,
+  assetPrices: (assetId: string) => ["asset-prices", assetId] as const,
+  latestPrice: (assetId: string) => ["latest-price", assetId] as const,
+
+  // ============ Daily Rates ============
+  dailyRate: (date?: string) => date 
+    ? ["daily-rate", date] as const 
+    : ["daily-rate"] as const,
+  recentDailyRates: ["recent-daily-rates"] as const,
+
+  // ============ Admin Invites ============
+  adminInvites: ["admin-invites"] as const,
 
   // ============ Integrity & System ============
   integrityDashboard: ["integrity-dashboard"] as const,
@@ -124,6 +163,7 @@ export const YIELD_RELATED_KEYS = [
  */
 export const INVESTOR_RELATED_KEYS = [
   QUERY_KEYS.investors,
+  QUERY_KEYS.investorList,
   QUERY_KEYS.investorPositions(),
   QUERY_KEYS.transactions,
   QUERY_KEYS.dashboardStats,
@@ -134,6 +174,7 @@ export const INVESTOR_RELATED_KEYS = [
  */
 export const STATEMENT_RELATED_KEYS = [
   QUERY_KEYS.statements,
+  QUERY_KEYS.statementsAdmin,
   QUERY_KEYS.statementPeriods,
   QUERY_KEYS.reports,
 ];
@@ -143,4 +184,23 @@ export const STATEMENT_RELATED_KEYS = [
  */
 export const DELIVERY_RELATED_KEYS = [
   QUERY_KEYS.deliveries(),
+];
+
+/**
+ * Helper for asset-related queries
+ */
+export const ASSET_RELATED_KEYS = [
+  QUERY_KEYS.assets,
+  QUERY_KEYS.assetStats,
+];
+
+/**
+ * Helper for withdrawal-related queries
+ */
+export const WITHDRAWAL_RELATED_KEYS = [
+  QUERY_KEYS.withdrawals,
+  QUERY_KEYS.withdrawalRequests,
+  QUERY_KEYS.withdrawalRequestsAdmin,
+  QUERY_KEYS.pendingWithdrawals,
+  QUERY_KEYS.withdrawalStats,
 ];

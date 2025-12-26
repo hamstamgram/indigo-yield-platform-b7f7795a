@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { dailyRatesService, DailyRate } from "@/services/shared/dailyRatesService";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -136,8 +137,8 @@ export default function DailyRatesManagement() {
     onSuccess: () => {
       toast.success("Daily rates saved successfully");
       setHasUnsavedChanges(false);
-      queryClient.invalidateQueries({ queryKey: ["daily-rate"] });
-      queryClient.invalidateQueries({ queryKey: ["recent-daily-rates"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dailyRate() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.recentDailyRates });
     },
     onError: (error: any) => {
       console.error("Error saving daily rates:", error);

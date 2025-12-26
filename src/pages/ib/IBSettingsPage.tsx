@@ -15,6 +15,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
 import { toast } from "sonner";
 import { User, Shield, Bell } from "lucide-react";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { invalidateAfterIBOperation } from "@/utils/cacheInvalidation";
 
 export default function IBSettingsPage() {
   const { user } = useAuth();
@@ -23,7 +25,7 @@ export default function IBSettingsPage() {
 
   // Fetch profile data
   const { data: profile, isLoading } = useQuery({
-    queryKey: ["ib-profile", user?.id],
+    queryKey: QUERY_KEYS.ibProfile(user?.id),
     queryFn: async () => {
       if (!user?.id) return null;
 
@@ -75,7 +77,7 @@ export default function IBSettingsPage() {
     },
     onSuccess: () => {
       toast.success("Profile updated successfully");
-      queryClient.invalidateQueries({ queryKey: ["ib-profile"] });
+      invalidateAfterIBOperation(queryClient, user?.id, user?.id);
     },
     onError: (error) => {
       toast.error("Failed to update profile: " + error.message);

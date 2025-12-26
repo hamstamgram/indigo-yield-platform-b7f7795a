@@ -16,6 +16,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, ArrowRightLeft } from "lucide-react";
+import { invalidateAfterWithdrawal } from "@/utils/cacheInvalidation";
 
 interface RouteToFeesDialogProps {
   open: boolean;
@@ -58,12 +59,8 @@ export function RouteToFeesDialog({
         toast.success("Withdrawal routed to INDIGO FEES successfully");
       }
 
-      // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: ["withdrawals"] });
-      queryClient.invalidateQueries({ queryKey: ["withdrawal-details", withdrawal.id] });
-      queryClient.invalidateQueries({ queryKey: ["investor-positions"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      // Use centralized cache invalidation
+      invalidateAfterWithdrawal(queryClient, withdrawal.investor_id, withdrawal.fund_id, withdrawal.id);
 
       onOpenChange(false);
       setAdminNotes("");
