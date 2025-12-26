@@ -7,6 +7,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -425,8 +426,7 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
         investorId={investorId}
         fundId={defaultFundId || (positions[0]?.fund_id || "")}
         onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ["admin-transactions-history"] });
-          queryClient.invalidateQueries({ queryKey: ["investor-positions", investorId] });
+          invalidateAfterTransaction(queryClient, investorId, defaultFundId || positions[0]?.fund_id);
           handleDataUpdate();
           setAddTxDialogOpen(false);
         }}

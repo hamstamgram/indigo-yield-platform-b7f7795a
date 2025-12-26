@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useInvestorPositions } from "@/hooks";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
+import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import {
   Table,
   TableBody,
@@ -108,7 +109,7 @@ export default function InvestorPositionsTab({ investorId }: { investorId: strin
         investorId={investorId}
         fundId={selectedFundForTx || ""}
         onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ["investor-positions", investorId] });
+          invalidateAfterTransaction(queryClient, investorId, selectedFundForTx || undefined);
           setShowAddTxDialog(false);
         }}
       />

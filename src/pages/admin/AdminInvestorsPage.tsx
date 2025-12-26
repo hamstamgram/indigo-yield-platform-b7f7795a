@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { invalidateInvestorData } from "@/utils/cacheInvalidation";
 import {
   Table,
   TableBody,
@@ -52,8 +54,8 @@ export default function AdminInvestorsPage() {
         .eq("id", investorId);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-investors"] });
+    onSuccess: (_, investorId) => {
+      invalidateInvestorData(queryClient, investorId);
       toast.success("Investor deactivated", {
         description: "The investor account has been deactivated.",
       });
