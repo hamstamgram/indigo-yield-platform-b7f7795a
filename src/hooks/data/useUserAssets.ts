@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export interface UserAsset {
   symbol: string;
@@ -12,7 +13,7 @@ export interface UserAsset {
  */
 export const useUserAssets = () => {
   return useQuery<UserAsset[]>({
-    queryKey: ["user-assets"],
+    queryKey: QUERY_KEYS.userAssets,
     queryFn: async () => {
       const { data: authData } = await supabase.auth.getUser();
       const user = authData?.user;

@@ -38,7 +38,7 @@ export function invalidateAfterTransaction(
   fundId?: string
 ): void {
   // Core transaction queries
-  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.transactions });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.transactions() });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminTransactions });
   
   // Investor-specific

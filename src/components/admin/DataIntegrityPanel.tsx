@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -46,7 +47,7 @@ export function DataIntegrityPanel() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["data-integrity"],
+    queryKey: QUERY_KEYS.dataIntegrity,
     queryFn: async (): Promise<IntegrityData> => {
       // Run all integrity checks in parallel
       const [

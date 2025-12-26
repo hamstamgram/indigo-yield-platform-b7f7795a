@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getAllFunds, type Fund } from "@/services/investor/fundViewService";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 /**
  * Hook to fetch active funds for dropdowns and selectors
@@ -7,7 +8,7 @@ import { getAllFunds, type Fund } from "@/services/investor/fundViewService";
  */
 export function useActiveFunds() {
   return useQuery<Fund[], Error>({
-    queryKey: ["active-funds"],
+    queryKey: QUERY_KEYS.activeFunds,
     queryFn: getAllFunds,
     staleTime: 5 * 60 * 1000, // 5 minutes cache
   });

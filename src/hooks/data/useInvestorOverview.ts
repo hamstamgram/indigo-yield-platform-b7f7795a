@@ -5,6 +5,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export interface InvestorOverviewData {
   totalFunds: number;
@@ -17,16 +18,12 @@ export interface InvestorOverviewData {
   hasPositions: boolean;
 }
 
-const QUERY_KEYS = {
-  overview: (investorId: string) => ["investor-overview", investorId] as const,
-};
-
 /**
  * Fetch investor overview data
  */
 export function useInvestorOverview(investorId: string) {
   return useQuery<InvestorOverviewData>({
-    queryKey: QUERY_KEYS.overview(investorId),
+    queryKey: QUERY_KEYS.investorOverview(investorId),
     queryFn: async () => {
       // Fetch positions with fund info
       const { data: positions, error: posError } = await supabase
@@ -129,7 +126,7 @@ export function useInvestorOverview(investorId: string) {
  */
 export function useInvestorDefaultFund(investorId: string) {
   return useQuery<string | null>({
-    queryKey: ["investor-default-fund", investorId],
+    queryKey: QUERY_KEYS.investorDefaultFund(investorId),
     queryFn: async () => {
       const { data } = await supabase
         .from("investor_positions")

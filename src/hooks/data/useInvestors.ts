@@ -5,6 +5,7 @@ import { adminServiceV2, InvestorSummaryV2 } from "@/services/admin/adminService
 import { useInvestorSearch } from "./useInvestorSearch";
 import { supabase } from "@/integrations/supabase/client";
 import { CACHE_KEYS } from "@/utils/performance/caching";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { useEffect } from "react";
 
 /**
@@ -16,7 +17,7 @@ export const useInvestors = () => {
 
   // Fetch assets with React Query (assets change rarely, longer staleTime)
   const { data: assets = [], error: assetsError } = useQuery<Asset[]>({
-    queryKey: ["assets-active"],
+    queryKey: QUERY_KEYS.assetsActive,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("assets")

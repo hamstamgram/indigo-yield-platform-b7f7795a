@@ -9,6 +9,7 @@ import { adminTransactionService, CreateTransactionParams } from "@/services/adm
 import { transactionsV2Service } from "@/services/shared";
 import { toast } from "sonner";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export interface Transaction {
   id: string;
@@ -95,7 +96,7 @@ async function fetchTransactions(filters: TransactionFilters): Promise<Transacti
  */
 export function useTransactions(filters: TransactionFilters = {}) {
   return useQuery<Transaction[], Error>({
-    queryKey: ["transactions", filters],
+    queryKey: QUERY_KEYS.transactions(filters),
     queryFn: () => fetchTransactions(filters),
     enabled: !filters.investorId || !!filters.investorId, // Always enabled unless investorId is explicitly required
   });
@@ -106,7 +107,7 @@ export function useTransactions(filters: TransactionFilters = {}) {
  */
 export function useInvestorTransactions(investorId: string, limit?: number) {
   return useQuery<Transaction[], Error>({
-    queryKey: ["investor-transactions", investorId, limit],
+    queryKey: QUERY_KEYS.investorTransactions(investorId, limit),
     queryFn: () => fetchTransactions({ investorId, limit }),
     enabled: !!investorId,
   });
