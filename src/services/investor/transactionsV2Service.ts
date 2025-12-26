@@ -80,6 +80,21 @@ class TransactionsV2Service {
   }
 
   /**
+   * Void a transaction (mark notes with voided reason)
+   */
+  async voidTransaction(transactionId: string, reason: string): Promise<void> {
+    const tx = await this.getById(transactionId);
+    const newNotes = `[VOIDED: ${reason}] ${tx?.notes || ""}`;
+
+    const { error } = await supabase
+      .from("transactions_v2")
+      .update({ notes: newNotes })
+      .eq("id", transactionId);
+
+    if (error) throw error;
+  }
+
+  /**
    * Get transaction summary for an investor
    */
   async getSummary(investorId: string): Promise<{

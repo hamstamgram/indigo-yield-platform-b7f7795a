@@ -4,6 +4,7 @@ import { toNotification, toNotifications } from "@/lib/typeAdapters";
 import type { Notification } from "@/lib/typeAdapters/notificationAdapter";
 import type { NotificationSettings, PriceAlert } from "@/types/notifications";
 import { useToast } from "@/hooks";
+import { notificationService } from "@/services/shared";
 import { RealtimeChannel } from "@supabase/supabase-js";
 
 export function useNotifications(userId?: string) {
@@ -93,14 +94,7 @@ export function useNotifications(userId?: string) {
   // Mark notification as read
   const markAsRead = useCallback(async (notificationId: string) => {
     try {
-      const { error } = await supabase
-        .from("notifications")
-        .update({
-          read_at: new Date().toISOString(),
-        })
-        .eq("id", notificationId);
-
-      if (error) throw error;
+      await notificationService.markAsRead(notificationId);
 
       setNotifications((prev) =>
         prev.map((n) => (n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n))
@@ -116,15 +110,7 @@ export function useNotifications(userId?: string) {
     if (!userId) return;
 
     try {
-      const { error } = await supabase
-        .from("notifications")
-        .update({
-          read_at: new Date().toISOString(),
-        })
-        .eq("user_id", userId)
-        .is("read_at", null);
-
-      if (error) throw error;
+      await notificationService.markAllAsRead();
 
       setNotifications((prev) => prev.map((n) => ({ ...n, read_at: new Date().toISOString() })));
       setUnreadCount(0);
@@ -133,13 +119,11 @@ export function useNotifications(userId?: string) {
     }
   }, [userId]);
 
-  // Delete archive/notification functionality (notifications table doesn't have archived_at)
+  // Delete archive/notification functionality
   const deleteNotification = useCallback(
     async (notificationId: string) => {
       try {
-        const { error } = await supabase.from("notifications").delete().eq("id", notificationId);
-
-        if (error) throw error;
+        await notificationService.deleteNotification(notificationId);
 
         setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
         setUnreadCount((prev) => {

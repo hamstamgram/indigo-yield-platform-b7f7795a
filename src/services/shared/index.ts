@@ -82,3 +82,6 @@ export { ibManagementService } from "./ibManagementService";
 
 // Transactions V2 service (re-export from investor)
 export { transactionsV2Service } from "@/services/investor/transactionsV2Service";
+
+// Invite service
+export { inviteService } from "./inviteService";

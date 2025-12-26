@@ -59,6 +59,25 @@ class IBManagementService {
   }
 
   /**
+   * Assign IB role to a user by ID
+   */
+  async assignIBRoleToUser(userId: string): Promise<{ alreadyExists: boolean }> {
+    const { error } = await supabase.from("user_roles").insert({
+      user_id: userId,
+      role: "ib",
+    });
+
+    if (error) {
+      if (error.code === "23505") {
+        return { alreadyExists: true };
+      }
+      throw error;
+    }
+
+    return { alreadyExists: false };
+  }
+
+  /**
    * Remove IB role from a user
    */
   async removeIBRole(userId: string): Promise<void> {
