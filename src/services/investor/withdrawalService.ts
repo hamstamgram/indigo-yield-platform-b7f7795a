@@ -1,7 +1,20 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Withdrawal, WithdrawalFilters, WithdrawalStats, PaginatedWithdrawals, WithdrawalAuditLog } from "@/types/withdrawal";
+import { generateCorrelationId, createCorrelatedLogger } from "@/lib/correlationId";
 
 const DEFAULT_PAGE_SIZE = 20;
+
+/**
+ * Build correlation metadata for audit logging
+ */
+function buildAuditMeta(correlationId: string, action: string, details?: Record<string, unknown>) {
+  return {
+    correlation_id: correlationId,
+    action,
+    timestamp: new Date().toISOString(),
+    ...details,
+  };
+}
 
 export const withdrawalService = {
   /**
@@ -204,41 +217,62 @@ export const withdrawalService = {
   async approveWithdrawal(
     withdrawalId: string,
     processedAmount: number,
-    adminNotes?: string
-  ): Promise<void> {
+    adminNotes?: string,
+    correlationId?: string
+  ): Promise<{ correlationId: string }> {
+    const corrId = correlationId || generateCorrelationId('wdr_appr');
+    const log = createCorrelatedLogger(corrId);
+    
+    log.info('Approving withdrawal', { withdrawalId, processedAmount });
+    
     const { error } = await supabase.rpc('approve_withdrawal', {
       p_request_id: withdrawalId,
       p_approved_amount: processedAmount,
-      p_admin_notes: adminNotes || null
+      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
     });
 
     if (error) {
-      console.error("Error approving withdrawal:", error);
-      // Surface the actual database error message for better debugging
+      log.error('Error approving withdrawal', error);
       const errorMessage = error.message || "Failed to approve withdrawal";
       throw new Error(errorMessage.includes("Admin only") 
         ? "You don't have admin privileges to approve withdrawals" 
         : errorMessage);
     }
+    
+    log.info('Withdrawal approved successfully');
+    return { correlationId: corrId };
   },
 
   /**
    * Reject a withdrawal request using secure RPC with server-side admin check
    */
-  async rejectWithdrawal(withdrawalId: string, reason: string, adminNotes?: string): Promise<void> {
+  async rejectWithdrawal(
+    withdrawalId: string, 
+    reason: string, 
+    adminNotes?: string,
+    correlationId?: string
+  ): Promise<{ correlationId: string }> {
+    const corrId = correlationId || generateCorrelationId('wdr_rej');
+    const log = createCorrelatedLogger(corrId);
+    
+    log.info('Rejecting withdrawal', { withdrawalId, reason });
+    
     const { error } = await supabase.rpc('reject_withdrawal', {
       p_request_id: withdrawalId,
       p_reason: reason,
-      p_admin_notes: adminNotes || null
+      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
     });
 
     if (error) {
-      console.error("Error rejecting withdrawal:", error);
+      log.error('Error rejecting withdrawal', error);
       const errorMessage = error.message || "Failed to reject withdrawal";
       throw new Error(errorMessage.includes("Admin only") 
         ? "You don't have admin privileges to reject withdrawals" 
         : errorMessage);
     }
+    
+    log.info('Withdrawal rejected successfully');
+    return { correlationId: corrId };
   },
 
   /**
@@ -247,18 +281,24 @@ export const withdrawalService = {
   async markAsProcessing(
     withdrawalId: string,
     txHash?: string,
-    adminNotes?: string
-  ): Promise<void> {
+    adminNotes?: string,
+    correlationId?: string
+  ): Promise<{ correlationId: string }> {
+    const corrId = correlationId || generateCorrelationId('wdr_proc');
+    const log = createCorrelatedLogger(corrId);
+    
+    log.info('Starting withdrawal processing', { withdrawalId, txHash });
+    
     const { error } = await supabase.rpc('start_processing_withdrawal', {
       p_request_id: withdrawalId,
       p_processed_amount: null,
-      p_admin_notes: adminNotes || null,
+      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
       p_expected_completion: null,
       p_tx_hash: txHash || null
     });
 
     if (error) {
-      console.error("Error marking withdrawal as processing:", error);
+      log.error('Error marking withdrawal as processing', error);
       const errorMessage = error.message || "Failed to start processing withdrawal";
       throw new Error(errorMessage.includes("Admin only") 
         ? "You don't have admin privileges to process withdrawals" 
@@ -266,20 +306,33 @@ export const withdrawalService = {
           ? "Withdrawal must be approved before processing" 
           : errorMessage);
     }
+    
+    log.info('Withdrawal marked as processing');
+    return { correlationId: corrId };
   },
 
   /**
    * Mark withdrawal as completed using secure RPC with server-side admin check
    */
-  async markAsCompleted(withdrawalId: string, txHash?: string, adminNotes?: string): Promise<void> {
+  async markAsCompleted(
+    withdrawalId: string, 
+    txHash?: string, 
+    adminNotes?: string,
+    correlationId?: string
+  ): Promise<{ correlationId: string }> {
+    const corrId = correlationId || generateCorrelationId('wdr_comp');
+    const log = createCorrelatedLogger(corrId);
+    
+    log.info('Completing withdrawal', { withdrawalId, txHash });
+    
     const { error } = await supabase.rpc('complete_withdrawal', {
       p_request_id: withdrawalId,
       p_tx_hash: txHash || null,
-      p_admin_notes: adminNotes || null
+      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
     });
 
     if (error) {
-      console.error("Error completing withdrawal:", error);
+      log.error('Error completing withdrawal', error);
       const errorMessage = error.message || "Failed to complete withdrawal";
       throw new Error(errorMessage.includes("Admin only") 
         ? "You don't have admin privileges to complete withdrawals" 
@@ -287,24 +340,40 @@ export const withdrawalService = {
           ? "Withdrawal must be in processing state before completing" 
           : errorMessage);
     }
+    
+    log.info('Withdrawal completed successfully');
+    return { correlationId: corrId };
   },
 
   /**
    * Cancel a withdrawal request using secure RPC with server-side admin check
    */
-  async cancelWithdrawal(withdrawalId: string, reason: string, adminNotes?: string): Promise<void> {
+  async cancelWithdrawal(
+    withdrawalId: string, 
+    reason: string, 
+    adminNotes?: string,
+    correlationId?: string
+  ): Promise<{ correlationId: string }> {
+    const corrId = correlationId || generateCorrelationId('wdr_canc');
+    const log = createCorrelatedLogger(corrId);
+    
+    log.info('Cancelling withdrawal', { withdrawalId, reason });
+    
     const { error } = await supabase.rpc('cancel_withdrawal_by_admin', {
       p_request_id: withdrawalId,
       p_reason: reason,
-      p_admin_notes: adminNotes || null
+      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
     });
 
     if (error) {
-      console.error("Error cancelling withdrawal:", error);
+      log.error('Error cancelling withdrawal', error);
       const errorMessage = error.message || "Failed to cancel withdrawal";
       throw new Error(errorMessage.includes("Admin only") 
         ? "You don't have admin privileges to cancel withdrawals" 
         : errorMessage);
     }
+    
+    log.info('Withdrawal cancelled successfully');
+    return { correlationId: corrId };
   },
 };

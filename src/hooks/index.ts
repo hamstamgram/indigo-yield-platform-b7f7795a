@@ -14,3 +14,7 @@ export * from "./data";
 
 // UI hooks
 export * from "./ui";
+
+// Utility hooks
+export { useCorrelatedMutation } from "./useCorrelatedMutation";
+export type { CorrelatedMutationContext, CorrelatedMutationOptions } from "./useCorrelatedMutation";
