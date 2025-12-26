@@ -254,8 +254,8 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
         <div className="flex items-center gap-2">
           <BookOpen className="h-5 w-5 text-muted-foreground" />
           <h3 className="font-semibold">Transaction Ledger</h3>
-          <Badge variant="secondary" className="text-xs">
-            {transactions.length} records
+          <Badge variant="secondary" className="text-xs" title={`Showing ${transactions.length} of ${unfilteredTransactions.length} total`}>
+            {transactions.length}{unfilteredTransactions.length !== transactions.length ? ` / ${unfilteredTransactions.length}` : ''} records
           </Badge>
         </div>
         <div className="flex items-center gap-2">

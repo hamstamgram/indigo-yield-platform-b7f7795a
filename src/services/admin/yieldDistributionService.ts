@@ -163,10 +163,22 @@ async function getPeriodIdForDate(targetDate: Date): Promise<string | null> {
  * Preview yield distribution using backend RPC for exact parity with apply.
  * This is a read-only operation that returns computed distributions.
  */
+// UUID validation regex
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isValidUUID(value: string): boolean {
+  return UUID_REGEX.test(value);
+}
+
 export async function previewYieldDistribution(
   input: YieldCalculationInput
 ): Promise<YieldCalculationResult> {
   const { fundId, targetDate, newTotalAUM, purpose = "reporting" } = input;
+
+  // Validate fundId is a valid UUID to prevent "operator does not exist: uuid = text" errors
+  if (!fundId || !isValidUUID(fundId)) {
+    throw new Error(`Invalid fund ID format: "${fundId}". Expected a valid UUID.`);
+  }
 
   // Get snapshot info for display
   const periodId = await getPeriodIdForDate(targetDate);
