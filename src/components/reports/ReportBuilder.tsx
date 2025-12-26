@@ -107,8 +107,8 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   }, [period]);
 
   const loadReportDefinitions = async () => {
-    const definitions = await ReportsApi.getReportDefinitions(true);
-    setReportDefinitions(definitions);
+    // Note: report_definitions table has been removed, no definitions to load
+    setReportDefinitions([]);
   };
 
   const handleGenerateReport = async (downloadNow: boolean = false) => {

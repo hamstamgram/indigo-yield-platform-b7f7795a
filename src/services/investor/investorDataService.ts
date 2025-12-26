@@ -547,14 +547,6 @@ export class InvestorDataService {
     return data || [];
   }
 
-  /**
-   * @deprecated yield_settings table has been removed. Returns empty array.
-   */
-  async getCurrentYieldRates(): Promise<any[]> {
-    console.warn("getCurrentYieldRates: yield_settings table removed, returning empty array");
-    return [];
-  }
-
   // Get investor documents (statements, etc.)
   async getInvestorDocuments(): Promise<any[]> {
     const { data: user } = await supabase.auth.getUser();
@@ -570,13 +562,6 @@ export class InvestorDataService {
     return data || [];
   }
 
-  /**
-   * @deprecated portfolio_history table has been removed. Returns empty array.
-   */
-  async getPortfolioPerformanceHistory(_days: number = 30): Promise<any[]> {
-    console.warn("getPortfolioPerformanceHistory: portfolio_history table removed, returning empty array");
-    return [];
-  }
 }
 
 // Export singleton instance

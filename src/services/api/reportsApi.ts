@@ -19,26 +19,6 @@ import {
 
 export class ReportsApi {
   /**
-   * Get available report definitions
-   * @deprecated report_definitions table has been removed. Returns empty array.
-   */
-  static async getReportDefinitions(
-    _includeAdminOnly: boolean = false
-  ): Promise<ReportDefinition[]> {
-    console.warn("getReportDefinitions: report_definitions table removed, returning empty array");
-    return [];
-  }
-
-  /**
-   * Get single report definition
-   * @deprecated report_definitions table has been removed. Returns null.
-   */
-  static async getReportDefinition(_reportType: ReportType): Promise<ReportDefinition | null> {
-    console.warn("getReportDefinition: report_definitions table removed, returning null");
-    return null;
-  }
-
-  /**
    * Generate a report
    */
   static async generateReport(request: GenerateReportRequest): Promise<GenerateReportResponse> {
