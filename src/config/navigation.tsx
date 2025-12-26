@@ -168,6 +168,12 @@ export const adminNavGroups: NavGroup[] = [
         adminOnly: true,
       },
       {
+        title: "Data Integrity",
+        href: "/admin/integrity",
+        icon: <Shield className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
         title: "Settings",
         href: "/admin/settings-platform",
         icon: <Settings className="h-5 w-5" />,
