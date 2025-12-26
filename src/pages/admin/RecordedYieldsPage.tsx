@@ -65,6 +65,7 @@ import { VoidYieldDialog } from "@/components/admin/yields/VoidYieldDialog";
 import { EditYieldDialog } from "@/components/admin/yields/EditYieldDialog";
 import { YieldActionsColumn } from "@/components/admin/yields/YieldActionsColumn";
 import { voidYieldRecord, updateYieldAum } from "@/services/admin/yieldManagementService";
+import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
 
 interface Fund {
   id: string;
@@ -153,7 +154,13 @@ function RecordedYieldsContent() {
     onSuccess: () => {
       toast.success("Yield record voided successfully");
       setVoidRecord(null);
+      // Comprehensive cache invalidation
       queryClient.invalidateQueries({ queryKey: ["recorded-yields"] });
+      YIELD_RELATED_KEYS.forEach(key => {
+        queryClient.invalidateQueries({ queryKey: key });
+      });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : "Failed to void record");
@@ -169,7 +176,13 @@ function RecordedYieldsContent() {
     onSuccess: () => {
       toast.success("Yield AUM updated successfully");
       setEditAumRecord(null);
+      // Comprehensive cache invalidation
       queryClient.invalidateQueries({ queryKey: ["recorded-yields"] });
+      YIELD_RELATED_KEYS.forEach(key => {
+        queryClient.invalidateQueries({ queryKey: key });
+      });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : "Failed to update AUM");
