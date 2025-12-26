@@ -1,5 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
+/**
+ * AdminInvites - Refactored to use data hooks
+ */
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -16,69 +18,28 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Copy, Send, Trash, ShieldAlert } from "lucide-react";
 import { format } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-
-type AdminInvite = {
-  id: string;
-  email: string;
-  invite_code: string;
-  created_at: string;
-  expires_at: string;
-  used: boolean | null;
-  created_by: string | null;
-};
+import {
+  useAdminInvites,
+  useCreateAdminInvite,
+  useSendAdminInvite,
+  useDeleteAdminInvite,
+  useCopyInviteLink,
+  useIsSuperAdmin,
+} from "@/hooks/data";
 
 const AdminInvites = () => {
-  const [invites, setInvites] = useState<AdminInvite[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
   const [newEmail, setNewEmail] = useState("");
-  const [sending, setSending] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState<string | null>(null);
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  const [checkingPermission, setCheckingPermission] = useState(true);
   const { toast } = useToast();
 
-  // Check if current user is super admin
-  const checkSuperAdminStatus = useCallback(async () => {
-    try {
-      setCheckingPermission(true);
-      const { data, error } = await supabase.rpc('is_super_admin');
-      if (error) throw error;
-      setIsSuperAdmin(!!data);
-    } catch (error) {
-      console.error("Error checking super admin status:", error);
-      setIsSuperAdmin(false);
-    } finally {
-      setCheckingPermission(false);
-    }
-  }, []);
+  // Data hooks
+  const { data: invites = [], isLoading: loading } = useAdminInvites();
+  const { data: isSuperAdmin = false, isLoading: checkingPermission } = useIsSuperAdmin();
+  const createInviteMutation = useCreateAdminInvite();
+  const sendInviteMutation = useSendAdminInvite();
+  const deleteInviteMutation = useDeleteAdminInvite();
+  const copyInviteLink = useCopyInviteLink();
 
-  // Fetch all admin invites
-  const fetchInvites = useCallback(async () => {
-    try {
-      setLoading(true);
-
-      const { data, error } = await supabase
-        .from("admin_invites")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-
-      setInvites((data || []) as AdminInvite[]);
-    } catch (error) {
-      console.error("Error fetching invites:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch invitation data",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
-
-  // Create a new admin invite using secure RPC
+  // Create invitation handler
   const createInvite = async () => {
     if (!newEmail || !isValidEmail(newEmail)) {
       toast({
@@ -98,83 +59,18 @@ const AdminInvites = () => {
       return;
     }
 
-    try {
-      setCreating(true);
-
-      // Use secure RPC function that checks super_admin permission
-      const { data, error } = await supabase.rpc('create_admin_invite', {
-        p_email: newEmail.toLowerCase().trim()
-      });
-
-      if (error) {
-        if (error.message?.includes("Super admin")) {
-          toast({
-            title: "Permission Denied",
-            description: "Only super admins can create admin invitations.",
-            variant: "destructive",
-          });
-        } else if (error.message?.includes("already exists")) {
-          toast({
-            title: "Duplicate Email",
-            description: "An invitation for this email already exists.",
-            variant: "destructive",
-          });
-        } else {
-          throw error;
-        }
-        return;
-      }
-
-      toast({
-        title: "Invitation Created",
-        description: "Admin invitation has been created successfully.",
-      });
-
-      // Refresh invites list
-      await fetchInvites();
-      setNewEmail("");
-    } catch (error) {
-      console.error("Error creating invite:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create invitation",
-        variant: "destructive",
-      });
-    } finally {
-      setCreating(false);
-    }
+    createInviteMutation.mutate(newEmail, {
+      onSuccess: () => setNewEmail(""),
+    });
   };
 
   // Send invitation email
-  const sendInvite = async (invite: AdminInvite) => {
-    try {
-      setSending(invite.id);
-
-      // Call the edge function to send the email
-      const { error } = await supabase.functions.invoke("send-admin-invite", {
-        body: { invite },
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Invitation Sent",
-        description: `Invitation email sent to ${invite.email}`,
-      });
-    } catch (error) {
-      console.error("Error sending invite:", error);
-      toast({
-        title: "Error",
-        description: "Failed to send invitation email",
-        variant: "destructive",
-      });
-    } finally {
-      setSending(null);
-    }
+  const sendInvite = async (invite: { id: string; email: string; invite_code: string; created_at: string; expires_at: string; used: boolean | null; created_by: string | null }) => {
+    sendInviteMutation.mutate(invite);
   };
 
   // Delete an invite
-  const deleteInvite = async (id: string) => {
+  const deleteInvite = (id: string) => {
     if (!isSuperAdmin) {
       toast({
         title: "Permission Denied",
@@ -184,41 +80,7 @@ const AdminInvites = () => {
       return;
     }
 
-    try {
-      setDeleting(id);
-
-      const { error } = await supabase.from("admin_invites").delete().eq("id", id);
-
-      if (error) throw error;
-
-      // Remove the invite from state
-      setInvites(invites.filter((invite) => invite.id !== id));
-
-      toast({
-        title: "Invitation Deleted",
-        description: "Admin invitation has been deleted.",
-      });
-    } catch (error) {
-      console.error("Error deleting invite:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete invitation",
-        variant: "destructive",
-      });
-    } finally {
-      setDeleting(null);
-    }
-  };
-
-  // Copy invite link to clipboard
-  const copyInviteLink = (inviteCode: string) => {
-    const link = `${window.location.origin}/admin-invite?code=${inviteCode}`;
-    navigator.clipboard.writeText(link);
-
-    toast({
-      title: "Link Copied",
-      description: "Invitation link copied to clipboard",
-    });
+    deleteInviteMutation.mutate(id);
   };
 
   // Helper to validate email
@@ -226,12 +88,6 @@ const AdminInvites = () => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
   };
-
-  // Fetch data on component mount
-  useEffect(() => {
-    checkSuperAdminStatus();
-    fetchInvites();
-  }, [checkSuperAdminStatus, fetchInvites]);
 
   return (
     <Card>
@@ -265,15 +121,15 @@ const AdminInvites = () => {
                   type="email"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
-                  disabled={creating || !isSuperAdmin}
+                  disabled={createInviteMutation.isPending || !isSuperAdmin}
                 />
               </div>
               <Button 
                 onClick={createInvite} 
-                disabled={creating || !isSuperAdmin || checkingPermission}
+                disabled={createInviteMutation.isPending || !isSuperAdmin || checkingPermission}
                 title={!isSuperAdmin ? "Only super admins can create invitations" : undefined}
               >
-                {creating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                {createInviteMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
                 Create Invitation
               </Button>
             </div>
@@ -331,10 +187,10 @@ const AdminInvites = () => {
                               variant="outline"
                               size="icon"
                               onClick={() => sendInvite(invite)}
-                              disabled={!!sending || !!invite.used}
+                              disabled={sendInviteMutation.isPending || !!invite.used}
                               title="Send invitation email"
                             >
-                              {sending === invite.id ? (
+                              {sendInviteMutation.isPending && sendInviteMutation.variables?.id === invite.id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                 <Send className="h-4 w-4" />
@@ -344,10 +200,10 @@ const AdminInvites = () => {
                               variant="outline"
                               size="icon"
                               onClick={() => deleteInvite(invite.id)}
-                              disabled={!!deleting || !isSuperAdmin}
+                              disabled={deleteInviteMutation.isPending || !isSuperAdmin}
                               title={!isSuperAdmin ? "Only super admins can delete" : "Delete invite"}
                             >
-                              {deleting === invite.id ? (
+                              {deleteInviteMutation.isPending && deleteInviteMutation.variables === invite.id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                 <Trash className="h-4 w-4" />

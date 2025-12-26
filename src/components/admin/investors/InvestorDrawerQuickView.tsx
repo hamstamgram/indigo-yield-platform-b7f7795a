@@ -1,9 +1,11 @@
 /**
  * InvestorDrawerQuickView - Quick view content for drawer
  * Shows: Header, KPI chips, Quick actions, Positions summary, Recent activity
+ * 
+ * Refactored to use useInvestorQuickView and useInvestorRecentActivity data hooks
  */
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,26 +23,9 @@ import {
 } from "lucide-react";
 import { InvestorKpiChips } from "./InvestorKpiChips";
 import { AddTransactionDialog } from "../AddTransactionDialog";
-import { supabase } from "@/integrations/supabase/client";
+import { useInvestorQuickView, useInvestorRecentActivity } from "@/hooks/data";
 import { formatTokenAmount } from "@/utils/statementCalculations";
 import { format } from "date-fns";
-
-interface Position {
-  fund_id: string;
-  fund_name: string;
-  fund_code: string;
-  shares: number;
-  current_value: number;
-}
-
-interface RecentActivity {
-  id: string;
-  type: "transaction" | "withdrawal";
-  amount: number;
-  date: string;
-  description: string;
-  status?: string;
-}
 
 interface InvestorDrawerQuickViewProps {
   investorId: string;
@@ -59,139 +44,22 @@ export function InvestorDrawerQuickView({
 }: InvestorDrawerQuickViewProps) {
   const navigate = useNavigate();
   const [showAddTransaction, setShowAddTransaction] = useState(false);
-  const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
-  const [positions, setPositions] = useState<Position[]>([]);
-  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
-  const [kpis, setKpis] = useState({
-    totalAum: 0,
-    activeFundsCount: 0,
-    pendingWithdrawalsCount: 0,
-    lastReportPeriod: null as string | null,
-    hasIbLinked: false,
-    hasFeeSchedule: false,
-  });
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    loadQuickViewData();
-  }, [investorId]);
+  // Use data hooks for fetching
+  const { data: quickViewData, isLoading: isLoadingQuickView, refetch: refetchQuickView } = useInvestorQuickView(investorId);
+  const { data: recentActivity = [], isLoading: isLoadingActivity } = useInvestorRecentActivity(investorId, 5);
 
-  const loadQuickViewData = async () => {
-    setIsLoading(true);
-    try {
-      // Load positions from v_live_investor_balances view
-      const { data: positionsData } = await supabase
-        .from("v_live_investor_balances")
-        .select("fund_id, fund_name, fund_code, shares, current_value")
-        .eq("investor_id", investorId)
-        .gt("current_value", 0)
-        .order("current_value", { ascending: false })
-        .limit(5);
-
-      // Load recent transactions - use transaction_date which exists in transactions_v2
-      const { data: txData } = await supabase
-        .from("transactions_v2")
-        .select("id, amount, transaction_date, type, fund_id")
-        .eq("investor_id", investorId)
-        .order("transaction_date", { ascending: false })
-        .limit(3);
-
-      // Load recent withdrawals - use requested_amount
-      const { data: wdData } = await supabase
-        .from("withdrawal_requests")
-        .select("id, requested_amount, created_at, status")
-        .eq("investor_id", investorId)
-        .order("created_at", { ascending: false })
-        .limit(3);
-
-      // Load pending withdrawals count
-      const { count: pendingCount } = await supabase
-        .from("withdrawal_requests")
-        .select("id", { count: "exact", head: true })
-        .eq("investor_id", investorId)
-        .eq("status", "pending");
-
-      // Load IB status
-      const { data: ibData } = await supabase
-        .from("profiles")
-        .select("ib_parent_id")
-        .eq("id", investorId)
-        .single();
-
-      // Load fee schedule status
-      const { count: feeCount } = await supabase
-        .from("investor_fee_schedule")
-        .select("id", { count: "exact", head: true })
-        .eq("investor_id", investorId);
-
-      // Load last report period
-      let lastReportPeriod: string | null = null;
-      const { data: reportData } = await supabase
-        .from("generated_statements")
-        .select("created_at")
-        .eq("investor_id", investorId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (reportData?.created_at) {
-        lastReportPeriod = format(new Date(reportData.created_at), "MMM yyyy");
-      }
-
-      // Calculate KPIs
-      const mappedPositions: Position[] = (positionsData || []).map((p: any) => ({
-        fund_id: p.fund_id,
-        fund_name: p.fund_name || "Unknown",
-        fund_code: p.fund_code || "N/A",
-        shares: p.shares || 0,
-        current_value: p.current_value || 0,
-      }));
-
-      const totalAum = mappedPositions.reduce((sum, p) => sum + p.current_value, 0);
-      const activeFundsCount = mappedPositions.length;
-
-      setPositions(mappedPositions);
-      if (mappedPositions.length > 0) {
-        setSelectedFundId(mappedPositions[0].fund_id);
-      }
-      
-      setKpis({
-        totalAum,
-        activeFundsCount,
-        pendingWithdrawalsCount: pendingCount || 0,
-        lastReportPeriod,
-        hasIbLinked: !!ibData?.ib_parent_id,
-        hasFeeSchedule: (feeCount || 0) > 0,
-      });
-
-      // Combine recent activity
-      const activities: RecentActivity[] = [
-        ...(txData || []).map((tx: any) => ({
-          id: tx.id,
-          type: "transaction" as const,
-          amount: tx.amount,
-          date: tx.transaction_date,
-          description: tx.type,
-        })),
-        ...(wdData || []).map((wd: any) => ({
-          id: wd.id,
-          type: "withdrawal" as const,
-          amount: wd.requested_amount,
-          date: wd.created_at,
-          description: "Withdrawal Request",
-          status: wd.status,
-        })),
-      ]
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, 5);
-
-      setRecentActivity(activities);
-    } catch (error) {
-      console.error("Error loading quick view data:", error);
-    } finally {
-      setIsLoading(false);
-    }
+  const isLoading = isLoadingQuickView || isLoadingActivity;
+  const positions = quickViewData?.positions || [];
+  const kpis = {
+    totalAum: quickViewData?.totalAum || 0,
+    activeFundsCount: quickViewData?.activeFundsCount || 0,
+    pendingWithdrawalsCount: quickViewData?.pendingWithdrawalsCount || 0,
+    lastReportPeriod: quickViewData?.lastReportPeriod || null,
+    hasIbLinked: quickViewData?.hasIbLinked || false,
+    hasFeeSchedule: quickViewData?.hasFeeSchedule || false,
   };
+  const selectedFundId = positions[0]?.fund_id || null;
 
   const getStatusBadge = () => {
     const statusLower = status?.toLowerCase() || "unknown";
@@ -379,7 +247,7 @@ export function InvestorDrawerQuickView({
           fundId={selectedFundId}
           onSuccess={() => {
             setShowAddTransaction(false);
-            loadQuickViewData();
+            refetchQuickView();
           }}
         />
       )}

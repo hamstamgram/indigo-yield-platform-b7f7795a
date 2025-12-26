@@ -2,9 +2,11 @@
  * Investor Tabs - Unified tab system for drawer and full profile
  * Ensures consistent UI across both contexts with 6 standard tabs:
  * Overview, Ledger, Positions, Withdrawals, Reports, Settings
+ * 
+ * Refactored to use useInvestorDefaultFund data hook
  */
 
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,7 +26,7 @@ import { InvestorWithdrawalsTab } from "./InvestorWithdrawalsTab";
 import { InvestorReportsTab } from "./InvestorReportsTab";
 import { InvestorSettingsTab } from "./InvestorSettingsTab";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
-import { supabase } from "@/integrations/supabase/client";
+import { useInvestorDefaultFund } from "@/hooks/data";
 
 export interface InvestorTabsProps {
   investorId: string;
@@ -59,25 +61,13 @@ export function InvestorTabs({
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [addTxDialogOpen, setAddTxDialogOpen] = useState(false);
-  const [defaultFundId, setDefaultFundId] = useState<string>("");
   
   // Use URL param for tab if available, otherwise default
   const tabParam = searchParams.get("tab");
   const activeTab = TAB_KEYS.includes(tabParam as TabKey) ? tabParam as TabKey : defaultTab as TabKey;
 
-  // Fetch default fund for investor
-  useEffect(() => {
-    const fetchDefaultFund = async () => {
-      const { data } = await supabase
-        .from("investor_positions")
-        .select("fund_id")
-        .eq("investor_id", investorId)
-        .limit(1)
-        .maybeSingle();
-      if (data?.fund_id) setDefaultFundId(data.fund_id);
-    };
-    fetchDefaultFund();
-  }, [investorId]);
+  // Fetch default fund for investor using data hook
+  const { data: defaultFundId = "" } = useInvestorDefaultFund(investorId);
 
   const handleTabChange = useCallback((value: string) => {
     setSearchParams((prev) => {
