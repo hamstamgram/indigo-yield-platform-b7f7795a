@@ -5858,6 +5858,62 @@ export type Database = {
           },
         ]
       }
+      withdrawal_audit_log: {
+        Row: {
+          action: Database["public"]["Enums"]["withdrawal_action"] | null
+          actor_id: string | null
+          created_at: string | null
+          details: Json | null
+          id: string | null
+          request_id: string | null
+        }
+        Insert: {
+          action?: Database["public"]["Enums"]["withdrawal_action"] | null
+          actor_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string | null
+          request_id?: string | null
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["withdrawal_action"] | null
+          actor_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string | null
+          request_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_audit_logs_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_audit_logs_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       withdrawal_queue: {
         Row: {
           amount: number | null
