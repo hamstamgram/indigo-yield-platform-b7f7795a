@@ -11,11 +11,23 @@
  * import { adminServiceV2, depositService } from '@/services';
  */
 
-// Admin services
-export * from "./admin";
-
-// Investor services
+// Investor services (primary for investor data)
 export * from "./investor";
+
+// Admin services (excluding expert investor stuff which is now in investor)
+export { adminServiceV2 } from "./admin";
+export type { InvestorSummaryV2, DashboardStatsV2 } from "./admin";
+export { adminTransactionService } from "./admin";
+export type { CreateTransactionParams } from "./admin";
+export * from "./admin/fundService";
+export * from "./admin/yieldDistributionService";
+export * from "./admin/recordedYieldsService";
+export * from "./admin/bulkOperationsService";
+export { 
+  deleteInvestorUser, 
+  forceDeleteInvestorUser,
+  createOrFindInvestorUser 
+} from "./admin/userService";
 
 // Operations services (selective to avoid conflicts)
 export { operationsService } from "./operations";

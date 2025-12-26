@@ -5,7 +5,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchInvestorPositions, fetchInvestorsForSelector, InvestorPositionRow } from "@/services/investor/investorPositionService";
+import { fetchInvestorPositions, fetchInvestorsForSelector, InvestorPositionRow } from "@/services/investor";
 import { toast } from "sonner";
 
 export interface InvestorListItem {

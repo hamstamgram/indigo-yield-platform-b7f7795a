@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { DollarSign, TrendingUp, Calendar, History, FileText, Percent } from "lucide-react";
-import { ExpertInvestor } from "@/services/admin/expertInvestorService";
+import { ExpertInvestor } from "@/services/investor";
 import { formatAssetValue } from "@/utils/kpiCalculations";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
