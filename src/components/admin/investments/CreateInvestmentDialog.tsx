@@ -30,7 +30,7 @@ import {
 import { investmentFormSchema, type InvestmentFormValues } from "@/lib/validation/investment";
 import { type InvestmentFormData } from "@/types/investment";
 import { investmentService } from "@/services/investor/investmentService";
-import { supabase } from "@/integrations/supabase/client";
+import { profileService } from "@/services/shared";
 import { toast } from "sonner";
 
 interface CreateInvestmentDialogProps {
@@ -64,20 +64,18 @@ export function CreateInvestmentDialog({
 
   const loadInvestorsAndFunds = async () => {
     try {
-      const [profilesRes, fundsRes] = await Promise.all([
-        supabase.from("profiles").select("id, first_name, last_name, email").eq("status", "active").eq("is_admin", false),
-        supabase.from("funds").select("id, name, code").eq("status", "active"),
+      const [investorData, fundsData] = await Promise.all([
+        profileService.getActiveInvestors(),
+        profileService.getActiveFunds(),
       ]);
 
-      if (profilesRes.data) {
-        // Map profiles data to investor format expected by the component
-        setInvestors(profilesRes.data.map(p => ({
-          id: p.id,
-          name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
-          email: p.email
-        })));
-      }
-      if (fundsRes.data) setFunds(fundsRes.data);
+      setInvestors(investorData.map(p => ({
+        id: p.id,
+        name: p.name,
+        email: p.email
+      })));
+      
+      setFunds(fundsData);
     } catch (error) {
       console.error("Error loading data:", error);
       toast.error("Failed to load investors and funds");

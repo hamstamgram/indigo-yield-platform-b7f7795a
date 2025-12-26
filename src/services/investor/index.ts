@@ -42,3 +42,7 @@ export { withdrawalService } from "./withdrawalService";
 
 // Investment service
 export { investmentService } from "./investmentService";
+
+// Transactions V2 service
+export { transactionsV2Service } from "./transactionsV2Service";
+export type { TransactionV2, TransactionFilters } from "./transactionsV2Service";

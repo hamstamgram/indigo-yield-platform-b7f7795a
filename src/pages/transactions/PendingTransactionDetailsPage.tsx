@@ -1,10 +1,10 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { depositService, withdrawalService } from "@/services/investor";
 
 export default function PendingTransactionDetailsPage() {
   const { type, id } = useParams<{ type: string; id: string }>();
@@ -15,29 +15,20 @@ export default function PendingTransactionDetailsPage() {
       if (!id || !type) throw new Error("Missing parameters");
 
       if (type === "deposit") {
-        const { data, error } = await supabase.from("deposits").select("*").eq("id", id).single();
-        if (error) throw error;
-        const d = data as any;
-        return { ...d, asset: d.asset_symbol, type: "DEPOSIT", created_at: d.created_at };
+        const deposit = await depositService.getDepositById(id);
+        return { 
+          ...deposit, 
+          asset: deposit.asset_symbol, 
+          type: "DEPOSIT", 
+        };
       } else if (type === "withdrawal") {
-        const { data, error } = await supabase
-          .from("withdrawal_requests")
-          .select(
-            `
-            *,
-            funds ( asset )
-          `
-          )
-          .eq("id", id)
-          .single();
-        if (error) throw error;
-        const d = data as any;
+        const withdrawal = await withdrawalService.getWithdrawalById(id);
+        if (!withdrawal) throw new Error("Withdrawal not found");
         return {
-          ...d,
-          asset: d.funds?.asset || "Unknown",
-          amount: d.requested_amount,
+          ...withdrawal,
+          asset: withdrawal.asset || "Unknown",
+          amount: withdrawal.requested_amount,
           type: "WITHDRAWAL",
-          created_at: d.created_at,
         };
       }
       throw new Error("Invalid transaction type");
@@ -103,18 +94,18 @@ export default function PendingTransactionDetailsPage() {
                 {item.amount} {item.asset}
               </p>
             </div>
-            {item.transaction_hash && (
+            {(item as any).transaction_hash && (
               <div className="col-span-2">
                 <p className="text-sm text-muted-foreground mb-1">Transaction Hash</p>
-                <p className="font-mono text-xs break-all">{item.transaction_hash}</p>
+                <p className="font-mono text-xs break-all">{(item as any).transaction_hash}</p>
               </div>
             )}
-            {item.rejection_reason && (
+            {(item as any).rejection_reason && (
               <div className="col-span-2">
                 <p className="text-sm text-muted-foreground mb-1 text-destructive">
                   Rejection Reason
                 </p>
-                <p className="text-destructive">{item.rejection_reason}</p>
+                <p className="text-destructive">{(item as any).rejection_reason}</p>
               </div>
             )}
           </div>

@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Bell, BellOff, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks";
+import { notificationService } from "@/services/shared";
 
 interface SimpleNotification {
   id: string;
@@ -27,18 +27,8 @@ export default function NotificationsPage() {
 
   const fetchNotifications = async () => {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return;
-
-      const { data } = await supabase
-        .from("notifications")
-        .select("id, title, body, type, priority, read_at, created_at")
-        .eq("user_id", userData.user.id)
-        .order("created_at", { ascending: false });
-
-      if (data) {
-        setNotifications(data);
-      }
+      const data = await notificationService.getMyNotifications();
+      setNotifications(data);
     } catch (error) {
       console.error("Error fetching notifications:", error);
     } finally {
@@ -48,10 +38,7 @@ export default function NotificationsPage() {
 
   const markAsRead = async (id: string) => {
     try {
-      await supabase
-        .from("notifications")
-        .update({ read_at: new Date().toISOString() })
-        .eq("id", id);
+      await notificationService.markAsRead(id);
 
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, read_at: new Date().toISOString() } : n))
@@ -68,7 +55,7 @@ export default function NotificationsPage() {
 
   const deleteNotification = async (id: string) => {
     try {
-      await supabase.from("notifications").delete().eq("id", id);
+      await notificationService.deleteNotification(id);
 
       setNotifications((prev) => prev.filter((n) => n.id !== id));
 

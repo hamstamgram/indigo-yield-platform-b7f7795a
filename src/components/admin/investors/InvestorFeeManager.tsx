@@ -38,6 +38,7 @@ import { Plus, Trash2, Percent, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { profileService } from "@/services/shared";
 
 interface FeeScheduleEntry {
   id: string;
@@ -89,14 +90,8 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
 
   const fetchFunds = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from("funds")
-        .select("id, name")
-        .eq("status", "active")
-        .order("name");
-
-      if (error) throw error;
-      setFunds(data || []);
+      const fundsData = await profileService.getActiveFunds();
+      setFunds(fundsData);
     } catch (error) {
       console.error("Error loading funds:", error);
     }
@@ -143,17 +138,14 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
       if (error) {
         // Handle specific constraint violations
         if (error.code === '23P01') {
-          // Exclusion constraint violation - overlapping date range
-          toast.error("Fee schedule overlaps with an existing entry. Choose a different effective date or the previous schedule will be auto-closed.");
+          toast.error("Fee schedule overlaps with an existing entry. Choose a different effective date.");
           return;
         } else if (error.code === '23505') {
-          // Unique constraint violation
           toast.error("A fee schedule already exists for this fund and date.");
           return;
         }
         throw error;
       }
-
       toast.success(`Fee schedule saved: ${feeValue}% effective ${newFeeEffectiveDate}`);
       setNewFeePercent("");
       setNewFeeFundId("all");
@@ -161,7 +153,7 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
       
       await fetchFeeSchedule();
       onUpdate?.();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding fee:", error);
       toast.error("Failed to add fee schedule entry");
     } finally {
