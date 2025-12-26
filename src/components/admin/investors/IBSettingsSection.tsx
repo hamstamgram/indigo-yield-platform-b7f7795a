@@ -28,7 +28,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Users, Percent, Save, AlertCircle, UserPlus, Search, Crown, Trash2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
 import {
   useIBSettings,

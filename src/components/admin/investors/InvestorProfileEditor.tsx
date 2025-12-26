@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 import { invokeFunction } from "@/lib/supabase/functions";
 import { User, Mail, Phone, Calendar, Activity, Pencil, X, Save, Loader2 } from "lucide-react";
 

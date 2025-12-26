@@ -37,7 +37,7 @@ import { Loader2, Shield, ShieldCheck, UserPlus, Search } from "lucide-react";
 import { SuperAdminGuard } from "@/components/admin/SuperAdminGuard";
 import { RoleChangeConfirmDialog } from "@/components/admin/RoleChangeConfirmDialog";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 import { format } from "date-fns";
 
 interface AdminUser {

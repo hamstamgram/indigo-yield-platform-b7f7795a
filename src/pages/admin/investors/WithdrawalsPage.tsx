@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { ArrowDownCircle, Clock, CheckCircle, XCircle, AlertCircle, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 import { formatAssetAmount } from "@/utils/assets";
 
 interface WithdrawalRequest {

@@ -15,7 +15,7 @@ import PageHeader from "@/components/layout/PageHeader";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { getAssetConfig, getAssetName } from "@/utils/assets";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 
 const StatementsPage = () => {
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());

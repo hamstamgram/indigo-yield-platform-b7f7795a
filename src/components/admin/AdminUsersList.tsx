@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 import { useAuth } from "@/lib/auth/context";
 import { Loader2, UserCheck, UserMinus } from "lucide-react";
 import {

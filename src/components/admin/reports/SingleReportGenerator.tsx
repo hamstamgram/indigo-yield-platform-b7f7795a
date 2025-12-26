@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 import { Loader2, FileText, Download, Eye, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ReportsApi } from "@/services/api/reportsApi";

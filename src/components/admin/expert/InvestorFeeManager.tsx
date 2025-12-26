@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { DollarSign, TrendingUp, Calendar, History, FileText, Percent } from "lucide-react";
 import { ExpertInvestor } from "@/services/investor";
 import { formatAssetValue } from "@/utils/kpiCalculations";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 import { supabase } from "@/integrations/supabase/client";
 
 type FeeScheduleRow = {

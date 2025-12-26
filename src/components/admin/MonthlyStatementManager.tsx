@@ -65,7 +65,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Loader2, Check, Eye, Send, FileText, Calendar, Users, Mail, RefreshCw } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks";
 import { statementsApi, type InvestorStatementSummary } from "@/services/api/statementsApi";
 import { ReportPreviewModal } from "./reports/ReportPreviewModal";
 import { SendConfirmationModal } from "./reports/SendConfirmationModal";
