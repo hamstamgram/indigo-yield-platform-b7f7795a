@@ -45,7 +45,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks";
-import { supabase } from "@/integrations/supabase/client";
+import { adminInviteService, AdminInvite } from "@/services/admin/adminInviteService";
 import { SuperAdminGuard } from "@/components/admin/SuperAdminGuard";
 import {
   Users,
@@ -62,17 +62,6 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format, isPast } from "date-fns";
-
-interface AdminInvite {
-  id: string;
-  email: string;
-  invite_code: string;
-  intended_role: string | null;
-  created_at: string;
-  expires_at: string;
-  used: boolean | null;
-  created_by: string | null;
-}
 
 type InviteStatus = "pending" | "used" | "expired";
 
@@ -91,40 +80,16 @@ function AdminInvitesContent() {
   const [newRole, setNewRole] = useState<"admin" | "super_admin">("admin");
   const [statusFilter, setStatusFilter] = useState<InviteStatus | "all">("all");
 
-  // Fetch invites
+  // Fetch invites using service
   const { data: invites, isLoading } = useQuery({
     queryKey: ["admin-invites"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("admin_invites")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as AdminInvite[];
-    },
+    queryFn: () => adminInviteService.getAll(),
   });
 
-  // Create invite mutation
+  // Create invite mutation using service
   const createMutation = useMutation({
-    mutationFn: async ({ email, role }: { email: string; role: string }) => {
-      const inviteCode = crypto.randomUUID();
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7);
-
-      const { data: { user } } = await supabase.auth.getUser();
-
-      const { error } = await supabase.from("admin_invites").insert({
-        email: email.toLowerCase().trim(),
-        invite_code: inviteCode,
-        expires_at: expiresAt.toISOString(),
-        created_by: user?.id,
-        intended_role: role,
-      });
-
-      if (error) throw error;
-      return { email, inviteCode };
-    },
+    mutationFn: ({ email, role }: { email: string; role: string }) =>
+      adminInviteService.create(email, role),
     onSuccess: ({ email, inviteCode }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-invites"] });
       const inviteLink = `${window.location.origin}/admin/invite?code=${inviteCode}`;
@@ -154,16 +119,9 @@ function AdminInvitesContent() {
     },
   });
 
-  // Revoke invite mutation
+  // Revoke invite mutation using service
   const revokeMutation = useMutation({
-    mutationFn: async (inviteId: string) => {
-      const { error } = await supabase
-        .from("admin_invites")
-        .delete()
-        .eq("id", inviteId);
-
-      if (error) throw error;
-    },
+    mutationFn: (inviteId: string) => adminInviteService.revoke(inviteId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-invites"] });
       toast({

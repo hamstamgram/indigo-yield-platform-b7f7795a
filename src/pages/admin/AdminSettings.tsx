@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { systemConfigService, PlatformSettings, defaultPlatformSettings } from "@/services/shared/systemConfigService";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,66 +32,24 @@ import {
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { Link } from "react-router-dom";
 
-interface PlatformSettings {
-  maintenance_mode: boolean;
-  allow_new_registrations: boolean;
-  require_email_verification: boolean;
-  enable_2fa: boolean;
-  min_deposit: number;
-  min_withdrawal: number;
-  notification_email: string;
-  support_email: string;
-  platform_name: string;
-}
-
-const defaultSettings: PlatformSettings = {
-  maintenance_mode: false,
-  allow_new_registrations: true,
-  require_email_verification: true,
-  enable_2fa: false,
-  min_deposit: 1000,
-  min_withdrawal: 100,
-  notification_email: "notifications@indigo.fund",
-  support_email: "support@indigo.fund",
-  platform_name: "Indigo Yield Platform",
-};
-
 function AdminSettingsContent() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [settings, setSettings] = useState<PlatformSettings>(defaultSettings);
+  const [settings, setSettings] = useState<PlatformSettings>(defaultPlatformSettings);
 
-  // Fetch platform settings from system_config table instead
+  // Fetch platform settings using service
   const { isLoading } = useQuery({
     queryKey: ["platform-settings"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("system_config")
-        .select("key, value")
-        .eq("key", "platform_settings")
-        .maybeSingle();
-
-      if (error && error.code !== "PGRST116") {
-        console.error("Error fetching settings:", error);
-      }
-
-      if (data?.value) {
-        setSettings({ ...defaultSettings, ...(data.value as any) });
-      }
-      return data?.value || defaultSettings;
+      const platformSettings = await systemConfigService.getPlatformSettings();
+      setSettings(platformSettings);
+      return platformSettings;
     },
   });
 
   const saveMutation = useMutation({
-    mutationFn: async (newSettings: PlatformSettings) => {
-      const { error } = await supabase.from("system_config").upsert({
-        key: "platform_settings",
-        value: newSettings as any,
-        updated_at: new Date().toISOString(),
-      });
-      if (error) throw error;
-      return newSettings;
-    },
+    mutationFn: (newSettings: PlatformSettings) => 
+      systemConfigService.savePlatformSettings(newSettings),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["platform-settings"] });
       toast({

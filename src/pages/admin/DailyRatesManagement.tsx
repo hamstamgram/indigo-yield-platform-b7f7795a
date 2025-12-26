@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { dailyRatesService, DailyRate } from "@/services/shared/dailyRatesService";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { format } from "date-fns";
 import { CryptoIcon } from "@/components/CryptoIcons";
 
-interface DailyRate {
+interface EditingRate {
   id?: string;
   rate_date: string;
   btc_rate: string;
@@ -39,7 +39,7 @@ export default function DailyRatesManagement() {
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0] // YYYY-MM-DD format
   );
-  const [editingRates, setEditingRates] = useState<DailyRate>({
+  const [editingRates, setEditingRates] = useState<EditingRate>({
     rate_date: selectedDate,
     btc_rate: "0",
     eth_rate: "0",
@@ -62,34 +62,16 @@ export default function DailyRatesManagement() {
     { code: "XRP", name: "XRP Yield Fund", color: "gray" },
   ];
 
-  // Fetch existing rate for selected date
+  // Fetch existing rate for selected date using service
   const { data: existingRate, isLoading } = useQuery({
     queryKey: ["daily-rate", selectedDate],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("daily_rates" as any)
-        .select("*")
-        .eq("rate_date", selectedDate)
-        .maybeSingle();
-
-      if (error && error.code !== "PGRST116") throw error;
-      return data as any;
-    },
+    queryFn: () => dailyRatesService.getByDate(selectedDate),
   });
 
-  // Fetch last 7 days of rates for history
+  // Fetch last 7 days of rates for history using service
   const { data: recentRates } = useQuery({
     queryKey: ["recent-daily-rates"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("daily_rates" as any)
-        .select("*")
-        .order("rate_date", { ascending: false })
-        .limit(7);
-
-      if (error) throw error;
-      return (data || []) as any[];
-    },
+    queryFn: () => dailyRatesService.getRecent(7),
   });
 
   // Initialize editing rates when existing rate changes
@@ -130,20 +112,15 @@ export default function DailyRatesManagement() {
   }, [selectedDate]);
 
   // Handle field changes
-  const handleRateChange = (field: keyof DailyRate, value: string) => {
+  const handleRateChange = (field: keyof EditingRate, value: string) => {
     setEditingRates((prev) => ({ ...prev, [field]: value }));
     setHasUnsavedChanges(true);
   };
 
-  // Save mutation
+  // Save mutation using service
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user");
-
-      const rateData = {
+      const rateData: Omit<DailyRate, "id"> = {
         rate_date: editingRates.rate_date,
         btc_rate: parseFloat(editingRates.btc_rate),
         eth_rate: parseFloat(editingRates.eth_rate),
@@ -153,15 +130,8 @@ export default function DailyRatesManagement() {
         xaut_rate: parseFloat(editingRates.xaut_rate),
         xrp_rate: parseFloat(editingRates.xrp_rate),
         notes: editingRates.notes || null,
-        created_by: user.id,
-        updated_at: new Date().toISOString(),
       };
-
-      const { error } = await supabase.from("daily_rates" as any).upsert(rateData, {
-        onConflict: "rate_date",
-      });
-
-      if (error) throw error;
+      await dailyRatesService.upsert(rateData);
     },
     onSuccess: () => {
       toast.success("Daily rates saved successfully");
@@ -175,51 +145,24 @@ export default function DailyRatesManagement() {
     },
   });
 
-  // Send notification mutation
+  // Send notification mutation using service
   const sendNotificationMutation = useMutation({
     mutationFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user");
-
-      // 1. Get all active investors who have daily rates enabled (or all active if settings missing)
-      // Since we can't easily join in client query without complex types, we'll fetch active profiles
-      // and filter.
-      const { data: investors, error: investorsError } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("status", "active")
-        .eq("is_admin", false);
-
-      if (investorsError) throw investorsError;
-      if (!investors || investors.length === 0) return { count: 0 };
-
-      // 2. Create notification records
-      const notifications = investors.map((inv) => ({
-        user_id: inv.id,
-        type: "system", // Use 'system' as 'daily_rate' might not be in enum or caused issues
-        title: "Daily Rate Update",
-        body: `New daily rates have been published for ${format(new Date(editingRates.rate_date), "MMM dd, yyyy")}`,
-        data_jsonb: {
-          rates: editingRates,
-          date: editingRates.rate_date,
-        },
-        created_at: new Date().toISOString(),
-      }));
-
-      // 3. Bulk insert
-      const { error: insertError } = await supabase
-        .from("notifications" as any)
-        .insert(notifications);
-
-      if (insertError) throw insertError;
-
-      return { count: notifications.length };
+      const rateData: DailyRate = {
+        rate_date: editingRates.rate_date,
+        btc_rate: parseFloat(editingRates.btc_rate),
+        eth_rate: parseFloat(editingRates.eth_rate),
+        sol_rate: parseFloat(editingRates.sol_rate),
+        usdt_rate: parseFloat(editingRates.usdt_rate),
+        eurc_rate: parseFloat(editingRates.eurc_rate),
+        xaut_rate: parseFloat(editingRates.xaut_rate),
+        xrp_rate: parseFloat(editingRates.xrp_rate),
+        notes: editingRates.notes || null,
+      };
+      return dailyRatesService.sendNotificationToInvestors(rateData);
     },
-    onSuccess: (data: any) => {
-      const count = data.count || 0;
-      toast.success(`Daily rates sent to ${count} investors via notification`);
+    onSuccess: (data) => {
+      toast.success(`Daily rates sent to ${data.count} investors via notification`);
     },
     onError: (error: any) => {
       console.error("Error sending notification:", error);
