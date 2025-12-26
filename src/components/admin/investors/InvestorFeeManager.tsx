@@ -136,7 +136,14 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
       onUpdate?.();
     } catch (error: any) {
       console.error("Error adding fee:", error);
-      toast.error("Failed to add fee schedule entry");
+      // Handle specific constraint violations
+      if (error?.code === '23P01') {
+        toast.error("Fee schedule overlaps with an existing entry. Choose a different effective date.");
+      } else if (error?.code === '23505') {
+        toast.error("A fee schedule already exists for this fund and date.");
+      } else {
+        toast.error("Failed to add fee schedule entry");
+      }
     } finally {
       setIsAdding(false);
     }
