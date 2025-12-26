@@ -22,6 +22,7 @@ import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { ArrowLeft, User, Wallet, History } from "lucide-react";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export default function IBReferralDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -30,7 +31,7 @@ export default function IBReferralDetailPage() {
 
   // Verify this is actually a referral of this IB and get profile
   const { data: referral, isLoading: profileLoading } = useQuery({
-    queryKey: ["ib-referral-detail", id, user?.id],
+    queryKey: QUERY_KEYS.ibReferralDetail(id || "", user?.id || ""),
     queryFn: async () => {
       if (!user?.id || !id) return null;
 
@@ -53,7 +54,7 @@ export default function IBReferralDetailPage() {
 
   // Get positions summary
   const { data: positions, isLoading: positionsLoading } = useQuery({
-    queryKey: ["ib-referral-positions", id],
+    queryKey: QUERY_KEYS.ibReferralPositions(id || ""),
     queryFn: async () => {
       if (!id) return [];
 
@@ -80,7 +81,7 @@ export default function IBReferralDetailPage() {
 
   // Get commission history for this referral
   const { data: commissions, isLoading: commissionsLoading } = useQuery({
-    queryKey: ["ib-referral-commissions", id, user?.id],
+    queryKey: QUERY_KEYS.ibReferralCommissions(id || "", user?.id || ""),
     queryFn: async () => {
       if (!user?.id || !id) return [];
 

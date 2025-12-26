@@ -30,6 +30,7 @@ import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
 import { formatAssetAmount } from "@/utils/assets";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { Coins, Download, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 interface Commission {
   id: string;
@@ -73,7 +74,7 @@ export default function IBCommissionsPage() {
   };
 
   const { data, isLoading } = useQuery({
-    queryKey: ["ib-commissions", user?.id, page, dateRange],
+    queryKey: QUERY_KEYS.ibCommissions(user?.id, page, dateRange),
     queryFn: async () => {
       if (!user?.id) return { commissions: [], total: 0, assets: [] };
 

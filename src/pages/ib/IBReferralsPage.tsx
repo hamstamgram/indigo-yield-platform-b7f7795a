@@ -25,6 +25,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { Search, Users, ChevronRight, ChevronLeft, UserPlus } from "lucide-react";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 interface Referral {
   id: string;
@@ -46,7 +47,7 @@ export default function IBReferralsPage() {
   const [page, setPage] = useState(0);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["ib-referrals", user?.id, page],
+    queryKey: QUERY_KEYS.ibReferrals(user?.id, page),
     queryFn: async () => {
       if (!user?.id) return { referrals: [], total: 0 };
 

@@ -74,6 +74,11 @@ export const QUERY_KEYS = {
   transactionAssets: (userId?: string) => userId 
     ? ["transaction-assets", userId] as const 
     : ["transaction-assets"] as const,
+  transactionsV2: (searchTerm?: string) => searchTerm 
+    ? ["transactions-v2", searchTerm] as const 
+    : ["transactions-v2"] as const,
+  pendingTransactionDetails: (type: string, id: string) => 
+    ["pending-transaction-details", type, id] as const,
 
   // ============ Yield ============
   yieldDistributions: (fundId?: string) => fundId 
@@ -179,6 +184,8 @@ export const QUERY_KEYS = {
   deliveries: (periodId?: string, filters?: Record<string, unknown>) => 
     periodId ? ["deliveries", periodId, filters] as const : ["deliveries"] as const,
   deliveryStats: (periodId: string) => ["delivery-stats", periodId] as const,
+  deliveryExclusionBreakdown: (periodId: string) => ["delivery-exclusion-breakdown", periodId] as const,
+  deliveryDiagnostics: (periodId: string) => ["delivery-diagnostics", periodId] as const,
 
   // ============ Month Closure ============
   monthClosure: (fundId: string, month: string) => ["month-closure", fundId, month] as const,
@@ -192,6 +199,7 @@ export const QUERY_KEYS = {
   assetPrices: (assetId: string) => ["asset-prices", assetId] as const,
   latestPrice: (assetId: string) => ["latest-price", assetId] as const,
   userAssets: ["user-assets"] as const,
+  assetMeta: (assetCode: string) => ["asset-meta", assetCode] as const,
 
   // ============ Daily Rates ============
   dailyRate: (date?: string) => date 
@@ -219,6 +227,15 @@ export const QUERY_KEYS = {
   integrityDashboard: ["integrity-dashboard"] as const,
   dataIntegrity: ["data-integrity"] as const,
   auditLog: ["audit-log"] as const,
+  pendingActions: ["pending-actions"] as const,
+
+  // ============ Portfolio ============
+  portfolioPositions: ["portfolio-positions"] as const,
+  finalizedPortfolio: ["finalized-portfolio"] as const,
+  availableWithdrawalPositions: ["available-withdrawal-positions"] as const,
+
+  // ============ Reports Generation ============
+  activeInvestors: ["active-investors"] as const,
 
   // ============ Email ============
   emailStats: ["email-stats"] as const,
