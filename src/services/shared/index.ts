@@ -28,3 +28,27 @@ export type { Transaction, TransactionSummary } from "./transactionService";
 
 // Email templates
 export * from "./emailTemplates";
+
+// Daily rates
+export { dailyRatesService } from "./dailyRatesService";
+export type { DailyRate } from "./dailyRatesService";
+
+// System config
+export { systemConfigService, defaultPlatformSettings } from "./systemConfigService";
+export type { PlatformSettings } from "./systemConfigService";
+
+// Yield rates
+export { yieldRatesService } from "./yieldRatesService";
+export type { Asset, YieldRate } from "./yieldRatesService";
+
+// Investor data export
+export { investorDataExportService } from "./investorDataExportService";
+export type { InvestorExportData } from "./investorDataExportService";
+
+// Fee schedule
+export { feeScheduleService } from "./feeScheduleService";
+export type { FeeScheduleRow, FeeHistoryRow } from "./feeScheduleService";
+
+// Admin tools
+export { adminToolsService } from "./adminToolsService";
+export type { ToolResult } from "./adminToolsService";

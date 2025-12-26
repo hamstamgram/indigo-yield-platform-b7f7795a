@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks";
-import { supabase } from "@/integrations/supabase/client";
+import { adminToolsService, type ToolResult } from "@/services/shared";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import {
   Wrench,
@@ -65,7 +65,7 @@ function AdminToolsContent() {
   const [confirmDialog, setConfirmDialog] = useState<ToolAction | null>(null);
   const [confirmText, setConfirmText] = useState("");
   const [running, setRunning] = useState(false);
-  const [results, setResults] = useState<Record<string, { success: boolean; message: string }>>({});
+  const [results, setResults] = useState<Record<string, ToolResult>>({});
 
   const runTool = async (toolId: string) => {
     setRunning(true);
@@ -73,67 +73,7 @@ function AdminToolsContent() {
     setConfirmText("");
 
     try {
-      // Get current user for audit
-      const { data: { user } } = await supabase.auth.getUser();
-
-      // Log the action to audit_log
-      await supabase.from("audit_log").insert({
-        actor_user: user?.id,
-        entity: "admin_tools",
-        entity_id: toolId,
-        action: "run_tool",
-        meta: { tool_id: toolId, timestamp: new Date().toISOString() },
-      });
-
-      // Simulate tool execution (in production, these would call actual RPCs)
-      let result = { success: true, message: "Operation completed successfully" };
-
-      switch (toolId) {
-        case "refresh_aum_cache":
-          // Call actual RPC if exists
-          try {
-            await supabase.rpc("refresh_fund_aum_cache" as any);
-            result = { success: true, message: "AUM cache refresh completed" };
-          } catch {
-            result = { success: true, message: "AUM cache refresh triggered (manual verification recommended)" };
-          }
-          break;
-
-        case "integrity_check":
-          // Run basic integrity checks
-          const checks: string[] = [];
-          
-          // Check for duplicate investor positions
-          const { data: dupPositions } = await supabase
-            .from("investor_fund_performance")
-            .select("investor_id, fund_name, period_id")
-            .limit(1000);
-          
-          if (dupPositions) {
-            const seen = new Set();
-            let dups = 0;
-            for (const p of dupPositions) {
-              const key = `${p.investor_id}-${p.fund_name}-${p.period_id}`;
-              if (seen.has(key)) dups++;
-              seen.add(key);
-            }
-            checks.push(`Duplicate positions: ${dups}`);
-          }
-
-          result = { 
-            success: true, 
-            message: `Integrity checks completed. ${checks.join(", ") || "No issues found"}` 
-          };
-          break;
-
-        case "refresh_performance":
-          result = { success: true, message: "Performance cache refresh triggered" };
-          break;
-
-        default:
-          result = { success: false, message: "Unknown tool" };
-      }
-
+      const result = await adminToolsService.runTool(toolId);
       setResults((prev) => ({ ...prev, [toolId]: result }));
       
       toast({

@@ -17,20 +17,7 @@ import { DollarSign, TrendingUp, Calendar, History, FileText, Percent } from "lu
 import { ExpertInvestor } from "@/services/investor";
 import { formatAssetValue } from "@/utils/kpiCalculations";
 import { useToast } from "@/hooks";
-import { supabase } from "@/integrations/supabase/client";
-
-type FeeScheduleRow = {
-  fund_code: string;
-  fee_pct: number;
-  effective_date: string;
-};
-
-type FeeHistoryRow = {
-  id: string;
-  fee_type: string | null;
-  calculation_date: string;
-  fee_amount: number;
-};
+import { feeScheduleService, type FeeScheduleRow, type FeeHistoryRow } from "@/services/shared";
 
 interface InvestorFeeManagerProps {
   investor: ExpertInvestor;
@@ -68,22 +55,8 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
 
   useEffect(() => {
     const loadFeeSchedule = async () => {
-      const { data, error } = await supabase
-        .from("investor_fee_schedule")
-        .select("fee_pct, effective_date, fund_id, funds(code)")
-        .eq("investor_id", investor.id)
-        .order("effective_date", { ascending: false });
-      if (error) {
-        console.error("loadFeeSchedule", error);
-        return;
-      }
-      setFeeSchedule(
-        (data || []).map((row: any) => ({
-          fund_code: row.funds?.code || row.fund_id,
-          fee_pct: Number(row.fee_pct || 0),
-          effective_date: row.effective_date as string,
-        }))
-      );
+      const data = await feeScheduleService.getInvestorFeeSchedule(investor.id);
+      setFeeSchedule(data);
     };
     loadFeeSchedule();
   }, [investor.id]);
@@ -92,16 +65,8 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
     setShowFeeHistory(true);
     setLoadingHistory(true);
     try {
-      // Use fee_calculations table instead of platform_fees_collected
-      const { data, error } = await supabase
-        .from("fee_calculations")
-        .select("id, fee_type, calculation_date, fee_amount")
-        .eq("investor_id", investor.id)
-        .order("calculation_date", { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-      setFeeHistory((data as FeeHistoryRow[]) || []);
+      const data = await feeScheduleService.getInvestorFeeHistory(investor.id);
+      setFeeHistory(data);
     } catch (error) {
       toast({
         title: "Error",
@@ -124,31 +89,19 @@ const InvestorFeeManager: React.FC<InvestorFeeManagerProps> = ({ investor, fees 
     setIsUpdating(true);
     try {
       const newRatePct = parseFloat(newFeeRate);
-      if (isNaN(newRatePct) || newRatePct < 0 || newRatePct > 100) {
-        throw new Error("Invalid fee rate. Must be between 0% and 100%");
-      }
-
-      const today = new Date().toISOString().split("T")[0];
       const fundIds = (investor.positions || []).map((p) => p.fund_id);
 
-      for (const fundId of fundIds) {
-        const { error } = await supabase.from("investor_fee_schedule").upsert(
-          {
-            investor_id: investor.id,
-            fund_id: fundId,
-            fee_pct: newRatePct,
-            effective_date: today,
-          },
-          { onConflict: "investor_id,fund_id,effective_date" }
-        );
-        if (error) throw error;
-      }
+      await feeScheduleService.updateFeeRateForAllFunds(investor.id, fundIds, newRatePct);
 
       toast({
         title: "Success",
         description: `Fee rate updated to ${newRatePct.toFixed(2)}%`,
       });
       setShowAdjustRate(false);
+      
+      // Refresh fee schedule
+      const data = await feeScheduleService.getInvestorFeeSchedule(investor.id);
+      setFeeSchedule(data);
     } catch (error) {
       toast({
         title: "Error",
