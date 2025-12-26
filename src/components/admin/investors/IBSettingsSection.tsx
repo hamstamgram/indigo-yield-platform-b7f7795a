@@ -5,7 +5,7 @@
  * NEW: Includes "Promote to IB" functionality for the current investor
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,107 +29,59 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Users, Percent, Save, AlertCircle, UserPlus, Search, Crown, Trash2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
 import {
-  getInvestorIBConfig,
-  updateInvestorIBConfig,
-  getIBReferrals,
-  getAvailableIBParents,
-} from "@/services/shared/ibService";
+  useIBSettings,
+  useSearchUsersForIB,
+  useUpdateIBConfig,
+  useAssignIBRole,
+  usePromoteToIB,
+  useRemoveIBRole,
+  type UserSearchResult,
+} from "@/hooks/data";
 
 interface IBSettingsSectionProps {
   investorId: string;
   onUpdate?: () => void;
 }
 
-interface IBParentOption {
-  id: string;
-  email: string;
-  name: string;
-}
-
-interface Referral {
-  id: string;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-  ibPercentage: number;
-}
-
-interface UserSearchResult {
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  hasIBRole: boolean;
-}
-
 export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionProps) {
   const { toast } = useToast();
   const { isSuperAdmin, loading: roleLoading } = useSuperAdmin();
   
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  // Use data hooks
+  const { data: ibSettings, isLoading: loading, error, refetch } = useIBSettings(investorId);
+  const { searchUsers } = useSearchUsersForIB(investorId);
+  const updateIBConfigMutation = useUpdateIBConfig();
+  const assignIBRoleMutation = useAssignIBRole();
+  const promoteToIBMutation = usePromoteToIB();
+  const removeIBRoleMutation = useRemoveIBRole();
+
+  // Local state for form
   const [ibParentId, setIbParentId] = useState<string | null>(null);
   const [ibPercentage, setIbPercentage] = useState<number>(0);
-  const [availableParents, setAvailableParents] = useState<IBParentOption[]>([]);
-  const [referrals, setReferrals] = useState<Referral[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  // This investor's IB status
-  const [hasIBRole, setHasIBRole] = useState(false);
-  const [promotingToIB, setPromotingToIB] = useState(false);
   const [showPromoteDialog, setShowPromoteDialog] = useState(false);
   const [showRemoveIBDialog, setShowRemoveIBDialog] = useState(false);
-  const [removingIBRole, setRemovingIBRole] = useState(false);
 
   // Create IB dialog state
   const [showCreateIBDialog, setShowCreateIBDialog] = useState(false);
   const [searchEmail, setSearchEmail] = useState("");
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
-  const [assigningIBRole, setAssigningIBRole] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, [investorId]);
-
-  const loadData = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Load IB config, available parents, referrals, and check if this investor has IB role
-      const [config, parents, refs, ibRoleCheck] = await Promise.all([
-        getInvestorIBConfig(investorId),
-        getAvailableIBParents(investorId),
-        getIBReferrals(investorId),
-        supabase
-          .from("user_roles")
-          .select("id")
-          .eq("user_id", investorId)
-          .eq("role", "ib")
-          .maybeSingle(),
-      ]);
-
-      if (config) {
-        setIbParentId(config.ibParentId);
-        setIbPercentage(config.ibPercentage);
-      } else {
-        setIbParentId(null);
-        setIbPercentage(0);
-      }
-
-      setAvailableParents(parents);
-      setReferrals(refs);
-      setHasIBRole(!!ibRoleCheck.data);
-    } catch (err) {
-      console.error("Failed to load IB settings:", err);
-      setError("Failed to load IB settings");
-    } finally {
-      setLoading(false);
+  // Sync local state with fetched data
+  useState(() => {
+    if (ibSettings) {
+      setIbParentId(ibSettings.ibParentId);
+      setIbPercentage(ibSettings.ibPercentage);
     }
-  };
+  });
+
+  // Update local state when data changes
+  if (ibSettings && ibParentId === null && ibSettings.ibParentId !== null) {
+    setIbParentId(ibSettings.ibParentId);
+    setIbPercentage(ibSettings.ibPercentage);
+  }
 
   const handleSave = async () => {
     // Validation: IB percentage required if IB parent is set
@@ -152,43 +104,12 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
       return;
     }
 
-    setSaving(true);
-    try {
-      const result = await updateInvestorIBConfig(investorId, ibParentId, ibPercentage);
-      
-      if (result.success) {
-        toast({
-          title: "IB Settings Saved",
-          description: ibParentId 
-            ? `Assigned IB parent with ${ibPercentage}% commission`
-            : "IB parent removed successfully",
-        });
-        // Refresh data to show updated values
-        await loadData();
-        onUpdate?.();
-      } else {
-        throw new Error(result.error || "Failed to update IB settings");
-      }
-    } catch (err) {
-      console.error("Failed to save IB settings:", err);
-      const errorMessage = err instanceof Error ? err.message : "Failed to save IB settings";
-      // Check for specific DB constraint error
-      if (errorMessage.includes("IB parent does not have the IB role")) {
-        toast({
-          title: "IB Role Required",
-          description: "The selected user does not have the IB role. Use 'Assign IB Role' to grant them IB permissions first.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setSaving(false);
-    }
+    await updateIBConfigMutation.mutateAsync({
+      investorId,
+      ibParentId,
+      ibPercentage,
+    });
+    onUpdate?.();
   };
 
   const handleSearchUsers = async () => {
@@ -196,32 +117,8 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
     
     setSearching(true);
     try {
-      // Search for users by email
-      const { data: users, error: searchError } = await supabase
-        .from("profiles")
-        .select("id, email, first_name, last_name")
-        .ilike("email", `%${searchEmail.trim()}%`)
-        .neq("id", investorId) // Exclude current investor
-        .limit(10);
-
-      if (searchError) throw searchError;
-
-      // Check which users already have IB role
-      const userIds = users?.map(u => u.id) || [];
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .in("user_id", userIds)
-        .eq("role", "ib");
-
-      const ibUserIds = new Set(roles?.map(r => r.user_id) || []);
-
-      setSearchResults(
-        (users || []).map(u => ({
-          ...u,
-          hasIBRole: ibUserIds.has(u.id),
-        }))
-      );
+      const results = await searchUsers(searchEmail);
+      setSearchResults(results);
     } catch (err) {
       console.error("Search failed:", err);
       toast({
@@ -235,60 +132,24 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
   };
 
   const handleAssignIBRole = async (user: UserSearchResult) => {
-    setAssigningIBRole(true);
-    try {
-      // Insert IB role for the user
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert({
-          user_id: user.id,
-          role: "ib",
-        });
+    await assignIBRoleMutation.mutateAsync({
+      userId: user.id,
+      investorId,
+    });
+    
+    // Update search result to show they now have IB role
+    setSearchResults(prev => 
+      prev.map(u => u.id === user.id ? { ...u, hasIBRole: true } : u)
+    );
 
-      if (roleError) {
-        // Check if it's a duplicate
-        if (roleError.code === "23505") {
-          toast({
-            title: "Already an IB",
-            description: `${user.email} already has the IB role`,
-          });
-        } else {
-          throw roleError;
-        }
-      } else {
-        toast({
-          title: "IB Role Assigned",
-          description: `${user.email} now has IB permissions`,
-        });
-      }
-
-      // Refresh available parents and update search results
-      const parents = await getAvailableIBParents(investorId);
-      setAvailableParents(parents);
-      
-      // Update search result to show they now have IB role
-      setSearchResults(prev => 
-        prev.map(u => u.id === user.id ? { ...u, hasIBRole: true } : u)
-      );
-
-      // Auto-select this user as the IB parent
-      setIbParentId(user.id);
-      setShowCreateIBDialog(false);
-      
-      toast({
-        title: "IB Selected",
-        description: `${user.email} has been selected as the IB parent. Don't forget to set the commission percentage and save.`,
-      });
-    } catch (err) {
-      console.error("Failed to assign IB role:", err);
-      toast({
-        title: "Error",
-        description: "Failed to assign IB role",
-        variant: "destructive",
-      });
-    } finally {
-      setAssigningIBRole(false);
-    }
+    // Auto-select this user as the IB parent
+    setIbParentId(user.id);
+    setShowCreateIBDialog(false);
+    
+    toast({
+      title: "IB Selected",
+      description: `${user.email} has been selected as the IB parent. Don't forget to set the commission percentage and save.`,
+    });
   };
 
   const handleSelectExistingIB = (user: UserSearchResult) => {
@@ -300,109 +161,27 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
     });
   };
 
-  // Promote THIS investor to IB role
   const handlePromoteToIB = async () => {
-    setPromotingToIB(true);
-    try {
-      // Insert IB role for this investor (keep existing investor role)
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert({
-          user_id: investorId,
-          role: "ib",
-        });
-
-      if (roleError) {
-        if (roleError.code === "23505") {
-          toast({
-            title: "Already an IB",
-            description: "This investor already has the IB role",
-          });
-        } else {
-          throw roleError;
-        }
-      } else {
-        // Log audit entry
-        await supabase.from("audit_log").insert({
-          actor_user: (await supabase.auth.getUser()).data.user?.id,
-          action: "PROMOTE_TO_IB",
-          entity: "user_roles",
-          entity_id: investorId,
-          new_values: { role: "ib" },
-        });
-
-        toast({
-          title: "Promoted to IB",
-          description: "This investor now has IB permissions and can have referrals",
-        });
-      }
-
-      setHasIBRole(true);
-      setShowPromoteDialog(false);
-      onUpdate?.();
-    } catch (err) {
-      console.error("Failed to promote to IB:", err);
-      toast({
-        title: "Error",
-        description: "Failed to promote investor to IB",
-        variant: "destructive",
-      });
-    } finally {
-      setPromotingToIB(false);
-    }
+    await promoteToIBMutation.mutateAsync(investorId);
+    setShowPromoteDialog(false);
+    onUpdate?.();
   };
 
-  // Remove IB role from this investor (super_admin only)
   const handleRemoveIBRole = async () => {
-    setRemovingIBRole(true);
-    try {
-      // Check if investor has referrals
-      if (referrals.length > 0) {
-        toast({
-          title: "Cannot Remove IB Role",
-          description: `This investor has ${referrals.length} active referral(s). Reassign them first.`,
-          variant: "destructive",
-        });
-        setShowRemoveIBDialog(false);
-        return;
-      }
-
-      // Delete the IB role
-      const { error: deleteError } = await supabase
-        .from("user_roles")
-        .delete()
-        .eq("user_id", investorId)
-        .eq("role", "ib");
-
-      if (deleteError) throw deleteError;
-
-      // Log audit entry
-      await supabase.from("audit_log").insert({
-        actor_user: (await supabase.auth.getUser()).data.user?.id,
-        action: "REMOVE_IB_ROLE",
-        entity: "user_roles",
-        entity_id: investorId,
-        old_values: { role: "ib" },
-      });
-
+    const hasReferrals = (ibSettings?.referrals?.length || 0) > 0;
+    if (hasReferrals) {
       toast({
-        title: "IB Role Removed",
-        description: "This investor no longer has IB permissions",
-      });
-
-      setHasIBRole(false);
-      setShowRemoveIBDialog(false);
-      onUpdate?.();
-    } catch (err) {
-      console.error("Failed to remove IB role:", err);
-      toast({
-        title: "Error",
-        description: "Failed to remove IB role",
+        title: "Cannot Remove IB Role",
+        description: `This investor has ${ibSettings?.referrals.length} active referral(s). Reassign them first.`,
         variant: "destructive",
       });
-    } finally {
-      setRemovingIBRole(false);
+      setShowRemoveIBDialog(false);
+      return;
     }
+
+    await removeIBRoleMutation.mutateAsync({ investorId, hasReferrals });
+    setShowRemoveIBDialog(false);
+    onUpdate?.();
   };
 
   if (roleLoading || loading) {
@@ -417,8 +196,24 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
     );
   }
 
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="py-8">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>Failed to load IB settings</AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // Show read-only view for non-super admins
   const isReadOnly = !isSuperAdmin;
+  const hasIBRole = ibSettings?.hasIBRole || false;
+  const availableParents = ibSettings?.availableParents || [];
+  const referrals = ibSettings?.referrals || [];
 
   return (
     <div className="space-y-4">
@@ -486,13 +281,6 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
           {isReadOnly && (
             <Alert>
               <AlertCircle className="h-4 w-4" />
@@ -568,8 +356,12 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
           </div>
 
           {!isReadOnly && (
-            <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto">
-              {saving ? (
+            <Button 
+              onClick={handleSave} 
+              disabled={updateIBConfigMutation.isPending} 
+              className="w-full sm:w-auto"
+            >
+              {updateIBConfigMutation.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
                 <Save className="h-4 w-4 mr-2" />
@@ -672,9 +464,9 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
                           size="sm"
                           variant="outline"
                           onClick={() => handleAssignIBRole(user)}
-                          disabled={assigningIBRole}
+                          disabled={assignIBRoleMutation.isPending}
                         >
-                          {assigningIBRole ? (
+                          {assignIBRoleMutation.isPending ? (
                             <Loader2 className="h-3 w-3 animate-spin mr-1" />
                           ) : (
                             <UserPlus className="h-3 w-3 mr-1" />
@@ -730,11 +522,11 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
           </Alert>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPromoteDialog(false)} disabled={promotingToIB}>
+            <Button variant="outline" onClick={() => setShowPromoteDialog(false)} disabled={promoteToIBMutation.isPending}>
               Cancel
             </Button>
-            <Button onClick={handlePromoteToIB} disabled={promotingToIB}>
-              {promotingToIB ? (
+            <Button onClick={handlePromoteToIB} disabled={promoteToIBMutation.isPending}>
+              {promoteToIBMutation.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
                 <Crown className="h-4 w-4 mr-2" />
@@ -766,11 +558,11 @@ export function IBSettingsSection({ investorId, onUpdate }: IBSettingsSectionPro
           </Alert>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRemoveIBDialog(false)} disabled={removingIBRole}>
+            <Button variant="outline" onClick={() => setShowRemoveIBDialog(false)} disabled={removeIBRoleMutation.isPending}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleRemoveIBRole} disabled={removingIBRole}>
-              {removingIBRole ? (
+            <Button variant="destructive" onClick={handleRemoveIBRole} disabled={removeIBRoleMutation.isPending}>
+              {removeIBRoleMutation.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
                 <Trash2 className="h-4 w-4 mr-2" />

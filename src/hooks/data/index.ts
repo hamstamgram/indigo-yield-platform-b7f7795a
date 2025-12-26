@@ -102,3 +102,30 @@ export {
   type StatementPeriod,
   type StatementFilters,
 } from "./useStatementData";
+
+// Statement manager hooks
+export {
+  useStatements,
+  usePublishStatements,
+  type StatementDraft,
+} from "./useStatements";
+
+// IB Settings hooks
+export {
+  useIBSettings,
+  useSearchUsersForIB,
+  useUpdateIBConfig,
+  useAssignIBRole,
+  usePromoteToIB,
+  useRemoveIBRole,
+  type IBConfig,
+  type IBParentOption,
+  type Referral,
+  type UserSearchResult,
+} from "./useIBSettings";
+
+// Investor balance hooks
+export {
+  useInvestorBalance,
+  useAUMExists,
+} from "./useInvestorBalance";
