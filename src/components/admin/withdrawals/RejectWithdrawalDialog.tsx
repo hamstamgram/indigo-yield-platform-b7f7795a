@@ -48,7 +48,8 @@ export function RejectWithdrawalDialog({
       onOpenChange(false);
     } catch (error) {
       console.error("Error rejecting withdrawal:", error);
-      toast.error("Failed to reject withdrawal");
+      const message = error instanceof Error ? error.message : "Failed to reject withdrawal";
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }

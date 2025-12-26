@@ -214,7 +214,11 @@ export const withdrawalService = {
 
     if (error) {
       console.error("Error approving withdrawal:", error);
-      throw new Error(error.message || "Failed to approve withdrawal");
+      // Surface the actual database error message for better debugging
+      const errorMessage = error.message || "Failed to approve withdrawal";
+      throw new Error(errorMessage.includes("Admin only") 
+        ? "You don't have admin privileges to approve withdrawals" 
+        : errorMessage);
     }
   },
 
@@ -230,7 +234,10 @@ export const withdrawalService = {
 
     if (error) {
       console.error("Error rejecting withdrawal:", error);
-      throw new Error(error.message || "Failed to reject withdrawal");
+      const errorMessage = error.message || "Failed to reject withdrawal";
+      throw new Error(errorMessage.includes("Admin only") 
+        ? "You don't have admin privileges to reject withdrawals" 
+        : errorMessage);
     }
   },
 
@@ -252,7 +259,12 @@ export const withdrawalService = {
 
     if (error) {
       console.error("Error marking withdrawal as processing:", error);
-      throw new Error(error.message || "Failed to start processing withdrawal");
+      const errorMessage = error.message || "Failed to start processing withdrawal";
+      throw new Error(errorMessage.includes("Admin only") 
+        ? "You don't have admin privileges to process withdrawals" 
+        : errorMessage.includes("approved") 
+          ? "Withdrawal must be approved before processing" 
+          : errorMessage);
     }
   },
 
@@ -268,7 +280,12 @@ export const withdrawalService = {
 
     if (error) {
       console.error("Error completing withdrawal:", error);
-      throw new Error(error.message || "Failed to complete withdrawal");
+      const errorMessage = error.message || "Failed to complete withdrawal";
+      throw new Error(errorMessage.includes("Admin only") 
+        ? "You don't have admin privileges to complete withdrawals" 
+        : errorMessage.includes("processing") 
+          ? "Withdrawal must be in processing state before completing" 
+          : errorMessage);
     }
   },
 
@@ -284,7 +301,10 @@ export const withdrawalService = {
 
     if (error) {
       console.error("Error cancelling withdrawal:", error);
-      throw new Error(error.message || "Failed to cancel withdrawal");
+      const errorMessage = error.message || "Failed to cancel withdrawal";
+      throw new Error(errorMessage.includes("Admin only") 
+        ? "You don't have admin privileges to cancel withdrawals" 
+        : errorMessage);
     }
   },
 };
