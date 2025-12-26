@@ -49,6 +49,7 @@ export default function AdminManualTransaction() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentBalance, setCurrentBalance] = useState<number | null>(null);
+  const [hasTransactionHistory, setHasTransactionHistory] = useState<boolean>(false);
   const [isCheckingBalance, setIsCheckingBalance] = useState(false);
   
   // AUM check state
@@ -170,33 +171,45 @@ export default function AdminManualTransaction() {
     }
   };
 
-  // Check investor's current balance when investor/fund changes
+  // Check investor's current balance and transaction history when investor/fund changes
   useEffect(() => {
-    const checkBalance = async () => {
+    const checkBalanceAndHistory = async () => {
       if (!selectedInvestorId || !selectedFundId) {
         setCurrentBalance(null);
+        setHasTransactionHistory(false);
         return;
       }
       
       setIsCheckingBalance(true);
       try {
-        const { data } = await supabase
+        // Check current position balance
+        const { data: positionData } = await supabase
           .from("investor_positions")
           .select("current_value")
           .eq("investor_id", selectedInvestorId)
           .eq("fund_id", selectedFundId)
           .maybeSingle();
         
-        setCurrentBalance(data?.current_value ?? 0);
+        // Also check for any existing transaction history (deposits indicate prior investment)
+        const { count: txCount } = await supabase
+          .from("transactions_v2")
+          .select("id", { count: "exact", head: true })
+          .eq("investor_id", selectedInvestorId)
+          .eq("fund_id", selectedFundId)
+          .eq("type", "DEPOSIT");
+        
+        setCurrentBalance(positionData?.current_value ?? 0);
+        setHasTransactionHistory((txCount ?? 0) > 0);
       } catch (error) {
         console.error("Error checking balance:", error);
         setCurrentBalance(0);
+        setHasTransactionHistory(false);
       } finally {
         setIsCheckingBalance(false);
       }
     };
     
-    checkBalance();
+    checkBalanceAndHistory();
   }, [selectedInvestorId, selectedFundId]);
 
   // Auto-select transaction type based on balance
@@ -210,8 +223,9 @@ export default function AdminManualTransaction() {
     }
   }, [currentBalance, isCheckingBalance, txnType, form]);
 
-  const isFirstInvestment = currentBalance !== null && currentBalance === 0;
-  const hasExistingPosition = currentBalance !== null && currentBalance > 0;
+  // Only force FIRST_INVESTMENT if balance is 0 AND no prior transactions exist
+  const isFirstInvestment = currentBalance !== null && currentBalance === 0 && !hasTransactionHistory;
+  const hasExistingPosition = currentBalance !== null && (currentBalance > 0 || hasTransactionHistory);
 
   useEffect(() => {
     const fetchData = async () => {

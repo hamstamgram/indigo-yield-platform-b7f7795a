@@ -121,6 +121,7 @@ export function AddTransactionDialog({
   const [isLoadingInvestors, setIsLoadingInvestors] = useState(false);
   const [investorError, setInvestorError] = useState<string | null>(null);
   const [currentBalance, setCurrentBalance] = useState<number | null>(null);
+  const [hasTransactionHistory, setHasTransactionHistory] = useState<boolean>(false);
   const [isCheckingBalance, setIsCheckingBalance] = useState(false);
   
   // AUM check state
@@ -153,33 +154,45 @@ export function AddTransactionDialog({
   const selectedFundId = watch("fund_id");
   const txDate = watch("tx_date");
 
-  // Check investor's current balance in selected fund
+  // Check investor's current balance and transaction history in selected fund
   useEffect(() => {
-    const checkBalance = async () => {
+    const checkBalanceAndHistory = async () => {
       if (!selectedInvestorId || !selectedFundId) {
         setCurrentBalance(null);
+        setHasTransactionHistory(false);
         return;
       }
       
       setIsCheckingBalance(true);
       try {
-        const { data } = await supabase
+        // Check current position balance
+        const { data: positionData } = await supabase
           .from("investor_positions")
           .select("current_value")
           .eq("investor_id", selectedInvestorId)
           .eq("fund_id", selectedFundId)
           .maybeSingle();
         
-        setCurrentBalance(data?.current_value ?? 0);
+        // Also check for any existing transaction history (deposits indicate prior investment)
+        const { count: txCount } = await supabase
+          .from("transactions_v2")
+          .select("id", { count: "exact", head: true })
+          .eq("investor_id", selectedInvestorId)
+          .eq("fund_id", selectedFundId)
+          .eq("type", "DEPOSIT");
+        
+        setCurrentBalance(positionData?.current_value ?? 0);
+        setHasTransactionHistory((txCount ?? 0) > 0);
       } catch (error) {
         console.error("Error checking balance:", error);
         setCurrentBalance(0);
+        setHasTransactionHistory(false);
       } finally {
         setIsCheckingBalance(false);
       }
     };
     
-    checkBalance();
+    checkBalanceAndHistory();
   }, [selectedInvestorId, selectedFundId]);
 
   // Check AUM existence when fund and date are selected
@@ -247,8 +260,9 @@ export function AddTransactionDialog({
   }, [selectedFundId, fundId, setValue]);
 
   // Determine if this is a first investment scenario
-  const isFirstInvestment = currentBalance !== null && currentBalance === 0;
-  const hasExistingPosition = currentBalance !== null && currentBalance > 0;
+  // Only force FIRST_INVESTMENT if balance is 0 AND no prior transactions exist
+  const isFirstInvestment = currentBalance !== null && currentBalance === 0 && !hasTransactionHistory;
+  const hasExistingPosition = currentBalance !== null && (currentBalance > 0 || hasTransactionHistory);
 
   // Load investors when dialog opens
   useEffect(() => {
