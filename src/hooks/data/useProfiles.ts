@@ -77,6 +77,29 @@ export function useProfile(userId: string | undefined) {
 }
 
 /**
+ * Fetch the current logged-in user's profile
+ */
+export function useCurrentProfile() {
+  return useQuery({
+    queryKey: QUERY_KEYS.currentProfile,
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, email, first_name, last_name, is_admin")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
  * Check if current user is super admin
  */
 export function useIsSuperAdmin() {

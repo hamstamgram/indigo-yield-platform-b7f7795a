@@ -16,7 +16,7 @@ import { withdrawalService } from "@/services/investor/withdrawalService";
 import { Withdrawal, WithdrawalFilters, WithdrawalStats, PaginatedWithdrawals } from "@/types/withdrawal";
 import { toast } from "sonner";
 import { ArrowDownToLine, Plus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useFunds } from "@/hooks/data";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/layout/PageHeader";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
@@ -94,21 +94,9 @@ export default function AdminWithdrawalsPage() {
     setFilter("page", page.toString());
   }, [setFilter]);
 
-  // Fetch active funds for the filter dropdown
-  const { data: funds = [] } = useQuery<Fund[]>({
-    queryKey: ["funds-active"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("funds")
-        .select("id, code, name, asset")
-        .eq("status", "active")
-        .order("name");
-      
-      if (error) throw error;
-      return data || [];
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+  // Use the data hook for active funds
+  const { data: fundsData = [] } = useFunds(true); // activeOnly
+  const funds: Fund[] = fundsData.map(f => ({ id: f.id, code: f.code, name: f.name, asset: f.asset }));
 
   const loadData = useCallback(async () => {
     setIsLoading(true);

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +19,8 @@ import { Badge } from "@/components/ui/badge";
 import { formatAssetAmount } from "@/utils/assets";
 import PageHeader from "@/components/layout/PageHeader";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth/context";
 
 const TRANSACTION_TYPES = [
   { value: "all", label: "All Types" },
@@ -34,12 +35,12 @@ export default function InvestorTransactionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [assetFilter, setAssetFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const { user } = useAuth();
 
   // Fetch available assets for filter
   const { data: assets } = useQuery({
-    queryKey: ["transaction-assets"],
+    queryKey: ["transaction-assets", user?.id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
       const { data } = await supabase
@@ -54,13 +55,13 @@ export default function InvestorTransactionsPage() {
       });
       return Array.from(uniqueAssets).sort();
     },
+    enabled: !!user,
   });
 
   // Fetch transactions with filters
   const { data: items, isLoading } = useQuery({
-    queryKey: ["investor-transactions", searchTerm, assetFilter, typeFilter],
+    queryKey: ["investor-transactions", user?.id, searchTerm, assetFilter, typeFilter],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
 
       let query = supabase
@@ -88,6 +89,7 @@ export default function InvestorTransactionsPage() {
       if (error) throw error;
       return data;
     },
+    enabled: !!user,
   });
 
   const columns = [

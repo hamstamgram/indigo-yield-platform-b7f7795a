@@ -21,8 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth/context";
+import { useCreateFund } from "@/hooks/data";
 import { format } from "date-fns";
 import { FundLogoUpload } from "./FundLogoUpload";
 
@@ -60,10 +59,8 @@ export function CreateFundDialog({
   onSuccess,
   existingAssets,
 }: CreateFundDialogProps) {
-  const [loading, setLoading] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const { user } = useAuth();
-
+  const createFundMutation = useCreateFund();
   const {
     register,
     handleSubmit,
@@ -111,67 +108,27 @@ export function CreateFundDialog({
       return;
     }
 
-    setLoading(true);
-    try {
-      const code = data.code || `IND-${normalizedTicker}`;
+    const code = data.code || `IND-${normalizedTicker}`;
 
-      // Check if code already exists
-      const { data: existingCode } = await supabase
-        .from("funds")
-        .select("id")
-        .eq("code", code)
-        .single();
-
-      if (existingCode) {
-        toast.error(`Fund code "${code}" already exists`);
-        setLoading(false);
-        return;
-      }
-
-      // Create the fund - no fee fields, token-denominated only
-      const { error: insertError } = await supabase.from("funds").insert({
+    createFundMutation.mutate(
+      {
         code,
         name: data.name,
         asset: normalizedTicker,
-        fund_class: normalizedTicker,
         inception_date: data.inception_date,
-        status: "active",
         logo_url: logoUrl,
-        // Default fee values for backward compatibility (fees managed per-investor)
-        mgmt_fee_bps: 200,
-        perf_fee_bps: 2000,
-        min_investment: 0,
-        lock_period_days: 0,
-      });
-
-      if (insertError) throw insertError;
-
-      // Audit log
-      await supabase.from("audit_log").insert({
-        actor_user: user?.id,
-        action: "CREATE_FUND",
-        entity: "fund",
-        entity_id: null,
-        new_values: {
-          code,
-          name: data.name,
-          asset: normalizedTicker,
-          inception_date: data.inception_date,
-          logo_url: logoUrl,
+      },
+      {
+        onSuccess: () => {
+          reset();
+          setLogoUrl(null);
+          onSuccess();
         },
-      });
-
-      toast.success(`Fund "${data.name}" created successfully`);
-      reset();
-      setLogoUrl(null);
-      onSuccess();
-    } catch (error: any) {
-      console.error("Error creating fund:", error);
-      toast.error(error.message || "Failed to create fund");
-    } finally {
-      setLoading(false);
-    }
+      }
+    );
   };
+
+  const loading = createFundMutation.isPending;
 
   const handleCancel = () => {
     reset();
