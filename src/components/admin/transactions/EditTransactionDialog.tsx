@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Pencil, Loader2, AlertTriangle } from "lucide-react";
+import { Pencil, Loader2, AlertTriangle, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -171,7 +171,8 @@ export function EditTransactionDialog({
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                System-generated transactions cannot be edited.
+                <strong>System-generated transactions cannot be edited.</strong>
+                <p className="text-sm mt-1">This transaction was created automatically by the system (e.g., yield distribution, fee allocation). Close this dialog to cancel.</p>
               </AlertDescription>
             </Alert>
           )}
@@ -251,13 +252,20 @@ export function EditTransactionDialog({
             <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={loading || confirmText !== "EDIT" || transaction.isSystemGenerated}
-            >
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Changes
-            </Button>
+            {transaction.isSystemGenerated ? (
+              <Button type="button" variant="secondary" disabled className="cursor-not-allowed">
+                <Lock className="mr-2 h-4 w-4" />
+                Cannot Edit System Transaction
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                disabled={loading || confirmText !== "EDIT"}
+              >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Save Changes
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>
