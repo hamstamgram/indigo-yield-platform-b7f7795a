@@ -85,6 +85,22 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client
       
+      - name: Check forbidden migration patterns
+        run: |
+          echo "🔍 Checking for forbidden patterns in migrations..."
+          
+          # Check for singular table name that caused the withdrawal bug
+          # Exclude the compatibility view migration which legitimately uses the singular name
+          if grep -rE "withdrawal_audit_log[^s_]" supabase/migrations/ | grep -vE "(AS SELECT|VIEW.*AS)"; then
+            echo ""
+            echo "❌ ERROR: Found 'withdrawal_audit_log' (singular) in migrations"
+            echo "   Use 'withdrawal_audit_logs' (plural) instead"
+            echo "   The singular name was a bug - see migration 20251226_fix_withdrawal_audit_log"
+            exit 1
+          fi
+          
+          echo "✅ No forbidden patterns found in migrations"
+      
       - name: Run migrations dry-run
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
