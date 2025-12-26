@@ -212,13 +212,12 @@ export default function AdminManualTransaction() {
     checkBalanceAndHistory();
   }, [selectedInvestorId, selectedFundId]);
 
-  // Auto-select transaction type based on balance
+  // Auto-select transaction type based on balance (only auto-switch away from invalid FIRST_INVESTMENT)
   useEffect(() => {
     if (currentBalance === null || isCheckingBalance) return;
     
-    if (currentBalance === 0 && txnType === "DEPOSIT") {
-      form.setValue("type", "FIRST_INVESTMENT");
-    } else if (currentBalance > 0 && txnType === "FIRST_INVESTMENT") {
+    // Only auto-switch from FIRST_INVESTMENT to DEPOSIT if position exists
+    if (currentBalance > 0 && txnType === "FIRST_INVESTMENT") {
       form.setValue("type", "DEPOSIT");
     }
   }, [currentBalance, isCheckingBalance, txnType, form]);
@@ -467,12 +466,9 @@ export default function AdminManualTransaction() {
                     >
                       First Investment {hasExistingPosition && "(position exists)"}
                     </SelectItem>
-                    <SelectItem 
-                      value="DEPOSIT"
-                      disabled={isFirstInvestment}
-                      className={cn(isFirstInvestment && "opacity-50")}
-                    >
-                      Deposit / Top-up {isFirstInvestment && "(no position yet)"}
+                    {/* Deposit is always available */}
+                    <SelectItem value="DEPOSIT">
+                      Deposit / Top-up
                     </SelectItem>
                     <SelectItem 
                       value="WITHDRAWAL"
