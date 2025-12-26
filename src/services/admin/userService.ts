@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { InvestorFormValues } from "@/components/admin/investors/InvestorForm";
+import { addCsrfHeader } from "@/lib/security/csrf";
 import { User } from "@supabase/supabase-js";
 
 export const createOrFindInvestorUser = async (
@@ -46,6 +47,7 @@ export const createOrFindInvestorUser = async (
         selectedFunds: [],
         sendWelcomeEmail: true,
       },
+      headers: addCsrfHeader({}),
     });
 
     if (error) {
@@ -122,6 +124,7 @@ export const deleteInvestorUser = async (userId: string): Promise<void> => {
         action: "deleteUser",
         userId,
       },
+      headers: addCsrfHeader({}),
     });
 
     if (error) {
@@ -157,6 +160,7 @@ export const forceDeleteInvestorUser = async (userId: string): Promise<void> => 
         action: "forceDeleteUser",
         userId,
       },
+      headers: addCsrfHeader({}),
     });
 
     if (error) {
