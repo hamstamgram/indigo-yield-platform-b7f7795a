@@ -5,6 +5,7 @@
 
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -113,7 +114,7 @@ export function PendingActionsPanel() {
 
   // Use react-query for data fetching
   const { data: items = [], isLoading: loading, refetch } = useQuery({
-    queryKey: ["pending-actions"],
+    queryKey: QUERY_KEYS.pendingActions,
     queryFn: fetchPendingItems,
   });
 

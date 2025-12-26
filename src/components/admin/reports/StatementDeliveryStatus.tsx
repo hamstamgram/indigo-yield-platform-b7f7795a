@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -54,7 +55,7 @@ export function StatementDeliveryStatus({
   showActions = true,
 }: StatementDeliveryStatusProps) {
   const { data: deliveries, isLoading, refetch } = useQuery({
-    queryKey: ["statement-delivery-status", statementId, investorId, periodId],
+    queryKey: QUERY_KEYS.statementDeliveryStatus(statementId, investorId, periodId),
     queryFn: async () => {
       let query = supabase
         .from("statement_email_delivery")

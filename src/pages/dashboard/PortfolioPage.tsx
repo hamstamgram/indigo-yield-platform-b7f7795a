@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +11,7 @@ import { getAssetLogo } from "@/utils/assets";
 
 export default function PortfolioPage() {
   const { data: positions, isLoading } = useQuery({
-    queryKey: ["portfolio-positions"],
+    queryKey: QUERY_KEYS.portfolioPositions,
     queryFn: async () => {
       const {
         data: { user },

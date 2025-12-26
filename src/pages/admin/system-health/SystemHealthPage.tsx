@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,14 +42,14 @@ export default function SystemHealthPage() {
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ["system-health"],
+    queryKey: QUERY_KEYS.systemHealth,
     queryFn: getSystemHealth,
     refetchInterval: 30000, // Auto-refresh every 30 seconds
   });
 
   // Fetch delivery queue metrics
   const { data: deliveryMetrics } = useQuery({
-    queryKey: ["delivery-queue-metrics"],
+    queryKey: QUERY_KEYS.deliveryQueueMetrics,
     queryFn: async (): Promise<DeliveryQueueMetrics> => {
       // Get queued count
       const { count: queuedCount } = await supabase

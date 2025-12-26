@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -55,7 +56,7 @@ export function InternalRouteDialog({
 
   // Fetch investor positions for fund selection
   const { data: positions } = useQuery({
-    queryKey: ["investor-positions-for-route", investorId],
+    queryKey: QUERY_KEYS.investorPositionsForRoute(investorId),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("investor_positions")

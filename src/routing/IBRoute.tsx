@@ -6,6 +6,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/auth/context";
 import { useQuery } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
 
@@ -19,7 +20,7 @@ export function IBRoute({ children }: IBRouteProps) {
 
   // Check if user has IB role
   const { data: hasIBRole, isLoading: roleLoading } = useQuery({
-    queryKey: ["user-ib-role", user?.id],
+    queryKey: QUERY_KEYS.userIbRole(user?.id),
     queryFn: async () => {
       if (!user?.id) return false;
 

@@ -164,7 +164,7 @@ function TransactionHistoryContent() {
   };
 
   const { data: result, isLoading } = useQuery({
-    queryKey: ["admin-transactions-history", selectedFund, selectedType, dateFrom, dateTo, page, showVoided],
+    queryKey: QUERY_KEYS.adminTransactionsHistory({ selectedFund, selectedType, dateFrom, dateTo, page, showVoided }),
     queryFn: async () => {
       // Build query with deterministic ordering: tx_date DESC, id DESC
       // Include tx_subtype for explicit labeling (no more heuristics!)

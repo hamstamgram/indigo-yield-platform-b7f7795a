@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ export default function PerformanceReportDetailsPage() {
   const { id } = useParams<{ id: string }>();
 
   const { data: item, isLoading } = useQuery({
-    queryKey: ["investor_fund_performance", id],
+    queryKey: QUERY_KEYS.investorFundPerformanceDetail(id || ""),
     queryFn: async () => {
       if (!id) throw new Error("No ID provided");
 

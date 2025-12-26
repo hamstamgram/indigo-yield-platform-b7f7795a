@@ -5,6 +5,7 @@
 
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +41,7 @@ interface DeliveryDiagnosticsPanelProps {
 
 export function DeliveryDiagnosticsPanel({ periodId, periodName }: DeliveryDiagnosticsPanelProps) {
   const { data: diagnostics, isLoading, error } = useQuery({
-    queryKey: ["delivery-diagnostics", periodId],
+    queryKey: QUERY_KEYS.deliveryDiagnostics(periodId),
     queryFn: async (): Promise<DiagnosticsData> => {
       // Fetch statements for period
       const { data: statements, error: stmtError } = await supabase

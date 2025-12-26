@@ -6,6 +6,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,7 +43,7 @@ export function QuickYieldEntry() {
 
   // Fetch AUM for each fund
   const { data: funds = [], isLoading: aumLoading } = useQuery<FundWithAUM[]>({
-    queryKey: ["funds-with-aum", baseFunds?.map(f => f.id)],
+    queryKey: QUERY_KEYS.fundsWithAum(baseFunds?.map(f => f.id)),
     queryFn: async () => {
       if (!baseFunds || baseFunds.length === 0) return [];
       

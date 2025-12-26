@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAssetLogo, getAssetName } from "@/utils/assets";
@@ -17,7 +18,7 @@ export default function FundDetailsPage() {
 
   // Fetch asset metadata (price, etc. if needed)
   const { data: assetMeta } = useQuery({
-    queryKey: ["asset-meta", assetCode],
+    queryKey: QUERY_KEYS.assetMeta(assetCode),
     queryFn: async () => {
       // In a real app, this might come from an 'assets' table or price feed
       // For now, we mock or fetch what we can

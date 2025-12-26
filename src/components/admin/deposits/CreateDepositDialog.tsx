@@ -57,7 +57,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
 
   // Fetch users for dropdown (exclude system accounts like INDIGO FEES)
   const { data: users } = useQuery({
-    queryKey: ["users-for-deposits"],
+    queryKey: QUERY_KEYS.usersForDeposits,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
@@ -73,7 +73,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
 
   // Fetch funds to avoid free-text symbols
   const { data: funds } = useQuery({
-    queryKey: ["funds-for-deposits"],
+    queryKey: QUERY_KEYS.fundsForDeposits,
     queryFn: () => profileService.getActiveFunds(),
     enabled: open,
   });

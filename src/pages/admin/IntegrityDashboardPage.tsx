@@ -5,6 +5,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -63,7 +64,7 @@ export default function IntegrityDashboardPage() {
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ["integrity-dashboard"],
+    queryKey: QUERY_KEYS.integrityDashboard,
     queryFn: async (): Promise<IntegrityCheck[]> => {
       const [
         fundAumMismatch,
@@ -147,7 +148,7 @@ export default function IntegrityDashboardPage() {
 
   // Fetch latest audit events
   const { data: auditEvents } = useQuery({
-    queryKey: ["integrity-audit-events"],
+    queryKey: QUERY_KEYS.integrityAuditEvents,
     queryFn: async (): Promise<AuditEvent[]> => {
       const { data } = await supabase
         .from("audit_log")

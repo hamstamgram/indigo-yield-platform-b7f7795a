@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeHtml } from "@/utils/sanitize";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +30,7 @@ const StatementsPage = () => {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["monthly-statements", selectedYear, selectedAsset],
+    queryKey: QUERY_KEYS.monthlyStatements(parseInt(selectedYear), selectedAsset),
     queryFn: async () => {
       const {
         data: { user },
@@ -86,7 +87,7 @@ const StatementsPage = () => {
 
   // Fetch available years
   const { data: availableYears } = useQuery({
-    queryKey: ["statement-years"],
+    queryKey: QUERY_KEYS.statementYears,
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [new Date().getFullYear()];
@@ -111,7 +112,7 @@ const StatementsPage = () => {
 
   // Fetch available assets
   const { data: availableAssets } = useQuery({
-    queryKey: ["statement-assets"],
+    queryKey: QUERY_KEYS.statementAssets,
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
