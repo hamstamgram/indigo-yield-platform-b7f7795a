@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,6 +31,7 @@ import {
   applyYieldDistribution,
   YieldCalculationResult,
 } from "@/services/admin/yieldDistributionService";
+import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
 
 interface Fund {
   id: string;
@@ -70,6 +72,7 @@ export default function MonthlyDataEntry() {
 
   const { toast } = useToast();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     loadFunds();
@@ -304,7 +307,14 @@ export default function MonthlyDataEntry() {
       setYieldPreview(null);
       setNewAUM("");
 
-      // Refresh data
+      // Comprehensive cache invalidation for all yield-related data
+      YIELD_RELATED_KEYS.forEach(key => {
+        queryClient.invalidateQueries({ queryKey: key });
+      });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
+
+      // Refresh local data
       await loadFunds();
       if (selectedFundId) {
         await loadInvestorComposition(selectedFundId);

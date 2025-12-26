@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,6 +83,7 @@ import { useMonthClosure } from "@/hooks";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
+import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
 
 interface Fund {
   id: string;
@@ -136,6 +138,7 @@ function YieldOperationsContent() {
   const [searchInvestor, setSearchInvestor] = useState("");
 
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const availableMonths = getAvailableMonths();
 
   useEffect(() => {
@@ -365,6 +368,14 @@ function YieldOperationsContent() {
 
       setShowConfirmDialog(false);
       setShowYieldDialog(false);
+      
+      // Comprehensive cache invalidation for all yield-related data
+      YIELD_RELATED_KEYS.forEach(key => {
+        queryClient.invalidateQueries({ queryKey: key });
+      });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
+      
       loadFunds();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to apply yield.");

@@ -54,7 +54,7 @@ export function useInvestorLedger(investorId: string, filters: LedgerFilters = {
           tx_hash,
           is_system_generated,
           visibility_scope,
-          fund:funds(name, asset)
+          fund:funds!fk_transactions_v2_fund(name, asset)
         `)
         .eq("investor_id", investorId)
         .order("tx_date", { ascending: false })
