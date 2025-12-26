@@ -6,6 +6,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { invalidateAfterStatementOp } from "@/utils/cacheInvalidation";
 
 export interface StatementDraft {
   id: string;
@@ -59,7 +61,7 @@ async function fetchStatements(selectedMonth: string): Promise<StatementDraft[]>
  */
 export function useStatements(selectedMonth: string) {
   return useQuery<StatementDraft[], Error>({
-    queryKey: ["statements", selectedMonth],
+    queryKey: QUERY_KEYS.statementsMonth(selectedMonth),
     queryFn: () => fetchStatements(selectedMonth),
     enabled: !!selectedMonth,
   });
@@ -81,7 +83,7 @@ export function usePublishStatements() {
       return { count: draftsToPublish.length };
     },
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ["statements"] });
+      invalidateAfterStatementOp(queryClient);
       toast.success(`${result.count} statements are ready`);
     },
     onError: (error: Error) => {

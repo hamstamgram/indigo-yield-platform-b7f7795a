@@ -13,6 +13,8 @@ import {
 import { ibManagementService, auditLogService } from "@/services/shared";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { invalidateAfterIBOperation } from "@/utils/cacheInvalidation";
 
 export interface IBParentOption {
   id: string;
@@ -69,7 +71,7 @@ async function fetchIBSettings(investorId: string): Promise<IBConfig> {
  */
 export function useIBSettings(investorId: string) {
   return useQuery<IBConfig, Error>({
-    queryKey: ["ib-settings", investorId],
+    queryKey: QUERY_KEYS.ibSettingsInvestor(investorId),
     queryFn: () => fetchIBSettings(investorId),
     enabled: !!investorId,
   });
@@ -132,7 +134,7 @@ export function useUpdateIBConfig() {
       return result;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["ib-settings", variables.investorId] });
+      invalidateAfterIBOperation(queryClient, undefined, variables.investorId);
       toast.success(
         variables.ibParentId
           ? `Assigned IB parent with ${variables.ibPercentage}% commission`
@@ -162,7 +164,7 @@ export function useAssignIBRole() {
       return ibManagementService.assignIBRoleToUser(userId);
     },
     onSuccess: (result, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["ib-settings", variables.investorId] });
+      invalidateAfterIBOperation(queryClient, undefined, variables.investorId);
       if (result.alreadyExists) {
         toast.info("User already has the IB role");
       } else {
@@ -202,7 +204,7 @@ export function usePromoteToIB() {
       return result;
     },
     onSuccess: (result, investorId) => {
-      queryClient.invalidateQueries({ queryKey: ["ib-settings", investorId] });
+      invalidateAfterIBOperation(queryClient, undefined, investorId);
       if (result.alreadyExists) {
         toast.info("Investor already has the IB role");
       } else {
@@ -248,7 +250,7 @@ export function useRemoveIBRole() {
       }
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["ib-settings", variables.investorId] });
+      invalidateAfterIBOperation(queryClient, undefined, variables.investorId);
       toast.success("IB role removed successfully");
     },
     onError: (error: Error) => {

@@ -6,6 +6,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { invalidateAfterStatementOp } from "@/utils/cacheInvalidation";
 
 export interface GeneratedStatement {
   id: string;
@@ -55,7 +57,7 @@ export interface StatementFilters {
  */
 export function useStatementPeriods() {
   return useQuery<StatementPeriod[], Error>({
-    queryKey: ["statement-periods"],
+    queryKey: QUERY_KEYS.statementPeriods,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("statement_periods")
@@ -73,7 +75,7 @@ export function useStatementPeriods() {
  */
 export function useGeneratedStatements(filters: StatementFilters = {}) {
   return useQuery<GeneratedStatement[], Error>({
-    queryKey: ["generated-statements", filters],
+    queryKey: QUERY_KEYS.generatedStatements(filters as Record<string, unknown>),
     queryFn: async () => {
       let query = supabase
         .from("generated_statements")
@@ -126,7 +128,7 @@ export function useGeneratedStatements(filters: StatementFilters = {}) {
  */
 export function useInvestorStatements(investorId: string, limit?: number) {
   return useQuery<GeneratedStatement[], Error>({
-    queryKey: ["investor-statements", investorId, limit],
+    queryKey: QUERY_KEYS.investorStatements(investorId, limit),
     queryFn: async () => {
       let query = supabase
         .from("generated_statements")
@@ -172,8 +174,7 @@ export function useDeleteStatement() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["generated-statements"] });
-      queryClient.invalidateQueries({ queryKey: ["investor-statements"] });
+      invalidateAfterStatementOp(queryClient);
       toast.success("Statement deleted successfully");
     },
     onError: (error: Error) => {
@@ -187,7 +188,7 @@ export function useDeleteStatement() {
  */
 export function usePeriodStatementCount(periodId: string) {
   return useQuery<number, Error>({
-    queryKey: ["period-statement-count", periodId],
+    queryKey: QUERY_KEYS.periodStatementCount(periodId),
     queryFn: async () => {
       const { count, error } = await supabase
         .from("generated_statements")

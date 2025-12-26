@@ -4,7 +4,7 @@
  */
 
 import { QueryClient } from "@tanstack/react-query";
-import { QUERY_KEYS, YIELD_RELATED_KEYS, INVESTOR_RELATED_KEYS } from "@/constants/queryKeys";
+import { QUERY_KEYS, YIELD_RELATED_KEYS, INVESTOR_RELATED_KEYS, STATEMENT_RELATED_KEYS, DELIVERY_RELATED_KEYS } from "@/constants/queryKeys";
 
 /**
  * Invalidate all yield-related queries after yield distribution operations
@@ -71,6 +71,7 @@ export function invalidateAfterWithdrawal(
   // Withdrawal-specific queries
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.withdrawals });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.withdrawalRequests });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.withdrawalRequestsAdmin });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pendingWithdrawals });
   queryClient.invalidateQueries({ queryKey: ["withdrawal-stats"] });
   
@@ -87,8 +88,9 @@ export function invalidateAfterDeposit(
   investorId?: string,
   fundId?: string
 ): void {
-  queryClient.invalidateQueries({ queryKey: ["deposits"] });
-  queryClient.invalidateQueries({ queryKey: ["deposit-stats"] });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.deposits });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.depositsAdmin });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.depositStats });
   
   // Also invalidate transaction and position queries
   invalidateAfterTransaction(queryClient, investorId, fundId);
@@ -117,6 +119,7 @@ export function invalidateAfterIBOperation(
   if (investorId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investor(investorId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorDetail(investorId) });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ibSettingsInvestor(investorId) });
   }
   
   // IB allocations affect integrity
@@ -153,6 +156,48 @@ export function invalidateInvestorData(queryClient: QueryClient): void {
 }
 
 /**
+ * Invalidate queries after statement operations
+ * Use after: generateStatement, deleteStatement, publishStatement
+ */
+export function invalidateAfterStatementOp(
+  queryClient: QueryClient,
+  periodId?: string,
+  investorId?: string
+): void {
+  STATEMENT_RELATED_KEYS.forEach(key =>
+    queryClient.invalidateQueries({ queryKey: key })
+  );
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.generatedStatements() });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.statementPeriodsWithCounts });
+  
+  if (periodId) {
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.periodStatementCount(periodId) });
+  }
+  
+  if (investorId) {
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorStatements(investorId) });
+  }
+}
+
+/**
+ * Invalidate queries after delivery operations
+ * Use after: queueDelivery, sendDelivery, retryDelivery, cancelDelivery
+ */
+export function invalidateAfterDeliveryOp(
+  queryClient: QueryClient,
+  periodId?: string
+): void {
+  DELIVERY_RELATED_KEYS.forEach(key =>
+    queryClient.invalidateQueries({ queryKey: key })
+  );
+  
+  if (periodId) {
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.deliveries(periodId) });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.deliveryStats(periodId) });
+  }
+}
+
+/**
  * Full cache reset - use sparingly, only for major data resets
  */
 export function invalidateAllFinancialData(queryClient: QueryClient): void {
@@ -168,7 +213,7 @@ export function invalidateAllFinancialData(queryClient: QueryClient): void {
   
   // Withdrawals and deposits
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.withdrawals });
-  queryClient.invalidateQueries({ queryKey: ["deposits"] });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.deposits });
   
   // Integrity
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });

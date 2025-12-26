@@ -52,7 +52,13 @@ export const QUERY_KEYS = {
   // ============ Withdrawals ============
   withdrawals: ["withdrawals"] as const,
   withdrawalRequests: ["withdrawal-requests"] as const,
+  withdrawalRequestsAdmin: ["withdrawal-requests-admin"] as const,
   pendingWithdrawals: ["pending-withdrawals"] as const,
+
+  // ============ Deposits ============
+  deposits: ["deposits"] as const,
+  depositsAdmin: ["deposits-admin"] as const,
+  depositStats: ["deposit-stats"] as const,
 
   // ============ Dashboard ============
   dashboardStats: ["dashboard-stats"] as const,
@@ -60,6 +66,7 @@ export const QUERY_KEYS = {
 
   // ============ IB (Introducing Broker) ============
   ibSettings: ["ib-settings"] as const,
+  ibSettingsInvestor: (investorId: string) => ["ib-settings", investorId] as const,
   ibReferrals: (ibId?: string) => ibId 
     ? ["ib-referrals", ibId] as const 
     : ["ib-referrals"] as const,
@@ -70,7 +77,19 @@ export const QUERY_KEYS = {
   // ============ Reports & Statements ============
   reports: ["reports"] as const,
   statements: ["statements"] as const,
+  statementsMonth: (month: string) => ["statements", month] as const,
   statementPeriods: ["statement-periods"] as const,
+  statementPeriodsWithCounts: ["statement-periods-with-counts"] as const,
+  generatedStatements: (filters?: Record<string, unknown>) => 
+    filters ? ["generated-statements", filters] as const : ["generated-statements"] as const,
+  investorStatements: (investorId: string, limit?: number) => 
+    limit ? ["investor-statements", investorId, limit] as const : ["investor-statements", investorId] as const,
+  periodStatementCount: (periodId: string) => ["period-statement-count", periodId] as const,
+
+  // ============ Deliveries ============
+  deliveries: (periodId?: string, filters?: Record<string, unknown>) => 
+    periodId ? ["deliveries", periodId, filters] as const : ["deliveries"] as const,
+  deliveryStats: (periodId: string) => ["delivery-stats", periodId] as const,
 
   // ============ Month Closure ============
   monthClosure: (fundId: string, month: string) => ["month-closure", fundId, month] as const,
@@ -108,4 +127,20 @@ export const INVESTOR_RELATED_KEYS = [
   QUERY_KEYS.investorPositions(),
   QUERY_KEYS.transactions,
   QUERY_KEYS.dashboardStats,
+];
+
+/**
+ * Helper for statement-related queries
+ */
+export const STATEMENT_RELATED_KEYS = [
+  QUERY_KEYS.statements,
+  QUERY_KEYS.statementPeriods,
+  QUERY_KEYS.reports,
+];
+
+/**
+ * Helper for delivery-related queries
+ */
+export const DELIVERY_RELATED_KEYS = [
+  QUERY_KEYS.deliveries(),
 ];

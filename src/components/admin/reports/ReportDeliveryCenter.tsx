@@ -73,6 +73,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info } from "lucide-react";
 import { DeliveryExclusionStats } from "./DeliveryExclusionStats";
 import { TruncatedText } from "@/components/ui/truncated-text";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { invalidateAfterDeliveryOp } from "@/utils/cacheInvalidation";
 
 // MailerSend trial account limits (typical)
 const MAILERSEND_TRIAL_LIMIT = 100; // emails per month for trial accounts
@@ -162,7 +164,7 @@ export default function ReportDeliveryCenter() {
 
   // Fetch periods with statement counts
   const { data: periodsWithCounts = [] } = useQuery({
-    queryKey: ["statement-periods-with-counts"],
+    queryKey: QUERY_KEYS.statementPeriodsWithCounts,
     queryFn: async () => {
       const { data: periodsData, error: periodsError } = await supabase
         .from("statement_periods")
@@ -207,7 +209,7 @@ export default function ReportDeliveryCenter() {
 
   // Fetch delivery stats
   const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ["delivery-stats", selectedPeriodId],
+    queryKey: QUERY_KEYS.deliveryStats(selectedPeriodId),
     queryFn: async () => {
       if (!selectedPeriodId) return null;
       const { data, error } = await supabase.rpc("get_delivery_stats", {
@@ -221,7 +223,7 @@ export default function ReportDeliveryCenter() {
 
   // Fetch deliveries
   const { data: deliveries = [], isLoading: deliveriesLoading, refetch: refetchDeliveries } = useQuery({
-    queryKey: ["deliveries", selectedPeriodId, statusFilter, channelFilter, deliveryModeFilter, searchQuery],
+    queryKey: QUERY_KEYS.deliveries(selectedPeriodId, { statusFilter, channelFilter, deliveryModeFilter, searchQuery }),
     queryFn: async () => {
       if (!selectedPeriodId) return [];
       
@@ -274,8 +276,7 @@ export default function ReportDeliveryCenter() {
       toast.success(`Queued ${result.queued_count} deliveries`, {
         description: `${result.already_exists_count} already existed, ${result.skipped_missing_email} skipped (no email)`,
       });
-      queryClient.invalidateQueries({ queryKey: ["deliveries"] });
-      queryClient.invalidateQueries({ queryKey: ["delivery-stats"] });
+      invalidateAfterDeliveryOp(queryClient, selectedPeriodId);
     },
     onError: (error) => {
       toast.error(`Failed to queue: ${error.message}`);
@@ -295,8 +296,7 @@ export default function ReportDeliveryCenter() {
       toast.success("Report sent", {
         description: `Message ID: ${data.message_id?.slice(0, 12)}...`,
       });
-      queryClient.invalidateQueries({ queryKey: ["deliveries"] });
-      queryClient.invalidateQueries({ queryKey: ["delivery-stats"] });
+      invalidateAfterDeliveryOp(queryClient, selectedPeriodId);
     },
     onError: (error) => {
       const errorMessage = error.message || "Unknown error";
@@ -434,8 +434,7 @@ export default function ReportDeliveryCenter() {
             : "All queued emails have been delivered.",
         });
       }
-      queryClient.invalidateQueries({ queryKey: ["deliveries"] });
-      queryClient.invalidateQueries({ queryKey: ["delivery-stats"] });
+      invalidateAfterDeliveryOp(queryClient, selectedPeriodId);
     },
     onError: (error) => {
       setSendProgress(null);
@@ -467,8 +466,7 @@ export default function ReportDeliveryCenter() {
     },
     onSuccess: () => {
       toast.success("Delivery re-queued for retry");
-      queryClient.invalidateQueries({ queryKey: ["deliveries"] });
-      queryClient.invalidateQueries({ queryKey: ["delivery-stats"] });
+      invalidateAfterDeliveryOp(queryClient, selectedPeriodId);
     },
     onError: (error) => {
       toast.error(`Failed to retry: ${error.message}`);
@@ -485,8 +483,7 @@ export default function ReportDeliveryCenter() {
     },
     onSuccess: () => {
       toast.success("Delivery cancelled");
-      queryClient.invalidateQueries({ queryKey: ["deliveries"] });
-      queryClient.invalidateQueries({ queryKey: ["delivery-stats"] });
+      invalidateAfterDeliveryOp(queryClient, selectedPeriodId);
     },
     onError: (error) => {
       toast.error(`Failed to cancel: ${error.message}`);
@@ -504,8 +501,7 @@ export default function ReportDeliveryCenter() {
     },
     onSuccess: () => {
       toast.success("Marked as sent");
-      queryClient.invalidateQueries({ queryKey: ["deliveries"] });
-      queryClient.invalidateQueries({ queryKey: ["delivery-stats"] });
+      invalidateAfterDeliveryOp(queryClient, selectedPeriodId);
       setSelectedDelivery(null);
     },
     onError: (error) => {
@@ -525,8 +521,7 @@ export default function ReportDeliveryCenter() {
     onSuccess: (data) => {
       if (data.status_changed) {
         toast.success(`Status updated: ${data.old_status} → ${data.new_status}`);
-        queryClient.invalidateQueries({ queryKey: ["deliveries"] });
-        queryClient.invalidateQueries({ queryKey: ["delivery-stats"] });
+        invalidateAfterDeliveryOp(queryClient, selectedPeriodId);
       } else {
         toast.info("Status unchanged", {
           description: `Current status: ${data.new_status}`,
