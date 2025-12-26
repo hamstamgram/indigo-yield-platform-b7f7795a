@@ -24,6 +24,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { invalidateAfterWithdrawal } from "@/utils/cacheInvalidation";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface EditWithdrawalDialogProps {
   open: boolean;
@@ -90,8 +98,7 @@ export function EditWithdrawalDialog({
       }
 
       toast.success("Withdrawal updated successfully");
-      queryClient.invalidateQueries({ queryKey: ["withdrawals"] });
-      queryClient.invalidateQueries({ queryKey: ["withdrawal-details", withdrawal.id] });
+      invalidateAfterWithdrawal(queryClient, withdrawal.investor_id, withdrawal.fund_id, withdrawal.id);
       onOpenChange(false);
       onSuccess?.();
     } catch (err) {

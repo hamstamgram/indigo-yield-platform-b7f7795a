@@ -7,6 +7,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchInvestorPositions, fetchInvestorsForSelector, InvestorPositionRow } from "@/services/investor";
 import { toast } from "sonner";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { invalidateInvestorData } from "@/utils/cacheInvalidation";
 
 export interface InvestorListItem {
   id: string;
@@ -49,7 +51,7 @@ export interface InvestorSelectorItem {
  */
 export function useInvestorList() {
   return useQuery<InvestorListItem[], Error>({
-    queryKey: ["investor-list"],
+    queryKey: QUERY_KEYS.investorList,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
@@ -68,7 +70,7 @@ export function useInvestorList() {
  */
 export function useInvestorsForSelector(includeSystemAccounts = true) {
   return useQuery<InvestorSelectorItem[], Error>({
-    queryKey: ["investors-selector", includeSystemAccounts],
+    queryKey: QUERY_KEYS.investorsSelector(includeSystemAccounts),
     queryFn: () => fetchInvestorsForSelector(includeSystemAccounts),
   });
 }
@@ -78,7 +80,7 @@ export function useInvestorsForSelector(includeSystemAccounts = true) {
  */
 export function useInvestorPositions(investorId: string) {
   return useQuery<InvestorPositionRow[], Error>({
-    queryKey: ["investor-positions", investorId],
+    queryKey: QUERY_KEYS.investorPositions(investorId),
     queryFn: () => fetchInvestorPositions(investorId),
     enabled: !!investorId,
   });
@@ -89,7 +91,7 @@ export function useInvestorPositions(investorId: string) {
  */
 export function useInvestorQuickView(investorId: string) {
   return useQuery<InvestorQuickViewData, Error>({
-    queryKey: ["investor-quick-view", investorId],
+    queryKey: QUERY_KEYS.investorQuickView(investorId),
     queryFn: async () => {
       // Load positions from v_live_investor_balances view
       const { data: positionsData } = await supabase
@@ -167,7 +169,7 @@ export function useInvestorQuickView(investorId: string) {
  */
 export function useInvestorRecentActivity(investorId: string, limit = 5) {
   return useQuery({
-    queryKey: ["investor-recent-activity", investorId, limit],
+    queryKey: QUERY_KEYS.investorRecentActivity(investorId, limit),
     queryFn: async () => {
       // Load recent transactions - use tx_date (actual column name)
       const { data: txData } = await supabase
@@ -248,8 +250,7 @@ export function useUpdateInvestorStatus() {
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["investor-list"] });
-      queryClient.invalidateQueries({ queryKey: ["investor-quick-view", variables.investorId] });
+      invalidateInvestorData(queryClient, variables.investorId);
       toast.success("Investor updated");
     },
     onError: (error: Error) => {

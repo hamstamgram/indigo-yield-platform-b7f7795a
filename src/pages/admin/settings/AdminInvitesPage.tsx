@@ -46,6 +46,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks";
 import { adminInviteService, AdminInvite } from "@/services/admin/adminInviteService";
+import { invalidateAfterAdminInviteOp } from "@/utils/cacheInvalidation";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { SuperAdminGuard } from "@/components/admin/SuperAdminGuard";
 import {
   Users,
@@ -82,7 +84,7 @@ function AdminInvitesContent() {
 
   // Fetch invites using service
   const { data: invites, isLoading } = useQuery({
-    queryKey: ["admin-invites"],
+    queryKey: QUERY_KEYS.adminInvites,
     queryFn: () => adminInviteService.getAll(),
   });
 
@@ -91,7 +93,7 @@ function AdminInvitesContent() {
     mutationFn: ({ email, role }: { email: string; role: string }) =>
       adminInviteService.create(email, role),
     onSuccess: ({ email, inviteCode }) => {
-      queryClient.invalidateQueries({ queryKey: ["admin-invites"] });
+      invalidateAfterAdminInviteOp(queryClient);
       const inviteLink = `${window.location.origin}/admin/invite?code=${inviteCode}`;
       
       // Copy to clipboard
@@ -123,7 +125,7 @@ function AdminInvitesContent() {
   const revokeMutation = useMutation({
     mutationFn: (inviteId: string) => adminInviteService.revoke(inviteId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-invites"] });
+      invalidateAfterAdminInviteOp(queryClient);
       toast({
         title: "Invite Revoked",
         description: "The invitation has been revoked",

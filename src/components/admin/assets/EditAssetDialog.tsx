@@ -22,6 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { assetService } from "@/services/shared/assetService";
 import type { Asset, AssetFormData, AssetKind } from "@/types/asset";
+import { invalidateAfterAssetOp } from "@/utils/cacheInvalidation";
 
 interface EditAssetDialogProps {
   asset: Asset;
@@ -52,8 +53,7 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
     mutationFn: (data: Partial<AssetFormData>) => assetService.updateAsset(asset.asset_id, data),
     onSuccess: () => {
       toast.success("Asset updated successfully");
-      queryClient.invalidateQueries({ queryKey: ["assets"] });
-      queryClient.invalidateQueries({ queryKey: ["asset-stats"] });
+      invalidateAfterAssetOp(queryClient, asset.asset_id);
       onOpenChange(false);
     },
     onError: (error: Error) => {

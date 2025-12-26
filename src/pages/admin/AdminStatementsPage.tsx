@@ -26,6 +26,8 @@ import { Loader2, FileText, Download, Send, Calendar, User } from "lucide-react"
 import { format } from "date-fns";
 import { generatePDF } from "@/lib/pdf/statementGenerator";
 import { profileService, statementsService, documentService } from "@/services/shared";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { invalidateAfterStatementOp } from "@/utils/cacheInvalidation";
 
 export default function AdminStatementsPage() {
   const [selectedInvestor, setSelectedInvestor] = useState<string>("");
@@ -56,7 +58,7 @@ export default function AdminStatementsPage() {
 
   // Fetch all investors via service
   const { data: investors, isLoading: investorsLoading } = useQuery({
-    queryKey: ["investors-all"],
+    queryKey: QUERY_KEYS.investorsAll,
     queryFn: async () => {
       const profiles = await profileService.getActiveInvestors();
       return profiles?.map(p => ({
@@ -69,7 +71,7 @@ export default function AdminStatementsPage() {
 
   // Fetch existing statements via service
   const { data: statements, isLoading: statementsLoading } = useQuery({
-    queryKey: ["statements-admin"],
+    queryKey: QUERY_KEYS.statementsAdmin,
     queryFn: async () => {
       return documentService.getStatementDocuments(50);
     },
@@ -157,9 +159,9 @@ export default function AdminStatementsPage() {
 
       return { statementData };
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       toast.success("Statement generated successfully");
-      queryClient.invalidateQueries({ queryKey: ["statements-admin"] });
+      invalidateAfterStatementOp(queryClient, undefined, variables.investorId);
       setGeneratingStatement(null);
     },
     onError: (error: Error) => {
