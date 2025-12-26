@@ -222,16 +222,27 @@ export function useInvestorRecentActivity(investorId: string, limit = 5) {
 }
 
 /**
- * Hook to update investor status
+ * Hook to update investor status or other profile fields
  */
 export function useUpdateInvestorStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ investorId, status }: { investorId: string; status: string }) => {
+    mutationFn: async ({ 
+      investorId, 
+      status,
+      updates 
+    }: { 
+      investorId: string; 
+      status?: string;
+      updates?: Record<string, any>;
+    }) => {
+      const updateData = updates || (status ? { status } : {});
+      updateData.updated_at = new Date().toISOString();
+      
       const { error } = await supabase
         .from("profiles")
-        .update({ status })
+        .update(updateData)
         .eq("id", investorId);
 
       if (error) throw error;
@@ -239,10 +250,10 @@ export function useUpdateInvestorStatus() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["investor-list"] });
       queryClient.invalidateQueries({ queryKey: ["investor-quick-view", variables.investorId] });
-      toast.success("Investor status updated");
+      toast.success("Investor updated");
     },
     onError: (error: Error) => {
-      toast.error(`Failed to update status: ${error.message}`);
+      toast.error(`Failed to update investor: ${error.message}`);
     },
   });
 }

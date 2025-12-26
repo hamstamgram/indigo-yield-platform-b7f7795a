@@ -1,13 +1,12 @@
-import { useState, useEffect } from "react";
-import { User, User2, Mail, Phone, Upload } from "lucide-react";
+/**
+ * ProfileTab - Read-only profile display
+ * Note: This component receives profile data as props, no direct Supabase import needed
+ */
+import { User, User2, Mail, Phone } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 interface ProfileTabProps {
   profile: any;

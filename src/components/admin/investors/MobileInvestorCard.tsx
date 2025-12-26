@@ -1,10 +1,14 @@
+/**
+ * MobileInvestorCard - Mobile view for investor cards
+ * Refactored to use useUpdateInvestorStatus data hook
+ */
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Send, Save } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { useUpdateInvestorStatus } from "@/hooks/data";
 import { Asset } from "@/types/investorTypes";
 import { InvestorSummaryV2 } from "@/services/admin/adminService";
 import { TruncatedText } from "@/components/ui/truncated-text";
@@ -51,6 +55,8 @@ const MobileInvestorCard = ({
     }));
   };
 
+  const updateInvestorStatus = useUpdateInvestorStatus();
+
   const handleSave = async () => {
     try {
       setIsSaving(true);
@@ -61,18 +67,11 @@ const MobileInvestorCard = ({
         throw new Error("Invalid fee percentage");
       }
 
-      // Update fee percentage in profile
-      const { error: feeError } = await supabase
-        .from("profiles")
-        .update({
-          fee_percentage: feeValue,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", investor.id);
-
-      if (feeError) {
-        throw feeError;
-      }
+      // Update fee percentage using data hook
+      await updateInvestorStatus.mutateAsync({
+        investorId: investor.id,
+        updates: { fee_percentage: feeValue },
+      });
 
       // Convert input values to portfolio entries
       const portfolioUpdates = assets
