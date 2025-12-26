@@ -16,7 +16,7 @@ import { InstallPrompt as SimpleInstallPrompt } from "./pwa/installPrompt";
 
 // Routing
 import { AppRoutes } from "./routing/AppRoutes";
-import { useFocusManagement } from "./hooks/useFocusManagement";
+import { useFocusManagement } from "@/hooks";
 import { RouteSuspense } from "./routing/RouteSuspense";
 
 // Create a QueryClient instance with optimized config

@@ -20,3 +20,21 @@ export { useSortableColumns, type SortDirection, type SortConfig } from "./useSo
 
 // Keyboard shortcuts
 export { useKeyboardShortcuts, SHORTCUTS, formatShortcut } from "./useKeyboardShortcuts";
+
+// Debounce
+export { useDebounce } from "./useDebounce";
+
+// Focus management
+export { useFocusManagement } from "./useFocusManagement";
+
+// Inline management toggle
+export { useInlineManagementToggle } from "./useInlineManagementToggle";
+
+// Intersection observer
+export { useIntersectionObserver } from "./useIntersectionObserver";
+
+// Local storage
+export { useLocalStorage } from "./useLocalStorage";
+
+// Optimized callback
+export { useOptimizedCallback } from "./useOptimizedCallback";

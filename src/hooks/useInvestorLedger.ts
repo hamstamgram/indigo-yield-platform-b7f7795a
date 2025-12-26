@@ -1,2 +1,5 @@
-// Re-export from new location for backward compatibility
+/**
+ * Backward compatibility re-export
+ * @deprecated Import from "@/hooks" instead
+ */
 export { useInvestorLedger, type Transaction } from "./data/useInvestorLedger";

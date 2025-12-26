@@ -5,7 +5,7 @@
  */
 
 import * as React from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks";
 import { cn } from "@/lib/utils";
 import {
   Table,

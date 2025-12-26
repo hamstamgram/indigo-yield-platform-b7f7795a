@@ -2,7 +2,7 @@ import * as React from "react";
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import { TableHead } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import type { SortDirection } from "@/hooks/useSortableColumns";
+import type { SortDirection } from "@/hooks";
 
 interface SortableTableHeadProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
   column: string;
