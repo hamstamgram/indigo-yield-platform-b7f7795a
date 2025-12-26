@@ -7,8 +7,8 @@ import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const UnifiedInvestorsPage = lazy(() => import("@/routes/admin/UnifiedInvestorsPage"));
-const InvestorManagement = lazy(() => import("@/routes/admin/investors/InvestorManagement"));
+const UnifiedInvestorsPage = lazy(() => import("@/pages/admin/UnifiedInvestorsPage"));
+const InvestorManagement = lazy(() => import("@/pages/admin/investors/InvestorManagement"));
 
 export function InvestorRoutes() {
   return (

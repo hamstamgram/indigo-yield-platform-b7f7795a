@@ -4,105 +4,105 @@ import { RouteSuspense } from "./RouteSuspense";
 // ============================================================================
 // PUBLIC PAGES
 // ============================================================================
-export const ForgotPassword = lazy(() => import("@/routes/ForgotPassword"));
-export const Health = lazy(() => import("@/routes/Health"));
-export const Login = lazy(() => import("@/routes/Login"));
-export const NotFound = lazy(() => import("@/routes/NotFound"));
-export const Privacy = lazy(() => import("@/routes/Privacy"));
-export const ResetPassword = lazy(() => import("@/routes/ResetPassword"));
-export const Status = lazy(() => import("@/routes/Status"));
-export const Terms = lazy(() => import("@/routes/Terms"));
+export const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
+export const Health = lazy(() => import("@/pages/Health"));
+export const Login = lazy(() => import("@/pages/Login"));
+export const NotFound = lazy(() => import("@/pages/NotFound"));
+export const Privacy = lazy(() => import("@/pages/Privacy"));
+export const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
+export const Status = lazy(() => import("@/pages/Status"));
+export const Terms = lazy(() => import("@/pages/Terms"));
 
 // ============================================================================
 // ADMIN PAGES
 // ============================================================================
-export const AdminAuditLogs = lazy(() => import("@/routes/admin/AdminAuditLogs"));
-export const AdminDashboard = lazy(() => import("@/routes/admin/AdminDashboard"));
-export const AdminDepositsPage = lazy(() => import("@/routes/admin/AdminDepositsPage"));
-export const AdminEmailTrackingPage = lazy(() => import("@/routes/admin/AdminEmailTrackingPage"));
-export const AdminOperationsHub = lazy(() => import("@/routes/admin/AdminOperationsHub"));
-export const AdminRequestsQueuePage = lazy(() => import("@/routes/admin/AdminRequestsQueuePage"));
-export const AdminSettings = lazy(() => import("@/routes/admin/AdminSettings"));
-export const AdminStatementsPage = lazy(() => import("@/routes/admin/AdminStatementsPage"));
+export const AdminAuditLogs = lazy(() => import("@/pages/admin/AdminAuditLogs"));
+export const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
+export const AdminDepositsPage = lazy(() => import("@/pages/admin/AdminDepositsPage"));
+export const AdminEmailTrackingPage = lazy(() => import("@/pages/admin/AdminEmailTrackingPage"));
+export const AdminOperationsHub = lazy(() => import("@/pages/admin/AdminOperationsHub"));
+export const AdminRequestsQueuePage = lazy(() => import("@/pages/admin/AdminRequestsQueuePage"));
+export const AdminSettings = lazy(() => import("@/pages/admin/AdminSettings"));
+export const AdminStatementsPage = lazy(() => import("@/pages/admin/AdminStatementsPage"));
 
-export const AdminUserManagement = lazy(() => import("@/routes/admin/AdminUserManagement"));
-export const AdminWithdrawalsPage = lazy(() => import("@/routes/admin/AdminWithdrawalsPage"));
-export const DailyRatesManagement = lazy(() => import("@/routes/admin/DailyRatesManagement"));
-export const InvestorReports = lazy(() => import("@/routes/admin/InvestorReports"));
-export const MonthlyDataEntry = lazy(() => import("@/routes/admin/MonthlyDataEntry"));
+export const AdminUserManagement = lazy(() => import("@/pages/admin/AdminUserManagement"));
+export const AdminWithdrawalsPage = lazy(() => import("@/pages/admin/AdminWithdrawalsPage"));
+export const DailyRatesManagement = lazy(() => import("@/pages/admin/DailyRatesManagement"));
+export const InvestorReports = lazy(() => import("@/pages/admin/InvestorReports"));
+export const MonthlyDataEntry = lazy(() => import("@/pages/admin/MonthlyDataEntry"));
 
 // Admin Sub-pages
-export const InvestorManagement = lazy(() => import("@/routes/admin/investors/InvestorManagement"));
-export const WithdrawalsPage = lazy(() => import("@/routes/admin/investors/WithdrawalsPage"));
-export const AdminInvite = lazy(() => import("@/routes/admin/settings/AdminInvite"));
-export const SystemHealthPage = lazy(() => import("@/routes/admin/system-health/SystemHealthPage"));
+export const InvestorManagement = lazy(() => import("@/pages/admin/investors/InvestorManagement"));
+export const WithdrawalsPage = lazy(() => import("@/pages/admin/investors/WithdrawalsPage"));
+export const AdminInvite = lazy(() => import("@/pages/admin/settings/AdminInvite"));
+export const SystemHealthPage = lazy(() => import("@/pages/admin/system-health/SystemHealthPage"));
 export const AdminTransactionsPage = lazy(
-  () => import("@/routes/admin/transactions/AdminTransactionsPage")
+  () => import("@/pages/admin/transactions/AdminTransactionsPage")
 );
 export const AdminManualTransaction = lazy(
-  () => import("@/routes/admin/transactions/AdminManualTransaction")
+  () => import("@/pages/admin/transactions/AdminManualTransaction")
 );
 
 // ============================================================================
 // AUTH PAGES
 // ============================================================================
-export const LoginPage = lazy(() => import("@/routes/auth/LoginPage"));
-export const MfaSetupPage = lazy(() => import("@/routes/auth/MfaSetupPage"));
-export const RegisterPage = lazy(() => import("@/routes/auth/RegisterPage"));
-export const VerifyEmailPage = lazy(() => import("@/routes/auth/VerifyEmailPage"));
+export const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
+export const MfaSetupPage = lazy(() => import("@/pages/auth/MfaSetupPage"));
+export const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"));
+export const VerifyEmailPage = lazy(() => import("@/pages/auth/VerifyEmailPage"));
 
 // ============================================================================
 // DASHBOARD PAGES
 // ============================================================================
-export const DashboardPage = lazy(() => import("@/routes/dashboard/DashboardPage"));
-export const PortfolioPage = lazy(() => import("@/routes/dashboard/PortfolioPage"));
+export const DashboardPage = lazy(() => import("@/pages/dashboard/DashboardPage"));
+export const PortfolioPage = lazy(() => import("@/pages/dashboard/PortfolioPage"));
 
 // ============================================================================
 // INVESTOR PAGES
 // ============================================================================
-export const AccountPage = lazy(() => import("@/routes/investor/account/AccountPage"));
-export const NotificationsPage = lazy(() => import("@/routes/investor/account/NotificationsPage"));
+export const AccountPage = lazy(() => import("@/pages/investor/account/AccountPage"));
+export const NotificationsPage = lazy(() => import("@/pages/investor/account/NotificationsPage"));
 export const SessionManagementPage = lazy(
-  () => import("@/routes/investor/account/SessionManagementPage")
+  () => import("@/pages/investor/account/SessionManagementPage")
 );
 // SettingsPage removed - merged into AccountPage
 export const PortfolioAnalyticsPage = lazy(
-  () => import("@/routes/investor/portfolio/PortfolioAnalyticsPage")
+  () => import("@/pages/investor/portfolio/PortfolioAnalyticsPage")
 );
-export const PortfolioIndex = lazy(() => import("@/routes/investor/portfolio/index"));
-export const StatementsPage = lazy(() => import("@/routes/investor/statements/StatementsPage"));
+export const PortfolioIndex = lazy(() => import("@/pages/investor/portfolio/index"));
+export const StatementsPage = lazy(() => import("@/pages/investor/statements/StatementsPage"));
 
 // Transactions
-export const TransactionsPage = lazy(() => import("@/routes/transactions/TransactionsPage"));
+export const TransactionsPage = lazy(() => import("@/pages/transactions/TransactionsPage"));
 
 // ============================================================================
 // FEATURE PAGES
 // ============================================================================
 
 export const NotificationSettingsPage = lazy(
-  () => import("@/routes/settings/NotificationSettingsPage")
+  () => import("@/pages/settings/NotificationSettingsPage")
 );
 
 
-export const CustomReport = lazy(() => import("@/routes/reports/CustomReport"));
-export const PerformanceReportPage = lazy(() => import("@/routes/reports/PerformanceReportPage"));
-export const ReportsPage = lazy(() => import("@/routes/reports/ReportsPage"));
+export const CustomReport = lazy(() => import("@/pages/reports/CustomReport"));
+export const PerformanceReportPage = lazy(() => import("@/pages/reports/PerformanceReportPage"));
+export const ReportsPage = lazy(() => import("@/pages/reports/ReportsPage"));
 
 // SettingsNotificationsPage is the same as NotificationSettingsPage - use that instead
 
 export const PendingTransactionsPage = lazy(
-  () => import("@/routes/transactions/PendingTransactionsPage")
+  () => import("@/pages/transactions/PendingTransactionsPage")
 );
 export const PendingTransactionDetailsPage = lazy(
-  () => import("@/routes/transactions/PendingTransactionDetailsPage")
+  () => import("@/pages/transactions/PendingTransactionDetailsPage")
 );
 export const TransactionDetailsPage = lazy(
-  () => import("@/routes/transactions/TransactionDetailsPage")
+  () => import("@/pages/transactions/TransactionDetailsPage")
 );
 // TransactionsPageV2 alias removed - use TransactionsPage directly
 
 export const WithdrawalHistoryPage = lazy(
-  () => import("@/routes/withdrawals/WithdrawalHistoryPage")
+  () => import("@/pages/withdrawals/WithdrawalHistoryPage")
 );
 
 // ============================================================================

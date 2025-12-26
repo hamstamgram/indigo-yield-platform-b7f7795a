@@ -8,15 +8,15 @@ import { lazy } from "react";
 import { ProtectedRoute } from "../../ProtectedRoute";
 
 // New investor pages
-const InvestorOverviewPage = lazy(() => import("@/routes/investor/InvestorOverviewPage"));
-const InvestorPortfolioPage = lazy(() => import("@/routes/investor/InvestorPortfolioPage"));
-const InvestorPerformancePage = lazy(() => import("@/routes/investor/InvestorPerformancePage"));
-const InvestorTransactionsPage = lazy(() => import("@/routes/investor/InvestorTransactionsPage"));
-const StatementsPage = lazy(() => import("@/routes/investor/statements/StatementsPage"));
-const InvestorDocumentsPage = lazy(() => import("@/routes/investor/InvestorDocumentsPage"));
-const InvestorSettingsPage = lazy(() => import("@/routes/investor/InvestorSettingsPage"));
-const TransactionDetailsPage = lazy(() => import("@/routes/transactions/TransactionDetailsPage"));
-const FundDetailsPage = lazy(() => import("@/routes/investor/funds/FundDetailsPage"));
+const InvestorOverviewPage = lazy(() => import("@/pages/investor/InvestorOverviewPage"));
+const InvestorPortfolioPage = lazy(() => import("@/pages/investor/InvestorPortfolioPage"));
+const InvestorPerformancePage = lazy(() => import("@/pages/investor/InvestorPerformancePage"));
+const InvestorTransactionsPage = lazy(() => import("@/pages/investor/InvestorTransactionsPage"));
+const StatementsPage = lazy(() => import("@/pages/investor/statements/StatementsPage"));
+const InvestorDocumentsPage = lazy(() => import("@/pages/investor/InvestorDocumentsPage"));
+const InvestorSettingsPage = lazy(() => import("@/pages/investor/InvestorSettingsPage"));
+const TransactionDetailsPage = lazy(() => import("@/pages/transactions/TransactionDetailsPage"));
+const FundDetailsPage = lazy(() => import("@/pages/investor/funds/FundDetailsPage"));
 
 export function CoreInvestorRoutes() {
   return (

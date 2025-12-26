@@ -7,7 +7,7 @@ import { Route } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const IBManagementPage = lazy(() => import("@/routes/admin/ib/IBManagementPage"));
+const IBManagementPage = lazy(() => import("@/pages/admin/ib/IBManagementPage"));
 
 export function IBRoutes() {
   return (

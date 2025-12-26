@@ -8,10 +8,10 @@ import { lazy } from "react";
 import { ProtectedRoute } from "../../ProtectedRoute";
 
 // Portfolio pages
-const WithdrawalsPage = lazy(() => import("@/routes/withdrawals/WithdrawalHistoryPage"));
-const NewWithdrawalPage = lazy(() => import("@/routes/withdrawals/NewWithdrawalPage"));
+const WithdrawalsPage = lazy(() => import("@/pages/withdrawals/WithdrawalHistoryPage"));
+const NewWithdrawalPage = lazy(() => import("@/pages/withdrawals/NewWithdrawalPage"));
 const PortfolioAnalyticsPage = lazy(
-  () => import("@/routes/investor/portfolio/PortfolioAnalyticsPage")
+  () => import("@/pages/investor/portfolio/PortfolioAnalyticsPage")
 );
 
 export function PortfolioRoutes() {
