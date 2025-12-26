@@ -27,10 +27,12 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Loader2, AlertTriangle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth/context";
 import { FundLogoUpload } from "./FundLogoUpload";
 import { format } from "date-fns";
+import { updateFund } from "@/services/admin/fundService";
+import { auditLogService, positionService } from "@/services/shared";
+import { supabase } from "@/integrations/supabase/client";
 
 const editFundSchema = z.object({
   name: z
@@ -185,22 +187,19 @@ export function EditFundDialog({
         updatePayload.code = `IND-${data.asset.toUpperCase()}`;
       }
 
-      const { error: updateError } = await supabase
-        .from("funds")
-        .update(updatePayload)
-        .eq("id", fund.id);
+      await updateFund(fund.id, updatePayload);
 
-      if (updateError) throw updateError;
-
-      // Audit log
-      await supabase.from("audit_log").insert({
-        actor_user: user?.id,
-        action: "UPDATE_FUND",
-        entity: "fund",
-        entity_id: fund.id,
-        old_values: oldValues,
-        new_values: updatePayload,
-      });
+      // Audit log using service
+      if (user) {
+        await auditLogService.logEvent({
+          actorUserId: user.id,
+          action: "UPDATE_FUND",
+          entity: "fund",
+          entityId: fund.id,
+          oldValues,
+          newValues: updatePayload,
+        });
+      }
 
       toast.success(`Fund "${data.name}" updated successfully`);
       onSuccess();

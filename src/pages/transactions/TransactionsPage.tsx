@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +8,8 @@ import { useState } from "react";
 import { ResponsiveTable } from "@/components/ui/responsive-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { transactionsV2Service } from "@/services/investor";
 
 export default function TransactionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -21,24 +22,9 @@ export default function TransactionsPage() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
 
-      // 1. Get Investor ID (One ID: it's the user.id)
-      const investorId = user.id;
-
-      // 2. Query transactions_v2
-      let query = supabase.from("transactions_v2").select("*").eq("investor_id", investorId);
-
-      if (searchTerm) {
-        // Note: notes search might need exact match or text search index if simple ILIKE fails on large datasets,
-        // but standard ILIKE works for small-medium.
-        // asset is text, notes is text.
-        query = query.or(`asset.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%`);
-      }
-
-      const { data, error } = await query
-        .order("tx_date", { ascending: false })
-        .order("id", { ascending: false }); // Deterministic tie-breaker for same-day ordering
-      if (error) throw error;
-      return data;
+      return transactionsV2Service.getByInvestorId(user.id, {
+        search: searchTerm || undefined,
+      });
     },
   });
 

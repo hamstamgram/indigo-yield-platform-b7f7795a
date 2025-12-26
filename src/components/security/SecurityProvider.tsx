@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { applySecurityHeaders, generateCSRFToken, validateCSRFToken } from "@/lib/security/headers";
+import { auditLogService } from "@/services/shared";
 import { supabase } from "@/integrations/supabase/client";
 
 interface SecurityContextType {
@@ -76,10 +77,10 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from("audit_log").insert({
-          entity: "security",
+        await auditLogService.logEvent({
+          actorUserId: user.id,
           action: eventType,
-          actor_user: user.id,
+          entity: "security",
           meta: details || {},
         });
       }

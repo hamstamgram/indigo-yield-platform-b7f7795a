@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/lib/auth/context";
-import { supabase } from "@/integrations/supabase/client";
+import { profileService } from "@/services/shared";
 
 interface ProfileData {
   firstName?: string;
@@ -55,27 +55,21 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (error) throw error;
+      const data = await profileService.getById(user.id);
 
       if (data) {
         setProfileData({
-          firstName: data.first_name ?? undefined,
-          lastName: data.last_name ?? undefined,
+          firstName: data.firstName ?? undefined,
+          lastName: data.lastName ?? undefined,
           email: user.email || "",
-          phone: data.phone ?? undefined,
+          phone: undefined,
           address: undefined,
           city: undefined,
           state: undefined,
           postalCode: undefined,
           country: undefined,
           dateOfBirth: undefined,
-          accountCreated: data.created_at,
+          accountCreated: undefined,
           twoFactorEnabled: profile?.totp_verified || false,
           emailVerified: user.email_confirmed_at != null,
           phoneVerified: false,
@@ -92,14 +86,14 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
     if (!user) return;
 
     try {
-      const documentsRes = await supabase.from("documents").select("id").eq("user_id", user.id);
+      const documentsCount = await profileService.countDocuments(user.id);
 
       setStats({
         totalInvested: 0,
         totalValue: 0,
         totalReturn: 0,
         activeStrategies: 0,
-        documentsUploaded: documentsRes.data?.length || 0,
+        documentsUploaded: documentsCount,
         referralsCount: 0,
       });
     } catch (error) {

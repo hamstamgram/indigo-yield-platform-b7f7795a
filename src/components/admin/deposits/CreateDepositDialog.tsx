@@ -28,6 +28,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { depositService } from "@/services/investor/depositService";
+import { fundDailyAumService, profileService } from "@/services/shared";
 import { supabase } from "@/integrations/supabase/client";
 import type { DepositFormData } from "@/types/deposit";
 import { format } from "date-fns";
@@ -71,15 +72,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
   // Fetch funds to avoid free-text symbols
   const { data: funds } = useQuery({
     queryKey: ["funds-for-deposits"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("funds")
-        .select("id, name, asset")
-        .eq("status", "active")
-        .order("name");
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => profileService.getActiveFunds(),
     enabled: open,
   });
 
@@ -88,15 +81,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
     queryKey: ["fund-aum-check", selectedFundId, formattedDate],
     queryFn: async () => {
       if (!selectedFundId) return null;
-      const { data, error } = await supabase
-        .from("fund_daily_aum")
-        .select("id, total_aum")
-        .eq("fund_id", selectedFundId)
-        .eq("aum_date", formattedDate)
-        .maybeSingle();
-
-      if (error) throw error;
-      return data;
+      return fundDailyAumService.getByFundAndDate(selectedFundId, formattedDate);
     },
     enabled: !!selectedFundId && open,
   });
@@ -109,13 +94,12 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
       if (!selectedFundId || !aumValue) {
         throw new Error("Fund and AUM value are required");
       }
-      const { error } = await supabase.from("fund_daily_aum").insert({
-        fund_id: selectedFundId,
-        aum_date: formattedDate,
-        total_aum: parseFloat(aumValue),
+      await fundDailyAumService.createAumRecord({
+        fundId: selectedFundId,
+        date: formattedDate,
+        totalAum: parseFloat(aumValue),
         source: "manual_deposit_dialog",
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fund-aum-check", selectedFundId, formattedDate] });

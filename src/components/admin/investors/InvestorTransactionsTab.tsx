@@ -3,10 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowUpRight, ArrowDownLeft, CreditCard, Plus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSubscription } from "@/hooks";
 import { toast } from "sonner";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
+import { profileService, positionService } from "@/services/shared";
+import { transactionsV2Service } from "@/services/investor";
 
 interface Transaction {
   id: string;
@@ -49,72 +50,38 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
     try {
       setLoading(true);
 
-      // Fetch investor profile info (from PROFILES, One ID)
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, email")
-        .eq("id", investorId)
-        .single();
+      // Fetch investor profile info using service
+      const profileData = await profileService.getById(investorId);
 
-      if (profileError) throw profileError;
+      if (!profileData) throw new Error("Profile not found");
 
-      const investorName = `${profileData?.first_name || ""} ${profileData?.last_name || ""}`.trim() || profileData?.email;
-
-      // Get investor's primary fund from investor_positions
-      const { data: positionData } = await supabase
-        .from("investor_positions")
-        .select("fund_id")
-        .eq("investor_id", investorId) // Use investorId (profile.id)
-        .limit(1)
-        .maybeSingle();
+      // Get investor's primary fund from positions
+      const positions = await positionService.getByInvestor(investorId);
+      const primaryPosition = positions[0];
 
       // Get default fund if no positions yet
-      const { data: defaultFund } = await supabase.from("funds").select("id").limit(1).single();
+      const funds = await profileService.getActiveFunds();
+      const defaultFund = funds[0];
 
       setInvestor({
-        id: investorId, // Use investorId as the ID
-        name: investorName,
-        email: profileData?.email,
-        fund_id: positionData?.fund_id || defaultFund?.id || "",
+        id: investorId,
+        name: profileData.name,
+        email: profileData.email,
+        fund_id: primaryPosition?.fund_id || defaultFund?.id || "",
       });
 
-      // Fetch transactions
-      const { data: txData, error: txError } = await supabase
-        .from("transactions_v2")
-        .select(
-          "id, investor_id, asset, amount, type, tx_date, notes, tx_hash, reference_id"
-        )
-        .eq("investor_id", investorId) // Use investorId (profile.id)
-        .order("tx_date", { ascending: false })
-        .order("id", { ascending: false }) // Deterministic tie-breaker for same-day ordering
-        .limit(100);
-
-      if (txError) throw txError;
-
-      setTransactions((txData || []) as Transaction[]);
+      // Fetch transactions using service
+      const txData = await transactionsV2Service.getByInvestorId(investorId, { limit: 100 });
+      setTransactions(txData as Transaction[]);
 
       // Calculate summary
-      const stats = {
-        totalCount: txData?.length || 0,
-        totalDeposits: 0,
-        totalWithdrawals: 0,
-        totalYield: 0,
-      };
-
-      txData?.forEach((tx: any) => {
-        const txType = (tx.type || "").toUpperCase();
-        const amount = Number(tx.amount);
-
-        if (txType === "DEPOSIT") {
-          stats.totalDeposits += amount;
-        } else if (txType === "WITHDRAWAL") {
-          stats.totalWithdrawals += amount;
-        } else if (txType === "YIELD" || txType === "INTEREST") {
-          stats.totalYield += amount;
-        }
+      const txSummary = await transactionsV2Service.getSummary(investorId);
+      setSummary({
+        totalCount: txSummary.transactionCount,
+        totalDeposits: txSummary.totalDeposits,
+        totalWithdrawals: txSummary.totalWithdrawals,
+        totalYield: txSummary.totalYield,
       });
-
-      setSummary(stats);
     } catch (error) {
       console.error("Error loading data:", error);
       toast.error("Failed to load transaction data");

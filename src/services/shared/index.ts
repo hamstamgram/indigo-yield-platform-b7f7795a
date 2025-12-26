@@ -52,3 +52,26 @@ export type { FeeScheduleRow, FeeHistoryRow } from "./feeScheduleService";
 // Admin tools
 export { adminToolsService } from "./adminToolsService";
 export type { ToolResult } from "./adminToolsService";
+
+// Statements
+export { statementsService } from "./statementsService";
+export type { StatementUpsertData, CreateStatementDocumentParams } from "./statementsService";
+
+// Notifications
+export { notificationService } from "./notificationService";
+export type { Notification } from "./notificationService";
+
+// Profile service
+export { profileService } from "./profileService";
+export type { ProfileSummary } from "./profileService";
+
+// Fund daily AUM
+export { fundDailyAumService } from "./fundDailyAumService";
+export type { FundDailyAumRecord } from "./fundDailyAumService";
+
+// Position service
+export { positionService } from "./positionService";
+export type { InvestorPosition } from "./positionService";
+
+// IB management
+export { ibManagementService } from "./ibManagementService";
