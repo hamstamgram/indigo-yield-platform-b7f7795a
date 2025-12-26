@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Trash2, AlertTriangle } from "lucide-react";
+import { invalidateAfterWithdrawal } from "@/utils/cacheInvalidation";
 
 interface DeleteWithdrawalDialogProps {
   open: boolean;
@@ -59,8 +60,7 @@ export function DeleteWithdrawalDialog({
       }
 
       toast.success(hardDelete ? "Withdrawal permanently deleted" : "Withdrawal cancelled");
-      queryClient.invalidateQueries({ queryKey: ["withdrawals"] });
-      queryClient.invalidateQueries({ queryKey: ["withdrawal-stats"] });
+      invalidateAfterWithdrawal(queryClient, withdrawal.investor_id, withdrawal.fund_id);
       onOpenChange(false);
       setReason("");
       setConfirmText("");

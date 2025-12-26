@@ -36,6 +36,7 @@ import { Loader2, Check, ChevronsUpDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { getAssetLogo, formatAssetAmount } from "@/utils/assets";
+import { invalidateAfterWithdrawal } from "@/utils/cacheInvalidation";
 
 interface InvestorOption {
   id: string;
@@ -254,8 +255,8 @@ export function CreateWithdrawalDialog({
 
       if (error) throw error;
 
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: ["withdrawals"] });
+      // Comprehensive cache invalidation
+      invalidateAfterWithdrawal(queryClient, selectedInvestorId, selectedFundId);
 
       toast.success("Withdrawal request created successfully");
       reset();

@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { adminTransactionService, CreateTransactionParams } from "@/services/admin/adminTransactionService";
 import { transactionsV2Service } from "@/services/shared";
 import { toast } from "sonner";
+import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 
 export interface Transaction {
   id: string;
@@ -122,9 +123,7 @@ export function useCreateTransaction() {
       return adminTransactionService.createTransaction(params);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["investor-transactions", variables.investorId] });
-      queryClient.invalidateQueries({ queryKey: ["investor-positions", variables.investorId] });
+      invalidateAfterTransaction(queryClient, variables.investorId, variables.fundId);
       toast.success("Transaction created successfully");
     },
     onError: (error: Error) => {
@@ -147,8 +146,7 @@ export function useVoidTransaction() {
       await transactionsV2Service.voidTransaction(transactionId, reason);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["investor-transactions"] });
+      invalidateAfterTransaction(queryClient);
       toast.success("Transaction voided successfully");
     },
     onError: (error: Error) => {
