@@ -64,7 +64,7 @@ export function DataIntegrityPanel() {
         // Orphan positions (positions with non-existent investor_id)
         supabase
           .from("investor_positions")
-          .select("id", { count: "exact", head: true })
+          .select("investor_id", { count: "exact", head: true })
           .is("investor_id", null),
         
         // Orphan fee allocations (missing investor)
