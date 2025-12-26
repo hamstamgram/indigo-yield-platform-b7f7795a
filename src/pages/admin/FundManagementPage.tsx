@@ -50,7 +50,7 @@ interface FundWithMetrics {
   code: string;
   name: string;
   asset: string;
-  fund_class: string;
+  fund_class?: string;
   status: string;
   inception_date: string;
   logo_url?: string | null;
@@ -169,12 +169,12 @@ function FundManagementContent() {
 
       // Audit log via service
       await auditLogService.logEvent({
-        actor_user: user?.id,
+        actorUserId: user?.id || "",
         action: action === "archive" ? "ARCHIVE_FUND" : "RESTORE_FUND",
         entity: "fund",
-        entity_id: fund.id,
-        old_values: { status: fund.status },
-        new_values: { status: newStatus },
+        entityId: fund.id,
+        oldValues: { status: fund.status },
+        newValues: { status: newStatus },
       });
 
       toast.success(`Fund ${action === "archive" ? "archived" : "restored"} successfully`);

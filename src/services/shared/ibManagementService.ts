@@ -52,6 +52,13 @@ class IBManagementService {
   }
 
   /**
+   * Create IB role (alias for createIB)
+   */
+  async createIBRole(email: string): Promise<{ userId: string }> {
+    return this.createIB(email);
+  }
+
+  /**
    * Remove IB role from a user
    */
   async removeIBRole(userId: string): Promise<void> {
@@ -77,6 +84,99 @@ class IBManagementService {
 
     if (error) throw error;
     return !!data;
+  }
+
+  /**
+   * Get all IB roles
+   */
+  async getIBRoles(): Promise<Array<{ user_id: string; role: string }>> {
+    const { data, error } = await supabase
+      .from("user_roles")
+      .select("user_id, role")
+      .eq("role", "ib");
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  /**
+   * Get profiles by IDs
+   */
+  async getProfilesByIds(userIds: string[]): Promise<Array<{
+    id: string;
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+    created_at: string;
+  }>> {
+    if (!userIds.length) return [];
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, email, first_name, last_name, created_at")
+      .in("id", userIds);
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  /**
+   * Get referrals by parent IDs (investors with ib_parent_id)
+   */
+  async getReferralsByParentIds(parentIds: string[]): Promise<Array<{
+    id: string;
+    ib_parent_id: string;
+  }>> {
+    if (!parentIds.length) return [];
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, ib_parent_id")
+      .in("ib_parent_id", parentIds);
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  /**
+   * Get IB credits from transactions
+   */
+  async getIBCredits(ibUserIds: string[]): Promise<Array<{
+    investor_id: string;
+    fund_id: string | null;
+    asset: string | null;
+    amount: number;
+  }>> {
+    if (!ibUserIds.length) return [];
+
+    const { data, error } = await supabase
+      .from("transactions_v2")
+      .select("investor_id, fund_id, asset, amount")
+      .in("investor_id", ibUserIds)
+      .eq("type", "IB_CREDIT");
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  /**
+   * Get IB allocations
+   */
+  async getIBAllocations(ibUserIds: string[]): Promise<Array<{
+    ib_investor_id: string;
+    fund_id: string | null;
+    ib_fee_amount: number;
+  }>> {
+    if (!ibUserIds.length) return [];
+
+    const { data, error } = await supabase
+      .from("ib_allocations")
+      .select("ib_investor_id, fund_id, ib_fee_amount")
+      .in("ib_investor_id", ibUserIds)
+      .eq("is_voided", false);
+
+    if (error) throw error;
+    return data || [];
   }
 }
 

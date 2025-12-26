@@ -22,8 +22,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { InvestorSummaryV2 } from "@/services/admin";
 import { Asset } from "@/types/investorTypes";
-import { positionService, fundService } from "@/services/shared";
-import { assetService } from "@/services/admin";
+import { positionService, fundService, assetService } from "@/services/shared";
 
 type UserPortfolio = {
   id: string;
@@ -84,9 +83,14 @@ const AdminPortfolios = ({
       if (providedAssets && providedAssets.length > 0) {
         setAssets(providedAssets);
       } else {
-        // Otherwise fetch assets via service
-        const assetsResult = await assetService.getAll();
-        setAssets(assetsResult || []);
+        // Otherwise fetch assets via service and map to expected format
+        const assetsResult = await assetService.getAssets();
+        const mappedAssets = (assetsResult || []).map((a) => ({
+          id: parseInt(a.asset_id, 10),
+          symbol: a.symbol,
+          name: a.name,
+        }));
+        setAssets(mappedAssets as Asset[]);
       }
 
       // Use provided investors or fetch them
@@ -287,12 +291,12 @@ const AdminPortfolios = ({
         if (!fund) throw new Error("Fund not found for asset");
 
         await positionService.createPosition({
-          investor_id: selectedUser,
-          fund_id: fund.id,
-          fund_class: assetSymbol,
-          current_value: balance,
+          investorId: selectedUser,
+          fundId: fund.id,
+          fundClass: assetSymbol,
+          currentValue: balance,
           shares: balance,
-          cost_basis: balance,
+          costBasis: balance,
         });
 
         toast({

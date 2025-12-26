@@ -13,6 +13,14 @@ export interface ProfileSummary {
   name: string;
 }
 
+interface RawProfile {
+  id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  created_at?: string;
+}
+
 class ProfileService {
   /**
    * Get profile by ID
@@ -34,6 +42,33 @@ class ProfileService {
       lastName: data.last_name,
       name: `${data.first_name || ""} ${data.last_name || ""}`.trim() || data.email,
     };
+  }
+
+  /**
+   * Get profile by ID (alias for getById)
+   */
+  async getProfileById(profileId: string): Promise<RawProfile | null> {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, email, first_name, last_name, created_at")
+      .eq("id", profileId)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  }
+
+  /**
+   * Get all profiles (for admin use)
+   */
+  async getAllProfiles(): Promise<RawProfile[]> {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, email, first_name, last_name")
+      .order("last_name");
+
+    if (error) throw error;
+    return data || [];
   }
 
   /**
@@ -93,6 +128,48 @@ class ProfileService {
 
     if (error) throw error;
     return count || 0;
+  }
+
+  /**
+   * Get investor monthly reports
+   */
+  async getMonthlyReports(investorId: string, reportMonth: string): Promise<any[]> {
+    const { data, error } = await supabase
+      .from("investor_monthly_reports")
+      .select("*")
+      .eq("investor_id", investorId)
+      .eq("report_month", reportMonth);
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  /**
+   * Get investor fund performance (latest period)
+   */
+  async getInvestorFundPerformance(investorId: string): Promise<any[]> {
+    const { data, error } = await supabase
+      .from("investor_fund_performance")
+      .select("*")
+      .eq("investor_id", investorId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  /**
+   * Get investor fund performance for a specific period
+   */
+  async getInvestorFundPerformanceByPeriod(investorId: string, periodId: string): Promise<any[]> {
+    const { data, error } = await supabase
+      .from("investor_fund_performance")
+      .select("*")
+      .eq("investor_id", investorId)
+      .eq("period_id", periodId);
+
+    if (error) throw error;
+    return data || [];
   }
 }
 

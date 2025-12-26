@@ -48,7 +48,7 @@ const AdminStatementGenerator: React.FC = () => {
       // 2. Loop and generate
       for (let i = 0; i < total; i++) {
         const investor = investors[i];
-        const investorFullName = `${investor.first_name || ""} ${investor.last_name || ""}`.trim() || investor.email;
+        const investorFullName = `${investor.firstName || ""} ${investor.lastName || ""}`.trim() || investor.email;
 
         // Fetch report data via service
         const reports = await profileService.getInvestorFundPerformanceByPeriod(investor.id, period.id);
