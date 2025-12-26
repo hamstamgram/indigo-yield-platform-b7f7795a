@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback } from "react";
+import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 
 export interface Transaction {
   id: string;
@@ -110,20 +111,10 @@ export function useInvestorLedger(investorId: string, filters: LedgerFilters = {
 
   /**
    * Invalidate all related queries after transaction changes
-   * Includes both specific and general query keys for complete cache refresh
+   * Uses centralized invalidation helper for consistency
    */
   const invalidateAll = useCallback(() => {
-    // Specific investor queries
-    queryClient.invalidateQueries({ queryKey: ["investor-ledger", investorId] });
-    queryClient.invalidateQueries({ queryKey: ["investor-positions", investorId] });
-    queryClient.invalidateQueries({ queryKey: ["investor-transactions", investorId] });
-    // General queries that may show this investor's data
-    queryClient.invalidateQueries({ queryKey: ["investor-ledger"] });
-    queryClient.invalidateQueries({ queryKey: ["investor-positions"] });
-    queryClient.invalidateQueries({ queryKey: ["investor-transactions"] });
-    queryClient.invalidateQueries({ queryKey: ["admin-transactions-history"] });
-    queryClient.invalidateQueries({ queryKey: ["fund-aum"] });
-    queryClient.invalidateQueries({ queryKey: ["fund-aum-unified"] });
+    invalidateAfterTransaction(queryClient, investorId);
   }, [queryClient, investorId]);
 
   /**

@@ -20,13 +20,15 @@ import {
 } from "@/services/admin/yieldManagementService";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/context";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
 
 /**
  * Hook to fetch yield records with filters
  */
 export function useYieldRecords(filters: YieldFilters = {}) {
   return useQuery<YieldRecord[], Error>({
-    queryKey: ["yield-records", filters],
+    queryKey: [QUERY_KEYS.yieldRecords[0], filters],
     queryFn: () => getYieldRecords(filters),
   });
 }
@@ -36,7 +38,7 @@ export function useYieldRecords(filters: YieldFilters = {}) {
  */
 export function useYieldDetails(recordId: string) {
   return useQuery<YieldDetails | null, Error>({
-    queryKey: ["yield-details", recordId],
+    queryKey: QUERY_KEYS.yieldDetails(recordId),
     queryFn: () => getYieldDetails(recordId),
     enabled: !!recordId,
   });
@@ -47,7 +49,7 @@ export function useYieldDetails(recordId: string) {
  */
 export function useCanEditYields() {
   return useQuery<boolean, Error>({
-    queryKey: ["can-edit-yields"],
+    queryKey: QUERY_KEYS.canEditYields,
     queryFn: canEditYields,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -58,7 +60,7 @@ export function useCanEditYields() {
  */
 export function useCanVoidYield(recordId: string) {
   return useQuery<{ canVoid: boolean; reason?: string }, Error>({
-    queryKey: ["can-void-yield", recordId],
+    queryKey: QUERY_KEYS.canVoidYield(recordId),
     queryFn: () => canVoidYieldRecord(recordId),
     enabled: !!recordId,
   });
@@ -85,8 +87,8 @@ export function useUpdateYieldRecord() {
       return updateYieldRecord(recordId, updates, user.id, reason);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["yield-records"] });
-      queryClient.invalidateQueries({ queryKey: ["yield-details", variables.recordId] });
+      invalidateAfterYieldOp(queryClient);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDetails(variables.recordId) });
       toast.success("Yield record updated successfully");
     },
     onError: (error: Error) => {
@@ -106,8 +108,8 @@ export function useVoidYieldRecord() {
       return voidYieldRecord(recordId, reason);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["yield-records"] });
-      queryClient.invalidateQueries({ queryKey: ["yield-details", variables.recordId] });
+      invalidateAfterYieldOp(queryClient);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDetails(variables.recordId) });
       toast.success("Yield record voided successfully");
     },
     onError: (error: Error) => {

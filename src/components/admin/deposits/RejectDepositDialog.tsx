@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 import { depositService } from "@/services/investor/depositService";
 import type { Deposit } from "@/types/deposit";
+import { invalidateAfterDeposit } from "@/utils/cacheInvalidation";
 
 interface RejectDepositDialogProps {
   deposit: Deposit;
@@ -26,8 +27,7 @@ export function RejectDepositDialog({ deposit, open, onOpenChange }: RejectDepos
     mutationFn: (id: string) => depositService.rejectDeposit(id),
     onSuccess: () => {
       toast.success("Deposit rejected");
-      queryClient.invalidateQueries({ queryKey: ["deposits"] });
-      queryClient.invalidateQueries({ queryKey: ["deposit-stats"] });
+      invalidateAfterDeposit(queryClient, deposit.investor_id);
       onOpenChange(false);
     },
     onError: (error: Error) => {

@@ -45,6 +45,8 @@ import { VoidTransactionDialog } from "@/components/admin/transactions/VoidTrans
 import { EditTransactionDialog } from "@/components/admin/transactions/EditTransactionDialog";
 import { useSortableColumns } from "@/hooks";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
+import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 type TransactionType = "DEPOSIT" | "WITHDRAWAL" | "FEE" | "INTEREST" | "ADJUSTMENT";
 
@@ -313,7 +315,7 @@ function TransactionHistoryContent() {
   };
 
   const handleAddTransactionSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ["admin-transactions-history"] });
+    invalidateAfterTransaction(queryClient, dialogInvestorId || undefined, dialogFundId || undefined);
     setAddDialogOpen(false);
   };
 

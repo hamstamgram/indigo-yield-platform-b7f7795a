@@ -9,6 +9,7 @@
 import { useCallback, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -91,8 +92,7 @@ export function InvestorTabs({
   }, []);
 
   const handleAddTxSuccess = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["admin-transactions-history"] });
-    queryClient.invalidateQueries({ queryKey: ["investor-positions", investorId] });
+    invalidateAfterTransaction(queryClient, investorId);
     onDataChange?.();
     setAddTxDialogOpen(false);
   }, [queryClient, investorId, onDataChange]);

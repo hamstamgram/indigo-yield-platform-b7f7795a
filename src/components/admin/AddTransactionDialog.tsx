@@ -51,6 +51,7 @@ import { useActiveFunds } from "@/hooks";
 import { getAssetLogo } from "@/utils/assets";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 
 interface InvestorOption {
   id: string;
@@ -421,17 +422,8 @@ export function AddTransactionDialog({
         throw new Error(result.error || "Failed to create transaction");
       }
 
-      // Invalidate all relevant queries to refresh data everywhere
-      // Must include specific investor ID for proper cache invalidation
-      queryClient.invalidateQueries({ queryKey: ["admin-transactions-history"] });
-      queryClient.invalidateQueries({ queryKey: ["investor-positions"] });
-      queryClient.invalidateQueries({ queryKey: ["investor-positions", selectedInvestorId] });
-      queryClient.invalidateQueries({ queryKey: ["investor-transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["investor-transactions", selectedInvestorId] });
-      queryClient.invalidateQueries({ queryKey: ["investor-ledger"] });
-      queryClient.invalidateQueries({ queryKey: ["investor-ledger", selectedInvestorId] });
-      queryClient.invalidateQueries({ queryKey: ["fund-aum"] });
-      queryClient.invalidateQueries({ queryKey: ["fund-aum-unified"] });
+      // Invalidate all relevant queries using centralized helper
+      invalidateAfterTransaction(queryClient, selectedInvestorId, data.fund_id);
 
       toast.success("Transaction created successfully");
       reset();
