@@ -1,10 +1,15 @@
-// Asset utility functions for creating default and database-driven asset summaries
+/**
+ * Asset utility functions for creating default and database-driven asset summaries
+ * Uses centralized asset configuration from src/types/asset.ts
+ */
+
+import { ASSET_CONFIGS, type AssetSummary } from "@/types/asset";
 
 /**
  * Creates default asset summaries when no assets exist in the database
  * @returns Array of default asset summaries with native token balances only
  */
-export const createDefaultAssetSummaries = () => {
+export const createDefaultAssetSummaries = (): AssetSummary[] => {
   const defaultAssets = [
     { id: 1, symbol: "BTC", name: "BTC Yield Fund" },
     { id: 2, symbol: "ETH", name: "ETH Yield Fund" },
@@ -22,12 +27,12 @@ export const createDefaultAssetSummaries = () => {
     SOL: { balance: 2200, users: 11, yield: 6.5 },
     USDT: { balance: 425000, users: 22, yield: 8.1 },
     EURC: { balance: 100000, users: 10, yield: 5.0 },
-    xAUT: { balance: 50, users: 8, yield: 3.5 },
+    XAUT: { balance: 50, users: 8, yield: 3.5 },
     XRP: { balance: 500000, users: 15, yield: 5.5 },
   };
 
   // Create asset summaries for default assets - ensure uniqueness by symbol
-  const uniqueAssets = new Map();
+  const uniqueAssets = new Map<string, AssetSummary>();
 
   defaultAssets.forEach((asset) => {
     const symbol = asset.symbol.toUpperCase();
@@ -39,7 +44,6 @@ export const createDefaultAssetSummaries = () => {
         symbol: asset.symbol,
         name: asset.name,
         totalBalance: defaults.balance,
-        balance: defaults.balance, // Native token balance only
         totalUsers: defaults.users,
         avgYield: defaults.yield,
       });
@@ -54,7 +58,9 @@ export const createDefaultAssetSummaries = () => {
  * @param assets Assets from the database
  * @returns Array of asset summaries with native token data from the database
  */
-export const createAssetSummariesFromDb = (assets: any[]) => {
+export const createAssetSummariesFromDb = (
+  assets: Array<{ id: number; symbol: string; name: string }>
+): AssetSummary[] => {
   // Define default values for each supported asset type
   const defaultValues: Record<string, { balance: number; users: number; yield: number }> = {
     BTC: { balance: 12.5, users: 18, yield: 4.8 },
@@ -62,12 +68,12 @@ export const createAssetSummariesFromDb = (assets: any[]) => {
     SOL: { balance: 2200, users: 11, yield: 6.5 },
     USDT: { balance: 425000, users: 22, yield: 8.1 },
     EURC: { balance: 100000, users: 10, yield: 5.0 },
-    xAUT: { balance: 50, users: 8, yield: 3.5 },
+    XAUT: { balance: 50, users: 8, yield: 3.5 },
     XRP: { balance: 500000, users: 15, yield: 5.5 },
   };
 
   // Create asset summaries for all assets
-  const uniqueAssets = new Map();
+  const uniqueAssets = new Map<string, AssetSummary>();
 
   assets.forEach((asset) => {
     const symbol = asset.symbol.toUpperCase();
@@ -81,7 +87,6 @@ export const createAssetSummariesFromDb = (assets: any[]) => {
         symbol: asset.symbol,
         name: asset.name,
         totalBalance: defaults.balance,
-        balance: defaults.balance, // Native token balance only
         totalUsers: defaults.users,
         avgYield: defaults.yield,
       });

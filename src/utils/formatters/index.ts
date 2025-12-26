@@ -10,66 +10,14 @@
  * - Percentage formatting
  */
 
-// ============================================================================
-// Asset/Token Configuration
-// ============================================================================
-
-export interface AssetConfig {
-  symbol: string;
-  name: string;
-  decimals: number;
-}
-
-const ASSET_CONFIGS: Record<string, AssetConfig> = {
-  BTC: { symbol: "BTC", decimals: 8, name: "BTC Yield Fund" },
-  ETH: { symbol: "ETH", decimals: 8, name: "ETH Yield Fund" },
-  SOL: { symbol: "SOL", decimals: 6, name: "SOL Yield Fund" },
-  USDT: { symbol: "USDT", decimals: 2, name: "Stablecoin Fund" },
-  USDC: { symbol: "USDC", decimals: 2, name: "USDC Fund" },
-  EURC: { symbol: "EURC", decimals: 2, name: "EURC Yield Fund" },
-  XAUT: { symbol: "xAUT", decimals: 4, name: "Tokenized Gold" },
-  xAUT: { symbol: "xAUT", decimals: 4, name: "Tokenized Gold" },
-  XRP: { symbol: "XRP", decimals: 6, name: "XRP Yield Fund" },
-};
-
-// ============================================================================
-// Asset Configuration Helpers
-// ============================================================================
-
-/**
- * Get asset configuration by symbol
- */
-export function getAssetConfig(symbol: string): AssetConfig {
-  const normalized = symbol.toUpperCase();
-  return (
-    ASSET_CONFIGS[normalized] || {
-      symbol: symbol.toUpperCase(),
-      name: symbol,
-      decimals: 4,
-    }
-  );
-}
-
-/**
- * Get decimals for an asset
- */
-export function getAssetDecimals(symbol: string): number {
-  return getAssetConfig(symbol).decimals;
-}
-
-/**
- * Get display name for asset
- */
-export function getAssetDisplayName(symbol: string): string {
-  return getAssetConfig(symbol).name;
-}
-
-/**
- * Get all supported asset configurations
- */
-export function getSupportedAssets(): AssetConfig[] {
-  return Object.values(ASSET_CONFIGS);
-}
+// Re-export asset config types and helpers from central location
+export {
+  type AssetConfig,
+  getAssetConfig,
+  getAssetDecimals,
+  getAssetName as getAssetDisplayName,
+  getSupportedAssets,
+} from "@/types/asset";
 
 // ============================================================================
 // Asset/Token Formatting
@@ -89,6 +37,7 @@ export interface FormatOptions {
  * formatAssetWithSymbol(50000, 'USDT') → "50,000.00 USDT"
  */
 export function formatAssetWithSymbol(amount: number, symbol: string): string {
+  const { getAssetConfig } = require("@/types/asset");
   const config = getAssetConfig(symbol);
   const decimals = config.decimals;
 
@@ -102,6 +51,7 @@ export function formatAssetWithSymbol(amount: number, symbol: string): string {
  * Format an asset amount without symbol (just the number)
  */
 export function formatAssetAmount(amount: number, symbol: string): string {
+  const { getAssetDecimals } = require("@/types/asset");
   const decimals = getAssetDecimals(symbol);
 
   return amount.toLocaleString("en-US", {
@@ -118,6 +68,7 @@ export function formatTokenBalance(
   symbol: string,
   options?: FormatOptions
 ): string {
+  const { getAssetConfig } = require("@/types/asset");
   const { showSymbol = true, maxDecimals } = options || {};
   const config = getAssetConfig(symbol);
   const decimals = maxDecimals ?? Math.min(config.decimals, 6);
@@ -134,6 +85,7 @@ export function formatTokenBalance(
  * Format token amount (legacy alias for formatTokenBalance)
  */
 export function formatTokenAmount(amount: number, tokenSymbol: string): string {
+  const { getAssetConfig } = require("@/types/asset");
   const config = getAssetConfig(tokenSymbol);
   const decimals = Math.min(config.decimals, 6);
 
@@ -252,6 +204,9 @@ export function formatPercentage(
 // Backward Compatibility Exports
 // ============================================================================
 
+// Re-import for aliased exports
+import { getAssetDecimals as _getAssetDecimals, getAssetConfig as _getAssetConfig } from "@/types/asset";
+
 // These maintain backward compatibility with existing imports
-export { getAssetDecimals as getDecimalsForAsset };
-export { getAssetConfig as getTokenConfig };
+export { _getAssetDecimals as getDecimalsForAsset };
+export { _getAssetConfig as getTokenConfig };

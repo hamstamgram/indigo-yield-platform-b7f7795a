@@ -1,35 +1,12 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
-
-// Asset summary type with per-asset yield information
-interface AssetSummary {
-  symbol: string;
-  name: string;
-  balance: number;
-  principal: number;
-  totalEarned: number;
-  currentRate: number;
-  dailyYield: number;
-  totalYield: number;
-  yieldPercentage: number;
-}
-
-// Asset name mapping
-const ASSET_NAMES: Record<string, string> = {
-  BTC: "BTC Yield Fund",
-  ETH: "ETH Yield Fund",
-  SOL: "SOL Yield Fund",
-  USDT: "Stablecoin Fund",
-  EURC: "EURC Yield Fund",
-  xAUT: "Tokenized Gold",
-  XRP: "XRP Yield Fund",
-};
+import { type AssetSummaryDetailed, getAssetName } from "@/types/asset";
 
 export const useAssetData = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [assetSummaries, setAssetSummaries] = useState<AssetSummary[]>([]);
+  const [assetSummaries, setAssetSummaries] = useState<AssetSummaryDetailed[]>([]);
   const [yieldSources, setYieldSources] = useState<any[]>([]);
   const [userName, setUserName] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
@@ -90,7 +67,7 @@ export const useAssetData = () => {
         }
 
         // Calculate asset summaries with per-asset yield
-        const summaries: AssetSummary[] = (positions || []).map((position) => {
+        const summaries: AssetSummaryDetailed[] = (positions || []).map((position) => {
           const symbol = (position.fund_class || "").toUpperCase();
           const balance = Number(position.current_value || 0);
           const principal = Number(position.cost_basis || balance);
@@ -116,7 +93,7 @@ export const useAssetData = () => {
               case "EURC":
                 currentRate = Number(rates.eurc_rate);
                 break;
-              case "xAUT":
+              case "XAUT":
                 currentRate = Number(rates.xaut_rate || 0);
                 break;
               case "XRP":
@@ -136,7 +113,7 @@ export const useAssetData = () => {
 
           return {
             symbol,
-            name: ASSET_NAMES[symbol] || symbol,
+            name: getAssetName(symbol),
             balance,
             principal,
             totalEarned,
