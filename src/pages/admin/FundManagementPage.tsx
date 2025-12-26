@@ -38,12 +38,12 @@ import {
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/context";
 import { CreateFundDialog } from "@/components/admin/funds/CreateFundDialog";
 import { EditFundDialog } from "@/components/admin/funds/EditFundDialog";
 import { format } from "date-fns";
+import { fundService, positionService, auditLogService } from "@/services/shared";
 
 interface FundWithMetrics {
   id: string;
@@ -90,22 +90,13 @@ function FundManagementContent() {
   const loadFunds = async () => {
     setLoading(true);
     try {
-      const { data: fundsData, error } = await supabase
-        .from("funds")
-        .select("id, code, name, asset, fund_class, status, inception_date, logo_url, created_at")
-        .order("status")
-        .order("code");
-
-      if (error) throw error;
+      // Get funds via service
+      const fundsData = await fundService.getAllFunds();
 
       // Get AUM and investor count for each fund
       const fundsWithMetrics = await Promise.all(
         (fundsData || []).map(async (fund) => {
-          const { data: positions } = await supabase
-            .from("investor_positions")
-            .select("current_value, investor_id")
-            .eq("fund_id", fund.id)
-            .gt("current_value", 0);
+          const positions = await positionService.getPositionsByFund(fund.id);
 
           const total_aum = positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0;
           const uniqueInvestors = new Set(positions?.map((p) => p.investor_id) || []);
@@ -173,15 +164,11 @@ function FundManagementContent() {
     try {
       const newStatus = action === "archive" ? "deprecated" : "active";
 
-      const { error: updateError } = await supabase
-        .from("funds")
-        .update({ status: newStatus })
-        .eq("id", fund.id);
+      // Update fund status via service
+      await fundService.updateFundStatus(fund.id, newStatus);
 
-      if (updateError) throw updateError;
-
-      // Audit log
-      await supabase.from("audit_log").insert({
+      // Audit log via service
+      await auditLogService.logEvent({
         actor_user: user?.id,
         action: action === "archive" ? "ARCHIVE_FUND" : "RESTORE_FUND",
         entity: "fund",

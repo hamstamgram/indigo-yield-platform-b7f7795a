@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { Loader2, FileText, CheckCircle, AlertCircle, Download, Send, RefreshCw } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +17,7 @@ import { generatePDF } from "@/lib/pdf/statementGenerator";
 import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
 import { useStatements, usePublishStatements } from "@/hooks/data";
 import { useQueryClient } from "@tanstack/react-query";
+import { profileService, statementsService, transactionsV2Service } from "@/services/shared";
 
 export const StatementManager: React.FC = () => {
   const { isSuperAdmin, loading: roleLoading } = useSuperAdmin();
@@ -38,31 +38,24 @@ export const StatementManager: React.FC = () => {
       const startDate = startOfMonth(new Date(year, month - 1));
       const endDate = endOfMonth(new Date(year, month - 1));
 
-      // 1. Get Active Investors (profiles)
-      const { data: investors } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, email")
-        .eq("status", "active")
-        .eq("is_admin", false);
+      // 1. Get Active Investors (profiles) via service
+      const investors = await profileService.getActiveInvestors();
 
-      if (!investors) throw new Error("No active investors found");
+      if (!investors || investors.length === 0) throw new Error("No active investors found");
 
       let count = 0;
 
       // 2. Process Each Investor
       for (const investor of investors) {
-        const { data: txs } = await supabase
-          .from("transactions_v2")
-          .select("*")
-          .eq("investor_id", investor.id)
-          .lte("tx_date", endDate.toISOString().split("T")[0]);
+        // Get transactions via service
+        const txs = await transactionsV2Service.getByInvestorId(investor.id, {
+          toDate: endDate.toISOString().split("T")[0],
+        });
 
-        if (!txs) continue;
+        if (!txs || txs.length === 0) continue;
 
-        const { data: monthlyPerformance } = await supabase
-          .from("investor_fund_performance")
-          .select("fund_name, mtd_net_income")
-          .eq("investor_id", investor.id);
+        // Get monthly performance via service
+        const monthlyPerformance = await profileService.getInvestorFundPerformance(investor.id);
 
         const yieldMap = new Map();
         monthlyPerformance?.forEach((r: any) =>
@@ -135,17 +128,14 @@ export const StatementManager: React.FC = () => {
 
         const filePath = `statements/${year}/${month}/${investor.id}_${Date.now()}.pdf`;
         const pdfBlobResolved = await pdfBlob;
-        const { error: uploadError } = await supabase.storage
-          .from("statements")
-          .upload(filePath, pdfBlobResolved, { upsert: true });
-
-        if (uploadError) {
-          console.error("Upload failed", uploadError);
-          continue;
-        }
+        
+        // Upload PDF via service
+        await statementsService.uploadStatementPDF(filePath, pdfBlobResolved);
 
         const primaryAsset = positions[0]?.asset_code || "MULTI";
-        await supabase.from("statements").upsert({
+        
+        // Upsert statement via service
+        await statementsService.upsertStatement({
           investor_id: investor.id,
           period_year: year,
           period_month: month,
