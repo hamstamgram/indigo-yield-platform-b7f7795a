@@ -35,10 +35,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Plus, Trash2, Percent, History } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { profileService } from "@/services/shared";
+import { profileService, feeScheduleService } from "@/services/shared";
 
 interface FeeScheduleEntry {
   id: string;
@@ -75,13 +74,7 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
 
   const fetchFeeSchedule = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from("investor_fee_schedule")
-        .select("*, fund:funds(name)")
-        .eq("investor_id", investorId)
-        .order("effective_date", { ascending: false });
-
-      if (error) throw error;
+      const data = await feeScheduleService.getFeeScheduleWithFunds(investorId);
       setFeeSchedule(data || []);
     } catch (error) {
       console.error("Error loading fee schedule:", error);
@@ -128,24 +121,12 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
     try {
       // STANDARDIZED: fee_pct is stored as 0-100 (e.g., 18 = 18%)
       // No conversion needed - store the value as entered
-      const { error } = await supabase.from("investor_fee_schedule").insert({
-        investor_id: investorId,
-        fund_id: newFeeFundId === "all" ? null : newFeeFundId,
-        fee_pct: feeValue, // Store as percent (0-100)
-        effective_date: newFeeEffectiveDate,
+      await feeScheduleService.addFeeEntry({
+        investorId,
+        fundId: newFeeFundId === "all" ? null : newFeeFundId,
+        feePct: feeValue, // Store as percent (0-100)
+        effectiveDate: newFeeEffectiveDate,
       });
-
-      if (error) {
-        // Handle specific constraint violations
-        if (error.code === '23P01') {
-          toast.error("Fee schedule overlaps with an existing entry. Choose a different effective date.");
-          return;
-        } else if (error.code === '23505') {
-          toast.error("A fee schedule already exists for this fund and date.");
-          return;
-        }
-        throw error;
-      }
       toast.success(`Fee schedule saved: ${feeValue}% effective ${newFeeEffectiveDate}`);
       setNewFeePercent("");
       setNewFeeFundId("all");
@@ -155,7 +136,14 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
       onUpdate?.();
     } catch (error: any) {
       console.error("Error adding fee:", error);
-      toast.error("Failed to add fee schedule entry");
+      // Handle specific constraint violations
+      if (error?.code === '23P01') {
+        toast.error("Fee schedule overlaps with an existing entry. Choose a different effective date.");
+      } else if (error?.code === '23505') {
+        toast.error("A fee schedule already exists for this fund and date.");
+      } else {
+        toast.error("Failed to add fee schedule entry");
+      }
     } finally {
       setIsAdding(false);
     }
@@ -163,13 +151,7 @@ export function InvestorFeeManager({ investorId, onUpdate }: InvestorFeeManagerP
 
   const handleDeleteFee = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from("investor_fee_schedule")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-
+      await feeScheduleService.deleteFeeEntry(id);
       toast.success("Fee entry deleted");
       await fetchFeeSchedule();
       onUpdate?.();

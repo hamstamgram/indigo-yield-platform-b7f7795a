@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { auditLogService } from "@/services/shared";
 
 interface RateLimitConfig {
   windowMs: number;
@@ -68,10 +69,11 @@ class RateLimiter {
    */
   private async logRateLimitViolation(identifier: string, config: RateLimitConfig) {
     try {
-      await supabase.from("audit_log").insert({
+      await auditLogService.logEvent({
+        actorUserId: identifier,
         action: "RATE_LIMIT_EXCEEDED",
         entity: "api_request",
-        entity_id: identifier,
+        entityId: identifier,
         meta: {
           identifier_type: config.identifier,
           max_requests: config.maxRequests,
