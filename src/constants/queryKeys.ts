@@ -133,6 +133,11 @@ export const QUERY_KEYS = {
   // ============ Admin Invites ============
   adminInvites: ["admin-invites"] as const,
 
+  // ============ Admin Settings ============
+  platformSettings: ["platform-settings"] as const,
+  adminInvestors: ["admin-investors"] as const,
+  ibs: ["ibs"] as const,
+
   // ============ Integrity & System ============
   integrityDashboard: ["integrity-dashboard"] as const,
   auditLog: ["audit-log"] as const,

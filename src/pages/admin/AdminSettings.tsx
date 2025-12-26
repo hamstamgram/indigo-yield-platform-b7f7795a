@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { systemConfigService, PlatformSettings, defaultPlatformSettings } from "@/services/shared/systemConfigService";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,7 +40,7 @@ function AdminSettingsContent() {
 
   // Fetch platform settings using service
   const { isLoading } = useQuery({
-    queryKey: ["platform-settings"],
+    queryKey: QUERY_KEYS.platformSettings,
     queryFn: async () => {
       const platformSettings = await systemConfigService.getPlatformSettings();
       setSettings(platformSettings);
@@ -51,7 +52,7 @@ function AdminSettingsContent() {
     mutationFn: (newSettings: PlatformSettings) => 
       systemConfigService.savePlatformSettings(newSettings),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["platform-settings"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.platformSettings });
       toast({
         title: "Settings saved",
         description: "Platform settings have been updated successfully.",

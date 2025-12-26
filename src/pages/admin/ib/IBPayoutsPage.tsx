@@ -42,6 +42,8 @@ import { formatAssetAmount } from "@/utils/assets";
 import { format, subMonths } from "date-fns";
 import { toast } from "sonner";
 import { Coins, CheckCircle, Loader2, DollarSign } from "lucide-react";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { invalidateAfterIBOperation } from "@/utils/cacheInvalidation";
 
 interface PendingCommission {
   id: string;
@@ -66,7 +68,7 @@ export default function IBPayoutsPage() {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["admin-ib-payouts", statusFilter],
+    queryKey: [QUERY_KEYS.adminIbPayouts[0], statusFilter],
     queryFn: async () => {
       let query = supabase
         .from("ib_allocations")
@@ -159,8 +161,7 @@ export default function IBPayoutsPage() {
         description: `Batch ID: ${result.batchId.slice(0, 8)}...`,
       });
       setSelectedIds(new Set());
-      queryClient.invalidateQueries({ queryKey: ["admin-ib-payouts"] });
-      queryClient.invalidateQueries({ queryKey: ["ib-commission-summary"] });
+      invalidateAfterIBOperation(queryClient);
     },
     onError: (error) => {
       toast.error("Failed to mark commissions as paid", {

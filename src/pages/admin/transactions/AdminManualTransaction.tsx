@@ -25,6 +25,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 // Form Schema - aligned with AddTransactionDialog
 const transactionSchema = z.object({
@@ -152,7 +154,7 @@ export default function AdminManualTransaction() {
         description: "AUM recorded successfully",
       });
       
-      queryClient.invalidateQueries({ queryKey: ["fund-aum"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundAumAll });
     } catch (error) {
       console.error("Error recording AUM:", error);
       const errorMsg = error instanceof Error ? error.message : "Failed to record AUM";
@@ -309,16 +311,8 @@ export default function AdminManualTransaction() {
         throw new Error(result.error || "Failed to create transaction");
       }
 
-      // Comprehensive cache invalidation - matches AddTransactionDialog
-      queryClient.invalidateQueries({ queryKey: ["investor-ledger"] });
-      queryClient.invalidateQueries({ queryKey: ["investor-ledger", data.investorId] });
-      queryClient.invalidateQueries({ queryKey: ["investor-positions"] });
-      queryClient.invalidateQueries({ queryKey: ["investor-positions", data.investorId] });
-      queryClient.invalidateQueries({ queryKey: ["fund-aum"] });
-      queryClient.invalidateQueries({ queryKey: ["fund-aum-unified"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+      // Comprehensive cache invalidation using centralized helper
+      invalidateAfterTransaction(queryClient, data.investorId, data.fundId);
 
       toast({
         title: "Transaction Created",

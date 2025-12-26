@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { invalidateAfterAssetOp } from "@/utils/cacheInvalidation";
 import {
   Dialog,
   DialogContent,
@@ -44,8 +45,7 @@ export function CreateAssetDialog({ open, onOpenChange }: CreateAssetDialogProps
     mutationFn: (data: AssetFormData) => assetService.createAsset(data),
     onSuccess: () => {
       toast.success("Asset created successfully");
-      queryClient.invalidateQueries({ queryKey: ["assets"] });
-      queryClient.invalidateQueries({ queryKey: ["asset-stats"] });
+      invalidateAfterAssetOp(queryClient);
       onOpenChange(false);
       setFormData({
         asset_id: "",
