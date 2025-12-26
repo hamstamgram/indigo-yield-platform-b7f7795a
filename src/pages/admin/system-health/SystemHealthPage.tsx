@@ -25,6 +25,7 @@ import {
 } from "@/services/core/systemHealthService";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
+import { DataIntegrityPanel } from "@/components/admin/DataIntegrityPanel";
 
 interface DeliveryQueueMetrics {
   queued_count: number;
@@ -204,6 +205,9 @@ export default function SystemHealthPage() {
           </Link>
         </CardContent>
       </Card>
+
+      {/* Data Integrity Panel - Issue G */}
+      <DataIntegrityPanel />
 
       {/* Service Grid */}
       {isLoading ? (

@@ -8,6 +8,7 @@ import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
 const IBManagementPage = lazy(() => import("@/pages/admin/ib/IBManagementPage"));
+const IBPayoutsPage = lazy(() => import("@/pages/admin/ib/IBPayoutsPage"));
 
 export function IBRoutes() {
   return (
@@ -17,6 +18,14 @@ export function IBRoutes() {
         element={
           <AdminRoute>
             <IBManagementPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/ib-payouts"
+        element={
+          <AdminRoute>
+            <IBPayoutsPage />
           </AdminRoute>
         }
       />

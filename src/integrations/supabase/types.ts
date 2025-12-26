@@ -1637,6 +1637,10 @@ export type Database = {
           ib_percentage: number
           id: string
           is_voided: boolean | null
+          paid_at: string | null
+          paid_by: string | null
+          payout_batch_id: string | null
+          payout_status: string
           period_end: string | null
           period_id: string | null
           period_start: string | null
@@ -1657,6 +1661,10 @@ export type Database = {
           ib_percentage: number
           id?: string
           is_voided?: boolean | null
+          paid_at?: string | null
+          paid_by?: string | null
+          payout_batch_id?: string | null
+          payout_status?: string
           period_end?: string | null
           period_id?: string | null
           period_start?: string | null
@@ -1677,6 +1685,10 @@ export type Database = {
           ib_percentage?: number
           id?: string
           is_voided?: boolean | null
+          paid_at?: string | null
+          paid_by?: string | null
+          payout_batch_id?: string | null
+          payout_status?: string
           period_end?: string | null
           period_id?: string | null
           period_start?: string | null
@@ -1725,6 +1737,20 @@ export type Database = {
           {
             foreignKeyName: "ib_allocations_ib_investor_id_fkey"
             columns: ["ib_investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_paid_by_fkey"
+            columns: ["paid_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_allocations_paid_by_fkey"
+            columns: ["paid_by"]
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
@@ -4914,6 +4940,8 @@ export type Database = {
         Args: { p_date: string; p_fund_id: string }
         Returns: boolean
       }
+      check_duplicate_ib_allocations: { Args: never; Returns: number }
+      check_duplicate_transaction_refs: { Args: never; Returns: number }
       check_is_admin: { Args: { user_id: string }; Returns: boolean }
       close_fund_reporting_month: {
         Args: {

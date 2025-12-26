@@ -76,19 +76,24 @@ export default function IBReferralsPage() {
       }
 
       // Build referral objects with holdings
+      // Issue C fix: Only count positions with current_value > 0 as active
       const referrals: Referral[] = (profiles || []).map((profile) => {
         const investorPositions = positionsData.filter((p) => p.investor_id === profile.id);
         
-        // Group holdings by asset
+        // Group holdings by asset - only include non-zero positions
         const holdings: Record<string, number> = {};
-        const fundIds = new Set<string>();
+        const activeFundIds = new Set<string>();
         
         for (const pos of investorPositions) {
           const asset = (pos.funds as any)?.asset;
+          const currentValue = Number(pos.current_value);
           if (!asset) continue; // Skip positions with missing fund data
-          fundIds.add(pos.fund_id);
-          if (!holdings[asset]) holdings[asset] = 0;
-          holdings[asset] += Number(pos.current_value);
+          // Only count as active if current_value > 0
+          if (currentValue > 0) {
+            activeFundIds.add(pos.fund_id);
+            if (!holdings[asset]) holdings[asset] = 0;
+            holdings[asset] += currentValue;
+          }
         }
 
         return {
@@ -98,7 +103,7 @@ export default function IBReferralsPage() {
           email: profile.email,
           status: profile.status || "active",
           joinedAt: profile.created_at,
-          activeFunds: fundIds.size,
+          activeFunds: activeFundIds.size, // Now only counts non-zero positions
           holdings,
         };
       });
