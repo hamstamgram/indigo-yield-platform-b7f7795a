@@ -94,7 +94,8 @@ export function ApproveWithdrawalDialog({
       onOpenChange(false);
     } catch (error) {
       console.error("Error approving withdrawal:", error);
-      toast.error("Failed to approve withdrawal");
+      const message = error instanceof Error ? error.message : "Failed to approve withdrawal";
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
