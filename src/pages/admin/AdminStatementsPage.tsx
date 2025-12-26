@@ -62,7 +62,7 @@ export default function AdminStatementsPage() {
       return profiles?.map(p => ({
         id: p.id,
         email: p.email,
-        name: `${p.first_name || ''} ${p.last_name || ''}`.trim() || p.email
+        name: `${p.firstName || ''} ${p.lastName || ''}`.trim() || p.email
       })) || [];
     },
   });

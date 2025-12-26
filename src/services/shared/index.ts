@@ -12,6 +12,10 @@ export { documentService } from "./documentService";
 // Asset management
 export { assetService } from "./assetService";
 
+// Fund management
+export { fundService } from "./fundService";
+export type { Fund, FundKPI } from "./fundService";
+
 // Performance services
 export * from "./performanceService";
 export * from "./performanceDataService";
@@ -71,7 +75,10 @@ export type { FundDailyAumRecord } from "./fundDailyAumService";
 
 // Position service
 export { positionService } from "./positionService";
-export type { InvestorPosition } from "./positionService";
+export type { InvestorPosition, CreatePositionParams } from "./positionService";
 
 // IB management
 export { ibManagementService } from "./ibManagementService";
+
+// Transactions V2 service (re-export from investor)
+export { transactionsV2Service } from "@/services/investor/transactionsV2Service";

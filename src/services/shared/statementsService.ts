@@ -50,13 +50,17 @@ class StatementsService {
 
   /**
    * Upload statement PDF to storage
+   * Accepts either (storagePath, blob) or (investorId, blob, filename)
    */
   async uploadStatementPDF(
-    investorId: string,
+    storagePathOrInvestorId: string,
     blob: Blob,
-    filename: string
+    filename?: string
   ): Promise<string> {
-    const filePath = `${investorId}/${filename}`;
+    // If filename is provided, construct path from investorId + filename
+    const filePath = filename 
+      ? `${storagePathOrInvestorId}/${filename}`
+      : storagePathOrInvestorId;
     
     const { data, error } = await supabase.storage
       .from("statements")
@@ -119,6 +123,35 @@ class StatementsService {
         status: stmt.storage_path ? "published" : "draft",
       };
     });
+  }
+
+  /**
+   * Get statement period by year and month
+   */
+  async getStatementPeriod(year: number, month: number): Promise<{
+    id: string;
+    period_start_date: string;
+    period_end_date: string;
+  } | null> {
+    // statement_periods has columns: year, month, period_end_date
+    const { data, error } = await supabase
+      .from("statement_periods")
+      .select("id, year, month, period_end_date")
+      .eq("year", year)
+      .eq("month", month)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return null;
+    
+    // Compute period_start_date from year/month
+    const periodStart = `${year}-${String(month).padStart(2, "0")}-01`;
+    
+    return {
+      id: data.id,
+      period_start_date: periodStart,
+      period_end_date: data.period_end_date,
+    };
   }
 }
 

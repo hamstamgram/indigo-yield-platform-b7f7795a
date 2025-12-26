@@ -1,6 +1,14 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Document, DocumentFilter } from "@/types/domains/document";
 
+export interface CreateStatementDocumentParams {
+  user_id: string;
+  title: string;
+  storage_path: string;
+  period_start?: string;
+  period_end?: string;
+}
+
 export const documentService = {
   /**
    * List documents with optional filtering
@@ -35,6 +43,21 @@ export const documentService = {
       throw error;
     }
 
+    return data || [];
+  },
+
+  /**
+   * Get statement documents (type = 'statement')
+   */
+  async getStatementDocuments(limit: number = 50): Promise<Document[]> {
+    const { data, error } = await supabase
+      .from("documents")
+      .select("*")
+      .eq("type", "statement")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
     return data || [];
   },
 
@@ -119,6 +142,32 @@ export const documentService = {
       throw error;
     }
 
+    return data;
+  },
+
+  /**
+   * Create a statement document record
+   */
+  async createStatementDocument(params: CreateStatementDocumentParams): Promise<Document> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const { data, error } = await supabase
+      .from("documents")
+      .insert({
+        user_id: params.user_id,
+        storage_path: params.storage_path,
+        type: "statement" as any,
+        title: params.title,
+        period_start: params.period_start || null,
+        period_end: params.period_end || null,
+        created_by: user?.id,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
     return data;
   },
 

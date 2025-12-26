@@ -49,7 +49,7 @@ export const StatementManager: React.FC = () => {
       for (const investor of investors) {
         // Get transactions via service
         const txs = await transactionsV2Service.getByInvestorId(investor.id, {
-          toDate: endDate.toISOString().split("T")[0],
+          endDate: endDate.toISOString().split("T")[0],
         });
 
         if (!txs || txs.length === 0) continue;
@@ -104,7 +104,7 @@ export const StatementManager: React.FC = () => {
 
         if (positions.length === 0) continue;
 
-        const fullName = `${investor.first_name || ""} ${investor.last_name || ""}`.trim();
+        const fullName = `${investor.firstName || ""} ${investor.lastName || ""}`.trim();
 
         const pdfBlob = generatePDF({
           investor: {
