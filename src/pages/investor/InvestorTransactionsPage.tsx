@@ -21,6 +21,7 @@ import PageHeader from "@/components/layout/PageHeader";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth/context";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 const TRANSACTION_TYPES = [
   { value: "all", label: "All Types" },
@@ -39,7 +40,7 @@ export default function InvestorTransactionsPage() {
 
   // Fetch available assets for filter
   const { data: assets } = useQuery({
-    queryKey: ["transaction-assets", user?.id],
+    queryKey: QUERY_KEYS.transactionAssets(user?.id),
     queryFn: async () => {
       if (!user) return [];
 
@@ -60,7 +61,7 @@ export default function InvestorTransactionsPage() {
 
   // Fetch transactions with filters
   const { data: items, isLoading } = useQuery({
-    queryKey: ["investor-transactions", user?.id, searchTerm, assetFilter, typeFilter],
+    queryKey: QUERY_KEYS.investorTransactions(user?.id || "", undefined),
     queryFn: async () => {
       if (!user) throw new Error("No user");
 

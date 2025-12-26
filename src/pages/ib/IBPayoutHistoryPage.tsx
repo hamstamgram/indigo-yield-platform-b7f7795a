@@ -22,6 +22,7 @@ import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { Wallet, ChevronLeft, ChevronRight } from "lucide-react";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 const PAGE_SIZE = 20;
 
@@ -40,7 +41,7 @@ export default function IBPayoutHistoryPage() {
   const [page, setPage] = useState(0);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["ib-payout-history", user?.id, page],
+    queryKey: QUERY_KEYS.ibPayoutHistory(user?.id || "", page),
     queryFn: async () => {
       if (!user?.id) return { payouts: [], total: 0 };
 

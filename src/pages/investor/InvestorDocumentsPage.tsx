@@ -9,10 +9,11 @@ import { FolderOpen, Download, FileText, Loader2 } from "lucide-react";
 import PageHeader from "@/components/layout/PageHeader";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export default function InvestorDocumentsPage() {
   const { data: documents, isLoading } = useQuery({
-    queryKey: ["investor-documents"],
+    queryKey: QUERY_KEYS.investorDocuments,
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];

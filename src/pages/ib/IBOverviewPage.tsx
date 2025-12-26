@@ -13,6 +13,7 @@ import { formatAssetAmount } from "@/utils/assets";
 import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
 import { BarChart3, Users, Coins, TrendingUp } from "lucide-react";
 import { startOfMonth, startOfQuarter, startOfYear, format, subMonths } from "date-fns";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 type PeriodType = "MTD" | "QTD" | "YTD" | "ALL";
 
@@ -62,7 +63,7 @@ export default function IBOverviewPage() {
 
   // Fetch commission summary by token
   const { data: commissionSummary, isLoading: summaryLoading } = useQuery({
-    queryKey: ["ib-commission-summary", user?.id, period],
+    queryKey: QUERY_KEYS.ibCommissions(user?.id, undefined, period),
     queryFn: async () => {
       if (!user?.id) return [];
 
@@ -122,7 +123,7 @@ export default function IBOverviewPage() {
 
   // Fetch top referrals by commission
   const { data: topReferrals, isLoading: referralsLoading } = useQuery({
-    queryKey: ["ib-top-referrals", user?.id, period],
+    queryKey: QUERY_KEYS.ibTopReferrals(user?.id || "", period),
     queryFn: async () => {
       if (!user?.id) return [];
 
@@ -194,7 +195,7 @@ export default function IBOverviewPage() {
 
   // Fetch referral count
   const { data: referralCount } = useQuery({
-    queryKey: ["ib-referral-count", user?.id],
+    queryKey: QUERY_KEYS.ibReferralCount(user?.id || ""),
     queryFn: async () => {
       if (!user?.id) return 0;
 

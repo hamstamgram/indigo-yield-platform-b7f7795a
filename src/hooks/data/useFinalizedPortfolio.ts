@@ -6,10 +6,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { performanceService } from "@/services/shared/performanceService";
 import { supabase } from "@/integrations/supabase/client";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export function useFinalizedPortfolio() {
   return useQuery({
-    queryKey: ["finalized-portfolio"],
+    queryKey: QUERY_KEYS.finalizedPortfolio,
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");

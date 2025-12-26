@@ -7,6 +7,7 @@ import { AssetPerformanceCard } from "@/components/common/AssetPerformanceCard";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "@/components/layout/PageHeader";
 import { BarChart3 } from "lucide-react";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export default function InvestorOverviewPage() {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ export default function InvestorOverviewPage() {
 
   // Fetch recent transactions (limit 5)
   const { data: recentTransactions, isLoading: isLoadingTxs } = useQuery({
-    queryKey: ["recent-transactions"],
+    queryKey: QUERY_KEYS.recentTransactions,
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
@@ -41,7 +42,7 @@ export default function InvestorOverviewPage() {
 
   // Fetch pending withdrawals count
   const { data: pendingWithdrawals, isLoading: isLoadingWithdrawals } = useQuery({
-    queryKey: ["pending-withdrawals-count"],
+    queryKey: QUERY_KEYS.pendingWithdrawalsCount,
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return 0;
@@ -59,7 +60,7 @@ export default function InvestorOverviewPage() {
 
   // Get last statement period name
   const { data: lastPeriod } = useQuery({
-    queryKey: ["last-statement-period"],
+    queryKey: QUERY_KEYS.lastStatementPeriod,
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;

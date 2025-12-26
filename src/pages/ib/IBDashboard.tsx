@@ -19,6 +19,7 @@ import { Loader2, Coins, Users, TrendingUp, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth/context";
 import { getAssetLogo } from "@/utils/assets";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 interface Allocation {
   id: string;
@@ -70,7 +71,7 @@ export default function IBDashboard() {
 
   // Fetch IB allocations with fund info
   const { data: allocations, isLoading: allocationsLoading } = useQuery({
-    queryKey: ["ib-allocations", userId],
+    queryKey: QUERY_KEYS.ibAllocations(undefined),
     queryFn: async (): Promise<Allocation[]> => {
       if (!userId) return [];
 
@@ -113,7 +114,7 @@ export default function IBDashboard() {
 
   // Fetch referrals
   const { data: referrals, isLoading: referralsLoading } = useQuery({
-    queryKey: ["ib-referrals", userId],
+    queryKey: QUERY_KEYS.ibReferrals(userId),
     queryFn: async () => {
       if (!userId) return [];
 
@@ -131,7 +132,7 @@ export default function IBDashboard() {
 
   // Fetch IB positions with fund details
   const { data: positions, isLoading: positionsLoading } = useQuery({
-    queryKey: ["ib-positions", userId],
+    queryKey: QUERY_KEYS.ibPositions(userId || ""),
     queryFn: async (): Promise<FundPosition[]> => {
       if (!userId) return [];
 
