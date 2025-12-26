@@ -1,4 +1,5 @@
-import { supabase } from "@/integrations/supabase/client";
+import { profileService, fundService } from "@/services/shared";
+import { transactionsV2Service } from "@/services/investor/transactionsV2Service";
 
 export interface StatementData {
   investor_id: string;
@@ -78,15 +79,11 @@ export async function computeStatement(
   period_month: number
 ): Promise<StatementData | null> {
   try {
-    // Get investor profile (from PROFILES, One ID)
-    const { data: investor, error: investorError } = await supabase
-      .from("profiles")
-      .select("id, first_name, last_name, email")
-      .eq("id", investor_id)
-      .maybeSingle();
+    // Get investor profile using profileService
+    const investor = await profileService.getProfileById(investor_id);
 
-    if (investorError || !investor) {
-      console.error("Investor profile not found:", investorError);
+    if (!investor) {
+      console.error("Investor profile not found");
       return null;
     }
 
@@ -95,26 +92,19 @@ export async function computeStatement(
     // Calculate period dates
     const period_start = new Date(period_year, period_month - 1, 1);
     const period_end = new Date(period_year, period_month, 0, 23, 59, 59);
-    const period_start_str = period_start.toISOString().split("T")[0];
     const period_end_str = period_end.toISOString().split("T")[0];
 
     // Fetch all transactions for this investor up to the end of the period
-    // using transactions_v2 with deterministic ordering (tx_date, id)
-    const { data: transactions, error: txError } = await supabase
-      .from("transactions_v2")
-      .select("*")
-      .eq("investor_id", investor_id)
-      .lte("tx_date", period_end_str)
-      .order("tx_date", { ascending: true })
-      .order("id", { ascending: true }); // Deterministic tie-breaker for same-day ordering
+    // using transactionsV2Service with deterministic ordering
+    const transactions = await transactionsV2Service.getByInvestorId(investor_id, {
+      endDate: period_end_str,
+    });
 
-    if (txError) {
-      console.error("Error fetching transactions:", txError);
-      throw txError;
-    }
+    // Reverse to get ascending order (service returns descending by default)
+    transactions.reverse();
 
     // Fetch funds information for asset mapping
-    const { data: funds } = await supabase.from("funds").select("id, name, asset, code");
+    const funds = await fundService.getAllFunds();
 
     const fundMap = new Map(funds?.map((f) => [f.asset, f]));
 

@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { auditLogService } from "@/services/shared";
 
 // Sentry monitoring removed
 
@@ -134,15 +135,14 @@ class SecurityLogger {
 
   /**
    * Persist event to database with retries
-   * Note: log_security_event RPC doesn't exist, using audit_log table directly
+   * Uses auditLogService for centralized data access
    */
   private async persistEvent(event: SecurityEventData, retryCount = 0): Promise<void> {
     try {
-      const { error } = await supabase.from("audit_log").insert({
+      const result = await auditLogService.logEvent({
+        actorUserId: event.user_id || "system",
         action: event.event_type,
-        actor_user: event.user_id || null,
         entity: "security_event",
-        entity_id: null,
         meta: {
           severity: event.severity,
           ip_address: event.ip_address,
@@ -153,8 +153,8 @@ class SecurityLogger {
         },
       });
 
-      if (error) {
-        throw error;
+      if (!result.success) {
+        throw new Error(result.error);
       }
 
       // Also log to console in development
