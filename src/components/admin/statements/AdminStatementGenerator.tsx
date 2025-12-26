@@ -3,11 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Loader2, Shield, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks";
-import { supabase } from "@/integrations/supabase/client";
 import { generatePDF } from "@/lib/pdf/statementGenerator";
 import { checkStatementExists } from "@/services/core/reportUpsertService";
 import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { profileService, statementsService, documentService } from "@/services/shared";
 
 const AdminStatementGenerator: React.FC = () => {
   const { isSuperAdmin, loading: roleLoading } = useSuperAdmin();
@@ -23,14 +23,9 @@ const AdminStatementGenerator: React.FC = () => {
     setIsGenerating(true);
     setProgress(0);
     try {
-      // 1. Fetch all active investors (profiles)
-      const { data: investors, error: investorsError } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, email, status")
-        .eq("status", "active")
-        .eq("is_admin", false); // Only non-admin profiles
+      // 1. Fetch all active investors via service
+      const investors = await profileService.getActiveInvestors();
 
-      if (investorsError) throw investorsError;
       if (!investors || investors.length === 0) {
         toast({ title: "No active investors found" });
         return;
@@ -39,15 +34,13 @@ const AdminStatementGenerator: React.FC = () => {
       const total = investors.length;
       let successCount = 0;
 
-      // Resolve period_id for the selected month/year
-      const { data: period, error: periodError } = await supabase
-        .from("statement_periods")
-        .select("id, period_end_date")
-        .eq("year", parseInt(selectedYear))
-        .eq("month", parseInt(selectedMonth))
-        .maybeSingle();
+      // Resolve period_id for the selected month/year via service
+      const period = await statementsService.getStatementPeriod(
+        parseInt(selectedYear),
+        parseInt(selectedMonth)
+      );
 
-      if (periodError || !period) {
+      if (!period) {
         toast({ title: "Error", description: "Statement period not found for selected date.", variant: "destructive" });
         return;
       }
@@ -57,12 +50,8 @@ const AdminStatementGenerator: React.FC = () => {
         const investor = investors[i];
         const investorFullName = `${investor.first_name || ""} ${investor.last_name || ""}`.trim() || investor.email;
 
-        // Fetch report data from investor_fund_performance (V2)
-        const { data: reports } = await supabase
-          .from("investor_fund_performance")
-          .select("fund_name, mtd_beginning_balance, mtd_additions, mtd_redemptions, mtd_net_income, mtd_ending_balance, mtd_rate_of_return")
-          .eq("investor_id", investor.id)
-          .eq("period_id", period.id);
+        // Fetch report data via service
+        const reports = await profileService.getInvestorFundPerformanceByPeriod(investor.id, period.id);
 
         // Prepare statement data
         const statementData = {
@@ -97,31 +86,26 @@ const AdminStatementGenerator: React.FC = () => {
         // Generate PDF
         const pdfBlob = await generatePDF(statementData);
 
-        // Upload
+        // Upload via service
         const fileName = `statement-${selectedYear}-${selectedMonth.padStart(2, "0")}-${investor.id}.pdf`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("statements")
-          .upload(`${investor.id}/${fileName}`, pdfBlob, {
-            contentType: "application/pdf",
-            upsert: true,
-          });
-
-        if (uploadError) {
+        const storagePath = `${investor.id}/${fileName}`;
+        
+        try {
+          await statementsService.uploadStatementPDF(storagePath, pdfBlob);
+        } catch (uploadError) {
           console.error("Upload failed", uploadError);
           continue;
         }
 
-        // Save document record
-        const currentUser = await supabase.auth.getUser();
-        await supabase.from("documents").insert({
-          user_id: investor.id, // Unified ID
-          type: "statement",
+        // Save document record via service
+        await documentService.createStatementDocument({
+          user_id: investor.id,
           title: `Monthly Statement - ${selectedMonth}/${selectedYear}`,
-          storage_path: uploadData?.path || "",
+          storage_path: storagePath,
           period_start: statementData.period.start,
           period_end: statementData.period.end,
-          created_by: currentUser.data.user?.id,
         });
+        
         successCount++;
       }
 

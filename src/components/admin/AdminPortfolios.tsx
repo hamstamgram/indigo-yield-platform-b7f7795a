@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -23,6 +22,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { InvestorSummaryV2 } from "@/services/admin";
 import { Asset } from "@/types/investorTypes";
+import { positionService, fundService } from "@/services/shared";
+import { assetService } from "@/services/admin";
 
 type UserPortfolio = {
   id: string;
@@ -83,13 +84,8 @@ const AdminPortfolios = ({
       if (providedAssets && providedAssets.length > 0) {
         setAssets(providedAssets);
       } else {
-        // Otherwise fetch assets
-        const { data: assetsResult, error: assetsError } = await supabase
-          .from("assets")
-          .select("id, symbol, name")
-          .order("symbol");
-
-        if (assetsError) throw assetsError;
+        // Otherwise fetch assets via service
+        const assetsResult = await assetService.getAll();
         setAssets(assetsResult || []);
       }
 
@@ -104,31 +100,21 @@ const AdminPortfolios = ({
         }));
         setUsers(userData);
       } else {
-        // Fallback to fetching users directly
-        const { data: usersResult, error: usersError } = await supabase
-          .from("profiles")
-          .select("id, email, first_name, last_name");
-
-        if (usersError) throw usersError;
+        // Fallback to fetching users via service
+        const { profileService } = await import("@/services/shared");
+        const usersResult = await profileService.getAllProfiles();
         userData = usersResult || [];
         setUsers(userData);
       }
 
-      // Fetch investor positions (V2)
-      const { data: portfoliosResult, error: portfoliosError } = await supabase
-        .from("investor_positions")
-        .select("investor_id, fund_id, current_value, shares, updated_at, fund_class");
-
-      if (portfoliosError) throw portfoliosError;
+      // Fetch investor positions via service
+      const portfoliosResult = await positionService.getAllPositions();
 
       const portfolioData = portfoliosResult || [];
 
       // Fetch fund metadata for asset mapping
       const fundIds = Array.from(new Set(portfolioData.map((p) => p.fund_id)));
-      const { data: fundMeta } = await supabase
-        .from("funds")
-        .select("id, code, asset, name, fund_class")
-        .in("id", fundIds.length ? fundIds : ["00000000-0000-0000-0000-000000000000"]);
+      const fundMeta = fundIds.length > 0 ? await fundService.getFundsByIds(fundIds) : [];
       const fundMap = new Map((fundMeta || []).map((f) => [f.id, f]));
 
       // Enrich portfolio data with user and asset information
@@ -228,16 +214,11 @@ const AdminPortfolios = ({
         return;
       }
 
-      const { error } = await supabase
-        .from("investor_positions")
-        .update({
-          current_value: portfolioToUpdate.balance,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("investor_id", portfolioToUpdate.investor_id)
-        .eq("fund_id", portfolioToUpdate.fund_id);
-
-      if (error) throw error;
+      await positionService.updatePosition(
+        portfolioToUpdate.investor_id,
+        portfolioToUpdate.fund_id || "",
+        portfolioToUpdate.balance
+      );
 
       toast({
         title: "Success",
@@ -289,52 +270,30 @@ const AdminPortfolios = ({
         (selectedAssetData?.symbol as "BTC" | "ETH" | "SOL" | "USDT" | "EURC" | "xAUT" | "XRP") || "USDT";
 
       // Check if this user-asset combination already exists
-      const { data: existingEntry } = await supabase
-        .from("investor_positions")
-        .select("investor_id, fund_id")
-        .eq("investor_id", selectedUser)
-        .eq("fund_class", assetSymbol)
-        .maybeSingle();
+      const existingEntry = await positionService.getPositionByInvestorAndClass(selectedUser, assetSymbol);
 
       if (existingEntry) {
-        // Update existing entry
-        const { error } = await supabase
-          .from("investor_positions")
-          .update({
-            current_value: balance,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("investor_id", selectedUser)
-          .eq("fund_id", existingEntry.fund_id || "");
-
-        if (error) throw error;
+        // Update existing entry via service
+        await positionService.updatePosition(selectedUser, existingEntry.fund_id || "", balance);
 
         toast({
           title: "Success",
           description: "Portfolio balance updated successfully",
         });
       } else {
-        // Insert new entry
-        // Need fund_id for this asset symbol
-        const { data: fundRow, error: fundErr } = await supabase
-          .from("funds")
-          .select("id")
-          .eq("asset", assetSymbol)
-          .maybeSingle();
+        // Insert new entry via service
+        const fund = await fundService.getFundByAsset(assetSymbol);
+        
+        if (!fund) throw new Error("Fund not found for asset");
 
-        if (fundErr || !fundRow) throw fundErr || new Error("Fund not found for asset");
-
-        const { error } = await supabase.from("investor_positions").insert({
+        await positionService.createPosition({
           investor_id: selectedUser,
-          fund_id: fundRow.id,
+          fund_id: fund.id,
           fund_class: assetSymbol,
           current_value: balance,
           shares: balance,
           cost_basis: balance,
-          updated_at: new Date().toISOString(),
         });
-
-        if (error) throw error;
 
         toast({
           title: "Success",
@@ -500,7 +459,7 @@ const AdminPortfolios = ({
                   <option value="0">Select an asset</option>
                   {assets.map((asset) => (
                     <option key={asset.id} value={asset.id}>
-                      {asset.symbol} - {asset.name}
+                      {asset.name} ({asset.symbol})
                     </option>
                   ))}
                 </select>
@@ -515,7 +474,7 @@ const AdminPortfolios = ({
                   min="0"
                   value={newBalance}
                   onChange={(e) => setNewBalance(e.target.value)}
-                  placeholder="0.00000000"
+                  placeholder="Enter balance"
                 />
               </div>
             </div>

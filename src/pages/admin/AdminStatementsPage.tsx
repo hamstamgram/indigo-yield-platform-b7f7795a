@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { Loader2, FileText, Download, Send, Calendar, User } from "lucide-react";
 import { format } from "date-fns";
 import { generatePDF } from "@/lib/pdf/statementGenerator";
+import { profileService, statementsService, documentService } from "@/services/shared";
 
 export default function AdminStatementsPage() {
   const [selectedInvestor, setSelectedInvestor] = useState<string>("");
@@ -53,21 +54,12 @@ export default function AdminStatementsPage() {
     { value: "12", label: "December" },
   ];
 
-  // Fetch all investors
+  // Fetch all investors via service
   const { data: investors, isLoading: investorsLoading } = useQuery({
     queryKey: ["investors-all"],
     queryFn: async () => {
-      // Cast to any to avoid "excessively deep" type error with complex Supabase types
-      const query = (supabase as any)
-        .from("profiles")
-        .select("id, email, first_name, last_name")
-        .eq("role", "investor")
-        .eq("status", "active")
-        .order("last_name");
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return (data as any[])?.map(p => ({
+      const profiles = await profileService.getActiveInvestors();
+      return profiles?.map(p => ({
         id: p.id,
         email: p.email,
         name: `${p.first_name || ''} ${p.last_name || ''}`.trim() || p.email
@@ -75,18 +67,11 @@ export default function AdminStatementsPage() {
     },
   });
 
-  // Fetch existing statements
+  // Fetch existing statements via service
   const { data: statements, isLoading: statementsLoading } = useQuery({
     queryKey: ["statements-admin"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("documents")
-        .select("*")
-        .eq("type", "statement")
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return data;
+      return documentService.getStatementDocuments(50);
     },
   });
 
@@ -95,24 +80,16 @@ export default function AdminStatementsPage() {
     mutationFn: async (params: { investorId: string; year: number; month: number }) => {
       setGeneratingStatement(params.investorId);
 
-      // Fetch statement data directly from investor_monthly_reports
+      // Fetch statement data via service
       const reportMonth = `${params.year}-${params.month.toString().padStart(2, "0")}-01`;
       
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, email")
-        .eq("id", params.investorId)
-        .single();
+      const profile = await profileService.getProfileById(params.investorId);
         
       const investorName = profile 
         ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.email
         : "Unknown";
 
-      const { data: reports } = await supabase
-        .from("investor_monthly_reports")
-        .select("*")
-        .eq("investor_id", params.investorId)
-        .eq("report_month", reportMonth);
+      const reports = await profileService.getMonthlyReports(params.investorId, reportMonth);
 
       const statementData = {
         investor: {
@@ -163,31 +140,22 @@ export default function AdminStatementsPage() {
 
       const pdfContent = await generatePDF(mappedData);
 
-      // Upload to storage
+      // Upload to storage via service
       const fileName = `statement-${params.year}-${params.month.toString().padStart(2, "0")}.pdf`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("statements")
-        .upload(`${params.investorId}/${fileName}`, pdfContent, {
-          contentType: "application/pdf",
-          upsert: true,
-        });
+      const storagePath = `${params.investorId}/${fileName}`;
+      
+      await statementsService.uploadStatementPDF(storagePath, pdfContent);
 
-      if (uploadError) throw uploadError;
-
-      // Save document record
-      const { data: docData, error: docError } = await supabase.from("documents").insert({
+      // Save document record via service
+      await documentService.createStatementDocument({
         user_id: params.investorId,
-        type: "statement",
         title: `Statement - ${months.find((m) => m.value === params.month.toString())?.label} ${params.year}`,
-        storage_path: uploadData.path,
+        storage_path: storagePath,
         period_start: `${params.year}-${params.month.toString().padStart(2, "0")}-01`,
         period_end: new Date(params.year, params.month, 0).toISOString().split("T")[0],
-        created_by: (await supabase.auth.getUser()).data.user?.id,
       });
 
-      if (docError) throw docError;
-
-      return { statementData, document: docData };
+      return { statementData };
     },
     onSuccess: () => {
       toast.success("Statement generated successfully");

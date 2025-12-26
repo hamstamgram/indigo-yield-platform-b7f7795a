@@ -32,8 +32,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Plus, Users, TrendingUp, Coins } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { formatCrypto } from "@/utils/financial";
+import { ibManagementService, fundService } from "@/services/shared";
 
 interface EarningsByAsset {
   [assetSymbol: string]: number;
@@ -62,13 +62,8 @@ export default function IBManagementPage() {
   const { data: ibs, isLoading } = useQuery({
     queryKey: ["ibs"],
     queryFn: async (): Promise<IBProfile[]> => {
-      // Get all users with IB role
-      const { data: ibRoles, error: rolesError } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "ib");
-
-      if (rolesError) throw rolesError;
+      // Get all users with IB role via service
+      const ibRoles = await ibManagementService.getIBRoles();
 
       if (!ibRoles || ibRoles.length === 0) {
         return [];
@@ -76,44 +71,29 @@ export default function IBManagementPage() {
 
       const ibUserIds = ibRoles.map((r) => r.user_id);
 
-      // Get profile details for IBs
-      const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("id, email, first_name, last_name, created_at")
-        .in("id", ibUserIds);
+      // Get profile details for IBs via service
+      const profiles = await ibManagementService.getProfilesByIds(ibUserIds);
 
-      if (profilesError) throw profilesError;
+      // Get referral counts via service
+      const referrals = await ibManagementService.getReferralsByParentIds(ibUserIds);
 
-      // Get referral counts
-      const { data: referrals, error: refError } = await supabase
-        .from("profiles")
-        .select("ib_parent_id")
-        .in("ib_parent_id", ibUserIds);
+      // Get IB earnings from transactions_v2 via service
+      const ibCredits = await ibManagementService.getIBCredits(ibUserIds);
 
-      // Get IB earnings from transactions_v2 (primary source - always populated)
-      const { data: ibCredits, error: txError } = await supabase
-        .from("transactions_v2")
-        .select("investor_id, amount, fund_id, asset")
-        .in("investor_id", ibUserIds)
-        .eq("type", "IB_CREDIT");
+      // Also check ib_allocations for audit trail via service
+      const allocations = await ibManagementService.getIBAllocations(ibUserIds);
 
-      // Also check ib_allocations for audit trail (may be empty for older data)
-      const { data: allocations } = await supabase
-        .from("ib_allocations")
-        .select("ib_investor_id, ib_fee_amount, fund_id")
-        .in("ib_investor_id", ibUserIds);
-
-      // Get funds to map fund_id -> asset (fallback for allocations without asset)
+      // Get funds to map fund_id -> asset
       const allFundIds = [
         ...new Set([
           ...(ibCredits || []).map((t) => t.fund_id).filter(Boolean),
           ...(allocations || []).map((a) => a.fund_id).filter(Boolean),
         ]),
-      ];
-      const { data: funds } = await supabase
-        .from("funds")
-        .select("id, asset")
-        .in("id", allFundIds.length > 0 ? allFundIds : ["__none__"]);
+      ] as string[];
+      
+      const funds = allFundIds.length > 0 
+        ? await fundService.getFundsByIds(allFundIds)
+        : [];
 
       const fundToAsset = new Map<string, string>();
       funds?.forEach((f) => fundToAsset.set(f.id, f.asset));
@@ -170,44 +150,8 @@ export default function IBManagementPage() {
   // Create new IB mutation
   const createIBMutation = useMutation({
     mutationFn: async (data: { email: string; firstName: string; lastName: string }) => {
-      // First, check if user already exists
-      const { data: existingProfile, error: checkError } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("email", data.email)
-        .maybeSingle();
-
-      if (!existingProfile) {
-        throw new Error(
-          "User profile does not exist. Please invite this user first through the investor invite flow, then assign IB role."
-        );
-      }
-
-      const userId = existingProfile.id;
-
-      // Check if already has IB role
-      const { data: existingRole } = await supabase
-        .from("user_roles")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("role", "ib")
-        .maybeSingle();
-
-      if (existingRole) {
-        throw new Error("This user is already an IB.");
-      }
-
-      // Add IB role
-      const { error: roleError } = await supabase.from("user_roles").insert({
-        user_id: userId,
-        role: "ib",
-      });
-
-      if (roleError) {
-        throw roleError;
-      }
-
-      return { userId };
+      // Use service to create IB role
+      return ibManagementService.createIBRole(data.email);
     },
     onSuccess: () => {
       toast.success("IB Created", {
