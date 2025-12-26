@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks";
 import { useAuth } from "@/lib/auth/context";
-import { supabase } from "@/integrations/supabase/client";
+import { investorDataExportService } from "@/services/shared";
 
 export default function PrivacyTab() {
   const { user } = useAuth();
@@ -37,42 +37,8 @@ export default function PrivacyTab() {
 
     setExporting(true);
     try {
-      // 1. Get User ID (One ID: it's the user.id)
-      const investorId = user.id;
-
-      // Gather all user data
-      const [profile, investments, transactions, documents] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
-        supabase.from("investor_positions").select("*").eq("investor_id", investorId),
-        supabase.from("transactions_v2").select("*").eq("investor_id", investorId),
-        supabase.from("documents").select("*").eq("user_id", user.id),
-      ]);
-
-      const exportData = {
-        exportDate: new Date().toISOString(),
-        profile: profile.data,
-        investments: investments.data,
-        transactions: transactions.data,
-        documents: documents.data?.map((d: any) => ({
-          id: d.id,
-          type: d.document_type || d.type,
-          status: d.status,
-          uploadedAt: d.created_at,
-        })),
-      };
-
-      // Create download
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-        type: "application/json",
-      });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `indigo-data-export-${Date.now()}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      const exportData = await investorDataExportService.exportInvestorData(user.id);
+      investorDataExportService.downloadAsJson(exportData);
 
       toast({
         title: "Success",
