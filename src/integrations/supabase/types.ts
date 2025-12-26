@@ -953,6 +953,55 @@ export type Database = {
             referencedColumns: ["investor_id"]
           },
           {
+            foreignKeyName: "fk_fee_alloc_distribution"
+            columns: ["distribution_id"]
+            isOneToOne: false
+            referencedRelation: "yield_distribution_conservation_check"
+            referencedColumns: ["distribution_id"]
+          },
+          {
+            foreignKeyName: "fk_fee_alloc_distribution"
+            columns: ["distribution_id"]
+            isOneToOne: false
+            referencedRelation: "yield_distributions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_fee_alloc_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_fee_alloc_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_fee_alloc_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_fee_alloc_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_fee_alloc_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "fk_fee_allocations_distribution"
             columns: ["distribution_id"]
             isOneToOne: false
@@ -1895,6 +1944,69 @@ export type Database = {
           voided_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_ib_alloc_distribution"
+            columns: ["distribution_id"]
+            isOneToOne: false
+            referencedRelation: "yield_distribution_conservation_check"
+            referencedColumns: ["distribution_id"]
+          },
+          {
+            foreignKeyName: "fk_ib_alloc_distribution"
+            columns: ["distribution_id"]
+            isOneToOne: false
+            referencedRelation: "yield_distributions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_ib_alloc_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_ib_alloc_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_ib_alloc_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_ib_alloc_ib"
+            columns: ["ib_investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_ib_alloc_ib"
+            columns: ["ib_investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "fk_ib_alloc_source"
+            columns: ["source_investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_ib_alloc_source"
+            columns: ["source_investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
           {
             foreignKeyName: "fk_ib_allocations_distribution"
             columns: ["distribution_id"]
@@ -5043,6 +5155,34 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_ib_alloc_ib"
+            columns: ["allocated_ib_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_ib_alloc_ib"
+            columns: ["allocated_ib_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "fk_ib_alloc_source"
+            columns: ["source_investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_ib_alloc_source"
+            columns: ["source_investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
             foreignKeyName: "fk_ib_allocations_ib_investor_v2"
             columns: ["allocated_ib_id"]
             isOneToOne: false
@@ -5265,6 +5405,27 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
+            foreignKeyName: "fk_fee_alloc_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_fee_alloc_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_fee_alloc_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
+          },
+          {
             foreignKeyName: "fk_fee_allocations_fund_v2"
             columns: ["fund_id"]
             isOneToOne: false
@@ -5341,11 +5502,53 @@ export type Database = {
           effective_date: string | null
           ib_fee_amount: number | null
           ib_investor_id: string | null
-          is_voided: boolean | null
           issue_type: string | null
+          payout_status: string | null
           source_investor_id: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_ib_alloc_distribution"
+            columns: ["distribution_id"]
+            isOneToOne: false
+            referencedRelation: "yield_distribution_conservation_check"
+            referencedColumns: ["distribution_id"]
+          },
+          {
+            foreignKeyName: "fk_ib_alloc_distribution"
+            columns: ["distribution_id"]
+            isOneToOne: false
+            referencedRelation: "yield_distributions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_ib_alloc_ib"
+            columns: ["ib_investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_ib_alloc_ib"
+            columns: ["ib_investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "fk_ib_alloc_source"
+            columns: ["source_investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_ib_alloc_source"
+            columns: ["source_investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
           {
             foreignKeyName: "fk_ib_allocations_distribution"
             columns: ["distribution_id"]
@@ -5531,14 +5734,13 @@ export type Database = {
           fund_code: string | null
           fund_id: string | null
           fund_name: string | null
-          is_locked: boolean | null
+          issue_description: string | null
           issue_type: string | null
           month: number | null
           period_id: string | null
-          snapshot_aum: number | null
-          snapshot_created_at: string | null
+          period_status: string | null
           snapshot_id: string | null
-          snapshot_investor_count: number | null
+          snapshot_locked: boolean | null
           year: number | null
         }
         Relationships: []
@@ -5547,13 +5749,12 @@ export type Database = {
         Row: {
           amount: number | null
           distribution_id: string | null
-          distribution_status: string | null
           fund_id: string | null
           investor_id: string | null
           issue_type: string | null
+          purpose: Database["public"]["Enums"]["aum_purpose"] | null
           transaction_id: string | null
           transaction_type: Database["public"]["Enums"]["tx_type"] | null
-          transaction_voided: boolean | null
           tx_date: string | null
         }
         Relationships: [
