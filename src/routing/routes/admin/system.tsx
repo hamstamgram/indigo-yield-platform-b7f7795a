@@ -7,13 +7,13 @@ import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { AdminRoute } from "../../AdminRoute";
 
-const AdminSettingsNew = lazy(() => import("@/routes/admin/AdminSettings"));
-const AdminAuditLogs = lazy(() => import("@/routes/admin/AdminAuditLogs"));
-const MaintenancePage = lazy(() => import("@/routes/admin/MaintenancePage"));
-const AdminListPage = lazy(() => import("@/routes/admin/settings/AdminList"));
-const AdminToolsPage = lazy(() => import("@/routes/admin/settings/AdminToolsPage"));
-const AdminInvitesPage = lazy(() => import("@/routes/admin/settings/AdminInvitesPage"));
-const SystemHealthPage = lazy(() => import("@/routes/admin/system-health/SystemHealthPage"));
+const AdminSettingsNew = lazy(() => import("@/pages/admin/AdminSettings"));
+const AdminAuditLogs = lazy(() => import("@/pages/admin/AdminAuditLogs"));
+const MaintenancePage = lazy(() => import("@/pages/admin/MaintenancePage"));
+const AdminListPage = lazy(() => import("@/pages/admin/settings/AdminList"));
+const AdminToolsPage = lazy(() => import("@/pages/admin/settings/AdminToolsPage"));
+const AdminInvitesPage = lazy(() => import("@/pages/admin/settings/AdminInvitesPage"));
+const SystemHealthPage = lazy(() => import("@/pages/admin/system-health/SystemHealthPage"));
 
 export function SystemRoutes() {
   return (

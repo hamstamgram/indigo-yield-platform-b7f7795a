@@ -7,22 +7,22 @@ import { Route } from "react-router-dom";
 import { lazy } from "react";
 
 // Core pages loaded immediately
-import Login from "@/routes/Login";
-import NotFound from "@/routes/NotFound";
+import Login from "@/pages/Login";
+import NotFound from "@/pages/NotFound";
 
 // Password reset pages
-const ForgotPassword = lazy(() => import("@/routes/ForgotPassword"));
-const ResetPassword = lazy(() => import("@/routes/ResetPassword"));
+const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 
 // Invite pages (public access for new user setup)
-const AdminInvite = lazy(() => import("@/routes/admin/settings/AdminInvite"));
-const InvestorInvite = lazy(() => import("@/routes/InvestorInvite"));
+const AdminInvite = lazy(() => import("@/pages/admin/settings/AdminInvite"));
+const InvestorInvite = lazy(() => import("@/pages/InvestorInvite"));
 
 // Public info pages
-const Terms = lazy(() => import("@/routes/Terms"));
-const Privacy = lazy(() => import("@/routes/Privacy"));
-const Health = lazy(() => import("@/routes/Health"));
-const Status = lazy(() => import("@/routes/Status"));
+const Terms = lazy(() => import("@/pages/Terms"));
+const Privacy = lazy(() => import("@/pages/Privacy"));
+const Health = lazy(() => import("@/pages/Health"));
+const Status = lazy(() => import("@/pages/Status"));
 
 /**
  * Public Routes Component

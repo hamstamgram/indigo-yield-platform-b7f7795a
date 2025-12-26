@@ -8,8 +8,8 @@ import { lazy } from "react";
 import { ProtectedRoute } from "../../ProtectedRoute";
 
 // Reports pages
-const ReportsPage = lazy(() => import("@/routes/reports/ReportsPage"));
-const CustomReport = lazy(() => import("@/routes/reports/CustomReport"));
+const ReportsPage = lazy(() => import("@/pages/reports/ReportsPage"));
+const CustomReport = lazy(() => import("@/pages/reports/CustomReport"));
 
 export function ReportsRoutes() {
   return (

@@ -7,12 +7,12 @@ import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { IBRoute } from "../IBRoute";
 
-const IBOverviewPage = lazy(() => import("@/routes/ib/IBOverviewPage"));
-const IBReferralsPage = lazy(() => import("@/routes/ib/IBReferralsPage"));
-const IBReferralDetailPage = lazy(() => import("@/routes/ib/IBReferralDetailPage"));
-const IBCommissionsPage = lazy(() => import("@/routes/ib/IBCommissionsPage"));
-const IBPayoutHistoryPage = lazy(() => import("@/routes/ib/IBPayoutHistoryPage"));
-const IBSettingsPage = lazy(() => import("@/routes/ib/IBSettingsPage"));
+const IBOverviewPage = lazy(() => import("@/pages/ib/IBOverviewPage"));
+const IBReferralsPage = lazy(() => import("@/pages/ib/IBReferralsPage"));
+const IBReferralDetailPage = lazy(() => import("@/pages/ib/IBReferralDetailPage"));
+const IBCommissionsPage = lazy(() => import("@/pages/ib/IBCommissionsPage"));
+const IBPayoutHistoryPage = lazy(() => import("@/pages/ib/IBPayoutHistoryPage"));
+const IBSettingsPage = lazy(() => import("@/pages/ib/IBSettingsPage"));
 
 export function IBUserRoutes() {
   return (
