@@ -52,6 +52,7 @@ import { getAssetLogo } from "@/utils/assets";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 interface InvestorOption {
   id: string;
@@ -334,7 +335,7 @@ export function AddTransactionDialog({
       toast.success("AUM recorded successfully");
       
       // Invalidate AUM queries
-      queryClient.invalidateQueries({ queryKey: ["fund-aum"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundAumAll });
     } catch (error) {
       console.error("Error recording AUM:", error);
       const errorMsg = error instanceof Error ? error.message : "Failed to record AUM";

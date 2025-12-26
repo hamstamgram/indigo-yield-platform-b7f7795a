@@ -33,6 +33,8 @@ import { supabase } from "@/integrations/supabase/client";
 import type { DepositFormData } from "@/types/deposit";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { invalidateAfterDeposit } from "@/utils/cacheInvalidation";
 
 interface CreateDepositDialogProps {
   open: boolean;
@@ -102,7 +104,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["fund-aum-check", selectedFundId, formattedDate] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundAum(selectedFundId) });
     },
   });
 
@@ -119,8 +121,7 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
     },
     onSuccess: () => {
       toast.success("Deposit created successfully");
-      queryClient.invalidateQueries({ queryKey: ["deposits"] });
-      queryClient.invalidateQueries({ queryKey: ["deposit-stats"] });
+      invalidateAfterDeposit(queryClient, formData.user_id);
       onOpenChange(false);
       resetForm();
     },

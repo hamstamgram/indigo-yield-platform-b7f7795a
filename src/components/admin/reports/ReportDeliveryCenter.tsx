@@ -955,8 +955,7 @@ export default function ReportDeliveryCenter() {
                         toast.error(`Failed: ${error.message}`);
                       } else {
                         toast.success(`Requeued ${(data as { requeued_count: number }).requeued_count} stuck deliveries`);
-                        queryClient.invalidateQueries({ queryKey: ["deliveries"] });
-                        queryClient.invalidateQueries({ queryKey: ["delivery-stats"] });
+                        invalidateAfterDeliveryOp(queryClient, selectedPeriodId);
                       }
                     }}
                   >
