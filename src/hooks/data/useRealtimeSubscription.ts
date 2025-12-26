@@ -8,8 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 interface SubscriptionConfig {
-  channel: string;
+  channel?: string;
   table: string;
+  event?: string;
   filter?: string;
   onInsert?: (payload: any) => void;
   onUpdate?: (payload: any) => void;
@@ -34,36 +35,36 @@ export function useRealtimeSubscription(config: SubscriptionConfig) {
       onChange,
     } = config;
 
-    let channel = supabase.channel(channelName);
+    const finalChannelName = channelName || `${table}-${Date.now()}`;
 
-    const baseConfig = {
-      event: "*" as const,
-      schema: "public" as const,
-      table,
-      ...(filter ? { filter } : {}),
-    };
+    const channel = supabase
+      .channel(finalChannelName)
+      .on(
+        "postgres_changes" as any,
+        {
+          event: "*",
+          schema: "public",
+          table,
+          ...(filter ? { filter } : {}),
+        },
+        (payload: any) => {
+          onChange?.();
 
-    channel = channel.on(
-      "postgres_changes",
-      baseConfig,
-      (payload: any) => {
-        onChange?.();
-
-        switch (payload.eventType) {
-          case "INSERT":
-            onInsert?.(payload);
-            break;
-          case "UPDATE":
-            onUpdate?.(payload);
-            break;
-          case "DELETE":
-            onDelete?.(payload);
-            break;
+          switch (payload.eventType) {
+            case "INSERT":
+              onInsert?.(payload);
+              break;
+            case "UPDATE":
+              onUpdate?.(payload);
+              break;
+            case "DELETE":
+              onDelete?.(payload);
+              break;
+          }
         }
-      }
-    );
+      )
+      .subscribe();
 
-    channel.subscribe();
     channelRef.current = channel;
 
     return () => {
@@ -89,10 +90,10 @@ export function useLedgerSubscription(
     const channel = supabase
       .channel(`ledger-${investorId}`)
       .on(
-        "postgres_changes",
+        "postgres_changes" as any,
         {
-          event: "*" as const,
-          schema: "public" as const,
+          event: "*",
+          schema: "public",
           table: "transactions_v2",
           filter: `investor_id=eq.${investorId}`,
         },
