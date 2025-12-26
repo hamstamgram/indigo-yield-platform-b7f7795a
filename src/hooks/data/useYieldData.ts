@@ -28,7 +28,7 @@ import { invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
  */
 export function useYieldRecords(filters: YieldFilters = {}) {
   return useQuery<YieldRecord[], Error>({
-    queryKey: [QUERY_KEYS.yieldRecords[0], filters],
+    queryKey: QUERY_KEYS.recordedYields(filters as Record<string, unknown>),
     queryFn: () => getYieldRecords(filters),
   });
 }

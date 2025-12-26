@@ -68,7 +68,7 @@ export default function IBPayoutsPage() {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: [QUERY_KEYS.adminIbPayouts[0], statusFilter],
+    queryKey: QUERY_KEYS.adminIbPayouts(statusFilter),
     queryFn: async () => {
       let query = supabase
         .from("ib_allocations")

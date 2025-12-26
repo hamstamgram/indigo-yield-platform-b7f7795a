@@ -119,7 +119,7 @@ export function invalidateAfterIBOperation(
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ibSettings });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ibReferrals() });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ibCommissions() });
-  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminIbPayouts });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminIbPayouts() });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ibCommissionSummary });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ibProfile() });
   
