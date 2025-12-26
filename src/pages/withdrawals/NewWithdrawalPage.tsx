@@ -8,12 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export default function NewWithdrawalPage() {
   const navigate = useNavigate();
 
   const { data: positions, isLoading } = useQuery({
-    queryKey: ["available-withdrawal-positions"],
+    queryKey: QUERY_KEYS.availableWithdrawalPositions,
     queryFn: async () => {
       const {
         data: { user },

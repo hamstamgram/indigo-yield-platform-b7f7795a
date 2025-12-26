@@ -20,6 +20,7 @@ import { WithdrawalAuditTimeline } from "./WithdrawalAuditTimeline";
 import { RouteToFeesDialog } from "./RouteToFeesDialog";
 import { toast } from "sonner";
 import { TruncatedText } from "@/components/ui/truncated-text";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 interface WithdrawalDetailsDrawerProps {
   withdrawalId: string | null;
@@ -46,7 +47,7 @@ export function WithdrawalDetailsDrawer({
   const [routeToFeesOpen, setRouteToFeesOpen] = useState(false);
   
   const { data: withdrawal, isLoading, error, refetch } = useQuery({
-    queryKey: ["withdrawal-details", withdrawalId],
+    queryKey: QUERY_KEYS.withdrawalDetails(withdrawalId || ""),
     queryFn: () => (withdrawalId ? withdrawalService.getWithdrawalById(withdrawalId) : null),
     enabled: !!withdrawalId && open,
     staleTime: 30 * 1000,

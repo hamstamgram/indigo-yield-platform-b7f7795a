@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Search, Filter, Plus } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export default function WithdrawalHistoryPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ["withdrawal_requests", searchTerm],
+    queryKey: QUERY_KEYS.withdrawalRequests(searchTerm || undefined),
     queryFn: async () => {
       const {
         data: { user },

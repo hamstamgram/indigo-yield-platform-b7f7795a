@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Search, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export default function PendingTransactionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ["pending-transactions", searchTerm],
+    queryKey: QUERY_KEYS.pendingTransactions(searchTerm || undefined),
     queryFn: async () => {
       const {
         data: { user },
