@@ -7,14 +7,22 @@
 export const QUERY_KEYS = {
   // ============ Funds ============
   funds: ["funds"] as const,
-  activeFunds: ["funds", "active"] as const,
+  activeFunds: ["active-funds"] as const,
   fund: (id: string) => ["funds", id] as const,
-  fundAum: (fundId: string) => ["fund-aum", fundId] as const,
+  fundAum: (fundId?: string) => fundId 
+    ? ["fund-aum", fundId] as const 
+    : ["fund-aum"] as const,
   fundAumAll: ["fund-aum"] as const,
   fundAumUnified: ["fund-aum-unified"] as const,
+  fundAumCheck: (fundId: string, date: string) => ["fund-aum-check", fundId, date] as const,
   fundDailyAum: (fundId?: string) => fundId 
     ? ["fund-daily-aum", fundId] as const 
     : ["fund-daily-aum"] as const,
+  fundsForDeposits: ["funds-for-deposits"] as const,
+  fundsWithAum: (fundIds?: string[]) => fundIds 
+    ? ["funds-with-aum", fundIds] as const 
+    : ["funds-with-aum"] as const,
+  aumExists: (fundId: string, txDate: string) => ["aum-exists", fundId, txDate] as const,
 
   // ============ Investors ============
   investors: ["investors"] as const,
@@ -24,8 +32,8 @@ export const QUERY_KEYS = {
     ? ["investors-selector", includeSystem] as const
     : ["investors-selector"] as const,
   investor: (id: string) => ["investor", id] as const,
-  investorPositions: (fundId?: string) => fundId 
-    ? ["investor-positions", fundId] as const 
+  investorPositions: (investorId?: string) => investorId 
+    ? ["investor-positions", investorId] as const 
     : ["investor-positions"] as const,
   investorDetail: (id: string) => ["investor-detail", id] as const,
   investorQuickView: (id: string) => ["investor-quick-view", id] as const,
@@ -35,11 +43,37 @@ export const QUERY_KEYS = {
   investorRecentActivity: (id: string, limit?: number) => limit
     ? ["investor-recent-activity", id, limit] as const
     : ["investor-recent-activity", id] as const,
+  investorOverview: (id: string) => ["investor-overview", id] as const,
+  investorDefaultFund: (id: string) => ["investor-default-fund", id] as const,
+  investorBalance: (investorId: string, fundId: string) => 
+    ["investor-balance", investorId, fundId] as const,
+  investorPerformance: (assetCode?: string) => assetCode 
+    ? ["investor-performance", assetCode] as const 
+    : ["investor-performance"] as const,
+  investorAssetStats: (investorId?: string) => investorId 
+    ? ["investor-asset-stats", investorId] as const 
+    : ["investor-asset-stats"] as const,
+  investorFundPerformance: (searchTerm?: string) => searchTerm 
+    ? ["investor_fund_performance", searchTerm] as const 
+    : ["investor_fund_performance"] as const,
+  investorDocuments: ["investor-documents"] as const,
+  perAssetStats: ["per-asset-stats"] as const,
 
   // ============ Transactions ============
-  transactions: ["transactions"] as const,
+  transactions: (filters?: unknown) => filters 
+    ? ["transactions", filters] as const 
+    : ["transactions"] as const,
   adminTransactions: ["admin-transactions-history"] as const,
-  investorTransactions: (investorId: string) => ["investor-transactions", investorId] as const,
+  investorTransactions: (investorId: string, limit?: number) => limit 
+    ? ["investor-transactions", investorId, limit] as const 
+    : ["investor-transactions", investorId] as const,
+  pendingTransactions: (searchTerm?: string) => searchTerm 
+    ? ["pending-transactions", searchTerm] as const 
+    : ["pending-transactions"] as const,
+  recentTransactions: ["recent-transactions"] as const,
+  transactionAssets: (userId?: string) => userId 
+    ? ["transaction-assets", userId] as const 
+    : ["transaction-assets"] as const,
 
   // ============ Yield ============
   yieldDistributions: (fundId?: string) => fundId 
@@ -67,16 +101,24 @@ export const QUERY_KEYS = {
 
   // ============ Withdrawals ============
   withdrawals: ["withdrawals"] as const,
-  withdrawalRequests: ["withdrawal-requests"] as const,
+  withdrawalRequests: (searchTerm?: string) => searchTerm 
+    ? ["withdrawal_requests", searchTerm] as const 
+    : ["withdrawal_requests"] as const,
   withdrawalRequestsAdmin: ["withdrawal-requests-admin"] as const,
   pendingWithdrawals: ["pending-withdrawals"] as const,
+  pendingWithdrawalsCount: ["pending-withdrawals-count"] as const,
   withdrawalDetails: (id: string) => ["withdrawal-details", id] as const,
   withdrawalStats: ["withdrawal-stats"] as const,
+  withdrawalAuditLogs: (id: string) => ["withdrawal-audit-logs", id] as const,
+  withdrawalHistory: (userId?: string) => userId 
+    ? ["withdrawal-history", userId] as const 
+    : ["withdrawal-history"] as const,
 
   // ============ Deposits ============
   deposits: ["deposits"] as const,
   depositsAdmin: ["deposits-admin"] as const,
   depositStats: ["deposit-stats"] as const,
+  usersForDeposits: ["users-for-deposits"] as const,
 
   // ============ Dashboard ============
   dashboardStats: ["dashboard-stats"] as const,
@@ -88,13 +130,29 @@ export const QUERY_KEYS = {
   ibProfile: (userId?: string) => userId
     ? ["ib-profile", userId] as const
     : ["ib-profile"] as const,
-  ibReferrals: (ibId?: string) => ibId 
-    ? ["ib-referrals", ibId] as const 
-    : ["ib-referrals"] as const,
-  ibCommissions: (ibId?: string) => ibId 
-    ? ["ib-commissions", ibId] as const 
-    : ["ib-commissions"] as const,
+  ibReferrals: (ibId?: string, page?: number) => {
+    if (ibId && page !== undefined) return ["ib-referrals", ibId, page] as const;
+    if (ibId) return ["ib-referrals", ibId] as const;
+    return ["ib-referrals"] as const;
+  },
+  ibReferralDetail: (id: string, userId: string) => ["ib-referral-detail", id, userId] as const,
+  ibReferralPositions: (id: string) => ["ib-referral-positions", id] as const,
+  ibReferralCommissions: (id: string, userId: string) => 
+    ["ib-referral-commissions", id, userId] as const,
+  ibReferralCount: (userId: string) => ["ib-referral-count", userId] as const,
+  ibCommissions: (userId?: string, page?: number, dateRange?: string) => {
+    if (userId && page !== undefined) return ["ib-commissions", userId, page, dateRange] as const;
+    if (userId) return ["ib-commissions", userId] as const;
+    return ["ib-commissions"] as const;
+  },
   ibCommissionSummary: ["ib-commission-summary"] as const,
+  ibTopReferrals: (userId: string, period?: string) => period 
+    ? ["ib-top-referrals", userId, period] as const 
+    : ["ib-top-referrals", userId] as const,
+  ibPositions: (userId: string) => ["ib-positions", userId] as const,
+  ibPayoutHistory: (userId: string, page?: number) => page !== undefined 
+    ? ["ib-payout-history", userId, page] as const 
+    : ["ib-payout-history", userId] as const,
   adminIbPayouts: ["admin-ib-payouts"] as const,
 
   // ============ Reports & Statements ============
@@ -109,6 +167,13 @@ export const QUERY_KEYS = {
   investorStatements: (investorId: string, limit?: number) => 
     limit ? ["investor-statements", investorId, limit] as const : ["investor-statements", investorId] as const,
   periodStatementCount: (periodId: string) => ["period-statement-count", periodId] as const,
+  monthlyStatements: (year?: number, asset?: string) => 
+    ["monthly-statements", year, asset] as const,
+  statementYears: ["statement-years"] as const,
+  statementAssets: ["statement-assets"] as const,
+  statementDeliveryStatus: (statementId?: string, investorId?: string, periodId?: string) => 
+    ["statement-delivery-status", statementId, investorId, periodId] as const,
+  lastStatementPeriod: ["last-statement-period"] as const,
 
   // ============ Deliveries ============
   deliveries: (periodId?: string, filters?: Record<string, unknown>) => 
@@ -119,10 +184,14 @@ export const QUERY_KEYS = {
   monthClosure: (fundId: string, month: string) => ["month-closure", fundId, month] as const,
 
   // ============ Assets ============
-  assets: ["assets"] as const,
+  assets: (filters?: Record<string, unknown>) => filters 
+    ? ["assets", filters] as const 
+    : ["assets"] as const,
+  assetsActive: ["assets-active"] as const,
   assetStats: ["asset-stats"] as const,
   assetPrices: (assetId: string) => ["asset-prices", assetId] as const,
   latestPrice: (assetId: string) => ["latest-price", assetId] as const,
+  userAssets: ["user-assets"] as const,
 
   // ============ Daily Rates ============
   dailyRate: (date?: string) => date 
@@ -138,9 +207,24 @@ export const QUERY_KEYS = {
   adminInvestors: ["admin-investors"] as const,
   ibs: ["ibs"] as const,
 
+  // ============ User & Auth ============
+  userRoles: (userId?: string) => userId 
+    ? ["user-roles", userId] as const 
+    : ["user-roles"] as const,
+  userIbRole: (userId?: string) => userId 
+    ? ["user-ib-role", userId] as const 
+    : ["user-ib-role"] as const,
+
   // ============ Integrity & System ============
   integrityDashboard: ["integrity-dashboard"] as const,
+  dataIntegrity: ["data-integrity"] as const,
   auditLog: ["audit-log"] as const,
+
+  // ============ Email ============
+  emailStats: ["email-stats"] as const,
+  emailDeliveries: (filters?: Record<string, unknown>) => filters 
+    ? ["email-deliveries", filters] as const 
+    : ["email-deliveries"] as const,
 
   // ============ Profiles ============
   profiles: ["profiles"] as const,
@@ -154,7 +238,7 @@ export const QUERY_KEYS = {
 export const YIELD_RELATED_KEYS = [
   QUERY_KEYS.yieldRecords,
   QUERY_KEYS.investorPositions(),
-  QUERY_KEYS.transactions,
+  QUERY_KEYS.transactions(),
   QUERY_KEYS.adminTransactions,
   QUERY_KEYS.dashboardStats,
   QUERY_KEYS.feeAllocations(),
@@ -170,7 +254,7 @@ export const INVESTOR_RELATED_KEYS = [
   QUERY_KEYS.investors,
   QUERY_KEYS.investorList,
   QUERY_KEYS.investorPositions(),
-  QUERY_KEYS.transactions,
+  QUERY_KEYS.transactions(),
   QUERY_KEYS.dashboardStats,
 ];
 
@@ -195,7 +279,7 @@ export const DELIVERY_RELATED_KEYS = [
  * Helper for asset-related queries
  */
 export const ASSET_RELATED_KEYS = [
-  QUERY_KEYS.assets,
+  QUERY_KEYS.assets(),
   QUERY_KEYS.assetStats,
 ];
 
@@ -204,7 +288,7 @@ export const ASSET_RELATED_KEYS = [
  */
 export const WITHDRAWAL_RELATED_KEYS = [
   QUERY_KEYS.withdrawals,
-  QUERY_KEYS.withdrawalRequests,
+  QUERY_KEYS.withdrawalRequests(),
   QUERY_KEYS.withdrawalRequestsAdmin,
   QUERY_KEYS.pendingWithdrawals,
   QUERY_KEYS.withdrawalStats,

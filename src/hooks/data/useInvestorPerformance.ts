@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { performanceService } from "@/services/shared/performanceService";
 import { supabase } from "@/integrations/supabase/client";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export function useInvestorPerformance(assetCode?: string) {
   return useQuery({
-    queryKey: ["investor-performance", assetCode],
+    queryKey: QUERY_KEYS.investorPerformance(assetCode),
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
@@ -23,7 +24,7 @@ export function useInvestorPerformance(assetCode?: string) {
  */
 export function usePerAssetStats() {
   return useQuery({
-    queryKey: ["per-asset-stats"],
+    queryKey: QUERY_KEYS.perAssetStats,
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
@@ -38,7 +39,7 @@ export function usePerAssetStats() {
  */
 export function useInvestorAssetStats(investorId: string | undefined) {
   return useQuery({
-    queryKey: ["investor-asset-stats", investorId],
+    queryKey: QUERY_KEYS.investorAssetStats(investorId),
     queryFn: async () => {
       if (!investorId) throw new Error("Investor ID required");
       return performanceService.getPerAssetStats(investorId);

@@ -5,13 +5,14 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 /**
  * Hook to check an investor's current balance in a fund
  */
 export function useInvestorBalance(investorId: string | undefined, fundId: string | undefined) {
   return useQuery<number | null, Error>({
-    queryKey: ["investor-balance", investorId, fundId],
+    queryKey: investorId && fundId ? QUERY_KEYS.investorBalance(investorId, fundId) : ["investor-balance"],
     queryFn: async () => {
       if (!investorId || !fundId) return null;
 
@@ -34,7 +35,7 @@ export function useInvestorBalance(investorId: string | undefined, fundId: strin
  */
 export function useAUMExists(fundId: string | undefined, txDate: string | undefined) {
   return useQuery<boolean | null, Error>({
-    queryKey: ["aum-exists", fundId, txDate],
+    queryKey: fundId && txDate ? QUERY_KEYS.aumExists(fundId, txDate) : ["aum-exists"],
     queryFn: async () => {
       if (!fundId || !txDate) return null;
 

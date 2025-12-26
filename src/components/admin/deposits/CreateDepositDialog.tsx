@@ -80,9 +80,10 @@ export function CreateDepositDialog({ open, onOpenChange }: CreateDepositDialogP
 
   // Check if AUM exists for the selected fund on selected date
   const { data: aumRecord, isLoading: isCheckingAum } = useQuery({
-    queryKey: ["fund-aum-check", selectedFundId, formattedDate],
+    queryKey: selectedFundId && formattedDate 
+      ? QUERY_KEYS.fundAumCheck(selectedFundId, formattedDate) 
+      : ["fund-aum-check"],
     queryFn: async () => {
-      if (!selectedFundId) return null;
       return fundDailyAumService.getByFundAndDate(selectedFundId, formattedDate);
     },
     enabled: !!selectedFundId && open,
