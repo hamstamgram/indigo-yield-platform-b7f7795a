@@ -10,12 +10,13 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { transactionsV2Service } from "@/services/investor";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export default function TransactionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ["transactions-v2", searchTerm],
+    queryKey: QUERY_KEYS.transactionsV2(searchTerm || undefined),
     queryFn: async () => {
       const {
         data: { user },

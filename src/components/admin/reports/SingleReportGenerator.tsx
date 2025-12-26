@@ -17,6 +17,7 @@ import { ReportsApi } from "@/services/api/reportsApi";
 import { useQuery } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import { renderReportToHtml } from "@/components/reports/InvestorReportTemplate";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { InvestorData, InvestorFund } from "@/types/investor-report";
 
 interface Investor {
@@ -34,7 +35,7 @@ export function SingleReportGenerator() {
 
   // Fetch Active Investors (Profiles)
   const { data: investors, isLoading: isLoadingInvestors } = useQuery({
-    queryKey: ["active-investors"],
+    queryKey: QUERY_KEYS.activeInvestors,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")

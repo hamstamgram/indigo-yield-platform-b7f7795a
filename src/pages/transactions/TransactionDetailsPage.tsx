@@ -5,12 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export default function TransactionDetailsPage() {
   const { id } = useParams<{ id: string }>();
 
   const { data: item, isLoading } = useQuery({
-    queryKey: ["transactions-v2", id],
+    queryKey: QUERY_KEYS.transactionsV2(id || ""),
     queryFn: async () => {
       if (!id) throw new Error("No ID provided");
 

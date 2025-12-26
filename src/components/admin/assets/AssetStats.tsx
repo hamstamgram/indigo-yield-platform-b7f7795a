@@ -2,10 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Coins, TrendingUp, TrendingDown, Database } from "lucide-react";
 import { assetService } from "@/services/shared/assetService";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export function AssetStats() {
   const { data: stats, isLoading } = useQuery({
-    queryKey: ["asset-stats"],
+    queryKey: QUERY_KEYS.assetStats,
     queryFn: () => assetService.getAssetStats(),
   });
 

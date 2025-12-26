@@ -17,6 +17,7 @@ import { EditAssetDialog } from "./EditAssetDialog";
 import { AssetPriceDialog } from "./AssetPriceDialog";
 import type { Asset } from "@/types/asset";
 import { format } from "date-fns";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export function AssetsTable() {
   const [search, setSearch] = useState("");
@@ -24,7 +25,7 @@ export function AssetsTable() {
   const [priceDialogAsset, setPriceDialogAsset] = useState<Asset | null>(null);
 
   const { data: assets, isLoading } = useQuery({
-    queryKey: ["assets", { search }],
+    queryKey: QUERY_KEYS.assets({ search }),
     queryFn: () => assetService.getAssets({ search }),
   });
 

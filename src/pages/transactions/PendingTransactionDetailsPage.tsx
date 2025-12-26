@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { depositService, withdrawalService } from "@/services/investor";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export default function PendingTransactionDetailsPage() {
   const { type, id } = useParams<{ type: string; id: string }>();
 
   const { data: item, isLoading } = useQuery({
-    queryKey: ["pending-transaction-details", type, id],
+    queryKey: QUERY_KEYS.pendingTransactionDetails(type || "", id || ""),
     queryFn: async () => {
       if (!id || !type) throw new Error("Missing parameters");
 

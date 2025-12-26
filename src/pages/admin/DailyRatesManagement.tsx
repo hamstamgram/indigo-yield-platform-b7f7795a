@@ -65,13 +65,13 @@ export default function DailyRatesManagement() {
 
   // Fetch existing rate for selected date using service
   const { data: existingRate, isLoading } = useQuery({
-    queryKey: ["daily-rate", selectedDate],
+    queryKey: QUERY_KEYS.dailyRate(selectedDate),
     queryFn: () => dailyRatesService.getByDate(selectedDate),
   });
 
   // Fetch last 7 days of rates for history using service
   const { data: recentRates } = useQuery({
-    queryKey: ["recent-daily-rates"],
+    queryKey: QUERY_KEYS.recentDailyRates,
     queryFn: () => dailyRatesService.getRecent(7),
   });
 

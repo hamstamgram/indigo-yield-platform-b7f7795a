@@ -16,6 +16,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import {
   Mail,
   Send,
@@ -126,7 +127,7 @@ export default function AdminEmailTrackingPage() {
 
   // Fetch email statistics from statement_email_delivery
   const { data: stats } = useQuery<EmailStats>({
-    queryKey: ["email-stats"],
+    queryKey: QUERY_KEYS.emailStats,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("statement_email_delivery")
@@ -176,7 +177,7 @@ export default function AdminEmailTrackingPage() {
 
   // Fetch email deliveries
   const { data: emailDeliveries, isLoading: logsLoading } = useQuery<EmailDelivery[]>({
-    queryKey: ["email-deliveries", filters],
+    queryKey: QUERY_KEYS.emailDeliveries(filters as unknown as Record<string, unknown>),
     queryFn: async () => {
       let query = supabase
         .from("statement_email_delivery")

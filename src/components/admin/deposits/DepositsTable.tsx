@@ -33,6 +33,7 @@ import { EditTransactionDialog } from "@/components/admin/transactions/EditTrans
 import { VoidTransactionDialog } from "@/components/admin/transactions/VoidTransactionDialog";
 import type { Deposit, DepositStatus } from "@/types/deposit";
 import { format } from "date-fns";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export function DepositsTable() {
   const [search, setSearch] = useState("");
@@ -41,7 +42,7 @@ export function DepositsTable() {
   const [action, setAction] = useState<"approve" | "reject" | "edit" | "void" | null>(null);
 
   const { data: deposits, isLoading, refetch } = useQuery({
-    queryKey: ["deposits", { search, status: statusFilter }],
+    queryKey: QUERY_KEYS.deposits,
     queryFn: () =>
       depositService.getDeposits({
         search,
