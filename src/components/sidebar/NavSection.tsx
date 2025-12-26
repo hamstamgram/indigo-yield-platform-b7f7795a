@@ -137,7 +137,7 @@ const NavSection = ({
                   "w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-3 group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1",
                   isItemActive
                     ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg font-semibold ring-1 ring-sidebar-primary/50"
-                    : "text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                    : "text-sidebar-foreground hover:bg-sidebar-accent/20 hover:text-sidebar-foreground",
                   isLoading && "opacity-60 cursor-wait"
                 )}
                 role="menuitem"

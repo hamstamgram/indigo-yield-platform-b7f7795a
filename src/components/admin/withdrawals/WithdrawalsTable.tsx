@@ -1,13 +1,15 @@
+import { useMemo } from "react";
 import { Withdrawal, WithdrawalFilters, WithdrawalStatus } from "@/types/withdrawal";
 import { getAssetLogo } from "@/utils/assets";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
+import { useSortableColumns } from "@/hooks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -97,6 +99,14 @@ export function WithdrawalsTable({
   const canRouteToFees = (status: WithdrawalStatus) => 
     status === "approved" || status === "processing" || status === "completed";
 
+  // Add sorting capability
+  const { sortConfig, requestSort, sortedData } = useSortableColumns(withdrawals, {
+    column: 'request_date',
+    direction: 'desc'
+  });
+
+  const displayedWithdrawals = useMemo(() => sortedData, [sortedData]);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4">
@@ -156,13 +166,56 @@ export function WithdrawalsTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Investor</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Request Date</TableHead>
-              <TableHead>Notes</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <SortableTableHead
+                column="investor_name"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              >
+                Investor
+              </SortableTableHead>
+              <SortableTableHead
+                column="requested_amount"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              >
+                Amount
+              </SortableTableHead>
+              <SortableTableHead
+                column="withdrawal_type"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              >
+                Type
+              </SortableTableHead>
+              <SortableTableHead
+                column="status"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              >
+                Status
+              </SortableTableHead>
+              <SortableTableHead
+                column="request_date"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              >
+                Request Date
+              </SortableTableHead>
+              <SortableTableHead
+                column="notes"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              >
+                Notes
+              </SortableTableHead>
+              <SortableTableHead
+                column=""
+                currentSort={{ column: '', direction: null }}
+                onSort={() => {}}
+                className="text-right"
+              >
+                Actions
+              </SortableTableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -172,14 +225,14 @@ export function WithdrawalsTable({
                   <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                 </TableCell>
               </TableRow>
-            ) : withdrawals.length === 0 ? (
+            ) : displayedWithdrawals.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                   No withdrawals found
                 </TableCell>
               </TableRow>
             ) : (
-              withdrawals.map((withdrawal) => (
+              displayedWithdrawals.map((withdrawal) => (
                 <TableRow key={withdrawal.id}>
                   <TableCell>
                     <div className="flex flex-col max-w-[200px]">
