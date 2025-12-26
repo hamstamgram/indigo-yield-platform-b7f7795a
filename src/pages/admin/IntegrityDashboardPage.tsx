@@ -82,10 +82,10 @@ export default function IntegrityDashboardPage() {
         supabase.from("ib_allocation_consistency").select("*"),
         // Position vs ledger mismatch
         supabase.from("investor_position_ledger_mismatch").select("*"),
-        // Orphan positions
+        // Orphan positions (investor_positions uses composite PK, no id column)
         supabase
           .from("investor_positions")
-          .select("id", { count: "exact", head: true })
+          .select("investor_id", { count: "exact", head: true })
           .is("investor_id", null),
         // Voided transactions (informational)
         supabase
