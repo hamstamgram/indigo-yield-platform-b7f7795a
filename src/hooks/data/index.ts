@@ -129,3 +129,59 @@ export {
   useInvestorBalance,
   useAUMExists,
 } from "./useInvestorBalance";
+
+// Active funds hooks
+export {
+  useActiveFunds,
+  formatFundLabel,
+  formatFundLabelFull,
+} from "./useActiveFunds";
+
+// Admin stats hooks
+export {
+  useAdminStats,
+  type AdminStats,
+} from "./useAdminStats";
+
+// Fund AUM hooks
+export {
+  useFundAUM,
+  FUND_AUM_QUERY_KEY,
+  type FundAUMData,
+} from "./useFundAUM";
+
+// Investor performance hooks
+export {
+  useInvestorPerformance,
+  usePerAssetStats,
+  useInvestorAssetStats,
+} from "./useInvestorPerformance";
+
+// Investor ledger hooks
+export {
+  useInvestorLedger,
+  type Transaction as LedgerTransaction,
+} from "./useInvestorLedger";
+
+// Investor positions hooks (re-exported, original is in useInvestorData)
+export { useInvestorPositions as useInvestorPositionsDetail } from "./useInvestorPositions";
+
+// Month closure hooks
+export {
+  useMonthClosure,
+  type MonthClosureStatus,
+  type CloseMonthResult,
+  type ReopenMonthResult,
+} from "./useMonthClosure";
+
+// Notification hooks
+export {
+  useNotifications,
+  usePriceAlerts,
+} from "./useNotifications";
+
+// Investor invite hooks
+export { useInvestorInvite } from "./useInvestorInvite";
+
+// Realtime notifications hooks
+export { useRealtimeNotifications } from "./useRealtimeNotifications";
