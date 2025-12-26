@@ -6,6 +6,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { adminTransactionService, CreateTransactionParams } from "@/services/admin/adminTransactionService";
+import { transactionsV2Service } from "@/services/shared";
 import { toast } from "sonner";
 
 export interface Transaction {
@@ -143,15 +144,7 @@ export function useVoidTransaction() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Note: Adjust field names based on actual schema
-      const { error } = await (supabase
-        .from("transactions_v2")
-        .update({ 
-          notes: `[VOIDED: ${reason}] ` + (await supabase.from("transactions_v2").select("notes").eq("id", transactionId).single()).data?.notes || ""
-        })
-        .eq("id", transactionId) as any);
-
-      if (error) throw error;
+      await transactionsV2Service.voidTransaction(transactionId, reason);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });

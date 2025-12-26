@@ -4,9 +4,9 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks";
 import { useAuth } from "@/lib/auth/context";
+import { fundService, auditLogService } from "@/services/shared";
 
 type FundStatus = "active" | "deprecated" | "inactive" | "suspended";
 
@@ -49,18 +49,12 @@ const QUERY_KEYS = {
 export function useFunds(activeOnly = false) {
   return useQuery<Fund[]>({
     queryKey: activeOnly ? QUERY_KEYS.activeFunds : QUERY_KEYS.funds,
-    queryFn: async () => {
-      let query = supabase.from("funds").select("*").order("name");
-
-      if (activeOnly) {
-        query = query.eq("status", "active");
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data || [];
+    queryFn: async (): Promise<Fund[]> => {
+      const funds = await fundService.getAllFunds();
+      const result = activeOnly ? funds.filter((f: any) => f.status === "active") : funds;
+      return result as unknown as Fund[];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes - funds don't change often
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -70,17 +64,10 @@ export function useFunds(activeOnly = false) {
 export function useFund(fundId: string | undefined) {
   return useQuery<Fund | null>({
     queryKey: QUERY_KEYS.fund(fundId || ""),
-    queryFn: async () => {
+    queryFn: async (): Promise<Fund | null> => {
       if (!fundId) return null;
-
-      const { data, error } = await supabase
-        .from("funds")
-        .select("*")
-        .eq("id", fundId)
-        .maybeSingle();
-
-      if (error) throw error;
-      return data;
+      const fund = await fundService.getFundById(fundId);
+      return fund as unknown as Fund | null;
     },
     enabled: !!fundId,
     staleTime: 5 * 60 * 1000,
@@ -98,51 +85,30 @@ export function useCreateFund() {
   return useMutation({
     mutationFn: async (input: CreateFundInput) => {
       // Check if code already exists
-      const { data: existingCode } = await supabase
-        .from("funds")
-        .select("id")
-        .eq("code", input.code)
-        .single();
-
-      if (existingCode) {
+      const codeExists = await fundService.codeExists(input.code);
+      if (codeExists) {
         throw new Error(`Fund code "${input.code}" already exists`);
       }
 
       // Create the fund
-      const { data, error } = await supabase
-        .from("funds")
-        .insert({
-          code: input.code,
-          name: input.name,
-          asset: input.asset,
-          fund_class: input.asset,
-          inception_date: input.inception_date,
-          status: "active",
-          logo_url: input.logo_url || null,
-          mgmt_fee_bps: 200,
-          perf_fee_bps: 2000,
-          min_investment: 0,
-          lock_period_days: 0,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
+      const data = await fundService.createFund(input);
 
       // Audit log
-      await supabase.from("audit_log").insert([{
-        actor_user: user?.id,
-        action: "CREATE_FUND",
-        entity: "fund",
-        entity_id: data.id,
-        new_values: {
-          code: input.code,
-          name: input.name,
-          asset: input.asset,
-          inception_date: input.inception_date,
-          logo_url: input.logo_url,
-        },
-      }]);
+      if (user?.id) {
+        await auditLogService.logEvent({
+          actorUserId: user.id,
+          action: "CREATE_FUND",
+          entity: "fund",
+          entityId: data.id,
+          newValues: {
+            code: input.code,
+            name: input.name,
+            asset: input.asset,
+            inception_date: input.inception_date,
+            logo_url: input.logo_url,
+          },
+        });
+      }
 
       return data;
     },
@@ -194,23 +160,18 @@ export function useUpdateFund() {
       fundId: string;
       updates: FundUpdateInput;
     }) => {
-      const { data, error } = await supabase
-        .from("funds")
-        .update(updates)
-        .eq("id", fundId)
-        .select()
-        .single();
-
-      if (error) throw error;
+      const data = await fundService.updateFund(fundId, updates as any);
 
       // Audit log
-      await supabase.from("audit_log").insert([{
-        actor_user: user?.id,
-        action: "UPDATE_FUND",
-        entity: "fund",
-        entity_id: fundId,
-        new_values: updates as any,
-      }]);
+      if (user?.id) {
+        await auditLogService.logEvent({
+          actorUserId: user.id,
+          action: "UPDATE_FUND",
+          entity: "fund",
+          entityId: fundId,
+          newValues: updates as any,
+        });
+      }
 
       return data;
     },
@@ -243,12 +204,7 @@ export function useDeactivateFund() {
 
   return useMutation({
     mutationFn: async (fundId: string) => {
-      const { error } = await supabase
-        .from("funds")
-        .update({ status: "inactive" })
-        .eq("id", fundId);
-
-      if (error) throw error;
+      await fundService.deactivateFund(fundId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });

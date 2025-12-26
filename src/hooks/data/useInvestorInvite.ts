@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useToast } from "@/hooks";
 import { supabase } from "@/integrations/supabase/client";
+import { inviteService } from "@/services/shared";
 
 interface InvestorInfo {
   id: string;
@@ -34,18 +35,13 @@ export const useInvestorInvite = (onSuccess?: () => void) => {
       } = await supabase.auth.getUser();
 
       // Store invite in the database linked to the investor profile
-      const { error: inviteError } = await supabase.from("investor_invites" as any).insert({
+      await inviteService.createInvestorInvite({
         email: investor.email,
-        invite_code: inviteCode,
-        created_by: user?.id,
-        expires_at: expiresAt.toISOString(),
-        investor_id: investor.id, // Link to existing investor profile
+        inviteCode,
+        createdBy: user?.id,
+        expiresAt: expiresAt.toISOString(),
+        investorId: investor.id,
       });
-
-      if (inviteError) {
-        console.error("Invite creation error:", inviteError);
-        throw inviteError;
-      }
 
       // Send invite email
       const inviteUrl = `${window.location.origin}/investor-invite?code=${inviteCode}`;

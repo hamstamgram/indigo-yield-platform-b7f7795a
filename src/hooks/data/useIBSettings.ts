@@ -4,13 +4,14 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import {
   getInvestorIBConfig,
   updateInvestorIBConfig,
   getIBReferrals,
   getAvailableIBParents,
 } from "@/services/shared/ibService";
+import { ibManagementService, auditLogService } from "@/services/shared";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export interface IBParentOption {
@@ -47,22 +48,17 @@ export interface IBConfig {
  * Fetch complete IB settings for an investor
  */
 async function fetchIBSettings(investorId: string): Promise<IBConfig> {
-  const [config, parents, refs, ibRoleCheck] = await Promise.all([
+  const [config, parents, refs, hasRole] = await Promise.all([
     getInvestorIBConfig(investorId),
     getAvailableIBParents(investorId),
     getIBReferrals(investorId),
-    supabase
-      .from("user_roles")
-      .select("id")
-      .eq("user_id", investorId)
-      .eq("role", "ib")
-      .maybeSingle(),
+    ibManagementService.hasIBRole(investorId),
   ]);
 
   return {
     ibParentId: config?.ibParentId || null,
     ibPercentage: config?.ibPercentage || 0,
-    hasIBRole: !!ibRoleCheck.data,
+    hasIBRole: hasRole,
     availableParents: parents,
     referrals: refs,
   };
@@ -86,26 +82,26 @@ export function useSearchUsersForIB(investorId: string) {
   const searchUsers = async (searchEmail: string): Promise<UserSearchResult[]> => {
     if (!searchEmail.trim()) return [];
 
-    const { data: users, error: searchError } = await supabase
+    // Search profiles using supabase directly (profileService doesn't have this method yet)
+    const { data: profiles, error } = await supabase
       .from("profiles")
       .select("id, email, first_name, last_name")
       .ilike("email", `%${searchEmail.trim()}%`)
       .neq("id", investorId)
       .limit(10);
 
-    if (searchError) throw searchError;
+    if (error) throw error;
 
-    const userIds = users?.map((u) => u.id) || [];
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("user_id")
-      .in("user_id", userIds)
-      .eq("role", "ib");
+    // Check IB roles
+    const userIds = (profiles || []).map((u) => u.id);
+    const ibRoles = await ibManagementService.getIBRoles();
+    const ibUserIds = new Set(ibRoles.map((r) => r.user_id));
 
-    const ibUserIds = new Set(roles?.map((r) => r.user_id) || []);
-
-    return (users || []).map((u) => ({
-      ...u,
+    return (profiles || []).map((u) => ({
+      id: u.id,
+      email: u.email,
+      first_name: u.first_name,
+      last_name: u.last_name,
       hasIBRole: ibUserIds.has(u.id),
     }));
   };
@@ -163,19 +159,7 @@ export function useAssignIBRole() {
 
   return useMutation({
     mutationFn: async ({ userId, investorId }: { userId: string; investorId: string }) => {
-      const { error: roleError } = await supabase.from("user_roles").insert({
-        user_id: userId,
-        role: "ib",
-      });
-
-      if (roleError) {
-        if (roleError.code === "23505") {
-          return { alreadyExists: true };
-        }
-        throw roleError;
-      }
-
-      return { alreadyExists: false };
+      return ibManagementService.assignIBRoleToUser(userId);
     },
     onSuccess: (result, variables) => {
       queryClient.invalidateQueries({ queryKey: ["ib-settings", variables.investorId] });
@@ -199,29 +183,23 @@ export function usePromoteToIB() {
 
   return useMutation({
     mutationFn: async (investorId: string) => {
-      const { error: roleError } = await supabase.from("user_roles").insert({
-        user_id: investorId,
-        role: "ib",
-      });
+      const result = await ibManagementService.assignIBRoleToUser(investorId);
 
-      if (roleError) {
-        if (roleError.code === "23505") {
-          return { alreadyExists: true };
+      if (!result.alreadyExists) {
+        // Log audit entry
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData.user?.id) {
+          await auditLogService.logEvent({
+            actorUserId: userData.user.id,
+            action: "PROMOTE_TO_IB",
+            entity: "user_roles",
+            entityId: investorId,
+            newValues: { role: "ib" },
+          });
         }
-        throw roleError;
       }
 
-      // Log audit entry
-      const { data: userData } = await supabase.auth.getUser();
-      await supabase.from("audit_log").insert({
-        actor_user: userData.user?.id,
-        action: "PROMOTE_TO_IB",
-        entity: "user_roles",
-        entity_id: investorId,
-        new_values: { role: "ib" },
-      });
-
-      return { alreadyExists: false };
+      return result;
     },
     onSuccess: (result, investorId) => {
       queryClient.invalidateQueries({ queryKey: ["ib-settings", investorId] });
@@ -255,23 +233,19 @@ export function useRemoveIBRole() {
         throw new Error("Cannot remove IB role from investor with active referrals");
       }
 
-      const { error: deleteError } = await supabase
-        .from("user_roles")
-        .delete()
-        .eq("user_id", investorId)
-        .eq("role", "ib");
-
-      if (deleteError) throw deleteError;
+      await ibManagementService.removeIBRole(investorId);
 
       // Log audit entry
       const { data: userData } = await supabase.auth.getUser();
-      await supabase.from("audit_log").insert({
-        actor_user: userData.user?.id,
-        action: "REMOVE_IB_ROLE",
-        entity: "user_roles",
-        entity_id: investorId,
-        old_values: { role: "ib" },
-      });
+      if (userData.user?.id) {
+        await auditLogService.logEvent({
+          actorUserId: userData.user.id,
+          action: "REMOVE_IB_ROLE",
+          entity: "user_roles",
+          entityId: investorId,
+          oldValues: { role: "ib" },
+        });
+      }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["ib-settings", variables.investorId] });

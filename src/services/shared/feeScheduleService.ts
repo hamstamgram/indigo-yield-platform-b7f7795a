@@ -78,6 +78,58 @@ class FeeScheduleService {
       if (error) throw error;
     }
   }
+
+  /**
+   * Add a new fee schedule entry
+   */
+  async addFeeEntry(params: {
+    investorId: string;
+    fundId: string | null;
+    feePct: number;
+    effectiveDate: string;
+  }): Promise<void> {
+    const { error } = await supabase.from("investor_fee_schedule").insert({
+      investor_id: params.investorId,
+      fund_id: params.fundId,
+      fee_pct: params.feePct,
+      effective_date: params.effectiveDate,
+    });
+
+    if (error) throw error;
+  }
+
+  /**
+   * Delete a fee schedule entry
+   */
+  async deleteFeeEntry(entryId: string): Promise<void> {
+    const { error } = await supabase
+      .from("investor_fee_schedule")
+      .delete()
+      .eq("id", entryId);
+
+    if (error) throw error;
+  }
+
+  /**
+   * Get fee schedule with fund info
+   */
+  async getFeeScheduleWithFunds(investorId: string): Promise<Array<{
+    id: string;
+    investor_id: string;
+    fund_id: string | null;
+    fee_pct: number;
+    effective_date: string;
+    fund?: { name: string } | null;
+  }>> {
+    const { data, error } = await supabase
+      .from("investor_fee_schedule")
+      .select("*, fund:funds(name)")
+      .eq("investor_id", investorId)
+      .order("effective_date", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  }
 }
 
 export const feeScheduleService = new FeeScheduleService();
