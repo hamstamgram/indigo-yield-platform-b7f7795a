@@ -4,7 +4,6 @@ import { Asset } from "@/types/investorTypes";
 import { adminServiceV2, InvestorSummaryV2 } from "@/services/admin/adminService";
 import { useInvestorSearch } from "./useInvestorSearch";
 import { supabase } from "@/integrations/supabase/client";
-import { CACHE_KEYS } from "@/utils/performance/caching";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { useEffect } from "react";
 
@@ -37,7 +36,7 @@ export const useInvestors = () => {
     error: investorsError,
     refetch,
   } = useQuery<InvestorSummaryV2[]>({
-    queryKey: [CACHE_KEYS.ADMIN_USERS, "investors-summary"],
+    queryKey: QUERY_KEYS.investorsSummary,
     queryFn: async () => {
       return await adminServiceV2.getAllInvestorsWithSummary();
     },

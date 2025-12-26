@@ -162,7 +162,10 @@ export const QUERY_KEYS = {
   ibPayoutHistory: (userId: string, page?: number) => page !== undefined 
     ? ["ib-payout-history", userId, page] as const 
     : ["ib-payout-history", userId] as const,
-  adminIbPayouts: ["admin-ib-payouts"] as const,
+  adminIbPayouts: (statusFilter?: string) => statusFilter 
+    ? ["admin-ib-payouts", statusFilter] as const 
+    : ["admin-ib-payouts"] as const,
+  investorsSummary: ["investors-summary"] as const,
 
   // ============ Reports & Statements ============
   reports: ["reports"] as const,
