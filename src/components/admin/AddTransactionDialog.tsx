@@ -232,24 +232,23 @@ export function AddTransactionDialog({
     setShowAumForm(false); // Reset form visibility on fund/date change
   }, [selectedFundId, txDate]);
 
-  // Auto-select transaction type based on balance
+  // Auto-select transaction type based on balance (only for initial selection, no forcing)
   useEffect(() => {
     if (currentBalance === null || isCheckingBalance) return;
     
     // Only auto-select if no type is selected yet
     if (!txnType) {
-      if (currentBalance === 0) {
+      if (currentBalance === 0 && !hasTransactionHistory) {
         setValue("txn_type", "FIRST_INVESTMENT");
+      } else if (currentBalance > 0 || hasTransactionHistory) {
+        setValue("txn_type", "DEPOSIT");
       }
     }
-    // Clear invalid selection when balance changes
-    else if (currentBalance === 0 && txnType === "DEPOSIT") {
-      setValue("txn_type", "FIRST_INVESTMENT");
-    }
+    // Only auto-switch from FIRST_INVESTMENT to DEPOSIT if position exists (not vice versa)
     else if (currentBalance > 0 && txnType === "FIRST_INVESTMENT") {
       setValue("txn_type", "DEPOSIT");
     }
-  }, [currentBalance, isCheckingBalance, txnType, setValue]);
+  }, [currentBalance, isCheckingBalance, hasTransactionHistory, txnType, setValue]);
 
   // Clear transaction type when fund changes (balance may differ)
   useEffect(() => {
@@ -378,11 +377,7 @@ export function AddTransactionDialog({
       return;
     }
 
-    // Validate transaction type based on current balance
-    if (isFirstInvestment && data.txn_type === "DEPOSIT") {
-      toast.error("Use 'First Investment' when investor has no existing position in this fund.");
-      return;
-    }
+    // Only block FIRST_INVESTMENT if position already exists
     if (hasExistingPosition && data.txn_type === "FIRST_INVESTMENT") {
       toast.error("Cannot use 'First Investment' - investor already has a position. Use 'Deposit' instead.");
       return;
@@ -610,32 +605,22 @@ export function AddTransactionDialog({
                 <SelectValue placeholder="Select transaction type" />
               </SelectTrigger>
               <SelectContent>
-                {/* Show First Investment if no position exists */}
+                {/* Show First Investment - only disabled if position exists */}
                 <SelectItem 
                   value="FIRST_INVESTMENT" 
                   disabled={hasExistingPosition}
-                  className={cn(
-                    hasExistingPosition && "opacity-50"
-                  )}
+                  className={cn(hasExistingPosition && "opacity-50")}
                 >
                   First Investment {hasExistingPosition && "(position exists)"}
                 </SelectItem>
-                {/* Show Deposit/Top-up if position exists */}
-                <SelectItem 
-                  value="DEPOSIT" 
-                  disabled={isFirstInvestment}
-                  className={cn(
-                    isFirstInvestment && "opacity-50"
-                  )}
-                >
-                  Deposit / Top-up {isFirstInvestment && "(no position yet)"}
+                {/* Deposit is always available */}
+                <SelectItem value="DEPOSIT">
+                  Deposit / Top-up
                 </SelectItem>
                 <SelectItem 
                   value="WITHDRAWAL" 
                   disabled={isFirstInvestment}
-                  className={cn(
-                    isFirstInvestment && "opacity-50"
-                  )}
+                  className={cn(isFirstInvestment && "opacity-50")}
                 >
                   Withdrawal {isFirstInvestment && "(no position)"}
                 </SelectItem>
