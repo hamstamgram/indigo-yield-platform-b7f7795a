@@ -34,6 +34,8 @@ import { Loader2, Plus, Users, TrendingUp, Coins } from "lucide-react";
 import { toast } from "sonner";
 import { formatCrypto } from "@/utils/financial";
 import { ibManagementService, fundService } from "@/services/shared";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { invalidateAfterIBOperation } from "@/utils/cacheInvalidation";
 
 interface EarningsByAsset {
   [assetSymbol: string]: number;
@@ -60,7 +62,7 @@ export default function IBManagementPage() {
 
   // Fetch all IBs with per-asset earnings
   const { data: ibs, isLoading } = useQuery({
-    queryKey: ["ibs"],
+    queryKey: QUERY_KEYS.ibs,
     queryFn: async (): Promise<IBProfile[]> => {
       // Get all users with IB role via service
       const ibRoles = await ibManagementService.getIBRoles();
@@ -157,7 +159,7 @@ export default function IBManagementPage() {
       toast.success("IB Created", {
         description: "The Introducing Broker has been set up.",
       });
-      queryClient.invalidateQueries({ queryKey: ["ibs"] });
+      invalidateAfterIBOperation(queryClient);
       setIsCreateDialogOpen(false);
       setNewIBEmail("");
       setNewIBFirstName("");

@@ -65,7 +65,8 @@ import { VoidYieldDialog } from "@/components/admin/yields/VoidYieldDialog";
 import { EditYieldDialog } from "@/components/admin/yields/EditYieldDialog";
 import { YieldActionsColumn } from "@/components/admin/yields/YieldActionsColumn";
 import { voidYieldRecord, updateYieldAum } from "@/services/admin/yieldManagementService";
-import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
 
 interface Fund {
   id: string;
@@ -108,19 +109,19 @@ function RecordedYieldsContent() {
 
   // Fetch yield records
   const { data: yields = [], isLoading } = useQuery({
-    queryKey: ["recorded-yields", filters],
+    queryKey: QUERY_KEYS.recordedYields(filters as unknown as Record<string, unknown>),
     queryFn: () => getYieldRecords(filters),
   });
 
   // Fetch correction history for all yields (for badge display)
   const { data: correctionHistory = [] } = useQuery({
-    queryKey: ["yield-corrections", filters.fundId],
+    queryKey: QUERY_KEYS.yieldCorrections(filters.fundId === "all" ? undefined : filters.fundId),
     queryFn: () => getYieldCorrectionHistory(filters.fundId === "all" ? undefined : filters.fundId),
   });
 
   // Fetch correction history for a specific record
   const { data: recordCorrectionHistory = [], isLoading: isLoadingCorrectionHistory } = useQuery({
-    queryKey: ["yield-correction-history", correctionHistoryRecord?.fund_id, correctionHistoryRecord?.aum_date, correctionHistoryRecord?.purpose],
+    queryKey: QUERY_KEYS.yieldCorrectionHistory(correctionHistoryRecord?.fund_id, correctionHistoryRecord?.aum_date, correctionHistoryRecord?.aum_date),
     queryFn: () => correctionHistoryRecord 
       ? getYieldCorrectionHistory(correctionHistoryRecord.fund_id, correctionHistoryRecord.aum_date, correctionHistoryRecord.aum_date)
       : Promise.resolve([]),
@@ -154,13 +155,7 @@ function RecordedYieldsContent() {
     onSuccess: () => {
       toast.success("Yield record voided successfully");
       setVoidRecord(null);
-      // Comprehensive cache invalidation
-      queryClient.invalidateQueries({ queryKey: ["recorded-yields"] });
-      YIELD_RELATED_KEYS.forEach(key => {
-        queryClient.invalidateQueries({ queryKey: key });
-      });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
+      invalidateAfterYieldOp(queryClient);
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : "Failed to void record");
@@ -176,13 +171,7 @@ function RecordedYieldsContent() {
     onSuccess: () => {
       toast.success("Yield AUM updated successfully");
       setEditAumRecord(null);
-      // Comprehensive cache invalidation
-      queryClient.invalidateQueries({ queryKey: ["recorded-yields"] });
-      YIELD_RELATED_KEYS.forEach(key => {
-        queryClient.invalidateQueries({ queryKey: key });
-      });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
+      invalidateAfterYieldOp(queryClient);
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : "Failed to update AUM");

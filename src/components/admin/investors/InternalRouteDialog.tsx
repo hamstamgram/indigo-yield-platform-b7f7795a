@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Loader2, AlertTriangle, CheckCircle2, Copy } from "lucide-react";
+import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { format } from "date-fns";
 
 interface InternalRouteDialogProps {
@@ -106,8 +107,7 @@ export function InternalRouteDialog({
         credit_tx_id: data.credit_tx_id,
       });
       toast.success("Internal transfer completed successfully");
-      queryClient.invalidateQueries({ queryKey: ["investor-positions"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-transactions"] });
+      invalidateAfterTransaction(queryClient, investorId, fundId);
     },
     onError: (error: any) => {
       toast.error(`Error: ${error.message}`);
