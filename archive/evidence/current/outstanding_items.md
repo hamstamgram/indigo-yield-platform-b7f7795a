@@ -75,16 +75,13 @@ const formatTokenAmount = (value: number | undefined) => {
 <FormLabel>Amount</FormLabel>
 ```
 
-### 4. Generate Fund Performance Purpose Fallback
+### 4. Generate Fund Performance Purpose Fallback ✅ FIXED
 **File:** `supabase/functions/generate-fund-performance/index.ts`  
 **Issue:** May have purpose fallback allowing NULL values  
 **Impact:** Could generate non-reporting data for statements  
-**Fix:** Ensure strict `purpose = 'reporting'` without fallback
+**Fix:** Verified strict `purpose = 'reporting'` is enforced
 
-```typescript
-// Verify this is enforced:
-purpose: "reporting"  // No null fallback
-```
+**Status:** Verified 2024-12-26 - Edge function correctly sets `purpose: 'reporting'` on all generated records.
 
 ---
 
@@ -121,10 +118,11 @@ purpose: "reporting"  // No null fallback
 
 | Item | File | Status | PR |
 |------|------|--------|-----|
-| StatementsPage purpose filter | StatementsPage.tsx | ✅ Fixed | This commit |
-| PositionResetDialog USD | PositionResetDialog.tsx | ✅ Fixed | This commit |
-| MaintenancePage USD | MaintenancePage.tsx | ✅ Fixed | This commit |
-| CreateInvestmentDialog label | CreateInvestmentDialog.tsx | ✅ Fixed | This commit |
+| StatementsPage purpose filter | StatementsPage.tsx | ✅ Fixed | 2024-12-21 |
+| PositionResetDialog USD | PositionResetDialog.tsx | ✅ Fixed | 2024-12-21 |
+| MaintenancePage USD | MaintenancePage.tsx | ✅ Fixed | 2024-12-21 |
+| CreateInvestmentDialog label | CreateInvestmentDialog.tsx | ✅ Fixed | 2024-12-21 |
+| Generate Fund Performance purpose | generate-fund-performance/index.ts | ✅ Fixed | 2024-12-26 |
 
 ---
 
