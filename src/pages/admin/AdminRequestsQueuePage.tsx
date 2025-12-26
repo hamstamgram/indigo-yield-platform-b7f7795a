@@ -19,6 +19,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { depositService } from "@/services/investor/depositService";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { invalidateAfterWithdrawal, invalidateAfterDeposit } from "@/utils/cacheInvalidation";
 import {
   Loader2,
   CheckCircle,
@@ -44,7 +46,7 @@ export default function AdminRequestsQueuePage() {
 
   // Fetch pending withdrawal requests
   const { data: withdrawalRequests, isLoading: withdrawalsLoading } = useQuery({
-    queryKey: ["withdrawal-requests-admin"],
+    queryKey: QUERY_KEYS.withdrawalRequestsAdmin,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("withdrawal_requests")
@@ -63,7 +65,7 @@ export default function AdminRequestsQueuePage() {
 
   // Fetch pending deposits
   const { data: deposits, isLoading: depositsLoading } = useQuery({
-    queryKey: ["deposits-admin"],
+    queryKey: QUERY_KEYS.depositsAdmin,
     queryFn: async () => {
       // Transactions_v2 has no status column; show all deposits ordered by occurred_at
       return depositService.getDeposits();
@@ -81,9 +83,11 @@ export default function AdminRequestsQueuePage() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       toast.success("Withdrawal request approved successfully");
-      queryClient.invalidateQueries({ queryKey: ["withdrawal-requests-admin"] });
+      // Use centralized cache invalidation
+      const request = withdrawalRequests?.find(r => r.id === variables.requestId);
+      invalidateAfterWithdrawal(queryClient, request?.investor_id, request?.fund_id);
       setSelectedRequest(null);
       setApprovalAmount("");
       setAdminNotes("");
@@ -104,9 +108,11 @@ export default function AdminRequestsQueuePage() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       toast.success("Withdrawal request rejected");
-      queryClient.invalidateQueries({ queryKey: ["withdrawal-requests-admin"] });
+      // Use centralized cache invalidation
+      const request = withdrawalRequests?.find(r => r.id === variables.requestId);
+      invalidateAfterWithdrawal(queryClient, request?.investor_id, request?.fund_id);
       setSelectedRequest(null);
       setRejectionReason("");
       setAdminNotes("");

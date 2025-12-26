@@ -18,6 +18,8 @@ import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
 import { useStatements, usePublishStatements } from "@/hooks/data";
 import { useQueryClient } from "@tanstack/react-query";
 import { profileService, statementsService, transactionsV2Service } from "@/services/shared";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { invalidateAfterStatementOp } from "@/utils/cacheInvalidation";
 
 export const StatementManager: React.FC = () => {
   const { isSuperAdmin, loading: roleLoading } = useSuperAdmin();
@@ -152,7 +154,7 @@ export const StatementManager: React.FC = () => {
       }
 
       toast.success(`Generated ${count} draft statements`);
-      queryClient.invalidateQueries({ queryKey: ["statements", selectedMonth] });
+      invalidateAfterStatementOp(queryClient);
     } catch (error) {
       console.error(error);
       toast.error("Failed to generate drafts");
