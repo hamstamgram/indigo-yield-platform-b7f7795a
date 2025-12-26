@@ -1,24 +1,38 @@
 /**
- * Investor Services - Re-exports all investor-related services
+ * Investor Services - Unified exports
+ * All investor data operations go through investorDataService
  */
 
-// Unified investor data service
-export { investorDataService, InvestorDataService } from "./investorDataService";
+// Unified investor data service (canonical source)
+export { 
+  investorDataService, 
+  InvestorDataService,
+  // Standalone functions
+  fetchInvestorPositions,
+  fetchInvestorsForSelector,
+  getAllInvestorsExpertSummary,
+  getInvestorExpertView,
+  updatePositionValue,
+  checkAdminStatus,
+  fetchInvestors,
+  fetchPendingInvites,
+  // Legacy compatibility export
+  expertInvestorService,
+} from "./investorDataService";
+
+// Types
 export type {
   InvestorPositionDetail,
+  InvestorPositionRow,
   InvestorSummary,
   PortfolioPerformance,
   InvestorPortfolio,
   YieldHistoryEntry,
   WithdrawalRequest,
+  ExpertPosition,
+  ExpertInvestor,
+  InvestorSelectorItem,
 } from "./investorDataService";
-
-// Investor position service
-export { fetchInvestorPositions, fetchInvestorsForSelector } from "./investorPositionService";
-export type { InvestorPositionRow } from "./investorPositionService";
-
-// Legacy investor service
-export { checkAdminStatus, fetchInvestors, fetchPendingInvites } from "./investorService";
 
 // Deposit service
 export { depositService, DepositService } from "./depositService";

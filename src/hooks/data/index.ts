@@ -185,3 +185,11 @@ export { useInvestorInvite } from "./useInvestorInvite";
 
 // Realtime notifications hooks
 export { useRealtimeNotifications } from "./useRealtimeNotifications";
+
+// Additional data hooks (moved from root)
+export { useAssetData } from "./useAssetData";
+export { useDocuments } from "./useDocuments";
+export { useFinalizedPortfolio } from "./useFinalizedPortfolio";
+export { useInvestorSearch } from "./useInvestorSearch";
+export { useInvestors } from "./useInvestors";
+export { useUserAssets, type UserAsset } from "./useUserAssets";

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchInvestorPositions, InvestorPositionRow } from "@/services/investor/investorPositionService";
+import { fetchInvestorPositions, InvestorPositionRow } from "@/services/investor";
 
 /**
  * Hook to fetch investor positions with caching

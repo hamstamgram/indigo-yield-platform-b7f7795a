@@ -17,8 +17,16 @@ export type { CreateTransactionParams } from "./adminTransactionService";
 export * from "./yieldDistributionService";
 export * from "./recordedYieldsService";
 
-// Expert investor views
-export * from "./expertInvestorService";
+// Expert investor views - NOW in investor service
+// Re-export for backward compatibility but consumers should use @/services/investor
+export { 
+  expertInvestorService,
+  getAllInvestorsExpertSummary,
+  getInvestorExpertView,
+  updatePositionValue,
+  type ExpertPosition,
+  type ExpertInvestor,
+} from "@/services/investor";
 
 // Bulk operations
 export * from "./bulkOperationsService";

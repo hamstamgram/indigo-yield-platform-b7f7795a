@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { createAdminTransaction } from "@/services/shared/transactionService";
-import { fetchInvestorsForSelector } from "@/services/investor/investorPositionService";
+import { fetchInvestorsForSelector } from "@/services/investor";
 import { saveDraftAUMEntry } from "@/services/admin/yieldDistributionService";
 import { Loader2, Check, ChevronsUpDown, AlertTriangle, Info, CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
