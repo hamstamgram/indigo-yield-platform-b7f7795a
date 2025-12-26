@@ -1,5 +1,6 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -43,7 +44,7 @@ interface ExclusionBreakdown {
 
 export function DeliveryExclusionStats({ periodId }: DeliveryExclusionStatsProps) {
   const { data: breakdown, isLoading } = useQuery({
-    queryKey: ["delivery-exclusion-breakdown", periodId],
+    queryKey: QUERY_KEYS.deliveryExclusionBreakdown(periodId),
     queryFn: async (): Promise<ExclusionBreakdown> => {
       // 1. Get total investor count (active investors)
       const investorResult = await supabase

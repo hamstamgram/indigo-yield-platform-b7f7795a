@@ -56,6 +56,8 @@ export const QUERY_KEYS = {
   investorFundPerformance: (searchTerm?: string) => searchTerm 
     ? ["investor_fund_performance", searchTerm] as const 
     : ["investor_fund_performance"] as const,
+  investorFundPerformanceDetail: (id: string) => ["investor_fund_performance", id] as const,
+  investorPositionsForRoute: (investorId: string) => ["investor-positions-for-route", investorId] as const,
   investorDocuments: ["investor-documents"] as const,
   perAssetStats: ["per-asset-stats"] as const,
 
@@ -64,6 +66,8 @@ export const QUERY_KEYS = {
     ? ["transactions", filters] as const 
     : ["transactions"] as const,
   adminTransactions: ["admin-transactions-history"] as const,
+  adminTransactionsHistory: (filters?: Record<string, unknown>) => 
+    filters ? ["admin-transactions-history", filters] as const : ["admin-transactions-history"] as const,
   investorTransactions: (investorId: string, limit?: number) => limit 
     ? ["investor-transactions", investorId, limit] as const 
     : ["investor-transactions", investorId] as const,
@@ -225,9 +229,12 @@ export const QUERY_KEYS = {
 
   // ============ Integrity & System ============
   integrityDashboard: ["integrity-dashboard"] as const,
+  integrityAuditEvents: ["integrity-audit-events"] as const,
   dataIntegrity: ["data-integrity"] as const,
   auditLog: ["audit-log"] as const,
   pendingActions: ["pending-actions"] as const,
+  systemHealth: ["system-health"] as const,
+  deliveryQueueMetrics: ["delivery-queue-metrics"] as const,
 
   // ============ Portfolio ============
   portfolioPositions: ["portfolio-positions"] as const,

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Filter } from "lucide-react";
@@ -17,7 +18,7 @@ export default function ReportsPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ["investor_fund_performance", searchTerm],
+    queryKey: QUERY_KEYS.investorFundPerformance(searchTerm),
     queryFn: async () => {
       const {
         data: { user },

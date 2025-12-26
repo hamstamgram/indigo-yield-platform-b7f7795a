@@ -68,7 +68,7 @@ export default function AdminInvestorsPage() {
   });
 
   const { data: investors, isLoading } = useQuery({
-    queryKey: ["admin-investors"],
+    queryKey: QUERY_KEYS.adminInvestors,
     queryFn: async () => {
       // First get admin user IDs from user_roles table
       const { data: adminRoles } = await supabase
