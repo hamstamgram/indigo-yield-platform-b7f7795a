@@ -25,7 +25,7 @@ import {
   Clock,
   Calculator,
 } from "lucide-react";
-import { useKeyboardShortcuts, SHORTCUTS, formatShortcut } from "@/hooks/useKeyboardShortcuts";
+import { useKeyboardShortcuts, SHORTCUTS, formatShortcut } from "@/hooks";
 import { useAuth } from "@/lib/auth/context";
 import { supabase } from "@/integrations/supabase/client";
 

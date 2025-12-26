@@ -50,9 +50,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { useFunds } from "@/hooks/data";
+import { useFunds, useUrlFilters } from "@/hooks";
 import { toast } from "sonner";
-import { useUrlFilters } from "@/hooks/useUrlFilters";
 import {
   getYieldRecords,
   canEditYields,

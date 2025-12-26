@@ -1,4 +1,4 @@
-import { usePerAssetStats } from "@/hooks/useInvestorPerformance";
+import { usePerAssetStats } from "@/hooks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveTable } from "@/components/ui/responsive-table";
 import { EmptyState } from "@/components/ui/empty-state";

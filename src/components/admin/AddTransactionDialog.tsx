@@ -47,7 +47,7 @@ import { Loader2, Check, ChevronsUpDown, AlertTriangle, Info, CalendarIcon } fro
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
-import { useActiveFunds } from "@/hooks/useActiveFunds";
+import { useActiveFunds } from "@/hooks";
 import { getAssetLogo } from "@/utils/assets";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";

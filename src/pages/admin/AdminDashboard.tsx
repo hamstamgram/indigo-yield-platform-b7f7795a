@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { FinancialSnapshot } from "@/components/admin/FinancialSnapshot";
 import { TwoFactorWarningBanner } from "@/components/admin/TwoFactorWarningBanner";
-import { useAdminStats } from "@/hooks/useAdminStats";
+import { useAdminStats } from "@/hooks";
 import PageHeader from "@/components/layout/PageHeader";
 
 function AdminDashboardContent() {

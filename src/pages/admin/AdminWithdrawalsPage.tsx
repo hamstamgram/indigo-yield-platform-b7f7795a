@@ -16,10 +16,9 @@ import { withdrawalService } from "@/services/investor/withdrawalService";
 import { Withdrawal, WithdrawalFilters, WithdrawalStats, PaginatedWithdrawals } from "@/types/withdrawal";
 import { toast } from "sonner";
 import { ArrowDownToLine, Plus } from "lucide-react";
-import { useFunds } from "@/hooks/data";
+import { useFunds, useUrlFilters } from "@/hooks";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/layout/PageHeader";
-import { useUrlFilters } from "@/hooks/useUrlFilters";
 
 interface Fund {
   id: string;

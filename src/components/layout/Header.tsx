@@ -7,7 +7,7 @@ import {
   BreadcrumbSeparator,
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
-import { useBreadcrumbs } from "@/hooks/useBreadcrumbs";
+import { useBreadcrumbs } from "@/hooks";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth/context";
 import { FundAUMBar } from "@/components/admin/FundAUMBar";

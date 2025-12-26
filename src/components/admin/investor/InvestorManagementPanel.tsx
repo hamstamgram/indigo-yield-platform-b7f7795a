@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { InvestorSummaryV2, adminServiceV2 } from "@/services/admin";
-import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
+import { useRealtimeSubscription } from "@/hooks";
 import { toast } from "sonner";
 import { Eye, UserCheck, Search } from "lucide-react";
 

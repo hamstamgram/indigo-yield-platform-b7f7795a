@@ -11,7 +11,7 @@ import type {
   DocumentStats,
   DocumentUpload,
 } from "@/types/documents";
-import { useToast } from "@/hooks/ui/use-toast";
+import { useToast } from "@/hooks";
 
 export function useDocuments(_userId?: string, _filter?: DocumentFilter) {
   const [documents] = useState<LegacyDocument[]>([]);

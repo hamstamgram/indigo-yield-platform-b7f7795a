@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowUpRight, ArrowDownLeft, CreditCard, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
+import { useRealtimeSubscription } from "@/hooks";
 import { toast } from "sonner";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
 

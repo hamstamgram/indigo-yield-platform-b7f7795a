@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { usePerAssetStats } from "@/hooks/useInvestorPerformance";
+import { usePerAssetStats } from "@/hooks";
 import { HoldingsByToken } from "@/components/investor/overview/HoldingsByToken";
 import { QuickCards } from "@/components/investor/overview/QuickCards";
 import { AssetPerformanceCard } from "@/components/common/AssetPerformanceCard";

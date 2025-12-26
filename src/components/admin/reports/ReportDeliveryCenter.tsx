@@ -23,7 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
-import { useSortableColumns } from "@/hooks/useSortableColumns";
+import { useSortableColumns } from "@/hooks";
 import {
   Dialog,
   DialogContent,

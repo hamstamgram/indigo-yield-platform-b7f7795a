@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { useRealtimeNotifications } from "@/hooks";
 
 export function RealtimeNotifications() {
   const { notifications, clearNotifications, removeNotification } = useRealtimeNotifications();

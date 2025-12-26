@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAssetLogo, getAssetName } from "@/utils/assets";
 import { PerformanceReportTable } from "@/components/investor/reports/PerformanceReportTable";
-import { useInvestorPerformance } from "@/hooks/useInvestorPerformance";
+import { useInvestorPerformance } from "@/hooks";
 import { Loader2, TrendingUp, Info } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 

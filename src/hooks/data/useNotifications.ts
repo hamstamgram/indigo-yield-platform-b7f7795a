@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toNotification, toNotifications } from "@/lib/typeAdapters";
 import type { Notification } from "@/lib/typeAdapters/notificationAdapter";
 import type { NotificationSettings, PriceAlert } from "@/types/notifications";
-import { useToast } from "@/hooks/ui/use-toast";
+import { useToast } from "@/hooks";
 import { RealtimeChannel } from "@supabase/supabase-js";
 
 export function useNotifications(userId?: string) {
