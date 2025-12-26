@@ -5099,13 +5099,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "audit_logs_user_id_fkey"
-            columns: ["actor_user"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "audit_logs_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -5114,13 +5107,20 @@ export type Database = {
           {
             foreignKeyName: "audit_logs_user_id_fkey"
             columns: ["actor_user"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
           },
           {
             foreignKeyName: "audit_logs_user_id_fkey"
-            columns: ["user_id"]
+            columns: ["actor_user"]
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
@@ -5376,10 +5376,7 @@ export type Database = {
       platform_fees_collected: {
         Row: {
           fund_id: string | null
-          fund_name: string | null
-          investor_count: number | null
-          period_end: string | null
-          period_start: string | null
+          period: string | null
           total_fees: number | null
         }
         Relationships: [
@@ -5450,12 +5447,11 @@ export type Database = {
       }
       position_transaction_reconciliation: {
         Row: {
+          difference: number | null
           fund_id: string | null
           investor_id: string | null
-          position_shares: number | null
           position_value: number | null
-          total_credits: number | null
-          total_debits: number | null
+          transaction_sum: number | null
         }
         Relationships: [
           {
