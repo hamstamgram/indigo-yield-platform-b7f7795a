@@ -39,9 +39,12 @@ interface Commission {
   fundName: string;
   asset: string;
   investorName: string;
+  investorId: string;
   sourceNetIncome: number;
   ibPercentage: number;
   ibFeeAmount: number;
+  payoutStatus: 'pending' | 'paid';
+  paidAt: string | null;
 }
 
 const PAGE_SIZE = 20;
@@ -86,6 +89,9 @@ export default function IBCommissionsPage() {
           effective_date,
           period_start,
           period_end,
+          payout_status,
+          paid_at,
+          source_investor_id,
           funds!inner(name, asset),
           profiles!ib_allocations_source_investor_id_fkey(
             first_name,
@@ -127,9 +133,12 @@ export default function IBCommissionsPage() {
           fundName: fund?.name || "Unknown Fund",
           asset: fund?.asset || "Unknown",
           investorName,
+          investorId: alloc.source_investor_id,
           sourceNetIncome: Number(alloc.source_net_income),
           ibPercentage: Number(alloc.ib_percentage),
           ibFeeAmount: Number(alloc.ib_fee_amount),
+          payoutStatus: ((alloc as any).payout_status || 'pending') as 'pending' | 'paid',
+          paidAt: (alloc as any).paid_at || null,
         };
       });
 
@@ -308,6 +317,7 @@ export default function IBCommissionsPage() {
                     <TableHead className="text-right">Source Income</TableHead>
                     <TableHead className="text-right">Rate</TableHead>
                     <TableHead className="text-right">Commission</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -336,6 +346,11 @@ export default function IBCommissionsPage() {
                       </TableCell>
                       <TableCell className="text-right font-medium text-green-600">
                         {formatAssetAmount(comm.ibFeeAmount, comm.asset)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant={comm.payoutStatus === 'paid' ? 'default' : 'outline'}>
+                          {comm.payoutStatus === 'paid' ? 'Paid' : 'Pending'}
+                        </Badge>
                       </TableCell>
                     </TableRow>
                   ))}

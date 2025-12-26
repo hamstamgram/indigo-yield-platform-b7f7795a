@@ -23,6 +23,19 @@ interface CommissionSummary {
   paidAmount: number;
 }
 
+// Helper to format commission totals for display
+const formatCommissionTotals = (summary: CommissionSummary[]): string => {
+  if (!summary || summary.length === 0) return "No commissions";
+  return summary.map(s => formatAssetAmount(s.totalAmount, s.asset)).join(", ");
+};
+
+const formatPendingTotals = (summary: CommissionSummary[]): string => {
+  if (!summary || summary.length === 0) return "No pending";
+  const pending = summary.filter(s => s.pendingAmount > 0);
+  if (pending.length === 0) return "All paid";
+  return pending.map(s => formatAssetAmount(s.pendingAmount, s.asset)).join(", ");
+};
+
 interface TopReferral {
   investorId: string;
   investorName: string;
@@ -62,6 +75,7 @@ export default function IBOverviewPage() {
           ib_fee_amount,
           fund_id,
           effective_date,
+          payout_status,
           funds!inner(asset)
         `)
         .eq("ib_investor_id", user.id);
@@ -77,7 +91,7 @@ export default function IBOverviewPage() {
         return [];
       }
 
-      // Group by asset
+      // Group by asset with proper pending/paid tracking
       const byAsset: Record<string, { total: number; pending: number; paid: number }> = {};
       
       for (const allocation of data || []) {
@@ -86,9 +100,14 @@ export default function IBOverviewPage() {
         if (!byAsset[asset]) {
           byAsset[asset] = { total: 0, pending: 0, paid: 0 };
         }
-        byAsset[asset].total += Number(allocation.ib_fee_amount);
-        // For now, all allocations are considered pending until payout
-        byAsset[asset].pending += Number(allocation.ib_fee_amount);
+        const amount = Number(allocation.ib_fee_amount);
+        byAsset[asset].total += amount;
+        // Use actual payout_status from database
+        if ((allocation as any).payout_status === 'paid') {
+          byAsset[asset].paid += amount;
+        } else {
+          byAsset[asset].pending += amount;
+        }
       }
 
       return Object.entries(byAsset).map(([asset, data]) => ({
@@ -238,8 +257,10 @@ export default function IBOverviewPage() {
             <Coins className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{commissionSummary?.length || 0} assets</div>
-            <p className="text-xs text-muted-foreground">With pending payouts</p>
+            <div className="text-lg font-bold font-mono">
+              {formatPendingTotals(commissionSummary || [])}
+            </div>
+            <p className="text-xs text-muted-foreground">Awaiting payout</p>
           </CardContent>
         </Card>
 
@@ -249,8 +270,10 @@ export default function IBOverviewPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{commissionSummary?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">Asset types earned</p>
+            <div className="text-lg font-bold font-mono">
+              {formatCommissionTotals(commissionSummary || [])}
+            </div>
+            <p className="text-xs text-muted-foreground">Total for {period}</p>
           </CardContent>
         </Card>
       </div>
