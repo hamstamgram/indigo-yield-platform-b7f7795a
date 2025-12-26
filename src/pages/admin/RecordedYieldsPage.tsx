@@ -489,8 +489,7 @@ function RecordedYieldsContent() {
         open={!!correctionRecord}
         onOpenChange={(open) => !open && setCorrectionRecord(null)}
         onCorrectionApplied={() => {
-          queryClient.invalidateQueries({ queryKey: ["recorded-yields"] });
-          queryClient.invalidateQueries({ queryKey: ["yield-corrections"] });
+          invalidateAfterYieldOp(queryClient);
         }}
       />
 
