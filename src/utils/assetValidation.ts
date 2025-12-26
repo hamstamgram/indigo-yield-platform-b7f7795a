@@ -3,21 +3,12 @@
  * Shared validation for asset inputs across the application
  */
 
-export interface AssetInput {
-  symbol: string;
-  amount: number | string | null | undefined;
-}
+// Use types from central location
+import { type AssetConfig, type AssetInput, type AssetValidationResult, getAssetConfig } from "@/types/asset";
 
-export interface AssetConfig {
-  decimals: number;
-  name?: string;
-}
-
-export interface ValidationResult {
-  ok: boolean;
-  errors: Record<string, string>;
-  parsedAmounts: Record<string, number>;
-}
+// Re-export types for backward compatibility
+export type { AssetInput, AssetConfig };
+export type ValidationResult = AssetValidationResult;
 
 /**
  * Validates asset inputs ensuring:
@@ -33,9 +24,9 @@ export interface ValidationResult {
  */
 export function validateAssetInputs(
   assetInputs: AssetInput[],
-  assetsConfig: Record<string, AssetConfig>,
+  assetsConfig: Record<string, { decimals: number; name?: string }>,
   options: { requirePositive?: boolean } = { requirePositive: true }
-): ValidationResult {
+): AssetValidationResult {
   const errors: Record<string, string> = {};
   const parsedAmounts: Record<string, number> = {};
 
@@ -69,7 +60,7 @@ export function validateAssetInputs(
     }
 
     // Validate precision (decimal places)
-    const config = assetsConfig[symbol];
+    const config = assetsConfig[symbol] || getAssetConfig(symbol);
     const maxDecimals = config?.decimals ?? 8;
     
     // Check decimal precision
@@ -132,11 +123,14 @@ export function truncateToDecimals(value: number, decimals: number): number {
 export function validateSingleAssetAmount(
   amount: number | string | null | undefined,
   symbol: string,
-  decimals: number = 8
+  decimals?: number
 ): { valid: boolean; value: number; error?: string } {
+  const config = getAssetConfig(symbol);
+  const actualDecimals = decimals ?? config.decimals;
+  
   const result = validateAssetInputs(
     [{ symbol, amount }],
-    { [symbol]: { decimals } },
+    { [symbol]: { decimals: actualDecimals } },
     { requirePositive: false }
   );
 

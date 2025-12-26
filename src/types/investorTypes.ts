@@ -1,3 +1,6 @@
+// Re-export AssetRef as Asset for backward compatibility
+export { type AssetRef as Asset } from "./asset";
+
 export interface Investor {
   id: string;
   email: string;
@@ -11,10 +14,4 @@ export interface Investor {
       usd_value: number;
     };
   };
-}
-
-export interface Asset {
-  id: number;
-  symbol: string;
-  name: string;
 }
