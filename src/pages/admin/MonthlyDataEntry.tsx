@@ -150,6 +150,33 @@ export default function MonthlyDataEntry() {
 
       const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
 
+      // Calculate MTD period (first of current month to now)
+      const now = new Date();
+      const mtdStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+      const mtdEnd = now.toISOString().split('T')[0];
+
+      // Fetch MTD yield transactions (INTEREST minus FEE) for all investors in this fund
+      const { data: yieldTransactions } = await supabase
+        .from("transactions_v2")
+        .select("investor_id, type, amount")
+        .eq("fund_id", fundId)
+        .in("investor_id", investorIds)
+        .in("type", ["INTEREST", "FEE"])
+        .gte("tx_date", mtdStart)
+        .lte("tx_date", mtdEnd)
+        .eq("is_voided", false);
+
+      // Calculate MTD yield per investor: sum(INTEREST) - sum(FEE)
+      const mtdYieldMap = new Map<string, number>();
+      (yieldTransactions || []).forEach((tx) => {
+        const currentYield = mtdYieldMap.get(tx.investor_id!) || 0;
+        if (tx.type === "INTEREST") {
+          mtdYieldMap.set(tx.investor_id!, currentYield + (tx.amount || 0));
+        } else if (tx.type === "FEE") {
+          mtdYieldMap.set(tx.investor_id!, currentYield - Math.abs(tx.amount || 0));
+        }
+      });
+
       // Build investor positions list
       const investorPositions: InvestorPosition[] = (positions || [])
         .filter((p) => p.investor_id)
@@ -165,7 +192,7 @@ export default function MonthlyDataEntry() {
             investor_email: profile?.email || "",
             current_value: p.current_value || 0,
             ownership_pct: totalAUM > 0 ? ((p.current_value || 0) / totalAUM) * 100 : 0,
-            mtd_yield: 0, // Would need to calculate from transactions
+            mtd_yield: mtdYieldMap.get(p.investor_id!) || 0,
           };
         });
 
