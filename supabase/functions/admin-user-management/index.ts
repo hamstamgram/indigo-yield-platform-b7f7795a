@@ -53,17 +53,10 @@ serve(async (req) => {
   }
 
   try {
-    // CSRF protection - defense in depth for state-changing operations
-    const csrfToken = req.headers.get("x-csrf-token");
-    if (!csrfToken || csrfToken.length < 32) {
-      return new Response(
-        JSON.stringify({ error: "Invalid CSRF token" }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
+    // Note: CSRF protection is not needed for Bearer token authentication
+    // Bearer tokens are not automatically sent by browsers (unlike cookies),
+    // so they are inherently resistant to CSRF attacks. The admin check below
+    // ensures only authenticated admins can perform these operations.
 
     // Verify the request is from an authenticated admin
     const authHeader = req.headers.get("Authorization");
