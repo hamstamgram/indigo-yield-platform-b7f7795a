@@ -50,7 +50,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { supabase } from "@/integrations/supabase/client";
+import { useFunds } from "@/hooks/data";
 import { toast } from "sonner";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
 import {
@@ -75,7 +75,9 @@ interface Fund {
 }
 
 function RecordedYieldsContent() {
-  const [funds, setFunds] = useState<Fund[]>([]);
+  // Use data hook for funds
+  const { data: fundsData = [] } = useFunds(true); // activeOnly
+  const funds: Fund[] = fundsData.map(f => ({ id: f.id, code: f.code, name: f.name, asset: f.asset }));
   const [historyRecord, setHistoryRecord] = useState<YieldRecord | null>(null);
   const [canEdit, setCanEdit] = useState(false);
   const [correctionRecord, setCorrectionRecord] = useState<YieldRecord | null>(null);
@@ -97,18 +99,7 @@ function RecordedYieldsContent() {
   };
   const queryClient = useQueryClient();
 
-  // Load funds for filter dropdown
-  useEffect(() => {
-    const loadFunds = async () => {
-      const { data } = await supabase
-        .from("funds")
-        .select("id, code, name, asset")
-        .eq("status", "active")
-        .order("code");
-      setFunds(data || []);
-    };
-    loadFunds();
-  }, []);
+  // Funds are loaded via useFunds hook above
 
   // Check if user can edit yields
   useEffect(() => {

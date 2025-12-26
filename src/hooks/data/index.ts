@@ -9,6 +9,7 @@
 export {
   useProfiles,
   useProfile,
+  useCurrentProfile,
   useIsSuperAdmin,
   useToggleAdminStatus,
   useUpdateProfile,

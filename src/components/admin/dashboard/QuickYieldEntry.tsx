@@ -3,8 +3,9 @@
  * Fast data entry for recording yields without navigating away
  */
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,11 +20,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calculator, TrendingUp, ArrowRight, Zap } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import { useFunds } from "@/hooks/data";
+import { supabase } from "@/integrations/supabase/client";
 
-interface Fund {
+interface FundWithAUM {
   id: string;
   name: string;
   asset: string;
@@ -32,54 +34,42 @@ interface Fund {
 
 export function QuickYieldEntry() {
   const navigate = useNavigate();
-  const [funds, setFunds] = useState<Fund[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedFund, setSelectedFund] = useState<string>("");
   const [newAUM, setNewAUM] = useState<string>("");
-  const [submitting, setSubmitting] = useState(false);
 
-  const fetchFunds = async () => {
-    setLoading(true);
-    try {
-      // Fetch active funds with current AUM from positions
-      const { data: fundsData } = await supabase
-        .from("funds")
-        .select("id, name, asset")
-        .eq("status", "active")
-        .order("name");
+  // Use the data hook for funds
+  const { data: baseFunds, isLoading: fundsLoading } = useFunds(true); // activeOnly
 
-      if (fundsData) {
-        // Get current AUM for each fund
-        const fundsWithAUM = await Promise.all(
-          fundsData.map(async (fund) => {
-            const { data: positions } = await supabase
-              .from("investor_positions")
-              .select("current_value")
-              .eq("fund_id", fund.id);
+  // Fetch AUM for each fund
+  const { data: funds = [], isLoading: aumLoading } = useQuery<FundWithAUM[]>({
+    queryKey: ["funds-with-aum", baseFunds?.map(f => f.id)],
+    queryFn: async () => {
+      if (!baseFunds || baseFunds.length === 0) return [];
+      
+      const fundsWithAUM = await Promise.all(
+        baseFunds.map(async (fund) => {
+          const { data: positions } = await supabase
+            .from("investor_positions")
+            .select("current_value")
+            .eq("fund_id", fund.id);
 
-            const totalAUM = positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0;
+          const totalAUM = positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0;
 
-            return {
-              id: fund.id,
-              name: fund.name,
-              asset: fund.asset,
-              currentAUM: totalAUM,
-            };
-          })
-        );
+          return {
+            id: fund.id,
+            name: fund.name,
+            asset: fund.asset,
+            currentAUM: totalAUM,
+          };
+        })
+      );
 
-        setFunds(fundsWithAUM);
-      }
-    } catch (error) {
-      console.error("Failed to fetch funds:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return fundsWithAUM;
+    },
+    enabled: !!baseFunds && baseFunds.length > 0,
+  });
 
-  useEffect(() => {
-    fetchFunds();
-  }, []);
+  const loading = fundsLoading || aumLoading;
 
   const selectedFundData = funds.find((f) => f.id === selectedFund);
 

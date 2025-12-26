@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Search, ArrowLeftRight } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import NavSection from "@/components/sidebar/NavSection";
 import UserProfile from "@/components/sidebar/UserProfile";
@@ -11,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { NavItem } from "@/types/navigation";
 import { useUserRole } from "@/hooks/useUserRole";
-
+import { useAuth } from "@/lib/auth/context";
+import { useCurrentProfile } from "@/hooks/data";
 type SidebarProps = {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
@@ -21,9 +21,7 @@ type SidebarProps = {
 type PortalView = "admin" | "ib" | "investor";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps) => {
-  const [userName, setUserName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [userId, setUserId] = useState<string | null>(null);
   
   // Portal view state for multi-role users (IBs)
   const [portalView, setPortalView] = useState<PortalView>("investor");
@@ -31,6 +29,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
   const navigate = useNavigate();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Get auth context and profile data
+  const { user } = useAuth();
+  const { data: profile } = useCurrentProfile();
+  const userId = user?.id || null;
+
+  // Compute userName from profile
+  const userName = profile 
+    ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || user?.email?.split("@")[0] || "User"
+    : user?.email?.split("@")[0] || "User";
 
   // Get user role for proper navigation rendering
   const { isIB, isSuperAdmin, isLoading: roleLoading } = useUserRole();
@@ -66,34 +74,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
     }
   };
 
+  // Redirect to login if no user
   useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("first_name, last_name")
-          .eq("id", user.id)
-          .maybeSingle();
-        if (error) {
-          console.warn("Failed to fetch profile:", error);
-          setUserName(user.email?.split("@")[0] || "User");
-        } else {
-          const first = profile?.first_name || "";
-          const last = profile?.last_name || "";
-          const name = `${first} ${last}`.trim();
-          setUserName(name.length > 0 ? name : user.email?.split("@")[0] || "User");
-        }
-      } else {
-        navigate("/login");
-      }
-    };
-
-    getUser();
-  }, [navigate, isAdmin]);
+    if (!user && !roleLoading) {
+      navigate("/login");
+    }
+  }, [user, roleLoading, navigate]);
 
   // Filter navigation items based on search
   const filterNavItems = (items: NavItem[], query: string) => {
