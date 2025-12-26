@@ -14,6 +14,7 @@ const AdminListPage = lazy(() => import("@/pages/admin/settings/AdminList"));
 const AdminToolsPage = lazy(() => import("@/pages/admin/settings/AdminToolsPage"));
 const AdminInvitesPage = lazy(() => import("@/pages/admin/settings/AdminInvitesPage"));
 const SystemHealthPage = lazy(() => import("@/pages/admin/system-health/SystemHealthPage"));
+const IntegrityDashboardPage = lazy(() => import("@/pages/admin/IntegrityDashboardPage"));
 
 export function SystemRoutes() {
   return (
@@ -64,6 +65,16 @@ export function SystemRoutes() {
         element={
           <AdminRoute>
             <SystemHealthPage />
+          </AdminRoute>
+        }
+      />
+
+      {/* Data Integrity Dashboard */}
+      <Route
+        path="/admin/integrity"
+        element={
+          <AdminRoute>
+            <IntegrityDashboardPage />
           </AdminRoute>
         }
       />
