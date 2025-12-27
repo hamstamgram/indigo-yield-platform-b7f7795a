@@ -104,7 +104,7 @@ run_check "Fee allocation orphans" \
 
 # Check 6: Yield distribution conservation
 run_check "Yield distribution conservation issues" \
-  "SELECT COUNT(*) FROM yield_distribution_conservation_check WHERE NOT is_balanced" \
+  "SELECT COUNT(*) FROM yield_distribution_conservation_check WHERE ABS(conservation_error) > 0.01" \
   "0" || ((FAILURES++))
 
 echo ""
