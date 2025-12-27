@@ -31,10 +31,10 @@ const INTEGRITY_CHECKS: IntegrityCheck[] = [
     description: "Statement periods with orphaned data",
   },
   {
-    name: "Investor KPI Orphans",
-    query: "SELECT * FROM v_investor_kpis_orphans LIMIT 5",
+    name: "IB Allocation Orphans",
+    query: "SELECT * FROM v_ib_allocation_orphans LIMIT 5",
     severity: "warning",
-    description: "Investors with incomplete KPI data",
+    description: "IB allocations with missing distribution references",
   },
   {
     name: "Fee Allocation Orphans",
