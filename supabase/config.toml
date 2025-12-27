@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.refresh-delivery-status]
 verify_jwt = true
+
+[functions.integrity-monitor]
+verify_jwt = false
