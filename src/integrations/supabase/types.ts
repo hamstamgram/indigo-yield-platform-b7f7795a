@@ -2256,6 +2256,39 @@ export type Database = {
           },
         ]
       }
+      integrity_check_log: {
+        Row: {
+          checked_at: string
+          critical_failures: number
+          failed: number
+          id: string
+          passed: number
+          results: Json
+          total_checks: number
+          triggered_by: string | null
+        }
+        Insert: {
+          checked_at?: string
+          critical_failures: number
+          failed: number
+          id?: string
+          passed: number
+          results: Json
+          total_checks: number
+          triggered_by?: string | null
+        }
+        Update: {
+          checked_at?: string
+          critical_failures?: number
+          failed?: number
+          id?: string
+          passed?: number
+          results?: Json
+          total_checks?: number
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
       investment_summary: {
         Row: {
           id: string

@@ -215,12 +215,30 @@ async function sendEmailAlert(
   });
 }
 
-async function logAuditEvent(
+async function logIntegrityCheck(
   supabase: ReturnType<typeof createClient>,
-  results: CheckResult[]
+  results: CheckResult[],
+  triggeredBy: string = "scheduled"
 ): Promise<void> {
   const failures = results.filter((r) => r.status === "fail");
   
+  // Log to integrity_check_log table for dashboard widget
+  await supabase.from("integrity_check_log").insert({
+    total_checks: results.length,
+    passed: results.filter((r) => r.status === "pass").length,
+    failed: failures.length,
+    critical_failures: failures.filter((r) => r.severity === "critical").length,
+    triggered_by: triggeredBy,
+    results: results.map((r) => ({
+      name: r.name,
+      status: r.status,
+      severity: r.severity,
+      count: r.count,
+      description: r.description,
+    })),
+  });
+  
+  // Also log to audit_log for audit trail
   await supabase.from("audit_log").insert({
     action: "integrity_check",
     entity: "system",
@@ -230,12 +248,7 @@ async function logAuditEvent(
       passed: results.filter((r) => r.status === "pass").length,
       failed: failures.length,
       critical_failures: failures.filter((r) => r.severity === "critical").length,
-      results: results.map((r) => ({
-        name: r.name,
-        status: r.status,
-        severity: r.severity,
-        count: r.count,
-      })),
+      triggered_by: triggeredBy,
     },
   });
 }
@@ -268,8 +281,17 @@ Deno.serve(async (req) => {
 
     console.log(`Integrity check complete: ${failures.length} failures (${criticalFailures.length} critical)`);
 
-    // Log to audit table
-    await logAuditEvent(supabase, results);
+    // Parse triggered_by from request body
+    let triggeredBy = "scheduled";
+    try {
+      const body = await req.json();
+      if (body?.triggered_by) triggeredBy = body.triggered_by;
+    } catch {
+      // No body or invalid JSON, use default
+    }
+
+    // Log to integrity_check_log table
+    await logIntegrityCheck(supabase, results, triggeredBy);
 
     // Send alerts if there are failures
     if (failures.length > 0) {
