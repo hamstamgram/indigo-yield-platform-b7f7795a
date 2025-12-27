@@ -18,6 +18,8 @@ declare -A FORBIDDEN_PATTERNS=(
   ["withdrawal_audit_log[^s]"]="Use 'withdrawal_audit_logs' (plural) - singular name was a bug"
   ["FROM withdrawal_audit_log[^s]"]="Use 'withdrawal_audit_logs' (plural) table name"
   ["INTO withdrawal_audit_log[^s]"]="Use 'withdrawal_audit_logs' (plural) table name"
+  ["investor_positions\.id"]="investor_positions has composite PK (investor_id, fund_id), not id column"
+  ["SECURITY DEFINER"]="Views must use SECURITY INVOKER, not DEFINER"
 )
 
 # Check each pattern

@@ -97,7 +97,12 @@ run_check "Transaction distribution orphans" \
   "SELECT COUNT(*) FROM v_transaction_distribution_orphans" \
   "0" || ((FAILURES++))
 
-# Check 5: Yield distribution conservation
+# Check 5: Fee allocation orphans
+run_check "Fee allocation orphans" \
+  "SELECT COUNT(*) FROM v_fee_allocation_orphans" \
+  "0" || ((FAILURES++))
+
+# Check 6: Yield distribution conservation
 run_check "Yield distribution conservation issues" \
   "SELECT COUNT(*) FROM yield_distribution_conservation_check WHERE NOT is_balanced" \
   "0" || ((FAILURES++))
