@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { withdrawalService } from "@/services/investor/withdrawalService";
 import { toast } from "sonner";
 import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
+import { formatAssetAmount } from "@/utils/assets";
 
 interface CompleteWithdrawalDialogProps {
   open: boolean;
@@ -91,8 +92,7 @@ export function CompleteWithdrawalDialog({
               <div>
                 <Label className="text-sm font-medium">Amount to Deduct</Label>
                 <p className="text-sm font-medium text-foreground">
-                  {(withdrawal.processed_amount || withdrawal.requested_amount).toLocaleString()}{" "}
-                  {(withdrawal.fund_class || "UNITS").toUpperCase()}
+                  {formatAssetAmount(withdrawal.processed_amount || withdrawal.requested_amount, withdrawal.fund_class || "UNITS")}
                 </p>
               </div>
             </div>
