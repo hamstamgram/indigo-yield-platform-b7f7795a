@@ -6230,16 +6230,14 @@ export type Database = {
           p_fund_id: string
           p_investor_id: string
           p_note?: string
-          p_reference_id?: string
           p_tx_date?: string
           p_tx_type?: string
         }
         Returns: {
-          out_fund_id: string
-          out_investor_id: string
+          out_message: string
           out_new_balance: number
-          out_previous_balance: number
-          out_reference_id: string
+          out_old_balance: number
+          out_success: boolean
           out_transaction_id: string
         }[]
       }
@@ -6536,18 +6534,34 @@ export type Database = {
           status: Database["public"]["Enums"]["fund_status"]
         }[]
       }
-      get_historical_nav: {
-        Args: { target_date: string }
-        Returns: {
-          out_asset_code: string
-          out_aum: number
-          out_daily_inflows: number
-          out_daily_outflows: number
-          out_fund_id: string
-          out_fund_name: string
-          out_net_flow_24h: number
-        }[]
-      }
+      get_historical_nav:
+        | {
+            Args: {
+              p_end_date?: string
+              p_fund_id: string
+              p_start_date?: string
+            }
+            Returns: {
+              out_aum: number
+              out_fund_id: string
+              out_nav_date: string
+              out_nav_per_share: number
+              out_purpose: string
+              out_shares_outstanding: number
+            }[]
+          }
+        | {
+            Args: { target_date: string }
+            Returns: {
+              out_asset_code: string
+              out_aum: number
+              out_daily_inflows: number
+              out_daily_outflows: number
+              out_fund_id: string
+              out_fund_name: string
+              out_net_flow_24h: number
+            }[]
+          }
       get_investor_period_summary: {
         Args: {
           p_end_date: string
@@ -6605,6 +6619,19 @@ export type Database = {
         }[]
       }
       get_position_reconciliation:
+        | {
+            Args: { p_as_of_date?: string }
+            Returns: {
+              out_discrepancy: number
+              out_fund_code: string
+              out_fund_id: string
+              out_investor_id: string
+              out_investor_name: string
+              out_last_tx_date: string
+              out_ledger_balance: number
+              out_position_value: number
+            }[]
+          }
         | {
             Args: { p_as_of_date?: string; p_fund_id?: string }
             Returns: {

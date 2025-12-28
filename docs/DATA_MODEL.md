@@ -422,3 +422,58 @@ fund_daily_aum.total_aum = SUM(investor_positions.current_value)
 1. `investor_positions` → `(investor_id, fund_id)`
 2. `fund_daily_aum` → `(fund_id, nav_date, purpose)`
 3. `daily_nav` → `(fund_id, nav_date, purpose)`
+
+---
+
+## ⚠️ CRITICAL: Column Reference Errors to Avoid
+
+These are the most common schema mismatch errors. NEVER use these:
+
+| ❌ **WRONG** | ✅ **CORRECT** | Table |
+|-------------|---------------|-------|
+| `status` | `is_voided` (boolean) | transactions_v2 |
+| `status = 'CONFIRMED'` | `is_voided = false` | transactions_v2 |
+| `current_balance` | `current_value` | investor_positions |
+| `investor_positions.id` | Use composite key `(investor_id, fund_id)` | investor_positions |
+| `fund_daily_aum.id` | Use composite key `(fund_id, nav_date, purpose)` | fund_daily_aum |
+| `tx_type` | `type` | transactions_v2 |
+| `effective_date` | `tx_date` | transactions_v2 |
+| `asset_code` | `asset` | transactions_v2 |
+| `withdrawal_audit_log` | `withdrawal_audit_logs` (plural) | N/A |
+
+### Common Error Messages and Fixes
+
+**"column status does not exist"**
+- `transactions_v2` has NO `status` column
+- Use `is_voided = false` instead of `status = 'CONFIRMED'`
+- Use `is_voided = true` instead of `status = 'VOIDED'`
+
+**"column current_balance does not exist"**
+- `investor_positions` uses `current_value`, NOT `current_balance`
+- All position queries must use `current_value`
+
+**"column reference fund_id is ambiguous"**
+- Use table aliases: `ip.fund_id`, `t.fund_id`, `f.id`
+- In `RETURNS TABLE`, use `out_` prefix: `out_fund_id`, `out_investor_id`
+
+---
+
+## Function Return Column Naming Convention
+
+When creating PL/pgSQL functions with `RETURNS TABLE`, prefix return columns with `out_` to avoid ambiguity:
+
+```sql
+-- ❌ WRONG - causes "column reference is ambiguous"
+RETURNS TABLE (
+  fund_id uuid,
+  investor_id uuid,
+  balance numeric
+)
+
+-- ✅ CORRECT - unambiguous column names
+RETURNS TABLE (
+  out_fund_id uuid,
+  out_investor_id uuid,
+  out_balance numeric
+)
+```

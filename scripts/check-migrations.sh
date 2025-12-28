@@ -27,6 +27,9 @@ declare -A FORBIDDEN_PATTERNS=(
   ["effective_date"]="Use 'tx_date' column name, not 'effective_date' - transactions_v2 uses 'tx_date'"
   ["tx_type::tx_type"]="Use 'type' column, cast as v_effective_type::tx_type - column is named 'type' not 'tx_type'"
   ["current_balance"]="Use 'current_value' - investor_positions column is 'current_value' not 'current_balance'"
+  ["transactions_v2.*status"]="Column 'status' does not exist in transactions_v2 - use 'is_voided' boolean instead"
+  ["t\.status"]="Column 'status' does not exist in transactions_v2 - use 'is_voided' boolean instead"
+  ["status = 'CONFIRMED'"]="transactions_v2 has no 'status' column - use 'is_voided = false' instead"
 )
 
 # Check each pattern
