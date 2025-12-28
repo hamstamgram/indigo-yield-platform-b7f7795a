@@ -23,6 +23,9 @@ declare -A FORBIDDEN_PATTERNS=(
   ["reference_id := 'position_adjustment'"]="Never use constant reference_id - causes unique constraint violations on repeat runs"
   ["RETURNS TABLE.*[^_]fund_id uuid"]="RETURNS TABLE columns should use out_fund_id prefix to avoid PL/pgSQL scope collisions"
   ["RETURNS TABLE.*[^_]investor_id uuid"]="RETURNS TABLE columns should use out_investor_id prefix to avoid PL/pgSQL scope collisions"
+  ["asset_code"]="Use 'asset' column name, not 'asset_code' - transactions_v2 uses 'asset'"
+  ["effective_date"]="Use 'tx_date' column name, not 'effective_date' - transactions_v2 uses 'tx_date'"
+  ["tx_type::tx_type"]="Use 'type' column, cast as v_effective_type::tx_type - column is named 'type' not 'tx_type'"
 )
 
 # Check each pattern
