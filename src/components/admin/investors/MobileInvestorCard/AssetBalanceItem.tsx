@@ -1,6 +1,7 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Asset } from "@/types/investorTypes";
+import { formatAssetAmount } from "@/utils/assets";
 
 interface AssetBalanceItemProps {
   asset: Asset;
@@ -35,7 +36,7 @@ const AssetBalanceItem: React.FC<AssetBalanceItemProps> = ({
       ) : (
         <div>
           {portfolioSummary && portfolioSummary[normalizedSymbol]
-            ? `${portfolioSummary[normalizedSymbol].balance.toFixed(4)}`
+            ? formatAssetAmount(portfolioSummary[normalizedSymbol].balance, asset.symbol)
             : "-"}
         </div>
       )}

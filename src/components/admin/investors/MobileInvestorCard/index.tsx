@@ -10,6 +10,7 @@ import FundAssetDropdown from "../FundAssetDropdown";
 import InvestorInfo from "./InvestorInfo";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { getAllFunds, updateInvestorPosition } from "@/services/investor/fundViewService";
+import { formatAssetAmount } from "@/utils/assets";
 
 interface MobileInvestorCardProps {
   investor: Investor;
@@ -168,7 +169,7 @@ const MobileInvestorCard = ({
                   />
                 ) : (
                   <div className="font-mono">
-                    {hasBalance ? balance.toFixed(4) : "-"}
+                    {hasBalance ? formatAssetAmount(balance, asset.symbol) : "-"}
                   </div>
                 )}
               </div>
