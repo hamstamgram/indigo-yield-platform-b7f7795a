@@ -88,37 +88,39 @@ export function DeleteWithdrawalDialog({
             <Trash2 className="h-5 w-5" />
             Delete Withdrawal
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-left space-y-3">
-            {!canDelete ? (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  Cannot delete completed withdrawals. Use a reversal transaction instead.
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <>
-                <p>
-                  You are about to {hardDelete ? "permanently delete" : "cancel"} this withdrawal request.
-                </p>
-                <div className="bg-muted rounded-md p-3 space-y-1 text-sm">
+          <AlertDialogDescription asChild>
+            <div className="text-left space-y-3 text-sm text-muted-foreground">
+              {!canDelete ? (
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    Cannot delete completed withdrawals. Use a reversal transaction instead.
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <>
                   <p>
-                    <span className="text-muted-foreground">Investor:</span>{" "}
-                    <span className="font-medium">{withdrawal.investor_name}</span>
+                    You are about to {hardDelete ? "permanently delete" : "cancel"} this withdrawal request.
                   </p>
-                  <p>
-                    <span className="text-muted-foreground">Amount:</span>{" "}
-                    <span className="font-medium">
-                      {amount.toLocaleString()} {asset.toUpperCase()}
-                    </span>
-                  </p>
-                  <p>
-                    <span className="text-muted-foreground">Status:</span>{" "}
-                    <span className="font-medium capitalize">{withdrawal.status}</span>
-                  </p>
-                </div>
-              </>
-            )}
+                  <div className="bg-muted rounded-md p-3 space-y-1 text-sm">
+                    <p>
+                      <span className="text-muted-foreground">Investor:</span>{" "}
+                      <span className="font-medium text-foreground">{withdrawal.investor_name}</span>
+                    </p>
+                    <p>
+                      <span className="text-muted-foreground">Amount:</span>{" "}
+                      <span className="font-medium text-foreground">
+                        {amount.toLocaleString()} {asset.toUpperCase()}
+                      </span>
+                    </p>
+                    <p>
+                      <span className="text-muted-foreground">Status:</span>{" "}
+                      <span className="font-medium text-foreground capitalize">{withdrawal.status}</span>
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
 
