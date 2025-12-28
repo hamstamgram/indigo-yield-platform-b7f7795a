@@ -6230,6 +6230,7 @@ export type Database = {
           p_fund_id: string
           p_investor_id: string
           p_note?: string
+          p_reference_id?: string
           p_tx_date?: string
           p_tx_type?: string
         }
