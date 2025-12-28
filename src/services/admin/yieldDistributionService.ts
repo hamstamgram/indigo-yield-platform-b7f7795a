@@ -239,13 +239,14 @@ export async function previewYieldDistribution(
   }
 
   // Transform backend response to frontend format
-  const distributions: YieldDistribution[] = (data.distributions || []).map((d: any) => ({
+  // Backend returns 'investors' array, not 'distributions'
+  const distributions: YieldDistribution[] = (data.investors || []).map((d: any) => ({
     investorId: d.investor_id,
     investorName: d.investor_name,
     accountType: d.account_type,
-    currentBalance: Number(d.current_balance || 0),
-    allocationPercentage: Number(d.allocation_percentage || 0),
-    feePercentage: Number(d.fee_percentage || 0),
+    currentBalance: Number(d.current_value || 0),  // Backend uses current_value
+    allocationPercentage: Number(d.allocation_pct || 0),  // Backend uses allocation_pct
+    feePercentage: Number(d.fee_pct || 0),  // Backend uses fee_pct
     grossYield: Number(d.gross_yield || 0),
     feeAmount: Number(d.fee_amount || 0),
     netYield: Number(d.net_yield || 0),
@@ -272,12 +273,13 @@ export async function previewYieldDistribution(
     wouldSkip: c.would_skip || false,
   }));
 
+  // Backend returns flat total fields, not nested totals object
   const totals: YieldTotals = {
-    gross: Number(data.totals?.gross || 0),
-    fees: Number(data.totals?.fees || 0),
-    ibFees: Number(data.totals?.ib_fees || 0),
-    net: Number(data.totals?.net || 0),
-    indigoCredit: Number(data.totals?.indigo_credit || 0),
+    gross: Number(data.total_gross || grossYieldAmount),
+    fees: Number(data.total_fees || 0),
+    ibFees: Number(data.total_ib || 0),
+    net: Number(data.total_net || 0),
+    indigoCredit: Number(data.total_fees || 0),  // Indigo gets the fees
   };
 
   const yieldPercentage = currentAUM > 0 ? (grossYieldAmount / currentAUM) * 100 : 0;
