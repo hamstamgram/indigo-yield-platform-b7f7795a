@@ -10,7 +10,6 @@ export type { OperationsMetrics, PendingBreakdown } from "./operationsService";
 export * from "./aumService";
 
 // Position management
-export { positionService } from "./positionService";
 export * from "./positionAdjustmentService";
 
 // Fee management

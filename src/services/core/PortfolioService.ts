@@ -168,7 +168,7 @@ export class PortfolioService extends ApiClient {
           Number(pos.cost_basis) > 0
             ? ((Number(pos.unrealized_pnl) || 0) / Number(pos.cost_basis)) * 100
             : 0,
-        percentage_of_portfolio: 0, // aum_percentage column doesn't exist
+        percentage_of_portfolio: Number(pos.aum_percentage) || 0,
       }));
 
       return { data: positions, error: null };
@@ -232,7 +232,7 @@ export class PortfolioService extends ApiClient {
           Number(pos.cost_basis) > 0
             ? ((Number(pos.unrealized_pnl) || 0) / Number(pos.cost_basis)) * 100
             : 0,
-        percentage_of_portfolio: 0, // aum_percentage column doesn't exist
+        percentage_of_portfolio: Number(pos.aum_percentage) || 0,
       }));
 
       // Build summary
@@ -317,7 +317,7 @@ export class PortfolioService extends ApiClient {
           Number(data.cost_basis) > 0
             ? ((Number(data.unrealized_pnl) || 0) / Number(data.cost_basis)) * 100
             : 0,
-        percentage_of_portfolio: 0, // aum_percentage column doesn't exist
+        percentage_of_portfolio: Number(data.aum_percentage) || 0,
       };
 
       return { data: position, error: null };
