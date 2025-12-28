@@ -389,15 +389,15 @@ export async function getAllFundsWithAUM() {
     if (error) throw error;
 
     return (funds || []).map((fund: any) => ({
-      id: fund.id,
-      code: fund.code,
-      name: fund.name,
+      id: fund.fund_id,
+      code: fund.fund_code,
+      name: fund.fund_name,
       asset: fund.asset,
       fund_class: fund.fund_class,
-      inception_date: fund.inception_date,
+      inception_date: null,
       status: fund.status,
-      latest_aum: Number(fund.latest_aum || 0),
-      latest_aum_date: fund.latest_aum_date,
+      latest_aum: Number(fund.total_aum || 0),
+      latest_aum_date: null,
       investor_count: Number(fund.investor_count || 0),
     }));
   } catch (error) {
