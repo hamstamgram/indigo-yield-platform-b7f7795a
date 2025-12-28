@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
           month: periodMonth,
           period_name: periodName,
           period_end_date: periodEndDate.toISOString().split("T")[0],
-          status: "OPEN",
+          status: "DRAFT",
         })
         .select("id")
         .single();
