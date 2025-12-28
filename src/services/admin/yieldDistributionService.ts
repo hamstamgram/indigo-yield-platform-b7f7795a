@@ -274,12 +274,17 @@ export async function previewYieldDistribution(
   }));
 
   // Backend returns flat total fields with fallback to nested totals object
+  // INDIGO FEES Credit = Total Fees - IB Fees (what remains after IB takes their share)
+  const totalFees = Number(data.total_fees || data.totals?.fees || 0);
+  const totalIb = Number(data.total_ib || data.total_ib_fees || data.totals?.ib_fees || 0);
+  const indigoCredit = Number(data.indigo_fees_credit || data.indigo_revenue || (totalFees - totalIb));
+  
   const totals: YieldTotals = {
     gross: Number(data.total_gross || data.totals?.gross || grossYieldAmount),
-    fees: Number(data.total_fees || data.totals?.fees || 0),
-    ibFees: Number(data.total_ib_fees || data.totals?.ib_fees || 0),
+    fees: totalFees,
+    ibFees: totalIb,
     net: Number(data.total_net || data.totals?.net || 0),
-    indigoCredit: Number(data.indigo_fees_credit || data.totals?.indigo_credit || data.total_fees || 0),
+    indigoCredit: indigoCredit,
   };
 
   const yieldPercentage = currentAUM > 0 ? (grossYieldAmount / currentAUM) * 100 : 0;
@@ -304,7 +309,7 @@ export async function previewYieldDistribution(
     investorCount: distributions.length,
     distributions,
     ibCredits,
-    indigoFeesCredit: Number(data.indigo_fees_credit || 0),
+    indigoFeesCredit: indigoCredit,
     indigoFeesId: data.indigo_fees_id,
     existingConflicts: data.existing_conflicts || [],
     hasConflicts: data.has_conflicts || false,
