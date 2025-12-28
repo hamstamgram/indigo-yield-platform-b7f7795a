@@ -6387,11 +6387,15 @@ export type Database = {
       }
       complete_withdrawal:
         | {
-            Args: { p_request_id: string; p_tx_hash?: string }
+            Args: {
+              p_admin_notes?: string
+              p_request_id: string
+              p_transaction_hash?: string
+            }
             Returns: boolean
           }
         | {
-            Args: { p_notes?: string; p_request_id: string; p_tx_hash?: string }
+            Args: { p_request_id: string; p_tx_hash?: string }
             Returns: boolean
           }
       compute_correction_input_hash: {
@@ -6530,6 +6534,16 @@ export type Database = {
           ownership_pct: number
         }[]
       }
+      get_fund_nav_history: {
+        Args: { p_end_date: string; p_fund_id: string; p_start_date: string }
+        Returns: {
+          aum: number
+          gross_return_pct: number
+          nav_date: string
+          nav_per_share: number
+          net_return_pct: number
+        }[]
+      }
       get_fund_net_flows: {
         Args: { p_end_date: string; p_fund_id: string; p_start_date: string }
         Returns: {
@@ -6552,34 +6566,18 @@ export type Database = {
           total_aum: number
         }[]
       }
-      get_historical_nav:
-        | {
-            Args: {
-              p_end_date?: string
-              p_fund_id: string
-              p_start_date?: string
-            }
-            Returns: {
-              out_aum: number
-              out_fund_id: string
-              out_nav_date: string
-              out_nav_per_share: number
-              out_purpose: string
-              out_shares_outstanding: number
-            }[]
-          }
-        | {
-            Args: { target_date: string }
-            Returns: {
-              out_asset_code: string
-              out_aum: number
-              out_daily_inflows: number
-              out_daily_outflows: number
-              out_fund_id: string
-              out_fund_name: string
-              out_net_flow_24h: number
-            }[]
-          }
+      get_historical_nav: {
+        Args: { target_date: string }
+        Returns: {
+          out_asset_code: string
+          out_aum: number
+          out_daily_inflows: number
+          out_daily_outflows: number
+          out_fund_id: string
+          out_fund_name: string
+          out_net_flow_24h: number
+        }[]
+      }
       get_investor_period_summary: {
         Args: {
           p_end_date: string
