@@ -229,7 +229,7 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
     if (["deposit", "subscription", "transfer_in", "yield", "interest", "fee_credit", "ib_credit"].includes(lowerType)) {
       return <ArrowDownRight className="h-3.5 w-3.5 text-green-600" />;
     }
-    if (["withdrawal", "redemption", "transfer_out", "fee"].includes(lowerType)) {
+    if (["withdrawal", "transfer_out", "fee"].includes(lowerType)) {
       return <ArrowUpRight className="h-3.5 w-3.5 text-red-600" />;
     }
     return <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />;

@@ -382,10 +382,14 @@ fund_daily_aum.total_aum = SUM(investor_positions.current_value)
 'investor' | 'ib' | 'admin' | 'super_admin'
 ```
 
-### transaction_type
+### tx_type (transaction_type enum)
 ```sql
-'deposit' | 'withdrawal' | 'interest' | 'fee' | 'adjustment' | 
-'transfer_in' | 'transfer_out' | 'ib_commission'
+-- Valid tx_type values (database enum):
+'DEPOSIT' | 'WITHDRAWAL' | 'INTEREST' | 'YIELD' | 'FEE' | 
+'FEE_CREDIT' | 'IB_CREDIT' | 'ADJUSTMENT'
+
+-- ⚠️ NOTE: 'REDEMPTION' is NOT a valid tx_type value!
+-- Redemptions are tracked via tx_subtype or withdrawal_requests, not as a tx_type.
 ```
 
 ### withdrawal_status

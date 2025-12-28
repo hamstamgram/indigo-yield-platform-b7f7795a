@@ -87,7 +87,7 @@ export function RecentActivityFeed() {
         if (txType === "DEPOSIT" || txType === "ADDITION") {
           type = "deposit";
           title = "Deposit";
-        } else if (txType === "WITHDRAWAL" || txType === "REDEMPTION") {
+        } else if (txType === "WITHDRAWAL") {
           type = "withdrawal";
           title = "Withdrawal";
         } else if (txType === "YIELD" || txType === "INCOME" || txType === "INTEREST") {
