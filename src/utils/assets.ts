@@ -3,6 +3,8 @@
  * Re-exports from consolidated src/types/asset.ts for backward compatibility
  */
 
+import { getAssetConfig } from "@/types/asset";
+
 // Re-export all asset-related types and functions from the central location
 export {
   type AssetConfig,
@@ -21,7 +23,6 @@ export {
  * e.g. formatAssetAmount(1500.5, 'USDT') => "1,500.50 USDT"
  */
 export function formatAssetAmount(amount: number, symbol: string): string {
-  const { getAssetConfig } = require("@/types/asset");
   const config = getAssetConfig(symbol);
   const decimals = config?.decimals || 4;
   // For display, cap decimals at 4 for readability (except BTC which uses 8)
