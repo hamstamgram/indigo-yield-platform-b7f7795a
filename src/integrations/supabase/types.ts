@@ -6239,6 +6239,8 @@ export type Database = {
           out_investor_id: string
           out_new_balance: number
           out_previous_balance: number
+          out_reference_id: string
+          out_transaction_id: string
         }[]
       }
       admin_create_transaction: {
@@ -6537,13 +6539,13 @@ export type Database = {
       get_historical_nav: {
         Args: { target_date: string }
         Returns: {
-          asset_code: string
-          aum: number
-          daily_inflows: number
-          daily_outflows: number
-          fund_id: string
-          fund_name: string
-          net_flow_24h: number
+          out_asset_code: string
+          out_aum: number
+          out_daily_inflows: number
+          out_daily_outflows: number
+          out_fund_id: string
+          out_fund_name: string
+          out_net_flow_24h: number
         }[]
       }
       get_investor_period_summary: {
@@ -6602,17 +6604,31 @@ export type Database = {
           snapshot_date: string
         }[]
       }
-      get_position_reconciliation: {
-        Args: { p_investor_id?: string }
-        Returns: {
-          discrepancy: number
-          fund_id: string
-          investor_id: string
-          position_balance: number
-          status: string
-          transaction_sum: number
-        }[]
-      }
+      get_position_reconciliation:
+        | {
+            Args: { p_as_of_date?: string; p_fund_id?: string }
+            Returns: {
+              out_difference: number
+              out_fund_id: string
+              out_fund_name: string
+              out_investor_id: string
+              out_investor_name: string
+              out_is_matched: boolean
+              out_ledger_balance: number
+              out_position_balance: number
+            }[]
+          }
+        | {
+            Args: { p_investor_id?: string }
+            Returns: {
+              discrepancy: number
+              fund_id: string
+              investor_id: string
+              position_balance: number
+              status: string
+              transaction_sum: number
+            }[]
+          }
       get_profile_by_id: {
         Args: { profile_id: string }
         Returns: {

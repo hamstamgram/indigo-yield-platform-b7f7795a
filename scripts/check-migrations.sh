@@ -26,6 +26,7 @@ declare -A FORBIDDEN_PATTERNS=(
   ["asset_code"]="Use 'asset' column name, not 'asset_code' - transactions_v2 uses 'asset'"
   ["effective_date"]="Use 'tx_date' column name, not 'effective_date' - transactions_v2 uses 'tx_date'"
   ["tx_type::tx_type"]="Use 'type' column, cast as v_effective_type::tx_type - column is named 'type' not 'tx_type'"
+  ["current_balance"]="Use 'current_value' - investor_positions column is 'current_value' not 'current_balance'"
 )
 
 # Check each pattern
