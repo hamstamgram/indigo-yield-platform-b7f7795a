@@ -163,14 +163,18 @@ export function formatAUMCompact(value: number, asset: string): string {
   let decimals: AUMDecimalConfig;
   switch (normalized) {
     case "BTC":
+    case "ETH":
+      decimals = { min: 2, max: 8 };
+      break;
+    case "SOL":
+    case "XRP":
+      decimals = { min: 2, max: 6 };
+      break;
+    case "XAUT":
       decimals = { min: 2, max: 4 };
       break;
-    case "ETH":
-    case "SOL":
-      decimals = { min: 2, max: 2 };
-      break;
     default:
-      decimals = { min: 0, max: 0 };
+      decimals = { min: 0, max: 2 };
   }
 
   return new Intl.NumberFormat("en-US", {

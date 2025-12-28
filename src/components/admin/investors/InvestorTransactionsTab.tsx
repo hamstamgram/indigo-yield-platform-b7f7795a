@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
 import { profileService, positionService } from "@/services/shared";
 import { transactionsV2Service } from "@/services/investor";
+import { formatAssetAmount } from "@/utils/assets";
 
 interface Transaction {
   id: string;
@@ -185,8 +186,8 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
                   </div>
                   <div className="text-right">
                     <div className="font-medium">
-                      {txType === "WITHDRAWAL" ? "-" : "+"}
-                      {Number(transaction.amount).toLocaleString()} {transaction.asset}
+                      {txType === "WITHDRAWAL" ? "-" : ""}
+                      {formatAssetAmount(Number(transaction.amount), transaction.asset)}
                     </div>
                   </div>
                 </div>

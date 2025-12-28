@@ -36,6 +36,7 @@ import { format } from "date-fns";
 import { ApproveWithdrawalDialog } from "@/components/admin/withdrawals/ApproveWithdrawalDialog";
 import { RejectWithdrawalDialog } from "@/components/admin/withdrawals/RejectWithdrawalDialog";
 import { Withdrawal, WithdrawalStatus } from "@/types/withdrawal";
+import { formatAssetAmount } from "@/utils/assets";
 
 interface InvestorWithdrawalsTabProps {
   investorId: string;
@@ -157,7 +158,7 @@ export function InvestorWithdrawalsTab({ investorId }: InvestorWithdrawalsTabPro
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-medium">
-                        {withdrawal.requested_amount.toLocaleString()} {(withdrawal.fund_class || "").toUpperCase()}
+                        {formatAssetAmount(withdrawal.requested_amount, withdrawal.fund_class || "UNITS")}
                       </span>
                       <Badge variant="outline">{withdrawal.withdrawal_type}</Badge>
                       {withdrawal.withdrawal_type === "full" && (
