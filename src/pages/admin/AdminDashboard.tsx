@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { FinancialSnapshot } from "@/components/admin/FinancialSnapshot";
 import { TwoFactorWarningBanner } from "@/components/admin/TwoFactorWarningBanner";
-import { IntegrityStatus } from "@/components/admin/IntegrityStatus";
+
 import { useAdminStats } from "@/hooks";
 import PageHeader from "@/components/layout/PageHeader";
 
@@ -100,15 +100,8 @@ function AdminDashboardContent() {
         </Card>
       </div>
 
-      {/* Financial Snapshot and Integrity Status */}
-      <div className="grid gap-6 lg:grid-cols-4">
-        <div className="lg:col-span-3">
-          <FinancialSnapshot />
-        </div>
-        <div className="lg:col-span-1">
-          <IntegrityStatus />
-        </div>
-      </div>
+      {/* Financial Snapshot */}
+      <FinancialSnapshot />
     </div>
   );
 }
