@@ -17,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { withdrawalService } from "@/services/investor/withdrawalService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { formatAssetAmount } from "@/utils/assets";
 import { Loader2, AlertTriangle, ArrowRightLeft } from "lucide-react";
 
 interface ApproveWithdrawalDialogProps {
@@ -114,8 +115,7 @@ export function ApproveWithdrawalDialog({
             <div>
               <Label className="text-sm font-medium">Requested Amount</Label>
               <p className="text-sm text-muted-foreground">
-                {withdrawal.requested_amount.toLocaleString()}{" "}
-                {(withdrawal.fund_class || "UNITS").toUpperCase()}
+                {formatAssetAmount(withdrawal.requested_amount, withdrawal.fund_class || "UNITS")}
               </p>
             </div>
             <div>
@@ -123,7 +123,7 @@ export function ApproveWithdrawalDialog({
               <Input
                 id="processedAmount"
                 type="number"
-                step="0.01"
+                step="0.00000001"
                 min="0"
                 value={processedAmount}
                 onChange={(e) => setProcessedAmount(e.target.value)}

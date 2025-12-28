@@ -24,16 +24,39 @@ export {
  */
 export function formatAssetAmount(amount: number, symbol: string): string {
   const config = getAssetConfig(symbol);
-  const decimals = config?.decimals || 4;
-  // For display, cap decimals at 4 for readability (except BTC which uses 8)
-  const displayDecimals = symbol.toUpperCase() === "BTC" ? 8 : Math.min(decimals, 4);
+  const decimals = config?.decimals || 8;
+  
+  // Use full precision for each asset type
+  const normalized = symbol.toUpperCase();
+  let displayDecimals: number;
+  
+  switch (normalized) {
+    case "BTC":
+    case "ETH":
+      displayDecimals = 8;
+      break;
+    case "SOL":
+    case "XRP":
+      displayDecimals = 6;
+      break;
+    case "XAUT":
+      displayDecimals = 4;
+      break;
+    case "USDT":
+    case "USDC":
+    case "EURC":
+      displayDecimals = 2;
+      break;
+    default:
+      displayDecimals = decimals;
+  }
 
   const formattedValue = amount.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: displayDecimals,
   });
 
-  return `${formattedValue} ${symbol.toUpperCase()}`;
+  return `${formattedValue} ${normalized}`;
 }
 
 /**

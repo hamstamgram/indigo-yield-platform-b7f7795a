@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Withdrawal, WithdrawalFilters, WithdrawalStatus } from "@/types/withdrawal";
-import { getAssetLogo } from "@/utils/assets";
+import { getAssetLogo, formatAssetAmount } from "@/utils/assets";
 import {
   Table,
   TableBody,
@@ -255,8 +255,7 @@ export function WithdrawalsTable({
                         onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
                       />
                       <span>
-                        {withdrawal.requested_amount.toLocaleString()}{" "}
-                        {(withdrawal.fund_class || "UNITS").toUpperCase()}
+                        {formatAssetAmount(withdrawal.requested_amount, withdrawal.fund_class || "UNITS")}
                       </span>
                     </div>
                   </TableCell>
