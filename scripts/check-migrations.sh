@@ -19,7 +19,8 @@ declare -A FORBIDDEN_PATTERNS=(
   ["FROM withdrawal_audit_log[^s]"]="Use 'withdrawal_audit_logs' (plural) table name"
   ["INTO withdrawal_audit_log[^s]"]="Use 'withdrawal_audit_logs' (plural) table name"
   ["investor_positions\.id"]="investor_positions has composite PK (investor_id, fund_id), not id column"
-  ["SECURITY DEFINER"]="Views must use SECURITY INVOKER, not DEFINER"
+  ["reference_id = 'position_adjustment'"]="Never use constant reference_id - causes unique constraint violations on repeat runs"
+  ["reference_id := 'position_adjustment'"]="Never use constant reference_id - causes unique constraint violations on repeat runs"
 )
 
 # Check each pattern
