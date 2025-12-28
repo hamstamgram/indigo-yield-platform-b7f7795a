@@ -6225,20 +6225,18 @@ export type Database = {
       }
       adjust_investor_position: {
         Args: {
-          p_admin_id: string
-          p_delta: number
+          p_amount: number
+          p_created_by?: string
           p_fund_id: string
           p_investor_id: string
-          p_note: string
-          p_reference_id?: string
-          p_tx_date?: string
-          p_tx_type?: string
+          p_notes?: string
+          p_transaction_type: string
         }
         Returns: {
-          fund_id: string
-          investor_id: string
-          new_balance: number
-          previous_balance: number
+          out_fund_id: string
+          out_investor_id: string
+          out_new_balance: number
+          out_previous_balance: number
         }[]
       }
       admin_create_transaction: {

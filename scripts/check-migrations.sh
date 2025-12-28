@@ -21,6 +21,8 @@ declare -A FORBIDDEN_PATTERNS=(
   ["investor_positions\.id"]="investor_positions has composite PK (investor_id, fund_id), not id column"
   ["reference_id = 'position_adjustment'"]="Never use constant reference_id - causes unique constraint violations on repeat runs"
   ["reference_id := 'position_adjustment'"]="Never use constant reference_id - causes unique constraint violations on repeat runs"
+  ["RETURNS TABLE.*[^_]fund_id uuid"]="RETURNS TABLE columns should use out_fund_id prefix to avoid PL/pgSQL scope collisions"
+  ["RETURNS TABLE.*[^_]investor_id uuid"]="RETURNS TABLE columns should use out_investor_id prefix to avoid PL/pgSQL scope collisions"
 )
 
 # Check each pattern
