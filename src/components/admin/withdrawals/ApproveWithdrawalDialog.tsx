@@ -72,21 +72,16 @@ export function ApproveWithdrawalDialog({
 
       // If route to fees is checked, call the RPC
       if (routeToFees) {
-        const { data, error } = await supabase.rpc("route_withdrawal_to_fees", {
-          p_withdrawal_id: withdrawal.id,
-          p_admin_notes: adminNotes ? `${adminNotes} (routed on approval)` : "Routed to INDIGO FEES on approval",
+        const { error } = await supabase.rpc("route_withdrawal_to_fees", {
+          p_request_id: withdrawal.id,
+          p_reason: adminNotes ? `${adminNotes} (routed on approval)` : "Routed to INDIGO FEES on approval",
         });
 
         if (error) {
           console.error("Route to fees error:", error);
           toast.error("Approved but failed to route to INDIGO FEES: " + error.message);
         } else {
-          const result = data as { success: boolean; already_routed?: boolean; message: string };
-          if (result.already_routed) {
-            toast.info(result.message);
-          } else {
-            toast.success("Withdrawal routed to INDIGO FEES");
-          }
+          toast.success("Withdrawal routed to INDIGO FEES");
         }
       }
 

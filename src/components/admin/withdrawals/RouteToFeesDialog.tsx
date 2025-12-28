@@ -40,9 +40,9 @@ export function RouteToFeesDialog({
 
     setIsSubmitting(true);
     try {
-      const { data, error } = await supabase.rpc("route_withdrawal_to_fees", {
-        p_withdrawal_id: withdrawal.id,
-        p_admin_notes: adminNotes || null,
+      const { error } = await supabase.rpc("route_withdrawal_to_fees", {
+        p_request_id: withdrawal.id,
+        p_reason: adminNotes || "Routed to INDIGO FEES",
       });
 
       if (error) {
@@ -51,13 +51,7 @@ export function RouteToFeesDialog({
         return;
       }
 
-      const result = data as { success: boolean; already_routed?: boolean; message: string };
-      
-      if (result.already_routed) {
-        toast.info(result.message);
-      } else {
-        toast.success("Withdrawal routed to INDIGO FEES successfully");
-      }
+      toast.success("Withdrawal routed to INDIGO FEES successfully");
 
       // Use centralized cache invalidation
       invalidateAfterWithdrawal(queryClient, withdrawal.investor_id, withdrawal.fund_id, withdrawal.id);
