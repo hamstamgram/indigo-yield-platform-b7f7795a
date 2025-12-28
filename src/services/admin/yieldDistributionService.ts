@@ -273,13 +273,13 @@ export async function previewYieldDistribution(
     wouldSkip: c.would_skip || false,
   }));
 
-  // Backend returns flat total fields, not nested totals object
+  // Backend returns flat total fields with fallback to nested totals object
   const totals: YieldTotals = {
-    gross: Number(data.total_gross || grossYieldAmount),
-    fees: Number(data.total_fees || 0),
-    ibFees: Number(data.total_ib || 0),
-    net: Number(data.total_net || 0),
-    indigoCredit: Number(data.total_fees || 0),  // Indigo gets the fees
+    gross: Number(data.total_gross || data.totals?.gross || grossYieldAmount),
+    fees: Number(data.total_fees || data.totals?.fees || 0),
+    ibFees: Number(data.total_ib_fees || data.totals?.ib_fees || 0),
+    net: Number(data.total_net || data.totals?.net || 0),
+    indigoCredit: Number(data.indigo_fees_credit || data.totals?.indigo_credit || data.total_fees || 0),
   };
 
   const yieldPercentage = currentAUM > 0 ? (grossYieldAmount / currentAUM) * 100 : 0;
