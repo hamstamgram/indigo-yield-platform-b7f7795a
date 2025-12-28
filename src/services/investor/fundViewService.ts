@@ -32,7 +32,7 @@ export interface InvestorPosition {
   unrealized_pnl: number | null;
   realized_pnl: number | null;
   last_transaction_date: string | null;
-  // Note: aum_percentage is calculated, not stored in DB
+  aum_percentage?: number | null;
   high_water_mark: number | null;
   lock_until_date: string | null;
   mgmt_fees_paid: number | null;

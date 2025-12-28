@@ -32,7 +32,6 @@ export {
 // Operations services (selective to avoid conflicts)
 export { operationsService } from "./operations";
 export type { OperationsMetrics, PendingBreakdown } from "./operations";
-export { positionService } from "./operations";
 
 // Shared services
 export * from "./shared";

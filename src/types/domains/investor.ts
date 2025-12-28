@@ -128,7 +128,7 @@ export function mapDbPositionToInvestorPosition(dbPosition: DbInvestorPosition):
     unrealized_pnl: Number(dbPosition.unrealized_pnl) || 0,
     realized_pnl: Number(dbPosition.realized_pnl) || 0,
     high_water_mark: dbPosition.high_water_mark ? Number(dbPosition.high_water_mark) : null,
-    aum_percentage: null, // Column doesn't exist in current schema
+    aum_percentage: dbPosition.aum_percentage ? Number(dbPosition.aum_percentage) : null,
     mgmt_fees_paid: dbPosition.mgmt_fees_paid ? Number(dbPosition.mgmt_fees_paid) : null,
     perf_fees_paid: dbPosition.perf_fees_paid ? Number(dbPosition.perf_fees_paid) : null,
     lock_until_date: dbPosition.lock_until_date,
