@@ -1,13 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { QUERY_KEYS } from "@/constants/queryKeys";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { CryptoIcon } from "@/components/CryptoIcons";
+import { useInvestorPerformanceReports } from "@/hooks/data/useReports";
 
 // Extract symbol from fund name (e.g., "eth_yield_fund" -> "ETH")
 const getSymbolFromFundName = (fundName: string) => {
@@ -17,45 +15,7 @@ const getSymbolFromFundName = (fundName: string) => {
 export default function ReportsPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: items, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.investorFundPerformance(searchTerm),
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user");
-
-      // Get investor ID (One ID: it's the user.id)
-      const investorId = user.id;
-
-      // Query investor_fund_performance (V2) with investor_id
-      let query = supabase
-        .from("investor_fund_performance")
-        .select(`
-          id,
-          fund_name,
-          period:statement_periods(period_end_date, year, month),
-          created_at
-        `)
-        .eq("investor_id", investorId);
-
-      if (searchTerm) {
-        query = query.ilike("fund_name", `%${searchTerm}%`);
-      }
-
-      const { data, error } = await query.order("period(period_end_date)", { ascending: false });
-      if (error) {
-        console.error("Error fetching reports:", error);
-        return [];
-      }
-      return data.map(item => ({
-        id: item.id,
-        asset_code: item.fund_name,
-        report_month: `${item.period?.year}-${String(item.period?.month).padStart(2, '0')}`,
-        created_at: item.created_at,
-      }));
-    },
-  });
+  const { data: items, isLoading } = useInvestorPerformanceReports(searchTerm);
 
   return (
     <div className="space-y-6">

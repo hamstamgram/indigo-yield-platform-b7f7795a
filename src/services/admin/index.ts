@@ -65,3 +65,9 @@ export * from "./investorPerformanceService";
 
 // IB payout management
 export * from "./ibPayoutService";
+
+// Report query service
+export * from "./reportQueryService";
+
+// Statement admin service
+export * from "./statementAdminService";

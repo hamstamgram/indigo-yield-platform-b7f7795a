@@ -1,45 +1,14 @@
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { QUERY_KEYS } from "@/constants/queryKeys";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Edit, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { usePerformanceReportDetail } from "@/hooks/data/useReports";
 
 export default function PerformanceReportDetailsPage() {
   const { id } = useParams<{ id: string }>();
 
-  const { data: item, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.investorFundPerformanceDetail(id || ""),
-    queryFn: async () => {
-      if (!id) throw new Error("No ID provided");
-
-      const { data, error } = await supabase
-        .from("investor_fund_performance")
-        .select(`
-          *,
-          period:statement_periods (
-            period_end_date
-          )
-        `)
-        .eq("id", id)
-        .maybeSingle();
-
-      if (!data) throw new Error("Report not found");
-
-      if (error) throw error;
-      
-      // Map to legacy structure for display
-      return {
-        id: data.id,
-        asset_code: data.fund_name,
-        report_month: data.period?.period_end_date,
-        created_at: data.created_at,
-        updated_at: data.updated_at
-      };
-    },
-  });
+  const { data: item, isLoading } = usePerformanceReportDetail(id || "");
 
   if (isLoading) {
     return (
