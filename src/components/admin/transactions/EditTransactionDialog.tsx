@@ -22,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Pencil, Loader2, AlertTriangle, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useTransactionMutations } from "@/hooks/data/useTransactionMutations";
 
 const editSchema = z.object({
   tx_date: z.string().optional(),
@@ -34,20 +34,28 @@ const editSchema = z.object({
 
 type EditFormData = z.infer<typeof editSchema>;
 
+/**
+ * Minimal transaction data required for the edit dialog
+ */
+interface EditableTransaction {
+  id: string;
+  type: string;
+  amount: number;
+  asset: string;
+  investorName: string;
+  txDate: string;
+  notes: string | null;
+  txHash?: string | null;
+  isSystemGenerated?: boolean;
+  // Optional fields for cache invalidation
+  investorId?: string;
+  fundId?: string | null;
+}
+
 interface EditTransactionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  transaction: {
-    id: string;
-    type: string;
-    amount: number;
-    asset: string;
-    investorName: string;
-    txDate: string;
-    notes: string | null;
-    txHash?: string | null;
-    isSystemGenerated?: boolean;
-  } | null;
+  transaction: EditableTransaction | null;
   onSuccess: () => void;
 }
 
@@ -57,8 +65,8 @@ export function EditTransactionDialog({
   transaction,
   onSuccess,
 }: EditTransactionDialogProps) {
-  const [loading, setLoading] = useState(false);
   const [confirmText, setConfirmText] = useState("");
+  const { updateMutation } = useTransactionMutations();
 
   const {
     register,
@@ -115,26 +123,22 @@ export function EditTransactionDialog({
       return;
     }
 
-    setLoading(true);
-    try {
-      const { error } = await supabase.rpc("update_transaction", {
-        p_transaction_id: transaction.id,
-        p_updates: updates,
-        p_reason: data.reason.trim(),
-      });
-
-      if (error) throw error;
-
-      toast.success("Transaction updated successfully");
-      reset();
-      onSuccess();
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Error updating transaction:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to update transaction");
-    } finally {
-      setLoading(false);
-    }
+    updateMutation.mutate(
+      {
+        transactionId: transaction.id,
+        updates,
+        reason: data.reason.trim(),
+        investorId: transaction.investorId,
+        fundId: transaction.fundId || undefined,
+      },
+      {
+        onSuccess: () => {
+          reset();
+          onSuccess();
+          onOpenChange(false);
+        },
+      }
+    );
   };
 
   const handleClose = () => {
@@ -249,7 +253,7 @@ export function EditTransactionDialog({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
+            <Button type="button" variant="outline" onClick={handleClose} disabled={updateMutation.isPending}>
               Cancel
             </Button>
             {transaction.isSystemGenerated ? (
@@ -260,9 +264,9 @@ export function EditTransactionDialog({
             ) : (
               <Button
                 type="submit"
-                disabled={loading || confirmText !== "EDIT"}
+                disabled={updateMutation.isPending || confirmText !== "EDIT"}
               >
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save Changes
               </Button>
             )}
