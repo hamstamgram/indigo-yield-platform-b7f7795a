@@ -1,26 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { withdrawalService } from "@/services/investor/withdrawalService";
-
 /**
- * Hook to fetch investor options for dropdown selection
+ * Re-export shim for backward compatibility
+ * Actual implementation moved to ./shared/useWithdrawalFormData.ts
  */
-export function useInvestorOptions(enabled: boolean = true) {
-  return useQuery({
-    queryKey: ["investor-options"],
-    queryFn: () => withdrawalService.fetchInvestorOptions(),
-    enabled,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-}
-
-/**
- * Hook to fetch investor positions for a selected investor
- */
-export function useInvestorPositions(investorId: string | null) {
-  return useQuery({
-    queryKey: ["investor-positions", investorId],
-    queryFn: () => withdrawalService.fetchInvestorPositions(investorId!),
-    enabled: !!investorId,
-    staleTime: 30 * 1000, // 30 seconds - positions change more frequently
-  });
-}
+export * from "./shared/useWithdrawalFormData";
