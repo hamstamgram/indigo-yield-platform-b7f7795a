@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -41,77 +41,23 @@ import {
   Coins,
   Mail,
   Pencil,
-  Inbox,
   AlertCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { useUrlFilters } from "@/hooks";
 import { format, subMonths, parseISO } from "date-fns";
 import { renderReportToHtml } from "@/components/reports/InvestorReportTemplate";
 import { InvestorData, InvestorFund } from "@/types/investor-report";
 import { formatAssetWithSymbol } from "@/utils/formatters";
 import { PerformanceDataEditor } from "@/components/admin/reports/PerformanceDataEditor";
-
-interface InvestorReport {
-  investor_id: string;
-  investor_name: string;
-  investor_email: string; // Legacy: primary email
-  investor_emails: Array<{
-    email: string;
-    is_primary: boolean;
-    verified: boolean;
-  }>; // All emails for multi-recipient sending
-  assets: Array<{
-    asset_code: string;
-    opening_balance: number;
-    closing_balance: number;
-    additions: number;
-    withdrawals: number;
-    yield_earned: number;
-    report_id: string;
-    // Full performance data
-    mtd_beginning_balance: number;
-    mtd_additions: number;
-    mtd_redemptions: number;
-    mtd_net_income: number;
-    mtd_ending_balance: number;
-    mtd_rate_of_return: number;
-    qtd_beginning_balance: number;
-    qtd_additions: number;
-    qtd_redemptions: number;
-    qtd_net_income: number;
-    qtd_ending_balance: number;
-    qtd_rate_of_return: number;
-    ytd_beginning_balance: number;
-    ytd_additions: number;
-    ytd_redemptions: number;
-    ytd_net_income: number;
-    ytd_ending_balance: number;
-    ytd_rate_of_return: number;
-    itd_beginning_balance: number;
-    itd_additions: number;
-    itd_redemptions: number;
-    itd_net_income: number;
-    itd_ending_balance: number;
-    itd_rate_of_return: number;
-  }>;
-  total_value: number;
-  total_yield: number;
-  has_reports: boolean;
-  report_count: number;
-}
+import { useAdminInvestorReports, useGenerateFundPerformance } from "@/hooks/data";
+import type { InvestorReportSummary, InvestorReportAsset } from "@/services/admin/reportQueryService";
 
 const InvestorReports = () => {
-  const [loading, setLoading] = useState(true);
-  const [reports, setReports] = useState<InvestorReport[]>([]);
-  const [generatingReports, setGeneratingReports] = useState(false);
-  const [selectedInvestor, setSelectedInvestor] = useState<InvestorReport | null>(null);
+  const [selectedInvestor, setSelectedInvestor] = useState<InvestorReportSummary | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
-  const [editingInvestor, setEditingInvestor] = useState<InvestorReport | null>(null);
-  const [currentPeriodId, setCurrentPeriodId] = useState<string>("");
+  const [editingInvestor, setEditingInvestor] = useState<InvestorReportSummary | null>(null);
 
   // URL-persisted filters
   const { filters, setFilter } = useUrlFilters({
@@ -125,210 +71,21 @@ const InvestorReports = () => {
   const selectedMonth = filters.month || format(subMonths(new Date(), 1), "yyyy-MM");
   const searchTerm = filters.search || "";
   const statusFilter = filters.status || "all";
-  const preFilterInvestorId = filters.investorId || null;
 
-  // Fetch real reports from database
-  const fetchReports = useCallback(async () => {
-    try {
-      setLoading(true);
+  // Use React Query hook for data fetching
+  const { 
+    data, 
+    isLoading: loading, 
+    refetch 
+  } = useAdminInvestorReports(selectedMonth);
 
-      const reportDate = `${selectedMonth}-01`;
+  const reports = data?.reports || [];
+  const currentPeriodId = data?.periodId || "";
 
-      // Fetch all investors (profiles)
-      const { data: investors, error: investorsError } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, email")
-        .eq("is_admin", false)
-        .order("first_name");
-
-      if (investorsError) throw investorsError;
-
-      if (!investors || investors.length === 0) {
-        setReports([]);
-        setLoading(false);
-        return;
-      }
-
-      // Fetch investor emails from investor_emails table
-      const investorIds = investors.map((inv: any) => inv.id);
-      const { data: investorEmailsData } = await supabase
-        .from("investor_emails")
-        .select("investor_id, email, is_primary, verified")
-        .in("investor_id", investorIds);
-
-      // Build email lookup, starting with profile email as fallback
-      const emailsByInvestor: Record<string, any[]> = {};
-      investors.forEach((inv: any) => {
-        emailsByInvestor[inv.id] = [{
-          email: inv.email,
-          is_primary: true,
-          verified: true, // Auth email is verified
-        }];
-      });
-
-      // Add additional emails from investor_emails table (if any)
-      if (investorEmailsData && investorEmailsData.length > 0) {
-        for (const emailRecord of investorEmailsData) {
-          const existing = emailsByInvestor[emailRecord.investor_id] || [];
-          // Check if this email is already in the list
-          if (!existing.some((e) => e.email === emailRecord.email)) {
-            existing.push({
-              email: emailRecord.email,
-              is_primary: emailRecord.is_primary,
-              verified: emailRecord.verified,
-            });
-          }
-          emailsByInvestor[emailRecord.investor_id] = existing;
-        }
-      }
-
-      // Resolve Period ID
-      const [yearStr, monthStr] = selectedMonth.split("-");
-      const { data: period } = await supabase
-        .from("statement_periods")
-        .select("id")
-        .eq("year", parseInt(yearStr))
-        .eq("month", parseInt(monthStr))
-        .maybeSingle();
-
-      if (!period) {
-        setCurrentPeriodId("");
-        // No period, return empty reports but with investor structures
-        // or just empty assets
-        const emptyInvestorReports = investors.map((investor) => ({
-            investor_id: investor.id,
-            investor_name: `${investor.first_name || ""} ${investor.last_name || ""}`.trim() || "Unknown",
-            investor_email: investor.email,
-            investor_emails: emailsByInvestor[investor.id] || [],
-            assets: [],
-            total_value: 0,
-            total_yield: 0,
-            has_reports: false,
-            report_count: 0
-        }));
-        setReports(emptyInvestorReports);
-        setLoading(false);
-        return;
-      }
-
-      setCurrentPeriodId(period.id);
-
-      // Fetch monthly reports (V2)
-      const { data: monthlyReports, error: reportsError } = await supabase
-        .from("investor_fund_performance")
-        .select("*")
-        .eq("period_id", period.id)
-        .order("investor_id, fund_name");
-
-      if (reportsError) throw reportsError;
-
-      // Group reports by investor
-      const reportsByInvestor = (monthlyReports || []).reduce(
-        (acc, report) => {
-          const key = report.investor_id;
-          if (!key) return acc;
-          if (!acc[key]) {
-            acc[key] = [];
-          }
-          acc[key].push(report);
-          return acc;
-        },
-        {} as Record<string, typeof monthlyReports>
-      );
-
-      // Build investor report summaries
-      const investorReports: InvestorReport[] = investors.map((investor) => {
-        const investorPerf = reportsByInvestor[investor.id] || [];
-        const hasReports = investorPerf.length > 0;
-
-        const assets = investorPerf.map((report: any) => ({
-          asset_code: report.fund_name,
-          opening_balance: Number(report.mtd_beginning_balance) || 0,
-          closing_balance: Number(report.mtd_ending_balance) || 0,
-          additions: Number(report.mtd_additions) || 0,
-          withdrawals: Number(report.mtd_redemptions) || 0,
-          yield_earned: Number(report.mtd_net_income) || 0,
-          report_id: report.id,
-          // Full performance data
-          mtd_beginning_balance: Number(report.mtd_beginning_balance) || 0,
-          mtd_additions: Number(report.mtd_additions) || 0,
-          mtd_redemptions: Number(report.mtd_redemptions) || 0,
-          mtd_net_income: Number(report.mtd_net_income) || 0,
-          mtd_ending_balance: Number(report.mtd_ending_balance) || 0,
-          mtd_rate_of_return: Number(report.mtd_rate_of_return) || 0,
-          qtd_beginning_balance: Number(report.qtd_beginning_balance) || 0,
-          qtd_additions: Number(report.qtd_additions) || 0,
-          qtd_redemptions: Number(report.qtd_redemptions) || 0,
-          qtd_net_income: Number(report.qtd_net_income) || 0,
-          qtd_ending_balance: Number(report.qtd_ending_balance) || 0,
-          qtd_rate_of_return: Number(report.qtd_rate_of_return) || 0,
-          ytd_beginning_balance: Number(report.ytd_beginning_balance) || 0,
-          ytd_additions: Number(report.ytd_additions) || 0,
-          ytd_redemptions: Number(report.ytd_redemptions) || 0,
-          ytd_net_income: Number(report.ytd_net_income) || 0,
-          ytd_ending_balance: Number(report.ytd_ending_balance) || 0,
-          ytd_rate_of_return: Number(report.ytd_rate_of_return) || 0,
-          itd_beginning_balance: Number(report.itd_beginning_balance) || 0,
-          itd_additions: Number(report.itd_additions) || 0,
-          itd_redemptions: Number(report.itd_redemptions) || 0,
-          itd_net_income: Number(report.itd_net_income) || 0,
-          itd_ending_balance: Number(report.itd_ending_balance) || 0,
-          itd_rate_of_return: Number(report.itd_rate_of_return) || 0,
-        }));
-
-        const total_value = assets.reduce((sum, asset) => sum + asset.closing_balance, 0);
-        const total_yield = assets.reduce((sum, asset) => sum + asset.yield_earned, 0);
-
-        // Get all emails for this investor
-        const investorEmails = emailsByInvestor[investor.id] || [];
-
-        // Fallback to legacy email if no emails found
-        if (investorEmails.length === 0 && investor.email) {
-          investorEmails.push({
-            email: investor.email,
-            is_primary: true,
-            verified: false,
-          });
-        }
-
-        // Get primary email for legacy field
-        const primaryEmail = investorEmails.find((e) => e.is_primary)?.email || investor.email;
-        const fullName = `${investor.first_name || ""} ${investor.last_name || ""}`.trim();
-
-        return {
-          investor_id: investor.id,
-          investor_name: fullName || "Unknown",
-          investor_email: primaryEmail, // Legacy: primary email only
-          investor_emails: investorEmails, // All emails for multi-recipient sending
-          assets,
-          total_value,
-          total_yield,
-          has_reports: hasReports,
-          report_count: assets.length,
-        };
-      });
-
-      setReports(investorReports);
-
-      toast.success("Reports Loaded", {
-        description: `Loaded ${investorReports.length} investor records for ${format(parseISO(reportDate), "MMMM yyyy")}`,
-      });
-    } catch (error: any) {
-      console.error("Error fetching reports:", error);
-      toast.error("Error Loading Reports", {
-        description: error.message || "Failed to load investor reports",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedMonth]);
-
-  useEffect(() => {
-    fetchReports();
-  }, [fetchReports]);
+  // Use mutation hook for generating reports
+  const generateMutation = useGenerateFundPerformance();
 
   const getFundDisplayName = (assetCode: string) => {
-    // Must match FUND_ICONS keys in investor-report.ts (uppercase)
     return `${assetCode.toUpperCase()} YIELD FUND`;
   };
 
@@ -351,7 +108,7 @@ const InvestorReports = () => {
   };
 
   // Transform asset to InvestorFund format
-  const transformToInvestorFund = (asset: InvestorReport['assets'][0]): InvestorFund => ({
+  const transformToInvestorFund = (asset: InvestorReportAsset): InvestorFund => ({
     name: getFundDisplayName(asset.asset_code),
     currency: asset.asset_code.toUpperCase(),
     begin_balance_mtd: formatValue(asset.mtd_beginning_balance),
@@ -380,7 +137,7 @@ const InvestorReports = () => {
     return_rate_itd: formatRate(asset.itd_rate_of_return),
   });
 
-  const handlePreviewReport = (investor: InvestorReport) => {
+  const handlePreviewReport = (investor: InvestorReportSummary) => {
     const investorData: InvestorData = {
       name: investor.investor_name,
       reportDate: format(parseISO(`${selectedMonth}-01`), "MMMM d, yyyy"),
@@ -395,65 +152,23 @@ const InvestorReports = () => {
     }
   };
 
-  // Generate reports from transactions and positions
-  const handleGenerateReports = async () => {
-    setGeneratingReports(true);
-    try {
-      const [yearStr, monthStr] = selectedMonth.split("-");
-      
-      const { data, error } = await supabase.functions.invoke("generate-fund-performance", {
-        body: {
-          periodYear: parseInt(yearStr),
-          periodMonth: parseInt(monthStr),
-        },
-      });
-
-      if (error) throw error;
-
-      toast.success("Reports Generated", {
-        description: data.message || `Generated ${data.recordsCreated} performance records`,
-      });
-
-      // Refresh the data
-      await fetchReports();
-    } catch (error: any) {
-      console.error("Error generating reports:", error);
-      
-      // Parse error for specific messaging
-      let errorTitle = "Generation Failed";
-      let errorMessage = "Failed to generate performance data";
-      
-      const errorStr = error?.message || error?.toString() || "";
-      
-      if (errorStr.includes("403") || errorStr.includes("Admin access required") || errorStr.includes("ADMIN_REQUIRED")) {
-        errorTitle = "Access Denied";
-        errorMessage = "You don't have administrator permissions to generate reports. Please contact your system administrator.";
-      } else if (errorStr.includes("401") || errorStr.includes("Authorization") || errorStr.includes("token")) {
-        errorTitle = "Session Expired";
-        errorMessage = "Your session has expired. Please refresh the page and try again.";
-      } else if (errorStr.includes("non-2xx") || errorStr.includes("FunctionsHttpError")) {
-        errorTitle = "Service Error";
-        errorMessage = "The report generation service encountered an error. Please try again or contact support.";
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-      
-      toast.error(errorTitle, {
-        description: errorMessage,
-      });
-    } finally {
-      setGeneratingReports(false);
-    }
+  // Generate reports using mutation
+  const handleGenerateReports = () => {
+    const [yearStr, monthStr] = selectedMonth.split("-");
+    generateMutation.mutate(
+      { year: parseInt(yearStr), month: parseInt(monthStr) },
+      { onSuccess: () => refetch() }
+    );
   };
 
   // View report details
-  const handleViewDetails = (investor: InvestorReport) => {
+  const handleViewDetails = (investor: InvestorReportSummary) => {
     setSelectedInvestor(investor);
     setDetailsOpen(true);
   };
 
   // Edit performance data
-  const handleEditData = (investor: InvestorReport) => {
+  const handleEditData = (investor: InvestorReportSummary) => {
     setEditingInvestor(investor);
     setEditorOpen(true);
   };
@@ -543,17 +258,17 @@ const InvestorReports = () => {
         <TabsContent value="html-reports" className="mt-6 space-y-6">
           {/* HTML Reports Tab Content */}
           <div className="flex justify-end gap-2">
-            <Button onClick={fetchReports} variant="outline">
+            <Button onClick={() => refetch()} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
             <Button
               onClick={handleGenerateReports}
-              disabled={generatingReports}
+              disabled={generateMutation.isPending}
               variant="outline"
             >
               <FileText className="h-4 w-4 mr-2" />
-              {generatingReports ? "Generating..." : "Generate Reports"}
+              {generateMutation.isPending ? "Generating..." : "Generate Reports"}
             </Button>
           </div>
 
@@ -882,7 +597,7 @@ const InvestorReports = () => {
               periodName={format(parseISO(`${selectedMonth}-01`), "MMMM yyyy")}
               assets={editingInvestor.assets}
               onSaved={() => {
-                fetchReports();
+                refetch();
                 setEditorOpen(false);
               }}
             />
