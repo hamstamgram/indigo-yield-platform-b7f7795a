@@ -1,7 +1,6 @@
 import { useInvestorPerformance, usePerAssetStats } from "@/hooks";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, EmptyState } from "@/components/ui";
 import { Calendar } from "lucide-react";
-import { EmptyState } from "@/components/ui/empty-state";
 import { PerformanceReportTable } from "@/components/investor/reports/PerformanceReportTable";
 import { useState } from "react";
 import { ReportsApi } from "@/services/api/reportsApi";

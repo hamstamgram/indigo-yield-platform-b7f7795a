@@ -3,7 +3,7 @@
  * Sections: Transactions, Withdrawal Requests, Reports
  */
 
-import { Separator } from "@/components/ui/separator";
+import { Separator } from "@/components/ui";
 import InvestorTransactionsTab from "./InvestorTransactionsTab";
 import InvestorWithdrawalsTab from "./InvestorWithdrawalsTab";
 import InvestorReportsTab from "./InvestorReportsTab";

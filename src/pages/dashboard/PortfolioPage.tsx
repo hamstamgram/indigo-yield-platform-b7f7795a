@@ -1,7 +1,8 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
+import {
+  Card, CardContent,
+  Badge, Button,
+  Tabs, TabsContent, TabsList, TabsTrigger,
+} from "@/components/ui";
 import { Link } from "react-router-dom";
 import { ArrowRight, Layers } from "lucide-react";
 import { getAssetLogo } from "@/utils/assets";

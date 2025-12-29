@@ -1,13 +1,8 @@
 import React, { useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription,
+  Button,
+} from "@/components/ui";
 import { UserPlus } from "lucide-react";
 import { AssetRef as Asset } from "@/types/asset";
 import AddInvestorWizard from "./wizard/AddInvestorWizard";

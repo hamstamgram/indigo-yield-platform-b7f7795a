@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, Input } from "@/components/ui";
 import { InvestorsTable, AddInvestorDialog } from "@/components/admin";
-import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { adminServiceV2, InvestorSummaryV2, deleteInvestorUser } from "@/services/admin";
 import { assetService } from "@/services/shared";
