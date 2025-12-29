@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { Button, Card, Switch, Label } from "@/components/ui";
 import { X, Cookie, Shield, BarChart } from "lucide-react";
 import { initPostHog, shutdownPostHog } from "@/utils/analytics/posthog";
 

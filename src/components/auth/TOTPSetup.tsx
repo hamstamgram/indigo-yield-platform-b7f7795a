@@ -1,16 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+  Button, Input, Label,
+  Alert, AlertDescription,
+  Separator,
+} from "@/components/ui";
 import { toast } from "sonner";
 import {
   Shield,

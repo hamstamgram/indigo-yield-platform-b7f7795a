@@ -3,19 +3,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  FormDescription,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription,
+  Input, Button, EmailChipsInput,
+} from "@/components/ui";
 import { AssetRef as Asset } from "@/types/asset";
 import { getAssetLogo } from "@/utils/assets";
-import { EmailChipsInput } from "@/components/ui/email-chips-input";
 
 // Define the schema for our form with non-negative balance validation
 const formSchema = z.object({

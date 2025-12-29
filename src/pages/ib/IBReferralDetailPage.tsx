@@ -4,18 +4,12 @@
  */
 
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
+  Card, CardContent, CardHeader, CardTitle,
+  Button, Badge,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  PageLoadingSpinner,
+} from "@/components/ui";
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { ArrowLeft, User, Wallet, History } from "lucide-react";

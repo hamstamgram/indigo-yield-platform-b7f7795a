@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEmailVerification, useResendVerificationEmail } from "@/hooks/auth";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui";
 import { Mail, CheckCircle2, Loader2, XCircle } from "lucide-react";
 import AppLogo from "@/components/AppLogo";
 
