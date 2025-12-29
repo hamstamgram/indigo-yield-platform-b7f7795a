@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,11 +15,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { depositService } from "@/services/investor/depositService";
-import { QUERY_KEYS } from "@/constants/queryKeys";
-import { invalidateAfterWithdrawal, invalidateAfterDeposit } from "@/utils/cacheInvalidation";
+import { useWithdrawalRequests, useDepositsQueue } from "@/hooks/data/useRequestsQueueData";
+import { useRequestsQueueMutations } from "@/hooks/data/useRequestsQueueMutations";
+import type { WithdrawalRequest } from "@/types/domains/requests";
 import {
   Loader2,
   CheckCircle,
@@ -32,97 +30,31 @@ import {
 } from "lucide-react";
 
 export default function AdminRequestsQueuePage() {
-  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [selectedRequest, setSelectedRequest] = useState<WithdrawalRequest | null>(null);
   const [approvalAmount, setApprovalAmount] = useState<string>("");
   const [adminNotes, setAdminNotes] = useState<string>("");
   const [rejectionReason, setRejectionReason] = useState<string>("");
-  const queryClient = useQueryClient();
+
+  // Data hooks
+  const { requests: withdrawalRequests, pendingCount: pendingWithdrawals, isLoading: withdrawalsLoading } = useWithdrawalRequests();
+  const { deposits, pendingCount: pendingDeposits, isLoading: depositsLoading } = useDepositsQueue();
+
+  // Mutation hooks
+  const { approveMutation, rejectMutation } = useRequestsQueueMutations({
+    withdrawalRequests,
+    onSuccess: () => {
+      setSelectedRequest(null);
+      setApprovalAmount("");
+      setAdminNotes("");
+      setRejectionReason("");
+    },
+  });
 
   const getInvestorName = (profile?: { first_name?: string | null; last_name?: string | null; email?: string | null }) => {
     if (!profile) return "Unknown";
     const name = `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
     return name || profile.email || "Unknown";
   };
-
-  // Fetch pending withdrawal requests
-  const { data: withdrawalRequests, isLoading: withdrawalsLoading } = useQuery({
-    queryKey: QUERY_KEYS.withdrawalRequestsAdmin,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("withdrawal_requests")
-        .select(
-          `
-          *,
-          profile:profiles!investor_id(first_name, last_name, email),
-          funds!inner(name, fund_class)
-        `
-        )
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Fetch pending deposits
-  const { data: deposits, isLoading: depositsLoading } = useQuery({
-    queryKey: QUERY_KEYS.depositsAdmin,
-    queryFn: async () => {
-      // Transactions_v2 has no status column; show all deposits ordered by occurred_at
-      return depositService.getDeposits();
-    },
-  });
-
-  // Approve withdrawal mutation
-  const approveWithdrawalMutation = useMutation({
-    mutationFn: async (params: { requestId: string; amount?: number; notes?: string }) => {
-      const { data, error } = await supabase.rpc("approve_withdrawal", {
-        p_request_id: params.requestId,
-        p_approved_amount: params.amount,
-        p_admin_notes: params.notes,
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (_, variables) => {
-      toast.success("Withdrawal request approved successfully");
-      // Use centralized cache invalidation
-      const request = withdrawalRequests?.find(r => r.id === variables.requestId);
-      invalidateAfterWithdrawal(queryClient, request?.investor_id, request?.fund_id);
-      setSelectedRequest(null);
-      setApprovalAmount("");
-      setAdminNotes("");
-    },
-    onError: (error) => {
-      toast.error(`Failed to approve withdrawal: ${error.message}`);
-    },
-  });
-
-  // Reject withdrawal mutation
-  const rejectWithdrawalMutation = useMutation({
-    mutationFn: async (params: { requestId: string; reason: string; notes?: string }) => {
-      const { data, error } = await supabase.rpc("reject_withdrawal", {
-        p_request_id: params.requestId,
-        p_reason: params.reason,
-        p_admin_notes: params.notes,
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (_, variables) => {
-      toast.success("Withdrawal request rejected");
-      // Use centralized cache invalidation
-      const request = withdrawalRequests?.find(r => r.id === variables.requestId);
-      invalidateAfterWithdrawal(queryClient, request?.investor_id, request?.fund_id);
-      setSelectedRequest(null);
-      setRejectionReason("");
-      setAdminNotes("");
-    },
-    onError: (error) => {
-      toast.error(`Failed to reject withdrawal: ${error.message}`);
-    },
-  });
-
-  // No status mutation needed; deposits are recorded as completed
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -170,9 +102,8 @@ export default function AdminRequestsQueuePage() {
 
   const handleApproveWithdrawal = () => {
     if (!selectedRequest) return;
-
     const amount = approvalAmount ? parseFloat(approvalAmount) : undefined;
-    approveWithdrawalMutation.mutate({
+    approveMutation.mutate({
       requestId: selectedRequest.id,
       amount,
       notes: adminNotes,
@@ -184,8 +115,7 @@ export default function AdminRequestsQueuePage() {
       toast.error("Please provide a rejection reason");
       return;
     }
-
-    rejectWithdrawalMutation.mutate({
+    rejectMutation.mutate({
       requestId: selectedRequest.id,
       reason: rejectionReason,
       notes: adminNotes,
@@ -213,11 +143,11 @@ export default function AdminRequestsQueuePage() {
         <TabsList>
           <TabsTrigger value="withdrawals" className="flex items-center gap-2">
             <ArrowDownCircle className="h-4 w-4" />
-            Withdrawals ({withdrawalRequests?.filter((r) => r.status === "pending").length || 0})
+            Withdrawals ({pendingWithdrawals})
           </TabsTrigger>
           <TabsTrigger value="deposits" className="flex items-center gap-2">
             <ArrowUpCircle className="h-4 w-4" />
-            Deposits ({deposits?.filter((d) => d.status === "pending").length || 0})
+            Deposits ({pendingDeposits})
           </TabsTrigger>
         </TabsList>
 
@@ -235,22 +165,21 @@ export default function AdminRequestsQueuePage() {
                     No withdrawal requests found
                   </div>
                 ) : (
-                      withdrawalRequests?.map((request) => (
-                        <div key={request.id} className="border rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold">{getInvestorName(request.profile)}</span>
-                              <span className="text-sm text-muted-foreground">
-                                ({request.profile?.email || "unknown"})
-                              </span>
-                              {getStatusBadge(request.status)}
-                            </div>
+                  withdrawalRequests?.map((request) => (
+                    <div key={request.id} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold">{getInvestorName(request.profile)}</span>
+                          <span className="text-sm text-muted-foreground">
+                            ({request.profile?.email || "unknown"})
+                          </span>
+                          {getStatusBadge(request.status)}
+                        </div>
                         <div className="text-right">
                           <div className="font-semibold">
-                            $
-                            {typeof request.requested_amount === "number"
+                            ${typeof request.requested_amount === "number"
                               ? request.requested_amount.toLocaleString()
-                              : parseFloat(request.requested_amount).toLocaleString()}
+                              : parseFloat(String(request.requested_amount)).toLocaleString()}
                           </div>
                           <div className="text-sm text-muted-foreground">{request.funds.name}</div>
                         </div>
@@ -268,7 +197,7 @@ export default function AdminRequestsQueuePage() {
                         <div>
                           <span className="text-muted-foreground">Requested: </span>
                           <span>
-                            {new Date(request.created_by || new Date()).toLocaleDateString()}
+                            {new Date(request.request_date || request.created_at || new Date()).toLocaleDateString()}
                           </span>
                         </div>
                         <div>
@@ -292,21 +221,21 @@ export default function AdminRequestsQueuePage() {
                                 size="sm"
                                 onClick={() => {
                                   setSelectedRequest(request);
-                                  setApprovalAmount(request.requested_amount.toString());
+                                  setApprovalAmount(String(request.requested_amount));
                                 }}
                               >
                                 <CheckCircle className="h-4 w-4 mr-1" />
                                 Approve
                               </Button>
                             </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Approve Withdrawal Request</DialogTitle>
-                                  <DialogDescription>
-                                    Review and approve the withdrawal request for{" "}
-                                    {getInvestorName(request.profile)}
-                                  </DialogDescription>
-                                </DialogHeader>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Approve Withdrawal Request</DialogTitle>
+                                <DialogDescription>
+                                  Review and approve the withdrawal request for{" "}
+                                  {getInvestorName(request.profile)}
+                                </DialogDescription>
+                              </DialogHeader>
                               <div className="space-y-4">
                                 <div>
                                   <Label>Approved Amount ($)</Label>
@@ -314,7 +243,7 @@ export default function AdminRequestsQueuePage() {
                                     type="number"
                                     value={approvalAmount}
                                     onChange={(e) => setApprovalAmount(e.target.value)}
-                                    placeholder={request.requested_amount.toString()}
+                                    placeholder={String(request.requested_amount)}
                                   />
                                 </div>
                                 <div>
@@ -329,9 +258,9 @@ export default function AdminRequestsQueuePage() {
                               <DialogFooter>
                                 <Button
                                   onClick={handleApproveWithdrawal}
-                                  disabled={approveWithdrawalMutation.isPending}
+                                  disabled={approveMutation.isPending}
                                 >
-                                  {approveWithdrawalMutation.isPending ? (
+                                  {approveMutation.isPending ? (
                                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                                   ) : (
                                     <CheckCircle className="h-4 w-4 mr-2" />
@@ -357,14 +286,14 @@ export default function AdminRequestsQueuePage() {
                                 Reject
                               </Button>
                             </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Reject Withdrawal Request</DialogTitle>
-                                  <DialogDescription>
-                                    Provide a reason for rejecting {getInvestorName(request.profile)}'s
-                                    withdrawal request
-                                  </DialogDescription>
-                                </DialogHeader>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Reject Withdrawal Request</DialogTitle>
+                                <DialogDescription>
+                                  Provide a reason for rejecting {getInvestorName(request.profile)}'s
+                                  withdrawal request
+                                </DialogDescription>
+                              </DialogHeader>
                               <div className="space-y-4">
                                 <div>
                                   <Label>Rejection Reason *</Label>
@@ -388,9 +317,9 @@ export default function AdminRequestsQueuePage() {
                                 <Button
                                   variant="destructive"
                                   onClick={handleRejectWithdrawal}
-                                  disabled={rejectWithdrawalMutation.isPending}
+                                  disabled={rejectMutation.isPending}
                                 >
-                                  {rejectWithdrawalMutation.isPending ? (
+                                  {rejectMutation.isPending ? (
                                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                                   ) : (
                                     <XCircle className="h-4 w-4 mr-2" />
@@ -426,33 +355,41 @@ export default function AdminRequestsQueuePage() {
                     <div key={deposit.id} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <DollarSign className="h-4 w-4" />
-                          <span className="font-semibold">
-                            {(deposit.asset_symbol || "ASSET").toUpperCase()}
+                          <span className="font-semibold">{getInvestorName(deposit.profile)}</span>
+                          <span className="text-sm text-muted-foreground">
+                            ({deposit.profile?.email || "unknown"})
                           </span>
-                          <Badge variant="default" className="text-green-700 bg-green-100">
-                            Recorded
-                          </Badge>
+                          {getStatusBadge(deposit.status || "completed")}
                         </div>
                         <div className="text-right">
-                          <div className="font-semibold">
-                            {parseFloat(deposit.amount.toString()).toLocaleString()}{" "}
-                            {(deposit.asset_symbol || "ASSET").toUpperCase()}
+                          <div className="font-semibold flex items-center gap-1 justify-end">
+                            <DollarSign className="h-4 w-4" />
+                            {typeof deposit.amount === "number"
+                              ? deposit.amount.toLocaleString()
+                              : parseFloat(String(deposit.amount)).toLocaleString()}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {new Date(deposit.created_at || new Date()).toLocaleDateString()}
+                            {deposit.funds?.name || "N/A"}
                           </div>
                         </div>
                       </div>
 
-                      {deposit.transaction_hash && (
-                        <div className="text-sm mb-3">
-                          <span className="text-muted-foreground">Tx Hash: </span>
-                          <code className="text-xs bg-muted px-2 py-1 rounded">
-                            {deposit.transaction_hash}
-                          </code>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Fund Class: </span>
+                          <span>{deposit.funds?.fund_class || "N/A"}</span>
                         </div>
-                      )}
+                        <div>
+                          <span className="text-muted-foreground">Date: </span>
+                          <span>
+                            {new Date(deposit.created_at || new Date()).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Status: </span>
+                          <span className="capitalize">{deposit.status || "completed"}</span>
+                        </div>
+                      </div>
                     </div>
                   ))
                 )}

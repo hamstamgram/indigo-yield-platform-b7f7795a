@@ -43,3 +43,6 @@ export { deliveryService } from "./deliveryService";
 
 // Integrity management
 export { integrityService } from "./integrityService";
+
+// Requests queue management
+export { requestsQueueService } from "./requestsQueueService";

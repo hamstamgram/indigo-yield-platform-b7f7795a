@@ -1,0 +1,56 @@
+/**
+ * Requests Queue Service
+ * Handles withdrawal request operations for admin
+ */
+
+import { supabase } from "@/integrations/supabase/client";
+import type { 
+  WithdrawalRequest, 
+  ApproveWithdrawalParams, 
+  RejectWithdrawalParams 
+} from "@/types/domains/requests";
+
+export const requestsQueueService = {
+  /**
+   * Fetch all withdrawal requests with profile and fund data
+   */
+  async fetchWithdrawalRequests(): Promise<WithdrawalRequest[]> {
+    const { data, error } = await supabase
+      .from("withdrawal_requests")
+      .select(`
+        *,
+        profile:profiles!investor_id(first_name, last_name, email),
+        funds!inner(name, fund_class)
+      `)
+      .order("request_date", { ascending: false });
+
+    if (error) throw error;
+    return (data || []) as unknown as WithdrawalRequest[];
+  },
+
+  /**
+   * Approve a withdrawal request via RPC
+   */
+  async approveWithdrawal(params: ApproveWithdrawalParams): Promise<void> {
+    const { error } = await supabase.rpc("approve_withdrawal", {
+      p_request_id: params.requestId,
+      p_approved_amount: params.amount,
+      p_admin_notes: params.notes,
+    });
+
+    if (error) throw error;
+  },
+
+  /**
+   * Reject a withdrawal request via RPC
+   */
+  async rejectWithdrawal(params: RejectWithdrawalParams): Promise<void> {
+    const { error } = await supabase.rpc("reject_withdrawal", {
+      p_request_id: params.requestId,
+      p_reason: params.reason,
+      p_admin_notes: params.notes,
+    });
+
+    if (error) throw error;
+  },
+};
