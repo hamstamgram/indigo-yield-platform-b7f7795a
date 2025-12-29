@@ -1,5 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card } from "@/components/ui/card";
+import { Skeleton, Card } from "@/components/ui";
 
 export function RouteLoadingFallback() {
   return (

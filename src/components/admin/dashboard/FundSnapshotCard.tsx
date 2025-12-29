@@ -1,7 +1,9 @@
 import React from "react";
 import { format } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import {
+  Card, CardContent, CardHeader, CardTitle,
+  Badge,
+} from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { cn } from "@/lib/utils";
 import { formatAUM } from "@/utils/formatters";

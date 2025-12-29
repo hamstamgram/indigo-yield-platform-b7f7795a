@@ -4,12 +4,12 @@
  */
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
+import {
+  Card, CardContent, CardHeader, CardTitle, CardDescription,
+  Button, Input, Label,
+  Tabs, TabsContent, TabsList, TabsTrigger,
+  PageLoadingSpinner,
+} from "@/components/ui";
 import { User, Shield, Bell } from "lucide-react";
 import { useIBProfile, useUpdateIBProfile } from "@/hooks/data/shared";
 

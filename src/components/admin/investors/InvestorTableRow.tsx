@@ -1,6 +1,8 @@
 import React from "react";
-import { TableRow, TableCell } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import {
+  TableRow, TableCell,
+  Button,
+} from "@/components/ui";
 import { Send } from "lucide-react";
 import { AssetRef as Asset } from "@/types/asset";
 

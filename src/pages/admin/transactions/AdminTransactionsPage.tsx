@@ -8,40 +8,21 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import {
+  Card, CardContent, CardHeader, CardTitle,
+  Input, Button, Badge,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  TruncatedText, SortableTableHead,
+} from "@/components/ui";
 import { PageHeader } from "@/components/layout";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Loader2, Search, ChevronLeft, ChevronRight, ExternalLink, CreditCard, Plus, MoreHorizontal, Pencil, Ban, Lock } from "lucide-react";
-import { TruncatedText } from "@/components/ui/truncated-text";
 import { AdminGuard } from "@/components/admin";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { format, startOfMonth, endOfMonth, subMonths, startOfYear } from "date-fns";
 import { AddTransactionDialog, VoidTransactionDialog, EditTransactionDialog } from "@/components/admin";
 import { useSortableColumns } from "@/hooks";
-import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { useAdminActiveFunds, useAdminTransactions } from "@/hooks/data/useAdminTransactionHistory";
 

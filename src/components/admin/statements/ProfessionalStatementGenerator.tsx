@@ -1,13 +1,9 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Card, CardContent, CardHeader, CardTitle,
+  Button,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui";
 import { toast } from "sonner";
 import { Download, FileText } from "lucide-react";
 import { useActiveInvestorsForStatements, useGenerateStatement } from "@/hooks/data/useReports";
