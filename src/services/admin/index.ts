@@ -40,3 +40,6 @@ export {
 
 // Delivery management
 export { deliveryService } from "./deliveryService";
+
+// Integrity management
+export { integrityService } from "./integrityService";

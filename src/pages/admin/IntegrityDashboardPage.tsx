@@ -4,8 +4,6 @@
  * Shows mismatch views (should be empty), audit events, and overall status
  */
 
-import { useQuery } from "@tanstack/react-query";
-import { QUERY_KEYS } from "@/constants/queryKeys";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { supabase } from "@/integrations/supabase/client";
+import { useIntegrityChecks, useAuditEvents } from "@/hooks/data/useIntegrityData";
+import type { IntegrityStatus, IntegrityCheck } from "@/types/domains/integrity";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -32,147 +31,28 @@ import {
   Shield,
   Activity,
 } from "lucide-react";
-import { formatDistanceToNow, format } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
 
-type IntegrityStatus = "ok" | "warning" | "error";
-
-interface IntegrityCheck {
-  name: string;
-  description: string;
-  status: IntegrityStatus;
-  count: number;
-  icon: React.ReactNode;
-  details?: any[];
-}
-
-interface AuditEvent {
-  id: string;
-  action: string;
-  entity: string;
-  entity_id: string | null;
-  actor_user: string | null;
-  created_at: string;
-}
+const ICON_MAP: Record<IntegrityCheck["iconName"], React.ReactNode> = {
+  wallet: <Wallet className="h-5 w-5" />,
+  "trending-up": <TrendingUp className="h-5 w-5" />,
+  users: <Users className="h-5 w-5" />,
+  scale: <Scale className="h-5 w-5" />,
+  database: <Database className="h-5 w-5" />,
+  shield: <Shield className="h-5 w-5" />,
+};
 
 export default function IntegrityDashboardPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Fetch all integrity check results
-  const {
-    data: integrityChecks,
-    isLoading,
-    refetch,
-  } = useQuery({
-    queryKey: QUERY_KEYS.integrityDashboard,
-    queryFn: async (): Promise<IntegrityCheck[]> => {
-      const [
-        fundAumMismatch,
-        yieldConservation,
-        ibConsistency,
-        positionLedgerMismatch,
-        orphanPositions,
-        voidedTransactions,
-      ] = await Promise.all([
-        // Fund AUM mismatch
-        supabase.from("fund_aum_mismatch").select("*"),
-        // Yield distribution conservation
-        supabase.from("yield_distribution_conservation_check").select("*"),
-        // IB allocation consistency
-        supabase.from("ib_allocation_consistency").select("*"),
-        // Position vs ledger mismatch
-        supabase.from("investor_position_ledger_mismatch").select("*"),
-        // Orphan positions (investor_positions uses composite PK, no id column)
-        supabase
-          .from("investor_positions")
-          .select("investor_id", { count: "exact", head: true })
-          .is("investor_id", null),
-        // Voided transactions (informational)
-        supabase
-          .from("transactions_v2")
-          .select("id", { count: "exact", head: true })
-          .eq("is_voided", true),
-      ]);
-
-      return [
-        {
-          name: "Fund AUM Reconciliation",
-          description: "Recorded AUM matches sum of investor positions",
-          status: (fundAumMismatch.data?.length || 0) === 0 ? "ok" : "error",
-          count: fundAumMismatch.data?.length || 0,
-          icon: <Wallet className="h-5 w-5" />,
-          details: fundAumMismatch.data,
-        },
-        {
-          name: "Yield Conservation",
-          description: "Gross yield = Net + Fees + IB",
-          status: (yieldConservation.data?.length || 0) === 0 ? "ok" : "error",
-          count: yieldConservation.data?.length || 0,
-          icon: <TrendingUp className="h-5 w-5" />,
-          details: yieldConservation.data,
-        },
-        {
-          name: "IB Allocation Consistency",
-          description: "IB relationships haven't changed since allocation",
-          status: (ibConsistency.data?.length || 0) === 0 ? "ok" : "warning",
-          count: ibConsistency.data?.length || 0,
-          icon: <Users className="h-5 w-5" />,
-          details: ibConsistency.data,
-        },
-        {
-          name: "Position vs Ledger",
-          description: "Position values match transaction history",
-          status: (positionLedgerMismatch.data?.length || 0) === 0 ? "ok" : "error",
-          count: positionLedgerMismatch.data?.length || 0,
-          icon: <Scale className="h-5 w-5" />,
-          details: positionLedgerMismatch.data,
-        },
-        {
-          name: "Orphan Positions",
-          description: "Positions without investor reference",
-          status: (orphanPositions.count || 0) === 0 ? "ok" : "error",
-          count: orphanPositions.count || 0,
-          icon: <Database className="h-5 w-5" />,
-        },
-        {
-          name: "Voided Transactions",
-          description: "Transactions marked as voided (informational)",
-          status: (voidedTransactions.count || 0) === 0 ? "ok" : "warning",
-          count: voidedTransactions.count || 0,
-          icon: <Shield className="h-5 w-5" />,
-        },
-      ];
-    },
-    refetchInterval: 60000,
-  });
-
-  // Fetch latest audit events
-  const { data: auditEvents } = useQuery({
-    queryKey: QUERY_KEYS.integrityAuditEvents,
-    queryFn: async (): Promise<AuditEvent[]> => {
-      const { data } = await supabase
-        .from("audit_log")
-        .select("id, action, entity, entity_id, actor_user, created_at")
-        .order("created_at", { ascending: false })
-        .limit(10);
-      return (data as AuditEvent[]) || [];
-    },
-    refetchInterval: 30000,
-  });
+  const { checks: integrityChecks, overallStatus, isLoading, refetch } = useIntegrityChecks();
+  const { events: auditEvents } = useAuditEvents(10);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await refetch();
     setIsRefreshing(false);
   };
-
-  const overallStatus: IntegrityStatus = integrityChecks
-    ? integrityChecks.every((c) => c.status === "ok")
-      ? "ok"
-      : integrityChecks.some((c) => c.status === "error")
-      ? "error"
-      : "warning"
-    : "ok";
 
   const getStatusIcon = (status: IntegrityStatus) => {
     switch (status) {
@@ -268,7 +148,7 @@ export default function IntegrityDashboardPage() {
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center justify-between text-base">
                 <span className="flex items-center gap-2">
-                  {check.icon}
+                  {ICON_MAP[check.iconName]}
                   {check.name}
                 </span>
                 {getStatusIcon(check.status)}
@@ -311,7 +191,7 @@ export default function IntegrityDashboardPage() {
               .map((check) => (
                 <div key={check.name} className="space-y-2">
                   <h4 className="font-medium text-sm flex items-center gap-2">
-                    {check.icon}
+                    {ICON_MAP[check.iconName]}
                     {check.name}
                   </h4>
                   <div className="rounded-md border overflow-auto max-h-48">
