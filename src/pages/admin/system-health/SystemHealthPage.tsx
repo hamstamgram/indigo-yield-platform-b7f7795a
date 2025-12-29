@@ -1,5 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
-import { QUERY_KEYS } from "@/constants/queryKeys";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,11 +17,8 @@ import {
   Clock,
   Inbox,
 } from "lucide-react";
-import {
-  getSystemHealth,
-  getOverallStatus,
-  type ServiceStatus,
-} from "@/services/core/systemHealthService";
+import { useSystemHealth, type ServiceStatus } from "@/hooks/data/admin";
+import { getOverallStatus } from "@/services/core/systemHealthService";
 import { useDeliveryQueueMetrics } from "@/hooks/data/useSystemAdmin";
 import { formatDistanceToNow } from "date-fns";
 import { DataIntegrityPanel } from "@/components/admin/DataIntegrityPanel";
@@ -33,11 +28,7 @@ export default function SystemHealthPage() {
     data: health,
     isLoading,
     refetch,
-  } = useQuery({
-    queryKey: QUERY_KEYS.systemHealth,
-    queryFn: getSystemHealth,
-    refetchInterval: 30000,
-  });
+  } = useSystemHealth();
 
   const { data: deliveryMetrics } = useDeliveryQueueMetrics();
 

@@ -1,14 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wallet, Clock, CheckCircle, XCircle } from "lucide-react";
-import { depositService } from "@/services/investor/depositService";
-import { QUERY_KEYS } from "@/constants/queryKeys";
+import { useDepositStats } from "@/hooks/data/admin";
 
 export function DepositStats() {
-  const { data: stats, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.depositStats,
-    queryFn: () => depositService.getDepositStats(),
-  });
+  const { data: stats, isLoading } = useDepositStats();
 
   if (isLoading) {
     return (

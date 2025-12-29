@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import {
   Table,
   TableBody,
@@ -12,22 +11,18 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, Edit, TrendingUp } from "lucide-react";
-import { assetService } from "@/services/shared/assetService";
+import { useAssets } from "@/hooks/data/admin";
 import { EditAssetDialog } from "./EditAssetDialog";
 import { AssetPriceDialog } from "./AssetPriceDialog";
 import type { Asset } from "@/types/asset";
 import { format } from "date-fns";
-import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export function AssetsTable() {
   const [search, setSearch] = useState("");
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [priceDialogAsset, setPriceDialogAsset] = useState<Asset | null>(null);
 
-  const { data: assets, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.assets({ search }),
-    queryFn: () => assetService.getAssets({ search }),
-  });
+  const { data: assets, isLoading } = useAssets({ search });
 
   if (isLoading) {
     return <div className="text-center py-8">Loading assets...</div>;

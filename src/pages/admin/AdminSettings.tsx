@@ -2,10 +2,6 @@
  * Admin Settings Page - Platform configuration
  */
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { systemConfigService, PlatformSettings, defaultPlatformSettings } from "@/services/shared/systemConfigService";
-import { QUERY_KEYS } from "@/constants/queryKeys";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,43 +28,32 @@ import {
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { Link } from "react-router-dom";
+import { usePlatformSettingsForm } from "@/hooks/data/admin";
 
 function AdminSettingsContent() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [settings, setSettings] = useState<PlatformSettings>(defaultPlatformSettings);
+  const {
+    settings,
+    setSettings,
+    isLoading,
+    isSaving,
+    handleSave,
+  } = usePlatformSettingsForm();
 
-  // Fetch platform settings using service
-  const { isLoading } = useQuery({
-    queryKey: QUERY_KEYS.platformSettings,
-    queryFn: async () => {
-      const platformSettings = await systemConfigService.getPlatformSettings();
-      setSettings(platformSettings);
-      return platformSettings;
-    },
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: (newSettings: PlatformSettings) => 
-      systemConfigService.savePlatformSettings(newSettings),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.platformSettings });
+  const handleSaveClick = async () => {
+    try {
+      await handleSave();
       toast({
         title: "Settings saved",
         description: "Platform settings have been updated successfully.",
       });
-    },
-    onError: (error) => {
+    } catch (error) {
       toast({
         title: "Error saving settings",
         description: error instanceof Error ? error.message : "An error occurred",
         variant: "destructive",
       });
-    },
-  });
-
-  const handleSave = () => {
-    saveMutation.mutate(settings);
+    }
   };
 
   const quickLinks = [
@@ -110,8 +95,8 @@ function AdminSettingsContent() {
             Configure platform-wide settings and preferences
           </p>
         </div>
-        <Button onClick={handleSave} disabled={saveMutation.isPending || isLoading}>
-          {saveMutation.isPending ? (
+        <Button onClick={handleSaveClick} disabled={isSaving || isLoading}>
+          {isSaving ? (
             <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
           ) : (
             <Save className="h-4 w-4 mr-2" />

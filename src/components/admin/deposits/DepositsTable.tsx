@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import {
   Table,
   TableBody,
@@ -26,14 +25,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Search, CheckCircle, XCircle, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { depositService } from "@/services/investor/depositService";
+import { useDeposits } from "@/hooks/data/admin";
 import { ApproveDepositDialog } from "./ApproveDepositDialog";
 import { RejectDepositDialog } from "./RejectDepositDialog";
 import { EditTransactionDialog } from "@/components/admin/transactions/EditTransactionDialog";
 import { VoidTransactionDialog } from "@/components/admin/transactions/VoidTransactionDialog";
 import type { Deposit, DepositStatus } from "@/types/deposit";
 import { format } from "date-fns";
-import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export function DepositsTable() {
   const [search, setSearch] = useState("");
@@ -41,13 +39,9 @@ export function DepositsTable() {
   const [selectedDeposit, setSelectedDeposit] = useState<Deposit | null>(null);
   const [action, setAction] = useState<"approve" | "reject" | "edit" | "void" | null>(null);
 
-  const { data: deposits, isLoading, refetch } = useQuery({
-    queryKey: QUERY_KEYS.deposits,
-    queryFn: () =>
-      depositService.getDeposits({
-        search,
-        status: statusFilter === "all" ? undefined : statusFilter,
-      }),
+  const { data: deposits, isLoading, refetch } = useDeposits({
+    search,
+    status: statusFilter === "all" ? undefined : statusFilter,
   });
 
   // Map deposit to transaction format for edit/void dialogs
