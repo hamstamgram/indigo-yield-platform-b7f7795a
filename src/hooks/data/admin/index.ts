@@ -231,3 +231,22 @@ export {
   type AssetStats,
   type AssetFilters,
 } from "./useAssets";
+
+// useTransactionFormData (new - for AdminManualTransaction page)
+export {
+  useTransactionFormInvestors,
+  useTransactionFormFunds,
+  useAumCheck as useTransactionFormAumCheck,
+  useInvestorBalanceCheck as useTransactionFormBalanceCheck,
+  type TransactionFormInvestor,
+  type TransactionFormFund,
+  type BalanceCheckResult as TransactionFormBalanceCheckResult,
+} from "./useTransactionFormData";
+
+// useInvestorDetail (new - for InvestorManagement page)
+export {
+  useInvestorDetail,
+  useInvestorOpsIndicators,
+  type InvestorDetailData,
+  type OpsIndicators,
+} from "./useInvestorDetail";
