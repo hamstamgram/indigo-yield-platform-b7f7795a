@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Button, Input, Label, LoadingSpinner,
+  Card, CardContent, CardFooter, CardHeader, CardTitle,
+  Alert, AlertDescription,
+} from "@/components/ui";
 import { Eye, EyeOff, Lock, Mail, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useSignIn, useCheckAuthSession } from "@/hooks/data/useAuthFlow";
 
 export default function Login() {

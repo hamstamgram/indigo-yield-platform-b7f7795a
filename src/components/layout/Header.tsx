@@ -1,17 +1,12 @@
 import { Menu } from "lucide-react";
 import {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-  BreadcrumbPage,
-} from "@/components/ui/breadcrumb";
+  Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage,
+  Button,
+} from "@/components/ui";
 import { useBreadcrumbs } from "@/hooks";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth/context";
 import { FundAUMBar } from "@/components/admin";
-import { Button } from "@/components/ui/button";
 
 type HeaderProps = {
   toggleSidebar: () => void;

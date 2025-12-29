@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Button, Input,
+  Card, CardContent, CardHeader, CardTitle,
+  Alert, AlertDescription,
+} from "@/components/ui";
 import { Mail, ArrowLeft, AlertCircle, CheckCircle2 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useRequestPasswordReset } from "@/hooks/data/useAuthFlow";
 
 export default function ForgotPassword() {

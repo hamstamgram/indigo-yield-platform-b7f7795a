@@ -2,22 +2,15 @@
  * AdminInvites - Refactored to use data hooks
  */
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Button, Input, Label,
+  Alert, AlertDescription,
+} from "@/components/ui";
 import { useToast } from "@/hooks";
 import { Loader2, Copy, Send, Trash, ShieldAlert } from "lucide-react";
 import { format } from "date-fns";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   useAdminInvites,
   useCreateAdminInvite,

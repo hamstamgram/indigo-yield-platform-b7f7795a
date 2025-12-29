@@ -1,16 +1,10 @@
 import { useState } from "react";
 import { sanitizeHtml } from "@/utils/sanitize";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Button, Badge,
+  ToggleGroup, ToggleGroupItem,
+} from "@/components/ui";
 import { Monitor, Smartphone, Download, X } from "lucide-react";
 
 interface ReportPreviewModalProps {

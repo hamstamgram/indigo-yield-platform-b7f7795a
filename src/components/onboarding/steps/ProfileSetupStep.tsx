@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Input, Label,
+  Card, CardContent,
+  Alert, AlertDescription,
+} from "@/components/ui";
 import { User, Phone, Mail, CheckCircle } from "lucide-react";
 import { useUserEmail } from "@/hooks/data/useProfileSettings";
 import type { OnboardingData } from "@/types/domains";
