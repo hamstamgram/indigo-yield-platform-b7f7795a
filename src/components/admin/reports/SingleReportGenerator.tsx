@@ -15,7 +15,7 @@ import { Loader2, FileText, Download, Eye, Send } from "lucide-react";
 import { ReportsApi } from "@/services/api/reportsApi";
 import { format, parseISO } from "date-fns";
 import { renderReportToHtml } from "@/components/reports/InvestorReportTemplate";
-import { InvestorData, InvestorFund } from "@/types/investor-report";
+import { InvestorData, InvestorFund } from "@/types/domains";
 import {
   useActiveInvestorsForReports,
   useStatementPeriod,

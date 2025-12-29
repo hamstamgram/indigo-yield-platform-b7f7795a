@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { type InvestmentFormData } from "@/types/investment";
+import { type InvestmentFormData } from "@/types/domains";
 
 export const investmentService = {
   async createInvestment(data: InvestmentFormData) {

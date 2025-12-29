@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Download, CheckCircle, AlertTriangle, ExternalLink } from "lucide-react";
-import type { OnboardingData } from "@/types/phase3Types";
+import type { OnboardingData } from "@/types/domains";
 
 interface DocumentsStepProps {
   data: OnboardingData;

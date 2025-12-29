@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Clock, CheckCircle, XCircle } from "lucide-react";
-import type { Investment } from "@/types/investment";
+import type { Investment } from "@/types/domains";
 
 interface InvestmentStatsProps {
   investments: Investment[];

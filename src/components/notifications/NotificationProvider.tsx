@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
 import { useNotifications } from "@/hooks";
 import type { Notification } from "@/lib/typeAdapters/notificationAdapter";
-import type { NotificationSettings } from "@/types/notifications";
+import type { NotificationSettings } from "@/types/domains";
 
 interface NotificationContextType {
   notifications: Notification[];

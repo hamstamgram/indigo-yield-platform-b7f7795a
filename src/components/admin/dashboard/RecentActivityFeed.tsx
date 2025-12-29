@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useRecentActivities, useRealtimeSubscription } from "@/hooks/data";
-import type { ActivityItem } from "@/types/dashboard";
+import type { ActivityItem } from "@/types/domains";
 
 export function RecentActivityFeed() {
   const [refreshing, setRefreshing] = useState(false);

@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import { InvestorData, InvestorFund, getValueColor } from "@/types/investor-report";
+import { InvestorData, InvestorFund, getValueColor } from "@/types/domains";
 
 /**
  * Generate PDF from InvestorData

@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { investmentService } from "@/services/investor/investmentService";
 import { toast } from "sonner";
-import type { Investment } from "@/types/investment";
+import type { Investment } from "@/types/domains";
 
 interface InvestmentApprovalDialogProps {
   investment: Investment | null;

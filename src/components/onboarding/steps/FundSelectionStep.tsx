@@ -5,7 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Target, Shield, CheckCircle, Info, Bitcoin, Coins } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import type { OnboardingData, FundConfiguration } from "@/types/phase3Types";
+import type { OnboardingData, FundConfiguration } from "@/types/domains";
 
 interface FundSelectionStepProps {
   data: OnboardingData;

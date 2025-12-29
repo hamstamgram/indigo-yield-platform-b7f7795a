@@ -47,7 +47,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ReportsApi } from "@/services/api/reportsApi";
-import { GeneratedReport, ReportType, ReportStatus } from "@/types/reports";
+import { GeneratedReport, ReportType, ReportStatus } from "@/types/domains";
 
 export const ReportHistory: React.FC = () => {
   const [reports, setReports] = useState<GeneratedReport[]>([]);

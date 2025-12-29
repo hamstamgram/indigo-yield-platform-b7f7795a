@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { investmentFormSchema, type InvestmentFormValues } from "@/lib/validation/investment";
-import { type InvestmentFormData } from "@/types/investment";
+import { type InvestmentFormData } from "@/types/domains";
 import { investmentService } from "@/services/investor/investmentService";
 import { profileService } from "@/services/shared";
 import { toast } from "sonner";

@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { User, Phone, Mail, CheckCircle } from "lucide-react";
 import { useUserEmail } from "@/hooks/data/useProfileSettings";
-import type { OnboardingData } from "@/types/phase3Types";
+import type { OnboardingData } from "@/types/domains";
 
 interface ProfileSetupStepProps {
   data: OnboardingData;

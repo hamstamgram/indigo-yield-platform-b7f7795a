@@ -9,7 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Download, TrendingUp, TrendingDown, Loader2 } from "lucide-react";
-import { PerformanceRecord } from "@/types/performance";
+import { PerformanceRecord } from "@/types/domains";
 import { getAssetLogo } from "@/utils/assets";
 import { cn } from "@/lib/utils";
 

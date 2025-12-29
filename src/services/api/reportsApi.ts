@@ -15,7 +15,7 @@ import {
   ReportSchedule,
   ReportDefinition,
   ReportStatistics,
-} from "@/types/reports";
+} from "@/types/domains";
 
 export class ReportsApi {
   /**

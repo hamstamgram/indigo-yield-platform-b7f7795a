@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Clock, Eye } from "lucide-react";
-import type { Investment } from "@/types/investment";
+import type { Investment } from "@/types/domains";
 import { InvestmentApprovalDialog } from "./InvestmentApprovalDialog";
 
 interface InvestmentsTableProps {

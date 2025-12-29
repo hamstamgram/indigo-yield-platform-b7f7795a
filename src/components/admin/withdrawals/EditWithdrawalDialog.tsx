@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Withdrawal } from "@/types/withdrawal";
+import { Withdrawal } from "@/types/domains";
 import { toast } from "sonner";
 import {
   Dialog,

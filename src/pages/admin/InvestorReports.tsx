@@ -47,7 +47,7 @@ import { Link } from "react-router-dom";
 import { useUrlFilters } from "@/hooks";
 import { format, subMonths, parseISO } from "date-fns";
 import { renderReportToHtml } from "@/components/reports/InvestorReportTemplate";
-import { InvestorData, InvestorFund } from "@/types/investor-report";
+import { InvestorData, InvestorFund } from "@/types/domains";
 import { formatAssetWithSymbol } from "@/utils/formatters";
 import { PerformanceDataEditor } from "@/components/admin/reports/PerformanceDataEditor";
 import { useAdminInvestorReports, useGenerateFundPerformance } from "@/hooks/data";

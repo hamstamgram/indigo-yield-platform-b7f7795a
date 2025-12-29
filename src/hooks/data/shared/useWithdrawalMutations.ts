@@ -5,7 +5,7 @@ import {
   UpdateWithdrawalParams, 
   DeleteWithdrawalParams,
   RouteToFeesParams 
-} from "@/types/withdrawal";
+} from "@/types/domains";
 import { invalidateAfterWithdrawal } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";
 
