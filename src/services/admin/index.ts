@@ -37,3 +37,6 @@ export {
   forceDeleteInvestorUser,
   createOrFindInvestorUser 
 } from "./userService";
+
+// Delivery management
+export { deliveryService } from "./deliveryService";

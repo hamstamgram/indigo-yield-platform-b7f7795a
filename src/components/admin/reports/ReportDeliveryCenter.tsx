@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -73,61 +71,15 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info } from "lucide-react";
 import { DeliveryExclusionStats } from "./DeliveryExclusionStats";
 import { TruncatedText } from "@/components/ui/truncated-text";
-import { QUERY_KEYS } from "@/constants/queryKeys";
-import { invalidateAfterDeliveryOp } from "@/utils/cacheInvalidation";
+
+// Import new hooks and types
+import { usePeriodsWithCounts, useDeliveryStats, useDeliveries } from "@/hooks/data/useDeliveryData";
+import { useDeliveryMutations } from "@/hooks/data/useDeliveryMutations";
+import type { DeliveryRecord, DeliveryMode, DeliveryFilters } from "@/types/domains/delivery";
+import { DELIVERY_MODES } from "@/types/domains/delivery";
 
 // MailerSend trial account limits (typical)
-const MAILERSEND_TRIAL_LIMIT = 100; // emails per month for trial accounts
-
-interface DeliveryRecord {
-  id: string;
-  statement_id: string;
-  investor_id: string;
-  period_id: string;
-  recipient_email: string;
-  subject: string;
-  status: string;
-  channel: string;
-  delivery_mode: string | null;
-  attempt_count: number;
-  last_attempt_at: string | null;
-  sent_at: string | null;
-  delivered_at: string | null;
-  failed_at: string | null;
-  error_message: string | null;
-  error_code: string | null;
-  provider_message_id: string | null;
-  provider: string | null;
-  created_at: string;
-  updated_at: string;
-  metadata: Record<string, unknown>;
-  profiles?: {
-    first_name: string | null;
-    last_name: string | null;
-    email: string;
-  };
-}
-
-interface DeliveryStats {
-  total: number;
-  queued: number;
-  sending: number;
-  sent: number;
-  failed: number;
-  cancelled: number;
-  skipped: number;
-  statements_generated: number;
-  investors_in_scope: number;
-  oldest_queued_at: string | null;
-  stuck_sending: number;
-}
-
-interface Period {
-  id: string;
-  period_name: string;
-  year: number;
-  month: number;
-}
+const MAILERSEND_TRIAL_LIMIT = 100;
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ElementType }> = {
   queued: { label: "Queued", variant: "secondary", icon: Clock },
@@ -141,17 +93,8 @@ const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secon
   skipped: { label: "Skipped", variant: "outline", icon: AlertTriangle },
 };
 
-type DeliveryMode = "email_html" | "pdf_attachment" | "link_only" | "hybrid";
-
-const DELIVERY_MODES: { value: DeliveryMode; label: string; description: string }[] = [
-  { value: "email_html", label: "HTML Email", description: "Full report in email body" },
-  { value: "link_only", label: "Link Only", description: "Email with link to view report" },
-  { value: "hybrid", label: "HTML + Link", description: "Full report with view link" },
-  { value: "pdf_attachment", label: "PDF Attachment", description: "Report as PDF attachment" },
-];
-
 export default function ReportDeliveryCenter() {
-  const queryClient = useQueryClient();
+  // UI State
   const [selectedPeriodId, setSelectedPeriodId] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [channelFilter, setChannelFilter] = useState<string>("all");
@@ -160,45 +103,44 @@ export default function ReportDeliveryCenter() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDelivery, setSelectedDelivery] = useState<DeliveryRecord | null>(null);
   const [confirmAction, setConfirmAction] = useState<{ type: string; ids: string[] } | null>(null);
-  const [sendProgress, setSendProgress] = useState<{ current: number; total: number; sent: number; failed: number } | null>(null);
 
-  // Fetch periods with statement counts
-  const { data: periodsWithCounts = [] } = useQuery({
-    queryKey: QUERY_KEYS.statementPeriodsWithCounts,
-    queryFn: async () => {
-      const { data: periodsData, error: periodsError } = await supabase
-        .from("statement_periods")
-        .select("id, period_name, year, month")
-        .order("year", { ascending: false })
-        .order("month", { ascending: false });
-      if (periodsError) throw periodsError;
-      
-      // Get statement counts for each period
-      const periodsWithStatementCounts = await Promise.all(
-        (periodsData || []).map(async (period) => {
-          const { count } = await supabase
-            .from("generated_statements")
-            .select("id", { count: "exact", head: true })
-            .eq("period_id", period.id);
-          return { ...period, statementCount: count || 0 };
-        })
-      );
-      
-      return periodsWithStatementCounts as (Period & { statementCount: number })[];
-    },
-  });
+  // Build filters object
+  const filters: DeliveryFilters = {
+    statusFilter,
+    channelFilter,
+    deliveryModeFilter,
+    searchQuery,
+  };
+
+  // Data hooks
+  const { periodsWithCounts } = usePeriodsWithCounts();
+  const { stats, isLoading: statsLoading } = useDeliveryStats(selectedPeriodId);
+  const { deliveries, isLoading: deliveriesLoading, refetch: refetchDeliveries } = useDeliveries(selectedPeriodId, filters);
+
+  // Mutation hooks
+  const mutations = useDeliveryMutations(selectedPeriodId);
+  const {
+    queueMutation,
+    sendViaMutation,
+    processMutation,
+    retryMutation,
+    cancelMutation,
+    markSentMutation,
+    refreshStatusMutation,
+    requeueStaleMutation,
+    retryAllFailed,
+    sendProgress,
+  } = mutations;
 
   const periods = periodsWithCounts;
 
   // Auto-select period with statements (smart selection)
   useEffect(() => {
     if (periodsWithCounts.length > 0 && !selectedPeriodId) {
-      // Find the most recent period that has statements
       const periodWithStatements = periodsWithCounts.find(p => p.statementCount > 0);
       if (periodWithStatements) {
         setSelectedPeriodId(periodWithStatements.id);
       } else {
-        // Fallback to most recent period if none have statements
         setSelectedPeriodId(periodsWithCounts[0].id);
       }
     }
@@ -207,346 +149,11 @@ export default function ReportDeliveryCenter() {
   // Get selected period's statement count
   const selectedPeriodStatementCount = periodsWithCounts.find(p => p.id === selectedPeriodId)?.statementCount || 0;
 
-  // Fetch delivery stats
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: QUERY_KEYS.deliveryStats(selectedPeriodId),
-    queryFn: async () => {
-      if (!selectedPeriodId) return null;
-      const { data, error } = await supabase.rpc("get_delivery_stats", {
-        p_period_id: selectedPeriodId,
-      });
-      if (error) throw error;
-      return data as unknown as DeliveryStats;
-    },
-    enabled: !!selectedPeriodId,
-  });
-
-  // Fetch deliveries
-  const { data: deliveries = [], isLoading: deliveriesLoading, refetch: refetchDeliveries } = useQuery({
-    queryKey: QUERY_KEYS.deliveries(selectedPeriodId, { statusFilter, channelFilter, deliveryModeFilter, searchQuery }),
-    queryFn: async () => {
-      if (!selectedPeriodId) return [];
-      
-      let query = supabase
-        .from("statement_email_delivery")
-        .select(`
-          *,
-          profiles:investor_id (first_name, last_name, email)
-        `)
-        .eq("period_id", selectedPeriodId)
-        .order("created_at", { ascending: false })
-        .limit(100);
-
-      if (statusFilter !== "all") {
-        query = query.or(`status.eq.${statusFilter},status.eq.${statusFilter.toUpperCase()}`);
-      }
-      if (channelFilter !== "all") {
-        query = query.eq("channel", channelFilter);
-      }
-      if (deliveryModeFilter !== "all") {
-        query = query.eq("delivery_mode", deliveryModeFilter);
-      }
-      if (searchQuery) {
-        query = query.or(`recipient_email.ilike.%${searchQuery}%`);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as unknown as DeliveryRecord[];
-    },
-    enabled: !!selectedPeriodId,
-  });
-
   // Sortable columns for the deliveries table
   const { sortConfig, requestSort, sortedData: sortedDeliveries } = useSortableColumns(
     deliveries,
     { column: 'created_at', direction: 'desc' }
   );
-  const queueMutation = useMutation({
-    mutationFn: async ({ periodId, channel }: { periodId: string; channel: string }) => {
-      const { data, error } = await supabase.rpc("queue_statement_deliveries", {
-        p_period_id: periodId,
-        p_channel: channel,
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      const result = data as { queued_count: number; skipped_missing_email: number; already_exists_count: number };
-      toast.success(`Queued ${result.queued_count} deliveries`, {
-        description: `${result.already_exists_count} already existed, ${result.skipped_missing_email} skipped (no email)`,
-      });
-      invalidateAfterDeliveryOp(queryClient, selectedPeriodId);
-    },
-    onError: (error) => {
-      toast.error(`Failed to queue: ${error.message}`);
-    },
-  });
-
-  // Send via MailerSend
-  const sendViaMutation = useMutation({
-    mutationFn: async ({ deliveryId, deliveryMode }: { deliveryId: string; deliveryMode: DeliveryMode }) => {
-      const { data, error } = await supabase.functions.invoke("send-report-mailersend", {
-        body: { delivery_id: deliveryId, delivery_mode: deliveryMode },
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      toast.success("Report sent", {
-        description: `Message ID: ${data.message_id?.slice(0, 12)}...`,
-      });
-      invalidateAfterDeliveryOp(queryClient, selectedPeriodId);
-    },
-    onError: (error) => {
-      const errorMessage = error.message || "Unknown error";
-      // Parse common MailerSend errors for better user guidance
-      if (errorMessage.includes("quota") || errorMessage.includes("limit") || errorMessage.includes("402")) {
-        toast.error("MailerSend quota exceeded", {
-          description: "Your MailerSend trial account has reached its sending limit. Upgrade your plan at mailersend.com to continue sending.",
-          duration: 8000,
-        });
-      } else if (errorMessage.includes("401") || errorMessage.includes("unauthorized")) {
-        toast.error("MailerSend authentication failed", {
-          description: "Check your MAILERSEND_API_TOKEN secret is valid.",
-          duration: 6000,
-        });
-      } else if (errorMessage.includes("domain") || errorMessage.includes("sender")) {
-        toast.error("MailerSend domain not verified", {
-          description: "Verify your sending domain at mailersend.com/domains.",
-          duration: 6000,
-        });
-      } else {
-        toast.error(`Failed to send: ${errorMessage}`);
-      }
-    },
-  });
-
-  // Batch send via MailerSend - auto-queues if queue is empty
-  const processMutation = useMutation({
-    mutationFn: async ({ periodId, deliveryMode }: { periodId: string; deliveryMode: DeliveryMode }) => {
-      // Get queued deliveries for period
-      let { data: queued, error: queryError } = await supabase
-        .from("statement_email_delivery")
-        .select("id")
-        .eq("period_id", periodId)
-        .or("status.eq.queued,status.eq.QUEUED")
-        .limit(25);
-      
-      if (queryError) throw queryError;
-      
-      // AUTO-QUEUE: If queue is empty, automatically queue remaining statements first
-      if (!queued || queued.length === 0) {
-        console.log("[ReportDeliveryCenter] Queue empty, auto-queueing statements...");
-        
-        const { data: queueResult, error: queueError } = await supabase.rpc("queue_statement_deliveries", {
-          p_period_id: periodId,
-          p_channel: "email",
-        });
-        
-        if (queueError) {
-          console.error("[ReportDeliveryCenter] Auto-queue failed:", queueError);
-          throw new Error(`Failed to auto-queue: ${queueError.message}`);
-        }
-        
-        const result = queueResult as { queued_count: number; skipped_missing_email: number; already_exists_count: number };
-        console.log("[ReportDeliveryCenter] Auto-queue result:", result);
-        
-        if (result.queued_count === 0) {
-          // Still nothing to send after queueing
-          return { 
-            sent: 0, 
-            failed: 0, 
-            total: 0, 
-            autoQueued: true,
-            queueResult: result,
-            reason: result.already_exists_count > 0 
-              ? `All ${result.already_exists_count} statements already processed`
-              : result.skipped_missing_email > 0
-                ? `${result.skipped_missing_email} investors have no email address`
-                : "No statements generated for this period"
-          };
-        }
-        
-        // Re-fetch queued deliveries after auto-queue
-        const refetch = await supabase
-          .from("statement_email_delivery")
-          .select("id")
-          .eq("period_id", periodId)
-          .or("status.eq.queued,status.eq.QUEUED")
-          .limit(25);
-        
-        if (refetch.error) throw refetch.error;
-        queued = refetch.data;
-      }
-      
-      if (!queued || queued.length === 0) {
-        return { sent: 0, failed: 0, total: 0, reason: "No eligible deliveries after queueing" };
-      }
-
-      setSendProgress({ current: 0, total: queued.length, sent: 0, failed: 0 });
-      
-      let sent = 0;
-      let failed = 0;
-      
-      // Process sequentially to avoid rate limits
-      for (let i = 0; i < queued.length; i++) {
-        const delivery = queued[i];
-        try {
-          const { error } = await supabase.functions.invoke("send-report-mailersend", {
-            body: { delivery_id: delivery.id, delivery_mode: deliveryMode },
-          });
-          if (error) throw error;
-          sent++;
-        } catch {
-          failed++;
-        }
-        setSendProgress({ current: i + 1, total: queued.length, sent, failed });
-      }
-      
-      setSendProgress(null);
-      return { sent, failed, total: queued.length };
-    },
-    onSuccess: (data) => {
-      // Prevent silent success - show appropriate message based on results
-      const result = data as { sent: number; failed: number; total: number; autoQueued?: boolean; reason?: string };
-      
-      if (result.total === 0) {
-        toast.error("No emails to send", {
-          description: result.reason || "No eligible statements found for delivery.",
-        });
-      } else if (result.sent === 0 && result.failed > 0) {
-        toast.error(`All ${result.failed} emails failed to send`, {
-          description: "Check delivery details for error messages.",
-        });
-      } else if (result.sent === 0 && result.failed === 0) {
-        toast.warning("No emails were processed", {
-          description: result.reason || "Queue may have been empty or already processed.",
-        });
-      } else if (result.failed > 0) {
-        toast.warning(`Sent ${result.sent} emails, ${result.failed} failed`, {
-          description: "Some emails failed - check details for errors.",
-        });
-      } else {
-        toast.success(`Successfully sent ${result.sent} emails`, {
-          description: result.autoQueued 
-            ? "Auto-queued and delivered all statements."
-            : "All queued emails have been delivered.",
-        });
-      }
-      invalidateAfterDeliveryOp(queryClient, selectedPeriodId);
-    },
-    onError: (error) => {
-      setSendProgress(null);
-      const errorMessage = error.message || "Unknown error";
-      // Parse common MailerSend errors for better user guidance
-      if (errorMessage.includes("quota") || errorMessage.includes("limit") || errorMessage.includes("402")) {
-        toast.error("MailerSend quota exceeded", {
-          description: "Your MailerSend trial account has reached its sending limit. Upgrade your plan at mailersend.com to continue sending.",
-          duration: 8000,
-        });
-      } else if (errorMessage.includes("401") || errorMessage.includes("unauthorized")) {
-        toast.error("MailerSend authentication failed", {
-          description: "Check your MAILERSEND_API_TOKEN secret is valid.",
-          duration: 6000,
-        });
-      } else {
-        toast.error(`Failed to process: ${errorMessage}`);
-      }
-    },
-  });
-
-  const retryMutation = useMutation({
-    mutationFn: async (deliveryId: string) => {
-      const { data, error } = await supabase.rpc("retry_delivery", {
-        p_delivery_id: deliveryId,
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      toast.success("Delivery re-queued for retry");
-      invalidateAfterDeliveryOp(queryClient, selectedPeriodId);
-    },
-    onError: (error) => {
-      toast.error(`Failed to retry: ${error.message}`);
-    },
-  });
-
-  const cancelMutation = useMutation({
-    mutationFn: async (deliveryId: string) => {
-      const { data, error } = await supabase.rpc("cancel_delivery", {
-        p_delivery_id: deliveryId,
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      toast.success("Delivery cancelled");
-      invalidateAfterDeliveryOp(queryClient, selectedPeriodId);
-    },
-    onError: (error) => {
-      toast.error(`Failed to cancel: ${error.message}`);
-    },
-  });
-
-  const markSentMutation = useMutation({
-    mutationFn: async ({ deliveryId, note }: { deliveryId: string; note: string }) => {
-      const { data, error } = await supabase.rpc("mark_sent_manually", {
-        p_delivery_id: deliveryId,
-        p_note: note,
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      toast.success("Marked as sent");
-      invalidateAfterDeliveryOp(queryClient, selectedPeriodId);
-      setSelectedDelivery(null);
-    },
-    onError: (error) => {
-      toast.error(`Failed to mark sent: ${error.message}`);
-    },
-  });
-
-  // Refresh delivery status mutation
-  const refreshStatusMutation = useMutation({
-    mutationFn: async (deliveryId: string) => {
-      const { data, error } = await supabase.functions.invoke("refresh-delivery-status", {
-        body: { delivery_id: deliveryId },
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      if (data.status_changed) {
-        toast.success(`Status updated: ${data.old_status} → ${data.new_status}`);
-        invalidateAfterDeliveryOp(queryClient, selectedPeriodId);
-      } else {
-        toast.info("Status unchanged", {
-          description: `Current status: ${data.new_status}`,
-        });
-      }
-    },
-    onError: (error) => {
-      toast.error(`Failed to refresh: ${error.message}`);
-    },
-  });
-
-  const retryAllFailed = async () => {
-    const failedDeliveries = deliveries.filter(d => d.status.toLowerCase() === "failed");
-    let retried = 0;
-    for (const d of failedDeliveries) {
-      try {
-        await retryMutation.mutateAsync(d.id);
-        retried++;
-      } catch {
-        // Continue with next
-      }
-    }
-    toast.success(`Requeued ${retried} of ${failedDeliveries.length} failed deliveries`);
-    setConfirmAction(null);
-  };
 
   const getStatusConfig = (status: string) => {
     return STATUS_CONFIG[status.toLowerCase()] || STATUS_CONFIG.queued;
@@ -560,6 +167,12 @@ export default function ReportDeliveryCenter() {
       return name || delivery.profiles.email;
     }
     return delivery.recipient_email;
+  };
+
+  const handleRetryAllFailed = async () => {
+    const failedDeliveries = deliveries.filter(d => d.status.toLowerCase() === "failed");
+    await retryAllFailed(failedDeliveries.map(d => d.id));
+    setConfirmAction(null);
   };
 
   // Calculated metrics
@@ -896,6 +509,7 @@ export default function ReportDeliveryCenter() {
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3">
                 <Button
+                  variant="outline"
                   onClick={() => queueMutation.mutate({ periodId: selectedPeriodId, channel: "email" })}
                   disabled={queueMutation.isPending}
                 >
@@ -946,20 +560,14 @@ export default function ReportDeliveryCenter() {
                 {(stats?.stuck_sending ?? 0) > 0 && (
                   <Button
                     variant="destructive"
-                    onClick={async () => {
-                      const { data, error } = await supabase.rpc("requeue_stale_sending", {
-                        p_period_id: selectedPeriodId,
-                        p_minutes: 15,
-                      });
-                      if (error) {
-                        toast.error(`Failed: ${error.message}`);
-                      } else {
-                        toast.success(`Requeued ${(data as { requeued_count: number }).requeued_count} stuck deliveries`);
-                        invalidateAfterDeliveryOp(queryClient, selectedPeriodId);
-                      }
-                    }}
+                    onClick={() => requeueStaleMutation.mutate({ periodId: selectedPeriodId, minutes: 15 })}
+                    disabled={requeueStaleMutation.isPending}
                   >
-                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    {requeueStaleMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <AlertTriangle className="h-4 w-4 mr-2" />
+                    )}
                     Unstick Sending ({stats?.stuck_sending ?? 0})
                   </Button>
                 )}
@@ -1225,7 +833,10 @@ export default function ReportDeliveryCenter() {
             {selectedDelivery && ["failed", "cancelled", "queued"].includes(selectedDelivery.status.toLowerCase()) && (
               <Button
                 variant="outline"
-                onClick={() => markSentMutation.mutate({ deliveryId: selectedDelivery.id, note: "Manually confirmed sent" })}
+                onClick={() => {
+                  markSentMutation.mutate({ deliveryId: selectedDelivery.id, note: "Manually confirmed sent" });
+                  setSelectedDelivery(null);
+                }}
               >
                 <CheckSquare className="h-4 w-4 mr-2" />
                 Mark as Sent
@@ -1252,7 +863,7 @@ export default function ReportDeliveryCenter() {
             <AlertDialogAction
               onClick={() => {
                 if (confirmAction?.type === "retry_all") {
-                  retryAllFailed();
+                  handleRetryAllFailed();
                 }
               }}
             >
