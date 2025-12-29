@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,26 +7,12 @@ import { useState } from "react";
 import { ResponsiveTable } from "@/components/ui/responsive-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
-import { transactionsV2Service } from "@/services/investor";
-import { QUERY_KEYS } from "@/constants/queryKeys";
+import { useInvestorTransactionsList } from "@/hooks/data";
 
 export default function TransactionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: items, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.transactionsV2(searchTerm || undefined),
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user");
-
-      return transactionsV2Service.getByInvestorId(user.id, {
-        search: searchTerm || undefined,
-      });
-    },
-  });
+  const { data: items, isLoading } = useInvestorTransactionsList(searchTerm || undefined);
 
   const columns = [
     {

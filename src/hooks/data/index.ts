@@ -411,3 +411,13 @@ export {
   type Withdrawal,
   type WithdrawalAuditLog,
 } from "./useAdminWithdrawals";
+
+// Portfolio hooks
+export {
+  usePortfolioPositions,
+  useWithdrawalFormPositions,
+  useMyWithdrawalsWithFunds,
+  useCreateWithdrawalRequest,
+  type PortfolioPosition as PortfolioPositionData,
+  type WithdrawalFormPosition,
+} from "./usePortfolio";

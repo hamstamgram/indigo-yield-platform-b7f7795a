@@ -1,6 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
-import { QUERY_KEYS } from "@/constants/queryKeys";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,45 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, Layers } from "lucide-react";
 import { getAssetLogo } from "@/utils/assets";
+import { usePortfolioPositions } from "@/hooks/data";
 
 export default function PortfolioPage() {
-  const { data: positions, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.portfolioPositions,
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user");
-
-      // Resolve investor_id (One ID)
-      const investorId = user.id;
-
-      const { data, error } = await (supabase as any)
-        .from("investor_positions")
-        .select(
-          `
-          investor_id,
-          fund_id,
-          shares,
-          funds (
-            id,
-            name,
-            asset,
-            asset_symbol,
-            code
-          )
-        `
-        )
-        .eq("investor_id", investorId);
-
-      if (error) {
-        // Fallback if 'investor_positions' view/table issue, try 'positions' table if it was legacy
-        // But for now we assume the previous dashboard query worked.
-        throw error;
-      }
-      return data;
-    },
-  });
+  const { data: positions, isLoading } = usePortfolioPositions();
 
   return (
     <div className="space-y-6">
@@ -75,20 +37,15 @@ export default function PortfolioPage() {
             </Card>
           ) : positions && positions.length > 0 ? (
             <div className="space-y-4">
-              {positions.map((position: any) => {
-                // Use funds relation if available, otherwise fallback
-                const fundName = position.funds?.name || "Fund";
-                const assetCode = (
-                  position.funds?.asset_symbol ||
-                  position.funds?.asset ||
-                  "UNITS"
-                ).toUpperCase();
-                const fundCode = position.funds?.code || "";
+              {positions.map((position) => {
+                const fundName = position.fund?.name || "Fund";
+                const assetCode = (position.fund?.asset || "UNITS").toUpperCase();
+                const fundCode = position.fund?.code || "";
                 const logo = getAssetLogo(assetCode);
-                const quantity = position.shares || position.quantity || 0;
+                const quantity = position.shares || 0;
 
                 return (
-                  <Card key={position.fund_id || position.id}>
+                  <Card key={position.fund_id}>
                     <CardContent className="pt-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
