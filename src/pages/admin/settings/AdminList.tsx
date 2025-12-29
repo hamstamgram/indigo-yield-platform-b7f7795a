@@ -5,34 +5,13 @@
  */
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+  Card, CardContent, CardHeader, CardTitle, CardDescription,
+  Button, Badge, Input, Label,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui";
 import { Loader2, Shield, ShieldCheck, UserPlus, Search } from "lucide-react";
 import { SuperAdminGuard } from "@/components/admin/SuperAdminGuard";
 import { RoleChangeConfirmDialog } from "@/components/admin/RoleChangeConfirmDialog";

@@ -1,16 +1,9 @@
 import React, { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Button, Input, Badge,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui";
 import { Edit3, Save, X, TrendingUp, TrendingDown } from "lucide-react";
 import { toast } from "sonner";
 import { ExpertPosition, expertInvestorService } from "@/services/investor";

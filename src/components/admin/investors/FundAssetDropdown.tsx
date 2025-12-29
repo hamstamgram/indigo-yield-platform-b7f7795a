@@ -1,11 +1,8 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Button,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks";
 import { addFundToInvestor, getAvailableFundsForInvestor, type Fund } from "@/services/investor/fundViewService";

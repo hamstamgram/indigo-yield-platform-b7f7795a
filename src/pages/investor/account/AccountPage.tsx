@@ -2,20 +2,13 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks";
 import { AlertTriangle, Moon, Sun, Settings } from "lucide-react";
 import { PageHeader } from "@/components/layout";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+  Alert, AlertDescription, AlertTitle,
+  Button, Switch, Separator, Label,
+  Tabs, TabsContent, TabsList, TabsTrigger,
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui";
 import ProfileTab from "@/components/account/ProfileTab";
 import SecurityTab from "@/components/account/SecurityTab";
 import NotificationsTab from "@/components/account/NotificationsTab";

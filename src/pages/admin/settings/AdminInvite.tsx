@@ -1,16 +1,9 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+  Button, Input, Label,
+  Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
+} from "@/components/ui";
 import { useToast } from "@/hooks";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { useVerifyAdminInvite, useAcceptAdminInvite } from "@/hooks/data/useAuthFlow";
