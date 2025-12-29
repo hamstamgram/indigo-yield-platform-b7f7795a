@@ -1,6 +1,5 @@
 import React, { Suspense } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/loading-skeletons";
+import { Card, CardContent, CardHeader, Skeleton } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
 // Route Loading Component

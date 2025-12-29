@@ -1,12 +1,15 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui";
 import { formatAssetAmount, getAssetLogo, getAssetName } from "@/utils/assets";
 import { Loader2, TrendingUp, Calendar } from "lucide-react";
 import { usePerformanceHistory } from "@/hooks/data/investor";

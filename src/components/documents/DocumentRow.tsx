@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button, Badge } from "@/components/ui";
 import { Download, Eye, FileText, Calendar, User } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 

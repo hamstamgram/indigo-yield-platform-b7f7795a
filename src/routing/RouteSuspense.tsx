@@ -5,7 +5,7 @@ import {
   DashboardLoading,
   PortfolioLoading,
   AdminLoading,
-} from "@/components/ui/loading-states";
+} from "@/components/ui";
 
 interface RouteSuspenseProps {
   children: React.ReactNode;

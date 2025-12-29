@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { getAssetLogo, getAssetName, formatAssetAmount, formatSignedAssetAmount } from "@/utils/assets";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import type { PerformancePeriod } from "./PeriodSelector";

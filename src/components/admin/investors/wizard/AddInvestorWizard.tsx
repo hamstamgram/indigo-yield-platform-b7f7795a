@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { WizardProvider, useWizard } from "./WizardContext";
 import { WIZARD_STEPS, WizardStep } from "./types";
