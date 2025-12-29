@@ -1,43 +1,5 @@
 /**
- * React Query hooks for admin transaction history
+ * Re-export shim for backward compatibility
+ * Actual implementation moved to ./admin/useAdminTransactionHistory.ts
  */
-
-import { useQuery } from "@tanstack/react-query";
-import { adminTransactionHistoryService } from "@/services/admin/adminTransactionHistoryService";
-import { QUERY_KEYS } from "@/constants/queryKeys";
-import type {
-  AdminTransactionFilters,
-  FundOption,
-} from "@/types/domains/transaction";
-
-/**
- * Fetch active funds for filter dropdowns
- */
-export function useActiveFunds() {
-  return useQuery({
-    queryKey: ["admin", "funds", "active"],
-    queryFn: () => adminTransactionHistoryService.fetchActiveFunds(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-}
-
-/**
- * Fetch paginated transactions with filters
- */
-export function useAdminTransactions(
-  filters: AdminTransactionFilters,
-  funds: FundOption[]
-) {
-  return useQuery({
-    queryKey: QUERY_KEYS.adminTransactionsHistory({
-      selectedFund: filters.fundId || "all",
-      selectedType: filters.type || "all",
-      dateFrom: filters.dateFrom || "",
-      dateTo: filters.dateTo || "",
-      page: filters.page || 0,
-      showVoided: filters.showVoided || false,
-    }),
-    queryFn: () => adminTransactionHistoryService.fetchTransactions(filters, funds),
-    enabled: funds.length > 0 || filters.fundId === "all" || !filters.fundId,
-  });
-}
+export * from "./admin/useAdminTransactionHistory";

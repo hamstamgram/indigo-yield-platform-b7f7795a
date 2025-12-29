@@ -45,7 +45,7 @@ import { EditTransactionDialog } from "@/components/admin/transactions/EditTrans
 import { useSortableColumns } from "@/hooks";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
-import { useActiveFunds, useAdminTransactions } from "@/hooks/data/useAdminTransactionHistory";
+import { useAdminActiveFunds, useAdminTransactions } from "@/hooks/data/useAdminTransactionHistory";
 
 import type { TransactionType, TransactionViewModel } from "@/types/domains/transaction";
 
@@ -73,7 +73,7 @@ function TransactionHistoryContent() {
   const [showVoided, setShowVoided] = useState(false);
 
   // Fetch active funds via hook
-  const { data: funds = [] } = useActiveFunds();
+  const { data: funds = [] } = useAdminActiveFunds();
 
   // Check URL for action=add to auto-open modal
   useEffect(() => {
