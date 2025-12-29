@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,9 +18,10 @@ import { Badge } from "@/components/ui/badge";
 import { formatAssetAmount } from "@/utils/assets";
 import PageHeader from "@/components/layout/PageHeader";
 import { format } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth/context";
-import { QUERY_KEYS } from "@/constants/queryKeys";
+import {
+  useInvestorTransactionAssets,
+  useInvestorTransactionsList,
+} from "@/hooks/data/useInvestorPortal";
 
 const TRANSACTION_TYPES = [
   { value: "all", label: "All Types" },
@@ -37,62 +37,13 @@ export default function InvestorTransactionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [assetFilter, setAssetFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
-  const { user } = useAuth();
 
-  // Fetch available assets for filter
-  const { data: assets } = useQuery({
-    queryKey: QUERY_KEYS.transactionAssets(user?.id),
-    queryFn: async () => {
-      if (!user) return [];
-
-      const { data } = await supabase
-        .from("transactions_v2")
-        .select("asset")
-        .eq("investor_id", user.id)
-        .eq("visibility_scope", "investor_visible");
-
-      const uniqueAssets = new Set<string>();
-      data?.forEach((d) => {
-        if (d.asset) uniqueAssets.add(d.asset);
-      });
-      return Array.from(uniqueAssets).sort();
-    },
-    enabled: !!user,
-  });
-
-  // Fetch transactions with filters
-  const { data: items, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.investorTransactions(user?.id || "", undefined),
-    queryFn: async () => {
-      if (!user) throw new Error("No user");
-
-      let query = supabase
-        .from("transactions_v2")
-        .select("*")
-        .eq("investor_id", user.id)
-        .eq("visibility_scope", "investor_visible");
-
-      if (searchTerm) {
-        query = query.or(`asset.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%`);
-      }
-
-      if (assetFilter !== "all") {
-        query = query.eq("asset", assetFilter);
-      }
-
-      if (typeFilter !== "all") {
-        query = query.eq("type", typeFilter as any);
-      }
-
-      const { data, error } = await query
-        .order("tx_date", { ascending: false })
-        .order("id", { ascending: false });
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
+  const { data: assets } = useInvestorTransactionAssets();
+  const { data: items, isLoading } = useInvestorTransactionsList(
+    searchTerm,
+    assetFilter,
+    typeFilter
+  );
 
   const columns = [
     {

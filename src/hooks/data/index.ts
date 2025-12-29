@@ -243,3 +243,47 @@ export {
   useUpdateMonthlyReportField,
   type MonthlyReport,
 } from "./useMonthlyReports";
+
+// System admin hooks
+export {
+  useResetHistory,
+  usePositionResetPreview,
+  useExecutePositionReset,
+  useAdminUsers,
+  useAdminUsersWithRoles,
+  useUpdateAdminRole,
+  useRemoveAdminRole,
+  useSendAdminInviteEmail,
+  useForceResetPassword,
+  useDeliveryQueueMetrics,
+  useDataIntegrityStatus,
+  type ResetLogEntry,
+  type PositionResetPreview,
+  type PositionResetResult,
+  type AdminProfile,
+  type AdminUser,
+  type DeliveryQueueMetrics,
+  type IntegrityData,
+  type IntegrityCheck,
+} from "./useSystemAdmin";
+
+// Investor portal hooks
+export {
+  useInvestorTransactionAssets,
+  useInvestorTransactionsList,
+  useMonthlyStatements,
+  useStatementYears,
+  useStatementAssets,
+  useDownloadStatement,
+  useInvestorProfileData,
+  useUserPreferences,
+  useSaveUserPreferences,
+  useActiveSessions,
+  useAccessLogs,
+  useRevokeSession,
+  type Session,
+  type AccessLog,
+  type UserSettings,
+  type InvestorProfile,
+  type MonthlyStatement,
+} from "./useInvestorPortal";

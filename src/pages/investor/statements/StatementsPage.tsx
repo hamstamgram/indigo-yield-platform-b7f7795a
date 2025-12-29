@@ -1,7 +1,4 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { QUERY_KEYS } from "@/constants/queryKeys";
-import { supabase } from "@/integrations/supabase/client";
 import { sanitizeHtml } from "@/utils/sanitize";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -17,6 +14,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { getAssetConfig, getAssetName } from "@/utils/assets";
 import { useToast } from "@/hooks";
+import {
+  useMonthlyStatements,
+  useStatementYears,
+  useStatementAssets,
+  useDownloadStatement,
+  type MonthlyStatement,
+} from "@/hooks/data/useInvestorPortal";
 
 const StatementsPage = () => {
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
@@ -24,112 +28,15 @@ const StatementsPage = () => {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Fetch user's statements from investor_fund_performance (V2)
   const {
     data: statements,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: QUERY_KEYS.monthlyStatements(parseInt(selectedYear), selectedAsset),
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user");
+  } = useMonthlyStatements(parseInt(selectedYear), selectedAsset);
 
-      // Query V2 Performance Table joined with Periods (reporting purpose only)
-      let query = supabase
-        .from("investor_fund_performance")
-        .select(`
-          id,
-          fund_name,
-          mtd_beginning_balance,
-          mtd_additions,
-          mtd_redemptions,
-          mtd_net_income,
-          mtd_ending_balance,
-          mtd_rate_of_return,
-          purpose,
-          period:statement_periods!inner(
-            year,
-            month,
-            period_end_date
-          )
-        `)
-        .eq("investor_id", user.id)
-        .eq("period.year", parseInt(selectedYear))
-        .eq("purpose", "reporting")
-        .order("period(period_end_date)", { ascending: false });
-
-      if (selectedAsset !== "all") {
-        query = query.eq("fund_name", selectedAsset);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-
-      // Transform data to match UI
-      return (data || []).map((record: any) => ({
-        id: record.id,
-        period_year: record.period.year,
-        period_month: record.period.month,
-        asset_code: record.fund_name,
-        begin_balance: record.mtd_beginning_balance?.toString() || "0",
-        additions: record.mtd_additions?.toString() || "0",
-        redemptions: record.mtd_redemptions?.toString() || "0",
-        net_income: record.mtd_net_income?.toString() || "0",
-        end_balance: record.mtd_ending_balance?.toString() || "0",
-        rate_of_return_mtd: record.mtd_rate_of_return?.toString() || "0",
-        report_month: record.period.period_end_date, // YYYY-MM-DD
-      }));
-    },
-  });
-
-  // Fetch available years
-  const { data: availableYears } = useQuery({
-    queryKey: QUERY_KEYS.statementYears,
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [new Date().getFullYear()];
-
-      // Get distinct years from periods linked to user performance
-      // Supabase doesn't support distinct on joined columns easily in one go via JS client usually
-      // Fetch all periods for user
-      const { data } = await supabase
-        .from("investor_fund_performance")
-        .select("period:statement_periods(year)")
-        .eq("investor_id", user.id);
-      
-      const years = new Set<number>();
-      data?.forEach((d: any) => {
-        if (d.period?.year) years.add(d.period.year);
-      });
-      
-      const sorted = Array.from(years).sort((a, b) => b - a);
-      return sorted.length > 0 ? sorted : [new Date().getFullYear()];
-    },
-  });
-
-  // Fetch available assets
-  const { data: availableAssets } = useQuery({
-    queryKey: QUERY_KEYS.statementAssets,
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
-
-      const { data } = await supabase
-        .from("investor_fund_performance")
-        .select("fund_name") // distinct not directly supported in select string easily without rpc sometimes
-        .eq("investor_id", user.id);
-
-      const assets = new Set<string>();
-      data?.forEach((d: any) => {
-        if (d.fund_name) assets.add(d.fund_name);
-      });
-      
-      return Array.from(assets).sort();
-    },
-  });
+  const { data: availableYears } = useStatementYears();
+  const { data: availableAssets } = useStatementAssets();
+  const downloadMutation = useDownloadStatement();
 
   const getMonthName = (month: number) => {
     const date = new Date(2000, month - 1, 1);
@@ -139,8 +46,6 @@ const StatementsPage = () => {
   const formatAssetAmount = (value: number, assetCode: string): string => {
     const config = getAssetConfig(assetCode);
     const decimals = config?.decimals || 4;
-    // Use symbol from config or fallback to code
-    // Ensure we don't use "$" for everything unless it's USD
     const symbol = config?.symbol || assetCode;
 
     return `${value.toLocaleString("en-US", {
@@ -149,36 +54,14 @@ const StatementsPage = () => {
     })} ${symbol}`;
   };
 
-  const handleDownload = async (statement: any) => {
+  const handleDownload = async (statement: MonthlyStatement) => {
     try {
       setDownloadingId(statement.id);
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      // Fetch the period_id for this statement
-      const { data: periodData } = await supabase
-        .from("statement_periods")
-        .select("id")
-        .eq("year", statement.period_year)
-        .eq("month", statement.period_month)
-        .single();
-
-      if (!periodData) {
-        throw new Error("Statement period not found");
-      }
-
-      // Fetch the generated statement HTML
-      const { data: generatedStatement, error: fetchError } = await supabase
-        .from("generated_statements")
-        .select("html_content")
-        .eq("period_id", periodData.id)
-        .eq("user_id", user.id)
-        .single();
-
-      if (fetchError || !generatedStatement?.html_content) {
-        throw new Error("Statement not yet generated. Please contact support.");
-      }
+      const htmlContent = await downloadMutation.mutateAsync({
+        periodYear: statement.period_year,
+        periodMonth: statement.period_month,
+      });
 
       // Add print-optimized CSS to the HTML
       const printStyles = `
@@ -190,8 +73,7 @@ const StatementsPage = () => {
         </style>
       `;
       
-      // Insert print styles before closing </head>
-      const htmlWithPrintStyles = generatedStatement.html_content.replace(
+      const htmlWithPrintStyles = htmlContent.replace(
         '</head>',
         `${printStyles}</head>`
       );
@@ -205,7 +87,6 @@ const StatementsPage = () => {
       printWindow.document.write(sanitizeHtml(htmlWithPrintStyles));
       printWindow.document.close();
 
-      // Wait for content to load, then trigger print dialog
       printWindow.onload = () => {
         setTimeout(() => {
           printWindow.print();
@@ -241,14 +122,12 @@ const StatementsPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <PageHeader 
         title="Monthly Statements" 
         subtitle="Access your monthly investment statements"
         icon={FileText}
       />
 
-      {/* Filters */}
       <Card>
         <CardHeader>
           <CardTitle>Filter Statements</CardTitle>
@@ -256,7 +135,6 @@ const StatementsPage = () => {
         </CardHeader>
         <CardContent>
           <div className="flex gap-4">
-            {/* Year Filter */}
             <div className="flex-1">
               <label className="text-sm font-medium mb-2 block">Year</label>
               <Select value={selectedYear} onValueChange={setSelectedYear}>
@@ -273,7 +151,6 @@ const StatementsPage = () => {
               </Select>
             </div>
 
-            {/* Asset Filter */}
             <div className="flex-1">
               <label className="text-sm font-medium mb-2 block">Asset</label>
               <Select value={selectedAsset} onValueChange={setSelectedAsset}>
@@ -294,11 +171,10 @@ const StatementsPage = () => {
         </CardContent>
       </Card>
 
-      {/* Statements List */}
       {error ? (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>Error loading statements: {error.message}</AlertDescription>
+          <AlertDescription>Error loading statements: {(error as Error).message}</AlertDescription>
         </Alert>
       ) : statements && statements.length > 0 ? (
         <div className="space-y-4">
@@ -405,7 +281,6 @@ const StatementsPage = () => {
         </Card>
       )}
 
-      {/* Info Card */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">About Monthly Statements</CardTitle>

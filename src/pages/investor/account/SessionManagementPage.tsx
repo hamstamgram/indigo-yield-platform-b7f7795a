@@ -1,76 +1,36 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Monitor, Shield, Clock } from "lucide-react";
 import { useToast } from "@/hooks";
-import { useAuth } from "@/lib/auth/context";
-
-interface SimpleSession {
-  id: string;
-  device_label: string | null;
-  user_agent: string | null;
-  created_at: string;
-  last_seen_at: string;
-}
-
-interface SimpleAccessLog {
-  id: string;
-  event: string;
-  created_at: string;
-  success: boolean;
-}
+import {
+  useActiveSessions,
+  useAccessLogs,
+  useRevokeSession,
+} from "@/hooks/data/useInvestorPortal";
 
 export default function SessionManagementPage() {
-  const { user } = useAuth();
-  const [sessions, setSessions] = useState<SimpleSession[]>([]);
-  const [accessLogs, setAccessLogs] = useState<SimpleAccessLog[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  
+  const { data: sessions = [], isLoading: sessionsLoading } = useActiveSessions();
+  const { data: accessLogs = [], isLoading: logsLoading } = useAccessLogs(20);
+  const revokeMutation = useRevokeSession();
 
-  useEffect(() => {
-    fetchSessionData();
-  }, []);
+  const loading = sessionsLoading || logsLoading;
 
-  const fetchSessionData = async () => {
+  const handleRevokeSession = async (sessionId: string) => {
     try {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      // Fetch sessions with basic data only
-      const { data: sessionData } = await supabase
-        .from("user_sessions")
-        .select("id, device_label, user_agent, created_at, last_seen_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (sessionData) {
-        setSessions(sessionData);
-      }
-
-      // Fetch access logs with basic data only
-      const { data: logsData } = await supabase
-        .from("access_logs")
-        .select("id, event, created_at, success")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      if (logsData) {
-        setAccessLogs(logsData);
-      }
+      await revokeMutation.mutateAsync(sessionId);
+      toast({
+        title: "Session revoked",
+        description: "The session has been successfully revoked.",
+      });
     } catch (error) {
-      console.error("Error fetching session data:", error);
       toast({
         title: "Error",
-        description: "Failed to load session data",
+        description: "Failed to revoke session",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -124,7 +84,12 @@ export default function SessionManagementPage() {
                       </span>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleRevokeSession(session.id)}
+                    disabled={revokeMutation.isPending}
+                  >
                     Revoke
                   </Button>
                 </div>
