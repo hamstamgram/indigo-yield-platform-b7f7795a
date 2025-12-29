@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { withdrawalService } from "@/services/investor/withdrawalService";
-import { supabase } from "@/integrations/supabase/client";
+import { useWithdrawalMutations } from "@/hooks/data/useWithdrawalMutations";
 import { toast } from "sonner";
 import { formatAssetAmount } from "@/utils/assets";
 import { Loader2, AlertTriangle, ArrowRightLeft } from "lucide-react";
@@ -38,6 +38,8 @@ export function ApproveWithdrawalDialog({
   const [confirmText, setConfirmText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [routeToFees, setRouteToFees] = useState(false);
+
+  const { routeToFeesMutation } = useWithdrawalMutations();
 
   // Reset state when dialog opens with new withdrawal
   useEffect(() => {
@@ -71,19 +73,14 @@ export function ApproveWithdrawalDialog({
       await withdrawalService.approveWithdrawal(withdrawal.id, amount, adminNotes);
       toast.success("Withdrawal approved successfully");
 
-      // If route to fees is checked, call the RPC
+      // If route to fees is checked, use the mutation
       if (routeToFees) {
-        const { error } = await supabase.rpc("route_withdrawal_to_fees", {
-          p_request_id: withdrawal.id,
-          p_reason: adminNotes ? `${adminNotes} (routed on approval)` : "Routed to INDIGO FEES on approval",
+        routeToFeesMutation.mutate({
+          withdrawalId: withdrawal.id,
+          reason: adminNotes ? `${adminNotes} (routed on approval)` : "Routed to INDIGO FEES on approval",
+          investorId: withdrawal.investor_id,
+          fundId: withdrawal.fund_id,
         });
-
-        if (error) {
-          console.error("Route to fees error:", error);
-          toast.error("Approved but failed to route to INDIGO FEES: " + error.message);
-        } else {
-          toast.success("Withdrawal routed to INDIGO FEES");
-        }
       }
 
       onSuccess();

@@ -85,3 +85,49 @@ export interface WithdrawalAuditLog {
   actor_name?: string;
   actor_email?: string;
 }
+
+// Types for withdrawal form data
+export interface InvestorOption {
+  id: string;
+  email: string;
+  displayName: string;
+}
+
+export interface InvestorPosition {
+  fund_id: string;
+  current_value: number;
+  shares: number;
+  fund: {
+    name: string;
+    code: string;
+    asset: string;
+  };
+}
+
+// Types for withdrawal mutations
+export interface CreateWithdrawalParams {
+  investorId: string;
+  fundId: string;
+  amount: number;
+  withdrawalType: "partial" | "full";
+  notes?: string;
+}
+
+export interface UpdateWithdrawalParams {
+  withdrawalId: string;
+  requestedAmount: number;
+  withdrawalType: string;
+  notes?: string;
+  reason: string;
+}
+
+export interface DeleteWithdrawalParams {
+  withdrawalId: string;
+  reason: string;
+  hardDelete?: boolean;
+}
+
+export interface RouteToFeesParams {
+  withdrawalId: string;
+  reason?: string;
+}
