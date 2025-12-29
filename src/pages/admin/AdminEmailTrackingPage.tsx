@@ -14,9 +14,7 @@
  */
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { QUERY_KEYS } from "@/constants/queryKeys";
+import { useEmailStats, useEmailDeliveries, type EmailFilters, type EmailDelivery } from "@/hooks/data/useEmailTracking";
 import {
   Mail,
   Send,
@@ -63,44 +61,6 @@ import {
 // TYPES & INTERFACES
 // =====================================================
 
-interface EmailDelivery {
-  id: string;
-  recipient_email: string;
-  subject: string;
-  status: string;
-  channel: string;
-  provider: string | null;
-  provider_message_id: string | null;
-  sent_at: string | null;
-  delivered_at: string | null;
-  opened_at: string | null;
-  clicked_at: string | null;
-  bounced_at: string | null;
-  failed_at: string | null;
-  error_message: string | null;
-  error_code: string | null;
-  bounce_type: string | null;
-  created_at: string;
-  investor_id: string;
-}
-
-interface EmailFilters {
-  search: string;
-  status: "all" | "PENDING" | "SENT" | "DELIVERED" | "OPENED" | "CLICKED" | "BOUNCED" | "FAILED";
-  dateFrom?: string;
-  dateTo?: string;
-}
-
-interface EmailStats {
-  totalSent: number;
-  delivered: number;
-  opened: number;
-  failed: number;
-  bounced: number;
-  successRate: number;
-  todayCount: number;
-}
-
 interface EmailPreviewDialog {
   open: boolean;
   delivery: EmailDelivery | null;
@@ -125,94 +85,8 @@ export default function AdminEmailTrackingPage() {
   // DATA FETCHING
   // =====================================================
 
-  // Fetch email statistics from statement_email_delivery
-  const { data: stats } = useQuery<EmailStats>({
-    queryKey: QUERY_KEYS.emailStats,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("statement_email_delivery")
-        .select("status, sent_at, created_at");
-
-      if (error) {
-        console.error("Error fetching email stats:", error);
-        return {
-          totalSent: 0,
-          delivered: 0,
-          opened: 0,
-          failed: 0,
-          bounced: 0,
-          successRate: 0,
-          todayCount: 0,
-        };
-      }
-
-      const today = new Date().toISOString().split("T")[0];
-
-      const stats: EmailStats = {
-        totalSent: data?.length || 0,
-        delivered: 0,
-        opened: 0,
-        failed: 0,
-        bounced: 0,
-        successRate: 0,
-        todayCount: 0,
-      };
-
-      data?.forEach((log) => {
-        if (log.status === "DELIVERED" || log.status === "SENT") stats.delivered++;
-        if (log.status === "OPENED" || log.status === "CLICKED") stats.opened++;
-        if (log.status === "FAILED") stats.failed++;
-        if (log.status === "BOUNCED") stats.bounced++;
-        const logDate = log.sent_at || log.created_at;
-        if (logDate && logDate.startsWith(today)) stats.todayCount++;
-      });
-
-      stats.successRate =
-        stats.totalSent > 0 ? Math.round((stats.delivered / stats.totalSent) * 100) : 0;
-
-      return stats;
-    },
-    refetchInterval: 30000,
-  });
-
-  // Fetch email deliveries
-  const { data: emailDeliveries, isLoading: logsLoading } = useQuery<EmailDelivery[]>({
-    queryKey: QUERY_KEYS.emailDeliveries(filters as unknown as Record<string, unknown>),
-    queryFn: async () => {
-      let query = supabase
-        .from("statement_email_delivery")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(100);
-
-      if (filters.status !== "all") {
-        query = query.eq("status", filters.status);
-      }
-
-      if (filters.search) {
-        query = query.or(
-          `recipient_email.ilike.%${filters.search}%,subject.ilike.%${filters.search}%`
-        );
-      }
-
-      if (filters.dateFrom) {
-        query = query.gte("created_at", filters.dateFrom);
-      }
-
-      if (filters.dateTo) {
-        query = query.lte("created_at", filters.dateTo);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error("Error fetching email deliveries:", error);
-        return [];
-      }
-
-      return data || [];
-    },
-  });
+  const { data: stats } = useEmailStats();
+  const { data: emailDeliveries, isLoading: logsLoading } = useEmailDeliveries(filters);
 
   // =====================================================
   // EVENT HANDLERS
@@ -506,27 +380,23 @@ export default function AdminEmailTrackingPage() {
                   <p className="text-sm font-medium text-muted-foreground">Opened</p>
                   <p>{formatDate(previewDialog.delivery.opened_at)}</p>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Provider</p>
-                  <p>{previewDialog.delivery.provider || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Channel</p>
-                  <p>{previewDialog.delivery.channel}</p>
-                </div>
               </div>
+
               {previewDialog.delivery.error_message && (
-                <div className="p-3 bg-destructive/10 rounded-lg">
+                <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
                   <p className="text-sm font-medium text-destructive">Error</p>
-                  <p className="text-sm">{previewDialog.delivery.error_message}</p>
+                  <p className="text-sm text-destructive/80">{previewDialog.delivery.error_message}</p>
                   {previewDialog.delivery.error_code && (
-                    <p className="text-xs text-muted-foreground mt-1">Code: {previewDialog.delivery.error_code}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Code: {previewDialog.delivery.error_code}
+                    </p>
                   )}
                 </div>
               )}
+
               {previewDialog.delivery.bounce_type && (
-                <div className="p-3 bg-orange-500/10 rounded-lg">
-                  <p className="text-sm font-medium text-orange-600">Bounce Type</p>
+                <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                  <p className="text-sm font-medium text-amber-600">Bounce Type</p>
                   <p className="text-sm">{previewDialog.delivery.bounce_type}</p>
                 </div>
               )}

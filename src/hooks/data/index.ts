@@ -304,3 +304,28 @@ export {
   type DeliveryDiagnostics,
   type ExclusionBreakdown,
 } from "./useDashboardMetrics";
+
+// Email tracking hooks
+export {
+  useEmailStats,
+  useEmailDeliveries,
+  type EmailStats,
+  type EmailDelivery,
+  type EmailFilters,
+} from "./useEmailTracking";
+
+// Operations hub hooks
+export {
+  useRecentAuditLogs,
+  useOperationsRealtime,
+  type AuditLogEntry,
+} from "./useOperationsHub";
+
+// Investor settings hooks
+export {
+  useInvestorProfileSettings,
+  useDeleteInvestorProfile,
+  useInvestorReportPeriods,
+  type InvestorProfileData,
+  type ReportPeriod,
+} from "./useInvestorSettings";
