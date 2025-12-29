@@ -34,6 +34,9 @@ export * from "./delivery";
 // Integrity domain
 export * from "./integrity";
 
+// Requests domain
+export * from "./requests";
+
 // ============================================================================
 // Common Utility Types
 // ============================================================================
