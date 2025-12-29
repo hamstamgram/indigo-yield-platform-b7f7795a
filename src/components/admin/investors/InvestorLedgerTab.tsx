@@ -50,9 +50,9 @@ import {
   Lock,
 } from "lucide-react";
 import { toast } from "@/hooks";
-import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { useUrlFilters, useInvestorLedger } from "@/hooks";
+import { useUrlFilters, useInvestorLedger, useInvestorDefaultFund } from "@/hooks";
+import { useLedgerSubscription } from "@/hooks/data/useRealtimeSubscription";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
 import { EditTransactionDialog } from "@/components/admin/transactions/EditTransactionDialog";
 import { VoidTransactionDialog } from "@/components/admin/transactions/VoidTransactionDialog";
@@ -89,7 +89,6 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
   const [showFilters, setShowFilters] = useState(false);
   const [showVoided, setShowVoided] = useState(false);
   const [addTxDialogOpen, setAddTxDialogOpen] = useState(false);
-  const [defaultFundId, setDefaultFundId] = useState<string>("");
   
   // Edit and Void dialog state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -128,43 +127,14 @@ export function InvestorLedgerTab({ investorId, investorName, onDataChange }: In
   // Also fetch unfiltered count to show filter impact
   const { transactions: unfilteredTransactions } = useInvestorLedger(investorId, { showVoided: true });
 
-  // Fetch default fund for this investor
-  useEffect(() => {
-    const fetchDefaultFund = async () => {
-      const { data } = await supabase
-        .from("investor_positions")
-        .select("fund_id")
-        .eq("investor_id", investorId)
-        .limit(1)
-        .maybeSingle();
-      if (data?.fund_id) setDefaultFundId(data.fund_id);
-    };
-    fetchDefaultFund();
-  }, [investorId]);
+  // Use React Query hook for default fund
+  const { data: defaultFundId = "" } = useInvestorDefaultFund(investorId);
 
-  // Subscribe to real-time updates
-  useEffect(() => {
-    const channel = supabase
-      .channel(`ledger-${investorId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "transactions_v2",
-          filter: `investor_id=eq.${investorId}`,
-        },
-        () => {
-          invalidateAll();
-          onDataChange?.();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [investorId, invalidateAll, onDataChange]);
+  // Subscribe to real-time updates using the hook
+  useLedgerSubscription(investorId, () => {
+    invalidateAll();
+    onDataChange?.();
+  });
 
   const handleAddTxSuccess = useCallback(() => {
     invalidateAll();

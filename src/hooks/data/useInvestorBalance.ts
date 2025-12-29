@@ -31,6 +31,31 @@ export function useInvestorBalance(investorId: string | undefined, fundId: strin
 }
 
 /**
+ * Hook to check if an investor has deposit transaction history in a fund
+ */
+export function useTransactionHistory(investorId: string | undefined, fundId: string | undefined) {
+  return useQuery<boolean, Error>({
+    queryKey: investorId && fundId 
+      ? ["transaction-history", investorId, fundId] 
+      : ["transaction-history"],
+    queryFn: async () => {
+      if (!investorId || !fundId) return false;
+
+      const { count, error } = await supabase
+        .from("transactions_v2")
+        .select("id", { count: "exact", head: true })
+        .eq("investor_id", investorId)
+        .eq("fund_id", fundId)
+        .eq("type", "DEPOSIT");
+
+      if (error) throw error;
+      return (count ?? 0) > 0;
+    },
+    enabled: !!investorId && !!fundId,
+  });
+}
+
+/**
  * Hook to check if AUM exists for a fund on a specific date
  */
 export function useAUMExists(fundId: string | undefined, txDate: string | undefined) {

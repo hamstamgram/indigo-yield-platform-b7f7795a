@@ -128,6 +128,7 @@ export {
 export {
   useInvestorBalance,
   useAUMExists,
+  useTransactionHistory,
 } from "./useInvestorBalance";
 
 // Active funds hooks
