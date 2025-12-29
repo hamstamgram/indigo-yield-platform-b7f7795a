@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { OperationsStats } from "@/components/admin/operations/OperationsStats";
 import { QuickLinksGrid, QuickLink } from "@/components/admin/operations/QuickLinksGrid";
@@ -21,13 +21,12 @@ import {
   Database,
   Mail,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { operationsService, type PendingBreakdown } from "@/services/operations/operationsService";
 import { getSystemHealth, type SystemHealth } from "@/services/core/systemHealthService";
+import { useRecentAuditLogs, useOperationsRealtime, type AuditLogEntry } from "@/hooks/data/useOperationsHub";
 
 function AdminOperationsHubContent() {
-  const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
   const [metrics, setMetrics] = useState({
     pendingApprovals: 0,
     todaysTransactions: 0,
@@ -43,105 +42,22 @@ function AdminOperationsHubContent() {
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(true);
   const [systemStatus, setSystemStatus] = useState<SystemHealth[]>([]);
 
-  // Ref for debounce timer to prevent cascading real-time updates
-  const metricsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Use the audit logs hook
+  const { data: auditLogs, refetch: refetchAuditLogs } = useRecentAuditLogs(10);
 
-  // Debounced metrics loader to prevent cascading queries from real-time updates
-  const debouncedLoadMetrics = useCallback(() => {
-    if (metricsTimerRef.current) {
-      clearTimeout(metricsTimerRef.current);
-    }
-    metricsTimerRef.current = setTimeout(() => {
-      loadMetrics();
-    }, 1000); // 1 second debounce
-  }, []);
+  // Transform audit logs to activity items
+  const recentActivities: ActivityItem[] = (auditLogs || []).map((log: AuditLogEntry) => ({
+    id: log.id,
+    type: log.action,
+    title: `${log.action} on ${log.entity}`,
+    description: log.entity_id || "System operation",
+    timestamp: new Date(log.created_at),
+    status: "success" as const,
+    icon: getActivityIcon(log.action),
+    user: log.actor_user || undefined,
+  }));
 
-  useEffect(() => {
-    loadRecentActivities();
-    loadMetrics();
-    loadSystemHealth();
-
-    // Set up real-time subscriptions for automatic updates (debounced)
-    const channel = supabase
-      .channel("operations-updates")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "withdrawal_requests",
-        },
-        () => {
-          debouncedLoadMetrics();
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "deposits",
-        },
-        () => {
-          debouncedLoadMetrics();
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "investments",
-        },
-        () => {
-          debouncedLoadMetrics();
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "transactions_v2",
-        },
-        () => {
-          debouncedLoadMetrics();
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "profiles",
-        },
-        () => {
-          debouncedLoadMetrics();
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "investor_positions",
-        },
-        () => {
-          debouncedLoadMetrics();
-        }
-      )
-      .subscribe();
-
-    // Cleanup subscription and timer on unmount
-    return () => {
-      if (metricsTimerRef.current) {
-        clearTimeout(metricsTimerRef.current);
-      }
-      supabase.removeChannel(channel);
-    };
-  }, [debouncedLoadMetrics]);
-
-  const loadMetrics = async () => {
+  const loadMetrics = useCallback(async () => {
     setIsLoadingMetrics(true);
     try {
       const [metricsData, yesterdayCount] = await Promise.all([
@@ -169,7 +85,7 @@ function AdminOperationsHubContent() {
     } finally {
       setIsLoadingMetrics(false);
     }
-  };
+  }, []);
 
   const loadSystemHealth = async () => {
     try {
@@ -180,42 +96,16 @@ function AdminOperationsHubContent() {
     }
   };
 
-  const loadRecentActivities = async () => {
-    try {
-      // Fetch recent audit log entries
-      const { data, error } = await supabase
-        .from("audit_log")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(10);
+  // Use realtime hook for automatic updates
+  useOperationsRealtime(() => {
+    loadMetrics();
+    refetchAuditLogs();
+  });
 
-      if (error) throw error;
-
-      const activities: ActivityItem[] = (data || []).map((log) => ({
-        id: log.id,
-        type: log.action,
-        title: `${log.action} on ${log.entity}`,
-        description: log.entity_id || "System operation",
-        timestamp: new Date(log.created_at),
-        status: "success" as const,
-        icon: getActivityIcon(log.action),
-        user: log.actor_user || undefined,
-      }));
-
-      setRecentActivities(activities);
-    } catch (error: any) {
-      console.error("Error loading activities:", error);
-      toast.error("Failed to load recent activities");
-    }
-  };
-
-  const getActivityIcon = (action: string) => {
-    if (action.includes("create") || action.includes("insert")) return Upload;
-    if (action.includes("update")) return FileCheck;
-    if (action.includes("delete")) return AlertCircle;
-    if (action.includes("approve")) return CheckCircle;
-    return Database;
-  };
+  useEffect(() => {
+    loadMetrics();
+    loadSystemHealth();
+  }, [loadMetrics]);
 
   const stats = [
     {
@@ -363,6 +253,14 @@ function AdminOperationsHubContent() {
       </div>
     </div>
   );
+}
+
+function getActivityIcon(action: string) {
+  if (action.includes("create") || action.includes("insert")) return Upload;
+  if (action.includes("update")) return FileCheck;
+  if (action.includes("delete")) return AlertCircle;
+  if (action.includes("approve")) return CheckCircle;
+  return Database;
 }
 
 export default function AdminOperationsHub() {

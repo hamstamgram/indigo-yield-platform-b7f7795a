@@ -3,7 +3,7 @@
  * Sections: Profile, IB Settings, Fee Schedule, Danger Zone
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,23 +20,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { AlertTriangle, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
 import { InvestorProfileEditor } from "./InvestorProfileEditor";
 import { IBSettingsSection } from "./IBSettingsSection";
 import { InvestorFeeManager } from "./InvestorFeeManager";
 import { ReportRecipientsEditor } from "./ReportRecipientsEditor";
-
-interface InvestorData {
-  id: string;
-  name: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string | null;
-  status: string;
-  created_at: string | null;
-}
+import { useInvestorProfileSettings, useDeleteInvestorProfile } from "@/hooks/data/useInvestorSettings";
 
 interface InvestorSettingsPanelProps {
   investorId: string;
@@ -55,40 +44,10 @@ export function InvestorSettingsPanel({
   const { isSuperAdmin } = useSuperAdmin();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteConfirmStep, setDeleteConfirmStep] = useState(1);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [investor, setInvestor] = useState<InvestorData | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadInvestorProfile();
-  }, [investorId]);
-
-  const loadInvestorProfile = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, email, phone, status, created_at")
-        .eq("id", investorId)
-        .single();
-
-      if (error) throw error;
-
-      setInvestor({
-        id: data.id,
-        name: `${data.first_name || ""} ${data.last_name || ""}`.trim() || "Unknown",
-        firstName: data.first_name || "",
-        lastName: data.last_name || "",
-        email: data.email || "",
-        phone: data.phone,
-        status: data.status || "active",
-        created_at: data.created_at,
-      });
-    } catch (error) {
-      console.error("Error loading investor profile:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Use hooks for data fetching and mutations
+  const { data: investor, isLoading: loading, refetch: refetchProfile } = useInvestorProfileSettings(investorId);
+  const deleteProfileMutation = useDeleteInvestorProfile();
 
   const handleDeleteInvestor = async () => {
     if (deleteConfirmStep < 2) {
@@ -96,22 +55,14 @@ export function InvestorSettingsPanel({
       return;
     }
 
-    setIsDeleting(true);
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .delete()
-        .eq("id", investorId);
-
-      if (error) throw error;
-
+      await deleteProfileMutation.mutateAsync(investorId);
       toast.success("Investor deleted successfully");
       navigate("/admin/investors");
     } catch (error: any) {
       console.error("Error deleting investor:", error);
       toast.error(error.message || "Failed to delete investor");
     } finally {
-      setIsDeleting(false);
       setShowDeleteDialog(false);
       setDeleteConfirmStep(1);
     }
@@ -125,7 +76,7 @@ export function InvestorSettingsPanel({
   };
 
   const handleProfileUpdate = () => {
-    loadInvestorProfile();
+    refetchProfile();
     onDataChange?.();
   };
 
@@ -258,13 +209,13 @@ export function InvestorSettingsPanel({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteProfileMutation.isPending}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteInvestor}
-              disabled={isDeleting}
+              disabled={deleteProfileMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? (
+              {deleteProfileMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Deleting...
