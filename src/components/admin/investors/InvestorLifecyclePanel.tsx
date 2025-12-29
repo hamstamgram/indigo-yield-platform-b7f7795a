@@ -1,3 +1,8 @@
+/**
+ * Investor Lifecycle Panel
+ * Manages investor status, position locking, and cleanup operations
+ */
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +11,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar, Clock, User, UserX, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  useUpdateInvestorStatus,
+  useLockPositions,
+  useCleanupInactiveInvestors,
+} from "@/hooks/admin";
 
 const InvestorLifecyclePanel = () => {
   const [selectedInvestor] = useState<string>("");
@@ -14,136 +23,89 @@ const InvestorLifecyclePanel = () => {
   const [exitDate, setExitDate] = useState<string>("");
   const [lockUntilDate, setLockUntilDate] = useState<string>("");
   const [reason, setReason] = useState<string>("");
-  const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
-  const handleUpdateInvestorStatus = async (
-    investorId: string, // This is profile.id
+  // React Query mutations
+  const updateStatusMutation = useUpdateInvestorStatus();
+  const lockPositionsMutation = useLockPositions();
+  const cleanupMutation = useCleanupInactiveInvestors();
+
+  const isProcessing =
+    updateStatusMutation.isPending ||
+    lockPositionsMutation.isPending ||
+    cleanupMutation.isPending;
+
+  const handleUpdateInvestorStatus = (
+    investorId: string,
     status: "active" | "inactive" | "suspended" | "exited"
   ) => {
-    try {
-      setIsProcessing(true);
-
-      const { error } = await supabase
-        .from("profiles") // Update profiles table
-        .update({
-          status,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", investorId); // Use profile id
-
-      if (error) throw error;
-
-      toast({
-        title: "Status Updated",
-        description: `Investor status changed to ${status}`,
-      });
-    } catch (error) {
-      console.error("Error updating investor status:", error);
-      toast({
-        title: "Update Failed",
-        description: "Failed to update investor status",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleLockPositions = async (investorId: string, lockUntil: string) => {
-    try {
-      setIsProcessing(true);
-
-      const { error } = await supabase
-        .from("investor_positions")
-        .update({ lock_until_date: lockUntil })
-        .eq("investor_id", investorId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Positions Locked",
-        description: `Positions locked until ${lockUntil}`,
-      });
-    } catch (error) {
-      console.error("Error locking positions:", error);
-      toast({
-        title: "Lock Failed",
-        description: "Failed to lock investor positions",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleCleanupInactiveInvestors = async () => {
-    try {
-      setIsProcessing(true);
-
-      // Get profiles with zero balance and inactive for 90+ days
-      const { data: inactiveProfiles, error: fetchError } = await supabase
-        .from("profiles")
-        .select(
-          `
-          id,
-          first_name,
-          last_name,
-          email,
-          updated_at,
-          investor_positions!left (
-            current_value
-          )
-        `
-        )
-        .eq("status", "inactive")
-        .eq("is_admin", false) // Exclude admins
-        .lt("updated_at", new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString());
-
-      if (fetchError) throw fetchError;
-
-      const profilesToCleanup =
-        inactiveProfiles?.filter((profile) =>
-          profile.investor_positions.every((pos: any) => pos.current_value <= 0)
-        ) || [];
-
-      if (profilesToCleanup.length === 0) {
-        toast({
-          title: "No Cleanup Needed",
-          description: "No inactive profiles found for cleanup",
-        });
-        return;
+    updateStatusMutation.mutate(
+      { investorId, status },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Status Updated",
+            description: `Investor status changed to ${status}`,
+          });
+        },
+        onError: (error) => {
+          console.error("Error updating investor status:", error);
+          toast({
+            title: "Update Failed",
+            description: "Failed to update investor status",
+            variant: "destructive",
+          });
+        },
       }
+    );
+  };
 
-      // Archive profiles instead of deleting (update status)
-      for (const profile of profilesToCleanup) {
-        const { error } = await supabase
-          .from("profiles")
-          .update({
-            status: "archived",
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", profile.id);
+  const handleLockPositions = (investorId: string, lockUntil: string) => {
+    lockPositionsMutation.mutate(
+      { investorId, lockUntil, reason },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Positions Locked",
+            description: `Positions locked until ${lockUntil}`,
+          });
+        },
+        onError: (error) => {
+          console.error("Error locking positions:", error);
+          toast({
+            title: "Lock Failed",
+            description: "Failed to lock investor positions",
+            variant: "destructive",
+          });
+        },
+      }
+    );
+  };
 
-        if (error) {
-          console.error(`Failed to archive profile ${profile.id}:`, error);
+  const handleCleanupInactiveInvestors = () => {
+    cleanupMutation.mutate(undefined, {
+      onSuccess: (result) => {
+        if (result.archivedCount === 0) {
+          toast({
+            title: "No Cleanup Needed",
+            description: "No inactive profiles found for cleanup",
+          });
+        } else {
+          toast({
+            title: "Cleanup Complete",
+            description: `Archived ${result.archivedCount} inactive profiles`,
+          });
         }
-      }
-
-      toast({
-        title: "Cleanup Complete",
-        description: `Archived ${profilesToCleanup.length} inactive profiles`,
-      });
-    } catch (error) {
-      console.error("Error during cleanup:", error);
-      toast({
-        title: "Cleanup Failed",
-        description: "Failed to cleanup inactive profiles",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+      },
+      onError: (error) => {
+        console.error("Error during cleanup:", error);
+        toast({
+          title: "Cleanup Failed",
+          description: "Failed to cleanup inactive profiles",
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   return (
@@ -287,7 +249,7 @@ const InvestorLifecyclePanel = () => {
             disabled={isProcessing}
             className="w-full"
           >
-            {isProcessing ? "Processing..." : "Run Cleanup for Inactive Investors"}
+            {cleanupMutation.isPending ? "Processing..." : "Run Cleanup for Inactive Investors"}
           </Button>
         </CardContent>
       </Card>
