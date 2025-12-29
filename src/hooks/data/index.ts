@@ -329,3 +329,35 @@ export {
   type InvestorProfileData,
   type ReportPeriod,
 } from "./useInvestorSettings";
+
+// Auth flow hooks
+export {
+  useSignIn,
+  useSignOut,
+  useRequestPasswordReset,
+  useResetPassword,
+  useVerifyInvestorInvite,
+  useVerifyAdminInvite,
+  useAcceptInvestorInvite,
+  useAcceptAdminInvite,
+  useCheckAuthSession,
+  useSetSessionFromTokens,
+  type InviteDetails,
+  type UserMetadata,
+  type SignInResult,
+} from "./useAuthFlow";
+
+// Profile settings hooks
+export {
+  usePersonalInfo,
+  useUpdatePersonalInfo,
+  useNotificationPreferences,
+  useUpdateNotificationPreferences,
+  useChangePassword,
+  useUserEmail,
+  useSaveLocalPreferences,
+  useLocalPreferences,
+  type PersonalInfo,
+  type NotificationPreferences,
+  DEFAULT_NOTIFICATION_PREFERENCES,
+} from "./useProfileSettings";

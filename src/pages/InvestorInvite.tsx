@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { useVerifyInvestorInvite, useAcceptInvestorInvite } from "@/hooks/data/useAuthFlow";
 
 const InvestorInvite = () => {
   const [searchParams] = useSearchParams();
@@ -21,91 +21,13 @@ const InvestorInvite = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [validInvite, setValidInvite] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState("");
 
-  // Verify the invite code
-  useEffect(() => {
-    const verifyInvite = async () => {
-      if (!inviteCode) {
-        setValidInvite(false);
-        setError("Invalid invitation link. No code provided.");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from("investor_invites" as any)
-          .select("*")
-          .eq("invite_code", inviteCode)
-          .maybeSingle();
-
-        const inviteData = data as unknown as { email: string; used: boolean; expires_at: string } | null;
-
-        if (error || !inviteData) {
-          console.error("Error verifying invite:", error);
-          setValidInvite(false);
-          setError("Invalid invitation link. The invitation may have expired or been used.");
-          setLoading(false);
-          return;
-        }
-
-        // Check if invite has been used
-        if (inviteData.used) {
-          setValidInvite(false);
-          setError("This invitation has already been used.");
-          setLoading(false);
-          return;
-        }
-
-        // Check if invite has expired
-        const now = new Date();
-        const expiryDate = new Date(inviteData.expires_at);
-        if (now > expiryDate) {
-          setValidInvite(false);
-          setError("This invitation has expired.");
-          setLoading(false);
-          return;
-        }
-
-        // Valid invite
-        setValidInvite(true);
-        setInviteEmail(inviteData.email);
-        setLoading(false);
-      } catch (err) {
-        console.error("Error in invite verification:", err);
-        setValidInvite(false);
-        setError("An error occurred while verifying your invitation.");
-        setLoading(false);
-      }
-    };
-
-    verifyInvite();
-  }, [inviteCode]);
-
-  // Wait for profile to be created by Supabase trigger
-  const waitForProfile = async (userId: string, maxAttempts = 10): Promise<boolean> => {
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("id", userId)
-        .maybeSingle();
-      
-      if (profile) return true;
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-    return false;
-  };
+  const { data: inviteData, isLoading, error: verifyError } = useVerifyInvestorInvite(inviteCode);
+  const acceptMutation = useAcceptInvestorInvite();
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -130,77 +52,15 @@ const InvestorInvite = () => {
       return;
     }
 
-    setSubmitting(true);
+    if (!inviteCode || !inviteData?.email) return;
 
-    try {
-      // 1. Sign up the user
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: inviteEmail,
-        password: password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-          },
-        },
-      });
-
-      if (signUpError) throw signUpError;
-      
-      const userId = signUpData.user?.id;
-      if (!userId) throw new Error("User ID not returned from signup");
-
-      // 2. Update the invite to mark it as used
-      const { error: updateError } = await supabase
-        .from("investor_invites" as any)
-        .update({ used: true, used_at: new Date().toISOString() })
-        .eq("invite_code", inviteCode || "");
-
-      if (updateError) throw updateError;
-
-      // 3. Wait for profile to be created by Supabase trigger
-      const profileExists = await waitForProfile(userId);
-      if (!profileExists) {
-        console.warn("Profile not created in time, proceeding anyway");
-      }
-
-      // 4. Update profile with name (is_admin defaults to false)
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ 
-          first_name: firstName,
-          last_name: lastName
-        })
-        .eq("id", userId);
-
-      if (profileError) {
-        console.error("Error updating profile:", profileError);
-        // Don't throw - continue
-      }
-
-      // Success
-      setSuccess(true);
-      toast({
-        title: "Account Created",
-        description: "Your investor account has been created successfully.",
-      });
-
-      // Redirect to dashboard after a delay
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 3000);
-    } catch (err: any) {
-      console.error("Error creating investor account:", err);
-      setError(err.message || "An error occurred while creating your account.");
-      toast({
-        title: "Error",
-        description: err.message || "An error occurred while creating your account.",
-        variant: "destructive",
-      });
-    } finally {
-      setSubmitting(false);
-    }
+    acceptMutation.mutate({
+      inviteCode,
+      email: inviteData.email,
+      password,
+      firstName,
+      lastName,
+    });
   };
 
   // Handle navigation to login
@@ -208,13 +68,16 @@ const InvestorInvite = () => {
     navigate("/login");
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
+
+  const validInvite = !!inviteData && !verifyError;
+  const errorMessage = verifyError?.message || (!inviteCode ? "Invalid invitation link. No code provided." : null);
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4 bg-background">
@@ -236,11 +99,11 @@ const InvestorInvite = () => {
         </CardHeader>
 
         <CardContent>
-          {validInvite && !success ? (
+          {validInvite && !acceptMutation.isSuccess ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" value={inviteEmail} disabled readOnly className="bg-muted" />
+                <Input id="email" value={inviteData.email} disabled readOnly className="bg-muted" />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -287,12 +150,12 @@ const InvestorInvite = () => {
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={submitting}>
-                {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+              <Button type="submit" className="w-full" disabled={acceptMutation.isPending}>
+                {acceptMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
                 Create Investor Account
               </Button>
             </form>
-          ) : success ? (
+          ) : acceptMutation.isSuccess ? (
             <div className="text-center py-4 space-y-4">
               <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto" />
               <p className="text-lg font-medium">Account Created Successfully</p>
@@ -304,7 +167,7 @@ const InvestorInvite = () => {
             <div className="text-center py-4 space-y-4">
               <XCircle className="h-16 w-16 text-red-500 mx-auto" />
               <p className="text-lg font-medium">Invalid Invitation</p>
-              <p className="text-muted-foreground">{error}</p>
+              <p className="text-muted-foreground">{errorMessage}</p>
             </div>
           )}
         </CardContent>

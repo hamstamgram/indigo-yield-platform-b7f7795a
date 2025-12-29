@@ -4,103 +4,30 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks";
-import { useAuth } from "@/lib/auth/context";
-import { supabase } from "@/integrations/supabase/client";
 import { Bell, Mail, FileText, TrendingUp, AlertTriangle } from "lucide-react";
-
-interface NotificationPreferences {
-  emailStatements: boolean;
-  emailPerformance: boolean;
-  emailAlerts: boolean;
-  emailMarketing: boolean;
-  pushEnabled: boolean;
-  digestFrequency: "daily" | "weekly" | "monthly";
-}
-
-const defaultPreferences: NotificationPreferences = {
-  emailStatements: true,
-  emailPerformance: true,
-  emailAlerts: true,
-  emailMarketing: false,
-  pushEnabled: true,
-  digestFrequency: "weekly",
-};
+import {
+  useNotificationPreferences,
+  useUpdateNotificationPreferences,
+  type NotificationPreferences,
+  DEFAULT_NOTIFICATION_PREFERENCES,
+} from "@/hooks/data/useProfileSettings";
 
 const NotificationSettingsPage = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const [preferences, setPreferences] = useState<NotificationPreferences>(defaultPreferences);
-  const [saving, setSaving] = useState(false);
+  const { data: savedPreferences, isLoading } = useNotificationPreferences();
+  const updateMutation = useUpdateNotificationPreferences();
+
+  const [preferences, setPreferences] = useState<NotificationPreferences>(
+    DEFAULT_NOTIFICATION_PREFERENCES
+  );
 
   useEffect(() => {
-    const loadPreferences = async () => {
-      if (!user) return;
-
-      try {
-        const { data } = await supabase
-          .from("profiles")
-          .select("preferences")
-          .eq("id", user.id)
-          .single();
-
-        const prefs = data?.preferences as Record<string, unknown> | null;
-        if (prefs && typeof prefs === "object" && "notifications" in prefs) {
-          const notifications = (prefs as any).notifications as Partial<NotificationPreferences>;
-          setPreferences((prev) => ({
-            ...prev,
-            ...notifications,
-          }));
-        }
-      } catch (error) {
-        console.error("Failed to load notification preferences:", error);
-      }
-    };
-
-    loadPreferences();
-  }, [user]);
+    if (savedPreferences) {
+      setPreferences(savedPreferences);
+    }
+  }, [savedPreferences]);
 
   const handleSave = async () => {
-    if (!user) return;
-
-    setSaving(true);
-    try {
-      // Fetch current preferences first
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("preferences")
-        .eq("id", user.id)
-        .single();
-
-      const currentPrefs = (profile?.preferences as Record<string, unknown>) || {};
-
-      // Merge notification preferences
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          preferences: {
-            ...currentPrefs,
-            notifications: preferences,
-          } as any,
-        })
-        .eq("id", user.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Preferences saved",
-        description: "Your notification preferences have been updated.",
-      });
-    } catch (error) {
-      console.error("Failed to save preferences:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save preferences. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
+    updateMutation.mutate(preferences);
   };
 
   const updatePreference = <K extends keyof NotificationPreferences>(
@@ -109,6 +36,14 @@ const NotificationSettingsPage = () => {
   ) => {
     setPreferences((prev) => ({ ...prev, [key]: value }));
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -226,8 +161,8 @@ const NotificationSettingsPage = () => {
         </Card>
 
         <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Saving..." : "Save Preferences"}
+          <Button onClick={handleSave} disabled={updateMutation.isPending}>
+            {updateMutation.isPending ? "Saving..." : "Save Preferences"}
           </Button>
         </div>
       </div>

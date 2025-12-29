@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Save, Loader2, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,9 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks";
-import { useAuth } from "@/lib/auth/context";
-import { supabase } from "@/integrations/supabase/client";
+import { usePersonalInfo, useUpdatePersonalInfo } from "@/hooks/data/useProfileSettings";
 
 interface PersonalInfoForm {
   firstName: string;
@@ -28,8 +26,8 @@ interface PersonalInfoForm {
 }
 
 export default function PersonalInfoTab() {
-  const { user } = useAuth();
-  const { toast } = useToast();
+  const { data: profileData, isLoading } = usePersonalInfo();
+  const updateMutation = useUpdatePersonalInfo();
 
   const [formData, setFormData] = useState<PersonalInfoForm>({
     firstName: "",
@@ -43,92 +41,36 @@ export default function PersonalInfoTab() {
     country: "US",
   });
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
   useEffect(() => {
-    loadProfileData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
-
-  const loadProfileData = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data) {
-        setFormData({
-          firstName: data.first_name || "",
-          lastName: data.last_name || "",
-          phone: data.phone || "",
-          dateOfBirth: "",
-          address: "",
-          city: "",
-          state: "",
-          postalCode: "",
-          country: "US",
-        });
-      }
-    } catch (error) {
-      console.error("Failed to load profile:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load your profile information",
-        variant: "destructive",
+    if (profileData) {
+      setFormData({
+        firstName: profileData.first_name || "",
+        lastName: profileData.last_name || "",
+        phone: profileData.phone || "",
+        dateOfBirth: "",
+        address: "",
+        city: "",
+        state: "",
+        postalCode: "",
+        country: "US",
       });
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [profileData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!user) return;
-
-    setSaving(true);
-
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          phone: formData.phone,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Your personal information has been updated",
-      });
-    } catch (error) {
-      console.error("Failed to update profile:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update your personal information",
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
+    updateMutation.mutate({
+      first_name: formData.firstName,
+      last_name: formData.lastName,
+      phone: formData.phone,
+    });
   };
 
   const handleChange = (field: keyof PersonalInfoForm, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -264,8 +206,8 @@ export default function PersonalInfoTab() {
 
             {/* Action Buttons */}
             <div className="flex justify-end pt-6 border-t">
-              <Button type="submit" disabled={saving}>
-                {saving ? (
+              <Button type="submit" disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Saving...

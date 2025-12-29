@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell, Globe, Mail, Save, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks";
-import { supabase } from "@/integrations/supabase/client";
+import { useLocalPreferences, useSaveLocalPreferences } from "@/hooks/data/useProfileSettings";
 
 interface PreferencesData {
   // Notifications
@@ -35,78 +34,42 @@ interface PreferencesData {
   theme: string;
 }
 
+const defaultPreferences: PreferencesData = {
+  emailNotifications: true,
+  emailTransactions: true,
+  emailStatements: true,
+  emailMarketing: false,
+  pushNotifications: true,
+  pushTransactions: true,
+  pushPriceAlerts: false,
+  language: "en",
+  timezone: "America/New_York",
+  dateFormat: "MM/DD/YYYY",
+  currencyDisplay: "USD",
+  theme: "system",
+};
+
 export default function PreferencesTab() {
-  const { toast } = useToast();
+  const { data: savedPrefs, isLoading } = useLocalPreferences();
+  const saveMutation = useSaveLocalPreferences();
 
-  const [preferences, setPreferences] = useState<PreferencesData>({
-    emailNotifications: true,
-    emailTransactions: true,
-    emailStatements: true,
-    emailMarketing: false,
-    pushNotifications: true,
-    pushTransactions: true,
-    pushPriceAlerts: false,
-    language: "en",
-    timezone: "America/New_York",
-    dateFormat: "MM/DD/YYYY",
-    currencyDisplay: "USD",
-    theme: "system",
-  });
-
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [preferences, setPreferences] = useState<PreferencesData>(defaultPreferences);
 
   useEffect(() => {
-    loadPreferences();
-  }, []);
-
-  const loadPreferences = async () => {
-    try {
-      setLoading(true);
-      // Load from localStorage as notification_settings table may not exist
-      const saved = localStorage.getItem("user_preferences");
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setPreferences((prev) => ({ ...prev, ...parsed }));
-        } catch (e) {
-          console.warn("Failed to parse saved preferences");
-        }
-      }
-    } catch (error) {
-      console.error("Failed to load preferences:", error);
-    } finally {
-      setLoading(false);
+    if (savedPrefs) {
+      setPreferences((prev) => ({ ...prev, ...savedPrefs }));
     }
-  };
+  }, [savedPrefs]);
 
   const handleSave = async () => {
-    setSaving(true);
-    try {
-      // Save to localStorage
-      localStorage.setItem("user_preferences", JSON.stringify(preferences));
-      
-      toast({
-        title: "Success",
-        description: "Your preferences have been saved",
-      });
-    } catch (error) {
-      console.error("Failed to save preferences:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save your preferences",
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
+    saveMutation.mutate(preferences as unknown as Record<string, unknown>);
   };
 
   const updatePreference = <K extends keyof PreferencesData>(key: K, value: PreferencesData[K]) => {
     setPreferences((prev) => ({ ...prev, [key]: value }));
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -343,8 +306,8 @@ export default function PreferencesTab() {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? (
+        <Button onClick={handleSave} disabled={saveMutation.isPending}>
+          {saveMutation.isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Saving...

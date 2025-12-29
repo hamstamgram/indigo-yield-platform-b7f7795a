@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks";
-import { supabase } from "@/integrations/supabase/client";
+import { useChangePassword } from "@/hooks/data/useProfileSettings";
 
 const SecurityTab = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -22,6 +22,8 @@ const SecurityTab = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const { toast } = useToast();
+
+  const changePasswordMutation = useChangePassword();
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,28 +46,14 @@ const SecurityTab = () => {
       return;
     }
 
-    try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-
-      if (error) throw error;
-
-      setDialogOpen(false);
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-
-      toast({
-        title: "Password updated",
-        description: "Your password has been changed successfully.",
-      });
-    } catch (error: any) {
-      console.error("Error changing password:", error);
-      toast({
-        title: "Password change failed",
-        description: error.message || "Failed to update your password",
-        variant: "destructive",
-      });
-    }
+    changePasswordMutation.mutate(newPassword, {
+      onSuccess: () => {
+        setDialogOpen(false);
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      },
+    });
   };
 
   return (
@@ -131,7 +119,9 @@ const SecurityTab = () => {
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button type="submit">Change Password</Button>
+                    <Button type="submit" disabled={changePasswordMutation.isPending}>
+                      {changePasswordMutation.isPending ? "Changing..." : "Change Password"}
+                    </Button>
                   </DialogFooter>
                 </form>
               </DialogContent>

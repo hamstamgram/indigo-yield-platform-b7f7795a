@@ -1,24 +1,22 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks";
-import { supabase } from "@/integrations/supabase/client";
 import { Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useResetPassword, useSetSessionFromTokens } from "@/hooks/data/useAuthFlow";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const { toast } = useToast();
+
+  const resetMutation = useResetPassword();
+  const setSessionMutation = useSetSessionFromTokens();
 
   useEffect(() => {
     // Try to get tokens from query params first
@@ -43,15 +41,12 @@ export default function ResetPassword() {
     }
 
     if (!accessToken || !refreshToken) {
-      setError("Invalid or expired reset link. Please request a new password reset.");
+      setLocalError("Invalid or expired reset link. Please request a new password reset.");
       return;
     }
 
     // Set the session with the tokens
-    supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
+    setSessionMutation.mutate({ accessToken, refreshToken });
   }, [searchParams]);
 
   const validatePassword = (password: string) => {
@@ -72,60 +67,26 @@ export default function ResetPassword() {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
+    setLocalError(null);
 
     // Validate password
     const passwordError = validatePassword(password);
     if (passwordError) {
-      setError(passwordError);
-      setLoading(false);
+      setLocalError(passwordError);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      setLoading(false);
+      setLocalError("Passwords do not match");
       return;
     }
 
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: password,
-      });
-
-      if (error) {
-        setError(error.message);
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        setSuccess(true);
-        toast({
-          title: "Password updated",
-          description: "Your password has been successfully updated.",
-        });
-
-        // Redirect to login after a short delay
-        setTimeout(() => {
-          navigate("/login", { replace: true });
-        }, 2000);
-      }
-    } catch (error: any) {
-      setError(error.message);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    resetMutation.mutate(password);
   };
 
-  if (success) {
+  const error = localError || resetMutation.error?.message;
+
+  if (resetMutation.isSuccess) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <div className="w-full max-w-md">
@@ -242,8 +203,8 @@ export default function ResetPassword() {
               </div>
 
               <div className="pt-2">
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? (
+                <Button type="submit" className="w-full" disabled={resetMutation.isPending}>
+                  {resetMutation.isPending ? (
                     <span className="flex items-center">
                       <svg
                         className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
