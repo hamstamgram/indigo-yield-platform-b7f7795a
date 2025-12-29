@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks";
 import { supabase } from "@/integrations/supabase/client";
-import { createAdminTransaction } from "@/services/shared/transactionService";
+import { createAdminTransaction, type CreateTransactionParams } from "@/services/shared/transactionService";
 import { saveDraftAUMEntry } from "@/services/admin/yieldDistributionService";
 import { Loader2, ArrowRightLeft, Info, AlertTriangle, Check, CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -312,7 +312,7 @@ export default function AdminManualTransaction() {
       const result = await createAdminTransaction({
         investor_id: data.investorId,
         fund_id: data.fundId,
-        type: data.type,
+        type: data.type as CreateTransactionParams["type"],
         amount: parseFloat(data.amount),
         tx_date: data.txDate,
         asset: selectedFund.asset,

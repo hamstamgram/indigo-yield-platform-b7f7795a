@@ -142,12 +142,36 @@ export interface TransactionFilter {
 }
 
 /**
- * Create transaction parameters
+ * Extended transaction type for UI that includes FIRST_INVESTMENT
+ * FIRST_INVESTMENT is a UI-only type that gets mapped to DEPOSIT in the database
+ */
+export type UITransactionType = TransactionType | "FIRST_INVESTMENT";
+
+/**
+ * Create transaction parameters (for API/service layer)
+ * Uses strict DB TransactionType
  */
 export interface CreateTransactionParams {
   investor_id: string;
   fund_id: string;
   type: TransactionType;
+  asset: string;
+  amount: number;
+  tx_date: string;
+  reference_id?: string;
+  tx_hash?: string;
+  notes?: string;
+  tx_subtype?: string;
+}
+
+/**
+ * Create transaction parameters for UI forms
+ * Allows FIRST_INVESTMENT which gets mapped to DEPOSIT
+ */
+export interface CreateTransactionUIParams {
+  investor_id: string;
+  fund_id: string;
+  type: UITransactionType;
   asset: string;
   amount: number;
   tx_date: string;

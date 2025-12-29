@@ -10,23 +10,14 @@ export { adminServiceV2 } from "./adminService";
 export type { InvestorSummaryV2, DashboardStatsV2 } from "./adminService";
 
 // Transaction management
+// NOTE: adminTransactionService is deprecated - use transactionService from @/services/shared
 export { adminTransactionService } from "./adminTransactionService";
+// Re-export QuickTransactionParams as CreateTransactionParams for backwards compatibility
 export type { CreateTransactionParams } from "./adminTransactionService";
 
 // Yield management
 export * from "./yieldDistributionService";
 export * from "./recordedYieldsService";
-
-// Expert investor views - NOW in investor service
-// Re-export for backward compatibility but consumers should use @/services/investor
-export { 
-  expertInvestorService,
-  getAllInvestorsExpertSummary,
-  getInvestorExpertView,
-  updatePositionValue,
-  type ExpertPosition,
-  type ExpertInvestor,
-} from "@/services/investor";
 
 // Bulk operations
 export * from "./bulkOperationsService";

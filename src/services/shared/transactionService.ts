@@ -1,5 +1,18 @@
+/**
+ * Transaction Service - Unified transaction operations
+ * 
+ * CANONICAL SOURCE for transaction creation and user transaction queries
+ * Uses types from @/types/domains/transaction
+ */
+
 import { supabase } from "@/integrations/supabase/client";
-import type { Transaction as BaseTransaction } from "@/types/domains/transaction";
+import type { 
+  Transaction as BaseTransaction,
+  CreateTransactionUIParams,
+} from "@/types/domains/transaction";
+
+// Re-export the UI type for backwards compatibility (allows FIRST_INVESTMENT)
+export type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
 
 // Extended transaction with investor name for display
 export interface Transaction extends Pick<BaseTransaction, 'id' | 'investor_id' | 'asset' | 'amount' | 'type' | 'tx_date' | 'created_at' | 'notes'> {
@@ -113,22 +126,6 @@ export async function calculateTransactionSummary(): Promise<TransactionSummary>
   }
 }
 
-/**
- * Create a transaction (admin use)
- */
-export interface CreateTransactionParams {
-  investor_id: string;
-  fund_id: string;
-  type: "FIRST_INVESTMENT" | "DEPOSIT" | "WITHDRAWAL" | "YIELD" | "INTEREST" | "FEE";
-  asset: string;
-  amount: number;
-  tx_date: string;
-  reference_id?: string;
-  tx_hash?: string;
-  notes?: string;
-  tx_subtype?: "first_investment" | "deposit" | "redemption" | "full_redemption" | "fee_charge" | "yield_credit" | "adjustment";
-}
-
 // Default tx_subtype based on transaction type
 const getDefaultTxSubtype = (type: string): string => {
   switch (type) {
@@ -148,8 +145,12 @@ const mapTypeForDb = (type: string): string => {
   return type;
 };
 
+/**
+ * Create a transaction (admin use)
+ * Accepts CreateTransactionUIParams which allows FIRST_INVESTMENT (mapped to DEPOSIT internally)
+ */
 export async function createAdminTransaction(
-  params: CreateTransactionParams
+  params: CreateTransactionUIParams
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const {
@@ -228,8 +229,50 @@ export async function createAdminTransaction(
   }
 }
 
+/**
+ * Quick transaction creation (simplified params for common use cases)
+ * Accepts camelCase params for convenience
+ */
+export interface QuickTransactionParams {
+  investorId: string;
+  fundId: string;
+  type: "DEPOSIT" | "WITHDRAWAL";
+  amount: number;
+  description?: string;
+  txHash?: string;
+}
+
+export async function createQuickTransaction(params: QuickTransactionParams): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const delta = params.type === "DEPOSIT" ? params.amount : -params.amount;
+  const note = params.description || `${params.type} transaction`;
+  
+  // Generate unique reference_id to prevent duplicates
+  const referenceId = `manual:${params.fundId}:${params.investorId}:${new Date().toISOString().split('T')[0]}:${crypto.randomUUID()}`;
+
+  // Use the canonical 8-param signature with reference_id
+  const { error } = await (supabase.rpc as any)("adjust_investor_position", {
+    p_investor_id: params.investorId,
+    p_fund_id: params.fundId,
+    p_delta: delta,
+    p_note: note,
+    p_admin_id: user.id,
+    p_tx_type: params.type,
+    p_tx_date: new Date().toISOString().split('T')[0],
+    p_reference_id: referenceId,
+  });
+
+  if (error) {
+    const errorMessage = error.message || error.details || "Failed to create transaction";
+    throw new Error(errorMessage);
+  }
+}
+
 export const transactionService = {
   fetchUserTransactions,
   calculateTransactionSummary,
   createAdminTransaction,
+  createQuickTransaction,
 };

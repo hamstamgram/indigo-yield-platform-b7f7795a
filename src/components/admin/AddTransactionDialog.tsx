@@ -40,7 +40,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import { createAdminTransaction } from "@/services/shared/transactionService";
+import { createAdminTransaction, type CreateTransactionParams } from "@/services/shared/transactionService";
 import { fetchInvestorsForSelector } from "@/services/investor";
 import { saveDraftAUMEntry } from "@/services/admin/yieldDistributionService";
 import { Loader2, Check, ChevronsUpDown, AlertTriangle, Info, CalendarIcon } from "lucide-react";
@@ -356,7 +356,7 @@ export function AddTransactionDialog({
       const result = await createAdminTransaction({
         investor_id: selectedInvestorId,
         fund_id: data.fund_id,
-        type: data.txn_type as "FIRST_INVESTMENT" | "DEPOSIT" | "WITHDRAWAL" | "YIELD" | "INTEREST" | "FEE",
+        type: data.txn_type as CreateTransactionParams["type"],
         asset: data.asset,
         amount: Number(data.amount),
         tx_date: data.tx_date,

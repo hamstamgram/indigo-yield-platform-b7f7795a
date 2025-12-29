@@ -109,7 +109,10 @@ export function useAumCheck(fundId: string | undefined, date: string | undefined
 
 // ==================== Mutation Types ====================
 
-interface CreateTransactionParams {
+// Uses the canonical UI params type (allows FIRST_INVESTMENT)
+import type { CreateTransactionUIParams } from "@/types/domains/transaction";
+
+interface LocalCreateTransactionParams {
   investorId: string;
   fundId: string;
   type: "FIRST_INVESTMENT" | "DEPOSIT" | "WITHDRAWAL";
@@ -136,11 +139,11 @@ export function useCreateAdminTransaction() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (params: CreateTransactionParams) => {
+    mutationFn: async (params: LocalCreateTransactionParams) => {
       const result = await createAdminTransaction({
         investor_id: params.investorId,
         fund_id: params.fundId,
-        type: params.type,
+        type: params.type as CreateTransactionUIParams["type"],
         amount: params.amount,
         tx_date: params.txDate,
         asset: params.asset,
