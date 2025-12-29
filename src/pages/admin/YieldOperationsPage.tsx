@@ -69,7 +69,6 @@ import {
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/context";
 import {
@@ -79,25 +78,16 @@ import {
   YieldDistribution,
   IBCredit,
 } from "@/services/admin/yieldDistributionService";
-import { useMonthClosure } from "@/hooks";
+import { useMonthClosure, useActiveFundsWithAUM } from "@/hooks";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
 
-interface Fund {
-  id: string;
-  code: string;
-  name: string;
-  asset: string;
-  total_aum: number;
-  investor_count: number;
-  aum_record_count?: number;
-}
+// Fund type used in this component
+type Fund = NonNullable<ReturnType<typeof useActiveFundsWithAUM>["data"]>[number];
 
 function YieldOperationsContent() {
-  const [funds, setFunds] = useState<Fund[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedFund, setSelectedFund] = useState<Fund | null>(null);
   const [showYieldDialog, setShowYieldDialog] = useState(false);
   const [newAUM, setNewAUM] = useState("");
@@ -141,56 +131,8 @@ function YieldOperationsContent() {
   const queryClient = useQueryClient();
   const availableMonths = getAvailableMonths();
 
-  useEffect(() => {
-    loadFunds();
-  }, []);
-
-  const loadFunds = async () => {
-    setLoading(true);
-    try {
-      const { data: fundsData, error } = await supabase
-        .from("funds")
-        .select("id, code, name, asset")
-        .eq("status", "active")
-        .order("code");
-
-      if (error) throw error;
-
-      // Get AUM, investor count, and AUM record count for each fund
-      const fundsWithAUM = await Promise.all(
-        (fundsData || []).map(async (fund) => {
-          // Fetch positions
-          const { data: positions } = await supabase
-            .from("investor_positions")
-            .select("current_value, investor_id")
-            .eq("fund_id", fund.id);
-
-          // Fetch AUM record count
-          const { count: aumCount } = await supabase
-            .from("fund_daily_aum")
-            .select("*", { count: "exact", head: true })
-            .eq("fund_id", fund.id);
-
-          const total_aum = positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0;
-          const uniqueInvestors = new Set(positions?.map((p) => p.investor_id) || []);
-
-          return {
-            ...fund,
-            total_aum,
-            investor_count: uniqueInvestors.size,
-            aum_record_count: aumCount || 0,
-          };
-        })
-      );
-
-      fundsWithAUM.sort((a, b) => b.total_aum - a.total_aum);
-      setFunds(fundsWithAUM);
-    } catch (error) {
-      console.error("Error loading funds:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Use the hook for funds data
+  const { data: funds = [], isLoading: loading, refetch: refetchFunds } = useActiveFundsWithAUM();
 
   const formatValue = (value: number, asset: string) => {
     if (asset === "BTC") {
@@ -376,7 +318,7 @@ function YieldOperationsContent() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
       
-      loadFunds();
+      refetchFunds();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to apply yield.");
     } finally {
