@@ -3,52 +3,21 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks";
-import { supabase } from "@/integrations/supabase/client";
 import { Mail, ArrowLeft, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useRequestPasswordReset } from "@/hooks/data/useAuthFlow";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
+
+  const resetMutation = useRequestPasswordReset();
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-
-      if (error) {
-        setError(error.message);
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        setSent(true);
-        toast({
-          title: "Reset link sent",
-          description: "Check your email for the password reset link.",
-        });
-      }
-    } catch (error: any) {
-      setError(error.message);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    resetMutation.mutate(email, {
+      onSuccess: () => setSent(true),
+    });
   };
 
   if (sent) {
@@ -106,10 +75,10 @@ export default function ForgotPassword() {
             <CardTitle className="text-center text-2xl">Reset Password</CardTitle>
           </CardHeader>
           <CardContent>
-            {error && (
+            {resetMutation.error && (
               <Alert variant="destructive" className="mb-4">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>{resetMutation.error.message}</AlertDescription>
               </Alert>
             )}
 
@@ -129,8 +98,8 @@ export default function ForgotPassword() {
               </div>
 
               <div className="pt-2 space-y-3">
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? (
+                <Button type="submit" className="w-full" disabled={resetMutation.isPending}>
+                  {resetMutation.isPending ? (
                     <span className="flex items-center">
                       <svg
                         className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"

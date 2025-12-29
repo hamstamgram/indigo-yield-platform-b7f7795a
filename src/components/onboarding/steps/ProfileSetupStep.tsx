@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { User, Phone, Mail, CheckCircle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useUserEmail } from "@/hooks/data/useProfileSettings";
 import type { OnboardingData } from "@/types/phase3Types";
 
 interface ProfileSetupStepProps {
@@ -19,22 +19,10 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({ data, onUpdate, onC
     last_name: data.profile.last_name || "",
     phone: data.profile.phone || "",
   });
-  const [userEmail, setUserEmail] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isValid, setIsValid] = useState(false);
 
-  useEffect(() => {
-    loadUserEmail();
-  }, []);
-
-  const loadUserEmail = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user?.email) {
-      setUserEmail(user.email);
-    }
-  };
+  const { data: userEmail } = useUserEmail();
 
   const validateForm = useCallback(() => {
     const newErrors: Record<string, string> = {};
@@ -124,7 +112,7 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({ data, onUpdate, onC
           <Input
             id="email"
             type="email"
-            value={userEmail}
+            value={userEmail || ""}
             readOnly
             className="bg-gray-50 dark:bg-gray-800"
           />
