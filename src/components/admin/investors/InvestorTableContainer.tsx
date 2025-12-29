@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui";
 import SearchBar from "./SearchBar";
 import InvestorsTable from "./InvestorsTable";
 import { AssetRef as Asset } from "@/types/asset";

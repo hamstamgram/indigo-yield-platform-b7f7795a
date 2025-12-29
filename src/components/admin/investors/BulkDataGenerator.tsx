@@ -1,11 +1,9 @@
 import React, { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Button, Input, Label,
+  Alert, AlertDescription, Progress, Badge,
+} from "@/components/ui";
 import { Calendar, Plus, RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
 import { useGenerateTemplates } from "@/hooks/data/useReportData";
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui";
 import { Send, Save } from "lucide-react";
 import FundAssetDropdown from "../FundAssetDropdown";
 

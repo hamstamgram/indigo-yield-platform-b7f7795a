@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Badge, Button,
+} from "@/components/ui";
 import { ArrowUpRight, ArrowDownLeft, CreditCard, Plus } from "lucide-react";
 import { useRealtimeSubscription } from "@/hooks";
 import { toast } from "sonner";

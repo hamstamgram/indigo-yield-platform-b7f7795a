@@ -10,8 +10,7 @@ import { useCallback, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger, Badge } from "@/components/ui";
 import {
   LayoutDashboard,
   History,

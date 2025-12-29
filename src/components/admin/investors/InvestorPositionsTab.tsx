@@ -4,17 +4,11 @@ import { useInvestorPositions } from "@/hooks";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Card, CardContent, CardHeader, CardTitle, CardDescription,
+  Button, Alert, AlertDescription,
+} from "@/components/ui";
 import { Plus, Loader2, AlertCircle, Info } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function InvestorPositionsTab({ investorId }: { investorId: string }) {
   const queryClient = useQueryClient();

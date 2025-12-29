@@ -1,6 +1,7 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  ScrollArea, Badge,
+} from "@/components/ui";
 import { formatDistanceToNow } from "date-fns";
 import { LucideIcon } from "lucide-react";
 

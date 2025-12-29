@@ -4,16 +4,10 @@
  */
 
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  Card, CardContent, Button, Badge, Input, Label,
+  Collapsible, CollapsibleContent, CollapsibleTrigger,
+} from "@/components/ui";
 import {
   ChevronDown,
   ChevronUp,
