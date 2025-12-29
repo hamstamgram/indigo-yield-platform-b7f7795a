@@ -3,10 +3,8 @@
  * Fast data entry for recording yields without navigating away
  */
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { QUERY_KEYS } from "@/constants/queryKeys";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,15 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Calculator, TrendingUp, ArrowRight, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { useFunds } from "@/hooks/data";
-import { supabase } from "@/integrations/supabase/client";
-
-interface FundWithAUM {
-  id: string;
-  name: string;
-  asset: string;
-  currentAUM: number;
-}
+import { useFunds, useFundsWithAUM } from "@/hooks/data";
 
 export function QuickYieldEntry() {
   const navigate = useNavigate();
@@ -41,34 +31,8 @@ export function QuickYieldEntry() {
   // Use the data hook for funds
   const { data: baseFunds, isLoading: fundsLoading } = useFunds(true); // activeOnly
 
-  // Fetch AUM for each fund
-  const { data: funds = [], isLoading: aumLoading } = useQuery<FundWithAUM[]>({
-    queryKey: QUERY_KEYS.fundsWithAum(baseFunds?.map(f => f.id)),
-    queryFn: async () => {
-      if (!baseFunds || baseFunds.length === 0) return [];
-      
-      const fundsWithAUM = await Promise.all(
-        baseFunds.map(async (fund) => {
-          const { data: positions } = await supabase
-            .from("investor_positions")
-            .select("current_value")
-            .eq("fund_id", fund.id);
-
-          const totalAUM = positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0;
-
-          return {
-            id: fund.id,
-            name: fund.name,
-            asset: fund.asset,
-            currentAUM: totalAUM,
-          };
-        })
-      );
-
-      return fundsWithAUM;
-    },
-    enabled: !!baseFunds && baseFunds.length > 0,
-  });
+  // Use the dashboard hook for AUM data
+  const { data: funds = [], isLoading: aumLoading } = useFundsWithAUM(baseFunds);
 
   const loading = fundsLoading || aumLoading;
 

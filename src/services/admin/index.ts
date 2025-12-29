@@ -49,3 +49,10 @@ export { requestsQueueService } from "./requestsQueueService";
 
 // Transaction history management
 export { adminTransactionHistoryService } from "./adminTransactionHistoryService";
+
+// Dashboard widgets
+export {
+  fetchFundsWithAUM,
+  fetchRecentActivities,
+  fetchPendingItems,
+} from "./dashboardService";
