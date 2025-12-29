@@ -1,32 +1,14 @@
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { QUERY_KEYS } from "@/constants/queryKeys";
+import { useTransactionById } from "@/hooks/data";
 
 export default function TransactionDetailsPage() {
   const { id } = useParams<{ id: string }>();
 
-  const { data: item, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.transactionsV2(id || ""),
-    queryFn: async () => {
-      if (!id) throw new Error("No ID provided");
-
-      const { data, error } = await supabase
-        .from("transactions_v2")
-        .select("*")
-        .eq("id", id)
-        .maybeSingle();
-
-      if (!data) throw new Error("Transaction not found");
-
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: item, isLoading } = useTransactionById(id);
 
   if (isLoading) {
     return (

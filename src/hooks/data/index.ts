@@ -361,3 +361,53 @@ export {
   type NotificationPreferences,
   DEFAULT_NOTIFICATION_PREFERENCES,
 } from "./useProfileSettings";
+
+// Admin fees hooks
+export {
+  useFeesOverview,
+  useFeeFunds,
+  useFeeTransactions,
+  useIndigoFeesBalance,
+  useFeeAllocations,
+  useRoutingAuditEntries,
+  useYieldEarned,
+  type FeesOverviewData,
+  type FeeRecord,
+  type Fund as FeeFund,
+  type FeeAllocation,
+  type RoutingAuditEntry,
+  type RoutingSummary,
+  type YieldEarned,
+  type FeeSummary,
+} from "./useFees";
+
+// Transaction details hooks
+export {
+  useTransactionById,
+  useTransactionWithRelated,
+  useTransactionFormData,
+  useInvestorBalance as useInvestorBalanceCheck,
+  useAumCheck,
+  useCreateAdminTransaction,
+  useRecordAum,
+  type TransactionDetail,
+  type TransactionWithRelated,
+  type InvestorForTransaction,
+  type FundForTransaction,
+  type BalanceCheckResult,
+  type AumCheckResult,
+} from "./useTransactionDetails";
+
+// Admin withdrawals hooks
+export {
+  useAdminWithdrawals,
+  useWithdrawalStats,
+  useWithdrawalById,
+  useWithdrawalAuditLogs,
+  useWithdrawalsWithStats,
+  type WithdrawalFilters,
+  type WithdrawalStats,
+  type PaginatedWithdrawals,
+  type Withdrawal,
+  type WithdrawalAuditLog,
+} from "./useAdminWithdrawals";
