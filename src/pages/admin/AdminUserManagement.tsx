@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { AdminGuard } from "@/components/admin/AdminGuard";
+import { AdminGuard } from "@/components/admin";
 import { UserCog, UserPlus, Trash2, Shield, RefreshCw, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {

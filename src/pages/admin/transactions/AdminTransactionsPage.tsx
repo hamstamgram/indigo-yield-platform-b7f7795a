@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import PageHeader from "@/components/layout/PageHeader";
+import { PageHeader } from "@/components/layout";
 import {
   Select,
   SelectContent,
@@ -36,12 +36,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Loader2, Search, ChevronLeft, ChevronRight, ExternalLink, CreditCard, Plus, MoreHorizontal, Pencil, Ban, Lock } from "lucide-react";
 import { TruncatedText } from "@/components/ui/truncated-text";
-import { AdminGuard } from "@/components/admin/AdminGuard";
+import { AdminGuard } from "@/components/admin";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { format, startOfMonth, endOfMonth, subMonths, startOfYear } from "date-fns";
-import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
-import { VoidTransactionDialog } from "@/components/admin/transactions/VoidTransactionDialog";
-import { EditTransactionDialog } from "@/components/admin/transactions/EditTransactionDialog";
+import { AddTransactionDialog, VoidTransactionDialog, EditTransactionDialog } from "@/components/admin";
 import { useSortableColumns } from "@/hooks";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";

@@ -14,7 +14,7 @@ import {
   TrendingUp,
   RefreshCw
 } from "lucide-react";
-import { AdminGuard } from "@/components/admin/AdminGuard";
+import { AdminGuard } from "@/components/admin";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

@@ -27,7 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Wallet, FileText, TrendingUp, ArrowUpRight, Calendar, Download, AlertCircle, Info, ArrowRightLeft } from "lucide-react";
-import { AdminGuard } from "@/components/admin/AdminGuard";
+import { AdminGuard } from "@/components/admin";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
 import { useFeesOverview, type FeeRecord, type FeeAllocation, type RoutingAuditEntry, type RoutingSummary, type YieldEarned, type Fund, type FeeSummary } from "@/hooks/data";

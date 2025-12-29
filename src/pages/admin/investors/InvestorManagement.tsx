@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft, Clock, FileText, ArrowDownToLine, Users, Percent } from "lucide-react";
 import { forceDeleteInvestorUser } from "@/services/admin/userService";
-import { InvestorTabs } from "@/components/admin/investors/InvestorTabs";
+import { InvestorTabs } from "@/components/admin";
 import { format } from "date-fns";
 import {
   Breadcrumb,

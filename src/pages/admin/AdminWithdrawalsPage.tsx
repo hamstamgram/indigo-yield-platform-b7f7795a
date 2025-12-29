@@ -1,24 +1,26 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { WithdrawalStatsComponent } from "@/components/admin/withdrawals/WithdrawalStats";
-import { WithdrawalsTable } from "@/components/admin/withdrawals/WithdrawalsTable";
-import { CreateWithdrawalDialog } from "@/components/admin/withdrawals/CreateWithdrawalDialog";
-import { WithdrawalDetailsDrawer } from "@/components/admin/withdrawals/WithdrawalDetailsDrawer";
-import { ApproveWithdrawalDialog } from "@/components/admin/withdrawals/ApproveWithdrawalDialog";
-import { RejectWithdrawalDialog } from "@/components/admin/withdrawals/RejectWithdrawalDialog";
-import { StartProcessingDialog } from "@/components/admin/withdrawals/StartProcessingDialog";
-import { CompleteWithdrawalDialog } from "@/components/admin/withdrawals/CompleteWithdrawalDialog";
-import { EditWithdrawalDialog } from "@/components/admin/withdrawals/EditWithdrawalDialog";
-import { DeleteWithdrawalDialog } from "@/components/admin/withdrawals/DeleteWithdrawalDialog";
-import { RouteToFeesDialog } from "@/components/admin/withdrawals/RouteToFeesDialog";
+import { 
+  WithdrawalStats as WithdrawalStatsComponent, 
+  WithdrawalsTable, 
+  CreateWithdrawalDialog,
+  WithdrawalDetailsDrawer,
+  ApproveWithdrawalDialog,
+  RejectWithdrawalDialog,
+  StartProcessingDialog,
+  CompleteWithdrawalDialog,
+  EditWithdrawalDialog,
+  DeleteWithdrawalDialog,
+  RouteToFeesDialog
+} from "@/components/admin";
 import { withdrawalService } from "@/services/investor/withdrawalService";
 import { Withdrawal, WithdrawalFilters, WithdrawalStats, PaginatedWithdrawals } from "@/types/domains";
 import { toast } from "sonner";
 import { ArrowDownToLine, Plus } from "lucide-react";
 import { useFunds, useUrlFilters } from "@/hooks";
 import { useQuery } from "@tanstack/react-query";
-import PageHeader from "@/components/layout/PageHeader";
+import { PageHeader } from "@/components/layout";
 
 interface Fund {
   id: string;

@@ -66,8 +66,7 @@ import {
   UserCheck,
   ArrowRightLeft,
 } from "lucide-react";
-import { AdminGuard } from "@/components/admin/AdminGuard";
-import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
+import { AdminGuard, SuperAdminGuard, useSuperAdmin } from "@/components/admin";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/context";

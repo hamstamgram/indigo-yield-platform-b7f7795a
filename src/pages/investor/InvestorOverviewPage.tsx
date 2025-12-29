@@ -7,8 +7,8 @@ import {
 } from "@/hooks/data";
 import { HoldingsByToken } from "@/components/investor/overview/HoldingsByToken";
 import { QuickCards } from "@/components/investor/overview/QuickCards";
-import { AssetPerformanceCard } from "@/components/common/AssetPerformanceCard";
-import PageHeader from "@/components/layout/PageHeader";
+import { AssetPerformanceCard } from "@/components/common";
+import { PageHeader } from "@/components/layout";
 import { BarChart3 } from "lucide-react";
 
 export default function InvestorOverviewPage() {

@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
-import { AdminGuard } from "@/components/admin/AdminGuard";
-import { OperationsStats } from "@/components/admin/operations/OperationsStats";
-import { QuickLinksGrid, QuickLink } from "@/components/admin/operations/QuickLinksGrid";
-import { RecentActivityFeed, ActivityItem } from "@/components/admin/operations/RecentActivityFeed";
-import { SystemStatus } from "@/components/admin/operations/SystemStatus";
-import { PendingItemsBreakdown } from "@/components/admin/operations/PendingItemsBreakdown";
+import { 
+  AdminGuard, 
+  OperationsStats, 
+  QuickLinksGrid, 
+  SystemStatus, 
+  PendingItemsBreakdown 
+} from "@/components/admin";
+import { RecentActivityFeed, type ActivityItem } from "@/components/admin/operations/RecentActivityFeed";
+import type { QuickLink } from "@/components/admin/operations/QuickLinksGrid";
 import {
   TrendingUp,
   Users,

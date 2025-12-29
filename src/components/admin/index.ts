@@ -7,7 +7,7 @@
 // GUARDS
 // ============================================
 export { AdminGuard } from "./AdminGuard";
-export { SuperAdminGuard } from "./SuperAdminGuard";
+export { SuperAdminGuard, useSuperAdmin } from "./SuperAdminGuard";
 
 // ============================================
 // ROOT-LEVEL COMPONENTS

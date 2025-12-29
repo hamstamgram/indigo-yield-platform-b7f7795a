@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { DepositStats } from "@/components/admin/deposits/DepositStats";
-import { DepositsTable } from "@/components/admin/deposits/DepositsTable";
-import { CreateDepositDialog } from "@/components/admin/deposits/CreateDepositDialog";
+import { DepositStats, DepositsTable, CreateDepositDialog } from "@/components/admin";
 
 export default function AdminDepositsPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
