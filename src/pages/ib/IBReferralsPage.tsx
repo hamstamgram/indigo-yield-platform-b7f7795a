@@ -4,10 +4,7 @@
  */
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth/context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,94 +22,16 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { Search, Users, ChevronRight, ChevronLeft, UserPlus } from "lucide-react";
-import { QUERY_KEYS } from "@/constants/queryKeys";
-
-interface Referral {
-  id: string;
-  firstName: string | null;
-  lastName: string | null;
-  email: string;
-  status: string;
-  joinedAt: string;
-  activeFunds: number;
-  holdings: Record<string, number>;
-}
+import { useIBReferrals } from "@/hooks/ib/useIBData";
 
 const PAGE_SIZE = 10;
 
 export default function IBReferralsPage() {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
 
-  const { data, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.ibReferrals(user?.id, page),
-    queryFn: async () => {
-      if (!user?.id) return { referrals: [], total: 0 };
-
-      // Get referrals with pagination
-      const { data: profiles, error, count } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, email, status, created_at", { count: "exact" })
-        .eq("ib_parent_id", user.id)
-        .order("created_at", { ascending: false })
-        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
-
-      if (error) {
-        console.error("Error fetching referrals:", error);
-        return { referrals: [], total: 0 };
-      }
-
-      // Get positions for each referral
-      const referralIds = profiles?.map((p) => p.id) || [];
-      
-      let positionsData: any[] = [];
-      if (referralIds.length > 0) {
-        const { data: positions } = await supabase
-          .from("investor_positions")
-          .select("investor_id, fund_id, current_value, funds!inner(asset)")
-          .in("investor_id", referralIds);
-        positionsData = positions || [];
-      }
-
-      // Build referral objects with holdings
-      // Issue C fix: Only count positions with current_value > 0 as active
-      const referrals: Referral[] = (profiles || []).map((profile) => {
-        const investorPositions = positionsData.filter((p) => p.investor_id === profile.id);
-        
-        // Group holdings by asset - only include non-zero positions
-        const holdings: Record<string, number> = {};
-        const activeFundIds = new Set<string>();
-        
-        for (const pos of investorPositions) {
-          const asset = (pos.funds as any)?.asset;
-          const currentValue = Number(pos.current_value);
-          if (!asset) continue; // Skip positions with missing fund data
-          // Only count as active if current_value > 0
-          if (currentValue > 0) {
-            activeFundIds.add(pos.fund_id);
-            if (!holdings[asset]) holdings[asset] = 0;
-            holdings[asset] += currentValue;
-          }
-        }
-
-        return {
-          id: profile.id,
-          firstName: profile.first_name,
-          lastName: profile.last_name,
-          email: profile.email,
-          status: profile.status || "active",
-          joinedAt: profile.created_at,
-          activeFunds: activeFundIds.size, // Now only counts non-zero positions
-          holdings,
-        };
-      });
-
-      return { referrals, total: count || 0 };
-    },
-    enabled: !!user?.id,
-  });
+  const { data, isLoading } = useIBReferrals(page, PAGE_SIZE);
 
   const filteredReferrals = data?.referrals.filter((r) => {
     if (!search) return true;

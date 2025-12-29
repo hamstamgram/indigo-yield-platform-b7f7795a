@@ -4,7 +4,6 @@
  * All values are token-denominated (no USD conversion)
  */
 
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Table,
@@ -15,26 +14,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Coins, Users, TrendingUp, Calendar } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth/context";
+import { Loader2, Coins, Users, TrendingUp } from "lucide-react";
 import { getAssetLogo } from "@/utils/assets";
-import { QUERY_KEYS } from "@/constants/queryKeys";
-
-interface Allocation {
-  id: string;
-  fundId: string;
-  fundAsset: string;
-  sourceInvestorId: string;
-  sourceInvestorEmail?: string;
-  periodStart: string;
-  periodEnd: string;
-  sourceNetIncome: number;
-  ibPercentage: number;
-  ibFeeAmount: number;
-  source: string;
-  createdAt: string;
-}
+import {
+  useIBAllocations,
+  useIBReferralsForDashboard,
+  useIBPositions,
+} from "@/hooks/ib/useIBData";
+import type { Allocation, FundPosition, ReferralForDashboard } from "@/services/ib/ibService";
 
 interface AssetEarning {
   asset: string;
@@ -44,13 +31,6 @@ interface AssetEarning {
 interface MonthlyEarning {
   month: string;
   byAsset: AssetEarning[];
-}
-
-interface FundPosition {
-  fundId: string;
-  fundName: string;
-  asset: string;
-  currentValue: number;
 }
 
 // Format token amount with appropriate decimals
@@ -66,101 +46,13 @@ const formatTokenAmount = (val: number, symbol: string) => {
 };
 
 export default function IBDashboard() {
-  const { user } = useAuth();
-  const userId = user?.id;
-
-  // Fetch IB allocations with fund info
-  const { data: allocations, isLoading: allocationsLoading } = useQuery({
-    queryKey: QUERY_KEYS.ibAllocations(undefined),
-    queryFn: async (): Promise<Allocation[]> => {
-      if (!userId) return [];
-
-      const { data, error } = await supabase
-        .from("ib_allocations")
-        .select(`
-          id,
-          fund_id,
-          source_investor_id,
-          period_start,
-          period_end,
-          source_net_income,
-          ib_percentage,
-          ib_fee_amount,
-          source,
-          created_at,
-          funds:fund_id (asset)
-        `)
-        .eq("ib_investor_id", userId)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-
-      return (data || []).map((a) => ({
-        id: a.id,
-        fundId: a.fund_id || "",
-        fundAsset: (a.funds as any)?.asset || "USDT",
-        sourceInvestorId: a.source_investor_id,
-        periodStart: a.period_start || "",
-        periodEnd: a.period_end || "",
-        sourceNetIncome: Number(a.source_net_income || 0),
-        ibPercentage: Number(a.ib_percentage || 0),
-        ibFeeAmount: Number(a.ib_fee_amount || 0),
-        source: a.source || "unknown",
-        createdAt: a.created_at || "",
-      }));
-    },
-    enabled: !!userId,
-  });
-
-  // Fetch referrals
-  const { data: referrals, isLoading: referralsLoading } = useQuery({
-    queryKey: QUERY_KEYS.ibReferrals(userId),
-    queryFn: async () => {
-      if (!userId) return [];
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, email, first_name, last_name, ib_percentage, created_at")
-        .eq("ib_parent_id", userId)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!userId,
-  });
-
-  // Fetch IB positions with fund details
-  const { data: positions, isLoading: positionsLoading } = useQuery({
-    queryKey: QUERY_KEYS.ibPositions(userId || ""),
-    queryFn: async (): Promise<FundPosition[]> => {
-      if (!userId) return [];
-
-      const { data, error } = await supabase
-        .from("investor_positions")
-        .select(`
-          fund_id,
-          current_value,
-          cost_basis,
-          funds:fund_id (name, asset)
-        `)
-        .eq("investor_id", userId)
-        .gt("current_value", 0);
-
-      if (error) throw error;
-      return (data || []).map((p) => ({
-        fundId: p.fund_id,
-        fundName: (p.funds as any)?.name || p.fund_id,
-        asset: (p.funds as any)?.asset || "USDT",
-        currentValue: Number(p.current_value || 0),
-      }));
-    },
-    enabled: !!userId,
-  });
+  const { data: allocations, isLoading: allocationsLoading } = useIBAllocations();
+  const { data: referrals, isLoading: referralsLoading } = useIBReferralsForDashboard();
+  const { data: positions, isLoading: positionsLoading } = useIBPositions();
 
   // Calculate totals by asset
   const earningsByAsset: Record<string, number> = {};
-  allocations?.forEach((a) => {
+  allocations?.forEach((a: Allocation) => {
     const asset = a.fundAsset;
     earningsByAsset[asset] = (earningsByAsset[asset] || 0) + a.ibFeeAmount;
   });
@@ -169,7 +61,7 @@ export default function IBDashboard() {
 
   // Position totals by asset
   const positionsByAsset: Record<string, number> = {};
-  positions?.forEach((p) => {
+  positions?.forEach((p: FundPosition) => {
     positionsByAsset[p.asset] = (positionsByAsset[p.asset] || 0) + p.currentValue;
   });
 
@@ -177,7 +69,7 @@ export default function IBDashboard() {
   const monthlyEarnings: MonthlyEarning[] = [];
   if (allocations) {
     const byMonth: Record<string, Record<string, number>> = {};
-    allocations.forEach((a) => {
+    allocations.forEach((a: Allocation) => {
       if (a.periodEnd) {
         const month = a.periodEnd.substring(0, 7);
         if (!byMonth[month]) byMonth[month] = {};
@@ -306,7 +198,7 @@ export default function IBDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {referrals.map((ref) => (
+                  {(referrals as ReferralForDashboard[]).map((ref) => (
                     <TableRow key={ref.id}>
                       <TableCell>
                         <div>
@@ -397,7 +289,7 @@ export default function IBDashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {allocations.slice(0, 20).map((alloc) => (
+                {(allocations as Allocation[]).slice(0, 20).map((alloc) => (
                   <TableRow key={alloc.id}>
                     <TableCell>
                       {alloc.periodStart && alloc.periodEnd
@@ -453,7 +345,7 @@ export default function IBDashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {positions.map((pos) => (
+                {(positions as FundPosition[]).map((pos) => (
                   <TableRow key={pos.fundId}>
                     <TableCell className="font-medium">{pos.fundName}</TableCell>
                     <TableCell>

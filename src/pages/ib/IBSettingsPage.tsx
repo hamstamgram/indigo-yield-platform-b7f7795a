@@ -3,47 +3,21 @@
  * Profile, security, and notification settings for IBs
  */
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth/context";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
-import { toast } from "sonner";
 import { User, Shield, Bell } from "lucide-react";
-import { QUERY_KEYS } from "@/constants/queryKeys";
-import { invalidateAfterIBOperation } from "@/utils/cacheInvalidation";
+import { useIBProfile, useUpdateIBProfile } from "@/hooks/ib/useIBData";
 
 export default function IBSettingsPage() {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("profile");
 
-  // Fetch profile data
-  const { data: profile, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.ibProfile(user?.id),
-    queryFn: async () => {
-      if (!user?.id) return null;
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("first_name, last_name, email, phone")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Error fetching profile:", error);
-        return null;
-      }
-
-      return data;
-    },
-    enabled: !!user?.id,
-  });
+  const { data: profile, isLoading } = useIBProfile();
+  const updateProfileMutation = useUpdateIBProfile();
 
   // Profile form state
   const [firstName, setFirstName] = useState("");
@@ -51,38 +25,13 @@ export default function IBSettingsPage() {
   const [phone, setPhone] = useState("");
 
   // Initialize form when profile loads
-  useState(() => {
+  useEffect(() => {
     if (profile) {
       setFirstName(profile.first_name || "");
       setLastName(profile.last_name || "");
       setPhone(profile.phone || "");
     }
-  });
-
-  // Update profile mutation
-  const updateProfileMutation = useMutation({
-    mutationFn: async () => {
-      if (!user?.id) throw new Error("Not authenticated");
-
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          first_name: firstName,
-          last_name: lastName,
-          phone: phone,
-        })
-        .eq("id", user.id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Profile updated successfully");
-      invalidateAfterIBOperation(queryClient, user?.id, user?.id);
-    },
-    onError: (error) => {
-      toast.error("Failed to update profile: " + error.message);
-    },
-  });
+  }, [profile]);
 
   if (isLoading) {
     return <PageLoadingSpinner />;
@@ -123,7 +72,7 @@ export default function IBSettingsPage() {
                   <Label htmlFor="firstName">First Name</Label>
                   <Input
                     id="firstName"
-                    value={firstName || profile?.first_name || ""}
+                    value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder="Enter first name"
                   />
@@ -132,7 +81,7 @@ export default function IBSettingsPage() {
                   <Label htmlFor="lastName">Last Name</Label>
                   <Input
                     id="lastName"
-                    value={lastName || profile?.last_name || ""}
+                    value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     placeholder="Enter last name"
                   />
@@ -156,14 +105,18 @@ export default function IBSettingsPage() {
                 <Label htmlFor="phone">Phone Number</Label>
                 <Input
                   id="phone"
-                  value={phone || profile?.phone || ""}
+                  value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Enter phone number"
                 />
               </div>
 
               <Button
-                onClick={() => updateProfileMutation.mutate()}
+                onClick={() => updateProfileMutation.mutate({
+                  first_name: firstName,
+                  last_name: lastName,
+                  phone: phone,
+                })}
                 disabled={updateProfileMutation.isPending}
               >
                 {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
