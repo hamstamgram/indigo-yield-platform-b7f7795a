@@ -1,17 +1,12 @@
 import React from "react";
-import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  Badge,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  SortableTableHead,
+} from "@/components/ui";
 import { User, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import type { EnrichedInvestor } from "@/hooks/data";
 
 interface SortConfig {

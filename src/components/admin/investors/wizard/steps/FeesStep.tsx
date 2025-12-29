@@ -3,17 +3,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  FormDescription,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription,
+  Input, Switch, Label,
+} from "@/components/ui";
 import { Link2, Link2Off } from "lucide-react";
 import { useWizard } from "../WizardContext";
 import { feesSchema } from "../types";

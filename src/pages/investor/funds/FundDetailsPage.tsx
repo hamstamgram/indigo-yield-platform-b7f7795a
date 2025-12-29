@@ -1,9 +1,8 @@
 import { useParams } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, EmptyState } from "@/components/ui";
 import { PerformanceReportTable } from "@/components/investor/reports/PerformanceReportTable";
 import { useInvestorPerformance, useAssetMeta } from "@/hooks";
 import { Loader2, TrendingUp, Info } from "lucide-react";
-import { EmptyState } from "@/components/ui/empty-state";
 
 export default function FundDetailsPage() {
   const { assetId } = useParams();

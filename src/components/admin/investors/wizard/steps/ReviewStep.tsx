@@ -4,13 +4,9 @@ import { ASSET_PRECISION } from "../types";
 import { getAssetLogo } from "@/utils/assets";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Badge,
+} from "@/components/ui";
 import { User, Users, Percent, Wallet, CheckCircle2 } from "lucide-react";
 
 const ReviewStep: React.FC = () => {

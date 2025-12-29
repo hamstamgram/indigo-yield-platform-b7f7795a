@@ -3,21 +3,13 @@ import { Withdrawal, WithdrawalFullStatus } from "@/types/domains";
 import { getAssetLogo } from "@/utils/assets";
 import { format } from "date-fns";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-  DrawerClose,
-} from "@/components/ui/drawer";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+  Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerClose,
+  Badge, Button, Separator, TruncatedText,
+} from "@/components/ui";
 import { Loader2, X, ExternalLink, Copy, CheckCircle, XCircle, Play, CheckCircle2, ArrowRightLeft } from "lucide-react";
 import { WithdrawalAuditTimeline } from "./WithdrawalAuditTimeline";
 import { RouteToFeesDialog } from "./RouteToFeesDialog";
 import { toast } from "sonner";
-import { TruncatedText } from "@/components/ui/truncated-text";
 import { useWithdrawalById } from "@/hooks/data/admin";
 
 interface WithdrawalDetailsDrawerProps {

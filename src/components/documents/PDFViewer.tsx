@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button, Card, CardContent } from "@/components/ui";
 import {
   ChevronLeft,
   ChevronRight,

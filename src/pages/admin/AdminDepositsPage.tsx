@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui";
 import { Plus } from "lucide-react";
 import { DepositStats, DepositsTable, CreateDepositDialog } from "@/components/admin";
 

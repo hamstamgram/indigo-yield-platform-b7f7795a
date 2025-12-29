@@ -1,16 +1,10 @@
 import { useState, useEffect } from "react";
 import { Save, Loader2, CheckCircle } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Button, Input, Label,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui";
 import { usePersonalInfo, useUpdatePersonalInfo } from "@/hooks/data/useProfileSettings";
 
 interface PersonalInfoForm {
