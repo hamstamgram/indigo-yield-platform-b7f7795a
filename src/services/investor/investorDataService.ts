@@ -847,6 +847,137 @@ export async function fetchPendingInvites(): Promise<{
   }
 }
 
+// ============================================
+// Portfolio / Documents Methods
+// ============================================
+
+export interface InvestorDocument {
+  id: string;
+  title: string;
+  type: string;
+  storage_path: string;
+  period_start?: string | null;
+  period_end?: string | null;
+  created_at: string;
+}
+
+export interface PendingTransaction {
+  id: string;
+  type: 'DEPOSIT' | 'WITHDRAWAL';
+  amount: number;
+  asset: string;
+  created_at: string;
+  status: string;
+  note: string;
+}
+
+/**
+ * Get investor's documents
+ */
+export async function getInvestorDocuments(userId: string): Promise<InvestorDocument[]> {
+  const { data, error } = await supabase
+    .from("documents")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching investor documents:", error);
+    throw error;
+  }
+
+  return (data || []).map((doc) => ({
+    id: doc.id,
+    title: doc.title,
+    type: doc.type,
+    storage_path: doc.storage_path,
+    period_start: doc.period_start,
+    period_end: doc.period_end,
+    created_at: doc.created_at,
+  }));
+}
+
+/**
+ * Download a document from storage
+ */
+export async function downloadDocument(storagePath: string): Promise<Blob> {
+  const { data, error } = await supabase.storage
+    .from("documents")
+    .download(storagePath);
+
+  if (error) {
+    console.error("Error downloading document:", error);
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Get pending transactions (deposits + withdrawals)
+ */
+export async function getPendingTransactions(
+  userId: string, 
+  searchTerm?: string
+): Promise<PendingTransaction[]> {
+  // 1. Get Pending Deposits
+  const { data: deposits, error: depositError } = await supabase
+    .from("deposits")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("status", "pending");
+
+  if (depositError) throw depositError;
+
+  // 2. Get Pending Withdrawals
+  const { data: withdrawals, error: withdrawalError } = await supabase
+    .from("withdrawal_requests")
+    .select(`*, funds ( name, code, asset )`)
+    .eq("investor_id", userId)
+    .eq("status", "pending");
+
+  if (withdrawalError) throw withdrawalError;
+
+  // 3. Normalize and Merge
+  const normalizedDeposits: PendingTransaction[] = (deposits || []).map((d) => ({
+    id: d.id,
+    type: "DEPOSIT" as const,
+    amount: d.amount,
+    asset: d.asset_symbol,
+    created_at: d.created_at || "",
+    status: d.status || "pending",
+    note: "Pending deposit",
+  }));
+
+  const normalizedWithdrawals: PendingTransaction[] = (withdrawals || []).map((w) => ({
+    id: w.id,
+    type: "WITHDRAWAL" as const,
+    amount: w.requested_amount,
+    asset: (w.funds as any)?.asset || "Unknown",
+    created_at: w.request_date || "",
+    status: w.status || "pending",
+    note: `Withdrawal from ${(w.funds as any)?.name || "Fund"}`,
+  }));
+
+  let allItems = [...normalizedDeposits, ...normalizedWithdrawals];
+
+  // 4. Filter if search term provided
+  if (searchTerm) {
+    const lowerSearch = searchTerm.toLowerCase();
+    allItems = allItems.filter(
+      (item) =>
+        item.asset.toLowerCase().includes(lowerSearch) ||
+        item.note.toLowerCase().includes(lowerSearch) ||
+        item.type.toLowerCase().includes(lowerSearch)
+    );
+  }
+
+  // 5. Sort by created_at descending
+  return allItems.sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+}
+
 /**
  * Expert investor service object (for backward compatibility)
  */

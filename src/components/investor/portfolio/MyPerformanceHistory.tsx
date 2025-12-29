@@ -1,4 +1,3 @@
-import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -8,92 +7,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useToast } from "@/hooks";
-import { supabase } from "@/integrations/supabase/client";
-import { formatAssetAmount, getAssetLogo, getAssetName } from "@/utils/assets"; // Import utilities
-import { Loader2, TrendingUp, Calendar, Coins } from "lucide-react";
-
-interface MonthlyReport {
-  id: string;
-  report_month: string;
-  asset_code: string;
-  opening_balance: number | null;
-  closing_balance: number | null;
-  additions: number | null;
-  withdrawals: number | null;
-  yield_earned: number | null;
-}
+import { formatAssetAmount, getAssetLogo, getAssetName } from "@/utils/assets";
+import { Loader2, TrendingUp, Calendar } from "lucide-react";
+import { usePerformanceHistory } from "@/hooks/investor";
+import type { PerformanceHistoryRecord } from "@/services/shared/performanceService";
 
 export default function MyPerformanceHistory() {
-  const [groupedReports, setGroupedReports] = useState<Record<string, MonthlyReport[]>>({});
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const { data: groupedReports, isLoading, error } = usePerformanceHistory();
 
-  const fetchPerformanceData = useCallback(async () => {
-    try {
-      setLoading(true);
-
-      // 1. Get current user
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      // 2. Fetch Performance Data (V2 with investor_id)
-      const { data, error } = await supabase
-        .from("investor_fund_performance")
-        .select(`
-          *,
-          period:statement_periods (
-            period_end_date
-          )
-        `)
-        .eq("investor_id", user.id)
-        .order("period(period_end_date)", { ascending: false });
-
-      if (error) throw error;
-
-      // 3. Map to MonthlyReport format
-      const reports = (data || []).map((r: any) => ({
-        id: r.id,
-        report_month: r.period?.period_end_date,
-        asset_code: r.fund_name,
-        opening_balance: Number(r.mtd_beginning_balance || 0),
-        closing_balance: Number(r.mtd_ending_balance || 0),
-        additions: Number(r.mtd_additions || 0),
-        withdrawals: Number(r.mtd_redemptions || 0),
-        yield_earned: Number(r.mtd_net_income || 0),
-      }));
-
-      // 4. Group by Asset
-      const grouped = reports.reduce(
-        (acc: any, report: any) => {
-          const asset = report.asset_code;
-          if (!acc[asset]) acc[asset] = [];
-          acc[asset].push(report);
-          return acc;
-        },
-        {} as Record<string, MonthlyReport[]>
-      );
-
-      setGroupedReports(grouped);
-    } catch (error) {
-      console.error("Error fetching performance:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load performance history",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
-
-  useEffect(() => {
-    fetchPerformanceData();
-  }, [fetchPerformanceData]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -101,7 +23,19 @@ export default function MyPerformanceHistory() {
     );
   }
 
-  const assetKeys = Object.keys(groupedReports).sort();
+  if (error) {
+    return (
+      <Card className="col-span-full">
+        <CardContent className="pt-6">
+          <div className="text-center py-12 bg-destructive/10 rounded-lg">
+            <p className="text-destructive font-medium">Failed to load performance history</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const assetKeys = Object.keys(groupedReports || {}).sort();
 
   if (assetKeys.length === 0) {
     return (
@@ -159,7 +93,7 @@ export default function MyPerformanceHistory() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {groupedReports[assetCode].map((report) => {
+                  {groupedReports![assetCode].map((report: PerformanceHistoryRecord) => {
                     // Calculate Rate of Return (Simplified Modified Dietz)
                     const netFlows = (report.additions || 0) - (report.withdrawals || 0);
                     const denominator = (report.opening_balance || 0) + netFlows / 2;

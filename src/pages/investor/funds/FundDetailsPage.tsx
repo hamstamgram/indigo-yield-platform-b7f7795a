@@ -1,7 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAssetLogo, getAssetName } from "@/utils/assets";
 import { PerformanceReportTable } from "@/components/investor/reports/PerformanceReportTable";
