@@ -5,10 +5,10 @@
 
 import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUploadFundLogo } from "@/hooks/data/shared";
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"];
@@ -20,10 +20,13 @@ interface FundLogoUploadProps {
 }
 
 export function FundLogoUpload({ currentLogoUrl, onUpload, disabled }: FundLogoUploadProps) {
-  const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentLogoUrl || null);
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Use React Query mutation hook
+  const uploadMutation = useUploadFundLogo();
+  const uploading = uploadMutation.isPending;
 
   const validateFile = (file: File): string | null => {
     if (!ACCEPTED_TYPES.includes(file.type)) {
@@ -42,37 +45,12 @@ export function FundLogoUpload({ currentLogoUrl, onUpload, disabled }: FundLogoU
       return;
     }
 
-    setUploading(true);
-    try {
-      // Generate unique filename
-      const fileExt = file.name.split(".").pop();
-      const fileName = `fund-logo-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-      const filePath = `fund-logos/${fileName}`;
-
-      // Upload to branding-assets bucket
-      const { error: uploadError } = await supabase.storage
-        .from("branding-assets")
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from("branding-assets")
-        .getPublicUrl(filePath);
-
-      setPreviewUrl(publicUrl);
-      onUpload(publicUrl);
-      toast.success("Logo uploaded successfully");
-    } catch (error: any) {
-      console.error("Error uploading logo:", error);
-      toast.error(error.message || "Failed to upload logo");
-    } finally {
-      setUploading(false);
-    }
+    uploadMutation.mutate(file, {
+      onSuccess: (result) => {
+        setPreviewUrl(result.publicUrl);
+        onUpload(result.publicUrl);
+      },
+    });
   };
 
   const handleDrag = useCallback((e: React.DragEvent) => {

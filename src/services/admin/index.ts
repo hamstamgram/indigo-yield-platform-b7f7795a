@@ -74,3 +74,9 @@ export { commandPaletteService, type InvestorSearchResult } from "./commandPalet
 
 // Internal route service (new)
 export { internalRouteService, type InvestorPositionForRoute, type InternalRouteParams, type InternalRouteResult } from "./internalRouteService";
+
+// Report recipients service (new)
+export { reportRecipientsService } from "./reportRecipientsService";
+
+// IB users service (new)
+export { ibUsersService, type IBUser } from "./ibUsersService";

@@ -222,3 +222,8 @@ export {
   type YieldFilters,
   type YieldDetails,
 } from "./useYieldData";
+
+// Storage
+export {
+  useUploadFundLogo,
+} from "./useStorage";

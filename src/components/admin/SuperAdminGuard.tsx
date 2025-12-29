@@ -3,11 +3,11 @@
  * Protects super-admin-only routes/operations with role-based access control
  */
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Navigate } from "react-router-dom";
 import { Shield, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
-import { supabase } from "@/integrations/supabase/client";
+import { useSuperAdminCheck } from "@/hooks/data/admin";
 
 interface SuperAdminGuardProps {
   children: React.ReactNode;
@@ -16,45 +16,9 @@ interface SuperAdminGuardProps {
 
 export function SuperAdminGuard({ children, fallback }: SuperAdminGuardProps) {
   const { user, loading, isAdmin } = useAuth();
-  const [isSuperAdmin, setIsSuperAdmin] = useState<boolean | null>(null);
-  const [checkingRole, setCheckingRole] = useState(true);
 
-  useEffect(() => {
-    async function checkSuperAdminRole() {
-      if (!user) {
-        setCheckingRole(false);
-        return;
-      }
-
-      try {
-        // Check if user has super_admin role in user_roles table
-        const { data, error } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id)
-          .eq("role", "super_admin")
-          .maybeSingle();
-
-        if (error) {
-          console.error("Error checking super admin role:", error);
-          setIsSuperAdmin(false);
-        } else {
-          setIsSuperAdmin(!!data);
-        }
-      } catch (err) {
-        console.error("Error checking super admin role:", err);
-        setIsSuperAdmin(false);
-      } finally {
-        setCheckingRole(false);
-      }
-    }
-
-    if (!loading && user) {
-      checkSuperAdminRole();
-    } else if (!loading) {
-      setCheckingRole(false);
-    }
-  }, [user, loading]);
+  // Use React Query hook for checking super admin status
+  const { data: isSuperAdmin, isLoading: checkingRole } = useSuperAdminCheck(user?.id);
 
   // Show loading state
   if (loading || checkingRole) {
@@ -99,47 +63,15 @@ export function SuperAdminGuard({ children, fallback }: SuperAdminGuardProps) {
 
 /**
  * Hook to check if current user is super admin
+ * Uses React Query for caching and state management
  */
 export function useSuperAdmin() {
   const { user, loading: authLoading, isAdmin } = useAuth();
-  const [isSuperAdmin, setIsSuperAdmin] = useState<boolean>(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function checkRole() {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id)
-          .eq("role", "super_admin")
-          .maybeSingle();
-
-        if (!error && data) {
-          setIsSuperAdmin(true);
-        }
-      } catch (err) {
-        console.error("Error checking super admin:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (!authLoading && user) {
-      checkRole();
-    } else if (!authLoading) {
-      setLoading(false);
-    }
-  }, [user, authLoading]);
+  const { data: isSuperAdmin = false, isLoading } = useSuperAdminCheck(user?.id);
 
   return {
     isSuperAdmin,
     isAdmin,
-    loading: authLoading || loading,
+    loading: authLoading || isLoading,
   };
 }
