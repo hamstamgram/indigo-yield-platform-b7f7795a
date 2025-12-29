@@ -27,8 +27,25 @@ export * from "./historicalDataService";
 export * from "./ibService";
 
 // Transaction service
-export { fetchUserTransactions, calculateTransactionSummary, createAdminTransaction } from "./transactionService";
-export type { Transaction, TransactionSummary } from "./transactionService";
+export { 
+  fetchUserTransactions, 
+  calculateTransactionSummary, 
+  createAdminTransaction,
+  createQuickTransaction,
+  transactionService,
+} from "./transactionService";
+export type { 
+  Transaction, 
+  TransactionSummary, 
+  QuickTransactionParams,
+  CreateTransactionParams,
+} from "./transactionService";
+// Re-export canonical types from domain types
+export type { 
+  CreateTransactionParams as CreateTransactionDBParams,
+  CreateTransactionUIParams,
+  UITransactionType,
+} from "@/types/domains/transaction";
 
 // Email templates
 export * from "./emailTemplates";
