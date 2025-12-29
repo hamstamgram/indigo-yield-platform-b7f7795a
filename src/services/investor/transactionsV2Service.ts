@@ -80,18 +80,23 @@ class TransactionsV2Service {
   }
 
   /**
-   * Void a transaction (mark notes with voided reason)
+   * Void a transaction via RPC (proper voiding with audit trail)
+   * This calls the void_transaction RPC which:
+   * - Sets is_voided = true
+   * - Records void_reason, voided_at, voided_by
+   * - Recomputes investor position
+   * - Writes audit log entry
    */
   async voidTransaction(transactionId: string, reason: string): Promise<void> {
-    const tx = await this.getById(transactionId);
-    const newNotes = `[VOIDED: ${reason}] ${tx?.notes || ""}`;
+    const { error } = await supabase.rpc("void_transaction", {
+      p_transaction_id: transactionId,
+      p_reason: reason,
+    });
 
-    const { error } = await supabase
-      .from("transactions_v2")
-      .update({ notes: newNotes })
-      .eq("id", transactionId);
-
-    if (error) throw error;
+    if (error) {
+      console.error("Error voiding transaction:", error);
+      throw new Error(error.message || "Failed to void transaction");
+    }
   }
 
   /**

@@ -135,6 +135,26 @@ run_check "hard_delete_withdrawal_request function" \
   "SELECT COUNT(*) FROM pg_proc WHERE proname = 'hard_delete_withdrawal_request'" \
   "1" || ((FAILURES++))
 
+run_check "void_transaction function" \
+  "SELECT COUNT(*) FROM pg_proc WHERE proname = 'void_transaction'" \
+  "1" || ((FAILURES++))
+
+run_check "admin_create_transaction function" \
+  "SELECT COUNT(*) FROM pg_proc WHERE proname = 'admin_create_transaction'" \
+  "1" || ((FAILURES++))
+
+run_check "recompute_investor_position function" \
+  "SELECT COUNT(*) FROM pg_proc WHERE proname = 'recompute_investor_position'" \
+  "1" || ((FAILURES++))
+
+run_check "preview_daily_yield_to_fund_v2 function" \
+  "SELECT COUNT(*) FROM pg_proc WHERE proname = 'preview_daily_yield_to_fund_v2'" \
+  "1" || ((FAILURES++))
+
+run_check "apply_daily_yield_to_fund_v2 function" \
+  "SELECT COUNT(*) FROM pg_proc WHERE proname = 'apply_daily_yield_to_fund_v2'" \
+  "1" || ((FAILURES++))
+
 # Summary
 echo ""
 echo "=============================================="

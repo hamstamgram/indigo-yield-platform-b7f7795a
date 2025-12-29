@@ -192,28 +192,22 @@ export async function createInvestorWithWizard(wizardData: WizardFormData): Prom
       console.error("Fee schedule error:", feeError);
     }
 
-    // Step 5: Create initial positions for assets with value > 0
-    const positionsToCreate = Object.entries(positions)
-      .filter(([_, value]) => value > 0)
-      .map(([symbol, value]) => ({
-        investor_id: investorId,
-        fund_id: symbol, // Using symbol as fund_id for now - this maps to the fund
-        current_value: value,
-        cost_basis: value,
-        shares: 0,
-      }));
+    // Step 5: Create initial positions via admin_create_transaction RPC
+    // This ensures ledger transactions are always created alongside positions
+    const positivePositions = Object.entries(positions).filter(([_, value]) => value > 0);
 
-    // First, we need to find the actual fund IDs for each asset symbol
-    if (positionsToCreate.length > 0) {
+    if (positivePositions.length > 0) {
+      // Get the effective date from wizard data (with fallback to today)
+      const effectiveDate = wizardData.positionsEffectiveDate || new Date().toISOString().split("T")[0];
+      
       // CRITICAL: Only select ACTIVE funds to prevent duplicate positions on deprecated funds
       const { data: allFunds } = await supabase
         .from("funds")
         .select("id, asset")
-        .eq("status", "active")  // ONLY active funds
-        .in("asset", Object.keys(positions).filter(s => positions[s] > 0));
+        .eq("status", "active")
+        .in("asset", positivePositions.map(([s]) => s));
 
       // Deduplicate funds by asset - ensure only ONE fund per asset
-      // This is a safety guard in case there are somehow multiple active funds per asset
       const fundsByAsset = new Map<string, { id: string; asset: string }>();
       allFunds?.forEach(fund => {
         if (!fundsByAsset.has(fund.asset)) {
@@ -223,54 +217,70 @@ export async function createInvestorWithWizard(wizardData: WizardFormData): Prom
       const funds = Array.from(fundsByAsset.values());
 
       if (funds && funds.length > 0) {
-        const fundPositions = funds.map((fund) => ({
-          investor_id: investorId,
-          fund_id: fund.id,
-          current_value: positions[fund.asset] || 0,
-          cost_basis: positions[fund.asset] || 0,
-          shares: 0,
-          fund_class: fund.asset,
-        }));
-
-        const { error: posError } = await supabase
-          .from("investor_positions")
-          .insert(fundPositions);
-
-        if (posError) {
-          console.error("Position creation error:", posError);
-        }
-
-        // Create initial DEPOSIT transactions for audit trail with source tracking
-        // Include reference_id for idempotency - prevents duplicates if wizard retried
-        // CRITICAL: Must include value_date field for transaction to be valid
-        const effectiveDate = new Date().toISOString().split("T")[0];
+        toast.info("Creating initial deposit transactions...");
         
-        const depositTransactions = funds
-          .filter((fund) => (positions[fund.asset] || 0) > 0) // Only non-zero positions
-          .map((fund) => ({
-            investor_id: investorId,
-            fund_id: fund.id,
-            type: "DEPOSIT" as const,
-            asset: fund.asset,
-            amount: positions[fund.asset] || 0,
-            tx_date: effectiveDate,
-            value_date: effectiveDate, // Required field - was missing!
-            notes: "Initial position on investor creation",
-            source: "investor_wizard" as const,
-            is_system_generated: false,
-            // Deterministic reference_id format: init_deposit:{investor_id}:{fund_id}:{date}
-            reference_id: `init_deposit:${investorId}:${fund.id}:${effectiveDate}`,
-            visibility_scope: "investor_visible" as const,
-          }));
+        // Use admin_create_transaction RPC for each position
+        // This ensures proper ledger entries and position updates
+        for (const fund of funds) {
+          const amount = positions[fund.asset] || 0;
+          if (amount <= 0) continue;
 
-        if (depositTransactions.length > 0) {
-          const { error: txError } = await supabase
-            .from("transactions_v2")
-            .insert(depositTransactions);
+          // Create deterministic reference_id for idempotency
+          const referenceId = `init_deposit:${investorId}:${fund.id}:${effectiveDate}`;
+
+          // Call admin_create_transaction RPC which handles both transaction creation
+          // and position update atomically
+          const { error: txError } = await (supabase.rpc as any)("admin_create_transaction", {
+            p_investor_id: investorId,
+            p_fund_id: fund.id,
+            p_type: "DEPOSIT",
+            p_amount: amount,
+            p_tx_date: effectiveDate,
+            p_notes: "Initial position on investor creation",
+            p_reference_id: referenceId,
+          });
 
           if (txError) {
-            console.error("Transaction creation error:", txError);
-            // Don't throw - positions are created, log warning only
+            console.error(`Transaction creation error for ${fund.asset}:`, txError);
+            // Fallback: try direct insert if RPC fails (for backwards compatibility)
+            const { error: fallbackError } = await supabase
+              .from("transactions_v2")
+              .insert({
+                investor_id: investorId,
+                fund_id: fund.id,
+                type: "DEPOSIT",
+                asset: fund.asset,
+                amount: amount,
+                tx_date: effectiveDate,
+                value_date: effectiveDate,
+                notes: "Initial position on investor creation",
+                source: "investor_wizard",
+                is_system_generated: false,
+                reference_id: referenceId,
+                visibility_scope: "investor_visible",
+              });
+
+            if (fallbackError) {
+              console.error("Fallback transaction creation also failed:", fallbackError);
+            }
+
+            // Also create/update position directly as fallback
+            const { error: posError } = await supabase
+              .from("investor_positions")
+              .upsert({
+                investor_id: investorId,
+                fund_id: fund.id,
+                current_value: amount,
+                cost_basis: amount,
+                shares: 0,
+                fund_class: fund.asset,
+              }, {
+                onConflict: "investor_id,fund_id",
+              });
+
+            if (posError) {
+              console.error("Fallback position creation also failed:", posError);
+            }
           }
         }
       }

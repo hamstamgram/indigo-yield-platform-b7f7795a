@@ -4,7 +4,12 @@ import { Label } from "@/components/ui/label";
 import { useWizard } from "../WizardContext";
 import { getAssetStep, ASSET_PRECISION } from "../types";
 import { getAssetLogo } from "@/utils/assets";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { format, parseISO } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const PositionsStep: React.FC = () => {
   const { data, updateData, setCanProceed, assets } = useWizard();
@@ -38,9 +43,16 @@ const PositionsStep: React.FC = () => {
       return;
     }
 
+    // Validate effective date
+    if (!data.positionsEffectiveDate) {
+      setError("Effective date is required");
+      setCanProceed(false);
+      return;
+    }
+
     setError(null);
     setCanProceed(true);
-  }, [data.positions, setCanProceed]);
+  }, [data.positions, data.positionsEffectiveDate, setCanProceed]);
 
   const handlePositionChange = (symbol: string, value: string) => {
     const numValue = parseFloat(value) || 0;
@@ -55,7 +67,16 @@ const PositionsStep: React.FC = () => {
     });
   };
 
+  const handleDateChange = (date: Date | undefined) => {
+    if (date) {
+      updateData("positionsEffectiveDate", format(date, "yyyy-MM-dd"));
+    }
+  };
+
   const activeAssets = assets;
+  const effectiveDate = data.positionsEffectiveDate 
+    ? parseISO(data.positionsEffectiveDate) 
+    : new Date();
 
   return (
     <div className="space-y-6">
@@ -64,6 +85,39 @@ const PositionsStep: React.FC = () => {
         <p className="text-sm text-muted-foreground">
           Set the initial token balances for each fund asset
         </p>
+      </div>
+
+      {/* Effective Date Picker */}
+      <div className="space-y-2 p-4 border rounded-lg bg-muted/30">
+        <Label className="text-sm font-medium">Effective Date of Initial Investment</Label>
+        <p className="text-xs text-muted-foreground mb-2">
+          This date will be used for the deposit transaction(s). You can backdate if needed.
+        </p>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !data.positionsEffectiveDate && "text-muted-foreground"
+              )}
+            >
+              <Calendar className="mr-2 h-4 w-4" />
+              {data.positionsEffectiveDate 
+                ? format(effectiveDate, "PPP") 
+                : "Select a date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <CalendarComponent
+              mode="single"
+              selected={effectiveDate}
+              onSelect={handleDateChange}
+              initialFocus
+              disabled={(date) => date > new Date()}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       {error && (
@@ -112,6 +166,9 @@ const PositionsStep: React.FC = () => {
       {Object.entries(data.positions).filter(([_, val]) => val > 0).length > 0 && (
         <div className="p-4 border rounded-lg bg-accent/10">
           <h4 className="font-medium mb-2">Positions to Create</h4>
+          <p className="text-xs text-muted-foreground mb-2">
+            Effective: {data.positionsEffectiveDate ? format(effectiveDate, "PPP") : "Not set"}
+          </p>
           <div className="space-y-1 text-sm">
             {Object.entries(data.positions)
               .filter(([_, val]) => val > 0)
