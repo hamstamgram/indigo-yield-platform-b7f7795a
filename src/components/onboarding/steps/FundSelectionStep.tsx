@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Checkbox, Badge,
+  Alert, AlertDescription,
+} from "@/components/ui";
 import { Target, Shield, CheckCircle, Info, Bitcoin, Coins } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import type { OnboardingData, FundConfiguration } from "@/types/domains";

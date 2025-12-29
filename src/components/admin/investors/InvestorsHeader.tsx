@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui";
 import { UserPlus } from "lucide-react";
 import { useIsMobile } from "@/hooks";
 

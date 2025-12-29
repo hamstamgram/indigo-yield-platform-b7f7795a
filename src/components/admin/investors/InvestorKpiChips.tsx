@@ -3,8 +3,10 @@
  * Shows: Total AUM, Active funds, Pending withdrawals, Last report, IB linked, Fee schedule
  */
 
-import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Badge,
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+} from "@/components/ui";
 import { Coins, Briefcase, Clock, FileText, Users, Percent } from "lucide-react";
 import { cn } from "@/lib/utils";
 

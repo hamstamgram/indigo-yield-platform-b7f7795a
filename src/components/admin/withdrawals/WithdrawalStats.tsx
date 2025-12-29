@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { WithdrawalStats } from "@/types/domains";
 import { AlertCircle, CheckCircle2, Clock, Coins, XCircle } from "lucide-react";
 
