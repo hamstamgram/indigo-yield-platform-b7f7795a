@@ -201,3 +201,33 @@ export {
   type InternalRouteParams,
   type InternalRouteResult,
 } from "./useInternalRoute";
+
+// useReportRecipients (new - for ReportRecipientsEditor component)
+export {
+  useReportRecipients,
+  useUpdateReportRecipients,
+} from "./useReportRecipients";
+
+// useIBUsers (new - for IBStep wizard component)
+export {
+  useIBUsers,
+  type IBUser,
+} from "./useIBUsers";
+
+// useDeposits (new - for deposit components)
+export {
+  useDepositStats,
+  useDeposits,
+  type DepositStats,
+  type DepositFilters,
+} from "./useDeposits";
+
+// useAssets (new - for asset components)
+export {
+  useAssetStats,
+  useAssets,
+  useAssetPrices,
+  useLatestAssetPrice,
+  type AssetStats,
+  type AssetFilters,
+} from "./useAssets";

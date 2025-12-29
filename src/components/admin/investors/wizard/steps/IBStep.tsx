@@ -2,15 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  FormDescription,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -31,9 +22,8 @@ import {
 import { Check, ChevronsUpDown, Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWizard } from "../WizardContext";
-import { IBUser, ibSchema } from "../types";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { ibSchema } from "../types";
+import { useIBUsers } from "@/hooks/data/admin";
 
 const newIbSchema = z.object({
   email: z.string().email("Valid email required"),
@@ -43,10 +33,10 @@ const newIbSchema = z.object({
 
 const IBStep: React.FC = () => {
   const { data, updateData, setCanProceed } = useWizard();
-  const [ibUsers, setIbUsers] = useState<IBUser[]>([]);
-  const [isLoadingIBs, setIsLoadingIBs] = useState(false);
-  const [isCreatingIB, setIsCreatingIB] = useState(false);
   const [open, setOpen] = useState(false);
+
+  // Use React Query hook for fetching IB users
+  const { data: ibUsers = [], isLoading: isLoadingIBs } = useIBUsers();
 
   const newIbForm = useForm<z.infer<typeof newIbSchema>>({
     resolver: zodResolver(newIbSchema),
@@ -56,39 +46,6 @@ const IBStep: React.FC = () => {
       last_name: data.ib.newIb?.last_name || "",
     },
   });
-
-  // Load existing IBs
-  useEffect(() => {
-    const loadIBs = async () => {
-      setIsLoadingIBs(true);
-      try {
-        // Get users with IB role
-        const { data: roleData, error: roleError } = await supabase
-          .from("user_roles")
-          .select("user_id")
-          .eq("role", "ib");
-
-        if (roleError) throw roleError;
-
-        if (roleData && roleData.length > 0) {
-          const userIds = roleData.map((r) => r.user_id);
-          const { data: profiles, error: profileError } = await supabase
-            .from("profiles")
-            .select("id, email, first_name, last_name")
-            .in("id", userIds);
-
-          if (profileError) throw profileError;
-          setIbUsers(profiles || []);
-        }
-      } catch (error) {
-        console.error("Failed to load IBs:", error);
-      } finally {
-        setIsLoadingIBs(false);
-      }
-    };
-
-    loadIBs();
-  }, []);
 
   // Validate step
   useEffect(() => {

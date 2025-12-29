@@ -6,11 +6,9 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks";
-import { supabase } from "@/integrations/supabase/client";
-import { invokeFunction } from "@/lib/supabase/functions";
 import { EmailChipsInput } from "@/components/ui/email-chips-input";
 import { Mail, Pencil, X, Save, Loader2, Info } from "lucide-react";
+import { useReportRecipients, useUpdateReportRecipients } from "@/hooks/data/admin";
 
 interface ReportRecipientsEditorProps {
   investorId: string;
@@ -19,79 +17,28 @@ interface ReportRecipientsEditorProps {
 
 export function ReportRecipientsEditor({ investorId, investorEmail }: ReportRecipientsEditorProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const { toast } = useToast();
-
-  // Current saved emails
-  const [savedEmails, setSavedEmails] = useState<string[]>([]);
-  // Editing state
   const [emails, setEmails] = useState<string[]>([]);
 
+  // Use React Query hooks
+  const { data: savedEmails = [], isLoading } = useReportRecipients(investorId);
+  const updateMutation = useUpdateReportRecipients(investorId);
+
+  // Sync editing state with fetched data
   useEffect(() => {
-    fetchReportRecipients();
-  }, [investorId]);
-
-  const fetchReportRecipients = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("investor_emails")
-        .select("email")
-        .eq("investor_id", investorId)
-        .order("created_at", { ascending: true });
-
-      if (error) throw error;
-
-      const emailList = data?.map((row) => row.email) || [];
-      setSavedEmails(emailList);
-      setEmails(emailList);
-    } catch (error) {
-      console.error("Error fetching report recipients:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch report recipients",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    setEmails(savedEmails);
+  }, [savedEmails]);
 
   const handleCancel = () => {
     setEmails(savedEmails);
     setIsEditing(false);
   };
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      const { data, error } = await invokeFunction("admin-user-management", {
-        action: "updateReportRecipients",
-        investorId,
-        emails,
-      });
-
-      if (error || !data?.success) {
-        throw new Error(data?.error || error?.message || "Failed to update recipients");
-      }
-
-      toast({
-        title: "Recipients Updated",
-        description: "Report recipients have been updated successfully",
-      });
-
-      setSavedEmails(emails);
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Error updating recipients:", error);
-      toast({
-        title: "Update Failed",
-        description: error instanceof Error ? error.message : "Failed to update recipients",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
-    }
+  const handleSave = () => {
+    updateMutation.mutate(emails, {
+      onSuccess: () => {
+        setIsEditing(false);
+      },
+    });
   };
 
   if (isLoading) {
@@ -119,12 +66,12 @@ export function ReportRecipientsEditor({ investorId, investorEmail }: ReportReci
             <CardDescription>Edit emails that receive monthly reports</CardDescription>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleCancel} disabled={isSaving}>
+            <Button variant="outline" size="sm" onClick={handleCancel} disabled={updateMutation.isPending}>
               <X className="h-4 w-4 mr-1" />
               Cancel
             </Button>
-            <Button size="sm" onClick={handleSave} disabled={isSaving}>
-              {isSaving ? (
+            <Button size="sm" onClick={handleSave} disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? (
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
               ) : (
                 <Save className="h-4 w-4 mr-1" />

@@ -102,3 +102,6 @@ export { transactionsV2Service } from "@/services/investor/transactionsV2Service
 
 // Invite service
 export { inviteService } from "./inviteService";
+
+// Storage service (new)
+export { storageService, type UploadResult } from "./storageService";
