@@ -3,25 +3,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  FormDescription,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription,
+  Input,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  EmailChipsInput,
+} from "@/components/ui";
 import { useWizard } from "../WizardContext";
 import { identitySchema } from "../types";
-import { EmailChipsInput } from "@/components/ui/email-chips-input";
 
 type IdentityFormValues = z.infer<typeof identitySchema>;
 

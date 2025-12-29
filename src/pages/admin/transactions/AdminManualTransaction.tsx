@@ -3,26 +3,19 @@ import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+  Card, CardContent, CardHeader, CardTitle, CardDescription,
+  Button, Input, Label, Textarea,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Alert, AlertDescription,
+  Calendar,
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui";
 import { useToast } from "@/hooks";
 import { supabase } from "@/integrations/supabase/client";
 import { createAdminTransaction, type CreateTransactionParams } from "@/services/shared/transactionService";
 import { saveDraftAUMEntry } from "@/services/admin/yieldDistributionService";
 import { Loader2, ArrowRightLeft, Info, AlertTriangle, Check, CalendarIcon } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";

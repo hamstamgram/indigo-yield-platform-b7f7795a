@@ -4,18 +4,11 @@
  * Shows mismatch views (should be empty), audit events, and overall status
  */
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  Card, CardContent, CardHeader, CardTitle, CardDescription,
+  Badge, Button, Skeleton,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui";
 import { useIntegrityChecks, useAuditEvents } from "@/hooks/data/useIntegrityData";
 import type { IntegrityStatus, IntegrityCheck } from "@/types/domains/integrity";
 import {

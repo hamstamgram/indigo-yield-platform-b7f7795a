@@ -1,6 +1,4 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, Button, Input } from "@/components/ui";
 import { Plus, Search, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";

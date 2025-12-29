@@ -1,15 +1,8 @@
 import { useState } from "react";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
+  Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
+  Button, Switch, Separator,
+} from "@/components/ui";
 import { useToast } from "@/hooks";
 
 const NotificationsTab = () => {
