@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { dailyRatesService, DailyRate } from "@/services/shared/dailyRatesService";
-import { QUERY_KEYS } from "@/constants/queryKeys";
+import { 
+  useDailyRate, 
+  useRecentDailyRates, 
+  useSaveDailyRate, 
+  useSendDailyRateNotification,
+  type DailyRate,
+} from "@/hooks/data/admin";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +40,6 @@ interface EditingRate {
 }
 
 export default function DailyRatesManagement() {
-  const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0] // YYYY-MM-DD format
   );
@@ -63,17 +66,15 @@ export default function DailyRatesManagement() {
     { code: "XRP", name: "XRP Yield Fund", color: "gray" },
   ];
 
-  // Fetch existing rate for selected date using service
-  const { data: existingRate, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.dailyRate(selectedDate),
-    queryFn: () => dailyRatesService.getByDate(selectedDate),
-  });
+  // Fetch existing rate for selected date using hook
+  const { data: existingRate, isLoading } = useDailyRate(selectedDate);
 
-  // Fetch last 7 days of rates for history using service
-  const { data: recentRates } = useQuery({
-    queryKey: QUERY_KEYS.recentDailyRates,
-    queryFn: () => dailyRatesService.getRecent(7),
-  });
+  // Fetch last 7 days of rates for history using hook
+  const { data: recentRates } = useRecentDailyRates(7);
+
+  // Mutations
+  const saveMutation = useSaveDailyRate();
+  const sendNotificationMutation = useSendDailyRateNotification();
 
   // Initialize editing rates when existing rate changes
   useEffect(() => {
@@ -118,58 +119,52 @@ export default function DailyRatesManagement() {
     setHasUnsavedChanges(true);
   };
 
-  // Save mutation using service
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      const rateData: Omit<DailyRate, "id"> = {
-        rate_date: editingRates.rate_date,
-        btc_rate: parseFloat(editingRates.btc_rate),
-        eth_rate: parseFloat(editingRates.eth_rate),
-        sol_rate: parseFloat(editingRates.sol_rate),
-        usdt_rate: parseFloat(editingRates.usdt_rate),
-        eurc_rate: parseFloat(editingRates.eurc_rate),
-        xaut_rate: parseFloat(editingRates.xaut_rate),
-        xrp_rate: parseFloat(editingRates.xrp_rate),
-        notes: editingRates.notes || null,
-      };
-      await dailyRatesService.upsert(rateData);
-    },
-    onSuccess: () => {
-      toast.success("Daily rates saved successfully");
-      setHasUnsavedChanges(false);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dailyRate() });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.recentDailyRates });
-    },
-    onError: (error: any) => {
-      console.error("Error saving daily rates:", error);
-      toast.error(error.message || "Failed to save daily rates");
-    },
-  });
+  // Handle save
+  const handleSave = () => {
+    const rateData: Omit<DailyRate, "id"> = {
+      rate_date: editingRates.rate_date,
+      btc_rate: parseFloat(editingRates.btc_rate),
+      eth_rate: parseFloat(editingRates.eth_rate),
+      sol_rate: parseFloat(editingRates.sol_rate),
+      usdt_rate: parseFloat(editingRates.usdt_rate),
+      eurc_rate: parseFloat(editingRates.eurc_rate),
+      xaut_rate: parseFloat(editingRates.xaut_rate),
+      xrp_rate: parseFloat(editingRates.xrp_rate),
+      notes: editingRates.notes || null,
+    };
+    saveMutation.mutate(rateData, {
+      onSuccess: () => {
+        toast.success("Daily rates saved successfully");
+        setHasUnsavedChanges(false);
+      },
+      onError: (error: any) => {
+        toast.error(error.message || "Failed to save daily rates");
+      },
+    });
+  };
 
-  // Send notification mutation using service
-  const sendNotificationMutation = useMutation({
-    mutationFn: async () => {
-      const rateData: DailyRate = {
-        rate_date: editingRates.rate_date,
-        btc_rate: parseFloat(editingRates.btc_rate),
-        eth_rate: parseFloat(editingRates.eth_rate),
-        sol_rate: parseFloat(editingRates.sol_rate),
-        usdt_rate: parseFloat(editingRates.usdt_rate),
-        eurc_rate: parseFloat(editingRates.eurc_rate),
-        xaut_rate: parseFloat(editingRates.xaut_rate),
-        xrp_rate: parseFloat(editingRates.xrp_rate),
-        notes: editingRates.notes || null,
-      };
-      return dailyRatesService.sendNotificationToInvestors(rateData);
-    },
-    onSuccess: (data) => {
-      toast.success(`Daily rates sent to ${data.count} investors via notification`);
-    },
-    onError: (error: any) => {
-      console.error("Error sending notification:", error);
-      toast.error(error.message || "Failed to send notification");
-    },
-  });
+  // Handle send notification
+  const handleSendNotification = () => {
+    const rateData: DailyRate = {
+      rate_date: editingRates.rate_date,
+      btc_rate: parseFloat(editingRates.btc_rate),
+      eth_rate: parseFloat(editingRates.eth_rate),
+      sol_rate: parseFloat(editingRates.sol_rate),
+      usdt_rate: parseFloat(editingRates.usdt_rate),
+      eurc_rate: parseFloat(editingRates.eurc_rate),
+      xaut_rate: parseFloat(editingRates.xaut_rate),
+      xrp_rate: parseFloat(editingRates.xrp_rate),
+      notes: editingRates.notes || null,
+    };
+    sendNotificationMutation.mutate(rateData, {
+      onSuccess: (data) => {
+        toast.success(`Daily rates sent to ${data.count} investors via notification`);
+      },
+      onError: (error: any) => {
+        toast.error(error.message || "Failed to send notification");
+      },
+    });
+  };
 
   // Calculate daily change percentage
   const calculateChange = (currentRate: string, previousRate?: string) => {
@@ -249,14 +244,14 @@ export default function DailyRatesManagement() {
             </div>
             <div className="flex gap-2">
               <Button
-                onClick={() => saveMutation.mutate()}
+                onClick={handleSave}
                 disabled={!hasUnsavedChanges || saveMutation.isPending}
               >
                 <Save className="h-4 w-4 mr-2" />
                 {saveMutation.isPending ? "Saving..." : "Save Rates"}
               </Button>
               <Button
-                onClick={() => sendNotificationMutation.mutate()}
+                onClick={handleSendNotification}
                 disabled={hasUnsavedChanges || sendNotificationMutation.isPending || !existingRate}
                 variant="primary"
               >

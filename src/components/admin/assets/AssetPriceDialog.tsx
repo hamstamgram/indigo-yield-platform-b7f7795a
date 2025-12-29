@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -21,10 +21,10 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { assetService } from "@/services/shared/assetService";
+import { useAssetPrices, useLatestAssetPrice } from "@/hooks/data/admin";
 import type { Asset, AssetPrice, AssetPriceFormData } from "@/types/asset";
 import { format } from "date-fns";
 import { TrendingUp, DollarSign } from "lucide-react";
-import { QUERY_KEYS } from "@/constants/queryKeys";
 import { invalidateAfterAssetOp } from "@/utils/cacheInvalidation";
 
 interface AssetPriceDialogProps {
@@ -42,17 +42,8 @@ export function AssetPriceDialog({ asset, open, onOpenChange }: AssetPriceDialog
     source: "manual",
   });
 
-  const { data: prices, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.assetPrices(asset.asset_id),
-    queryFn: () => assetService.getAssetPrices(asset.asset_id, 50),
-    enabled: open,
-  });
-
-  const { data: latestPrice } = useQuery({
-    queryKey: QUERY_KEYS.latestPrice(asset.asset_id),
-    queryFn: () => assetService.getLatestPrice(asset.asset_id),
-    enabled: open,
-  });
+  const { data: prices, isLoading } = useAssetPrices(open ? asset.asset_id : "");
+  const { data: latestPrice } = useLatestAssetPrice(open ? asset.asset_id : "");
 
   const addPriceMutation = useMutation({
     mutationFn: (data: AssetPriceFormData) => assetService.addAssetPrice(data),

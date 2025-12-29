@@ -1,9 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-import { withdrawalService } from "@/services/investor/withdrawalService";
-import { WithdrawalAuditLog } from "@/types/withdrawal";
 import { format } from "date-fns";
 import { Loader2, CheckCircle, XCircle, Play, CheckCircle2, PlusCircle, Ban } from "lucide-react";
-import { QUERY_KEYS } from "@/constants/queryKeys";
+import { useWithdrawalAuditLogs } from "@/hooks/data/admin";
 
 interface WithdrawalAuditTimelineProps {
   withdrawalId: string;
@@ -20,11 +17,7 @@ const actionConfig: Record<string, { icon: React.ElementType; color: string; lab
 };
 
 export function WithdrawalAuditTimeline({ withdrawalId }: WithdrawalAuditTimelineProps) {
-  const { data: logs, isLoading, error } = useQuery({
-    queryKey: QUERY_KEYS.withdrawalAuditLogs(withdrawalId),
-    queryFn: () => withdrawalService.getWithdrawalAuditLogs(withdrawalId),
-    staleTime: 30 * 1000,
-  });
+  const { data: logs, isLoading, error } = useWithdrawalAuditLogs(withdrawalId);
 
   if (isLoading) {
     return (

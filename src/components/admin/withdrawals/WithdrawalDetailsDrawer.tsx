@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { withdrawalService } from "@/services/investor/withdrawalService";
 import { Withdrawal, WithdrawalStatus } from "@/types/withdrawal";
 import { getAssetLogo } from "@/utils/assets";
 import { format } from "date-fns";
@@ -20,7 +18,7 @@ import { WithdrawalAuditTimeline } from "./WithdrawalAuditTimeline";
 import { RouteToFeesDialog } from "./RouteToFeesDialog";
 import { toast } from "sonner";
 import { TruncatedText } from "@/components/ui/truncated-text";
-import { QUERY_KEYS } from "@/constants/queryKeys";
+import { useWithdrawalById } from "@/hooks/data/admin";
 
 interface WithdrawalDetailsDrawerProps {
   withdrawalId: string | null;
@@ -46,12 +44,7 @@ export function WithdrawalDetailsDrawer({
 }: WithdrawalDetailsDrawerProps) {
   const [routeToFeesOpen, setRouteToFeesOpen] = useState(false);
   
-  const { data: withdrawal, isLoading, error, refetch } = useQuery({
-    queryKey: QUERY_KEYS.withdrawalDetails(withdrawalId || ""),
-    queryFn: () => (withdrawalId ? withdrawalService.getWithdrawalById(withdrawalId) : null),
-    enabled: !!withdrawalId && open,
-    staleTime: 30 * 1000,
-  });
+  const { data: withdrawal, isLoading, error, refetch } = useWithdrawalById(open ? withdrawalId : null);
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);

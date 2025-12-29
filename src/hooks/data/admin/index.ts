@@ -254,3 +254,28 @@ export {
   type InvestorPosition as AdminInvestorPosition,
   type InvestorPositionsData as AdminInvestorPositionsData,
 } from "./useInvestorDetail";
+
+// useSystemHealth (new - for SystemHealthPage)
+export {
+  useSystemHealth,
+  useOverallSystemStatus,
+  type SystemHealth,
+  type ServiceStatus,
+} from "./useSystemHealth";
+
+// usePlatformSettings (new - for AdminSettings page)
+export {
+  usePlatformSettings,
+  usePlatformSettingsForm,
+  defaultPlatformSettings,
+  type PlatformSettings,
+} from "./usePlatformSettings";
+
+// useDailyRates (new - for DailyRatesManagement page)
+export {
+  useDailyRate,
+  useRecentDailyRates,
+  useSaveDailyRate,
+  useSendDailyRateNotification,
+  type DailyRate,
+} from "./useDailyRates";
