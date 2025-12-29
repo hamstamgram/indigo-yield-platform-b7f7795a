@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Bell, X, CheckCircle, AlertCircle, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Button, Badge,
+  Card, CardContent, CardHeader, CardTitle,
+  ScrollArea,
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui";
 import { useRealtimeNotifications } from "@/hooks";
 
 export function RealtimeNotifications() {

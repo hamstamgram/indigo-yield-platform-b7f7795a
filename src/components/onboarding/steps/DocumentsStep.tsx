@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Button, Checkbox, Badge,
+  Alert, AlertDescription,
+} from "@/components/ui";
 import { FileText, Download, CheckCircle, AlertTriangle, ExternalLink } from "lucide-react";
 import type { OnboardingData } from "@/types/domains";
 

@@ -3,10 +3,11 @@
  * Note: This component receives profile data as props, no direct Supabase import needed
  */
 import { User, User2, Mail, Phone } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Label, Separator,
+  Avatar, AvatarImage, AvatarFallback,
+} from "@/components/ui";
 
 interface ProfileTabProps {
   profile: any;

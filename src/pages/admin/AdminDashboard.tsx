@@ -4,7 +4,7 @@
  */
 
 import { Users, Activity, Loader2, CheckCircle2, Clock, TrendingUp } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui";
 import { AdminGuard, FinancialSnapshot, TwoFactorWarningBanner } from "@/components/admin";
 import { useAdminStats } from "@/hooks";
 import { PageHeader } from "@/components/layout";
