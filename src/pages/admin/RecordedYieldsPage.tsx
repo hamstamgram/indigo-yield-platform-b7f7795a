@@ -4,7 +4,6 @@
  */
 
 import { useState, useEffect, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { 
   Filter, 
@@ -51,21 +50,21 @@ import {
 } from "@/components/ui/tooltip";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { useFunds, useUrlFilters } from "@/hooks";
-import { toast } from "sonner";
-import {
-  getYieldRecords,
-  canEditYields,
-  YieldRecord,
-  AumPurpose,
-  YieldFilters,
-} from "@/services/admin/recordedYieldsService";
+import { canEditYields, AumPurpose, YieldFilters } from "@/services/admin/recordedYieldsService";
 import { YieldCorrectionPanel } from "@/components/admin/yields/YieldCorrectionPanel";
-import { getYieldCorrectionHistory, CorrectionHistoryItem } from "@/services/admin/yieldCorrectionService";
 import { VoidYieldDialog } from "@/components/admin/yields/VoidYieldDialog";
 import { EditYieldDialog } from "@/components/admin/yields/EditYieldDialog";
 import { YieldActionsColumn } from "@/components/admin/yields/YieldActionsColumn";
-import { voidYieldRecord, updateYieldAum } from "@/services/admin/yieldManagementService";
-import { QUERY_KEYS } from "@/constants/queryKeys";
+import {
+  useYieldRecords,
+  useYieldCorrectionHistory,
+  useRecordCorrectionHistory,
+  useVoidYieldRecord,
+  useUpdateYieldAum,
+  YieldRecord,
+  CorrectionHistoryItem,
+} from "@/hooks/data/admin/useRecordedYieldsPage";
+import { useQueryClient } from "@tanstack/react-query";
 import { invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
 
 interface Fund {
@@ -99,34 +98,21 @@ function RecordedYieldsContent() {
     dateTo: urlFilters.dateTo,
   };
   const queryClient = useQueryClient();
-
-  // Funds are loaded via useFunds hook above
-
-  // Check if user can edit yields
   useEffect(() => {
     canEditYields().then(setCanEdit);
   }, []);
 
-  // Fetch yield records
-  const { data: yields = [], isLoading } = useQuery({
-    queryKey: QUERY_KEYS.recordedYields(filters as unknown as Record<string, unknown>),
-    queryFn: () => getYieldRecords(filters),
-  });
+  // Fetch yield records using hook
+  const { data: yields = [], isLoading } = useYieldRecords(filters);
 
   // Fetch correction history for all yields (for badge display)
-  const { data: correctionHistory = [] } = useQuery({
-    queryKey: QUERY_KEYS.yieldCorrections(filters.fundId === "all" ? undefined : filters.fundId),
-    queryFn: () => getYieldCorrectionHistory(filters.fundId === "all" ? undefined : filters.fundId),
-  });
+  const { data: correctionHistory = [] } = useYieldCorrectionHistory(
+    filters.fundId === "all" ? undefined : filters.fundId
+  );
 
   // Fetch correction history for a specific record
-  const { data: recordCorrectionHistory = [], isLoading: isLoadingCorrectionHistory } = useQuery({
-    queryKey: QUERY_KEYS.yieldCorrectionHistory(correctionHistoryRecord?.fund_id, correctionHistoryRecord?.aum_date, correctionHistoryRecord?.aum_date),
-    queryFn: () => correctionHistoryRecord 
-      ? getYieldCorrectionHistory(correctionHistoryRecord.fund_id, correctionHistoryRecord.aum_date, correctionHistoryRecord.aum_date)
-      : Promise.resolve([]),
-    enabled: !!correctionHistoryRecord,
-  });
+  const { data: recordCorrectionHistory = [], isLoading: isLoadingCorrectionHistory } = 
+    useRecordCorrectionHistory(correctionHistoryRecord);
 
   // Build a map of corrected records (fund_id + date + purpose -> correction count)
   const correctedRecordsMap = useMemo(() => {
@@ -146,37 +132,11 @@ function RecordedYieldsContent() {
     return map;
   }, [correctionHistory]);
 
-  // Void mutation
-  const voidMutation = useMutation({
-    mutationFn: async (reason: string) => {
-      if (!voidRecord) throw new Error("No record selected");
-      return voidYieldRecord(voidRecord.id, reason);
-    },
-    onSuccess: () => {
-      toast.success("Yield record voided successfully");
-      setVoidRecord(null);
-      invalidateAfterYieldOp(queryClient);
-    },
-    onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Failed to void record");
-    },
-  });
+  // Void mutation using hook
+  const voidMutation = useVoidYieldRecord(() => setVoidRecord(null));
 
-  // Edit AUM mutation
-  const editAumMutation = useMutation({
-    mutationFn: async ({ newAum, reason }: { newAum: number; reason: string }) => {
-      if (!editAumRecord) throw new Error("No record selected");
-      return updateYieldAum(editAumRecord.id, newAum, reason);
-    },
-    onSuccess: () => {
-      toast.success("Yield AUM updated successfully");
-      setEditAumRecord(null);
-      invalidateAfterYieldOp(queryClient);
-    },
-    onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Failed to update AUM");
-    },
-  });
+  // Edit AUM mutation using hook
+  const editAumMutation = useUpdateYieldAum(() => setEditAumRecord(null));
 
   const formatValue = (value: number, asset?: string) => {
     if (asset === "BTC") {
@@ -499,7 +459,8 @@ function RecordedYieldsContent() {
         open={!!voidRecord}
         onOpenChange={(open) => !open && setVoidRecord(null)}
         onConfirm={async (reason) => {
-          await voidMutation.mutateAsync(reason);
+          if (!voidRecord) return;
+          await voidMutation.mutateAsync({ recordId: voidRecord.id, reason });
         }}
         isPending={voidMutation.isPending}
       />
@@ -510,7 +471,8 @@ function RecordedYieldsContent() {
         open={!!editAumRecord}
         onOpenChange={(open) => !open && setEditAumRecord(null)}
         onSave={async (newAum, reason) => {
-          await editAumMutation.mutateAsync({ newAum, reason });
+          if (!editAumRecord) return;
+          await editAumMutation.mutateAsync({ recordId: editAumRecord.id, newAum, reason });
         }}
         isPending={editAumMutation.isPending}
       />
