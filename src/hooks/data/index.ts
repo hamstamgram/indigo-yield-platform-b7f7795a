@@ -445,3 +445,9 @@ export {
   type WizardResult,
   type WizardProgressCallback,
 } from "./useInvestorWizard";
+
+// Withdrawal form data hooks
+export {
+  useInvestorOptions,
+  useInvestorPositions as useWithdrawalFormPositionsData,
+} from "./useWithdrawalFormData";
