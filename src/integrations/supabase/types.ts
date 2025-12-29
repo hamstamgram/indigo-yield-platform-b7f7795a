@@ -4906,7 +4906,9 @@ export type Database = {
           fund_id: string
           gross_yield: number
           id: string
+          investor_count: number | null
           is_month_end: boolean
+          net_yield: number | null
           parent_distribution_id: string | null
           previous_aum: number | null
           purpose: Database["public"]["Enums"]["aum_purpose"]
@@ -4914,6 +4916,8 @@ export type Database = {
           recorded_aum: number
           status: string
           summary_json: Json | null
+          total_fees: number | null
+          total_ib: number | null
           void_reason: string | null
           voided_at: string | null
           voided_by: string | null
@@ -4926,7 +4930,9 @@ export type Database = {
           fund_id: string
           gross_yield?: number
           id?: string
+          investor_count?: number | null
           is_month_end?: boolean
+          net_yield?: number | null
           parent_distribution_id?: string | null
           previous_aum?: number | null
           purpose: Database["public"]["Enums"]["aum_purpose"]
@@ -4934,6 +4940,8 @@ export type Database = {
           recorded_aum: number
           status: string
           summary_json?: Json | null
+          total_fees?: number | null
+          total_ib?: number | null
           void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
@@ -4946,7 +4954,9 @@ export type Database = {
           fund_id?: string
           gross_yield?: number
           id?: string
+          investor_count?: number | null
           is_month_end?: boolean
+          net_yield?: number | null
           parent_distribution_id?: string | null
           previous_aum?: number | null
           purpose?: Database["public"]["Enums"]["aum_purpose"]
@@ -4954,6 +4964,8 @@ export type Database = {
           recorded_aum?: number
           status?: string
           summary_json?: Json | null
+          total_fees?: number | null
+          total_ib?: number | null
           void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
