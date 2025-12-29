@@ -22,51 +22,20 @@ vi.mock("sonner", () => ({
   toast: mockToast,
 }));
 
-// Mock the report service
+// Mock the report service - correct path
 const mockGenerateFundPerformanceReports = vi.fn();
 
-vi.mock("@/services/reportQueryService", () => ({
+vi.mock("@/services/admin/reportQueryService", () => ({
   generateFundPerformanceReports: mockGenerateFundPerformanceReports,
+  fetchAdminInvestorReports: vi.fn(),
+  fetchInvestorPerformanceReports: vi.fn(),
+  fetchPerformanceReportById: vi.fn(),
+  fetchLatestPerformance: vi.fn(),
+  fetchActiveInvestorsForStatements: vi.fn(),
 }));
 
-// Create a test implementation of useGenerateFundPerformance
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-
-function useGenerateFundPerformance() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ year, month }: { year: number; month: number }) => {
-      const result = await mockGenerateFundPerformanceReports({ year, month });
-      if (!result.success) {
-        throw new Error(result.error || "Failed to generate reports");
-      }
-      return result;
-    },
-    onSuccess: (data) => {
-      toast.success("Reports Generated", {
-        description: `Created ${data.recordsCreated} performance records`,
-      });
-      queryClient.invalidateQueries({ queryKey: ["admin-investor-reports"] });
-    },
-    onError: (error: Error) => {
-      if (error.message.includes("403") || error.message.includes("ADMIN_REQUIRED")) {
-        toast.error("Access Denied", {
-          description: "You don't have permission to generate reports",
-        });
-      } else if (error.message.includes("401") || error.message.includes("token")) {
-        toast.error("Session Expired", {
-          description: "Please log in again to continue",
-        });
-      } else {
-        toast.error("Generation Failed", {
-          description: error.message,
-        });
-      }
-    },
-  });
-}
+// Import from actual hook location after mocking
+import { useGenerateFundPerformance } from "@/hooks/data/useReports";
 
 describe("useGenerateFundPerformance", () => {
   beforeEach(() => {
@@ -90,7 +59,7 @@ describe("useGenerateFundPerformance", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(mockGenerateFundPerformanceReports).toHaveBeenCalledWith({ year: 2024, month: 1 });
+    expect(mockGenerateFundPerformanceReports).toHaveBeenCalledWith(2024, 1);
   });
 
   it("shows success toast with records count on success", async () => {
@@ -133,7 +102,7 @@ describe("useGenerateFundPerformance", () => {
   });
 
   it("shows Access Denied toast for 403 errors", async () => {
-    mockGenerateFundPerformanceReports.mockResolvedValue(mockFundPerformanceError403);
+    mockGenerateFundPerformanceReports.mockRejectedValue(new Error("403 Forbidden - ADMIN_REQUIRED"));
 
     const { result } = renderHook(() => useGenerateFundPerformance(), {
       wrapper: createWrapper(),
@@ -154,7 +123,7 @@ describe("useGenerateFundPerformance", () => {
   });
 
   it("shows Session Expired toast for 401/token errors", async () => {
-    mockGenerateFundPerformanceReports.mockResolvedValue(mockFundPerformanceError401);
+    mockGenerateFundPerformanceReports.mockRejectedValue(new Error("401 Unauthorized - token expired"));
 
     const { result } = renderHook(() => useGenerateFundPerformance(), {
       wrapper: createWrapper(),
