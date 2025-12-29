@@ -50,3 +50,14 @@ export interface DocumentDownloadResult {
   filename: string;
   expires_at: string;
 }
+
+// Extended document stats
+export interface DocumentStats {
+  totalDocuments: number;
+  totalSizeBytes: number;
+  documentsByCategory: Record<string, number>;
+  documentsByType: Record<string, number>;
+  recentUploads: number;
+  publicDocuments: number;
+  privateDocuments: number;
+}

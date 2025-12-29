@@ -6,7 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { depositService } from "@/services/investor/depositService";
-import type { Deposit, DepositStatus } from "@/types/deposit";
+import type { Deposit, DepositStatus } from "@/types/domains";
 
 export interface DepositStats {
   total: number;

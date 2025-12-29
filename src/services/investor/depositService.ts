@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Deposit, DepositFormData, DepositFilters } from "@/types/deposit";
+import type { Deposit, DepositFormData, DepositFilters } from "@/types/domains";
 
 export class DepositService {
   async getDeposits(filters?: DepositFilters): Promise<Deposit[]> {

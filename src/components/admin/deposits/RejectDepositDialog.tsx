@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { depositService } from "@/services/investor/depositService";
-import type { Deposit } from "@/types/deposit";
+import type { Deposit } from "@/types/domains";
 import { invalidateAfterDeposit } from "@/utils/cacheInvalidation";
 
 interface RejectDepositDialogProps {

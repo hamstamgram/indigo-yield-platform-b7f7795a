@@ -61,4 +61,67 @@ export interface PerformanceMetrics {
   sharpe_ratio?: number;
   volatility?: number;
   max_drawdown?: number;
+  total_return?: number;
+  annualized_return?: number;
+}
+
+// Performance record from investor_performance table
+export interface PerformanceRecord {
+  id: string;
+  period_id: string;
+  investor_id: string;
+  fund_name: string;
+  
+  // Month-to-Date
+  mtd_net_income: number;
+  mtd_ending_balance: number;
+  mtd_rate_of_return: number;
+  
+  // Quarter-to-Date
+  qtd_net_income: number;
+  qtd_ending_balance: number;
+  qtd_rate_of_return: number;
+  
+  // Year-to-Date
+  ytd_net_income: number;
+  ytd_ending_balance: number;
+  ytd_rate_of_return: number;
+  
+  // Inception-to-Date
+  itd_net_income?: number;
+  itd_ending_balance?: number;
+  itd_rate_of_return?: number;
+
+  // Joined Data
+  period?: {
+    period_name: string;
+    period_end_date: string;
+    year: number;
+    month: number;
+  };
+}
+
+export interface PerformanceFilters {
+  userId: string;
+  assetCode?: string;
+  year?: number;
+}
+
+// Portfolio analytics types (from phase3Types)
+export interface PortfolioAnalytics {
+  user_id: string;
+  fund_id?: string;
+  period: "MTD" | "QTD" | "YTD" | "ITD";
+  returns: number[];
+  dates: string[];
+  benchmark_returns?: number[];
+  allocation: AllocationData[];
+  performance_metrics: PerformanceMetrics;
+}
+
+export interface AllocationData {
+  asset: string;
+  value: number;
+  percentage: number;
+  color: string;
 }
