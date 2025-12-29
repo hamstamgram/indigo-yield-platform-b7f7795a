@@ -60,6 +60,7 @@ export interface WizardFormData {
   ib: z.infer<typeof ibSchema>;
   fees: z.infer<typeof feesSchema>;
   positions: Record<string, number>;
+  positionsEffectiveDate: string; // Date for initial investment transactions
   reportEmails: string[];
 }
 
@@ -87,6 +88,7 @@ export const getDefaultWizardData = (): WizardFormData => ({
     link_fees: false,
   },
   positions: {},
+  positionsEffectiveDate: new Date().toISOString().split("T")[0], // Default to today
   reportEmails: [],
 });
 

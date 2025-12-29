@@ -30,6 +30,9 @@ declare -A FORBIDDEN_PATTERNS=(
   ["transactions_v2.*status"]="Column 'status' does not exist in transactions_v2 - use 'is_voided' boolean instead"
   ["t\.status"]="Column 'status' does not exist in transactions_v2 - use 'is_voided' boolean instead"
   ["status = 'CONFIRMED'"]="transactions_v2 has no 'status' column - use 'is_voided = false' instead"
+  ["DELETE FROM transactions_v2"]="Never hard-delete financial records - use void_transaction RPC instead"
+  ["UPDATE transactions_v2 SET notes"]="Don't update notes for voiding - use void_transaction RPC instead"
+  ["investor_positions\.update.*notes"]="Don't modify notes for corrections - use proper void/recompute RPCs"
 )
 
 # Check each pattern

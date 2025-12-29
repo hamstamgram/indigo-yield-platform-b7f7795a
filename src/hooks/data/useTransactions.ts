@@ -123,6 +123,10 @@ export function useCreateTransaction() {
 
 /**
  * Hook to void a transaction
+ * Uses the void_transaction RPC which properly:
+ * - Marks transaction as voided with reason and timestamp
+ * - Recomputes investor position
+ * - Writes audit log entry
  */
 export function useVoidTransaction() {
   const queryClient = useQueryClient();
@@ -132,9 +136,11 @@ export function useVoidTransaction() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Use the service which calls the proper void_transaction RPC
       await transactionsV2Service.voidTransaction(transactionId, reason);
     },
     onSuccess: () => {
+      // Invalidate all related caches including positions
       invalidateAfterTransaction(queryClient);
       toast.success("Transaction voided successfully");
     },

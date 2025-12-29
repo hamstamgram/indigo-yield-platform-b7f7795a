@@ -29,8 +29,10 @@ export function invalidateAfterYieldOp(queryClient: QueryClient): void {
 }
 
 /**
- * Invalidate queries after transaction operations (deposit, withdrawal, manual tx)
- * Use after: createTransaction, voidTransaction, editTransaction
+ * Invalidate queries after transaction operations (deposit, withdrawal, manual tx, void)
+ * Use after: createTransaction, voidTransaction, editTransaction, deleteTransaction
+ * 
+ * CRITICAL: Always invalidates position data since transactions affect balances
  */
 export function invalidateAfterTransaction(
   queryClient: QueryClient, 
@@ -41,6 +43,12 @@ export function invalidateAfterTransaction(
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.transactions() });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminTransactions });
   
+  // CRITICAL: Always invalidate ALL position queries
+  // This ensures holdings are recalculated after any transaction change
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions() });
+  queryClient.invalidateQueries({ queryKey: ["investor-positions"] });
+  queryClient.invalidateQueries({ queryKey: ["positions"] });
+  
   // Investor-specific
   if (investorId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorTransactions(investorId) });
@@ -49,22 +57,29 @@ export function invalidateAfterTransaction(
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investor(investorId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorLedger(investorId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorQuickView(investorId) });
+    // Also invalidate by specific investor ID patterns
+    queryClient.invalidateQueries({ queryKey: ["investor", investorId] });
+    queryClient.invalidateQueries({ queryKey: ["investorPositions", investorId] });
   }
   
   // Fund-specific
   if (fundId) {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundAum(fundId) });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundDailyAum(fundId) });
+    queryClient.invalidateQueries({ queryKey: ["fund", fundId] });
   }
   
   // General position and fund queries
-  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions() });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorLedger() });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundDailyAum() });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundAumAll });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundAumUnified });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dashboardStats });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
+  
+  // Yield-related (since positions affect yield calculations)
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.recordedYields() });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.yieldDistributions() });
 }
 
 /**
