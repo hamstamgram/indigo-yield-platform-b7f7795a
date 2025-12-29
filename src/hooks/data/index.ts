@@ -201,3 +201,11 @@ export {
   useRecentActivities,
   usePendingItems,
 } from "./useDashboardQueries";
+
+// Investor withdrawal hooks
+export {
+  useInvestorWithdrawals,
+  useWithdrawalPositions,
+  useSubmitWithdrawal,
+  type WithdrawalPosition,
+} from "./useInvestorWithdrawals";
