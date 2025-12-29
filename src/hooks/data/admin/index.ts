@@ -321,3 +321,22 @@ export {
   type IBProfile,
   type EarningsByAsset,
 } from "./useIBManagementPage";
+
+// useAdminInvestorMutations (moved from hooks/admin/)
+export {
+  usePendingWithdrawalsCount as useAdminPendingWithdrawalsCount,
+  useUpdateInvestorStatus as useAdminUpdateInvestorStatus,
+  useLockPositions,
+  useCleanupInactiveInvestors,
+  useUpdateFundPerformance,
+} from "./useAdminInvestorMutations";
+
+// Re-export types from services
+export type { InvestorStatus, CleanupResult } from "@/services/admin/investorLifecycleService";
+export type { PerformanceUpdateData } from "@/services/admin/investorPerformanceService";
+
+// useIBPayoutMutations (moved from hooks/admin/)
+export {
+  useIBAllocationsForPayout,
+  useMarkAllocationsAsPaid,
+} from "./useIBPayoutMutations";

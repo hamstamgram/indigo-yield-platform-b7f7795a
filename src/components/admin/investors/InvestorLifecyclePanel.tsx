@@ -12,10 +12,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar, Clock, User, UserX, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks";
 import {
-  useUpdateInvestorStatus,
+  useAdminUpdateInvestorStatus as useUpdateInvestorStatus,
   useLockPositions,
   useCleanupInactiveInvestors,
-} from "@/hooks/admin";
+} from "@/hooks/data/admin";
 
 const InvestorLifecyclePanel = () => {
   const [selectedInvestor] = useState<string>("");

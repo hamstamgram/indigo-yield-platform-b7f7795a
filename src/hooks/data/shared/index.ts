@@ -227,3 +227,24 @@ export {
 export {
   useUploadFundLogo,
 } from "./useStorage";
+
+// IB Data (moved from hooks/ib/)
+export {
+  useIBCommissionSummary,
+  useIBTopReferrals,
+  useIBReferralCount,
+  useIBAllocations,
+  useIBPositions,
+  useIBReferrals,
+  useIBReferralsForDashboard,
+  useIBReferralDetail,
+  useIBReferralPositions,
+  useIBReferralCommissions,
+  useIBCommissions,
+  useIBPayoutHistory,
+  useIBProfile,
+  useUpdateIBProfile,
+  getPeriodStartDate,
+  getDateRange,
+  type PeriodType,
+} from "./useIBData";

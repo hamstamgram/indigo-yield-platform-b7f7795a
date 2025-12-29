@@ -20,7 +20,7 @@ import {
   useIBAllocations,
   useIBReferralsForDashboard,
   useIBPositions,
-} from "@/hooks/ib/useIBData";
+} from "@/hooks/data/shared";
 import type { Allocation, FundPosition, ReferralForDashboard } from "@/services/ib/ibService";
 
 interface AssetEarning {
