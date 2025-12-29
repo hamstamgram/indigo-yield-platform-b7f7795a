@@ -26,6 +26,21 @@ export interface OpsIndicators {
   hasFeeSchedule: boolean;
 }
 
+export interface InvestorPosition {
+  fund_id: string;
+  fund_name: string;
+  fund_code: string;
+  asset: string;
+  current_value: number;
+  cost_basis: number;
+  unrealized_pnl: number;
+}
+
+export interface InvestorPositionsData {
+  positions: InvestorPosition[];
+  totalValue: number;
+}
+
 /**
  * Fetch investor details by ID
  */
@@ -118,7 +133,76 @@ export async function loadOpsIndicators(
   };
 }
 
+/**
+ * Fetch investor positions with fund details
+ * Filters out zero-value positions
+ */
+export async function fetchInvestorPositions(investorId: string): Promise<InvestorPositionsData> {
+  const { data: positions, error } = await supabase
+    .from("investor_positions")
+    .select(`
+      fund_id,
+      current_value,
+      cost_basis,
+      unrealized_pnl,
+      funds!inner(name, code, asset)
+    `)
+    .eq("investor_id", investorId)
+    .or("current_value.gt.0,cost_basis.gt.0");
+
+  if (error) throw error;
+
+  const mappedPositions: InvestorPosition[] = (positions || []).map((p: any) => ({
+    fund_id: p.fund_id,
+    fund_name: p.funds?.name || "Unknown",
+    fund_code: p.funds?.code || "",
+    asset: p.funds?.asset || "",
+    current_value: p.current_value || 0,
+    cost_basis: p.cost_basis || 0,
+    unrealized_pnl: p.unrealized_pnl || 0,
+  }));
+
+  const totalValue = mappedPositions.reduce((sum, p) => sum + p.current_value, 0);
+
+  return {
+    positions: mappedPositions,
+    totalValue,
+  };
+}
+
+/**
+ * Fetch investor active positions (positions with current_value > 0)
+ * Used for delete confirmation
+ */
+export async function fetchActivePositions(investorId: string): Promise<InvestorPosition[]> {
+  const { data: positions, error } = await supabase
+    .from("investor_positions")
+    .select(`
+      fund_id,
+      current_value,
+      cost_basis,
+      unrealized_pnl,
+      funds!inner(name, code, asset)
+    `)
+    .eq("investor_id", investorId)
+    .gt("current_value", 0);
+
+  if (error) throw error;
+
+  return (positions || []).map((p: any) => ({
+    fund_id: p.fund_id,
+    fund_name: p.funds?.name || "Unknown",
+    fund_code: p.funds?.code || "",
+    asset: p.funds?.asset || "",
+    current_value: p.current_value || 0,
+    cost_basis: p.cost_basis || 0,
+    unrealized_pnl: p.unrealized_pnl || 0,
+  }));
+}
+
 export const investorDetailService = {
   fetchInvestorDetail,
   loadOpsIndicators,
+  fetchInvestorPositions,
+  fetchActivePositions,
 };

@@ -39,37 +39,19 @@ import {
   FileText,
   Trash2,
   AlertTriangle,
-  ArrowDownToLine,
-  Settings,
-  Plus,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { InvestorSummaryV2, forceDeleteInvestorUser } from "@/services/admin";
 import { InvestorYieldManager } from "./InvestorYieldManager";
 import InvestorPositionsTab from "./InvestorPositionsTab";
 import InvestorTransactionsTab from "./InvestorTransactionsTab";
-import InvestorWithdrawalsTab from "./InvestorWithdrawalsTab";
-import InvestorReportsTab from "./InvestorReportsTab";
-import InvestorSettingsTab from "./InvestorSettingsTab";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-interface InvestorPosition {
-  fund_id: string;
-  fund_name: string;
-  fund_code: string;
-  asset: string;
-  current_value: number;
-  cost_basis: number;
-  unrealized_pnl: number;
-}
-
-interface InvestorDetailData {
-  positions: InvestorPosition[];
-  totalValue: number;
-  name: string;
-}
+import { 
+  useInvestorPositions as useAdminInvestorPositions, 
+  useInvestorActivePositions,
+  type InvestorPosition,
+} from "@/hooks/data/admin/useInvestorDetail";
 
 type DeleteStep = "check" | "confirm-with-positions" | "confirm-empty" | "deleting";
 
@@ -92,83 +74,33 @@ export function InvestorManagementDrawer({
 }: InvestorManagementDrawerProps) {
   const navigate = useNavigate();
   
-  const [detailData, setDetailData] = useState<InvestorDetailData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
   
   // Delete flow state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteStep, setDeleteStep] = useState<DeleteStep>("check");
-  const [activePositions, setActivePositions] = useState<InvestorPosition[]>([]);
 
-  // Load investor details when drawer opens
-  useEffect(() => {
-    if (isOpen && investorId) {
-      loadInvestorDetail();
-    }
-  }, [isOpen, investorId]);
+  // Use hooks for data fetching
+  const {
+    data: positionsData,
+    isLoading: loading,
+    error,
+    refetch: refetchPositions,
+  } = useAdminInvestorPositions(isOpen && investorId ? investorId : undefined);
+
+  const {
+    data: activePositions = [],
+    refetch: fetchActivePositions,
+  } = useInvestorActivePositions(investorId || undefined, false);
 
   // Reset state when drawer closes
   useEffect(() => {
     if (!isOpen) {
       setActiveTab("overview");
-      setError(null);
       setDeleteDialogOpen(false);
       setDeleteStep("check");
-      setActivePositions([]);
     }
   }, [isOpen]);
-
-  const loadInvestorDetail = async () => {
-    if (!investorId) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Load positions with fund details - filter out zero-value positions
-      const { data: positions, error: posError } = await supabase
-        .from("investor_positions")
-        .select(`
-          fund_id,
-          current_value,
-          cost_basis,
-          unrealized_pnl,
-          funds!inner(name, code, asset)
-        `)
-        .eq("investor_id", investorId)
-        // Filter out zero-value positions (deleted or fully withdrawn)
-        .or("current_value.gt.0,cost_basis.gt.0");
-
-      if (posError) throw posError;
-
-      const mappedPositions: InvestorPosition[] = (positions || []).map((p: any) => ({
-        fund_id: p.fund_id,
-        fund_name: p.funds?.name || "Unknown",
-        fund_code: p.funds?.code || "",
-        asset: p.funds?.asset || "",
-        current_value: p.current_value || 0,
-        cost_basis: p.cost_basis || 0,
-        unrealized_pnl: p.unrealized_pnl || 0,
-      }));
-
-      const totalValue = mappedPositions.reduce((sum, p) => sum + p.current_value, 0);
-
-      setDetailData({
-        positions: mappedPositions,
-        totalValue,
-        name: investorSummary
-          ? `${investorSummary.firstName} ${investorSummary.lastName}`
-          : "Investor",
-      });
-    } catch (err) {
-      console.error("Failed to load investor detail:", err);
-      setError(err instanceof Error ? err : new Error("Failed to load investor details"));
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const formatValue = (value: number, decimals: number = 2) => {
     return value.toLocaleString("en-US", {
@@ -184,6 +116,10 @@ export function InvestorManagementDrawer({
     }
   };
 
+  const handleRetry = () => {
+    refetchPositions();
+  };
+
   // Open delete dialog and check for active positions
   const handleDeleteClick = async () => {
     if (!investorId) return;
@@ -192,40 +128,16 @@ export function InvestorManagementDrawer({
     setDeleteDialogOpen(true);
     
     try {
-      // Check for positions with value > 0
-      const { data: positions } = await supabase
-        .from("investor_positions")
-        .select(`
-          fund_id,
-          current_value,
-          cost_basis,
-          unrealized_pnl,
-          funds!inner(name, code, asset)
-        `)
-        .eq("investor_id", investorId)
-        .gt("current_value", 0);
+      const result = await fetchActivePositions();
+      const positions = result.data || [];
       
-      const mappedPositions: InvestorPosition[] = (positions || []).map((p: any) => ({
-        fund_id: p.fund_id,
-        fund_name: p.funds?.name || "Unknown",
-        fund_code: p.funds?.code || "",
-        asset: p.funds?.asset || "",
-        current_value: p.current_value || 0,
-        cost_basis: p.cost_basis || 0,
-        unrealized_pnl: p.unrealized_pnl || 0,
-      }));
-      
-      if (mappedPositions.length > 0) {
-        setActivePositions(mappedPositions);
+      if (positions.length > 0) {
         setDeleteStep("confirm-with-positions");
       } else {
-        setActivePositions([]);
         setDeleteStep("confirm-empty");
       }
     } catch (err) {
       console.error("Error checking positions:", err);
-      // Still allow deletion attempt
-      setActivePositions([]);
       setDeleteStep("confirm-empty");
     }
   };
@@ -380,6 +292,8 @@ export function InvestorManagementDrawer({
     }
   };
 
+  const positions = positionsData?.positions || [];
+
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
@@ -416,7 +330,7 @@ export function InvestorManagementDrawer({
             <AlertCircle className="h-12 w-12 mx-auto text-destructive mb-3" />
             <p className="text-destructive font-medium">Failed to load investor details</p>
             <p className="text-muted-foreground text-sm mt-1">{error.message}</p>
-            <Button variant="outline" className="mt-4" onClick={loadInvestorDetail}>
+            <Button variant="outline" className="mt-4" onClick={handleRetry}>
               <RotateCcw className="h-4 w-4 mr-2" />
               Retry
             </Button>
@@ -457,13 +371,13 @@ export function InvestorManagementDrawer({
 
             {/* Overview Tab */}
             <TabsContent value="overview" className="mt-4 space-y-4">
-              {detailData?.positions.length === 0 ? (
+              {positions.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Wallet className="h-12 w-12 mx-auto mb-3 opacity-30" />
                   <p>No fund positions</p>
                 </div>
               ) : (
-                detailData?.positions.map((pos) => (
+                positions.map((pos) => (
                   <Card key={pos.fund_id}>
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-3">
@@ -511,8 +425,6 @@ export function InvestorManagementDrawer({
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Open Full Profile
               </Button>
-
-              {/* Delete moved to Settings > Danger Zone */}
             </TabsContent>
 
             {/* Yield Tab */}
