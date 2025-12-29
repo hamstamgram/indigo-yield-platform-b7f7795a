@@ -177,5 +177,64 @@ export const performanceService = {
       lastFinalizedDate: periodToUse?.period_end_date || null,
       isCurrentMonth,
     };
+  },
+
+  /**
+   * Get performance history grouped by asset/fund
+   * Returns data formatted for MyPerformanceHistory component
+   */
+  async getPerformanceHistoryGrouped(userId: string): Promise<Record<string, PerformanceHistoryRecord[]>> {
+    const { data, error } = await supabase
+      .from("investor_fund_performance")
+      .select(`
+        *,
+        period:statement_periods (
+          period_end_date
+        )
+      `)
+      .eq("investor_id", userId)
+      .order("period(period_end_date)", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching performance history:", error);
+      throw error;
+    }
+
+    // Map to MonthlyReport format
+    const reports = (data || []).map((r: any) => ({
+      id: r.id,
+      report_month: r.period?.period_end_date,
+      asset_code: r.fund_name,
+      opening_balance: Number(r.mtd_beginning_balance || 0),
+      closing_balance: Number(r.mtd_ending_balance || 0),
+      additions: Number(r.mtd_additions || 0),
+      withdrawals: Number(r.mtd_redemptions || 0),
+      yield_earned: Number(r.mtd_net_income || 0),
+    }));
+
+    // Group by asset
+    const grouped = reports.reduce(
+      (acc: Record<string, PerformanceHistoryRecord[]>, report) => {
+        const asset = report.asset_code;
+        if (!acc[asset]) acc[asset] = [];
+        acc[asset].push(report);
+        return acc;
+      },
+      {} as Record<string, PerformanceHistoryRecord[]>
+    );
+
+    return grouped;
   }
 };
+
+// Type for performance history records
+export interface PerformanceHistoryRecord {
+  id: string;
+  report_month: string;
+  asset_code: string;
+  opening_balance: number;
+  closing_balance: number;
+  additions: number;
+  withdrawals: number;
+  yield_earned: number;
+}

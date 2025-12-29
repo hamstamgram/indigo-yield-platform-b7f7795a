@@ -1,5 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ResponsiveTable } from "@/components/ui/responsive-table";
@@ -9,49 +7,26 @@ import { FolderOpen, Download, FileText, Loader2 } from "lucide-react";
 import PageHeader from "@/components/layout/PageHeader";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { QUERY_KEYS } from "@/constants/queryKeys";
+import { useInvestorDocuments, useDocumentDownload } from "@/hooks/investor";
+import type { InvestorDocument } from "@/services/investor/investorDataService";
 
 export default function InvestorDocumentsPage() {
-  const { data: documents, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.investorDocuments,
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
+  const { data: documents, isLoading } = useInvestorDocuments();
+  const downloadMutation = useDocumentDownload();
 
-      // Fetch documents from documents table
-      const { data, error } = await supabase
-        .from("documents")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const handleDownload = async (doc: any) => {
-    try {
-      const { data, error } = await supabase.storage
-        .from("documents")
-        .download(doc.storage_path);
-
-      if (error) throw error;
-
-      const url = URL.createObjectURL(data);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = doc.title;
-      document.body.appendChild(a);
-      a.click();
-      URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
-      toast.success("Document downloaded successfully");
-    } catch (error) {
-      console.error("Download error:", error);
-      toast.error("Failed to download document");
-    }
+  const handleDownload = (doc: InvestorDocument) => {
+    downloadMutation.mutate(
+      { storage_path: doc.storage_path, title: doc.title },
+      {
+        onSuccess: () => {
+          toast.success("Document downloaded successfully");
+        },
+        onError: (error) => {
+          console.error("Download error:", error);
+          toast.error("Failed to download document");
+        },
+      }
+    );
   };
 
   const getDocumentTypeLabel = (type: string) => {
@@ -68,7 +43,7 @@ export default function InvestorDocumentsPage() {
   const columns = [
     {
       header: "Document",
-      cell: (item: any) => (
+      cell: (item: InvestorDocument) => (
         <div className="flex items-center gap-3">
           <FileText className="h-5 w-5 text-muted-foreground" />
           <div>
@@ -85,13 +60,13 @@ export default function InvestorDocumentsPage() {
     },
     {
       header: "Type",
-      cell: (item: any) => (
+      cell: (item: InvestorDocument) => (
         <Badge variant="outline">{getDocumentTypeLabel(item.type)}</Badge>
       ),
     },
     {
       header: "Date",
-      cell: (item: any) => (
+      cell: (item: InvestorDocument) => (
         <span className="text-sm text-muted-foreground">
           {format(new Date(item.created_at), "MMM d, yyyy")}
         </span>
@@ -99,8 +74,13 @@ export default function InvestorDocumentsPage() {
     },
     {
       header: "Actions",
-      cell: (item: any) => (
-        <Button variant="outline" size="sm" onClick={() => handleDownload(item)}>
+      cell: (item: InvestorDocument) => (
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => handleDownload(item)}
+          disabled={downloadMutation.isPending}
+        >
           <Download className="h-4 w-4 mr-2" />
           Download
         </Button>
