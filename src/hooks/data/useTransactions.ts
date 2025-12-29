@@ -11,22 +11,10 @@ import { toast } from "sonner";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
-export interface Transaction {
-  id: string;
-  investor_id: string;
-  fund_id: string;
-  type: string;
-  amount: number;
-  tx_date: string;
-  notes: string | null;
-  created_at: string;
-  created_by: string | null;
-  fund?: {
-    id: string;
-    name: string;
-    code: string;
-  } | null;
-}
+import type { TransactionWithFund } from "@/types/domains/transaction";
+
+// Re-export for backwards compatibility
+export type Transaction = TransactionWithFund;
 
 export interface TransactionFilters {
   investorId?: string;

@@ -7,8 +7,8 @@
 
 import { Database } from "@/integrations/supabase/types";
 
-// Get enum types from database
-export type TransactionType = Database["public"]["Enums"]["transaction_type"];
+// Get enum types from database - tx_type is the actual transactions_v2 column enum
+export type TransactionType = Database["public"]["Enums"]["tx_type"];
 type AssetCode = Database["public"]["Enums"]["asset_code"];
 
 /**

@@ -1,16 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Transaction as BaseTransaction } from "@/types/domains/transaction";
 
-export interface Transaction {
-  id: string;
-  investor_id: string;
+// Extended transaction with investor name for display
+export interface Transaction extends Pick<BaseTransaction, 'id' | 'investor_id' | 'asset' | 'amount' | 'type' | 'tx_date' | 'created_at' | 'notes'> {
   txn_type: string | null;
-  asset: string;
-  amount: number;
-  type: string;
-  tx_date: string; // V2 schema uses tx_date
-  created_at: string | null;
   investor_name?: string;
-  notes?: string | null;
 }
 
 export interface TransactionSummary {

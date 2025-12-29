@@ -5,13 +5,10 @@ import { Link } from "react-router-dom";
 import { formatAssetAmount } from "@/utils/assets";
 import { Skeleton } from "@/components/ui/skeleton";
 
-interface Transaction {
-  id: string;
-  type: string;
-  amount: number;
-  asset: string;
-  tx_date: string;
-}
+import type { LedgerTransaction } from "@/types/domains/transaction";
+
+// Alias for component props
+type Transaction = Pick<LedgerTransaction, 'id' | 'type' | 'amount' | 'asset' | 'tx_date'>;
 
 interface QuickCardsProps {
   lastStatementPeriod?: string;
