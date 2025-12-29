@@ -1,13 +1,25 @@
-export interface Investor {
-  id: string;
-  email: string;
-  name?: string;
-  totalPrincipal: string;
-  totalEarned: string;
-  status: "active" | "inactive" | "suspended";
-  createdAt: string;
-  lastActivity?: string;
-}
+/**
+ * Admin Types
+ * @deprecated Most types should be imported from "@/types/domains" instead
+ * 
+ * This file maintains backward compatibility for imports that haven't been migrated yet.
+ */
+
+// Re-export from canonical sources
+export {
+  type Investor,
+  type InvestorStatus,
+  type AdminInvestor,
+} from "./domains/investor";
+
+export {
+  type Transaction,
+  type TransactionType,
+  type TransactionSummary,
+  type TransactionFilter,
+} from "./domains/transaction";
+
+// Legacy types that are still specific to admin UI
 
 export interface Position {
   asset: string;
@@ -30,18 +42,6 @@ export interface PositionAdjustment {
   afterSnapshot: any;
 }
 
-export interface Transaction {
-  id: string;
-  investorId: string;
-  type: "DEPOSIT" | "WITHDRAWAL" | "INTEREST" | "FEE";
-  asset: string;
-  amount: string;
-  memo?: string;
-  adminId?: string;
-  createdAt: string;
-  status: "pending" | "completed" | "failed";
-}
-
 export interface YieldSetting {
   asset: string;
   apr: number;
@@ -54,7 +54,7 @@ export interface Statement {
   id: string;
   investorId: string;
   investorEmail: string;
-  period: string; // YYYY-MM format
+  period: string;
   status: "queued" | "generated" | "failed";
   pdfUrl?: string;
   createdAt: string;

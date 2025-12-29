@@ -5,15 +5,33 @@ import { Send, Save } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks";
 import { supabase } from "@/integrations/supabase/client";
-import { Asset, Investor } from "@/types/investorTypes";
+import { Asset } from "@/types/investorTypes";
 import FundAssetDropdown from "../FundAssetDropdown";
 import InvestorInfo from "./InvestorInfo";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { getAllFunds, updateInvestorPosition } from "@/services/investor/fundViewService";
 import { formatAssetAmount } from "@/utils/assets";
 
+/**
+ * Extended investor type for mobile card with portfolio data
+ * This is specific to this component's needs
+ */
+interface MobileCardInvestor {
+  id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  fee_percentage?: number | null;
+  portfolio_summary?: {
+    [key: string]: {
+      balance: number;
+      usd_value: number;
+    };
+  };
+}
+
 interface MobileInvestorCardProps {
-  investor: Investor;
+  investor: MobileCardInvestor;
   assets: Asset[];
   onSendEmail: (email: string) => void;
   onSaveSuccess: () => void;

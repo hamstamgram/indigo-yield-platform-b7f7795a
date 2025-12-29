@@ -1,22 +1,32 @@
-// Common type definitions to fix build errors
+/**
+ * Common Types
+ * @deprecated Most types should be imported from "@/types/domains" instead
+ * 
+ * This file maintains backward compatibility for imports that haven't been migrated yet.
+ */
+
+// Re-export from canonical sources
+export {
+  type Investor,
+  type InvestorStatus,
+} from "./domains/investor";
+
+export {
+  type Transaction,
+  type TransactionType,
+  type TransactionSummary,
+} from "./domains/transaction";
+
+export {
+  type Fund,
+  type FundConfiguration,
+} from "./domains/fund";
+
+// ============================================================================
+// Types that remain here (not yet in domains)
+// ============================================================================
 
 export type FundStatus = "active" | "inactive" | "suspended";
-
-export interface FundConfiguration {
-  id: string;
-  code: string;
-  name: string;
-  currency: string;
-  benchmark: "BTC" | "ETH" | "STABLE" | "CUSTOM";
-  status: FundStatus;
-  mgmt_fee_bps: number;
-  perf_fee_bps: number;
-  inception_date: string;
-  effective_from: string;
-  fee_version: number;
-  created_at: string;
-  updated_at: string;
-}
 
 export interface Notification {
   id: string;
@@ -44,25 +54,6 @@ export interface AuditLog {
     email: string;
     first_name: string;
     last_name: string;
-  };
-}
-
-export interface Transaction {
-  id: string;
-  amount: number;
-  asset_code: string;
-  type: string;
-  status: string;
-  created_at: string;
-  confirmed_at: string;
-  created_by: string;
-  investor_id: string;
-  note: string;
-  tx_hash: string;
-  profiles: {
-    first_name: string;
-    last_name: string;
-    email: string;
   };
 }
 
@@ -141,30 +132,6 @@ export interface AuditEvent {
   new_values: Record<string, any>;
   meta: Record<string, any>;
   created_at: string;
-}
-
-export interface Fund {
-  id: string;
-  code: string;
-  name: string;
-  status: "active" | "inactive";
-  fund_class?: string;
-  asset?: string;
-  inception_date?: string;
-  mgmt_fee_bps?: number;
-  perf_fee_bps?: number;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface Investor {
-  id: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  status: "Active" | "Pending" | "Closed";
-  created_at: string;
-  updated_at: string;
 }
 
 export interface TicketMessage {
