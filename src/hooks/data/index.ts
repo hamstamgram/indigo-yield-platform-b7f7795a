@@ -438,3 +438,10 @@ export {
   type PortfolioPosition as PortfolioPositionData,
   type WithdrawalFormPosition,
 } from "./usePortfolio";
+
+// Investor wizard hook
+export {
+  useCreateInvestorWizard,
+  type WizardResult,
+  type WizardProgressCallback,
+} from "./useInvestorWizard";

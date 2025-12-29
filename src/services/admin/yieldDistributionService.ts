@@ -14,108 +14,28 @@ import {
   getFundPeriodSnapshot
 } from "@/services/operations/snapshotService";
 
-// ============================================================================
-// Types
-// ============================================================================
+// Re-export types from canonical source for backwards compatibility
+export type {
+  YieldCalculationInput,
+  YieldDistribution,
+  IBCredit,
+  YieldTotals,
+  YieldCalculationResult,
+  FundDailyAUM,
+  YieldSnapshotInfo,
+  YieldPurpose,
+  YieldStatus,
+} from "@/types/domains/yield";
 
-export interface YieldCalculationInput {
-  fundId: string;
-  targetDate: Date;
-  newTotalAUM: number;
-  purpose?: "reporting" | "transaction";
-}
-
-export interface YieldDistribution {
-  investorId: string;
-  investorName: string;
-  accountType?: string;
-  currentBalance: number;
-  allocationPercentage: number;
-  feePercentage: number;
-  grossYield: number;
-  feeAmount: number;
-  netYield: number;
-  newBalance: number;
-  positionDelta: number;
-  // IB fields
-  ibParentId?: string;
-  ibParentName?: string;
-  ibPercentage: number;
-  ibAmount: number;
-  ibSource?: 'from_platform_fees' | 'from_investor_yield';
-  // Idempotency
-  referenceId: string;
-  wouldSkip: boolean;
-}
-
-export interface IBCredit {
-  ibInvestorId: string;
-  ibInvestorName: string;
-  sourceInvestorId: string;
-  sourceInvestorName: string;
-  amount: number;
-  ibPercentage: number;
-  source: string;
-  referenceId: string;
-  wouldSkip: boolean;
-}
-
-export interface YieldTotals {
-  gross: number;
-  fees: number;
-  ibFees: number;
-  net: number;
-  indigoCredit: number;
-}
-
-export interface YieldCalculationResult {
-  success: boolean;
-  preview?: boolean;
-  error?: string;
-  fundId: string;
-  fundCode: string;
-  fundAsset: string;
-  yieldDate?: Date;
-  effectiveDate?: string;
-  purpose?: string;
-  isMonthEnd?: boolean;
-  currentAUM: number;
-  newAUM: number;
-  grossYield: number;
-  netYield: number;
-  totalFees: number;
-  totalIbFees: number;
-  yieldPercentage: number;
-  investorCount: number;
-  distributions: YieldDistribution[];
-  ibCredits: IBCredit[];
-  indigoFeesCredit: number;
-  indigoFeesId?: string;
-  existingConflicts: string[];
-  hasConflicts: boolean;
-  totals: YieldTotals;
-  status: "preview" | "applied";
-  snapshotInfo?: {
-    snapshotId: string;
-    snapshotDate: string;
-    isLocked: boolean;
-    periodId?: string;
-  };
-}
-
-// Align with actual fund_daily_aum table
-export interface FundDailyAUM {
-  id: string;
-  fund_id: string;
-  aum_date: string;
-  as_of_date?: string;
-  total_aum: number;
-  nav_per_share?: number | null;
-  total_shares?: number | null;
-  source?: string | null;
-  created_at?: string | null;
-  updated_at?: string | null;
-}
+// Import types for internal use
+import type {
+  YieldCalculationInput,
+  YieldDistribution,
+  IBCredit,
+  YieldTotals,
+  YieldCalculationResult,
+  FundDailyAUM,
+} from "@/types/domains/yield";
 
 // ============================================================================
 // Helper Functions

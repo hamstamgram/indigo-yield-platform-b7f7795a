@@ -37,6 +37,9 @@ export * from "./integrity";
 // Requests domain
 export * from "./requests";
 
+// Yield domain
+export * from "./yield";
+
 // ============================================================================
 // Common Utility Types
 // ============================================================================
