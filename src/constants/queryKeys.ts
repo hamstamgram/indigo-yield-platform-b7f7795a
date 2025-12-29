@@ -256,6 +256,14 @@ export const QUERY_KEYS = {
   // ============ Profiles ============
   profiles: ["profiles"] as const,
   profile: (id: string) => ["profile", id] as const,
+
+  // ============ Admin Fees ============
+  adminFeesOverview: ["admin-fees-overview"] as const,
+
+  // ============ Positions ============
+  positions: (investorId?: string) => investorId 
+    ? ["positions", investorId] as const 
+    : ["positions"] as const,
 } as const;
 
 /**

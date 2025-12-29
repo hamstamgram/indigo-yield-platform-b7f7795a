@@ -4,7 +4,7 @@
  * and audit trail with full distribution history
  */
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -28,103 +28,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Wallet, FileText, TrendingUp, ArrowUpRight, Calendar, Download, AlertCircle, Info, ArrowRightLeft } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
-import { supabase } from "@/integrations/supabase/client";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
-import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
-
-interface FeeRecord {
-  id: string;
-  investorId: string;
-  investorName: string;
-  investorEmail: string;
-  fundId: string;
-  fundName: string;
-  asset: string;
-  amount: number;
-  type: string;
-  txDate: string;
-  purpose: string;
-  visibilityScope: string;
-  createdAt: string;
-}
-
-interface FeeSummary {
-  assetCode: string;
-  totalAmount: number;
-  transactionCount: number;
-}
-
-interface Fund {
-  id: string;
-  code: string;
-  name: string;
-  asset: string;
-}
-
-interface FeeAllocation {
-  id: string;
-  distribution_id: string;
-  fund_id: string;
-  investor_id: string;
-  period_start: string;
-  period_end: string;
-  purpose: string;
-  base_net_income: number;
-  fee_percentage: number;
-  fee_amount: number;
-  created_at: string;
-  investor_name?: string;
-  investor_email?: string;
-  fund_name?: string;
-  fund_asset?: string;
-}
-
-interface YieldEarned {
-  fundId: string;
-  fundName: string;
-  asset: string;
-  totalYieldEarned: number;
-  transactionCount: number;
-}
-
-interface RoutingAuditEntry {
-  id: string;
-  action: string;
-  actor_user: string | null;
-  created_at: string;
-  entity_id: string | null;
-  old_values: Record<string, unknown> | null;
-  new_values: Record<string, unknown> | null;
-  meta: Record<string, unknown> | null;
-  actor_profile?: {
-    first_name: string | null;
-    last_name: string | null;
-    email: string | null;
-  } | null;
-}
-
-interface RoutingSummary {
-  totalAmount: number;
-  totalCount: number;
-  byAsset: Record<string, { amount: number; count: number }>;
-}
+import { useFeesOverview, type FeeRecord, type FeeAllocation, type RoutingAuditEntry, type RoutingSummary, type YieldEarned, type Fund, type FeeSummary } from "@/hooks/data";
 
 function FeesOverviewContent() {
-  const [loading, setLoading] = useState(true);
-  const [fees, setFees] = useState<FeeRecord[]>([]);
-  const [feeSummaries, setFeeSummaries] = useState<FeeSummary[]>([]);
-  const [funds, setFunds] = useState<Fund[]>([]);
+  const { data, isLoading } = useFeesOverview();
+
   const [selectedFund, setSelectedFund] = useState<string>("all");
-  const [indigoFeesBalance, setIndigoFeesBalance] = useState<Record<string, number>>({});
-  const [feeAllocations, setFeeAllocations] = useState<FeeAllocation[]>([]);
-  const [yieldEarned, setYieldEarned] = useState<YieldEarned[]>([]);
-  const [routingAuditEntries, setRoutingAuditEntries] = useState<RoutingAuditEntry[]>([]);
-  const [routingSummary, setRoutingSummary] = useState<RoutingSummary>({
-    totalAmount: 0,
-    totalCount: 0,
-    byAsset: {},
-  });
   const [activeTab, setActiveTab] = useState("overview");
   
   // Date filtering
@@ -135,268 +46,14 @@ function FeesOverviewContent() {
     format(endOfMonth(new Date()), "yyyy-MM-dd")
   );
 
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      // Load funds
-      const { data: fundsData } = await supabase
-        .from("funds")
-        .select("id, code, name, asset")
-        .eq("status", "active")
-        .order("code");
-
-      setFunds(fundsData || []);
-
-      // Load fee-related transactions from transactions_v2 (exclude voided)
-      const { data: feeTxData, error: feeTxError } = await supabase
-        .from("transactions_v2")
-        .select(`
-          id,
-          investor_id,
-          fund_id,
-          asset,
-          amount,
-          type,
-          tx_date,
-          purpose,
-          visibility_scope,
-          created_at,
-          is_voided
-        `)
-        .in("type", ["FEE", "FEE_CREDIT", "IB_CREDIT", "INTERNAL_WITHDRAWAL", "INTERNAL_CREDIT"])
-        .eq("is_voided", false)
-        .order("created_at", { ascending: false })
-        .limit(1000);
-
-      if (feeTxError) throw feeTxError;
-
-      // Enrich with investor and fund details
-      const investorIds = [...new Set((feeTxData || []).map(t => t.investor_id))];
-      const fundIds = [...new Set((feeTxData || []).map(t => t.fund_id))];
-
-      const { data: investorProfiles } = await supabase
-        .from("profiles")
-        .select("id, email, first_name, last_name")
-        .in("id", investorIds);
-
-      const { data: fundDetailsForFees } = await supabase
-        .from("funds")
-        .select("id, name, asset")
-        .in("id", fundIds);
-
-      const investorMap = new Map((investorProfiles || []).map(p => [p.id, p]));
-      const fundMapForFees = new Map((fundDetailsForFees || []).map(f => [f.id, f]));
-
-      const feeRecords: FeeRecord[] = (feeTxData || []).map((tx: any) => {
-        const investor = investorMap.get(tx.investor_id);
-        const fund = fundMapForFees.get(tx.fund_id);
-        return {
-          id: tx.id,
-          investorId: tx.investor_id,
-          investorName: investor
-            ? `${investor.first_name || ""} ${investor.last_name || ""}`.trim() || investor.email
-            : "Unknown",
-          investorEmail: investor?.email || "",
-          fundId: tx.fund_id,
-          fundName: fund?.name || "Unknown",
-          asset: tx.asset || fund?.asset || "",
-          amount: Number(tx.amount),
-          type: tx.type,
-          txDate: tx.tx_date,
-          purpose: tx.purpose || "",
-          visibilityScope: tx.visibility_scope || "",
-          createdAt: tx.created_at,
-        };
-      });
-
-      setFees(feeRecords);
-
-      // Calculate summaries by asset (from all data, not filtered)
-      const summaryMap = new Map<string, FeeSummary>();
-      feeRecords.forEach((fee) => {
-        const existing = summaryMap.get(fee.asset) || {
-          assetCode: fee.asset,
-          totalAmount: 0,
-          transactionCount: 0,
-        };
-        existing.totalAmount += fee.amount;
-        existing.transactionCount += 1;
-        summaryMap.set(fee.asset, existing);
-      });
-      setFeeSummaries(Array.from(summaryMap.values()));
-
-      // Get INDIGO Fees account balances
-      const { data: indigoPositions } = await supabase
-        .from("investor_positions")
-        .select("fund_id, current_value, funds!inner(asset)")
-        .eq("investor_id", INDIGO_FEES_ACCOUNT_ID);
-
-      const balances: Record<string, number> = {};
-      (indigoPositions || []).forEach((p: any) => {
-        const asset = p.funds?.asset;
-        if (asset) {
-          balances[asset] = (balances[asset] || 0) + Number(p.current_value || 0);
-        }
-      });
-      setIndigoFeesBalance(balances);
-
-      // Load fee allocations (audit trail)
-      const { data: allocationsData } = await supabase
-        .from("fee_allocations")
-        .select(`
-          id,
-          distribution_id,
-          fund_id,
-          investor_id,
-          period_start,
-          period_end,
-          purpose,
-          base_net_income,
-          fee_percentage,
-          fee_amount,
-          created_at
-        `)
-        .order("created_at", { ascending: false })
-        .limit(200);
-
-      // Enrich with investor and fund names
-      if (allocationsData && allocationsData.length > 0) {
-        const investorIds = [...new Set(allocationsData.map(a => a.investor_id))];
-        const fundIds = [...new Set(allocationsData.map(a => a.fund_id))];
-
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, email, first_name, last_name")
-          .in("id", investorIds);
-
-        const { data: fundDetails } = await supabase
-          .from("funds")
-          .select("id, name, asset")
-          .in("id", fundIds);
-
-        const profileMap = new Map((profiles || []).map(p => [p.id, p]));
-        const fundMap = new Map((fundDetails || []).map(f => [f.id, f]));
-
-        const enrichedAllocations: FeeAllocation[] = allocationsData.map(a => {
-          const profile = profileMap.get(a.investor_id);
-          const fund = fundMap.get(a.fund_id);
-          return {
-            ...a,
-            investor_name: profile ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email : "Unknown",
-            investor_email: profile?.email || "",
-            fund_name: fund?.name || "Unknown",
-            fund_asset: fund?.asset || "",
-          };
-        });
-        setFeeAllocations(enrichedAllocations);
-      }
-
-      // Load routing audit entries from audit_log for route_to_fees actions
-      const { data: routingAuditData, error: routingError } = await supabase
-        .from("audit_log")
-        .select("*")
-        .eq("action", "route_to_fees")
-        .order("created_at", { ascending: false })
-        .limit(100);
-
-      if (routingError) {
-        console.warn("Could not load routing audit entries:", routingError);
-      }
-
-      // Enrich routing audit with actor profiles
-      if (routingAuditData && routingAuditData.length > 0) {
-        const actorIds = [...new Set(routingAuditData.map(r => r.actor_user).filter(Boolean))];
-        
-        const { data: actorProfiles } = await supabase
-          .from("profiles")
-          .select("id, email, first_name, last_name")
-          .in("id", actorIds);
-
-        const actorMap = new Map((actorProfiles || []).map(p => [p.id, p]));
-
-        const enrichedRoutingEntries: RoutingAuditEntry[] = routingAuditData.map((entry: any) => ({
-          id: entry.id,
-          action: entry.action,
-          actor_user: entry.actor_user,
-          created_at: entry.created_at,
-          entity_id: entry.entity_id,
-          old_values: entry.old_values,
-          new_values: entry.new_values,
-          meta: entry.meta,
-          actor_profile: entry.actor_user ? actorMap.get(entry.actor_user) : null,
-        }));
-
-        setRoutingAuditEntries(enrichedRoutingEntries);
-
-        // Calculate routing summary
-        const summary: RoutingSummary = {
-          totalAmount: 0,
-          totalCount: enrichedRoutingEntries.length,
-          byAsset: {},
-        };
-
-        enrichedRoutingEntries.forEach((entry) => {
-          const meta = (entry.meta || {}) as Record<string, unknown>;
-          const newValues = (entry.new_values || {}) as Record<string, unknown>;
-          const amount = Number(meta.amount || newValues.amount || 0);
-          const asset = (meta.asset_code as string) || (newValues.asset_code as string) || "USD";
-
-          summary.totalAmount += amount;
-
-          if (!summary.byAsset[asset]) {
-            summary.byAsset[asset] = { amount: 0, count: 0 };
-          }
-          summary.byAsset[asset].amount += amount;
-          summary.byAsset[asset].count += 1;
-        });
-
-        setRoutingSummary(summary);
-      } else {
-        setRoutingAuditEntries([]);
-        setRoutingSummary({ totalAmount: 0, totalCount: 0, byAsset: {} });
-      }
-
-      // Load yield earned by INDIGO FEES account (transactions)
-      const { data: yieldTxs } = await supabase
-        .from("transactions_v2")
-        .select("fund_id, amount, type")
-        .eq("investor_id", INDIGO_FEES_ACCOUNT_ID)
-        .eq("type", "INTEREST");
-
-      if (yieldTxs && yieldTxs.length > 0 && fundsData) {
-        const yieldByFund = new Map<string, { total: number; count: number }>();
-        yieldTxs.forEach(tx => {
-          const existing = yieldByFund.get(tx.fund_id) || { total: 0, count: 0 };
-          existing.total += Number(tx.amount || 0);
-          existing.count += 1;
-          yieldByFund.set(tx.fund_id, existing);
-        });
-
-        const yieldData: YieldEarned[] = [];
-        yieldByFund.forEach((data, fundId) => {
-          const fund = fundsData.find(f => f.id === fundId);
-          if (fund) {
-            yieldData.push({
-              fundId,
-              fundName: fund.name,
-              asset: fund.asset,
-              totalYieldEarned: data.total,
-              transactionCount: data.count,
-            });
-          }
-        });
-        setYieldEarned(yieldData);
-      }
-    } catch (error) {
-      console.error("Error loading fees:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
+  // Extract data with defaults
+  const fees = data?.fees || [];
+  const funds = data?.funds || [];
+  const indigoFeesBalance = data?.indigoFeesBalance || {};
+  const feeAllocations = data?.feeAllocations || [];
+  const yieldEarned = data?.yieldEarned || [];
+  const routingAuditEntries = data?.routingAuditEntries || [];
+  const routingSummary = data?.routingSummary || { totalAmount: 0, totalCount: 0, byAsset: {} };
 
   // Filter fees by date range and fund
   const filteredFees = useMemo(() => {
@@ -464,13 +121,14 @@ function FeesOverviewContent() {
     URL.revokeObjectURL(url);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
+
 
   return (
     <div className="container max-w-6xl mx-auto px-4 py-6 space-y-6">
