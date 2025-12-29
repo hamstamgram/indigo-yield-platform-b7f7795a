@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Asset } from "@/types/investorTypes";
+import { AssetRef as Asset } from "@/types/asset";
 import { getAssetLogo } from "@/utils/assets";
 import { EmailChipsInput } from "@/components/ui/email-chips-input";
 

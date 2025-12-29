@@ -8,7 +8,7 @@ import IBStep from "./steps/IBStep";
 import FeesStep from "./steps/FeesStep";
 import PositionsStep from "./steps/PositionsStep";
 import ReviewStep from "./steps/ReviewStep";
-import { Asset } from "@/types/investorTypes";
+import { AssetRef as Asset } from "@/types/asset";
 import { cn } from "@/lib/utils";
 
 interface WizardContentProps {

@@ -5,7 +5,7 @@ import { Send, Save } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks";
 import { supabase } from "@/integrations/supabase/client";
-import { Asset } from "@/types/investorTypes";
+import { AssetRef as Asset } from "@/types/asset";
 import FundAssetDropdown from "../FundAssetDropdown";
 import InvestorInfo from "./InvestorInfo";
 import { CryptoIcon } from "@/components/CryptoIcons";

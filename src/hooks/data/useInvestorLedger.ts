@@ -2,22 +2,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback } from "react";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
+import { LedgerTransaction } from "@/types/domains/transaction";
 
-export interface Transaction {
-  id: string;
-  tx_date: string;
-  type: string;
-  amount: number;
-  purpose: string | null;
-  reference_id: string | null;
-  notes: string | null;
-  asset: string;
-  is_voided: boolean;
-  tx_hash?: string | null;
-  is_system_generated?: boolean;
-  visibility_scope?: string | null;
-  fund?: { name: string; asset: string } | null;
-}
+// Re-export for backwards compatibility
+export type Transaction = LedgerTransaction;
 
 interface LedgerFilters {
   txType?: string;

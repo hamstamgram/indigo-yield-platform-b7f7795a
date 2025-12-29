@@ -1,5 +1,9 @@
 import { profileService, fundService } from "@/services/shared";
 import { transactionsV2Service } from "@/services/investor/transactionsV2Service";
+import { StatementTransaction } from "@/types/domains/transaction";
+
+// Re-export for backwards compatibility
+export type Transaction = StatementTransaction;
 
 export interface StatementData {
   investor_id: string;
@@ -35,15 +39,6 @@ export interface AssetStatement {
   fees: number;
   end_balance: number;
   transactions: Transaction[];
-}
-
-export interface Transaction {
-  id: string;
-  date: string;
-  type: "deposit" | "withdrawal" | "interest" | "fee";
-  amount: number;
-  description: string;
-  running_balance?: number;
 }
 
 /**

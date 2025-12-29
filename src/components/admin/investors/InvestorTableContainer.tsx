@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SearchBar from "./SearchBar";
 import InvestorsTable from "./InvestorsTable";
-import { Asset } from "@/types/investorTypes";
+import { AssetRef as Asset } from "@/types/asset";
 import { InvestorSummaryV2 } from "@/services/admin/adminService";
 
 interface InvestorTableContainerProps {

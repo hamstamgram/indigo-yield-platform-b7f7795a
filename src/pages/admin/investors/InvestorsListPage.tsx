@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { adminServiceV2, InvestorSummaryV2, deleteInvestorUser } from "@/services/admin";
 import { assetService } from "@/services/shared";
-import { Asset } from "@/types/investorTypes";
+import { AssetRef as Asset } from "@/types/asset";
 import { useToast } from "@/hooks";
 
 export default function InvestorsListPage() {

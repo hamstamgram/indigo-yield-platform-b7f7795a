@@ -9,7 +9,7 @@ import { Send, Save } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks";
 import { useUpdateInvestorStatus } from "@/hooks/data";
-import { Asset } from "@/types/investorTypes";
+import { AssetRef as Asset } from "@/types/asset";
 import { InvestorSummaryV2 } from "@/services/admin/adminService";
 import { TruncatedText } from "@/components/ui/truncated-text";
 import FundAssetDropdown from "./FundAssetDropdown";

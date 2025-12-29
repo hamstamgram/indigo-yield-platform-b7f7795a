@@ -1,7 +1,7 @@
 import React from "react";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { Asset } from "@/types/investorTypes";
+import { AssetRef as Asset } from "@/types/asset";
 
 interface InvestorsTableHeaderProps {
   assets: Asset[];

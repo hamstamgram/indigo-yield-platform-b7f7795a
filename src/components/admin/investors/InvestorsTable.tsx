@@ -6,7 +6,7 @@ import InvestorsTableHeader from "./InvestorsTableHeader";
 import { useIsMobile } from "@/hooks";
 import MobileInvestorCard from "./MobileInvestorCard";
 import { InvestorSummaryV2 } from "@/services/admin";
-import { Asset } from "@/types/investorTypes";
+import { AssetRef as Asset } from "@/types/asset";
 
 interface InvestorsTableProps {
   investors: InvestorSummaryV2[];
