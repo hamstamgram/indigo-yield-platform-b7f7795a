@@ -4,7 +4,7 @@ import { ResponsiveTable } from "@/components/ui/responsive-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { FolderOpen, Download, FileText, Loader2 } from "lucide-react";
-import PageHeader from "@/components/layout/PageHeader";
+import { PageHeader } from "@/components/layout";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useInvestorDocuments, useDocumentDownload } from "@/hooks/data/investor";

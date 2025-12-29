@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks";
 import { adminToolsService, type ToolResult } from "@/services/shared";
-import { AdminGuard } from "@/components/admin/AdminGuard";
+import { AdminGuard } from "@/components/admin";
 import {
   Wrench,
   RefreshCw,

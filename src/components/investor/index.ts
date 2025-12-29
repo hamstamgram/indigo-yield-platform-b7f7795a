@@ -9,7 +9,7 @@ export { QuickCards } from "./overview/QuickCards";
 
 // Performance
 export { PerformanceCard } from "./performance/PerformanceCard";
-export { PeriodSelector } from "./performance/PeriodSelector";
+export { PeriodSelector, PERIOD_LABELS, type PerformancePeriod } from "./performance/PeriodSelector";
 
 // Portfolio
 export { default as MyPerformanceHistory } from "./portfolio/MyPerformanceHistory";

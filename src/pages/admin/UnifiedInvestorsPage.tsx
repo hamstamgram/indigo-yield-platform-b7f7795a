@@ -12,11 +12,13 @@ import {
   ResizableHandle,
 } from "@/components/ui/resizable";
 import { Loader2, RefreshCw } from "lucide-react";
-import { AdminGuard } from "@/components/admin/AdminGuard";
-import AddInvestorDialog from "@/components/admin/investors/AddInvestorDialog";
-import { InvestorDetailPanel } from "@/components/admin/investors/InvestorDetailPanel";
-import { InvestorFiltersBar } from "@/components/admin/investors/InvestorFiltersBar";
-import { UnifiedInvestorsTable } from "@/components/admin/investors/UnifiedInvestorsTable";
+import { 
+  AdminGuard, 
+  AddInvestorDialog, 
+  InvestorDetailPanel, 
+  InvestorFiltersBar, 
+  UnifiedInvestorsTable 
+} from "@/components/admin";
 import { useAdminStats, useUrlFilters, useSortableColumns } from "@/hooks";
 import { useUnifiedInvestors, type EnrichedInvestor } from "@/hooks/data";
 

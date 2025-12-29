@@ -36,12 +36,10 @@ import {
   Users,
   Pencil,
 } from "lucide-react";
-import { AdminGuard } from "@/components/admin/AdminGuard";
+import { AdminGuard, CreateFundDialog, EditFundDialog } from "@/components/admin";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/context";
-import { CreateFundDialog } from "@/components/admin/funds/CreateFundDialog";
-import { EditFundDialog } from "@/components/admin/funds/EditFundDialog";
 import { format } from "date-fns";
 import { fundService, positionService, auditLogService } from "@/services/shared";
 

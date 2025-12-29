@@ -26,7 +26,7 @@ import {
   FileText,
   Activity,
 } from "lucide-react";
-import { AdminGuard } from "@/components/admin/AdminGuard";
+import { AdminGuard } from "@/components/admin";
 import { Link } from "react-router-dom";
 import { usePlatformSettingsForm } from "@/hooks/data/admin";
 

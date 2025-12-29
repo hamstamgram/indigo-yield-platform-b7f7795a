@@ -10,7 +10,7 @@ import {
 import { useBreadcrumbs } from "@/hooks";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth/context";
-import { FundAUMBar } from "@/components/admin/FundAUMBar";
+import { FundAUMBar } from "@/components/admin";
 import { Button } from "@/components/ui/button";
 
 type HeaderProps = {

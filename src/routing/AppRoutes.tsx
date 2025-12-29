@@ -12,7 +12,7 @@ import { InvestorRoutes } from "./routes/investor";
 import { PublicRoutes } from "./routes/public";
 
 // UI Components
-import DashboardLayout from "@/components/layout/DashboardLayout";
+import { DashboardLayout } from "@/components/layout";
 import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
 
 /**

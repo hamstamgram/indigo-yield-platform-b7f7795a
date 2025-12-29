@@ -5,12 +5,9 @@
 
 import { Users, Activity, Loader2, CheckCircle2, Clock, TrendingUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { AdminGuard } from "@/components/admin/AdminGuard";
-import { FinancialSnapshot } from "@/components/admin/FinancialSnapshot";
-import { TwoFactorWarningBanner } from "@/components/admin/TwoFactorWarningBanner";
-
+import { AdminGuard, FinancialSnapshot, TwoFactorWarningBanner } from "@/components/admin";
 import { useAdminStats } from "@/hooks";
-import PageHeader from "@/components/layout/PageHeader";
+import { PageHeader } from "@/components/layout";
 
 function AdminDashboardContent() {
   const { stats, loading } = useAdminStats();

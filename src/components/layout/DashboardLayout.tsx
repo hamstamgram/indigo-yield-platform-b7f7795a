@@ -5,7 +5,7 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import ContentArea from "./ContentArea";
 import { useAuth } from "@/lib/auth/context";
-import { GlobalShortcuts } from "@/components/global/GlobalShortcuts";
+import { GlobalShortcuts } from "@/components/global";
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);

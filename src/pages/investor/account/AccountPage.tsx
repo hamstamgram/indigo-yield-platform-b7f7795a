@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks";
 import { AlertTriangle, Moon, Sun, Settings } from "lucide-react";
-import PageHeader from "@/components/layout/PageHeader";
+import { PageHeader } from "@/components/layout";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
