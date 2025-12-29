@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useRegisterMutation } from "@/hooks/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,11 +46,10 @@ const registerSchema = z
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
-  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const registerMutation = useRegisterMutation();
 
   const {
     register,
@@ -83,33 +81,14 @@ export default function RegisterPage() {
     setPasswordStrength(calculatePasswordStrength(password));
   });
 
-  const onSubmit = async (data: RegisterFormData) => {
-    setIsLoading(true);
-    try {
-      const { data: authData, error } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
-            first_name: data.firstName,
-            last_name: data.lastName,
-            phone: data.phone,
-          },
-        },
-      });
-
-      if (error) throw error;
-
-      if (authData.user) {
-        toast.success("Registration successful! Please check your email to verify your account.");
-        navigate("/verify-email");
-      }
-    } catch (error: any) {
-      console.error("Registration error:", error);
-      toast.error(error.message || "Failed to create account");
-    } finally {
-      setIsLoading(false);
-    }
+  const onSubmit = (data: RegisterFormData) => {
+    registerMutation.mutate({
+      email: data.email,
+      password: data.password,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phone,
+    });
   };
 
   const getPasswordStrengthText = () => {
@@ -118,6 +97,8 @@ export default function RegisterPage() {
     if (passwordStrength < 75) return "Good";
     return "Strong";
   };
+
+  const isLoading = registerMutation.isPending;
 
   return (
     <div className="min-h-screen flex">

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useEmailVerification, useResendVerificationEmail } from "@/hooks/auth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,62 +11,27 @@ export default function VerifyEmailPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState<"verifying" | "success" | "error">("verifying");
-  const [isResending, setIsResending] = useState(false);
+
+  const token = searchParams.get("token");
+  const type = searchParams.get("type");
+  const tokenHash = type === "email" ? token : null;
+
+  const { isSuccess, isError, isLoading } = useEmailVerification(tokenHash);
+  const resendMutation = useResendVerificationEmail();
 
   useEffect(() => {
-    const verifyEmail = async () => {
-      const token = searchParams.get("token");
-      const type = searchParams.get("type");
-
-      if (token && type === "email") {
-        try {
-          const { error } = await supabase.auth.verifyOtp({
-            token_hash: token,
-            type: "email",
-          });
-
-          if (error) throw error;
-
-          setStatus("success");
-          toast.success("Email verified successfully!");
-
-          setTimeout(() => {
-            navigate("/dashboard");
-          }, 2000);
-        } catch (error: any) {
-          console.error("Verification error:", error);
-          setStatus("error");
-          toast.error("Failed to verify email");
-        }
-      }
-    };
-
-    verifyEmail();
-  }, [searchParams, navigate]);
-
-  const handleResendEmail = async () => {
-    setIsResending(true);
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (user?.email) {
-        const { error } = await supabase.auth.resend({
-          type: "signup",
-          email: user.email,
-        });
-
-        if (error) throw error;
-
-        toast.success("Verification email sent! Please check your inbox.");
-      }
-    } catch (error: any) {
-      console.error("Resend error:", error);
-      toast.error("Failed to resend verification email");
-    } finally {
-      setIsResending(false);
+    if (isSuccess) {
+      setStatus("success");
+      toast.success("Email verified successfully!");
+      setTimeout(() => navigate("/dashboard"), 2000);
+    } else if (isError) {
+      setStatus("error");
+      toast.error("Failed to verify email");
     }
+  }, [isSuccess, isError, navigate]);
+
+  const handleResendEmail = () => {
+    resendMutation.mutate(undefined);
   };
 
   return (
@@ -77,7 +42,7 @@ export default function VerifyEmailPage() {
             <AppLogo className="h-12" />
           </div>
 
-          {status === "verifying" && (
+          {(status === "verifying" || isLoading) && (
             <>
               <Loader2 className="h-16 w-16 animate-spin text-primary mx-auto" />
               <CardTitle className="text-2xl font-bold">Verifying Email</CardTitle>
@@ -108,8 +73,8 @@ export default function VerifyEmailPage() {
 
         {status === "error" && (
           <CardContent className="space-y-4">
-            <Button className="w-full" onClick={handleResendEmail} disabled={isResending}>
-              {isResending ? (
+            <Button className="w-full" onClick={handleResendEmail} disabled={resendMutation.isPending}>
+              {resendMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Sending...
@@ -128,13 +93,13 @@ export default function VerifyEmailPage() {
           </CardContent>
         )}
 
-        {status === "verifying" && (
+        {status === "verifying" && !isLoading && (
           <CardContent className="text-center">
             <p className="text-sm text-muted-foreground">
               Haven't received the email?{" "}
               <button
                 onClick={handleResendEmail}
-                disabled={isResending}
+                disabled={resendMutation.isPending}
                 className="text-primary hover:underline"
               >
                 Resend verification email

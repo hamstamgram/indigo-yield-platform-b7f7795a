@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useLoginMutation, useGoogleLoginMutation } from "@/hooks/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,9 +28,9 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const loginMutation = useLoginMutation();
+  const googleMutation = useGoogleLoginMutation();
 
   const {
     register,
@@ -44,40 +43,14 @@ export default function LoginPage() {
     },
   });
 
-  const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true);
-    try {
-      const { data: authData, error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      });
+  const isLoading = loginMutation.isPending || googleMutation.isPending;
 
-      if (error) throw error;
-
-      if (authData.session) {
-        toast.success("Welcome back!");
-        navigate("/dashboard");
-      }
-    } catch (error: any) {
-      console.error("Login error:", error);
-      toast.error(error.message || "Invalid email or password");
-    } finally {
-      setIsLoading(false);
-    }
+  const onSubmit = (data: LoginFormData) => {
+    loginMutation.mutate({ email: data.email, password: data.password });
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-      if (error) throw error;
-    } catch (error: any) {
-      toast.error(error.message || "Failed to sign in with Google");
-    }
+  const handleGoogleLogin = () => {
+    googleMutation.mutate();
   };
 
   return (
@@ -142,7 +115,7 @@ export default function LoginPage() {
               </div>
 
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
+                {loginMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Signing in...

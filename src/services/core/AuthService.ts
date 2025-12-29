@@ -116,6 +116,66 @@ export class AuthService extends ApiClient {
 
     return { data, error, success: !error };
   }
+
+  /**
+   * Sign in with OAuth provider
+   */
+  async signInWithOAuth(provider: "google", redirectTo?: string) {
+    const { data, error } = await this.supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: redirectTo ?? `${window.location.origin}/dashboard` },
+    });
+    return { data, error, success: !error };
+  }
+
+  /**
+   * Enroll MFA (TOTP)
+   */
+  async enrollMFA(factorType: "totp" = "totp") {
+    const { data, error } = await this.supabase.auth.mfa.enroll({ factorType });
+    return { data, error, success: !error };
+  }
+
+  /**
+   * List MFA factors
+   */
+  async listMFAFactors() {
+    const { data, error } = await this.supabase.auth.mfa.listFactors();
+    return { data, error, success: !error };
+  }
+
+  /**
+   * Verify MFA with challenge
+   */
+  async verifyMFA(factorId: string, code: string) {
+    const { data, error } = await this.supabase.auth.mfa.challengeAndVerify({
+      factorId,
+      code,
+    });
+    return { data, error, success: !error };
+  }
+
+  /**
+   * Verify OTP (for email verification)
+   */
+  async verifyOtp(tokenHash: string, type: "email" = "email") {
+    const { data, error } = await this.supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type,
+    });
+    return { data, error, success: !error };
+  }
+
+  /**
+   * Resend verification email
+   */
+  async resendVerificationEmail(email: string) {
+    const { data, error } = await this.supabase.auth.resend({
+      type: "signup",
+      email,
+    });
+    return { data, error, success: !error };
+  }
 }
 
 // Export singleton instance
