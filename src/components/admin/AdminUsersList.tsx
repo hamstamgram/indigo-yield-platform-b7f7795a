@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -10,7 +9,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks";
 import { useAuth } from "@/lib/auth/context";
 import { Loader2, UserCheck, UserMinus } from "lucide-react";
 import {
@@ -24,145 +22,40 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-type UserProfile = {
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  is_admin: boolean;
-  created_at: string;
-};
+import {
+  useAdminUsersList,
+  useToggleAdminStatusMutation,
+  useSendAdminInviteMutation,
+} from "@/hooks/data/admin";
 
 const AdminUsersList = () => {
   const { user } = useAuth();
-  const [users, setUsers] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState("");
   const [isInviteOpen, setIsInviteOpen] = useState(false);
-  const [sendingInvite, setSendingInvite] = useState(false);
-  const { toast } = useToast();
 
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
+  // Use React Query hooks
+  const { data: users = [], isLoading: loading } = useAdminUsersList();
+  const toggleAdminMutation = useToggleAdminStatusMutation();
+  const sendInviteMutation = useSendAdminInviteMutation();
 
-      // Direct query to profiles table instead of RPC
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, email, first_name, last_name, is_admin, created_at")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-
-      setUsers(data || []);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch user data",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handleToggleAdmin = (userId: string, currentStatus: boolean) => {
+    toggleAdminMutation.mutate({ userId, currentStatus });
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const toggleAdminStatus = async (userId: string, currentStatus: boolean) => {
-    try {
-      // Direct update to profiles table instead of RPC
-      const { error } = await supabase
-        .from("profiles")
-        .update({ is_admin: !currentStatus })
-        .eq("id", userId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: `User admin status ${!currentStatus ? "granted" : "revoked"}`,
-      });
-
-      // Refresh the users list
-      fetchUsers();
-    } catch (error) {
-      console.error("Error updating admin status:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update admin status",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const sendAdminInvite = async () => {
+  const handleSendInvite = () => {
     if (!inviteEmail || !inviteEmail.includes("@")) {
-      toast({
-        title: "Invalid Email",
-        description: "Please provide a valid email address",
-        variant: "destructive",
-      });
       return;
     }
 
-    try {
-      setSendingInvite(true);
-
-      // Generate invite code (random string)
-      const inviteCode = [...Array(24)]
-        .map(() => Math.floor(Math.random() * 36).toString(36))
-        .join("");
-
-      // Set expiration date (7 days from now)
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7);
-
-      // Use current user ID from auth context
-
-      // Insert the invite into the database
-      const { data: invite, error: inviteError } = await supabase
-        .from("admin_invites")
-        .insert([
-          {
-            email: inviteEmail,
-            invite_code: inviteCode,
-            expires_at: expiresAt.toISOString(),
-            created_by: user?.id,
-          },
-        ])
-        .select("*")
-        .single();
-
-      if (inviteError) throw inviteError;
-
-      // Send the invitation email
-      const { error: emailError } = await supabase.functions.invoke("send-admin-invite", {
-        body: { invite },
-      });
-
-      if (emailError) throw emailError;
-
-      toast({
-        title: "Invitation Sent",
-        description: `An admin invitation has been sent to ${inviteEmail}`,
-      });
-
-      setInviteEmail("");
-      setIsInviteOpen(false);
-    } catch (error: any) {
-      console.error("Error sending admin invite:", error);
-      toast({
-        title: "Invitation Failed",
-        description: error.message || "Failed to send admin invitation",
-        variant: "destructive",
-      });
-    } finally {
-      setSendingInvite(false);
-    }
+    sendInviteMutation.mutate(
+      { email: inviteEmail, createdBy: user?.id || "" },
+      {
+        onSuccess: () => {
+          setInviteEmail("");
+          setIsInviteOpen(false);
+        },
+      }
+    );
   };
 
   return (
@@ -200,8 +93,8 @@ const AdminUsersList = () => {
               <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={sendAdminInvite} disabled={sendingInvite}>
-                {sendingInvite && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button onClick={handleSendInvite} disabled={sendInviteMutation.isPending}>
+                {sendInviteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Send Invitation
               </Button>
             </DialogFooter>
@@ -233,28 +126,28 @@ const AdminUsersList = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  users.map((user) => (
-                    <TableRow key={user.id}>
+                  users.map((userItem) => (
+                    <TableRow key={userItem.id}>
                       <TableCell>
-                        {user.first_name || ""} {user.last_name || ""}
+                        {userItem.first_name || ""} {userItem.last_name || ""}
                       </TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>{userItem.email}</TableCell>
+                      <TableCell>{new Date(userItem.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>
                         <span
-                          className={user.is_admin ? "text-green-600 font-medium" : "text-gray-500"}
+                          className={userItem.is_admin ? "text-green-600 font-medium" : "text-muted-foreground"}
                         >
-                          {user.is_admin ? "Admin" : "User"}
+                          {userItem.is_admin ? "Admin" : "User"}
                         </span>
                       </TableCell>
                       <TableCell>
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => toggleAdminStatus(user.id, user.is_admin)}
-                          title={user.is_admin ? "Revoke admin access" : "Grant admin access"}
+                          onClick={() => handleToggleAdmin(userItem.id, userItem.is_admin)}
+                          title={userItem.is_admin ? "Revoke admin access" : "Grant admin access"}
                         >
-                          {user.is_admin ? (
+                          {userItem.is_admin ? (
                             <UserMinus className="h-4 w-4" />
                           ) : (
                             <UserCheck className="h-4 w-4" />

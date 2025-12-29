@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +25,10 @@ import { toast } from "sonner";
 import { Loader2, AlertTriangle, CheckCircle2, Copy } from "lucide-react";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { format } from "date-fns";
+import {
+  useInvestorPositionsForRoute,
+  useInternalRouteMutation,
+} from "@/hooks/data/admin";
 
 interface InternalRouteDialogProps {
   open: boolean;
@@ -40,7 +43,6 @@ export function InternalRouteDialog({
   investorId,
   investorName,
 }: InternalRouteDialogProps) {
-  const queryClient = useQueryClient();
   const [fundId, setFundId] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [effectiveDate, setEffectiveDate] = useState<string>(
@@ -54,66 +56,13 @@ export function InternalRouteDialog({
     credit_tx_id: string;
   } | null>(null);
 
-  // Fetch investor positions for fund selection
-  const { data: positions } = useQuery({
-    queryKey: QUERY_KEYS.investorPositionsForRoute(investorId),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("investor_positions")
-        .select(`
-          fund_id,
-          current_value,
-          funds ( id, name, asset )
-        `)
-        .eq("investor_id", investorId)
-        .gt("current_value", 0);
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: open,
-  });
+  // Use React Query hooks
+  const { data: positions } = useInvestorPositionsForRoute(investorId, open);
+  const routeMutation = useInternalRouteMutation(investorId, fundId);
 
   const selectedPosition = positions?.find((p) => p.fund_id === fundId);
   const maxAmount = selectedPosition?.current_value || 0;
-  const selectedAsset = (selectedPosition?.funds as any)?.asset || "";
-
-  const routeMutation = useMutation({
-    mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const { data, error } = await supabase.rpc("internal_route_to_fees", {
-        p_from_investor_id: investorId,
-        p_fund_id: fundId,
-        p_amount: parseFloat(amount),
-        p_effective_date: effectiveDate,
-        p_reason: reason,
-        p_admin_id: user.id,
-      });
-
-      if (error) throw error;
-      
-      const row = data?.[0];
-      if (!row?.success) {
-        throw new Error(row?.message || "Internal routing failed");
-      }
-      
-      return row;
-    },
-    onSuccess: (data) => {
-      setResult({
-        transfer_id: data.transfer_id,
-        debit_tx_id: data.debit_tx_id,
-        credit_tx_id: data.credit_tx_id,
-      });
-      toast.success("Internal transfer completed successfully");
-      invalidateAfterTransaction(queryClient, investorId, fundId);
-    },
-    onError: (error: any) => {
-      toast.error(`Error: ${error.message}`);
-    },
-  });
+  const selectedAsset = selectedPosition?.funds?.asset || "";
 
   const handleSubmit = () => {
     if (!fundId || !amount || !reason || confirmText !== "ROUTE") {
@@ -131,7 +80,24 @@ export function InternalRouteDialog({
       return;
     }
 
-    routeMutation.mutate();
+    routeMutation.mutate(
+      {
+        fromInvestorId: investorId,
+        fundId,
+        amount: parseFloat(amount),
+        effectiveDate,
+        reason,
+      },
+      {
+        onSuccess: (data) => {
+          setResult({
+            transfer_id: data.transfer_id,
+            debit_tx_id: data.debit_tx_id,
+            credit_tx_id: data.credit_tx_id,
+          });
+        },
+      }
+    );
   };
 
   const handleClose = () => {
@@ -237,7 +203,7 @@ export function InternalRouteDialog({
                   <SelectContent>
                     {positions?.map((pos) => (
                       <SelectItem key={pos.fund_id} value={pos.fund_id}>
-                        {(pos.funds as any)?.name} ({(pos.funds as any)?.asset}) - 
+                        {pos.funds?.name} ({pos.funds?.asset}) - 
                         Balance: {Number(pos.current_value).toFixed(8)}
                       </SelectItem>
                     ))}
