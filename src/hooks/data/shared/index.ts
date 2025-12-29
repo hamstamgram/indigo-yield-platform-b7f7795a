@@ -131,7 +131,7 @@ export {
   useProfiles,
   useProfile,
   useCurrentProfile,
-  useIsSuperAdmin,
+  useIsSuperAdmin as useIsSuperAdminProfile,
   useToggleAdminStatus,
   useUpdateProfile,
   type UserProfile,
@@ -187,7 +187,8 @@ export {
   useInvestorTransactions,
   useCreateTransaction,
   useVoidTransaction,
-  type Transaction,
+  // Note: Transaction type renamed to avoid conflict with investor/useInvestorLedger
+  type Transaction as SharedTransaction,
   type TransactionFilters,
 } from "./useTransactions";
 
