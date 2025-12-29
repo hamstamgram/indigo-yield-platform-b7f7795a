@@ -1,23 +1,14 @@
 import React, { useState } from "react";
-import { TableRow, TableCell } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import {
+  TableRow, TableCell, Button, TruncatedText,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui";
 import { Trash2 } from "lucide-react";
 import { AssetRef as Asset } from "@/types/asset";
 import { InvestorSummaryV2 } from "@/services/admin/adminService";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { TruncatedText } from "@/components/ui/truncated-text";
 import InviteInvestorDialog from "./InviteInvestorDialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 
 interface EditableInvestorRowProps {
   investor: InvestorSummaryV2;

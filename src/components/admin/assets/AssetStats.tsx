@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { Coins, TrendingUp, TrendingDown, Database } from "lucide-react";
 import { useAssetStats } from "@/hooks/data/admin";
 

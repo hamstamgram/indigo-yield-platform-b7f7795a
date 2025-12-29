@@ -1,24 +1,11 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
+  Button, Input, Label,
+  Card, CardContent, CardHeader, CardTitle,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui";
 import { toast } from "sonner";
 import { assetService } from "@/services/shared/assetService";
 import { useAssetPrices, useLatestAssetPrice } from "@/hooks/data/admin";
