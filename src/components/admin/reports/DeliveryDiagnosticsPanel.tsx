@@ -4,11 +4,7 @@
  */
 
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { QUERY_KEYS } from "@/constants/queryKeys";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { 
   FileText, 
   Mail, 
@@ -21,18 +17,7 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface DiagnosticsData {
-  statements_generated: number;
-  investors_with_statements: number;
-  investors_with_email: number;
-  investors_missing_email: number;
-  deliveries_queued: number;
-  deliveries_sent: number;
-  deliveries_failed: number;
-  already_delivered: number;
-  missing_email_names: string[];
-}
+import { useDeliveryDiagnostics } from "@/hooks/data/useDashboardMetrics";
 
 interface DeliveryDiagnosticsPanelProps {
   periodId: string;
@@ -40,84 +25,7 @@ interface DeliveryDiagnosticsPanelProps {
 }
 
 export function DeliveryDiagnosticsPanel({ periodId, periodName }: DeliveryDiagnosticsPanelProps) {
-  const { data: diagnostics, isLoading, error } = useQuery({
-    queryKey: QUERY_KEYS.deliveryDiagnostics(periodId),
-    queryFn: async (): Promise<DiagnosticsData> => {
-      // Fetch statements for period
-      const { data: statements, error: stmtError } = await supabase
-        .from("generated_statements")
-        .select("id, investor_id")
-        .eq("period_id", periodId);
-      
-      if (stmtError) throw stmtError;
-
-      // Fetch profiles for investors with statements
-      const investorIds = [...new Set(statements?.map(s => s.investor_id) || [])];
-      const { data: profiles, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, email")
-        .in("id", investorIds);
-      
-      if (profileError) throw profileError;
-      
-      // Create a map of investor_id -> profile
-      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
-      
-      if (stmtError) throw stmtError;
-
-      // Fetch delivery records for period
-      const { data: deliveries, error: delError } = await supabase
-        .from("statement_email_delivery")
-        .select("id, investor_id, status, recipient_email")
-        .eq("period_id", periodId);
-      
-      if (delError) throw delError;
-
-      // Process data
-      const investorsWithStatements = new Set(statements?.map(s => s.investor_id) || []);
-      
-      const investorsWithEmail: string[] = [];
-      const investorsMissingEmail: { id: string; name: string }[] = [];
-      
-      statements?.forEach(s => {
-        const profile = profileMap.get(s.investor_id);
-        if (profile?.email) {
-          investorsWithEmail.push(s.investor_id);
-        } else {
-          const name = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Unknown";
-          investorsMissingEmail.push({ id: s.investor_id, name });
-        }
-      });
-
-      const statusCounts = {
-        queued: 0,
-        sent: 0,
-        delivered: 0,
-        failed: 0,
-      };
-
-      deliveries?.forEach(d => {
-        const status = d.status?.toLowerCase() || "queued";
-        if (status === "queued") statusCounts.queued++;
-        else if (status === "sent" || status === "delivered") statusCounts.sent++;
-        else if (status === "failed" || status === "bounced") statusCounts.failed++;
-      });
-
-      return {
-        statements_generated: statements?.length || 0,
-        investors_with_statements: investorsWithStatements.size,
-        investors_with_email: investorsWithEmail.length,
-        investors_missing_email: investorsMissingEmail.length,
-        deliveries_queued: statusCounts.queued,
-        deliveries_sent: statusCounts.sent + statusCounts.delivered,
-        deliveries_failed: statusCounts.failed,
-        already_delivered: statusCounts.delivered,
-        missing_email_names: investorsMissingEmail.map(i => i.name),
-      };
-    },
-    enabled: !!periodId,
-    staleTime: 30000, // Cache for 30 seconds
-  });
+  const { data: diagnostics, isLoading, error } = useDeliveryDiagnostics(periodId);
 
   if (isLoading) {
     return (

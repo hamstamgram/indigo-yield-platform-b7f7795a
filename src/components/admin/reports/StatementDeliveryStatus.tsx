@@ -1,6 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
-import { QUERY_KEYS } from "@/constants/queryKeys";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,33 +7,19 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Send,
   Ban,
   AlertTriangle,
   Loader2,
   RotateCcw,
   Mail,
 } from "lucide-react";
-import { toast } from "sonner";
+import { useDeliveryStatus, useRetryDelivery } from "@/hooks/data/useDashboardMetrics";
 
 interface StatementDeliveryStatusProps {
   statementId: string;
   investorId?: string;
   periodId?: string;
   showActions?: boolean;
-}
-
-interface DeliveryRecord {
-  id: string;
-  status: string;
-  recipient_email: string;
-  channel: string;
-  attempt_count: number;
-  last_attempt_at: string | null;
-  sent_at: string | null;
-  failed_at: string | null;
-  error_message: string | null;
-  created_at: string;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ElementType; color: string }> = {
@@ -54,38 +37,12 @@ export function StatementDeliveryStatus({
   periodId,
   showActions = true,
 }: StatementDeliveryStatusProps) {
-  const { data: deliveries, isLoading, refetch } = useQuery({
-    queryKey: QUERY_KEYS.statementDeliveryStatus(statementId, investorId, periodId),
-    queryFn: async () => {
-      let query = supabase
-        .from("statement_email_delivery")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (statementId) {
-        query = query.eq("statement_id", statementId);
-      } else if (investorId && periodId) {
-        query = query.eq("investor_id", investorId).eq("period_id", periodId);
-      }
-
-      const { data, error } = await query.limit(5);
-      if (error) throw error;
-      return data as DeliveryRecord[];
-    },
-    enabled: !!(statementId || (investorId && periodId)),
-  });
+  const { data: deliveries, isLoading, refetch } = useDeliveryStatus(statementId, investorId, periodId);
+  const retryMutation = useRetryDelivery();
 
   const handleRetry = async (deliveryId: string) => {
-    try {
-      const { error } = await supabase.rpc("retry_delivery", {
-        p_delivery_id: deliveryId,
-      });
-      if (error) throw error;
-      toast.success("Delivery re-queued for retry");
-      refetch();
-    } catch (error: any) {
-      toast.error(`Failed to retry: ${error.message}`);
-    }
+    await retryMutation.mutateAsync(deliveryId);
+    refetch();
   };
 
   const getStatusConfig = (status: string) => {
@@ -204,6 +161,7 @@ export function StatementDeliveryStatus({
               size="sm"
               className="w-full"
               onClick={() => handleRetry(latestDelivery.id)}
+              disabled={retryMutation.isPending}
             >
               <RotateCcw className="h-3 w-3 mr-2" />
               Retry Delivery
