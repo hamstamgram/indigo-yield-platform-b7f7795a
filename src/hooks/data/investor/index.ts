@@ -1,0 +1,120 @@
+/**
+ * Investor Hooks - Barrel Export
+ * 
+ * Domain-specific hooks for investor operations
+ */
+
+// Balance hooks
+export {
+  useInvestorBalance,
+  useTransactionHistory,
+  useAUMExists,
+} from "./useInvestorBalance";
+
+// Investor data hooks
+export {
+  useInvestorList,
+  useInvestorsForSelector,
+  useInvestorPositions,
+  useInvestorQuickView,
+  useInvestorRecentActivity,
+  useUpdateInvestorStatus,
+  type InvestorListItem,
+  type InvestorQuickViewData,
+  type InvestorPosition,
+  type InvestorSelectorItem,
+  type InvestorPositionRow,
+} from "./useInvestorData";
+
+// Invite hooks
+export { useInvestorInvite } from "./useInvestorInvite";
+
+// Ledger hooks
+export {
+  useInvestorLedger,
+  type Transaction,
+} from "./useInvestorLedger";
+
+// Overview hooks
+export {
+  useInvestorOverview,
+  useInvestorDefaultFund,
+  type InvestorOverviewData,
+} from "./useInvestorOverview";
+
+// Overview query hooks
+export {
+  useRecentInvestorTransactions,
+  usePendingWithdrawalsCount,
+  useLastStatementPeriod,
+  type RecentTransaction,
+} from "./useInvestorOverviewQueries";
+
+// Performance hooks
+export {
+  useInvestorPerformance,
+  usePerAssetStats,
+  useInvestorAssetStats,
+} from "./useInvestorPerformance";
+
+// Portal hooks
+export {
+  useInvestorTransactionAssets,
+  useInvestorTransactionsList,
+  useMonthlyStatements,
+  useStatementYears,
+  useStatementAssets,
+  useDownloadStatement,
+  useInvestorProfileData,
+  useUserPreferences,
+  useSaveUserPreferences,
+  useActiveSessions,
+  useAccessLogs,
+  useRevokeSession,
+  type Session,
+  type AccessLog,
+  type UserSettings,
+  type InvestorProfile,
+  type MonthlyStatement,
+} from "./useInvestorPortal";
+
+// Position detail hooks
+export { useInvestorPositions as useInvestorPositionsDetail } from "./useInvestorPositions";
+
+// Search hooks
+export { useInvestorSearch } from "./useInvestorSearch";
+
+// Settings hooks
+export {
+  useInvestorProfileSettings,
+  useDeleteInvestorProfile,
+  useInvestorReportPeriods,
+  type InvestorProfileData,
+  type ReportPeriod,
+} from "./useInvestorSettings";
+
+// Withdrawal hooks
+export {
+  useInvestorWithdrawals,
+  useWithdrawalPositions,
+  useSubmitWithdrawal,
+  type WithdrawalPosition,
+} from "./useInvestorWithdrawals";
+
+// Yield data hooks
+export {
+  useStatementPeriodId,
+  useInvestorPositionsWithFunds,
+  useInvestorPerformanceForPeriod,
+  useInvestorFeeScheduleData,
+} from "./useInvestorYieldData";
+
+// Portfolio hooks
+export {
+  usePortfolioPositions,
+  useWithdrawalFormPositions,
+  useMyWithdrawalsWithFunds,
+  useCreateWithdrawalRequest,
+  type PortfolioPosition,
+  type WithdrawalFormPosition,
+} from "./usePortfolio";
