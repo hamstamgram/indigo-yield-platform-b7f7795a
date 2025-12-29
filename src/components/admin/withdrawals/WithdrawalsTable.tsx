@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Withdrawal, WithdrawalFilters, WithdrawalStatus } from "@/types/withdrawal";
+import { Withdrawal, WithdrawalFilters, WithdrawalFullStatus } from "@/types/domains";
 import { getAssetLogo, formatAssetAmount } from "@/utils/assets";
 import {
   Table,
@@ -68,7 +68,7 @@ interface WithdrawalsTableProps {
   onRouteToFees?: (withdrawal: Withdrawal) => void;
 }
 
-const statusColors: Record<WithdrawalStatus, string> = {
+const statusColors: Record<WithdrawalFullStatus, string> = {
   pending: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
   approved: "bg-green-500/10 text-green-600 border-green-500/20",
   processing: "bg-blue-500/10 text-blue-600 border-blue-500/20",
@@ -94,9 +94,9 @@ export function WithdrawalsTable({
   onDelete,
   onRouteToFees,
 }: WithdrawalsTableProps) {
-  const canEdit = (status: WithdrawalStatus) => status === "pending" || status === "approved";
-  const canDelete = (status: WithdrawalStatus) => status !== "completed";
-  const canRouteToFees = (status: WithdrawalStatus) => 
+  const canEdit = (status: WithdrawalFullStatus) => status === "pending" || status === "approved";
+  const canDelete = (status: WithdrawalFullStatus) => status !== "completed";
+  const canRouteToFees = (status: WithdrawalFullStatus) => 
     status === "approved" || status === "processing" || status === "completed";
 
   // Add sorting capability
@@ -122,7 +122,7 @@ export function WithdrawalsTable({
         <Select
           value={filters.status || "all"}
           onValueChange={(value) =>
-            onFiltersChange({ ...filters, status: value as WithdrawalStatus | "all" })
+            onFiltersChange({ ...filters, status: value as WithdrawalFullStatus | "all" })
           }
         >
           <SelectTrigger className="w-full sm:w-[180px]">

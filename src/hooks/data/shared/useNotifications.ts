@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toNotification, toNotifications } from "@/lib/typeAdapters";
 import type { Notification } from "@/lib/typeAdapters/notificationAdapter";
-import type { NotificationSettings, PriceAlert } from "@/types/notifications";
+import type { NotificationSettings, PriceAlert } from "@/types/domains";
 import { useToast } from "@/hooks";
 import { notificationService } from "@/services/shared";
 import { RealtimeChannel } from "@supabase/supabase-js";

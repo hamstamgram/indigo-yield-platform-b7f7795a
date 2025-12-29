@@ -6,12 +6,12 @@ import {
   PaginatedWithdrawals, 
   WithdrawalAuditLog,
   InvestorOption,
-  InvestorPosition,
+  WithdrawalInvestorPosition,
   CreateWithdrawalParams,
   UpdateWithdrawalParams,
   DeleteWithdrawalParams,
   RouteToFeesParams
-} from "@/types/withdrawal";
+} from "@/types/domains";
 import { generateCorrelationId, createCorrelatedLogger } from "@/lib/correlationId";
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -414,7 +414,7 @@ export const withdrawalService = {
   /**
    * Fetch investor positions with positive balance
    */
-  async fetchInvestorPositions(investorId: string): Promise<InvestorPosition[]> {
+  async fetchInvestorPositions(investorId: string): Promise<WithdrawalInvestorPosition[]> {
     const { data, error } = await supabase
       .from("investor_positions")
       .select(`

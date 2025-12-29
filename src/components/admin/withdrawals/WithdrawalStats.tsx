@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { WithdrawalStats } from "@/types/withdrawal";
+import { WithdrawalStats } from "@/types/domains";
 import { AlertCircle, CheckCircle2, Clock, Coins, XCircle } from "lucide-react";
 
 interface WithdrawalStatsProps {

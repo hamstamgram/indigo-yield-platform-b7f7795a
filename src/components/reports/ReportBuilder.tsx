@@ -26,7 +26,7 @@ import {
   GenerateReportRequest,
   ReportFilters,
   ReportParameters,
-} from "@/types/reports";
+} from "@/types/domains";
 
 interface ReportBuilderProps {
   defaultReportType?: ReportType;

@@ -13,7 +13,7 @@ import { EditWithdrawalDialog } from "@/components/admin/withdrawals/EditWithdra
 import { DeleteWithdrawalDialog } from "@/components/admin/withdrawals/DeleteWithdrawalDialog";
 import { RouteToFeesDialog } from "@/components/admin/withdrawals/RouteToFeesDialog";
 import { withdrawalService } from "@/services/investor/withdrawalService";
-import { Withdrawal, WithdrawalFilters, WithdrawalStats, PaginatedWithdrawals } from "@/types/withdrawal";
+import { Withdrawal, WithdrawalFilters, WithdrawalStats, PaginatedWithdrawals } from "@/types/domains";
 import { toast } from "sonner";
 import { ArrowDownToLine, Plus } from "lucide-react";
 import { useFunds, useUrlFilters } from "@/hooks";

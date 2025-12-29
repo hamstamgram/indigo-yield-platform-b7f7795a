@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { reportService } from "@/services/admin/reportService";
-import { GenerateReportRequest, GenerateReportResponse } from "@/types/reports";
+import { GenerateReportRequest, GenerateReportResponse } from "@/types/domains";
 
 // Lazy load PDF/Excel generators to reduce initial bundle size
 const loadPDFGenerator = () => import("./pdfGenerator");

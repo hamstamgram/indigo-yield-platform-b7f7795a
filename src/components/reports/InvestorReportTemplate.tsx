@@ -6,7 +6,7 @@ import {
   LOGO_URL,
   SOCIAL_ICONS,
   getValueColor,
-} from "@/types/investor-report";
+} from "@/types/domains";
 
 interface InvestorReportTemplateProps {
   investor: InvestorData;

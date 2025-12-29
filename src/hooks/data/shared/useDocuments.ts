@@ -10,7 +10,7 @@ import type {
   DocumentFilter,
   DocumentStats,
   DocumentUpload,
-} from "@/types/documents";
+} from "@/types/domains";
 import { useToast } from "@/hooks";
 
 export function useDocuments(_userId?: string, _filter?: DocumentFilter) {

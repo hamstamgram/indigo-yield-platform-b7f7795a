@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Withdrawal, WithdrawalStatus } from "@/types/withdrawal";
+import { Withdrawal, WithdrawalFullStatus } from "@/types/domains";
 import { getAssetLogo } from "@/utils/assets";
 import { format } from "date-fns";
 import {
@@ -27,7 +27,7 @@ interface WithdrawalDetailsDrawerProps {
   onAction?: (action: "approve" | "reject" | "process" | "complete", withdrawal: Withdrawal) => void;
 }
 
-const statusColors: Record<WithdrawalStatus, string> = {
+const statusColors: Record<WithdrawalFullStatus, string> = {
   pending: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
   approved: "bg-green-500/10 text-green-600 border-green-500/20",
   processing: "bg-blue-500/10 text-blue-600 border-blue-500/20",

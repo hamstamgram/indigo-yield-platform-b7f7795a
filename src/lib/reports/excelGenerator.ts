@@ -11,7 +11,7 @@ import {
   HoldingData,
   TransactionData,
   PerformancePeriod,
-} from "@/types/reports";
+} from "@/types/domains";
 
 interface ExcelGenerationOptions {
   includeCharts?: boolean;

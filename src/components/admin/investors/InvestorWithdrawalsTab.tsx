@@ -35,7 +35,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ApproveWithdrawalDialog } from "@/components/admin/withdrawals/ApproveWithdrawalDialog";
 import { RejectWithdrawalDialog } from "@/components/admin/withdrawals/RejectWithdrawalDialog";
-import { Withdrawal, WithdrawalStatus } from "@/types/withdrawal";
+import { Withdrawal, WithdrawalFullStatus } from "@/types/domains";
 import { formatAssetAmount } from "@/utils/assets";
 
 interface InvestorWithdrawalsTabProps {
@@ -51,7 +51,7 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-gray-500/10 text-gray-600 border-gray-500/20",
 };
 
-const validStatuses: (WithdrawalStatus | "all")[] = ["all", "pending", "approved", "completed", "rejected"];
+const validStatuses: (WithdrawalFullStatus | "all")[] = ["all", "pending", "approved", "completed", "rejected"];
 
 export function InvestorWithdrawalsTab({ investorId }: InvestorWithdrawalsTabProps) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -63,11 +63,11 @@ export function InvestorWithdrawalsTab({ investorId }: InvestorWithdrawalsTabPro
 
   // URL-persisted status filter
   const statusParam = searchParams.get("wd_status") || "all";
-  const statusFilter: WithdrawalStatus | "all" = validStatuses.includes(statusParam as any) 
-    ? (statusParam as WithdrawalStatus | "all") 
+  const statusFilter: WithdrawalFullStatus | "all" = validStatuses.includes(statusParam as any) 
+    ? (statusParam as WithdrawalFullStatus | "all") 
     : "all";
 
-  const setStatusFilter = (value: WithdrawalStatus | "all") => {
+  const setStatusFilter = (value: WithdrawalFullStatus | "all") => {
     setSearchParams((prev) => {
       const newParams = new URLSearchParams(prev);
       if (value === "all") {
@@ -123,7 +123,7 @@ export function InvestorWithdrawalsTab({ investorId }: InvestorWithdrawalsTabPro
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as WithdrawalStatus | "all")}>
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as WithdrawalFullStatus | "all")}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Filter status" />
             </SelectTrigger>

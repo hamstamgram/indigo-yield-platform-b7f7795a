@@ -11,7 +11,7 @@ import {
   PaginatedWithdrawals,
   Withdrawal,
   WithdrawalAuditLog,
-} from "@/types/withdrawal";
+} from "@/types/domains";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
 // ==================== Re-export types ====================

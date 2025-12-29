@@ -5,7 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import type { FundWithAUM, ActivityItem, PendingItem } from "@/types/dashboard";
+import type { FundWithAUM, ActivityItem, PendingItem } from "@/types/domains";
 
 /**
  * Fetch funds with their current AUM calculated from investor positions

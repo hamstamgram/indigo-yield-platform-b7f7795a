@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { PerformanceRecord, PerformanceFilters } from "@/types/performance";
+import { PerformanceRecord, PerformanceFilters } from "@/types/domains";
 
 export const performanceService = {
   /**

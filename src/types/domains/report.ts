@@ -31,8 +31,8 @@ export type ReportFrequency = "daily" | "weekly" | "monthly" | "quarterly" | "an
 // Delivery Method
 export type DeliveryMethod = "email" | "download" | "storage";
 
-// Report Filters
-export interface ReportFilter {
+// Report Filters (alias for backward compatibility)
+export interface ReportFilters {
   dateRangeStart?: string;
   dateRangeEnd?: string;
   assetCodes?: string[];
@@ -44,8 +44,11 @@ export interface ReportFilter {
   [key: string]: unknown;
 }
 
-// Report Parameters
-export interface ReportParameter {
+// Backward compat alias
+export type ReportFilter = ReportFilters;
+
+// Report Parameters (alias for backward compatibility)
+export interface ReportParameters {
   includeCharts?: boolean;
   includeSummary?: boolean;
   includeDetailedTransactions?: boolean;
@@ -58,6 +61,9 @@ export interface ReportParameter {
   orientation?: "portrait" | "landscape";
   [key: string]: unknown;
 }
+
+// Backward compat alias
+export type ReportParameter = ReportParameters;
 
 // Report Definition (configuration for each report type)
 export interface ReportDefinition {

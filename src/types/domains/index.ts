@@ -53,7 +53,7 @@ export {
   type PaginatedWithdrawals,
   type WithdrawalAuditAction,
   type WithdrawalAuditLog,
-  type WithdrawalInvestorOption,
+  type InvestorOption,
   type WithdrawalInvestorPosition,
   type CreateWithdrawalParams,
   type UpdateWithdrawalParams,

@@ -42,7 +42,7 @@ export interface Withdrawal {
 
 export interface WithdrawalFilters {
   search?: string;
-  status?: WithdrawalStatus | "all";
+  status?: WithdrawalFullStatus | "all";
   fund_id?: string;
   page?: number;
   pageSize?: number;
@@ -90,13 +90,14 @@ export interface WithdrawalAuditLog {
   actor_email?: string;
 }
 
-// Types for withdrawal form data
-export interface WithdrawalInvestorOption {
+// Types for withdrawal form data (specific to withdrawal UI)
+export interface InvestorOption {
   id: string;
   email: string;
   displayName: string;
 }
 
+// Position type for withdrawal form (simplified version for dropdowns)
 export interface WithdrawalInvestorPosition {
   fund_id: string;
   current_value: number;

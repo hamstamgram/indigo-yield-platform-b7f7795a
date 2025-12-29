@@ -16,7 +16,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { usePendingItems, useRealtimeSubscription } from "@/hooks/data";
-import type { PendingItem } from "@/types/dashboard";
+import type { PendingItem } from "@/types/domains";
 
 export function PendingActionsPanel() {
   const navigate = useNavigate();

@@ -10,8 +10,8 @@ export { ReportEngine } from "./reportEngine";
 // Import directly from ./pdfGenerator or ./excelGenerator when needed
 // Or use the lazy wrappers from @/services/api/reportsApi.lazy
 
-// Re-export types
-export * from "@/types/reports";
+// Re-export types from domains
+export * from "@/types/domains/report";
 
 // Lazy loader utilities for dynamic imports
 export const loadPDFGenerator = () => import("./pdfGenerator");
