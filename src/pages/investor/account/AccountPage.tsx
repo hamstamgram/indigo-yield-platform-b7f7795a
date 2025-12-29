@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks";
 import { AlertTriangle, Moon, Sun, Settings } from "lucide-react";
 import PageHeader from "@/components/layout/PageHeader";
@@ -21,27 +20,14 @@ import ProfileTab from "@/components/account/ProfileTab";
 import SecurityTab from "@/components/account/SecurityTab";
 import NotificationsTab from "@/components/account/NotificationsTab";
 import { useAuth } from "@/lib/auth/context";
-
-interface Profile {
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  phone: string | null;
-  totp_enabled: boolean;
-  totp_verified: boolean;
-  avatar_url: string | null;
-}
+import {
+  useInvestorProfileData,
+  useUserPreferences,
+  useSaveUserPreferences,
+  type UserSettings,
+} from "@/hooks/data/useInvestorPortal";
 
 const SETTINGS_KEY = "indigo_user_settings";
-
-interface UserSettings {
-  theme: string;
-  language: string;
-  reduceAnimations: boolean;
-  hidePortfolioValues: boolean;
-  dashboardTimeframe: string;
-}
 
 const defaultSettings: UserSettings = {
   theme: "system",
@@ -53,94 +39,18 @@ const defaultSettings: UserSettings = {
 
 const AccountPage = () => {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
-  const [saveLoading, setSaveLoading] = useState(false);
   const { toast } = useToast();
 
-  const fetchProfile = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const { data: profile, isLoading: loading, error: profileError } = useInvestorProfileData();
+  const { data: dbPreferences } = useUserPreferences();
+  const savePreferencesMutation = useSaveUserPreferences();
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        throw new Error("User not authenticated");
-      }
-
-      // Create a minimal profile from auth user data
-      const minimalProfile: Profile = {
-        id: user.id,
-        email: user.email || "",
-        first_name: null,
-        last_name: null,
-        phone: null,
-        totp_enabled: false,
-        totp_verified: false,
-        avatar_url: null,
-      };
-
-      // Set minimal profile as fallback
-      setProfile(minimalProfile);
-
-      try {
-        const { data: profileData, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        if (error) {
-          console.error("Error fetching profile:", error);
-
-          // For database policy errors, we already have minimal profile set
-          if (error.code === "42P17") {
-            toast({
-              title: "Database policy error",
-              description: "Using limited profile information. Some features may be unavailable.",
-              variant: "destructive",
-            });
-          }
-        } else if (profileData) {
-          // Update with full profile if available, mapping database fields to Profile interface
-          setProfile({
-            id: profileData.id,
-            email: profileData.email,
-            first_name: profileData.first_name,
-            last_name: profileData.last_name,
-            phone: profileData.phone,
-            totp_enabled: profileData.totp_enabled || false,
-            totp_verified: profileData.totp_verified || false,
-            avatar_url: profileData.avatar_url,
-          });
-        }
-      } catch (profileError) {
-        console.error("Profile fetch error:", profileError);
-        // We already have minimal profile set as fallback
-      }
-    } catch (authError) {
-      const errorMessage =
-        authError instanceof Error ? authError.message : "Failed to load your profile information";
-      console.error("Authentication error:", authError);
-      setError(errorMessage);
-      toast({
-        title: "Error loading profile",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const error = profileError ? (profileError as Error).message : null;
 
   // Load settings on mount
   useEffect(() => {
-    const loadSettings = async () => {
+    const loadSettings = () => {
       // Load from localStorage first for immediate display
       const localSettings = localStorage.getItem(SETTINGS_KEY);
       if (localSettings) {
@@ -151,27 +61,14 @@ const AccountPage = () => {
         }
       }
 
-      // Then sync with database if user is logged in
-      if (user) {
-        try {
-          const { data } = await supabase
-            .from("profiles")
-            .select("preferences")
-            .eq("id", user.id)
-            .single();
-
-          if (data?.preferences) {
-            const dbSettings = data.preferences as Partial<UserSettings>;
-            setSettings((prev) => ({ ...prev, ...dbSettings }));
-          }
-        } catch (error) {
-          console.error("Failed to load settings from database:", error);
-        }
+      // Then sync with database if available
+      if (dbPreferences) {
+        setSettings((prev) => ({ ...prev, ...dbPreferences }));
       }
     };
 
     loadSettings();
-  }, [user]);
+  }, [dbPreferences]);
 
   // Apply theme whenever it changes
   useEffect(() => {
@@ -187,26 +84,14 @@ const AccountPage = () => {
     }
   }, [settings.theme]);
 
-  useEffect(() => {
-    fetchProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const handleSaveSettings = async () => {
-    setSaveLoading(true);
-
     try {
       // Save to localStorage for immediate persistence
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
 
       // Save to database for cross-device sync
       if (user) {
-        const { error } = await supabase
-          .from("profiles")
-          .update({ preferences: settings as any })
-          .eq("id", user.id);
-
-        if (error) throw error;
+        await savePreferencesMutation.mutateAsync(settings);
       }
 
       toast({
@@ -220,8 +105,6 @@ const AccountPage = () => {
         description: "Failed to save settings. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setSaveLoading(false);
     }
   };
 
@@ -271,7 +154,7 @@ const AccountPage = () => {
         </TabsList>
 
         <TabsContent value="profile">
-          <ProfileTab profile={profile} loading={loading} />
+          <ProfileTab profile={profile || null} loading={loading} />
         </TabsContent>
 
         <TabsContent value="security">
@@ -363,9 +246,9 @@ const AccountPage = () => {
               <Button
                 className="w-full sm:w-auto"
                 onClick={handleSaveSettings}
-                disabled={saveLoading}
+                disabled={savePreferencesMutation.isPending}
               >
-                {saveLoading ? "Saving..." : "Save Appearance Settings"}
+                {savePreferencesMutation.isPending ? "Saving..." : "Save Appearance Settings"}
               </Button>
             </CardContent>
           </Card>
@@ -421,9 +304,9 @@ const AccountPage = () => {
               <Button
                 className="w-full sm:w-auto"
                 onClick={handleSaveSettings}
-                disabled={saveLoading}
+                disabled={savePreferencesMutation.isPending}
               >
-                {saveLoading ? "Saving..." : "Save Preferences"}
+                {savePreferencesMutation.isPending ? "Saving..." : "Save Preferences"}
               </Button>
             </CardContent>
           </Card>

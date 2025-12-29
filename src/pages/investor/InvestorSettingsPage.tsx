@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks";
 import { AlertTriangle, Moon, Sun, Settings } from "lucide-react";
 import PageHeader from "@/components/layout/PageHeader";
@@ -9,39 +8,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import ProfileTab from "@/components/account/ProfileTab";
 import SecurityTab from "@/components/account/SecurityTab";
 import NotificationsTab from "@/components/account/NotificationsTab";
 import { useAuth } from "@/lib/auth/context";
-
-interface Profile {
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  phone: string | null;
-  totp_enabled: boolean;
-  totp_verified: boolean;
-  avatar_url: string | null;
-}
+import {
+  useInvestorProfileData,
+  useUserPreferences,
+  useSaveUserPreferences,
+  type UserSettings,
+} from "@/hooks/data/useInvestorPortal";
 
 const SETTINGS_KEY = "indigo_user_settings";
-
-interface UserSettings {
-  theme: string;
-  language: string;
-  reduceAnimations: boolean;
-  hidePortfolioValues: boolean;
-  dashboardTimeframe: string;
-}
 
 const defaultSettings: UserSettings = {
   theme: "system",
@@ -53,72 +32,17 @@ const defaultSettings: UserSettings = {
 
 export default function InvestorSettingsPage() {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
-  const [saveLoading, setSaveLoading] = useState(false);
   const { toast } = useToast();
 
-  const fetchProfile = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const { data: profile, isLoading: loading, error: profileError } = useInvestorProfileData();
+  const { data: dbPreferences } = useUserPreferences();
+  const savePreferencesMutation = useSaveUserPreferences();
 
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        throw new Error("User not authenticated");
-      }
-
-      const minimalProfile: Profile = {
-        id: user.id,
-        email: user.email || "",
-        first_name: null,
-        last_name: null,
-        phone: null,
-        totp_enabled: false,
-        totp_verified: false,
-        avatar_url: null,
-      };
-
-      setProfile(minimalProfile);
-
-      try {
-        const { data: profileData, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        if (error) {
-          console.error("Error fetching profile:", error);
-        } else if (profileData) {
-          setProfile({
-            id: profileData.id,
-            email: profileData.email,
-            first_name: profileData.first_name,
-            last_name: profileData.last_name,
-            phone: profileData.phone,
-            totp_enabled: profileData.totp_enabled || false,
-            totp_verified: profileData.totp_verified || false,
-            avatar_url: profileData.avatar_url,
-          });
-        }
-      } catch (profileError) {
-        console.error("Profile fetch error:", profileError);
-      }
-    } catch (authError) {
-      const errorMessage = authError instanceof Error ? authError.message : "Failed to load profile";
-      console.error("Authentication error:", authError);
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const error = profileError ? (profileError as Error).message : null;
 
   useEffect(() => {
-    const loadSettings = async () => {
+    const loadSettings = () => {
       const localSettings = localStorage.getItem(SETTINGS_KEY);
       if (localSettings) {
         try {
@@ -128,26 +52,13 @@ export default function InvestorSettingsPage() {
         }
       }
 
-      if (user) {
-        try {
-          const { data } = await supabase
-            .from("profiles")
-            .select("preferences")
-            .eq("id", user.id)
-            .single();
-
-          if (data?.preferences) {
-            const dbSettings = data.preferences as Partial<UserSettings>;
-            setSettings((prev) => ({ ...prev, ...dbSettings }));
-          }
-        } catch (error) {
-          console.error("Failed to load settings from database:", error);
-        }
+      if (dbPreferences) {
+        setSettings((prev) => ({ ...prev, ...dbPreferences }));
       }
     };
 
     loadSettings();
-  }, [user]);
+  }, [dbPreferences]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -161,23 +72,12 @@ export default function InvestorSettingsPage() {
     }
   }, [settings.theme]);
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
   const handleSaveSettings = async () => {
-    setSaveLoading(true);
-
     try {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
 
       if (user) {
-        const { error } = await supabase
-          .from("profiles")
-          .update({ preferences: settings as any })
-          .eq("id", user.id);
-
-        if (error) throw error;
+        await savePreferencesMutation.mutateAsync(settings);
       }
 
       toast({
@@ -191,8 +91,6 @@ export default function InvestorSettingsPage() {
         description: "Failed to save settings. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setSaveLoading(false);
     }
   };
 
@@ -241,7 +139,7 @@ export default function InvestorSettingsPage() {
         </TabsList>
 
         <TabsContent value="profile">
-          <ProfileTab profile={profile} loading={loading} />
+          <ProfileTab profile={profile || null} loading={loading} />
         </TabsContent>
 
         <TabsContent value="security">
@@ -321,9 +219,9 @@ export default function InvestorSettingsPage() {
 
               <Button
                 onClick={handleSaveSettings}
-                disabled={saveLoading}
+                disabled={savePreferencesMutation.isPending}
               >
-                {saveLoading ? "Saving..." : "Save Settings"}
+                {savePreferencesMutation.isPending ? "Saving..." : "Save Settings"}
               </Button>
             </CardContent>
           </Card>
