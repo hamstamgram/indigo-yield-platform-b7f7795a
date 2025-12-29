@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,9 +21,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ArrowDownCircle, Clock, CheckCircle, XCircle, AlertCircle, Plus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks";
 import { formatAssetAmount } from "@/utils/assets";
+import {
+  useMyWithdrawalsWithFunds,
+  useWithdrawalFormPositions,
+  useCreateWithdrawalRequest,
+} from "@/hooks/data";
 
 interface WithdrawalRequest {
   id: string;
@@ -48,25 +51,8 @@ interface WithdrawalRequest {
   };
 }
 
-interface InvestorPosition {
-  fund_id: string;
-  current_value: number;
-  shares: number;
-  fund_class: string | null;
-  funds: {
-    name: string;
-    code: string;
-    asset: string;
-  };
-}
-
 const WithdrawalsPage = () => {
-  const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
-  const [positions, setPositions] = useState<InvestorPosition[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const { toast } = useToast();
 
   // Form state
   const [selectedFund, setSelectedFund] = useState<string>("");
@@ -74,187 +60,49 @@ const WithdrawalsPage = () => {
   const [withdrawalType, setWithdrawalType] = useState<string>("partial");
   const [withdrawalNotes, setWithdrawalNotes] = useState<string>("");
 
-  useEffect(() => {
-    fetchWithdrawals();
-    fetchPositions();
-  }, []);
+  // Use hooks instead of direct Supabase calls
+  const { data: withdrawals = [], isLoading: isLoadingWithdrawals } = useMyWithdrawalsWithFunds();
+  const { data: positions = [], isLoading: isLoadingPositions } = useWithdrawalFormPositions();
+  const createWithdrawalMutation = useCreateWithdrawalRequest();
 
-  const fetchWithdrawals = async () => {
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error("Not authenticated");
-
-      // Get investor_id (One ID: it's the user.id)
-      const investorId = user.id;
-
-      const { data: withdrawalsData, error: withdrawalsError } = await supabase
-        .from("withdrawal_requests")
-        .select(
-          `
-          *,
-          funds:fund_id (
-            name,
-            code,
-            asset,
-            fund_class
-          )
-        `
-        )
-        .eq("investor_id", investorId)
-        .order("created_at", { ascending: false });
-
-      if (withdrawalsError) throw withdrawalsError;
-
-      // Map data to ensure created_at is included and properly typed
-      const mappedData = (withdrawalsData || []).map((item: any) => ({
-        ...item,
-        created_at: item.created_at || new Date().toISOString(),
-        funds: item.funds || {
-          name: "Unknown Fund",
-          code: "N/A",
-          asset: "USDT",
-          fund_class: "N/A",
-        },
-      }));
-
-      setWithdrawals(mappedData);
-    } catch (error: any) {
-      console.error("Error fetching withdrawals:", error);
-      toast({
-        title: "Error loading withdrawals",
-        description: error.message || "Failed to load withdrawal history",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const fetchPositions = async () => {
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error("Not authenticated");
-
-      // Get investor_id (One ID: it's the user.id)
-      const investorId = user.id;
-
-      const { data: positionsData, error: positionsError } = await supabase
-        .from("investor_positions")
-        .select(
-          `
-          fund_id,
-          current_value,
-          shares,
-          fund_class,
-          funds:fund_id (
-            name,
-            code,
-            asset
-          )
-        `
-        )
-        .eq("investor_id", investorId)
-        .gt("current_value", 0);
-
-      if (positionsError) throw positionsError;
-
-      setPositions(positionsData || []);
-    } catch (error: any) {
-      console.error("Error fetching positions:", error);
-      toast({
-        title: "Error loading positions",
-        description: error.message || "Failed to load your positions",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = isLoadingWithdrawals || isLoadingPositions;
 
   const handleCreateWithdrawal = async () => {
     if (!selectedFund || !withdrawalAmount) {
-      toast({
-        title: "Missing information",
-        description: "Please select a fund and enter withdrawal amount",
-        variant: "destructive",
-      });
       return;
     }
 
     const amount = parseFloat(withdrawalAmount);
     if (isNaN(amount) || amount <= 0) {
-      toast({
-        title: "Invalid amount",
-        description: "Please enter a valid withdrawal amount",
-        variant: "destructive",
-      });
       return;
     }
 
-          try {
-          setSubmitting(true);
-    
-          const {
-            data: { user },
-            error: userError,
-          } = await supabase.auth.getUser();
-          if (userError || !user) throw new Error("Not authenticated");
-    
-          // Get investor_id (One ID: it's the user.id)
-          const investorId = user.id;
-    
-          // Check if amount is valid for the selected position
-          const selectedPosition = positions.find((p) => p.fund_id === selectedFund);
-          if (!selectedPosition) throw new Error("Position not found");
-    
-          if (amount > selectedPosition.current_value) {
-            const assetSymbol = selectedPosition.funds?.asset || "USDT";
-            toast({
-              title: "Amount too high",
-              description: `Maximum withdrawal amount is ${formatAssetAmount(selectedPosition.current_value, assetSymbol)}`,
-              variant: "destructive",
-            });
-            return;
-          }
-    
-          // Create withdrawal request using the database function
-          const { data: _data, error } = await supabase.rpc("create_withdrawal_request", {
-            p_investor_id: investorId, // Use investorId (profile.id)
-            p_fund_id: selectedFund,
-            p_amount: amount,
-            p_type: withdrawalType,
-            p_notes: withdrawalNotes || undefined,
-          });
-    
-          if (error) throw error;
-      toast({
-        title: "Withdrawal request submitted",
-        description: "Your withdrawal request has been submitted for review",
-      });
+    // Check if amount is valid for the selected position
+    const selectedPosition = positions.find((p) => p.fund_id === selectedFund);
+    if (!selectedPosition) return;
 
-      // Reset form and close dialog
-      setSelectedFund("");
-      setWithdrawalAmount("");
-      setWithdrawalType("partial");
-      setWithdrawalNotes("");
-      setIsCreateDialogOpen(false);
-
-      // Refresh data
-      fetchWithdrawals();
-    } catch (error: any) {
-      console.error("Error creating withdrawal:", error);
-      toast({
-        title: "Error creating withdrawal",
-        description: error.message || "Failed to create withdrawal request",
-        variant: "destructive",
-      });
-    } finally {
-      setSubmitting(false);
+    if (amount > selectedPosition.current_value) {
+      return;
     }
+
+    createWithdrawalMutation.mutate(
+      {
+        fundId: selectedFund,
+        amount,
+        type: withdrawalType,
+        notes: withdrawalNotes || undefined,
+      },
+      {
+        onSuccess: () => {
+          // Reset form and close dialog
+          setSelectedFund("");
+          setWithdrawalAmount("");
+          setWithdrawalType("partial");
+          setWithdrawalNotes("");
+          setIsCreateDialogOpen(false);
+        },
+      }
+    );
   };
 
   const getStatusIcon = (status: string) => {
@@ -340,8 +188,8 @@ const WithdrawalsPage = () => {
                   <SelectContent>
                     {positions.map((position) => (
                       <SelectItem key={position.fund_id} value={position.fund_id}>
-                        {position.funds.name} -{" "}
-                        {formatAssetAmount(position.current_value, position.funds?.asset || "USDT")}{" "}
+                        {position.fund.name} -{" "}
+                        {formatAssetAmount(position.current_value, position.fund?.asset || "USDT")}{" "}
                         available
                       </SelectItem>
                     ))}
@@ -353,7 +201,7 @@ const WithdrawalsPage = () => {
                     return pos ? (
                       <p className="text-sm text-muted-foreground">
                         Maximum withdrawal:{" "}
-                        {formatAssetAmount(pos.current_value, pos.funds?.asset || "USDT")}
+                        {formatAssetAmount(pos.current_value, pos.fund?.asset || "USDT")}
                       </p>
                     ) : null;
                   })()}
@@ -362,7 +210,7 @@ const WithdrawalsPage = () => {
               <div className="space-y-2">
                 <Label htmlFor="amount">
                   Withdrawal Amount (
-                  {positions.find((p) => p.fund_id === selectedFund)?.funds?.asset || "Select fund"}
+                  {positions.find((p) => p.fund_id === selectedFund)?.fund?.asset || "Select fund"}
                   )
                 </Label>
                 <Input
@@ -403,12 +251,12 @@ const WithdrawalsPage = () => {
                 <Button
                   variant="outline"
                   onClick={() => setIsCreateDialogOpen(false)}
-                  disabled={submitting}
+                  disabled={createWithdrawalMutation.isPending}
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleCreateWithdrawal} disabled={submitting}>
-                  {submitting ? "Submitting..." : "Submit Request"}
+                <Button onClick={handleCreateWithdrawal} disabled={createWithdrawalMutation.isPending}>
+                  {createWithdrawalMutation.isPending ? "Submitting..." : "Submit Request"}
                 </Button>
               </div>
             </div>
@@ -430,7 +278,7 @@ const WithdrawalsPage = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {withdrawals.map((withdrawal) => (
+              {(withdrawals as WithdrawalRequest[]).map((withdrawal) => (
                 <div key={withdrawal.id} className="border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">

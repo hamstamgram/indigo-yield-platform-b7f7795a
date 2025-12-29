@@ -46,3 +46,7 @@ export { investmentService } from "./investmentService";
 // Transactions V2 service
 export { transactionsV2Service } from "./transactionsV2Service";
 export type { TransactionV2, TransactionFilters } from "./transactionsV2Service";
+
+// Investor Portfolio service (for investor-facing pages)
+export { investorPortfolioService } from "./investorPortfolioService";
+export type { PortfolioPosition as InvestorPortfolioPosition, WithdrawalFormPosition } from "./investorPortfolioService";
