@@ -4,7 +4,7 @@
  * Only accessible to Super Admins
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,18 +36,14 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Shield, ShieldCheck, UserPlus, Search } from "lucide-react";
 import { SuperAdminGuard } from "@/components/admin/SuperAdminGuard";
 import { RoleChangeConfirmDialog } from "@/components/admin/RoleChangeConfirmDialog";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks";
 import { format } from "date-fns";
-
-interface AdminUser {
-  id: string;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-  role: "super_admin" | "admin";
-  createdAt: string;
-}
+import {
+  useAdminUsersWithRoles,
+  useUpdateAdminRole,
+  useCreateAdminInvite,
+  type AdminUser,
+} from "@/hooks/data/useSystemAdmin";
 
 interface PendingRoleChange {
   adminId: string;
@@ -58,65 +54,16 @@ interface PendingRoleChange {
 }
 
 function AdminListContent() {
-  const [admins, setAdmins] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: admins = [], isLoading: loading, refetch } = useAdminUsersWithRoles();
+  const updateRoleMutation = useUpdateAdminRole();
+  const createInviteMutation = useCreateAdminInvite();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"admin" | "super_admin">("admin");
-  const [inviting, setInviting] = useState(false);
   const [pendingRoleChange, setPendingRoleChange] = useState<PendingRoleChange | null>(null);
   const { toast } = useToast();
-
-  const loadAdmins = async () => {
-    setLoading(true);
-    try {
-      // Get all profiles that are admins
-      const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("id, email, first_name, last_name, created_at")
-        .eq("is_admin", true)
-        .order("created_at", { ascending: false });
-
-      if (profilesError) throw profilesError;
-
-      // Get roles for each admin
-      const adminList: AdminUser[] = [];
-      for (const profile of profiles || []) {
-        // Check for super_admin role first
-        const { data: superAdminRole } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", profile.id)
-          .eq("role", "super_admin")
-          .maybeSingle();
-
-        adminList.push({
-          id: profile.id,
-          email: profile.email,
-          firstName: profile.first_name,
-          lastName: profile.last_name,
-          role: superAdminRole ? "super_admin" : "admin",
-          createdAt: profile.created_at,
-        });
-      }
-
-      setAdmins(adminList);
-    } catch (error) {
-      console.error("Error loading admins:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load admin list",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadAdmins();
-  }, []);
 
   const handleInviteAdmin = async () => {
     if (!inviteEmail) {
@@ -128,28 +75,11 @@ function AdminListContent() {
       return;
     }
 
-    setInviting(true);
     try {
-      // Generate invite code
-      const inviteCode = crypto.randomUUID();
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
-
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-
-      // Create invite with intended role
-      const { error } = await supabase
-        .from("admin_invites")
-        .insert({
-          email: inviteEmail.toLowerCase().trim(),
-          invite_code: inviteCode,
-          expires_at: expiresAt.toISOString(),
-          created_by: user?.id,
-          intended_role: inviteRole,
-        });
-
-      if (error) throw error;
+      const { inviteCode } = await createInviteMutation.mutateAsync({
+        email: inviteEmail,
+        intendedRole: inviteRole,
+      });
 
       const inviteLink = `${window.location.origin}/admin/invite?code=${inviteCode}`;
 
@@ -167,9 +97,6 @@ function AdminListContent() {
           </div>
         ),
       });
-
-      // If super_admin role, we'll set it when they accept the invite
-      // Store the intended role somewhere (could use metadata or a separate table)
       
       setShowInviteDialog(false);
       setInviteEmail("");
@@ -181,13 +108,11 @@ function AdminListContent() {
         description: "Failed to create invite",
         variant: "destructive",
       });
-    } finally {
-      setInviting(false);
     }
   };
 
   const initiateRoleChange = (admin: AdminUser, newRole: "admin" | "super_admin") => {
-    if (admin.role === newRole) return; // No change needed
+    if (admin.role === newRole) return;
     
     setPendingRoleChange({
       adminId: admin.id,
@@ -202,46 +127,38 @@ function AdminListContent() {
     if (!pendingRoleChange) return;
     
     try {
-      // Use secure RPC function that enforces super_admin check server-side
-      const { data, error } = await supabase
-        .rpc("update_admin_role", {
-          p_target_user_id: pendingRoleChange.adminId,
-          p_new_role: pendingRoleChange.newRole,
-        });
-
-      if (error) {
-        // Handle specific error messages
-        if (error.message.includes("Super Admin")) {
-          toast({
-            title: "Permission Denied",
-            description: error.message,
-            variant: "destructive",
-          });
-        } else if (error.message.includes("demote yourself")) {
-          toast({
-            title: "Action Not Allowed",
-            description: "You cannot demote yourself from Super Admin",
-            variant: "destructive",
-          });
-        } else {
-          throw error;
-        }
-        return;
-      }
+      await updateRoleMutation.mutateAsync({
+        userId: pendingRoleChange.adminId,
+        newRole: pendingRoleChange.newRole,
+      });
 
       toast({
         title: "Role Updated",
         description: `Admin role changed to ${pendingRoleChange.newRole === "super_admin" ? "Super Admin" : "Admin"}`,
       });
 
-      loadAdmins();
-    } catch (error) {
+      refetch();
+    } catch (error: any) {
       console.error("Error updating role:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update role",
-        variant: "destructive",
-      });
+      if (error.message?.includes("Super Admin")) {
+        toast({
+          title: "Permission Denied",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else if (error.message?.includes("demote yourself")) {
+        toast({
+          title: "Action Not Allowed",
+          description: "You cannot demote yourself from Super Admin",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update role",
+          variant: "destructive",
+        });
+      }
     } finally {
       setPendingRoleChange(null);
     }
@@ -476,8 +393,8 @@ function AdminListContent() {
             <Button variant="outline" onClick={() => setShowInviteDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleInviteAdmin} disabled={inviting}>
-              {inviting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            <Button onClick={handleInviteAdmin} disabled={createInviteMutation.isPending}>
+              {createInviteMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Send Invitation
             </Button>
           </DialogFooter>

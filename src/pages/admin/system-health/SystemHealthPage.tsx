@@ -24,17 +24,9 @@ import {
   getOverallStatus,
   type ServiceStatus,
 } from "@/services/core/systemHealthService";
-import { supabase } from "@/integrations/supabase/client";
+import { useDeliveryQueueMetrics } from "@/hooks/data/useSystemAdmin";
 import { formatDistanceToNow } from "date-fns";
 import { DataIntegrityPanel } from "@/components/admin/DataIntegrityPanel";
-
-interface DeliveryQueueMetrics {
-  queued_count: number;
-  sending_count: number;
-  stuck_sending_count: number;
-  failed_last_24h: number;
-  oldest_queued_at: string | null;
-}
 
 export default function SystemHealthPage() {
   const {
@@ -44,60 +36,10 @@ export default function SystemHealthPage() {
   } = useQuery({
     queryKey: QUERY_KEYS.systemHealth,
     queryFn: getSystemHealth,
-    refetchInterval: 30000, // Auto-refresh every 30 seconds
-  });
-
-  // Fetch delivery queue metrics
-  const { data: deliveryMetrics } = useQuery({
-    queryKey: QUERY_KEYS.deliveryQueueMetrics,
-    queryFn: async (): Promise<DeliveryQueueMetrics> => {
-      // Get queued count
-      const { count: queuedCount } = await supabase
-        .from("statement_email_delivery")
-        .select("*", { count: "exact", head: true })
-        .or("status.eq.queued,status.eq.QUEUED");
-
-      // Get sending count
-      const { count: sendingCount } = await supabase
-        .from("statement_email_delivery")
-        .select("*", { count: "exact", head: true })
-        .or("status.eq.sending,status.eq.SENDING");
-
-      // Get stuck sending (> 15 minutes)
-      const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-      const { count: stuckCount } = await supabase
-        .from("statement_email_delivery")
-        .select("*", { count: "exact", head: true })
-        .or("status.eq.sending,status.eq.SENDING")
-        .lt("updated_at", fifteenMinutesAgo);
-
-      // Get failed in last 24h
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      const { count: failedCount } = await supabase
-        .from("statement_email_delivery")
-        .select("*", { count: "exact", head: true })
-        .or("status.eq.failed,status.eq.FAILED")
-        .gte("updated_at", twentyFourHoursAgo);
-
-      // Get oldest queued
-      const { data: oldestQueued } = await supabase
-        .from("statement_email_delivery")
-        .select("created_at")
-        .or("status.eq.queued,status.eq.QUEUED")
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .single();
-
-      return {
-        queued_count: queuedCount ?? 0,
-        sending_count: sendingCount ?? 0,
-        stuck_sending_count: stuckCount ?? 0,
-        failed_last_24h: failedCount ?? 0,
-        oldest_queued_at: oldestQueued?.created_at ?? null,
-      };
-    },
     refetchInterval: 30000,
   });
+
+  const { data: deliveryMetrics } = useDeliveryQueueMetrics();
 
   const overallStatus = health ? getOverallStatus(health) : "operational";
 
@@ -207,7 +149,7 @@ export default function SystemHealthPage() {
         </CardContent>
       </Card>
 
-      {/* Data Integrity Panel - Issue G */}
+      {/* Data Integrity Panel */}
       <DataIntegrityPanel />
 
       {/* Service Grid */}

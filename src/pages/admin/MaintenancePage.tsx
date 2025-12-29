@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { AlertTriangle, History, Database, Shield, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -13,60 +12,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PositionResetDialog } from "@/components/admin/maintenance/PositionResetDialog";
-import { supabase } from "@/integrations/supabase/client";
+import { useResetHistory } from "@/hooks/data/useSystemAdmin";
 import { format } from "date-fns";
 import { formatAUM } from "@/utils/formatters";
 
-interface ResetLogEntry {
-  id: string;
-  reset_batch_id: string;
-  admin_user_id: string;
-  initiated_at: string;
-  completed_at: string | null;
-  status: string;
-  affected_counts: {
-    positions_reset?: number;
-    performance_archived?: number;
-    aum_archived?: number;
-    transactions_archived?: number;
-    total_aum_before?: number;
-  } | null;
-  error_message: string | null;
-  profiles?: {
-    email: string;
-    first_name: string | null;
-    last_name: string | null;
-  } | null;
-}
-
 export default function MaintenancePage() {
-  const [history, setHistory] = useState<ResetLogEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchHistory = async () => {
-    setLoading(true);
-    try {
-      const response = await supabase.functions.invoke("reset-positions", {
-        body: { action: "history" },
-      });
-
-      if (response.data?.success) {
-        setHistory(response.data.history || []);
-      }
-    } catch (err) {
-      console.error("Failed to fetch reset history:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchHistory();
-  }, []);
+  const { data: history = [], isLoading: loading, refetch } = useResetHistory();
 
   const formatAumValue = (value: number | undefined) => {
     if (value === undefined) return "N/A";
-    return formatAUM(value, "USDT"); // Generic token formatting
+    return formatAUM(value, "USDT");
   };
 
   const getStatusBadge = (status: string) => {
@@ -92,7 +47,7 @@ export default function MaintenancePage() {
             Perform administrative maintenance operations
           </p>
         </div>
-        <Button variant="outline" onClick={fetchHistory} disabled={loading}>
+        <Button variant="outline" onClick={() => refetch()} disabled={loading}>
           <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
           Refresh
         </Button>
