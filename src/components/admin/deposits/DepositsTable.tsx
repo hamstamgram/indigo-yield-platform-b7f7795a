@@ -30,7 +30,7 @@ import { ApproveDepositDialog } from "./ApproveDepositDialog";
 import { RejectDepositDialog } from "./RejectDepositDialog";
 import { EditTransactionDialog } from "@/components/admin/transactions/EditTransactionDialog";
 import { VoidTransactionDialog } from "@/components/admin/transactions/VoidTransactionDialog";
-import type { Deposit, DepositStatus } from "@/types/deposit";
+import type { Deposit, DepositStatus } from "@/types/domains";
 import { format } from "date-fns";
 
 export function DepositsTable() {

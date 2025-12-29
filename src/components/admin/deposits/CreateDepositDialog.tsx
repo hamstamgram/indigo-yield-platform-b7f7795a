@@ -30,7 +30,7 @@ import { toast } from "sonner";
 import { depositService } from "@/services/investor/depositService";
 import { fundDailyAumService, profileService } from "@/services/shared";
 import { supabase } from "@/integrations/supabase/client";
-import type { DepositFormData } from "@/types/deposit";
+import type { DepositFormData } from "@/types/domains";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { QUERY_KEYS } from "@/constants/queryKeys";

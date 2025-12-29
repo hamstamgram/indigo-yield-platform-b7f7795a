@@ -201,3 +201,18 @@ export function toInvestorRef(investor: Investor | InvestorWithProfile): Investo
     email: investor.email,
   };
 }
+
+// Onboarding wizard types
+export interface OnboardingStep {
+  id: number;
+  title: string;
+  description: string;
+  completed: boolean;
+}
+
+export interface OnboardingData {
+  profile: Partial<InvestorProfile>;
+  documents_acknowledged: boolean;
+  selected_funds: string[];
+  step: number;
+}

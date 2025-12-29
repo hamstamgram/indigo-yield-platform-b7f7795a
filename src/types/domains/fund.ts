@@ -86,3 +86,38 @@ export function mapDbFundToFund(dbFund: DbFund): Fund {
     updated_at: dbFund.updated_at,
   };
 }
+
+// Yield settings for funds
+export interface YieldSettings {
+  id: string;
+  frequency: "daily" | "weekly";
+  rate_bps: number;
+  effective_from: string;
+  created_by?: string;
+  created_at: string;
+}
+
+// Fund fee history
+export interface FundFeeHistory {
+  id: string;
+  fund_id: string;
+  mgmt_fee_bps: number;
+  perf_fee_bps: number;
+  effective_from: string;
+  created_by: string;
+  created_at: string;
+}
+
+// Benchmark data
+export interface Benchmark {
+  id: number;
+  symbol: string;
+  date: string;
+  price_usd: number;
+  ret_1d?: number;
+  ret_mtd?: number;
+  ret_qtd?: number;
+  ret_ytd?: number;
+  ret_itd?: number;
+  created_at: string;
+}
