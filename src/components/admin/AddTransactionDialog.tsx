@@ -47,7 +47,7 @@ import { Loader2, Check, ChevronsUpDown, AlertTriangle, Info, CalendarIcon } fro
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
-import { useActiveFunds } from "@/hooks";
+import { useActiveFunds, useInvestorBalance, useAUMExists, useTransactionHistory } from "@/hooks";
 import { getAssetLogo } from "@/utils/assets";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -120,13 +120,8 @@ export function AddTransactionDialog({
   const [investorSearchOpen, setInvestorSearchOpen] = useState(false);
   const [isLoadingInvestors, setIsLoadingInvestors] = useState(false);
   const [investorError, setInvestorError] = useState<string | null>(null);
-  const [currentBalance, setCurrentBalance] = useState<number | null>(null);
-  const [hasTransactionHistory, setHasTransactionHistory] = useState<boolean>(false);
-  const [isCheckingBalance, setIsCheckingBalance] = useState(false);
   
-  // AUM check state
-  const [aumExists, setAumExists] = useState<boolean | null>(null);
-  const [isCheckingAum, setIsCheckingAum] = useState(false);
+  // AUM form state (only for manual recording, not the check)
   const [showAumForm, setShowAumForm] = useState(false);
   const [aumValue, setAumValue] = useState<string>("");
   const [isRecordingAum, setIsRecordingAum] = useState(false);
@@ -154,87 +149,30 @@ export function AddTransactionDialog({
   const selectedFundId = watch("fund_id");
   const txDate = watch("tx_date");
 
-  // Check investor's current balance and transaction history in selected fund
-  useEffect(() => {
-    const checkBalanceAndHistory = async () => {
-      if (!selectedInvestorId || !selectedFundId) {
-        setCurrentBalance(null);
-        setHasTransactionHistory(false);
-        return;
-      }
-      
-      setIsCheckingBalance(true);
-      try {
-        // Check current position balance
-        const { data: positionData } = await supabase
-          .from("investor_positions")
-          .select("current_value")
-          .eq("investor_id", selectedInvestorId)
-          .eq("fund_id", selectedFundId)
-          .maybeSingle();
-        
-        // Also check for any existing transaction history (deposits indicate prior investment)
-        const { count: txCount } = await supabase
-          .from("transactions_v2")
-          .select("id", { count: "exact", head: true })
-          .eq("investor_id", selectedInvestorId)
-          .eq("fund_id", selectedFundId)
-          .eq("type", "DEPOSIT");
-        
-        setCurrentBalance(positionData?.current_value ?? 0);
-        setHasTransactionHistory((txCount ?? 0) > 0);
-      } catch (error) {
-        console.error("Error checking balance:", error);
-        setCurrentBalance(0);
-        setHasTransactionHistory(false);
-      } finally {
-        setIsCheckingBalance(false);
-      }
-    };
-    
-    checkBalanceAndHistory();
-  }, [selectedInvestorId, selectedFundId]);
+  // Use React Query hooks for balance, transaction history, and AUM checks
+  const { data: currentBalance, isLoading: isCheckingBalance } = useInvestorBalance(
+    selectedInvestorId || undefined,
+    selectedFundId || undefined
+  );
+  
+  const { data: hasTransactionHistory = false } = useTransactionHistory(
+    selectedInvestorId || undefined,
+    selectedFundId || undefined
+  );
+  
+  const { data: aumExists, isLoading: isCheckingAum } = useAUMExists(
+    selectedFundId || undefined,
+    txDate || undefined
+  );
 
-  // Check AUM existence when fund and date are selected
+  // Reset AUM form when fund/date changes
   useEffect(() => {
-    const checkAumExists = async () => {
-      if (!selectedFundId || !txDate) {
-        setAumExists(null);
-        setShowAumForm(false);
-        return;
-      }
-      
-      setIsCheckingAum(true);
-      try {
-        const { data, error } = await supabase
-          .from("fund_daily_aum")
-          .select("id")
-          .eq("fund_id", selectedFundId)
-          .eq("aum_date", txDate)
-          .eq("purpose", "transaction")
-          .maybeSingle();
-        
-        if (error) {
-          console.error("Error checking AUM:", error);
-          setAumExists(null);
-        } else {
-          setAumExists(!!data);
-        }
-      } catch (error) {
-        console.error("Error checking AUM:", error);
-        setAumExists(null);
-      } finally {
-        setIsCheckingAum(false);
-      }
-    };
-    
-    checkAumExists();
-    setShowAumForm(false); // Reset form visibility on fund/date change
+    setShowAumForm(false);
   }, [selectedFundId, txDate]);
 
   // Auto-select transaction type based on balance (only for initial selection, no forcing)
   useEffect(() => {
-    if (currentBalance === null || isCheckingBalance) return;
+    if (currentBalance === null || currentBalance === undefined || isCheckingBalance) return;
     
     // Only auto-select if no type is selected yet
     if (!txnType) {
@@ -260,8 +198,8 @@ export function AddTransactionDialog({
 
   // Determine if this is a first investment scenario
   // Only force FIRST_INVESTMENT if balance is 0 AND no prior transactions exist
-  const isFirstInvestment = currentBalance !== null && currentBalance === 0 && !hasTransactionHistory;
-  const hasExistingPosition = currentBalance !== null && (currentBalance > 0 || hasTransactionHistory);
+  const isFirstInvestment = currentBalance !== null && currentBalance !== undefined && currentBalance === 0 && !hasTransactionHistory;
+  const hasExistingPosition = currentBalance !== null && currentBalance !== undefined && (currentBalance > 0 || hasTransactionHistory);
 
   // Load investors when dialog opens
   useEffect(() => {
@@ -274,8 +212,6 @@ export function AddTransactionDialog({
         setSelectedInvestorId("");
       }
       setInvestorError(null);
-      setCurrentBalance(null);
-      setAumExists(null);
       setShowAumForm(false);
       setAumValue("");
     }
@@ -342,13 +278,13 @@ export function AddTransactionDialog({
         user.data.user?.id
       );
       
-      setAumExists(true);
       setShowAumForm(false);
       setAumValue("");
       toast.success("AUM recorded successfully");
       
-      // Invalidate AUM queries
+      // Invalidate AUM queries to refetch the updated state
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundAumAll });
+      queryClient.invalidateQueries({ queryKey: ["aum-exists"] });
     } catch (error) {
       console.error("Error recording AUM:", error);
       const errorMsg = error instanceof Error ? error.message : "Failed to record AUM";
@@ -400,7 +336,8 @@ export function AddTransactionDialog({
             "Auto-created for transaction",
             user.data.user?.id
           );
-          setAumExists(true);
+          // Invalidate to refetch AUM state
+          queryClient.invalidateQueries({ queryKey: ["aum-exists"] });
           console.log("AUM record auto-created successfully");
         } catch (aumError) {
           console.error("Failed to auto-create AUM:", aumError);
@@ -438,8 +375,6 @@ export function AddTransactionDialog({
       toast.success("Transaction created successfully");
       reset();
       setSelectedInvestorId("");
-      setCurrentBalance(null);
-      setAumExists(null);
       setShowAumForm(false);
       setAumValue("");
       onSuccess();
@@ -456,7 +391,6 @@ export function AddTransactionDialog({
     reset();
     setSelectedInvestorId("");
     setInvestorError(null);
-    setAumExists(null);
     setShowAumForm(false);
     setAumValue("");
     onOpenChange(false);
