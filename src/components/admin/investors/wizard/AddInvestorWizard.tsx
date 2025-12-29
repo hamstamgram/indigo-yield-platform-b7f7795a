@@ -145,7 +145,18 @@ const WizardContentWrapper: React.FC<{
     try {
       // Import dynamically to avoid circular dependencies
       const { createInvestorWithWizard } = await import("@/services/admin/investorWizardService");
-      await createInvestorWithWizard(data);
+      const { toast } = await import("sonner");
+      
+      const result = await createInvestorWithWizard(data, (message, status) => {
+        if (status === "info") toast.info(message);
+        else if (status === "success") toast.success(message);
+        else if (status === "error") toast.error(message);
+      });
+      
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      
       reset();
       onSuccess();
     } catch (error) {

@@ -1,21 +1,7 @@
 import { z } from "zod";
 
-// Asset precision mapping from DB
-export const ASSET_PRECISION: Record<string, number> = {
-  BTC: 8,
-  ETH: 8,
-  SOL: 8,
-  XRP: 6,
-  USDT: 6,
-  USDC: 6,
-  EURC: 6,
-  XAUT: 6,
-};
-
-export const getAssetStep = (symbol: string): string => {
-  const precision = ASSET_PRECISION[symbol] || 8;
-  return `0.${"0".repeat(precision - 1)}1`;
-};
+// Re-export asset utilities from canonical location for backwards compatibility
+export { ASSET_PRECISION, getAssetStep, getAssetPrecision } from "@/constants/assets";
 
 // Step 1: Identity
 export const identitySchema = z.object({

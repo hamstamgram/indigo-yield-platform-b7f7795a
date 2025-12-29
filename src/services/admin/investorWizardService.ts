@@ -1,6 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
 import { WizardFormData } from "@/components/admin/investors/wizard/types";
-import { toast } from "sonner";
 import { addCsrfHeader } from "@/lib/security/csrf";
 
 interface CreateIBResponse {
@@ -12,6 +11,20 @@ interface CreateIBResponse {
 interface CreateUserResponse {
   success: boolean;
   user_id?: string;
+  error?: string;
+}
+
+/**
+ * Progress callback for wizard operations
+ */
+export type WizardProgressCallback = (step: string, status: "info" | "success" | "error") => void;
+
+/**
+ * Result of wizard operation
+ */
+export interface WizardResult {
+  success: boolean;
+  investorId?: string;
   error?: string;
 }
 
@@ -129,8 +142,14 @@ async function createInvestorUser(params: {
 
 /**
  * Main function to create an investor with all wizard data
+ * Returns a result object instead of showing toasts directly
+ * @param wizardData - The wizard form data
+ * @param onProgress - Optional callback for progress updates (UI layer handles toasts)
  */
-export async function createInvestorWithWizard(wizardData: WizardFormData): Promise<string> {
+export async function createInvestorWithWizard(
+  wizardData: WizardFormData,
+  onProgress?: WizardProgressCallback
+): Promise<WizardResult> {
   const { identity, ib, fees, positions, reportEmails } = wizardData;
 
   try {
@@ -138,7 +157,7 @@ export async function createInvestorWithWizard(wizardData: WizardFormData): Prom
 
     // Step 1: Create new IB if requested
     if (ib.enabled && ib.createNewIb && ib.newIb?.email) {
-      toast.info("Creating IB account...");
+      onProgress?.("Creating IB account...", "info");
       ibParentId = await createIBUser({
         email: ib.newIb.email,
         firstName: ib.newIb.first_name || "",
@@ -149,7 +168,7 @@ export async function createInvestorWithWizard(wizardData: WizardFormData): Prom
     }
 
     // Step 2: Create investor user
-    toast.info("Creating investor account...");
+    onProgress?.("Creating investor account...", "info");
     const investorId = await createInvestorUser({
       email: identity.email,
       firstName: identity.first_name,
@@ -217,7 +236,7 @@ export async function createInvestorWithWizard(wizardData: WizardFormData): Prom
       const funds = Array.from(fundsByAsset.values());
 
       if (funds && funds.length > 0) {
-        toast.info("Creating initial deposit transactions...");
+        onProgress?.("Creating initial deposit transactions...", "info");
         
         // Use admin_create_transaction RPC for each position
         // This ensures proper ledger entries and position updates
@@ -304,12 +323,12 @@ export async function createInvestorWithWizard(wizardData: WizardFormData): Prom
       }
     }
 
-    toast.success(`Investor ${identity.first_name} ${identity.last_name} created successfully`);
-    return investorId;
+    onProgress?.(`Investor ${identity.first_name} ${identity.last_name} created successfully`, "success");
+    return { success: true, investorId };
   } catch (error) {
     console.error("Wizard error:", error);
     const message = error instanceof Error ? error.message : "Failed to create investor";
-    toast.error(message);
-    throw error;
+    onProgress?.(message, "error");
+    return { success: false, error: message };
   }
 }
