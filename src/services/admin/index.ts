@@ -62,3 +62,15 @@ export * from "./reportQueryService";
 
 // Statement admin service
 export * from "./statementAdminService";
+
+// Admin users service (new)
+export { adminUsersService, type AdminUserProfile, type AdminInviteParams } from "./adminUsersService";
+
+// Action bar service (new)
+export { actionBarService, type PendingCounts } from "./actionBarService";
+
+// Command palette service (new)
+export { commandPaletteService, type InvestorSearchResult } from "./commandPaletteService";
+
+// Internal route service (new)
+export { internalRouteService, type InvestorPositionForRoute, type InternalRouteParams, type InternalRouteResult } from "./internalRouteService";

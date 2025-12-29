@@ -170,3 +170,34 @@ export {
   useApplyYieldDistribution,
   type YieldCalculationInput,
 } from "./useYieldOperations";
+
+// useAdminUsers (new - for AdminUsersList component)
+export {
+  useAdminUsers as useAdminUsersList,
+  useToggleAdminStatusMutation,
+  useSendAdminInviteMutation,
+  useSuperAdminCheck,
+  type AdminUserProfile,
+  type AdminInviteParams,
+} from "./useAdminUsers";
+
+// useActionBar (new - for ActionBar component)
+export {
+  usePendingCounts,
+  type PendingCounts,
+} from "./useActionBar";
+
+// useCommandPalette (new - for CommandPalette component)
+export {
+  useCommandPaletteInvestors,
+  type InvestorSearchResult as CommandPaletteInvestorResult,
+} from "./useCommandPalette";
+
+// useInternalRoute (new - for InternalRouteDialog component)
+export {
+  useInvestorPositionsForRoute,
+  useInternalRouteMutation,
+  type InvestorPositionForRoute,
+  type InternalRouteParams,
+  type InternalRouteResult,
+} from "./useInternalRoute";

@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { useKeyboardShortcuts, SHORTCUTS, formatShortcut } from "@/hooks";
 import { useAuth } from "@/lib/auth/context";
-import { supabase } from "@/integrations/supabase/client";
+import { useCommandPaletteInvestors } from "@/hooks/data/admin";
 
 interface CommandPaletteProps {
   open: boolean;
@@ -70,36 +70,22 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const [search, setSearch] = useState("");
-  const [investors, setInvestors] = useState<SearchResult[]>([]);
   const [recentItems, setRecentItems] = useState<string[]>([]);
 
-  // Fetch investors for search
-  useEffect(() => {
-    if (!isAdmin || !open) return;
+  // Use React Query hook for fetching investors
+  const { data: investorData = [] } = useCommandPaletteInvestors(isAdmin, open);
 
-    const fetchInvestors = async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, email")
-        .eq("is_admin", false)
-        .limit(100);
-
-      if (data) {
-        setInvestors(
-          data.map((inv) => ({
-            id: inv.id,
-            type: "investor" as const,
-            title: `${inv.first_name || ""} ${inv.last_name || ""}`.trim() || inv.email,
-            subtitle: inv.email,
-            icon: <Users className="h-4 w-4" />,
-            href: `/admin/investors/${inv.id}`,
-          }))
-        );
-      }
-    };
-
-    fetchInvestors();
-  }, [isAdmin, open]);
+  // Transform investor data to search results
+  const investors: SearchResult[] = useMemo(() => {
+    return investorData.map((inv) => ({
+      id: inv.id,
+      type: "investor" as const,
+      title: `${inv.first_name || ""} ${inv.last_name || ""}`.trim() || inv.email,
+      subtitle: inv.email,
+      icon: <Users className="h-4 w-4" />,
+      href: `/admin/investors/${inv.id}`,
+    }));
+  }, [investorData]);
 
   // Load recent items from localStorage
   useEffect(() => {

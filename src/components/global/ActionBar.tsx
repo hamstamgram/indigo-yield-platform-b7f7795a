@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +16,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
-import { supabase } from "@/integrations/supabase/client";
+import { usePendingCounts } from "@/hooks/data/admin";
 import { formatShortcut, SHORTCUTS } from "@/hooks";
 import { format } from "date-fns";
 
@@ -25,98 +24,21 @@ interface ActionBarProps {
   onOpenCommandPalette: () => void;
 }
 
-interface PendingCounts {
-  withdrawals: number;
-  reportsNeeded: number;
-}
-
 export function ActionBar({ onOpenCommandPalette }: ActionBarProps) {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
-  const [pendingCounts, setPendingCounts] = useState<PendingCounts>({
-    withdrawals: 0,
-    reportsNeeded: 0,
-  });
-  const [lastSync, setLastSync] = useState<Date>(new Date());
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const currentPeriod = format(new Date(), "MMMM yyyy");
 
-  const fetchPendingCounts = async () => {
-    if (!isAdmin) return;
+  // Use React Query hook for pending counts
+  const { 
+    data: pendingCounts = { withdrawals: 0, reportsNeeded: 0 }, 
+    isLoading: isRefreshing,
+    dataUpdatedAt,
+    refetch,
+  } = usePendingCounts(isAdmin);
 
-    setIsRefreshing(true);
-    try {
-      // Fetch pending withdrawals
-      const { count: withdrawalCount } = await supabase
-        .from("withdrawal_requests")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "pending");
-
-      // Fetch investors without reports for current month
-      const currentDate = new Date();
-      const currentYear = currentDate.getFullYear();
-      const currentMonthNum = currentDate.getMonth() + 1;
-      
-      const { count: investorCount } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .eq("is_admin", false);
-
-      // First lookup the period_id UUID from statement_periods
-      const { data: periodData } = await supabase
-        .from("statement_periods")
-        .select("id")
-        .eq("year", currentYear)
-        .eq("month", currentMonthNum)
-        .maybeSingle();
-
-      let reportCount = 0;
-      if (periodData?.id) {
-        const { count } = await supabase
-          .from("investor_fund_performance")
-          .select("investor_id", { count: "exact", head: true })
-          .eq("period_id", periodData.id);
-        reportCount = count || 0;
-      }
-
-      setPendingCounts({
-        withdrawals: withdrawalCount || 0,
-        reportsNeeded: Math.max(0, (investorCount || 0) - reportCount),
-      });
-      setLastSync(new Date());
-    } catch (error) {
-      console.error("Failed to fetch pending counts:", error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPendingCounts();
-    // Refresh every 60 seconds
-    const interval = setInterval(fetchPendingCounts, 60000);
-    return () => clearInterval(interval);
-  }, [isAdmin]);
-
-  // Subscribe to realtime changes
-  useEffect(() => {
-    if (!isAdmin) return;
-
-    const channel = supabase
-      .channel("action-bar-updates")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "withdrawal_requests" },
-        () => fetchPendingCounts()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [isAdmin]);
-
+  const lastSync = new Date(dataUpdatedAt || Date.now());
   const totalPending = pendingCounts.withdrawals + pendingCounts.reportsNeeded;
 
   return (
@@ -215,7 +137,7 @@ export function ActionBar({ onOpenCommandPalette }: ActionBarProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={fetchPendingCounts}
+                    onClick={() => refetch()}
                     disabled={isRefreshing}
                     className="h-8 w-8"
                   >
