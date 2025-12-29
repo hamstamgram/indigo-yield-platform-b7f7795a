@@ -4,9 +4,6 @@
  */
 
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth/context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,132 +25,19 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
 import { formatAssetAmount } from "@/utils/assets";
-import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
+import { format } from "date-fns";
 import { Coins, Download, ChevronLeft, ChevronRight, Search } from "lucide-react";
-import { QUERY_KEYS } from "@/constants/queryKeys";
-
-interface Commission {
-  id: string;
-  effectiveDate: string;
-  periodStart: string | null;
-  periodEnd: string | null;
-  fundName: string;
-  asset: string;
-  investorName: string;
-  investorId: string;
-  sourceNetIncome: number;
-  ibPercentage: number;
-  ibFeeAmount: number;
-  payoutStatus: 'pending' | 'paid';
-  paidAt: string | null;
-}
+import { useIBCommissions } from "@/hooks/ib/useIBData";
 
 const PAGE_SIZE = 20;
 
 export default function IBCommissionsPage() {
-  const { user } = useAuth();
   const [page, setPage] = useState(0);
   const [assetFilter, setAssetFilter] = useState<string>("all");
   const [investorSearch, setInvestorSearch] = useState("");
   const [dateRange, setDateRange] = useState<string>("all");
 
-  const getDateRange = (range: string): { start: Date | null; end: Date | null } => {
-    const now = new Date();
-    switch (range) {
-      case "1m":
-        return { start: subMonths(now, 1), end: now };
-      case "3m":
-        return { start: subMonths(now, 3), end: now };
-      case "6m":
-        return { start: subMonths(now, 6), end: now };
-      case "1y":
-        return { start: subMonths(now, 12), end: now };
-      default:
-        return { start: null, end: null };
-    }
-  };
-
-  const { data, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.ibCommissions(user?.id, page, dateRange),
-    queryFn: async () => {
-      if (!user?.id) return { commissions: [], total: 0, assets: [] };
-
-      const { start, end } = getDateRange(dateRange);
-
-      let query = supabase
-        .from("ib_allocations")
-        .select(`
-          id,
-          ib_fee_amount,
-          ib_percentage,
-          source_net_income,
-          effective_date,
-          period_start,
-          period_end,
-          payout_status,
-          paid_at,
-          source_investor_id,
-          funds!inner(name, asset),
-          profiles!ib_allocations_source_investor_id_fkey(
-            first_name,
-            last_name,
-            email
-          )
-        `, { count: "exact" })
-        .eq("ib_investor_id", user.id)
-        .order("effective_date", { ascending: false });
-
-      if (start) {
-        query = query.gte("effective_date", format(start, "yyyy-MM-dd"));
-      }
-      if (end) {
-        query = query.lte("effective_date", format(end, "yyyy-MM-dd"));
-      }
-
-      query = query.range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
-
-      const { data: allocations, error, count } = await query;
-
-      if (error) {
-        console.error("Error fetching commissions:", error);
-        return { commissions: [], total: 0, assets: [] };
-      }
-
-      const commissions: Commission[] = (allocations || []).map((alloc) => {
-        const fund = alloc.funds as any;
-        const profile = alloc.profiles as any;
-        const investorName = profile
-          ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email
-          : "Unknown";
-
-        return {
-          id: alloc.id,
-          effectiveDate: alloc.effective_date,
-          periodStart: alloc.period_start,
-          periodEnd: alloc.period_end,
-          fundName: fund?.name || "Unknown Fund",
-          asset: fund?.asset || "Unknown",
-          investorName,
-          investorId: alloc.source_investor_id,
-          sourceNetIncome: Number(alloc.source_net_income),
-          ibPercentage: Number(alloc.ib_percentage),
-          ibFeeAmount: Number(alloc.ib_fee_amount),
-          payoutStatus: ((alloc as any).payout_status || 'pending') as 'pending' | 'paid',
-          paidAt: (alloc as any).paid_at || null,
-        };
-      });
-
-      // Get unique assets for filter
-      const uniqueAssets = [...new Set(commissions.map((c) => c.asset))];
-
-      return {
-        commissions,
-        total: count || 0,
-        assets: uniqueAssets,
-      };
-    },
-    enabled: !!user?.id,
-  });
+  const { data, isLoading } = useIBCommissions(page, dateRange, PAGE_SIZE);
 
   // Client-side filtering
   const filteredCommissions = useMemo(() => {

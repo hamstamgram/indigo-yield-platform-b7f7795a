@@ -4,9 +4,6 @@
  */
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth/context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,67 +19,14 @@ import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { Wallet, ChevronLeft, ChevronRight } from "lucide-react";
-import { QUERY_KEYS } from "@/constants/queryKeys";
+import { useIBPayoutHistory } from "@/hooks/ib/useIBData";
 
 const PAGE_SIZE = 20;
 
-interface Payout {
-  id: string;
-  amount: number;
-  asset: string;
-  fundName: string;
-  status: string;
-  requestedAt: string;
-  processedAt: string | null;
-}
-
 export default function IBPayoutHistoryPage() {
-  const { user } = useAuth();
   const [page, setPage] = useState(0);
 
-  const { data, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.ibPayoutHistory(user?.id || "", page),
-    queryFn: async () => {
-      if (!user?.id) return { payouts: [], total: 0 };
-
-      // Query withdrawal_requests for this IB
-      const { data: withdrawals, error, count } = await supabase
-        .from("withdrawal_requests")
-        .select(`
-          id,
-          requested_amount,
-          processed_amount,
-          status,
-          request_date,
-          processed_at,
-          funds!inner(name, asset)
-        `, { count: "exact" })
-        .eq("investor_id", user.id)
-        .order("request_date", { ascending: false })
-        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
-
-      if (error) {
-        console.error("Error fetching payout history:", error);
-        return { payouts: [], total: 0 };
-      }
-
-      const payouts: Payout[] = (withdrawals || []).map((w) => {
-        const fund = w.funds as any;
-        return {
-          id: w.id,
-          amount: Number(w.processed_amount || w.requested_amount),
-          asset: fund?.asset || "USDT",
-          fundName: fund?.name || "Unknown",
-          status: w.status,
-          requestedAt: w.request_date,
-          processedAt: w.processed_at,
-        };
-      });
-
-      return { payouts, total: count || 0 };
-    },
-    enabled: !!user?.id,
-  });
+  const { data, isLoading } = useIBPayoutHistory(page, PAGE_SIZE);
 
   const totalPages = Math.ceil((data?.total || 0) / PAGE_SIZE);
 

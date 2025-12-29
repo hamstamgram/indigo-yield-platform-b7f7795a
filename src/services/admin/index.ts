@@ -62,3 +62,6 @@ export * from "./investorLifecycleService";
 
 // Investor performance management
 export * from "./investorPerformanceService";
+
+// IB payout management
+export * from "./ibPayoutService";

@@ -4,9 +4,6 @@
  */
 
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth/context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,95 +19,19 @@ import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { ArrowLeft, User, Wallet, History } from "lucide-react";
-import { QUERY_KEYS } from "@/constants/queryKeys";
+import {
+  useIBReferralDetail,
+  useIBReferralPositions,
+  useIBReferralCommissions,
+} from "@/hooks/ib/useIBData";
 
 export default function IBReferralDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Verify this is actually a referral of this IB and get profile
-  const { data: referral, isLoading: profileLoading } = useQuery({
-    queryKey: QUERY_KEYS.ibReferralDetail(id || "", user?.id || ""),
-    queryFn: async () => {
-      if (!user?.id || !id) return null;
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, email, status, created_at, ib_parent_id")
-        .eq("id", id)
-        .eq("ib_parent_id", user.id)
-        .maybeSingle();
-
-      if (error || !data) {
-        console.error("Error fetching referral:", error);
-        return null;
-      }
-
-      return data;
-    },
-    enabled: !!user?.id && !!id,
-  });
-
-  // Get positions summary
-  const { data: positions, isLoading: positionsLoading } = useQuery({
-    queryKey: QUERY_KEYS.ibReferralPositions(id || ""),
-    queryFn: async () => {
-      if (!id) return [];
-
-      const { data, error } = await supabase
-        .from("investor_positions")
-        .select(`
-          fund_id,
-          shares,
-          cost_basis,
-          current_value,
-          funds!inner(name, asset, code)
-        `)
-        .eq("investor_id", id);
-
-      if (error) {
-        console.error("Error fetching positions:", error);
-        return [];
-      }
-
-      return data || [];
-    },
-    enabled: !!id && !!referral,
-  });
-
-  // Get commission history for this referral
-  const { data: commissions, isLoading: commissionsLoading } = useQuery({
-    queryKey: QUERY_KEYS.ibReferralCommissions(id || "", user?.id || ""),
-    queryFn: async () => {
-      if (!user?.id || !id) return [];
-
-      const { data, error } = await supabase
-        .from("ib_allocations")
-        .select(`
-          id,
-          ib_fee_amount,
-          ib_percentage,
-          source_net_income,
-          effective_date,
-          period_start,
-          period_end,
-          funds!inner(name, asset)
-        `)
-        .eq("ib_investor_id", user.id)
-        .eq("source_investor_id", id)
-        .order("effective_date", { ascending: false })
-        .limit(50);
-
-      if (error) {
-        console.error("Error fetching commissions:", error);
-        return [];
-      }
-
-      return data || [];
-    },
-    enabled: !!user?.id && !!id && !!referral,
-  });
+  const { data: referral, isLoading: profileLoading } = useIBReferralDetail(id);
+  const { data: positions, isLoading: positionsLoading } = useIBReferralPositions(id, !!referral);
+  const { data: commissions, isLoading: commissionsLoading } = useIBReferralCommissions(id, !!referral);
 
   if (profileLoading || positionsLoading || commissionsLoading) {
     return <PageLoadingSpinner />;
