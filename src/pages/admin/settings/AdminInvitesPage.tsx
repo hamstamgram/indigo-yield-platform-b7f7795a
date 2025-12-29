@@ -4,7 +4,6 @@
  */
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,10 +44,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks";
-import { adminInviteService, AdminInvite } from "@/services/admin/adminInviteService";
-import { invalidateAfterAdminInviteOp } from "@/utils/cacheInvalidation";
-import { QUERY_KEYS } from "@/constants/queryKeys";
 import { SuperAdminGuard } from "@/components/admin/SuperAdminGuard";
+import {
+  useAdminInvitesList,
+  useCreateAdminInvite,
+  useRevokeAdminInvite,
+  type AdminInvite,
+} from "@/hooks/data/admin/useAdminInvitesPage";
 import {
   Users,
   UserPlus,
@@ -75,28 +77,18 @@ function getInviteStatus(invite: AdminInvite): InviteStatus {
 
 function AdminInvitesContent() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [revokeInvite, setRevokeInvite] = useState<AdminInvite | null>(null);
   const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState<"admin" | "super_admin">("admin");
   const [statusFilter, setStatusFilter] = useState<InviteStatus | "all">("all");
 
-  // Fetch invites using service
-  const { data: invites, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.adminInvites,
-    queryFn: () => adminInviteService.getAll(),
-  });
+  // Use extracted hooks
+  const { data: invites, isLoading } = useAdminInvitesList();
 
-  // Create invite mutation using service
-  const createMutation = useMutation({
-    mutationFn: ({ email, role }: { email: string; role: string }) =>
-      adminInviteService.create(email, role),
+  const createMutation = useCreateAdminInvite({
     onSuccess: ({ email, inviteCode }) => {
-      invalidateAfterAdminInviteOp(queryClient);
       const inviteLink = `${window.location.origin}/admin/invite?code=${inviteCode}`;
-      
-      // Copy to clipboard
       navigator.clipboard.writeText(inviteLink);
       
       toast({
@@ -115,17 +107,14 @@ function AdminInvitesContent() {
     onError: (error) => {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create invite",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  // Revoke invite mutation using service
-  const revokeMutation = useMutation({
-    mutationFn: (inviteId: string) => adminInviteService.revoke(inviteId),
+  const revokeMutation = useRevokeAdminInvite({
     onSuccess: () => {
-      invalidateAfterAdminInviteOp(queryClient);
       toast({
         title: "Invite Revoked",
         description: "The invitation has been revoked",
@@ -135,7 +124,7 @@ function AdminInvitesContent() {
     onError: (error) => {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to revoke invite",
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -215,7 +204,7 @@ function AdminInvitesContent() {
             </div>
             <Select
               value={statusFilter}
-              onValueChange={(v) => setStatusFilter(v as any)}
+              onValueChange={(v) => setStatusFilter(v as InviteStatus | "all")}
             >
               <SelectTrigger className="w-32">
                 <SelectValue placeholder="Filter" />
@@ -349,7 +338,7 @@ function AdminInvitesContent() {
             </div>
             <div className="space-y-2">
               <Label>Role</Label>
-              <Select value={newRole} onValueChange={(v) => setNewRole(v as any)}>
+              <Select value={newRole} onValueChange={(v) => setNewRole(v as "admin" | "super_admin")}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

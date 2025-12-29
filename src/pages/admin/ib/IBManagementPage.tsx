@@ -7,7 +7,6 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,150 +30,34 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Plus, Users, TrendingUp, Coins } from "lucide-react";
-import { toast } from "sonner";
 import { formatCrypto } from "@/utils/financial";
-import { ibManagementService, fundService } from "@/services/shared";
-import { QUERY_KEYS } from "@/constants/queryKeys";
-import { invalidateAfterIBOperation } from "@/utils/cacheInvalidation";
-
-interface EarningsByAsset {
-  [assetSymbol: string]: number;
-}
-
-interface IBProfile {
-  id: string;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-  createdAt: string;
-  referralCount: number;
-  earningsByAsset: EarningsByAsset;
-  activeFunds: string[];
-}
+import {
+  useIBProfiles,
+  useCreateIB,
+  type EarningsByAsset,
+} from "@/hooks/data/admin/useIBManagementPage";
 
 export default function IBManagementPage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newIBEmail, setNewIBEmail] = useState("");
   const [newIBFirstName, setNewIBFirstName] = useState("");
   const [newIBLastName, setNewIBLastName] = useState("");
 
-  // Fetch all IBs with per-asset earnings
-  const { data: ibs, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.ibs,
-    queryFn: async (): Promise<IBProfile[]> => {
-      // Get all users with IB role via service
-      const ibRoles = await ibManagementService.getIBRoles();
+  // Use extracted hooks
+  const { data: ibs, isLoading } = useIBProfiles();
 
-      if (!ibRoles || ibRoles.length === 0) {
-        return [];
-      }
-
-      const ibUserIds = ibRoles.map((r) => r.user_id);
-
-      // Get profile details for IBs via service
-      const profiles = await ibManagementService.getProfilesByIds(ibUserIds);
-
-      // Get referral counts via service
-      const referrals = await ibManagementService.getReferralsByParentIds(ibUserIds);
-
-      // Get IB earnings from transactions_v2 via service
-      const ibCredits = await ibManagementService.getIBCredits(ibUserIds);
-
-      // Also check ib_allocations for audit trail via service
-      const allocations = await ibManagementService.getIBAllocations(ibUserIds);
-
-      // Get funds to map fund_id -> asset
-      const allFundIds = [
-        ...new Set([
-          ...(ibCredits || []).map((t) => t.fund_id).filter(Boolean),
-          ...(allocations || []).map((a) => a.fund_id).filter(Boolean),
-        ]),
-      ] as string[];
-      
-      const funds = allFundIds.length > 0 
-        ? await fundService.getFundsByIds(allFundIds)
-        : [];
-
-      const fundToAsset = new Map<string, string>();
-      funds?.forEach((f) => fundToAsset.set(f.id, f.asset));
-
-      // Aggregate data per IB with per-asset earnings from transactions_v2
-      const ibProfiles: IBProfile[] = (profiles || []).map((p) => {
-        const refs = (referrals || []).filter((r) => r.ib_parent_id === p.id);
-        
-        // Primary: Use transactions_v2 IB_CREDIT for earnings
-        const txEarnings = (ibCredits || []).filter((t) => t.investor_id === p.id);
-        const activeFundIds = [...new Set(txEarnings.map((t) => t.fund_id).filter(Boolean))] as string[];
-
-        // Group earnings by asset from transactions
-        const earningsByAsset: EarningsByAsset = {};
-        txEarnings.forEach((t) => {
-          // Prefer asset from transaction, fallback to fund lookup
-          const asset = t.asset || (t.fund_id ? fundToAsset.get(t.fund_id) : null) || "UNKNOWN";
-          earningsByAsset[asset] = (earningsByAsset[asset] || 0) + Number(t.amount || 0);
-        });
-
-        // Fallback: If no tx earnings but allocations exist, use those
-        if (Object.keys(earningsByAsset).length === 0) {
-          const allocs = (allocations || []).filter((a) => a.ib_investor_id === p.id);
-          allocs.forEach((a) => {
-            if (a.fund_id) {
-              const asset = fundToAsset.get(a.fund_id) || "UNKNOWN";
-              earningsByAsset[asset] = (earningsByAsset[asset] || 0) + Number(a.ib_fee_amount || 0);
-            }
-          });
-          // Also add allocations funds to active funds
-          allocs.forEach((a) => {
-            if (a.fund_id && !activeFundIds.includes(a.fund_id)) {
-              activeFundIds.push(a.fund_id);
-            }
-          });
-        }
-
-        return {
-          id: p.id,
-          email: p.email,
-          firstName: p.first_name,
-          lastName: p.last_name,
-          createdAt: p.created_at,
-          referralCount: refs.length,
-          earningsByAsset,
-          activeFunds: activeFundIds,
-        };
-      });
-
-      return ibProfiles;
-    },
-  });
-
-  // Create new IB mutation
-  const createIBMutation = useMutation({
-    mutationFn: async (data: { email: string; firstName: string; lastName: string }) => {
-      // Use service to create IB role
-      return ibManagementService.createIBRole(data.email);
-    },
+  const createIBMutation = useCreateIB({
     onSuccess: () => {
-      toast.success("IB Created", {
-        description: "The Introducing Broker has been set up.",
-      });
-      invalidateAfterIBOperation(queryClient);
       setIsCreateDialogOpen(false);
       setNewIBEmail("");
       setNewIBFirstName("");
       setNewIBLastName("");
     },
-    onError: (error) => {
-      toast.error("Error", {
-        description: error instanceof Error ? error.message : "Failed to create IB",
-      });
-    },
   });
 
   const handleCreateIB = () => {
     if (!newIBEmail) {
-      toast.error("Email is required");
       return;
     }
     createIBMutation.mutate({

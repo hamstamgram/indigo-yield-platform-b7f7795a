@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -20,16 +19,29 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { toast } from "sonner";
 import { Loader2, FileText, Download, Send, Calendar, User } from "lucide-react";
 import { format } from "date-fns";
-import { generatePDF } from "@/lib/pdf/statementGenerator";
-import { profileService, statementsService, documentService } from "@/services/shared";
-import { sendStatementEmail } from "@/services/admin/statementAdminService";
-import { QUERY_KEYS } from "@/constants/queryKeys";
-import { invalidateAfterStatementOp } from "@/utils/cacheInvalidation";
-import { useQuery } from "@tanstack/react-query";
-import { fetchActiveInvestorsForStatements } from "@/services/admin/reportQueryService";
+import {
+  useActiveInvestorsForStatements,
+  useStatementDocuments,
+  useGenerateStatement,
+  useSendStatementEmail,
+} from "@/hooks/data/admin/useAdminStatementsPage";
+
+const MONTHS = [
+  { value: "1", label: "January" },
+  { value: "2", label: "February" },
+  { value: "3", label: "March" },
+  { value: "4", label: "April" },
+  { value: "5", label: "May" },
+  { value: "6", label: "June" },
+  { value: "7", label: "July" },
+  { value: "8", label: "August" },
+  { value: "9", label: "September" },
+  { value: "10", label: "October" },
+  { value: "11", label: "November" },
+  { value: "12", label: "December" },
+];
 
 export default function AdminStatementsPage() {
   const [selectedInvestor, setSelectedInvestor] = useState<string>("");
@@ -38,157 +50,22 @@ export default function AdminStatementsPage() {
     (new Date().getMonth() + 1).toString()
   );
   const [generatingStatement, setGeneratingStatement] = useState<string | null>(null);
-  const queryClient = useQueryClient();
 
-  // Get current year and previous years for selection
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
-  const months = [
-    { value: "1", label: "January" },
-    { value: "2", label: "February" },
-    { value: "3", label: "March" },
-    { value: "4", label: "April" },
-    { value: "5", label: "May" },
-    { value: "6", label: "June" },
-    { value: "7", label: "July" },
-    { value: "8", label: "August" },
-    { value: "9", label: "September" },
-    { value: "10", label: "October" },
-    { value: "11", label: "November" },
-    { value: "12", label: "December" },
-  ];
 
-  // Fetch all investors via hook
-  const { data: investorProfiles, isLoading: investorsLoading } = useQuery({
-    queryKey: ["active-investors-statements"],
-    queryFn: fetchActiveInvestorsForStatements,
-  });
+  // Use extracted hooks
+  const { data: investorProfiles, isLoading: investorsLoading } = useActiveInvestorsForStatements();
   const investors = investorProfiles || [];
 
-  // Fetch existing statements via hook
-  const { data: statements, isLoading: statementsLoading } = useQuery({
-    queryKey: QUERY_KEYS.statementsAdmin,
-    queryFn: async () => documentService.getStatementDocuments(50),
-  });
+  const { data: statements, isLoading: statementsLoading } = useStatementDocuments(50);
 
-  // Generate statement mutation
-  const generateStatementMutation = useMutation({
-    mutationFn: async (params: { investorId: string; year: number; month: number }) => {
-      setGeneratingStatement(params.investorId);
+  const generateStatementMutation = useGenerateStatement((id) => setGeneratingStatement(id));
 
-      // Fetch statement data via service
-      const reportMonth = `${params.year}-${params.month.toString().padStart(2, "0")}-01`;
-      
-      const profile = await profileService.getProfileById(params.investorId);
-        
-      const investorName = profile 
-        ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.email
-        : "Unknown";
-
-      const reports = await profileService.getMonthlyReports(params.investorId, reportMonth);
-
-      const statementData = {
-        investor: {
-          name: investorName,
-          id: params.investorId,
-        },
-        period: {
-          month: params.month,
-          year: params.year,
-          start_date: reportMonth,
-          end_date: new Date(params.year, params.month, 0).toISOString().split("T")[0],
-        },
-        summary: {
-          total_aum: reports?.reduce((sum, r) => sum + Number(r.closing_balance || 0), 0) || 0,
-          total_pnl: reports?.reduce((sum, r) => sum + Number(r.yield_earned || 0), 0) || 0,
-          total_fees: 0,
-        },
-        positions: reports?.map(r => ({
-          asset_code: r.asset_code,
-          opening_balance: r.opening_balance,
-          additions: r.additions,
-          withdrawals: r.withdrawals,
-          yield_earned: r.yield_earned,
-          closing_balance: r.closing_balance,
-        })) || [],
-      };
-
-      // Generate PDF using the shared library
-      const mappedData = {
-        investor: {
-          name: statementData.investor.name,
-          id: statementData.investor.id,
-          accountNumber: statementData.investor.id.substring(0, 8).toUpperCase(),
-        },
-        period: {
-          month: statementData.period.month,
-          year: statementData.period.year,
-          start: statementData.period.start_date,
-          end: statementData.period.end_date,
-        },
-        summary: {
-          total_aum: statementData.summary.total_aum,
-          total_pnl: statementData.summary.total_pnl,
-          total_fees: statementData.summary.total_fees,
-        },
-        positions: statementData.positions,
-      };
-
-      const pdfContent = await generatePDF(mappedData);
-
-      // Upload to storage via service
-      const fileName = `statement-${params.year}-${params.month.toString().padStart(2, "0")}.pdf`;
-      const storagePath = `${params.investorId}/${fileName}`;
-      
-      await statementsService.uploadStatementPDF(storagePath, pdfContent);
-
-      // Save document record via service
-      await documentService.createStatementDocument({
-        user_id: params.investorId,
-        title: `Statement - ${months.find((m) => m.value === params.month.toString())?.label} ${params.year}`,
-        storage_path: storagePath,
-        period_start: `${params.year}-${params.month.toString().padStart(2, "0")}-01`,
-        period_end: new Date(params.year, params.month, 0).toISOString().split("T")[0],
-      });
-
-      return { statementData };
-    },
-    onSuccess: (_, variables) => {
-      toast.success("Statement generated successfully");
-      invalidateAfterStatementOp(queryClient, undefined, variables.investorId);
-      setGeneratingStatement(null);
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to generate statement: ${error.message}`);
-      setGeneratingStatement(null);
-    },
-  });
-
-  // Send statement email mutation
-  const sendStatementMutation = useMutation({
-    mutationFn: async (params: { investorId: string; statementId: string; email: string }) => {
-      const investorName = investors?.find((i) => i.id === params.investorId)?.name || "Investor";
-      const period = `${months.find((m) => m.value === selectedMonth)?.label} ${selectedYear}`;
-      
-      return sendStatementEmail({
-        investorId: params.investorId,
-        statementId: params.statementId,
-        email: params.email,
-        investorName,
-        period,
-      });
-    },
-    onSuccess: () => {
-      toast.success("Statement notification sent successfully");
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to send notification: ${error.message}`);
-    },
-  });
+  const sendStatementMutation = useSendStatementEmail();
 
   const handleGenerateStatement = () => {
     if (!selectedInvestor || !selectedYear || !selectedMonth) {
-      toast.error("Please select investor, year, and month");
       return;
     }
 
@@ -200,7 +77,16 @@ export default function AdminStatementsPage() {
   };
 
   const handleSendStatement = (investorId: string, statementId: string, email: string) => {
-    sendStatementMutation.mutate({ investorId, statementId, email });
+    const investorName = investors?.find((i) => i.id === investorId)?.name || "Investor";
+    const period = `${MONTHS.find((m) => m.value === selectedMonth)?.label} ${selectedYear}`;
+    
+    sendStatementMutation.mutate({
+      investorId,
+      statementId,
+      email,
+      investorName,
+      period,
+    });
   };
 
   if (investorsLoading || statementsLoading) {
@@ -270,7 +156,7 @@ export default function AdminStatementsPage() {
                   <SelectValue placeholder="Select month" />
                 </SelectTrigger>
                 <SelectContent>
-                  {months.map((month) => (
+                  {MONTHS.map((month) => (
                     <SelectItem key={month.value} value={month.value}>
                       {month.label}
                     </SelectItem>
