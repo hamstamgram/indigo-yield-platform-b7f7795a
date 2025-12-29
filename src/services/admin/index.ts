@@ -46,3 +46,6 @@ export { integrityService } from "./integrityService";
 
 // Requests queue management
 export { requestsQueueService } from "./requestsQueueService";
+
+// Transaction history management
+export { adminTransactionHistoryService } from "./adminTransactionHistoryService";

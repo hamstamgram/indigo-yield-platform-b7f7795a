@@ -256,3 +256,84 @@ export function isDebit(type: TransactionType | string): boolean {
   const t = typeof type === "string" ? type.toUpperCase() : String(type);
   return t === "WITHDRAWAL" || t === "FEE";
 }
+
+// ============================================
+// Admin Transaction History Types
+// ============================================
+
+/**
+ * Filters for admin transaction history queries
+ */
+export interface AdminTransactionFilters {
+  fundId?: string;
+  type?: TransactionType;
+  dateFrom?: string;
+  dateTo?: string;
+  showVoided?: boolean;
+  page?: number;
+  pageSize?: number;
+}
+
+/**
+ * View model for transaction display in admin UI
+ */
+export interface TransactionViewModel {
+  id: string;
+  investorId: string;
+  investorName: string;
+  investorEmail: string;
+  fundId: string | null;
+  fundName: string;
+  asset: string;
+  type: TransactionType;
+  displayType: string;
+  amount: number;
+  txDate: string;
+  notes: string | null;
+  txHash?: string | null;
+  createdAt: string;
+  createdBy: string | null;
+  visibilityScope: string;
+  isVoided: boolean;
+  isSystemGenerated: boolean;
+}
+
+/**
+ * Result from paginated transaction query
+ */
+export interface AdminTransactionResult {
+  transactions: TransactionViewModel[];
+  totalCount: number;
+}
+
+/**
+ * Fund option for dropdowns
+ */
+export interface FundOption {
+  id: string;
+  code: string;
+  name: string;
+  asset: string;
+}
+
+/**
+ * Parameters for updating a transaction
+ */
+export interface UpdateTransactionParams {
+  transactionId: string;
+  updates: {
+    tx_date?: string;
+    amount?: number;
+    notes?: string;
+    tx_hash?: string;
+  };
+  reason: string;
+}
+
+/**
+ * Parameters for voiding a transaction
+ */
+export interface VoidTransactionParams {
+  transactionId: string;
+  reason: string;
+}

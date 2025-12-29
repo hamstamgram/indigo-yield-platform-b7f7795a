@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -34,10 +34,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, Search, ChevronLeft, ChevronRight, ExternalLink, CreditCard, Plus, MoreHorizontal, Pencil, Ban, AlertTriangle, Lock } from "lucide-react";
+import { Loader2, Search, ChevronLeft, ChevronRight, ExternalLink, CreditCard, Plus, MoreHorizontal, Pencil, Ban, Lock } from "lucide-react";
 import { TruncatedText } from "@/components/ui/truncated-text";
 import { AdminGuard } from "@/components/admin/AdminGuard";
-import { supabase } from "@/integrations/supabase/client";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { format, startOfMonth, endOfMonth, subMonths, startOfYear } from "date-fns";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
@@ -46,38 +45,9 @@ import { EditTransactionDialog } from "@/components/admin/transactions/EditTrans
 import { useSortableColumns } from "@/hooks";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
-import { QUERY_KEYS } from "@/constants/queryKeys";
+import { useActiveFunds, useAdminTransactions } from "@/hooks/data/useAdminTransactionHistory";
 
-import type { TransactionType } from "@/types/domains/transaction";
-
-// Page-specific transaction view model with joined display data
-interface TransactionViewModel {
-  id: string;
-  investorId: string;
-  investorName: string;
-  investorEmail: string;
-  fundId: string | null;
-  fundName: string;
-  asset: string;
-  type: TransactionType;
-  displayType: string;
-  amount: number;
-  txDate: string;
-  notes: string | null;
-  txHash?: string | null;
-  createdAt: string;
-  createdBy: string | null;
-  visibilityScope: string;
-  isVoided: boolean;
-  isSystemGenerated: boolean;
-}
-
-interface Fund {
-  id: string;
-  code: string;
-  name: string;
-  asset: string;
-}
+import type { TransactionType, TransactionViewModel } from "@/types/domains/transaction";
 
 const PAGE_SIZE = 50;
 
@@ -85,7 +55,6 @@ function TransactionHistoryContent() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [funds, setFunds] = useState<Fund[]>([]);
   
   // Edit/Void dialog state
   const [selectedTx, setSelectedTx] = useState<TransactionViewModel | null>(null);
@@ -102,6 +71,9 @@ function TransactionHistoryContent() {
   const [dialogInvestorId, setDialogInvestorId] = useState<string>("");
   const [dialogFundId, setDialogFundId] = useState<string>("");
   const [showVoided, setShowVoided] = useState(false);
+
+  // Fetch active funds via hook
+  const { data: funds = [] } = useActiveFunds();
 
   // Check URL for action=add to auto-open modal
   useEffect(() => {
@@ -121,16 +93,6 @@ function TransactionHistoryContent() {
       }, { replace: true });
     }
   }, [searchParams, funds, setSearchParams]);
-
-  // Load funds
-  useEffect(() => {
-    supabase
-      .from("funds")
-      .select("id, code, name, asset")
-      .eq("status", "active")
-      .order("code")
-      .then(({ data }) => setFunds(data || []));
-  }, []);
 
   // Quick date presets
   const setThisMonth = () => {
@@ -164,97 +126,19 @@ function TransactionHistoryContent() {
     setPage(0);
   };
 
-  const { data: result, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.adminTransactionsHistory({ selectedFund, selectedType, dateFrom, dateTo, page, showVoided }),
-    queryFn: async () => {
-      // Build query with deterministic ordering: tx_date DESC, id DESC
-      // Include tx_subtype for explicit labeling (no more heuristics!)
-      // Include is_voided and is_system_generated for edit/void logic
-      let query = supabase
-        .from("transactions_v2")
-        .select(`
-          id, investor_id, fund_id, type, tx_subtype, asset, amount, tx_date, notes, tx_hash, created_at, created_by, visibility_scope, is_voided, is_system_generated,
-          profiles!fk_transactions_v2_profile (email, first_name, last_name)
-        `, { count: "exact" })
-        .order("tx_date", { ascending: false })
-        .order("id", { ascending: false })
-        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
-
-      // Only filter out voided if not showing them
-      if (!showVoided) {
-        query = query.eq("is_voided", false);
-      }
-
-      if (selectedFund !== "all") {
-        query = query.eq("fund_id", selectedFund);
-      }
-      if (selectedType !== "all") {
-        query = query.eq("type", selectedType as TransactionType);
-      }
-      if (dateFrom) {
-        query = query.gte("tx_date", dateFrom);
-      }
-      if (dateTo) {
-        query = query.lte("tx_date", dateTo);
-      }
-
-      const { data, error, count } = await query;
-      if (error) throw error;
-
-      // Map tx_subtype to display labels (explicit, not inferred!)
-      const subtypeDisplayMap: Record<string, string> = {
-        'first_investment': 'First Investment',
-        'deposit': 'Top-up',
-        'redemption': 'Withdrawal',
-        'full_redemption': 'Withdrawal All',
-        'fee_charge': 'Fee',
-        'yield_credit': 'Interest/Yield',
-        'adjustment': 'Adjustment',
-      };
-
-      const transactions = (data || []).map((tx: any): TransactionViewModel => {
-        const profile = tx.profiles;
-        const fund = funds.find(f => f.id === tx.fund_id);
-        
-        // Use explicit tx_subtype for display - NO HEURISTICS!
-        let displayType = tx.type;
-        if (tx.tx_subtype && subtypeDisplayMap[tx.tx_subtype]) {
-          displayType = subtypeDisplayMap[tx.tx_subtype];
-        } else {
-          // Fallback for any data without tx_subtype (legacy safety)
-          if (tx.type === "DEPOSIT") displayType = "Top-up";
-          else if (tx.type === "WITHDRAWAL") displayType = "Withdrawal";
-          else if (tx.type === "INTEREST") displayType = "Interest/Yield";
-          else if (tx.type === "FEE") displayType = "Fee";
-        }
-
-        return {
-          id: tx.id,
-          investorId: tx.investor_id,
-          investorName: profile 
-            ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email 
-            : "Unknown",
-          investorEmail: profile?.email || "",
-          fundId: tx.fund_id,
-          fundName: fund?.name || tx.asset,
-          asset: tx.asset,
-          type: tx.type,
-          displayType,
-          amount: Number(tx.amount),
-          txDate: tx.tx_date,
-          notes: tx.notes,
-          txHash: tx.tx_hash,
-          createdAt: tx.created_at,
-          createdBy: tx.created_by,
-          visibilityScope: tx.visibility_scope || "investor_visible",
-          isVoided: tx.is_voided || false,
-          isSystemGenerated: tx.is_system_generated || false,
-        };
-      });
-
-      return { transactions, totalCount: count || 0 };
+  // Fetch transactions via hook
+  const { data: result, isLoading } = useAdminTransactions(
+    {
+      fundId: selectedFund,
+      type: selectedType !== "all" ? (selectedType as TransactionType) : undefined,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
+      showVoided,
+      page,
+      pageSize: PAGE_SIZE,
     },
-  });
+    funds
+  );
 
   const transactions = result?.transactions || [];
   const totalCount = result?.totalCount || 0;

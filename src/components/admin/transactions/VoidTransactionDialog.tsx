@@ -19,20 +19,28 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Loader2, Info } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useTransactionMutations } from "@/hooks/data/useTransactionMutations";
+
+/**
+ * Minimal transaction data required for the void dialog
+ */
+interface VoidableTransaction {
+  id: string;
+  type: string;
+  amount: number;
+  asset: string;
+  investorName: string;
+  txDate: string;
+  isSystemGenerated?: boolean;
+  // Optional fields for cache invalidation
+  investorId?: string;
+  fundId?: string | null;
+}
 
 interface VoidTransactionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  transaction: {
-    id: string;
-    type: string;
-    amount: number;
-    asset: string;
-    investorName: string;
-    txDate: string;
-    isSystemGenerated?: boolean;
-  } | null;
+  transaction: VoidableTransaction | null;
   onSuccess: () => void;
 }
 
@@ -44,7 +52,7 @@ export function VoidTransactionDialog({
 }: VoidTransactionDialogProps) {
   const [reason, setReason] = useState("");
   const [confirmText, setConfirmText] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { voidMutation } = useTransactionMutations();
 
   const handleVoid = async () => {
     if (!transaction) return;
@@ -59,26 +67,22 @@ export function VoidTransactionDialog({
       return;
     }
 
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("void_transaction", {
-        p_transaction_id: transaction.id,
-        p_reason: reason.trim(),
-      });
-
-      if (error) throw error;
-
-      toast.success("Transaction voided successfully");
-      setReason("");
-      setConfirmText("");
-      onSuccess();
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Error voiding transaction:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to void transaction");
-    } finally {
-      setLoading(false);
-    }
+    voidMutation.mutate(
+      {
+        transactionId: transaction.id,
+        reason: reason.trim(),
+        investorId: transaction.investorId,
+        fundId: transaction.fundId || undefined,
+      },
+      {
+        onSuccess: () => {
+          setReason("");
+          setConfirmText("");
+          onSuccess();
+          onOpenChange(false);
+        },
+      }
+    );
   };
 
   const handleClose = () => {
@@ -162,15 +166,15 @@ export function VoidTransactionDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose} disabled={loading}>
+          <Button variant="outline" onClick={handleClose} disabled={voidMutation.isPending}>
             Cancel
           </Button>
           <Button
             variant="destructive"
             onClick={handleVoid}
-            disabled={loading || confirmText !== "VOID" || reason.trim().length < 3}
+            disabled={voidMutation.isPending || confirmText !== "VOID" || reason.trim().length < 3}
           >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {voidMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Void Transaction
           </Button>
         </DialogFooter>
