@@ -10,17 +10,7 @@ import { profileService, positionService } from "@/services/shared";
 import { transactionsV2Service } from "@/services/investor";
 import { formatAssetAmount } from "@/utils/assets";
 
-interface Transaction {
-  id: string;
-  investor_id: string;
-  asset: string;
-  amount: number;
-  type: string;
-  tx_date: string;
-  notes?: string | null;
-  tx_hash?: string | null;
-  reference_id?: string | null;
-}
+import type { Transaction } from "@/types/domains/transaction";
 
 interface InvestorInfo {
   id: string;

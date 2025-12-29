@@ -48,9 +48,10 @@ import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
-type TransactionType = "DEPOSIT" | "WITHDRAWAL" | "FEE" | "INTEREST" | "ADJUSTMENT";
+import type { TransactionType } from "@/types/domains/transaction";
 
-interface Transaction {
+// Page-specific transaction view model with joined display data
+interface TransactionViewModel {
   id: string;
   investorId: string;
   investorName: string;
@@ -87,7 +88,7 @@ function TransactionHistoryContent() {
   const [funds, setFunds] = useState<Fund[]>([]);
   
   // Edit/Void dialog state
-  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+  const [selectedTx, setSelectedTx] = useState<TransactionViewModel | null>(null);
   const [voidDialogOpen, setVoidDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedFund, setSelectedFund] = useState<string>("all");
@@ -211,7 +212,7 @@ function TransactionHistoryContent() {
         'adjustment': 'Adjustment',
       };
 
-      const transactions = (data || []).map((tx: any): Transaction => {
+      const transactions = (data || []).map((tx: any): TransactionViewModel => {
         const profile = tx.profiles;
         const fund = funds.find(f => f.id === tx.fund_id);
         
