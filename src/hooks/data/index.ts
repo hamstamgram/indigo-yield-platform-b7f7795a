@@ -209,3 +209,14 @@ export {
   useSubmitWithdrawal,
   type WithdrawalPosition,
 } from "./useInvestorWithdrawals";
+
+// Report data hooks
+export {
+  useHistoricalDataSummary,
+  useActiveInvestorsForReports,
+  useStatementPeriod,
+  useInvestorReportData,
+  useGenerateTemplates,
+  useSendInvestorReport,
+  useReportGenerationData,
+} from "./useReportData";

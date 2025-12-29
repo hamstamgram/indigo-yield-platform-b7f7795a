@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { reportService } from "@/services/admin/reportService";
 import { GenerateReportRequest, GenerateReportResponse } from "@/types/reports";
 
 // Lazy load PDF/Excel generators to reduce initial bundle size
@@ -13,8 +14,10 @@ export class ReportEngine {
     try {
       // 1. Fetch Data
       const req = request as any;
+      const userId = req.userId || (await supabase.auth.getUser()).data.user?.id || "";
+      
       const reportData = await this.fetchReportData(
-        req.userId || (await supabase.auth.getUser()).data.user?.id || "",
+        userId,
         req.reportType,
         req.filters || {},
         req.parameters || {}
@@ -44,9 +47,7 @@ export class ReportEngine {
       // 3. Return result (caller handles storage/upload)
       return {
         success: true,
-        reportId: req.reportId, // Pass back if needed
-        // In a real engine, we might upload here or return the buffer
-        // For now, assuming the API layer handles the buffer from result.data
+        reportId: req.reportId,
       };
     } catch (error) {
       console.error("Report Engine Error:", error);
@@ -58,7 +59,7 @@ export class ReportEngine {
   }
 
   /**
-   * Fetch report data from database
+   * Fetch report data from database using service layer
    */
   static async fetchReportData(
     userId: string,
@@ -73,40 +74,17 @@ export class ReportEngine {
 
     // userId IS the investorId (One ID)
     const investorId = userId;
+    const dateRange = { start: startDate, end: endDate };
 
-    // Fetch basic data
-    // Use investor_positions (new table)
-    const { data: positions } = await supabase
-      .from("investor_positions")
-      .select("*, funds(name, code, asset)")
-      .eq("investor_id", investorId);
-
-    // Use transactions_v2 (new table) - filter by tx_date (effective date) not created_at
-    const { data: transactions } = await supabase
-      .from("transactions_v2")
-      .select("*")
-      .eq("investor_id", investorId)
-      .gte("tx_date", startDate.toISOString().split("T")[0])
-      .lte("tx_date", endDate.toISOString().split("T")[0])
-      .order("tx_date", { ascending: false })
-      .order("id", { ascending: false }); // Deterministic tie-breaker for same-day ordering
-
-    // Use investor_fund_performance (V2) for statements with investor_id
-    // Cast to any to avoid "Type instantiation is excessively deep" error
-    const { data: performanceStatements } = await (supabase as any)
-      .from("investor_fund_performance")
-      .select(`
-        *,
-        period:statement_periods(period_end_date, year, month)
-      `)
-      .eq("investor_id", investorId)
-      .gte("period.period_end_date", startDate.toISOString().split('T')[0])
-      .lte("period.period_end_date", endDate.toISOString().split('T')[0])
-      .order("period(period_end_date)", { ascending: false })
-      .limit(12); // Limit to last 12 months for report
+    // Fetch data using service layer
+    const [positions, transactions, performanceStatements] = await Promise.all([
+      reportService.getInvestorPositions(investorId),
+      reportService.getInvestorTransactions(investorId, dateRange),
+      reportService.getInvestorPerformanceStatements(investorId, dateRange),
+    ]);
 
     // Map V2 performance data to legacy statements structure for compatibility
-    const statements = performanceStatements?.map((r: any) => ({
+    const statements = performanceStatements.map((r: any) => ({
       id: r.id,
       investor_id: r.investor_id,
       report_month: r.period?.period_end_date,
@@ -117,8 +95,7 @@ export class ReportEngine {
       withdrawals: Number(r.mtd_redemptions || 0),
       yield_earned: Number(r.mtd_net_income || 0),
       rate_of_return: Number(r.mtd_rate_of_return || 0),
-    })) || [];
-
+    }));
 
     // Build report data structure matching what generators expect
     return {
@@ -132,19 +109,18 @@ export class ReportEngine {
         endDate: endDate.toISOString(),
       },
       summary: {
-        totalValue: positions?.reduce((sum, p) => sum + Number(p.current_value), 0) || 0,
-        positionCount: positions?.length || 0,
-        transactionCount: transactions?.length || 0,
+        totalValue: positions.reduce((sum, p) => sum + Number(p.current_value), 0),
+        positionCount: positions.length,
+        transactionCount: transactions.length,
       },
-      holdings:
-        positions?.map((p: any) => ({
-          asset: p.funds?.asset || "UNK",
-          amount: p.shares,
-          value: p.current_value,
-          fundName: p.funds?.name,
-        })) || [],
-      transactions: transactions || [],
-      statements: statements || [],
+      holdings: positions.map((p: any) => ({
+        asset: p.funds?.asset || "UNK",
+        amount: p.shares,
+        value: p.current_value,
+        fundName: p.funds?.name,
+      })),
+      transactions,
+      statements,
     };
   }
 }
