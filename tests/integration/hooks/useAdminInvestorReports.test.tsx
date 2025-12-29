@@ -11,24 +11,20 @@ import {
   mockEmptyReportSummary,
 } from "../../fixtures/hook-test-data";
 
-// Mock the report service
+// Mock the report service - correct path
 const mockFetchAdminInvestorReports = vi.fn();
 
-vi.mock("@/services/reportQueryService", () => ({
+vi.mock("@/services/admin/reportQueryService", () => ({
   fetchAdminInvestorReports: mockFetchAdminInvestorReports,
+  generateFundPerformanceReports: vi.fn(),
+  fetchInvestorPerformanceReports: vi.fn(),
+  fetchPerformanceReportById: vi.fn(),
+  fetchLatestPerformance: vi.fn(),
+  fetchActiveInvestorsForStatements: vi.fn(),
 }));
 
-// Create a simple hook that mimics useAdminInvestorReports behavior
-// Since the actual hook may not exist, we create a test implementation
-import { useQuery } from "@tanstack/react-query";
-
-function useAdminInvestorReports(selectedMonth: string) {
-  return useQuery({
-    queryKey: ["admin-investor-reports", selectedMonth],
-    queryFn: () => mockFetchAdminInvestorReports(selectedMonth),
-    enabled: !!selectedMonth,
-  });
-}
+// Import the actual hook after mocking
+import { useAdminInvestorReports } from "@/hooks/data/useReports";
 
 describe("useAdminInvestorReports", () => {
   beforeEach(() => {

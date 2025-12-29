@@ -37,10 +37,20 @@ vi.mock("@/integrations/supabase/client", () => ({
   supabase: mockSupabaseClient,
 }));
 
+// Mock investor service
+vi.mock("@/services/investor", () => ({
+  fetchInvestorPositions: vi.fn(),
+  fetchInvestorsForSelector: vi.fn(),
+}));
+
 // Mock query keys
 vi.mock("@/constants/queryKeys", () => ({
   QUERY_KEYS: {
     investorList: ["investor-list"],
+    investorsSelector: () => ["investors-selector"],
+    investorPositions: () => ["investor-positions"],
+    investorQuickView: () => ["investor-quick-view"],
+    investorRecentActivity: () => ["investor-recent-activity"],
   },
 }));
 
