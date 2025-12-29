@@ -247,6 +247,10 @@ export {
 export {
   useInvestorDetail,
   useInvestorOpsIndicators,
+  useInvestorPositions as useAdminInvestorPositions,
+  useInvestorActivePositions,
   type InvestorDetailData,
   type OpsIndicators,
+  type InvestorPosition as AdminInvestorPosition,
+  type InvestorPositionsData as AdminInvestorPositionsData,
 } from "./useInvestorDetail";

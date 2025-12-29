@@ -9,6 +9,8 @@ import {
   investorDetailService,
   type InvestorDetailData,
   type OpsIndicators,
+  type InvestorPosition,
+  type InvestorPositionsData,
 } from "@/services/admin/investorDetailService";
 
 /**
@@ -36,5 +38,27 @@ export function useInvestorOpsIndicators(
   });
 }
 
+/**
+ * Hook to fetch investor positions with fund details
+ */
+export function useInvestorPositions(investorId: string | undefined) {
+  return useQuery<InvestorPositionsData>({
+    queryKey: ["admin", "investor", "positions", investorId],
+    queryFn: () => investorDetailService.fetchInvestorPositions(investorId!),
+    enabled: !!investorId,
+  });
+}
+
+/**
+ * Hook to fetch investor active positions (for delete confirmation)
+ */
+export function useInvestorActivePositions(investorId: string | undefined, enabled: boolean = false) {
+  return useQuery<InvestorPosition[]>({
+    queryKey: ["admin", "investor", "activePositions", investorId],
+    queryFn: () => investorDetailService.fetchActivePositions(investorId!),
+    enabled: !!investorId && enabled,
+  });
+}
+
 // Re-export types
-export type { InvestorDetailData, OpsIndicators };
+export type { InvestorDetailData, OpsIndicators, InvestorPosition, InvestorPositionsData };

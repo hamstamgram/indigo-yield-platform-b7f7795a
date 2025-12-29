@@ -232,3 +232,25 @@ export async function getFundPerformance(fundId: string) {
     history: [],
   };
 }
+
+/**
+ * Check fund usage (positions and transactions count)
+ * Used to determine if ticker change should be blocked
+ */
+export async function checkFundUsage(fundId: string): Promise<{ positions: number; transactions: number }> {
+  const [positionsResult, transactionsResult] = await Promise.all([
+    supabase
+      .from("investor_positions")
+      .select("id", { count: "exact", head: true })
+      .eq("fund_id", fundId),
+    supabase
+      .from("transactions_v2")
+      .select("id", { count: "exact", head: true })
+      .eq("fund_id", fundId),
+  ]);
+
+  return {
+    positions: positionsResult.count || 0,
+    transactions: transactionsResult.count || 0,
+  };
+}

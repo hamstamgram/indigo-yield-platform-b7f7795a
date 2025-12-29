@@ -171,6 +171,40 @@ class ProfileService {
     if (error) throw error;
     return data || [];
   }
+
+  /**
+   * Update investor fee percentage
+   */
+  async updateFeePercentage(investorId: string, feePercentage: number): Promise<void> {
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        fee_percentage: feePercentage,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", investorId);
+
+    if (error) throw error;
+  }
+
+  /**
+   * Get non-system users for deposit forms
+   */
+  async getUsersForDeposits(): Promise<Array<{
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+  }>> {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, first_name, last_name, email, is_system_account")
+      .eq("is_system_account", false)
+      .order("first_name");
+
+    if (error) throw error;
+    return data || [];
+  }
 }
 
 export const profileService = new ProfileService();
