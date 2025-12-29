@@ -4,7 +4,11 @@
  */
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card, CardContent, CardHeader, CardTitle, CardDescription,
+  Alert, AlertDescription, AlertTitle,
+  Skeleton,
+} from "@/components/ui";
 import { 
   FileText, 
   Mail, 
@@ -15,8 +19,6 @@ import {
   Clock,
   Info
 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useDeliveryDiagnostics } from "@/hooks/data/useDashboardMetrics";
 
 interface DeliveryDiagnosticsPanelProps {

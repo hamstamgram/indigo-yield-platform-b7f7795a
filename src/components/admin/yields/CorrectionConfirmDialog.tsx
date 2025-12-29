@@ -6,17 +6,9 @@
 import { useState } from "react";
 import { AlertTriangle, Loader2, CheckCircle2 } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Button, Input, Label, Textarea,
+} from "@/components/ui";
 
 interface CorrectionConfirmDialogProps {
   open: boolean;

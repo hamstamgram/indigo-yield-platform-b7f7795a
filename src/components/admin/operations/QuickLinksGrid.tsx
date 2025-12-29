@@ -1,8 +1,9 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Button, Badge,
+} from "@/components/ui";
 import { ArrowRight, LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
 
 export interface QuickLink {
   title: string;

@@ -2,25 +2,11 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Button, Input, Label, Textarea,
+  Alert, AlertDescription,
+} from "@/components/ui";
 import { toast } from "sonner";
 import { Loader2, AlertTriangle, CheckCircle2, Copy } from "lucide-react";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";

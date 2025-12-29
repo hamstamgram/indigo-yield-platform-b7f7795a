@@ -4,9 +4,10 @@
  */
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { EmailChipsInput } from "@/components/ui/email-chips-input";
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Button, EmailChipsInput,
+} from "@/components/ui";
 import { Mail, Pencil, X, Save, Loader2, Info } from "lucide-react";
 import { useReportRecipients, useUpdateReportRecipients } from "@/hooks/data/admin";
 
