@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { usePerAssetStats } from "@/hooks";
 import { PeriodSelector, PERIOD_LABELS, PerformanceCard, type PerformancePeriod } from "@/components/investor";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyState } from "@/components/ui";
 import { PageHeader } from "@/components/layout";
 import { TrendingUp, Loader2 } from "lucide-react";
 

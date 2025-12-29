@@ -1,14 +1,8 @@
 import { useState } from "react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Button, Badge,
+} from "@/components/ui";
 import { CheckCircle, XCircle, Clock, Eye } from "lucide-react";
 import type { Investment } from "@/types/domains";
 import { InvestmentApprovalDialog } from "./InvestmentApprovalDialog";

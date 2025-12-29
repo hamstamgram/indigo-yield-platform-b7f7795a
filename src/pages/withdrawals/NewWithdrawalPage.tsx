@@ -1,7 +1,6 @@
 import { useWithdrawalPositions } from "@/hooks/data/useInvestorWithdrawals";
 import { WithdrawalRequestForm } from "@/components/withdrawal";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, Button } from "@/components/ui";
 import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
