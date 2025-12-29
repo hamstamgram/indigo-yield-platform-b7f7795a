@@ -60,6 +60,8 @@ export const QUERY_KEYS = {
   investorPositionsForRoute: (investorId: string) => ["investor-positions-for-route", investorId] as const,
   investorDocuments: ["investor-documents"] as const,
   perAssetStats: ["per-asset-stats"] as const,
+  unifiedInvestors: ["unified-investors"] as const,
+  adminInvestors: ["admin-investors"] as const,
 
   // ============ Transactions ============
   transactions: (filters?: unknown) => filters 
@@ -219,7 +221,6 @@ export const QUERY_KEYS = {
 
   // ============ Admin Settings ============
   platformSettings: ["platform-settings"] as const,
-  adminInvestors: ["admin-investors"] as const,
   ibs: ["ibs"] as const,
 
   // ============ User & Auth ============

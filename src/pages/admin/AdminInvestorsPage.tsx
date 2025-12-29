@@ -1,10 +1,7 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { QUERY_KEYS } from "@/constants/queryKeys";
-import { invalidateInvestorData } from "@/utils/cacheInvalidation";
+import { useInvestorList, useUpdateInvestorStatus } from "@/hooks/data";
 import {
   Table,
   TableBody,
@@ -40,58 +37,16 @@ import {
 export default function AdminInvestorsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   // Deactivate confirmation state
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
   const [pendingDeactivateId, setPendingDeactivateId] = useState<string | null>(null);
 
-  const deactivateMutation = useMutation({
-    mutationFn: async (investorId: string) => {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ status: "inactive" })
-        .eq("id", investorId);
-      if (error) throw error;
-    },
-    onSuccess: (_, investorId) => {
-      invalidateInvestorData(queryClient, investorId);
-      toast.success("Investor deactivated", {
-        description: "The investor account has been deactivated.",
-      });
-    },
-    onError: (error) => {
-      toast.error("Error", {
-        description: error instanceof Error ? error.message : "Failed to deactivate investor",
-      });
-    },
-  });
+  // Use hooks instead of inline queries
+  const { data: investors, isLoading } = useInvestorList();
+  const updateStatusMutation = useUpdateInvestorStatus();
 
-  const { data: investors, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.adminInvestors,
-    queryFn: async () => {
-      // First get admin user IDs from user_roles table
-      const { data: adminRoles } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "admin");
-
-      const adminIds = adminRoles?.map((r) => r.user_id) || [];
-
-      // Get all profiles except those with admin role
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, status, created_at, email, first_name, last_name")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-
-      // Filter out admins client-side
-      return data?.filter((p) => !adminIds.includes(p.id)) || [];
-    },
-  });
-
-  const filteredInvestors = investors?.filter((investor: any) => {
+  const filteredInvestors = investors?.filter((investor) => {
     const search = searchTerm.toLowerCase();
     const firstName = investor.first_name?.toLowerCase() || "";
     const lastName = investor.last_name?.toLowerCase() || "";
@@ -100,7 +55,7 @@ export default function AdminInvestorsPage() {
     return fullName.includes(search) || email.includes(search);
   });
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null) => {
     switch (status) {
       case "active":
         return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
@@ -118,7 +73,21 @@ export default function AdminInvestorsPage() {
 
   const confirmDeactivate = () => {
     if (pendingDeactivateId) {
-      deactivateMutation.mutate(pendingDeactivateId);
+      updateStatusMutation.mutate(
+        { investorId: pendingDeactivateId, status: "inactive" },
+        {
+          onSuccess: () => {
+            toast.success("Investor deactivated", {
+              description: "The investor account has been deactivated.",
+            });
+          },
+          onError: (error) => {
+            toast.error("Error", {
+              description: error instanceof Error ? error.message : "Failed to deactivate investor",
+            });
+          },
+        }
+      );
     }
     setDeactivateDialogOpen(false);
     setPendingDeactivateId(null);
@@ -175,7 +144,7 @@ export default function AdminInvestorsPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredInvestors?.map((investor: any) => (
+                  filteredInvestors?.map((investor) => (
                     <TableRow key={investor.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">

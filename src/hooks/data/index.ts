@@ -50,6 +50,20 @@ export {
   type InvestorOverviewData,
 } from "./useInvestorOverview";
 
+// Investor overview queries
+export {
+  useRecentInvestorTransactions,
+  usePendingWithdrawalsCount,
+  useLastStatementPeriod,
+  type RecentTransaction,
+} from "./useInvestorOverviewQueries";
+
+// Unified investors hooks
+export {
+  useUnifiedInvestors,
+  type EnrichedInvestor,
+} from "./useUnifiedInvestors";
+
 // Real-time subscription hooks
 export {
   useRealtimeSubscription,
