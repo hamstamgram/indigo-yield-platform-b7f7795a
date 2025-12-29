@@ -28,6 +28,9 @@ export * from "./report";
 // Document domain
 export * from "./document";
 
+// Delivery domain
+export * from "./delivery";
+
 // ============================================================================
 // Common Utility Types
 // ============================================================================
