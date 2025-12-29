@@ -5,12 +5,10 @@
  */
 
 import { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
 import {
-  ResizablePanelGroup,
-  ResizablePanel,
-  ResizableHandle,
-} from "@/components/ui/resizable";
+  Button,
+  ResizablePanelGroup, ResizablePanel, ResizableHandle,
+} from "@/components/ui";
 import { Loader2, RefreshCw } from "lucide-react";
 import { 
   AdminGuard, 

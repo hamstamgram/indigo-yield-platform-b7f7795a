@@ -3,15 +3,16 @@
  * Refactored to use useUpdateInvestorStatus data hook
  */
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import {
+  Card, CardContent, CardFooter,
+  Button, Input,
+  TruncatedText,
+} from "@/components/ui";
 import { Send, Save } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks";
 import { useUpdateInvestorStatus } from "@/hooks/data";
 import { AssetRef as Asset } from "@/types/asset";
 import { InvestorSummaryV2 } from "@/services/admin/adminService";
-import { TruncatedText } from "@/components/ui/truncated-text";
 import FundAssetDropdown from "./FundAssetDropdown";
 
 interface MobileInvestorCardProps {

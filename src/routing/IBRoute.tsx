@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth/context";
 import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
-import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
+import { PageLoadingSpinner } from "@/components/ui";
 
 interface IBRouteProps {
   children: React.ReactNode;

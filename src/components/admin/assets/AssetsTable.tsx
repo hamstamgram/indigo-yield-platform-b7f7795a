@@ -1,15 +1,8 @@
 import { useState } from "react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Input, Button, Badge,
+} from "@/components/ui";
 import { Search, Edit, TrendingUp } from "lucide-react";
 import { useAssets } from "@/hooks/data/admin";
 import { EditAssetDialog } from "./EditAssetDialog";

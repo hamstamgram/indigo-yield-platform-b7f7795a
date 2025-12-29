@@ -1,13 +1,8 @@
 import React, { useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription,
+  Button,
+} from "@/components/ui";
 import { Loader2, Mail } from "lucide-react";
 import { useInvestorInvite } from "@/hooks";
 

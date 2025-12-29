@@ -1,16 +1,10 @@
 import { AlertTriangle, History, Database, Shield, RefreshCw } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Alert, AlertDescription, AlertTitle,
+  Button, Badge,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui";
 import { PositionResetDialog } from "@/components/admin/maintenance/PositionResetDialog";
 import { useResetHistory } from "@/hooks/data/useSystemAdmin";
 import { format } from "date-fns";
