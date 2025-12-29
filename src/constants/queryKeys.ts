@@ -2,6 +2,14 @@
  * Centralized Query Keys
  * Single source of truth for all React Query cache keys
  * Ensures consistent cache invalidation across the application
+ * 
+ * ## Naming Conventions
+ * 
+ * 1. Use kebab-case for base keys: "investor-positions"
+ * 2. Group related keys under namespaces where beneficial
+ * 3. Use factory functions for parameterized keys
+ * 4. Always return `as const` for type safety
+ * 5. Prefer singular base with modifiers: investors.all, investors.detail(id)
  */
 
 export const QUERY_KEYS = {
@@ -24,67 +32,80 @@ export const QUERY_KEYS = {
     : ["funds-with-aum"] as const,
   aumExists: (fundId: string, txDate: string) => ["aum-exists", fundId, txDate] as const,
 
-  // ============ Investors ============
+  // ============ Investors (Unified Namespace) ============
+  /**
+   * Investor query keys - consolidated from duplicates
+   * @deprecated Use investors.all instead of investors
+   * @deprecated Use investors.list instead of investorList  
+   * @deprecated Use investors.all instead of investorsAll
+   */
   investors: ["investors"] as const,
-  investorList: ["investor-list"] as const,
-  investorsAll: ["investors-all"] as const,
+  /** @deprecated Use investors.list() instead */
+  investorList: ["investors", "list"] as const,
+  /** @deprecated Use investors.all instead */
+  investorsAll: ["investors"] as const,
   investorsSelector: (includeSystem?: boolean) => includeSystem !== undefined
-    ? ["investors-selector", includeSystem] as const
-    : ["investors-selector"] as const,
-  investor: (id: string) => ["investor", id] as const,
+    ? ["investors", "selector", includeSystem] as const
+    : ["investors", "selector"] as const,
+  investor: (id: string) => ["investors", "detail", id] as const,
   investorPositions: (investorId?: string) => investorId 
-    ? ["investor-positions", investorId] as const 
-    : ["investor-positions"] as const,
-  investorDetail: (id: string) => ["investor-detail", id] as const,
-  investorQuickView: (id: string) => ["investor-quick-view", id] as const,
+    ? ["investors", "positions", investorId] as const 
+    : ["investors", "positions"] as const,
+  investorDetail: (id: string) => ["investors", "detail", id] as const,
+  investorQuickView: (id: string) => ["investors", "quick-view", id] as const,
   investorLedger: (id?: string) => id
-    ? ["investor-ledger", id] as const
-    : ["investor-ledger"] as const,
+    ? ["investors", "ledger", id] as const
+    : ["investors", "ledger"] as const,
   investorRecentActivity: (id: string, limit?: number) => limit
-    ? ["investor-recent-activity", id, limit] as const
-    : ["investor-recent-activity", id] as const,
-  investorOverview: (id: string) => ["investor-overview", id] as const,
-  investorDefaultFund: (id: string) => ["investor-default-fund", id] as const,
+    ? ["investors", "recent-activity", id, limit] as const
+    : ["investors", "recent-activity", id] as const,
+  investorOverview: (id: string) => ["investors", "overview", id] as const,
+  investorDefaultFund: (id: string) => ["investors", "default-fund", id] as const,
   investorBalance: (investorId: string, fundId: string) => 
-    ["investor-balance", investorId, fundId] as const,
+    ["investors", "balance", investorId, fundId] as const,
   investorPerformance: (assetCode?: string) => assetCode 
-    ? ["investor-performance", assetCode] as const 
-    : ["investor-performance"] as const,
+    ? ["investors", "performance", assetCode] as const 
+    : ["investors", "performance"] as const,
   investorAssetStats: (investorId?: string) => investorId 
-    ? ["investor-asset-stats", investorId] as const 
-    : ["investor-asset-stats"] as const,
+    ? ["investors", "asset-stats", investorId] as const 
+    : ["investors", "asset-stats"] as const,
   investorFundPerformance: (searchTerm?: string) => searchTerm 
-    ? ["investor_fund_performance", searchTerm] as const 
-    : ["investor_fund_performance"] as const,
-  investorFundPerformanceDetail: (id: string) => ["investor_fund_performance", id] as const,
-  investorPositionsForRoute: (investorId: string) => ["investor-positions-for-route", investorId] as const,
-  investorDocuments: ["investor-documents"] as const,
-  perAssetStats: ["per-asset-stats"] as const,
-  unifiedInvestors: ["unified-investors"] as const,
-  adminInvestors: ["admin-investors"] as const,
+    ? ["investors", "fund-performance", searchTerm] as const 
+    : ["investors", "fund-performance"] as const,
+  investorFundPerformanceDetail: (id: string) => ["investors", "fund-performance", id] as const,
+  investorPositionsForRoute: (investorId: string) => ["investors", "positions-for-route", investorId] as const,
+  investorDocuments: ["investors", "documents"] as const,
+  perAssetStats: ["investors", "per-asset-stats"] as const,
+  unifiedInvestors: ["investors", "unified"] as const,
+  adminInvestors: ["investors", "admin"] as const,
 
-  // ============ Transactions ============
+  // ============ Transactions (Unified Namespace) ============
+  /**
+   * Transaction query keys - consolidated
+   * Base key ["transactions"] is the root for all transaction queries
+   */
   transactions: (filters?: unknown) => filters 
-    ? ["transactions", filters] as const 
+    ? ["transactions", "list", filters] as const 
     : ["transactions"] as const,
-  adminTransactions: ["admin-transactions-history"] as const,
+  /** @deprecated Use transactions.adminHistory instead */
+  adminTransactions: ["transactions", "admin-history"] as const,
   adminTransactionsHistory: (filters?: Record<string, unknown>) => 
-    filters ? ["admin-transactions-history", filters] as const : ["admin-transactions-history"] as const,
+    filters ? ["transactions", "admin-history", filters] as const : ["transactions", "admin-history"] as const,
   investorTransactions: (investorId: string, limit?: number) => limit 
-    ? ["investor-transactions", investorId, limit] as const 
-    : ["investor-transactions", investorId] as const,
+    ? ["transactions", "investor", investorId, limit] as const 
+    : ["transactions", "investor", investorId] as const,
   pendingTransactions: (searchTerm?: string) => searchTerm 
-    ? ["pending-transactions", searchTerm] as const 
-    : ["pending-transactions"] as const,
-  recentTransactions: ["recent-transactions"] as const,
+    ? ["transactions", "pending", searchTerm] as const 
+    : ["transactions", "pending"] as const,
+  recentTransactions: ["transactions", "recent"] as const,
   transactionAssets: (userId?: string) => userId 
-    ? ["transaction-assets", userId] as const 
-    : ["transaction-assets"] as const,
+    ? ["transactions", "assets", userId] as const 
+    : ["transactions", "assets"] as const,
   transactionsV2: (searchTerm?: string) => searchTerm 
-    ? ["transactions-v2", searchTerm] as const 
-    : ["transactions-v2"] as const,
+    ? ["transactions", "v2", searchTerm] as const 
+    : ["transactions", "v2"] as const,
   pendingTransactionDetails: (type: string, id: string) => 
-    ["pending-transaction-details", type, id] as const,
+    ["transactions", "pending-details", type, id] as const,
 
   // ============ Yield ============
   yieldDistributions: (fundId?: string) => fundId 
@@ -110,91 +131,92 @@ export const QUERY_KEYS = {
     ? ["ib-allocations", fundId] as const 
     : ["ib-allocations"] as const,
 
-  // ============ Withdrawals ============
+  // ============ Withdrawals (Unified) ============
   withdrawals: ["withdrawals"] as const,
+  /** Fixed: using kebab-case consistently */
   withdrawalRequests: (searchTerm?: string) => searchTerm 
-    ? ["withdrawal_requests", searchTerm] as const 
-    : ["withdrawal_requests"] as const,
-  withdrawalRequestsAdmin: ["withdrawal-requests-admin"] as const,
-  pendingWithdrawals: ["pending-withdrawals"] as const,
-  pendingWithdrawalsCount: ["pending-withdrawals-count"] as const,
-  withdrawalDetails: (id: string) => ["withdrawal-details", id] as const,
-  withdrawalStats: ["withdrawal-stats"] as const,
-  withdrawalAuditLogs: (id: string) => ["withdrawal-audit-logs", id] as const,
+    ? ["withdrawals", "requests", searchTerm] as const 
+    : ["withdrawals", "requests"] as const,
+  withdrawalRequestsAdmin: ["withdrawals", "requests-admin"] as const,
+  pendingWithdrawals: ["withdrawals", "pending"] as const,
+  pendingWithdrawalsCount: ["withdrawals", "pending-count"] as const,
+  withdrawalDetails: (id: string) => ["withdrawals", "details", id] as const,
+  withdrawalStats: ["withdrawals", "stats"] as const,
+  withdrawalAuditLogs: (id: string) => ["withdrawals", "audit-logs", id] as const,
   withdrawalHistory: (userId?: string) => userId 
-    ? ["withdrawal-history", userId] as const 
-    : ["withdrawal-history"] as const,
+    ? ["withdrawals", "history", userId] as const 
+    : ["withdrawals", "history"] as const,
 
   // ============ Deposits ============
   deposits: ["deposits"] as const,
-  depositsAdmin: ["deposits-admin"] as const,
-  depositStats: ["deposit-stats"] as const,
-  usersForDeposits: ["users-for-deposits"] as const,
+  depositsAdmin: ["deposits", "admin"] as const,
+  depositStats: ["deposits", "stats"] as const,
+  usersForDeposits: ["deposits", "users"] as const,
 
   // ============ Dashboard ============
-  dashboardStats: ["dashboard-stats"] as const,
-  adminDashboard: ["admin-dashboard"] as const,
+  dashboardStats: ["dashboard", "stats"] as const,
+  adminDashboard: ["dashboard", "admin"] as const,
 
   // ============ IB (Introducing Broker) ============
-  ibSettings: ["ib-settings"] as const,
-  ibSettingsInvestor: (investorId: string) => ["ib-settings", investorId] as const,
+  ibSettings: ["ib", "settings"] as const,
+  ibSettingsInvestor: (investorId: string) => ["ib", "settings", investorId] as const,
   ibProfile: (userId?: string) => userId
-    ? ["ib-profile", userId] as const
-    : ["ib-profile"] as const,
+    ? ["ib", "profile", userId] as const
+    : ["ib", "profile"] as const,
   ibReferrals: (ibId?: string, page?: number) => {
-    if (ibId && page !== undefined) return ["ib-referrals", ibId, page] as const;
-    if (ibId) return ["ib-referrals", ibId] as const;
-    return ["ib-referrals"] as const;
+    if (ibId && page !== undefined) return ["ib", "referrals", ibId, page] as const;
+    if (ibId) return ["ib", "referrals", ibId] as const;
+    return ["ib", "referrals"] as const;
   },
-  ibReferralDetail: (id: string, userId: string) => ["ib-referral-detail", id, userId] as const,
-  ibReferralPositions: (id: string) => ["ib-referral-positions", id] as const,
+  ibReferralDetail: (id: string, userId: string) => ["ib", "referral-detail", id, userId] as const,
+  ibReferralPositions: (id: string) => ["ib", "referral-positions", id] as const,
   ibReferralCommissions: (id: string, userId: string) => 
-    ["ib-referral-commissions", id, userId] as const,
-  ibReferralCount: (userId: string) => ["ib-referral-count", userId] as const,
+    ["ib", "referral-commissions", id, userId] as const,
+  ibReferralCount: (userId: string) => ["ib", "referral-count", userId] as const,
   ibCommissions: (userId?: string, page?: number, dateRange?: string) => {
-    if (userId && page !== undefined) return ["ib-commissions", userId, page, dateRange] as const;
-    if (userId) return ["ib-commissions", userId] as const;
-    return ["ib-commissions"] as const;
+    if (userId && page !== undefined) return ["ib", "commissions", userId, page, dateRange] as const;
+    if (userId) return ["ib", "commissions", userId] as const;
+    return ["ib", "commissions"] as const;
   },
-  ibCommissionSummary: ["ib-commission-summary"] as const,
+  ibCommissionSummary: ["ib", "commission-summary"] as const,
   ibTopReferrals: (userId: string, period?: string) => period 
-    ? ["ib-top-referrals", userId, period] as const 
-    : ["ib-top-referrals", userId] as const,
-  ibPositions: (userId: string) => ["ib-positions", userId] as const,
+    ? ["ib", "top-referrals", userId, period] as const 
+    : ["ib", "top-referrals", userId] as const,
+  ibPositions: (userId: string) => ["ib", "positions", userId] as const,
   ibPayoutHistory: (userId: string, page?: number) => page !== undefined 
-    ? ["ib-payout-history", userId, page] as const 
-    : ["ib-payout-history", userId] as const,
+    ? ["ib", "payout-history", userId, page] as const 
+    : ["ib", "payout-history", userId] as const,
   adminIbPayouts: (statusFilter?: string) => statusFilter 
-    ? ["admin-ib-payouts", statusFilter] as const 
-    : ["admin-ib-payouts"] as const,
-  investorsSummary: ["investors-summary"] as const,
+    ? ["ib", "admin-payouts", statusFilter] as const 
+    : ["ib", "admin-payouts"] as const,
+  investorsSummary: ["investors", "summary"] as const,
 
   // ============ Reports & Statements ============
   reports: ["reports"] as const,
   statements: ["statements"] as const,
-  statementsAdmin: ["statements-admin"] as const,
-  statementsMonth: (month: string) => ["statements", month] as const,
-  statementPeriods: ["statement-periods"] as const,
-  statementPeriodsWithCounts: ["statement-periods-with-counts"] as const,
+  statementsAdmin: ["statements", "admin"] as const,
+  statementsMonth: (month: string) => ["statements", "month", month] as const,
+  statementPeriods: ["statements", "periods"] as const,
+  statementPeriodsWithCounts: ["statements", "periods-with-counts"] as const,
   generatedStatements: (filters?: Record<string, unknown>) => 
-    filters ? ["generated-statements", filters] as const : ["generated-statements"] as const,
+    filters ? ["statements", "generated", filters] as const : ["statements", "generated"] as const,
   investorStatements: (investorId: string, limit?: number) => 
-    limit ? ["investor-statements", investorId, limit] as const : ["investor-statements", investorId] as const,
-  periodStatementCount: (periodId: string) => ["period-statement-count", periodId] as const,
+    limit ? ["statements", "investor", investorId, limit] as const : ["statements", "investor", investorId] as const,
+  periodStatementCount: (periodId: string) => ["statements", "period-count", periodId] as const,
   monthlyStatements: (year?: number, asset?: string) => 
-    ["monthly-statements", year, asset] as const,
-  statementYears: ["statement-years"] as const,
-  statementAssets: ["statement-assets"] as const,
+    ["statements", "monthly", year, asset] as const,
+  statementYears: ["statements", "years"] as const,
+  statementAssets: ["statements", "assets"] as const,
   statementDeliveryStatus: (statementId?: string, investorId?: string, periodId?: string) => 
-    ["statement-delivery-status", statementId, investorId, periodId] as const,
-  lastStatementPeriod: ["last-statement-period"] as const,
+    ["statements", "delivery-status", statementId, investorId, periodId] as const,
+  lastStatementPeriod: ["statements", "last-period"] as const,
 
   // ============ Deliveries ============
   deliveries: (periodId?: string, filters?: Record<string, unknown>) => 
     periodId ? ["deliveries", periodId, filters] as const : ["deliveries"] as const,
-  deliveryStats: (periodId: string) => ["delivery-stats", periodId] as const,
-  deliveryExclusionBreakdown: (periodId: string) => ["delivery-exclusion-breakdown", periodId] as const,
-  deliveryDiagnostics: (periodId: string) => ["delivery-diagnostics", periodId] as const,
+  deliveryStats: (periodId: string) => ["deliveries", "stats", periodId] as const,
+  deliveryExclusionBreakdown: (periodId: string) => ["deliveries", "exclusion-breakdown", periodId] as const,
+  deliveryDiagnostics: (periodId: string) => ["deliveries", "diagnostics", periodId] as const,
 
   // ============ Month Closure ============
   monthClosure: (fundId: string, month: string) => ["month-closure", fundId, month] as const,
@@ -203,63 +225,63 @@ export const QUERY_KEYS = {
   assets: (filters?: Record<string, unknown>) => filters 
     ? ["assets", filters] as const 
     : ["assets"] as const,
-  assetsActive: ["assets-active"] as const,
-  assetStats: ["asset-stats"] as const,
-  assetPrices: (assetId: string) => ["asset-prices", assetId] as const,
-  latestPrice: (assetId: string) => ["latest-price", assetId] as const,
-  userAssets: ["user-assets"] as const,
-  assetMeta: (assetCode: string) => ["asset-meta", assetCode] as const,
+  assetsActive: ["assets", "active"] as const,
+  assetStats: ["assets", "stats"] as const,
+  assetPrices: (assetId: string) => ["assets", "prices", assetId] as const,
+  latestPrice: (assetId: string) => ["assets", "latest-price", assetId] as const,
+  userAssets: ["assets", "user"] as const,
+  assetMeta: (assetCode: string) => ["assets", "meta", assetCode] as const,
 
   // ============ Daily Rates ============
   dailyRate: (date?: string) => date 
     ? ["daily-rate", date] as const 
     : ["daily-rate"] as const,
-  recentDailyRates: ["recent-daily-rates"] as const,
+  recentDailyRates: ["daily-rate", "recent"] as const,
 
   // ============ Admin Invites ============
-  adminInvites: ["admin-invites"] as const,
+  adminInvites: ["admin", "invites"] as const,
 
   // ============ Admin Settings ============
-  platformSettings: ["platform-settings"] as const,
-  ibs: ["ibs"] as const,
+  platformSettings: ["admin", "platform-settings"] as const,
+  ibs: ["admin", "ibs"] as const,
 
   // ============ User & Auth ============
   userRoles: (userId?: string) => userId 
-    ? ["user-roles", userId] as const 
-    : ["user-roles"] as const,
+    ? ["user", "roles", userId] as const 
+    : ["user", "roles"] as const,
   userIbRole: (userId?: string) => userId 
-    ? ["user-ib-role", userId] as const 
-    : ["user-ib-role"] as const,
+    ? ["user", "ib-role", userId] as const 
+    : ["user", "ib-role"] as const,
 
   // ============ Integrity & System ============
-  integrityDashboard: ["integrity-dashboard"] as const,
-  integrityAuditEvents: ["integrity-audit-events"] as const,
-  dataIntegrity: ["data-integrity"] as const,
+  integrityDashboard: ["integrity", "dashboard"] as const,
+  integrityAuditEvents: ["integrity", "audit-events"] as const,
+  dataIntegrity: ["integrity", "data"] as const,
   auditLog: ["audit-log"] as const,
-  pendingActions: ["pending-actions"] as const,
-  systemHealth: ["system-health"] as const,
-  deliveryQueueMetrics: ["delivery-queue-metrics"] as const,
+  pendingActions: ["system", "pending-actions"] as const,
+  systemHealth: ["system", "health"] as const,
+  deliveryQueueMetrics: ["system", "delivery-queue-metrics"] as const,
 
   // ============ Portfolio ============
-  portfolioPositions: ["portfolio-positions"] as const,
-  finalizedPortfolio: ["finalized-portfolio"] as const,
-  availableWithdrawalPositions: ["available-withdrawal-positions"] as const,
+  portfolioPositions: ["portfolio", "positions"] as const,
+  finalizedPortfolio: ["portfolio", "finalized"] as const,
+  availableWithdrawalPositions: ["portfolio", "available-withdrawal-positions"] as const,
 
   // ============ Reports Generation ============
-  activeInvestors: ["active-investors"] as const,
+  activeInvestors: ["reports", "active-investors"] as const,
 
   // ============ Email ============
-  emailStats: ["email-stats"] as const,
+  emailStats: ["email", "stats"] as const,
   emailDeliveries: (filters?: Record<string, unknown>) => filters 
-    ? ["email-deliveries", filters] as const 
-    : ["email-deliveries"] as const,
+    ? ["email", "deliveries", filters] as const 
+    : ["email", "deliveries"] as const,
 
   // ============ Profiles ============
   profiles: ["profiles"] as const,
-  profile: (id: string) => ["profile", id] as const,
+  profile: (id: string) => ["profiles", id] as const,
 
   // ============ Admin Fees ============
-  adminFeesOverview: ["admin-fees-overview"] as const,
+  adminFeesOverview: ["admin", "fees-overview"] as const,
 
   // ============ Positions ============
   positions: (investorId?: string) => investorId 
