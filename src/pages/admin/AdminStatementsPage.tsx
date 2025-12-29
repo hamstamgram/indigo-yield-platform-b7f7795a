@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -20,14 +20,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, FileText, Download, Send, Calendar, User } from "lucide-react";
 import { format } from "date-fns";
 import { generatePDF } from "@/lib/pdf/statementGenerator";
 import { profileService, statementsService, documentService } from "@/services/shared";
+import { sendStatementEmail } from "@/services/admin/statementAdminService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { invalidateAfterStatementOp } from "@/utils/cacheInvalidation";
+import { useQuery } from "@tanstack/react-query";
+import { fetchActiveInvestorsForStatements } from "@/services/admin/reportQueryService";
 
 export default function AdminStatementsPage() {
   const [selectedInvestor, setSelectedInvestor] = useState<string>("");
@@ -56,25 +58,17 @@ export default function AdminStatementsPage() {
     { value: "12", label: "December" },
   ];
 
-  // Fetch all investors via service
-  const { data: investors, isLoading: investorsLoading } = useQuery({
-    queryKey: QUERY_KEYS.investorsAll,
-    queryFn: async () => {
-      const profiles = await profileService.getActiveInvestors();
-      return profiles?.map(p => ({
-        id: p.id,
-        email: p.email,
-        name: `${p.firstName || ''} ${p.lastName || ''}`.trim() || p.email
-      })) || [];
-    },
+  // Fetch all investors via hook
+  const { data: investorProfiles, isLoading: investorsLoading } = useQuery({
+    queryKey: ["active-investors-statements"],
+    queryFn: fetchActiveInvestorsForStatements,
   });
+  const investors = investorProfiles || [];
 
-  // Fetch existing statements via service
+  // Fetch existing statements via hook
   const { data: statements, isLoading: statementsLoading } = useQuery({
     queryKey: QUERY_KEYS.statementsAdmin,
-    queryFn: async () => {
-      return documentService.getStatementDocuments(50);
-    },
+    queryFn: async () => documentService.getStatementDocuments(50),
   });
 
   // Generate statement mutation
@@ -173,25 +167,21 @@ export default function AdminStatementsPage() {
   // Send statement email mutation
   const sendStatementMutation = useMutation({
     mutationFn: async (params: { investorId: string; statementId: string; email: string }) => {
-      const { data, error } = await supabase.functions.invoke("send-notification-email", {
-        body: {
-          to: params.email,
-          template: "statement_ready",
-          subject: "Your Monthly Statement is Ready",
-          data: {
-            name: investors?.find((i) => i.id === params.investorId)?.name || "Investor",
-            period: `${months.find((m) => m.value === selectedMonth)?.label} ${selectedYear}`,
-            link: `${window.location.origin}/investor/statements`,
-          },
-        },
+      const investorName = investors?.find((i) => i.id === params.investorId)?.name || "Investor";
+      const period = `${months.find((m) => m.value === selectedMonth)?.label} ${selectedYear}`;
+      
+      return sendStatementEmail({
+        investorId: params.investorId,
+        statementId: params.statementId,
+        email: params.email,
+        investorName,
+        period,
       });
-      if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       toast.success("Statement notification sent successfully");
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast.error(`Failed to send notification: ${error.message}`);
     },
   });

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,15 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Download, FileText } from "lucide-react";
-
-interface InvestorSummary {
-  id: string;
-  name: string;
-  email: string;
-}
+import { useActiveInvestorsForStatements, useGenerateStatement } from "@/hooks/data/useReports";
 
 interface PeriodData {
   beginning_balance: number;
@@ -35,36 +29,15 @@ interface StatementData {
 }
 
 const ProfessionalStatementGenerator = () => {
-  const [investors, setInvestors] = useState<InvestorSummary[]>([]);
   const [selectedInvestor, setSelectedInvestor] = useState<string>("");
   const [selectedAsset, setSelectedAsset] = useState<string>("USDT");
   const [statementData, setStatementData] = useState<StatementData | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchInvestors();
-  }, []);
+  const { data: investors = [], isLoading: investorsLoading } = useActiveInvestorsForStatements();
 
-  const fetchInvestors = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, email, status")
-        .eq("status", "active")
-        .eq("is_admin", false)
-        .order("first_name");
-
-      if (error) throw error;
-      setInvestors(data.map(p => ({
-        id: p.id,
-        name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
-        email: p.email
-      })) || []);
-    } catch (error) {
-      console.error("Error fetching investors:", error);
-      toast.error("Failed to load investors");
-    }
-  };
+  const generateMutation = useGenerateStatement(() => {
+    // Success callback if needed
+  });
 
   const generateStatement = async () => {
     if (!selectedInvestor) {
@@ -72,61 +45,13 @@ const ProfessionalStatementGenerator = () => {
       return;
     }
 
-    setLoading(true);
-    try {
-      // Find the latest period for this investor and asset
-      // Cast to any to avoid "Type instantiation is excessively deep" error
-      const { data: latestPerformance, error: perfError } = await (supabase as any)
-        .from("investor_fund_performance")
-        .select(`
-          *,
-          period:statement_periods(period_end_date)
-        `)
-        .eq("investor_id", selectedInvestor) // Use profile id
-        .eq("fund_name", selectedAsset)
-        .order("period(period_end_date)", { ascending: false })
-        .limit(1)
-        .single();
-        
-      if (perfError || !latestPerformance) throw new Error("No performance data found for this investor/asset/period.");
+    const data = await generateMutation.mutateAsync({
+      investorId: selectedInvestor,
+      assetCode: selectedAsset,
+    });
 
-      // Calculate period summaries from reports
-      const statementResult: StatementData = {
-        MTD: {
-          beginning_balance: Number(latestPerformance.mtd_beginning_balance || 0),
-          additions: Number(latestPerformance.mtd_additions || 0),
-          withdrawals: Number(latestPerformance.mtd_redemptions || 0),
-          net_income: Number(latestPerformance.mtd_net_income || 0),
-          ending_balance: Number(latestPerformance.mtd_ending_balance || 0),
-          rate_of_return: Number(latestPerformance.mtd_rate_of_return || 0) * 100,
-        },
-        QTD: {
-          beginning_balance: Number(latestPerformance.qtd_beginning_balance || 0),
-          additions: Number(latestPerformance.qtd_additions || 0),
-          withdrawals: Number(latestPerformance.qtd_redemptions || 0),
-          net_income: Number(latestPerformance.qtd_net_income || 0),
-          ending_balance: Number(latestPerformance.qtd_ending_balance || 0),
-          rate_of_return: Number(latestPerformance.qtd_rate_of_return || 0) * 100,
-        },
-        YTD: {
-          beginning_balance: Number(latestPerformance.ytd_beginning_balance || 0),
-          additions: Number(latestPerformance.ytd_additions || 0),
-          withdrawals: Number(latestPerformance.ytd_redemptions || 0),
-          net_income: Number(latestPerformance.ytd_net_income || 0),
-          ending_balance: Number(latestPerformance.ytd_ending_balance || 0),
-          rate_of_return: Number(latestPerformance.ytd_rate_of_return || 0) * 100,
-        },
-        ITD: { // ITD not explicitly in schema. Can derive or use YTD as fallback
-          beginning_balance: 0, additions: 0, withdrawals: 0, net_income: 0, ending_balance: 0, rate_of_return: 0,
-        },
-      };
-
-      setStatementData(statementResult);
-    } catch (error) {
-      console.error("Error generating statement:", error);
-      toast.error("Failed to generate statement");
-    } finally {
-      setLoading(false);
+    if (data) {
+      setStatementData(data);
     }
   };
 
@@ -148,6 +73,14 @@ const ProfessionalStatementGenerator = () => {
   };
 
   const selectedInvestorData = investors.find((inv) => inv.id === selectedInvestor);
+
+  if (investorsLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Loading investors...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -194,10 +127,10 @@ const ProfessionalStatementGenerator = () => {
             <div className="flex items-end">
               <Button
                 onClick={generateStatement}
-                disabled={loading || !selectedInvestor}
+                disabled={generateMutation.isPending || !selectedInvestor}
                 className="w-full"
               >
-                Generate Statement
+                {generateMutation.isPending ? "Generating..." : "Generate Statement"}
               </Button>
             </div>
           </div>
