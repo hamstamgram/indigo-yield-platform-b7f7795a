@@ -11,13 +11,30 @@ import {
 } from "@/services/admin/yieldDistributionService";
 import { toast } from "sonner";
 
+export interface MonthlyReport {
+  id: string;
+  investor_id: string;
+  report_month: string;
+  asset_code: string;
+  opening_balance: number | null;
+  closing_balance: number | null;
+  additions: number | null;
+  withdrawals: number | null;
+  yield_earned: number | null;
+  aum_manual_override: number | null;
+  entry_date: string | null;
+  exit_date: string | null;
+  updated_at: string;
+  edited_by: string | null;
+}
+
 /**
  * Hook to fetch investor monthly reports
  */
 export function useInvestorMonthlyReports(investorId: string) {
-  return useQuery({
+  return useQuery<MonthlyReport[]>({
     queryKey: ["investorMonthlyReports", investorId],
-    queryFn: () => getInvestorMonthlyReports(investorId),
+    queryFn: () => getInvestorMonthlyReports(investorId) as Promise<MonthlyReport[]>,
     enabled: !!investorId,
   });
 }

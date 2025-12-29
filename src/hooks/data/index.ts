@@ -241,4 +241,5 @@ export {
   useInvestorMonthlyReports,
   useCreateMonthlyTemplate,
   useUpdateMonthlyReportField,
+  type MonthlyReport,
 } from "./useMonthlyReports";
