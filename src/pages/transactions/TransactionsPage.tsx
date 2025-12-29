@@ -1,12 +1,11 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, Filter, Receipt } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useState } from "react";
-import { ResponsiveTable } from "@/components/ui/responsive-table";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
+import {
+  Card, CardContent, CardHeader,
+  Button, Input, Badge,
+  ResponsiveTable, EmptyState,
+} from "@/components/ui";
+import { Search, Filter, Receipt } from "lucide-react";
 import { useInvestorTransactionsList } from "@/hooks/data";
 
 export default function TransactionsPage() {

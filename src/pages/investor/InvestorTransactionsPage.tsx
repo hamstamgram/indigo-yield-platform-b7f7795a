@@ -1,20 +1,12 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Card, CardContent, CardHeader, CardTitle,
+  Button, Input, Badge,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  PageLoadingSpinner, ResponsiveTable, EmptyState,
+} from "@/components/ui";
 import { Search, Receipt } from "lucide-react";
-import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
 import { Link } from "react-router-dom";
-import { ResponsiveTable } from "@/components/ui/responsive-table";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Badge } from "@/components/ui/badge";
 import { formatAssetAmount } from "@/utils/assets";
 import { PageHeader } from "@/components/layout";
 import { format } from "date-fns";

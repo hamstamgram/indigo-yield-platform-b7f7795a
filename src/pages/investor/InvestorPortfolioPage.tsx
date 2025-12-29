@@ -1,7 +1,8 @@
 import { usePerAssetStats } from "@/hooks";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ResponsiveTable } from "@/components/ui/responsive-table";
-import { EmptyState } from "@/components/ui/empty-state";
+import {
+  Card, CardContent, CardHeader, CardTitle,
+  ResponsiveTable, EmptyState,
+} from "@/components/ui";
 import { getAssetLogo, getAssetName, formatAssetAmount, formatSignedAssetAmount } from "@/utils/assets";
 import { PageHeader } from "@/components/layout";
 import { Wallet, Loader2 } from "lucide-react";

@@ -1,17 +1,11 @@
 import React, { useState } from "react";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { Loader2, FileText, CheckCircle, AlertCircle, Download, Send, RefreshCw } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  Card, CardContent, CardHeader, CardTitle,
+  Button, Badge,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui";
 import { toast } from "sonner";
 import { generatePDF } from "@/lib/pdf/statementGenerator";
 import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";

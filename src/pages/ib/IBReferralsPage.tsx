@@ -5,20 +5,12 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
-import { EmptyState } from "@/components/ui/empty-state";
+  Card, CardContent, CardHeader, CardTitle,
+  Button, Input, Badge,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  PageLoadingSpinner, EmptyState,
+} from "@/components/ui";
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { Search, Users, ChevronRight, ChevronLeft, UserPlus } from "lucide-react";
