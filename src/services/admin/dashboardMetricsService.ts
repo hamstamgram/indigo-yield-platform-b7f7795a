@@ -174,12 +174,14 @@ export async function getHistoricalFlowData(targetDate: Date): Promise<Map<strin
 
   const flows = new Map<string, FlowData>();
   (snapshot || []).forEach((item: any) => {
-    flows.set(item.fund_id, {
-      fund_id: item.fund_id,
-      daily_inflows: item.daily_inflows || 0,
-      daily_outflows: item.daily_outflows || 0,
-      net_flow_24h: item.net_flow_24h || 0,
-      aum: item.aum || 0,
+    // RPC returns columns with out_ prefix
+    const fundId = item.out_fund_id || item.fund_id;
+    flows.set(fundId, {
+      fund_id: fundId,
+      daily_inflows: item.out_daily_inflows ?? item.daily_inflows ?? 0,
+      daily_outflows: item.out_daily_outflows ?? item.daily_outflows ?? 0,
+      net_flow_24h: item.out_net_flow_24h ?? item.net_flow_24h ?? 0,
+      aum: item.out_aum ?? item.aum ?? 0,
     });
   });
 
