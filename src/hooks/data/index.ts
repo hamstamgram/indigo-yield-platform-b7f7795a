@@ -287,3 +287,20 @@ export {
   type InvestorProfile,
   type MonthlyStatement,
 } from "./useInvestorPortal";
+
+// Dashboard metrics hooks
+export {
+  useFinancialMetrics,
+  useHistoricalFlowData,
+  useFundComposition,
+  useDeliveryStatus,
+  useRetryDelivery,
+  useDeliveryDiagnostics,
+  useDeliveryExclusionBreakdown,
+  type FinancialMetrics,
+  type FlowData,
+  type InvestorComposition,
+  type DeliveryRecord,
+  type DeliveryDiagnostics,
+  type ExclusionBreakdown,
+} from "./useDashboardMetrics";

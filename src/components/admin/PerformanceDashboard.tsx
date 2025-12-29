@@ -1,27 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { TrendingDown, TrendingUp, DollarSign } from "lucide-react";
+import { useFinancialMetrics } from "@/hooks/data/useDashboardMetrics";
 
-interface FinancialMetrics {
-  totalAum: number;
-  totalDeposits: number;
-  totalWithdrawals: number;
-  netFlow: number;
-  history: Array<{
-    date: string;
-    aum: number;
-  }>;
-}
-
-const MetricCard: React.FC<{
+interface MetricCardProps {
   title: string;
   value: number | string;
   trend?: "up" | "down";
   icon?: React.ReactNode;
   subtext?: string;
-}> = ({ title, value, trend, icon, subtext }) => {
+}
+
+const MetricCard: React.FC<MetricCardProps> = ({ title, value, trend, icon, subtext }) => {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -41,64 +32,9 @@ const MetricCard: React.FC<{
 };
 
 export const PerformanceDashboard: React.FC = () => {
-  const [metrics, setMetrics] = useState<FinancialMetrics | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: metrics, isLoading } = useFinancialMetrics();
 
-  useEffect(() => {
-    const fetchMetrics = async () => {
-      try {
-        setLoading(true);
-
-        // Fetch history for Line Chart (using daily_nav)
-        const { data: historyData } = await supabase
-          .from("daily_nav")
-          .select("nav_date, aum")
-          .order("nav_date", { ascending: true });
-
-        // Fetch transactions for Flows (V2 table)
-        const { data: transactions } = await supabase
-          .from("transactions_v2")
-          .select("amount, type, tx_date");
-
-        const totalDeposits =
-          transactions
-            ?.filter((t) => t.type === "DEPOSIT")
-            .reduce((acc, t) => acc + Number(t.amount), 0) || 0;
-        const totalWithdrawals =
-          transactions
-            ?.filter((t) => t.type === "WITHDRAWAL")
-            .reduce((acc, t) => acc + Number(t.amount), 0) || 0;
-
-        // Aggregate AUM history by date (summing all funds for each day)
-        const aumByDate = new Map<string, number>();
-        historyData?.forEach((d) => {
-          const date = d.nav_date;
-          const val = Number(d.aum);
-          aumByDate.set(date, (aumByDate.get(date) || 0) + val);
-        });
-
-        const history = Array.from(aumByDate.entries())
-          .map(([date, aum]) => ({ date, aum }))
-          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-        setMetrics({
-          totalAum: history[history.length - 1]?.aum || 0,
-          totalDeposits,
-          totalWithdrawals,
-          netFlow: totalDeposits - totalWithdrawals,
-          history,
-        });
-      } catch (error) {
-        console.error("Failed to fetch financial metrics:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMetrics();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return <div>Loading Financial Dashboard...</div>;
   }
 

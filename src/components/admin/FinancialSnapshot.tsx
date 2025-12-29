@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, ArrowUpDown, ArrowUp, ArrowDown, Radio, AlertCircle, RefreshCw, TrendingUp } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,35 +24,26 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { useFundAUM, type FundAUMData } from "@/hooks";
+import { useHistoricalFlowData, useFundComposition } from "@/hooks/data/useDashboardMetrics";
 import { formatAUM } from "@/utils/formatters";
 import { toast } from "sonner";
 import { TruncatedText } from "@/components/ui/truncated-text";
-
-interface FlowData {
-  fund_id: string;
-  daily_inflows: number;
-  daily_outflows: number;
-  net_flow_24h: number;
-  aum: number; // Historical AUM for the selected date
-}
-
-interface InvestorComposition {
-  investor_name: string;
-  email: string;
-  balance: number;
-  ownership_pct: number;
-}
 
 type SortColumn = "investor_name" | "email" | "balance" | "ownership_pct";
 type SortDirection = "asc" | "desc";
 
 export const FinancialSnapshot: React.FC = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [flowData, setFlowData] = useState<Map<string, FlowData>>(new Map());
-  const [loadingFlows, setLoadingFlows] = useState(false);
+  const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
+  const [sortColumn, setSortColumn] = useState<SortColumn>("balance");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
   // Use unified AUM hook - single source of truth
   const { funds, isLoading: loadingAUM, isError, error, refetch, lastUpdated } = useFundAUM();
+
+  // Use hooks for flow data and composition
+  const { data: flowData = new Map(), isLoading: loadingFlows } = useHistoricalFlowData(date);
+  const { data: compositionData = [], isLoading: loadingComp } = useFundComposition(selectedFundId);
 
   // Show error toast on fetch failure
   useEffect(() => {
@@ -64,14 +54,10 @@ export const FinancialSnapshot: React.FC = () => {
     }
   }, [isError, error]);
 
-  // Composition State
-  const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
-  const [compositionData, setCompositionData] = useState<InvestorComposition[]>([]);
-  const [loadingComp, setLoadingComp] = useState(false);
-
-  // Sorting State
-  const [sortColumn, setSortColumn] = useState<SortColumn>("balance");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  // Reset selection on date change
+  useEffect(() => {
+    setSelectedFundId(null);
+  }, [date]);
 
   // Handle column sort
   const handleSort = (column: SortColumn) => {
@@ -119,99 +105,11 @@ export const FinancialSnapshot: React.FC = () => {
     });
   }, [compositionData, sortColumn, sortDirection]);
 
-  // Fetch only flow data (inflows/outflows) from historical nav
-  const fetchFlowData = async (targetDate: Date) => {
-    setLoadingFlows(true);
-    try {
-      const formattedDate = format(targetDate, "yyyy-MM-dd");
-
-      const { data: snapshot, error } = await supabase.rpc("get_historical_nav", {
-        target_date: formattedDate,
-      });
-
-      if (error) throw error;
-
-      // Store flows and historical AUM in a map by fund_id
-      const flows = new Map<string, FlowData>();
-      (snapshot || []).forEach((item: any) => {
-        flows.set(item.fund_id, {
-          fund_id: item.fund_id,
-          daily_inflows: item.daily_inflows || 0,
-          daily_outflows: item.daily_outflows || 0,
-          net_flow_24h: item.net_flow_24h || 0,
-          aum: item.aum || 0,
-        });
-      });
-      setFlowData(flows);
-
-      // Reset selection on date change
-      setSelectedFundId(null);
-      setCompositionData([]);
-    } catch (error) {
-      console.error("Error fetching flow data:", error);
-    } finally {
-      setLoadingFlows(false);
-    }
-  };
-
-  const fetchComposition = React.useCallback(
-    async (fundId: string) => {
-      if (!date) return;
-      setLoadingComp(true);
-      try {
-        // Direct query to investor_positions with limit for performance
-        const { data: positions, error } = await supabase
-          .from("investor_positions")
-          .select(`
-            current_value,
-            profile:profiles!investor_id(first_name, last_name, email)
-          `)
-          .eq("fund_id", fundId)
-          .limit(100);
-
-        if (error) throw error;
-
-        // Calculate total for ownership percentage
-        const totalValue = positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0;
-
-        const comp: InvestorComposition[] = positions?.map((p: any) => ({
-          investor_name:
-            `${p.profile?.first_name || ""} ${p.profile?.last_name || ""}`.trim() ||
-            p.profile?.email ||
-            "Unknown",
-          email: p.profile?.email || "",
-          balance: p.current_value || 0,
-          ownership_pct: totalValue > 0 ? ((p.current_value || 0) / totalValue) * 100 : 0,
-        })) || [];
-
-        setCompositionData(comp);
-      } catch (error) {
-        console.error("Error fetching composition", error);
-      } finally {
-        setLoadingComp(false);
-      }
-    },
-    [date]
-  );
-
-  useEffect(() => {
-    if (date) {
-      fetchFlowData(date);
-    }
-  }, [date]);
-
-  useEffect(() => {
-    if (selectedFundId) {
-      fetchComposition(selectedFundId);
-    }
-  }, [selectedFundId, date, fetchComposition]);
-
   const selectedFund = funds.find((f) => f.id === selectedFundId);
   const selectedFlows = selectedFundId ? flowData.get(selectedFundId) : null;
 
   const handleCloseDrawer = () => {
     setSelectedFundId(null);
-    setCompositionData([]);
   };
 
   return (
@@ -459,7 +357,16 @@ export const FinancialSnapshot: React.FC = () => {
                     </div>
                   </TableHead>
                   <TableHead
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                    className="cursor-pointer hover:bg-muted/50 select-none"
+                    onClick={() => handleSort("email")}
+                  >
+                    <div className="flex items-center">
+                      Email
+                      {getSortIcon("email")}
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50 select-none text-right"
                     onClick={() => handleSort("balance")}
                   >
                     <div className="flex items-center justify-end">
@@ -468,11 +375,11 @@ export const FinancialSnapshot: React.FC = () => {
                     </div>
                   </TableHead>
                   <TableHead
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                    className="cursor-pointer hover:bg-muted/50 select-none text-right"
                     onClick={() => handleSort("ownership_pct")}
                   >
                     <div className="flex items-center justify-end">
-                      Share
+                      Ownership
                       {getSortIcon("ownership_pct")}
                     </div>
                   </TableHead>
@@ -481,44 +388,33 @@ export const FinancialSnapshot: React.FC = () => {
               <TableBody>
                 {loadingComp ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center py-8">
-                      Loading data...
+                    <TableCell colSpan={4} className="text-center py-8">
+                      Loading...
+                    </TableCell>
+                  </TableRow>
+                ) : sortedCompositionData.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      No investors found
                     </TableCell>
                   </TableRow>
                 ) : (
                   sortedCompositionData.map((investor, idx) => (
                     <TableRow key={idx}>
+                      <TableCell className="font-medium">
+                        <TruncatedText text={investor.investor_name} maxLength={20} />
+                      </TableCell>
                       <TableCell>
-                        <div className="max-w-[200px]">
-                          <TruncatedText 
-                            text={investor.investor_name}
-                            className="font-medium"
-                            maxWidth="200px"
-                          />
-                          <TruncatedText 
-                            text={investor.email}
-                            className="text-xs text-muted-foreground"
-                            maxWidth="200px"
-                          />
-                        </div>
+                        <TruncatedText text={investor.email} maxLength={25} />
                       </TableCell>
                       <TableCell className="text-right font-mono">
                         {selectedFund && formatAUM(investor.balance, selectedFund.asset)}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <Badge variant="outline" className="font-mono">
-                          {investor.ownership_pct.toFixed(2)}%
-                        </Badge>
+                      <TableCell className="text-right font-mono">
+                        {investor.ownership_pct.toFixed(2)}%
                       </TableCell>
                     </TableRow>
                   ))
-                )}
-                {sortedCompositionData.length === 0 && !loadingComp && (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
-                      No investors found with a balance.
-                    </TableCell>
-                  </TableRow>
                 )}
               </TableBody>
             </Table>

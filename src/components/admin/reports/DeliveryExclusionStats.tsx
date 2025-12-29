@@ -1,7 +1,4 @@
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { QUERY_KEYS } from "@/constants/queryKeys";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -15,7 +12,6 @@ import {
 import {
   AlertTriangle,
   CheckCircle,
-  Mail,
   MailX,
   FileText,
   UserX,
@@ -24,97 +20,14 @@ import {
   HelpCircle,
   Info,
 } from "lucide-react";
+import { useDeliveryExclusionBreakdown } from "@/hooks/data/useDashboardMetrics";
 
 interface DeliveryExclusionStatsProps {
   periodId: string;
 }
 
-interface ExclusionBreakdown {
-  totalInvestors: number;
-  statementsGenerated: number;
-  eligibleForDelivery: number;
-  alreadySent: number;
-  queued: number;
-  failed: number;
-  skipped: number;
-  missingEmail: number;
-  noStatement: number;
-  cancelled: number;
-}
-
 export function DeliveryExclusionStats({ periodId }: DeliveryExclusionStatsProps) {
-  const { data: breakdown, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.deliveryExclusionBreakdown(periodId),
-    queryFn: async (): Promise<ExclusionBreakdown> => {
-      // 1. Get total investor count (active investors)
-      const investorResult = await supabase
-        .from("profiles")
-        .select("id", { count: "exact", head: true })
-        .match({ role: "investor", status: "active" });
-      const totalInvestors = investorResult.count ?? 0;
-
-      // 2. Get statements generated for this period
-      const statementResult = await supabase
-        .from("generated_statements")
-        .select("id", { count: "exact", head: true })
-        .match({ period_id: periodId });
-      const statementsGenerated = statementResult.count ?? 0;
-
-      // 3. Get delivery statuses breakdown
-      const { data: deliveryData } = await supabase
-        .from("statement_email_delivery")
-        .select("status, error_message")
-        .eq("period_id", periodId);
-
-      const deliveries = deliveryData || [];
-      
-      // Count by status
-      const statusCounts = {
-        queued: 0,
-        sending: 0,
-        sent: 0,
-        delivered: 0,
-        failed: 0,
-        skipped: 0,
-        cancelled: 0,
-        bounced: 0,
-        complained: 0,
-      };
-
-      let missingEmail = 0;
-
-      deliveries.forEach((d) => {
-        const status = d.status?.toLowerCase() || "unknown";
-        if (status in statusCounts) {
-          statusCounts[status as keyof typeof statusCounts]++;
-        }
-        // Track missing email specifically
-        if (status === "skipped" && d.error_message === "missing_email") {
-          missingEmail++;
-        }
-      });
-
-      // Calculate derived values
-      const alreadySent = statusCounts.sent + statusCounts.delivered;
-      const noStatement = (totalInvestors || 0) - (statementsGenerated || 0);
-      const eligibleForDelivery = (statementsGenerated || 0) - alreadySent - missingEmail - statusCounts.cancelled;
-
-      return {
-        totalInvestors: totalInvestors || 0,
-        statementsGenerated: statementsGenerated || 0,
-        eligibleForDelivery: Math.max(0, eligibleForDelivery),
-        alreadySent,
-        queued: statusCounts.queued + statusCounts.sending,
-        failed: statusCounts.failed + statusCounts.bounced + statusCounts.complained,
-        skipped: statusCounts.skipped,
-        missingEmail,
-        noStatement: Math.max(0, noStatement),
-        cancelled: statusCounts.cancelled,
-      };
-    },
-    enabled: !!periodId,
-    refetchInterval: 10000, // Refresh every 10 seconds
-  });
+  const { data: breakdown, isLoading } = useDeliveryExclusionBreakdown(periodId);
 
   if (isLoading) {
     return (
@@ -136,7 +49,6 @@ export function DeliveryExclusionStats({ periodId }: DeliveryExclusionStatsProps
 
   if (!breakdown) return null;
 
-  const totalAccounted = breakdown.alreadySent + breakdown.queued + breakdown.missingEmail + breakdown.cancelled + breakdown.failed;
   const deliveryRate = breakdown.statementsGenerated > 0
     ? Math.round((breakdown.alreadySent / breakdown.statementsGenerated) * 100)
     : 0;
