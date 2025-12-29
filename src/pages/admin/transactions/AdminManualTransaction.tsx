@@ -27,6 +27,12 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import {
+  useTransactionFormInvestors,
+  useTransactionFormFunds,
+  useTransactionFormAumCheck,
+  useTransactionFormBalanceCheck,
+} from "@/hooks/data/admin";
 
 // Form Schema - aligned with AddTransactionDialog
 const transactionSchema = z.object({
@@ -44,23 +50,20 @@ const transactionSchema = z.object({
 type TransactionFormValues = z.infer<typeof transactionSchema>;
 
 export default function AdminManualTransaction() {
-  const [investors, setInvestors] = useState<{ id: string; name: string; email: string }[]>([]);
-  const [funds, setFunds] = useState<{ id: string; name: string; code: string; asset: string }[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentBalance, setCurrentBalance] = useState<number | null>(null);
-  const [hasTransactionHistory, setHasTransactionHistory] = useState<boolean>(false);
-  const [isCheckingBalance, setIsCheckingBalance] = useState(false);
   
-  // AUM check state
-  const [aumExists, setAumExists] = useState<boolean | null>(null);
-  const [isCheckingAum, setIsCheckingAum] = useState(false);
+  // AUM form state
   const [showAumForm, setShowAumForm] = useState(false);
   const [aumValue, setAumValue] = useState<string>("");
   const [isRecordingAum, setIsRecordingAum] = useState(false);
+  const [aumExists, setAumExists] = useState<boolean | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Use hooks for data fetching
+  const { data: investors = [], isLoading: investorsLoading } = useTransactionFormInvestors();
+  const { data: funds = [], isLoading: fundsLoading } = useTransactionFormFunds();
 
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
@@ -78,42 +81,26 @@ export default function AdminManualTransaction() {
   const txnType = form.watch("type");
   const txDate = form.watch("txDate");
 
-  // Check AUM existence when fund and date are selected
+  // Use hooks for AUM and balance checks
+  const { data: aumCheckResult, isLoading: isCheckingAum } = useTransactionFormAumCheck(
+    selectedFundId,
+    txDate
+  );
+  const { data: balanceCheck, isLoading: isCheckingBalance } = useTransactionFormBalanceCheck(
+    selectedInvestorId,
+    selectedFundId
+  );
+
+  const currentBalance = balanceCheck?.currentBalance ?? null;
+  const hasTransactionHistory = balanceCheck?.hasTransactionHistory ?? false;
+
+  // Sync AUM check result with local state
   useEffect(() => {
-    const checkAumExists = async () => {
-      if (!selectedFundId || !txDate) {
-        setAumExists(null);
-        setShowAumForm(false);
-        return;
-      }
-      
-      setIsCheckingAum(true);
-      try {
-        const { data, error } = await supabase
-          .from("fund_daily_aum")
-          .select("id")
-          .eq("fund_id", selectedFundId)
-          .eq("aum_date", txDate)
-          .eq("purpose", "transaction")
-          .maybeSingle();
-        
-        if (error) {
-          console.error("Error checking AUM:", error);
-          setAumExists(null);
-        } else {
-          setAumExists(!!data);
-        }
-      } catch (error) {
-        console.error("Error checking AUM:", error);
-        setAumExists(null);
-      } finally {
-        setIsCheckingAum(false);
-      }
-    };
-    
-    checkAumExists();
+    if (aumCheckResult !== undefined) {
+      setAumExists(aumCheckResult);
+    }
     setShowAumForm(false);
-  }, [selectedFundId, txDate]);
+  }, [aumCheckResult, selectedFundId, txDate]);
 
   // Handle AUM recording
   const handleRecordAum = async () => {
@@ -171,47 +158,6 @@ export default function AdminManualTransaction() {
     }
   };
 
-  // Check investor's current balance and transaction history when investor/fund changes
-  useEffect(() => {
-    const checkBalanceAndHistory = async () => {
-      if (!selectedInvestorId || !selectedFundId) {
-        setCurrentBalance(null);
-        setHasTransactionHistory(false);
-        return;
-      }
-      
-      setIsCheckingBalance(true);
-      try {
-        // Check current position balance
-        const { data: positionData } = await supabase
-          .from("investor_positions")
-          .select("current_value")
-          .eq("investor_id", selectedInvestorId)
-          .eq("fund_id", selectedFundId)
-          .maybeSingle();
-        
-        // Also check for any existing transaction history (deposits indicate prior investment)
-        const { count: txCount } = await supabase
-          .from("transactions_v2")
-          .select("id", { count: "exact", head: true })
-          .eq("investor_id", selectedInvestorId)
-          .eq("fund_id", selectedFundId)
-          .eq("type", "DEPOSIT");
-        
-        setCurrentBalance(positionData?.current_value ?? 0);
-        setHasTransactionHistory((txCount ?? 0) > 0);
-      } catch (error) {
-        console.error("Error checking balance:", error);
-        setCurrentBalance(0);
-        setHasTransactionHistory(false);
-      } finally {
-        setIsCheckingBalance(false);
-      }
-    };
-    
-    checkBalanceAndHistory();
-  }, [selectedInvestorId, selectedFundId]);
-
   // Auto-select transaction type based on balance (only auto-switch away from invalid FIRST_INVESTMENT)
   useEffect(() => {
     if (currentBalance === null || isCheckingBalance) return;
@@ -226,49 +172,7 @@ export default function AdminManualTransaction() {
   const isFirstInvestment = currentBalance !== null && currentBalance === 0 && !hasTransactionHistory;
   const hasExistingPosition = currentBalance !== null && (currentBalance > 0 || hasTransactionHistory);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch Investors directly from profiles table
-        const { data: profilesData, error: profilesError } = await supabase
-          .from("profiles")
-          .select("id, first_name, last_name, email")
-          .eq("status", "active")
-          .eq("is_admin", false)
-          .order("first_name");
-
-        if (profilesError) throw profilesError;
-
-        // Fetch Funds
-        const { data: fundsData, error: fundsError } = await supabase
-          .from("funds")
-          .select("id, name, code, asset")
-          .eq("status", "active");
-
-        if (fundsError) throw fundsError;
-
-        if (profilesData) {
-          setInvestors(
-            profilesData.map((p) => ({
-              id: p.id,
-              name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
-              email: p.email,
-            }))
-          );
-        }
-
-        if (fundsData) {
-          setFunds(fundsData);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+  const isLoading = investorsLoading || fundsLoading;
 
   const onSubmit = async (data: TransactionFormValues) => {
     setIsSubmitting(true);
@@ -341,7 +245,6 @@ export default function AdminManualTransaction() {
         investorId: "",
         fundId: "",
       });
-      setCurrentBalance(null);
       setAumExists(null);
       setShowAumForm(false);
       setAumValue("");

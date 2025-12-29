@@ -80,3 +80,9 @@ export { reportRecipientsService } from "./reportRecipientsService";
 
 // IB users service (new)
 export { ibUsersService, type IBUser } from "./ibUsersService";
+
+// Transaction form data service (new)
+export { transactionFormDataService, type TransactionFormInvestor, type TransactionFormFund, type BalanceCheckResult } from "./transactionFormDataService";
+
+// Investor detail service (new)
+export { investorDetailService, type InvestorDetailData, type OpsIndicators } from "./investorDetailService";
