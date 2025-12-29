@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import {
+  Card, CardContent, CardHeader, CardTitle,
+  Button, Badge,
+} from "@/components/ui";
 import { Bell, BellOff, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks";
 import { notificationService } from "@/services/shared";

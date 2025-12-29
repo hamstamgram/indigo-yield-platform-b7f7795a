@@ -1,6 +1,8 @@
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card, CardContent, CardHeader, CardTitle,
+  Tabs, TabsContent, TabsList, TabsTrigger,
+} from "@/components/ui";
 import { BarChart3, Calendar, Database, TrendingUp } from "lucide-react";
 import BulkDataGenerator from "./BulkDataGenerator";
 import { useHistoricalDataSummary } from "@/hooks/data/useReportData";

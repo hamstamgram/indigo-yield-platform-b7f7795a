@@ -1,6 +1,8 @@
 import React from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import {
+  Card, CardHeader, CardTitle, CardContent,
+  Button,
+} from "@/components/ui";
 import { Link } from "react-router-dom";
 
 const QuickLinks: React.FC = () => {

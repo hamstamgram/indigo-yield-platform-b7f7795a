@@ -4,16 +4,11 @@
  * All values are token-denominated (no USD conversion)
  */
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+  Card, CardContent, CardHeader, CardTitle, CardDescription,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Badge,
+} from "@/components/ui";
 import { Loader2, Coins, Users, TrendingUp } from "lucide-react";
 import { getAssetLogo } from "@/utils/assets";
 import {

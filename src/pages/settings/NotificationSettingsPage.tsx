@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Switch, Label, Button, Separator,
+} from "@/components/ui";
 import { Bell, Mail, FileText, TrendingUp, AlertTriangle } from "lucide-react";
 import {
   useNotificationPreferences,

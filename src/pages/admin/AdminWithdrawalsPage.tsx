@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import {
+  Card, CardContent, CardHeader, CardTitle,
+  Button,
+} from "@/components/ui";
 import { 
   WithdrawalStats as WithdrawalStatsComponent, 
   WithdrawalsTable, 

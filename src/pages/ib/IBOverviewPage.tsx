@@ -4,10 +4,12 @@
  */
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card, CardContent, CardHeader, CardTitle,
+  Tabs, TabsList, TabsTrigger,
+  PageLoadingSpinner,
+} from "@/components/ui";
 import { formatAssetAmount } from "@/utils/assets";
-import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
 import { BarChart3, Users, Coins, TrendingUp } from "lucide-react";
 import {
   useIBCommissionSummary,
