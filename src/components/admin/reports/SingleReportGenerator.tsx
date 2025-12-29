@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -12,103 +12,74 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks";
 import { Loader2, FileText, Download, Eye, Send } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { ReportsApi } from "@/services/api/reportsApi";
-import { useQuery } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import { renderReportToHtml } from "@/components/reports/InvestorReportTemplate";
-import { QUERY_KEYS } from "@/constants/queryKeys";
 import { InvestorData, InvestorFund } from "@/types/investor-report";
-import { InvestorRef } from "@/types/domains/investor";
-
-// Use canonical InvestorRef type
-type Investor = InvestorRef;
+import {
+  useActiveInvestorsForReports,
+  useStatementPeriod,
+  useInvestorReportData,
+  useSendInvestorReport,
+} from "@/hooks/data/useReportData";
 
 export function SingleReportGenerator() {
   const [selectedInvestor, setSelectedInvestor] = useState<string>("");
   const [reportDate, setReportDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
 
-  // Fetch Active Investors (Profiles)
-  const { data: investors, isLoading: isLoadingInvestors } = useQuery({
-    queryKey: QUERY_KEYS.activeInvestors,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, email")
-        .eq("status", "active")
-        .eq("is_admin", false)
-        .order("first_name");
+  // Parse year/month from reportDate
+  const { year, month } = useMemo(() => {
+    const [yearStr, monthStr] = reportDate.split("-");
+    return { year: parseInt(yearStr), month: parseInt(monthStr) };
+  }, [reportDate]);
 
-      if (error) throw error;
-      return data.map((p) => ({
-        id: p.id,
-        name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
-        email: p.email,
-      })) as Investor[];
-    },
-  });
+  // Data hooks
+  const { investors, isLoading: isLoadingInvestors } = useActiveInvestorsForReports();
+  const { period } = useStatementPeriod(year, month);
+  const { performanceData } = useInvestorReportData(
+    selectedInvestor,
+    period?.id || ""
+  );
+  const { sendReport, isSending } = useSendInvestorReport();
 
-  // Helper formatters for the new template
+  // Get selected investor details
+  const selectedInvestorData = useMemo(
+    () => investors.find((i) => i.id === selectedInvestor),
+    [investors, selectedInvestor]
+  );
+
+  // Helper formatters for the template
   const formatValue = (val: number | null | undefined): string => {
-    if (val === null || val === undefined || val === 0) return '-';
-    return val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (val === null || val === undefined || val === 0) return "-";
+    return val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
   const formatNetIncome = (val: number | null | undefined): string => {
-    if (val === null || val === undefined || val === 0) return '-';
-    const formatted = Math.abs(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (val === null || val === undefined || val === 0) return "-";
+    const formatted = Math.abs(val).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
     return val >= 0 ? `+${formatted}` : `-${formatted}`;
   };
 
   const formatRate = (val: number | null | undefined): string => {
-    if (val === null || val === undefined || val === 0) return '-';
+    if (val === null || val === undefined || val === 0) return "-";
     const pct = (val * 100).toFixed(2);
     return val >= 0 ? `+${pct}%` : `${pct}%`;
   };
 
-  // Fetch Report Data for HTML Preview/Sending
-  const fetchReportHtmlData = async (): Promise<{ investorData: InvestorData; investor: Investor } | null> => {
-    if (!selectedInvestor || !reportDate) return null;
+  // Build investor data for template
+  const buildInvestorData = (): InvestorData | null => {
+    if (!selectedInvestorData || !period || performanceData.length === 0) return null;
 
-    // 1. Get Investor Details
-    const investor = investors?.find((i) => i.id === selectedInvestor);
-    if (!investor) throw new Error("Investor not found");
-
-    const [yearStr, monthStr] = reportDate.split("-");
-    const year = parseInt(yearStr);
-    const month = parseInt(monthStr);
-
-    // 2. Get Statement Period
-    const { data: period } = await supabase
-      .from("statement_periods")
-      .select("id, period_end_date")
-      .eq("year", year)
-      .eq("month", month)
-      .maybeSingle();
-
-    if (!period) throw new Error(`No statement period found for ${reportDate}`);
-
-    // 3. Fetch Performance Reports (V2)
-    const { data: reports, error } = await (supabase as any)
-      .from("investor_fund_performance")
-      .select("*")
-      .eq("investor_id", selectedInvestor)
-      .eq("period_id", period.id);
-
-    if (error) throw error;
-    if (!reports || reports.length === 0)
-      throw new Error(`No report data found for ${reportDate}`);
-
-    // 4. Map to InvestorData structure (new format)
-    const investorData: InvestorData = {
-      name: investor.name,
+    return {
+      name: selectedInvestorData.name,
       reportDate: format(parseISO(period.period_end_date), "MMMM d, yyyy"),
-      funds: reports.map((r: any): InvestorFund => {
-        // Normalize fund name to match FUND_ICONS keys
-        const assetCode = r.fund_name?.toUpperCase() || 'USDC';
+      funds: performanceData.map((r: any): InvestorFund => {
+        const assetCode = r.fund_name?.toUpperCase() || "USDC";
         const fundName = `${assetCode} YIELD FUND`;
 
         return {
@@ -141,17 +112,23 @@ export function SingleReportGenerator() {
         };
       }),
     };
-
-    return { investorData, investor };
   };
 
   const handlePreviewEmail = async () => {
     try {
       setIsGenerating(true);
-      const data = await fetchReportHtmlData();
-      if (!data) return;
+      const investorData = buildInvestorData();
+      
+      if (!investorData) {
+        toast({
+          title: "No Data",
+          description: `No report data found for ${reportDate}`,
+          variant: "destructive",
+        });
+        return;
+      }
 
-      const html = renderReportToHtml(data.investorData);
+      const html = renderReportToHtml(investorData);
       const win = window.open("", "_blank");
       if (win) {
         win.document.write(html);
@@ -169,39 +146,25 @@ export function SingleReportGenerator() {
   };
 
   const handleSendEmail = async () => {
-    try {
-      setIsSending(true);
-      const data = await fetchReportHtmlData();
-      if (!data) return;
-
-      const htmlContent = renderReportToHtml(data.investorData);
-
-      // Send via Edge Function
-      const { error } = await supabase.functions.invoke("send-investor-report", {
-        body: {
-          to: data.investor.email,
-          investorName: data.investor.name,
-          reportMonth: reportDate.substring(0, 7),
-          htmlContent: htmlContent,
-        },
-      });
-
-      if (error) throw error;
-
+    const investorData = buildInvestorData();
+    
+    if (!investorData || !selectedInvestorData) {
       toast({
-        title: "Email Sent",
-        description: `Report sent to ${data.investor.email}`,
-      });
-    } catch (error: any) {
-      console.error("Send failed:", error);
-      toast({
-        title: "Send Failed",
-        description: error.message,
+        title: "No Data",
+        description: `No report data found for ${reportDate}`,
         variant: "destructive",
       });
-    } finally {
-      setIsSending(false);
+      return;
     }
+
+    const htmlContent = renderReportToHtml(investorData);
+
+    await sendReport({
+      to: selectedInvestorData.email,
+      investorName: selectedInvestorData.name,
+      reportMonth: reportDate.substring(0, 7),
+      htmlContent,
+    });
   };
 
   const handleGeneratePDF = async () => {
@@ -217,13 +180,12 @@ export function SingleReportGenerator() {
     setIsGenerating(true);
 
     try {
-      // Determine the reporting period (First to Last day of the selected month)
       const dateObj = new Date(reportDate);
-      const year = dateObj.getFullYear();
-      const month = dateObj.getMonth();
+      const reportYear = dateObj.getFullYear();
+      const reportMonth = dateObj.getMonth();
 
-      const startDate = new Date(year, month, 1).toISOString();
-      const endDate = new Date(year, month + 1, 0).toISOString(); // Last day of month
+      const startDate = new Date(reportYear, reportMonth, 1).toISOString();
+      const endDate = new Date(reportYear, reportMonth + 1, 0).toISOString();
 
       const result = await ReportsApi.generateReportNow({
         reportType: "monthly_statement",
@@ -240,7 +202,6 @@ export function SingleReportGenerator() {
       });
 
       if (result.success && result.data) {
-        // Trigger Download
         const blob = new Blob([result.data as BlobPart], { type: "application/pdf" });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -270,6 +231,8 @@ export function SingleReportGenerator() {
     }
   };
 
+  const isActionDisabled = isGenerating || isSending || !selectedInvestor;
+
   return (
     <Card>
       <CardHeader>
@@ -297,10 +260,8 @@ export function SingleReportGenerator() {
                 />
               </SelectTrigger>
               <SelectContent>
-                {investors?.map((inv) => (
+                {investors.map((inv) => (
                   <SelectItem key={inv.id} value={inv.id}>
-                    {" "}
-                    {/* NOTE: This passes Investor ID. The API needs to handle it or we resolve Profile ID */}
                     {inv.name}
                   </SelectItem>
                 ))}
@@ -313,7 +274,7 @@ export function SingleReportGenerator() {
             <Label>Report Month</Label>
             <Input
               type="month"
-              value={reportDate.substring(0, 7)} // YYYY-MM format
+              value={reportDate.substring(0, 7)}
               onChange={(e) => setReportDate(e.target.value + "-01")}
             />
           </div>
@@ -323,7 +284,7 @@ export function SingleReportGenerator() {
           <Button
             variant="outline"
             onClick={handlePreviewEmail}
-            disabled={isGenerating || isSending || !selectedInvestor}
+            disabled={isActionDisabled}
           >
             <Eye className="mr-2 h-4 w-4" />
             Preview Email
@@ -332,7 +293,7 @@ export function SingleReportGenerator() {
           <Button
             variant="outline"
             onClick={handleSendEmail}
-            disabled={isGenerating || isSending || !selectedInvestor}
+            disabled={isActionDisabled}
           >
             {isSending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -344,7 +305,7 @@ export function SingleReportGenerator() {
 
           <Button
             onClick={handleGeneratePDF}
-            disabled={isGenerating || isSending || !selectedInvestor}
+            disabled={isActionDisabled}
             className="min-w-[150px]"
           >
             {isGenerating ? (

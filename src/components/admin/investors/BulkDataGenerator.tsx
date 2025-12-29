@@ -7,79 +7,36 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Plus, RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
-import { useToast } from "@/hooks";
-import {
-  generateMissingTemplates,
-  type BulkGenerateOptions,
-} from "@/services/shared/historicalDataService";
-
-interface GenerationResult {
-  success: boolean;
-  generated: number;
-  errors: string[];
-}
+import { useGenerateTemplates } from "@/hooks/data/useReportData";
 
 const BulkDataGenerator: React.FC = () => {
-  const [loading, setLoading] = useState(false);
   const [startMonth, setStartMonth] = useState("2024-06");
   const [endMonth, setEndMonth] = useState("2024-09");
-  const [result, setResult] = useState<GenerationResult | null>(null);
   const [progress, setProgress] = useState(0);
-  const { toast } = useToast();
+
+  const { generateTemplates, isGenerating, result, reset } = useGenerateTemplates();
 
   const handleGenerate = async () => {
+    setProgress(0);
+
+    // Simulate progress (real implementation would have actual progress updates)
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => Math.min(prev + 10, 90));
+    }, 500);
+
     try {
-      setLoading(true);
-      setProgress(0);
-      setResult(null);
-
-      // Simulate progress (real implementation would have actual progress updates)
-      const progressInterval = setInterval(() => {
-        setProgress((prev) => Math.min(prev + 10, 90));
-      }, 500);
-
-      const options: BulkGenerateOptions = {
-        startMonth: startMonth,
-        endMonth: endMonth,
-      };
-
-      const generateResult = await generateMissingTemplates(options);
-
-      clearInterval(progressInterval);
-      setProgress(100);
-      setResult(generateResult);
-
-      if (generateResult.success) {
-        toast({
-          title: "Success",
-          description: `Generated ${generateResult.generated} historical report templates`,
-        });
-      } else {
-        toast({
-          title: "Partial Success",
-          description: `Generated ${generateResult.generated} templates with ${generateResult.errors.length} errors`,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error generating templates:", error);
-      toast({
-        title: "Error",
-        description: "Failed to generate historical report templates",
-        variant: "destructive",
-      });
-      setResult({
-        success: false,
-        generated: 0,
-        errors: [error instanceof Error ? error.message : "Unknown error"],
+      await generateTemplates({
+        startMonth,
+        endMonth,
       });
     } finally {
-      setLoading(false);
+      clearInterval(progressInterval);
+      setProgress(100);
     }
   };
 
   const resetForm = () => {
-    setResult(null);
+    reset();
     setProgress(0);
     setStartMonth("2024-06");
     setEndMonth("2024-09");
@@ -106,7 +63,7 @@ const BulkDataGenerator: React.FC = () => {
               type="month"
               value={startMonth}
               onChange={(e) => setStartMonth(e.target.value)}
-              disabled={loading}
+              disabled={isGenerating}
             />
           </div>
           <div className="space-y-2">
@@ -116,13 +73,13 @@ const BulkDataGenerator: React.FC = () => {
               type="month"
               value={endMonth}
               onChange={(e) => setEndMonth(e.target.value)}
-              disabled={loading}
+              disabled={isGenerating}
             />
           </div>
         </div>
 
         {/* Progress */}
-        {loading && (
+        {isGenerating && (
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>Generating templates...</span>
@@ -175,10 +132,10 @@ const BulkDataGenerator: React.FC = () => {
         <div className="flex gap-2">
           <Button
             onClick={handleGenerate}
-            disabled={loading || !startMonth || !endMonth}
+            disabled={isGenerating || !startMonth || !endMonth}
             className="flex-1"
           >
-            {loading ? (
+            {isGenerating ? (
               <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
             ) : (
               <Plus className="h-4 w-4 mr-2" />
@@ -187,7 +144,7 @@ const BulkDataGenerator: React.FC = () => {
           </Button>
 
           {result && (
-            <Button variant="outline" onClick={resetForm} disabled={loading}>
+            <Button variant="outline" onClick={resetForm} disabled={isGenerating}>
               Reset
             </Button>
           )}

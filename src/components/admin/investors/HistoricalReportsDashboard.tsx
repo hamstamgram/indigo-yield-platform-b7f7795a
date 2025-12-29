@@ -1,43 +1,12 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, Calendar, Database, TrendingUp } from "lucide-react";
-import { useToast } from "@/hooks";
 import BulkDataGenerator from "./BulkDataGenerator";
-import { getHistoricalDataSummary } from "@/services/shared/historicalDataService";
+import { useHistoricalDataSummary } from "@/hooks/data/useReportData";
 
 const HistoricalReportsDashboard: React.FC = () => {
-  const [, setLoading] = useState(false);
-  const [summary, setSummary] = useState({
-    totalReports: 0,
-    latestMonth: null as string | null,
-    earliestMonth: null as string | null,
-    investorCount: 0,
-    assetCount: 0,
-  });
-  const { toast } = useToast();
-
-  // Fetch summary data
-  const fetchSummary = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await getHistoricalDataSummary();
-      setSummary(data);
-    } catch (error) {
-      console.error("Error fetching summary:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load historical data summary",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
-
-  useEffect(() => {
-    fetchSummary();
-  }, [fetchSummary]);
+  const { summary, isLoading } = useHistoricalDataSummary();
 
   return (
     <div className="space-y-6">
@@ -56,7 +25,9 @@ const HistoricalReportsDashboard: React.FC = () => {
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary.totalReports.toLocaleString()}</div>
+            <div className="text-2xl font-bold">
+              {isLoading ? "..." : summary.totalReports.toLocaleString()}
+            </div>
             <p className="text-xs text-muted-foreground">Historical data points</p>
           </CardContent>
         </Card>
@@ -94,7 +65,9 @@ const HistoricalReportsDashboard: React.FC = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary.investorCount}</div>
+            <div className="text-2xl font-bold">
+              {isLoading ? "..." : summary.investorCount}
+            </div>
             <p className="text-xs text-muted-foreground">With historical data</p>
           </CardContent>
         </Card>
@@ -105,7 +78,9 @@ const HistoricalReportsDashboard: React.FC = () => {
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary.assetCount}</div>
+            <div className="text-2xl font-bold">
+              {isLoading ? "..." : summary.assetCount}
+            </div>
             <p className="text-xs text-muted-foreground">Tracked assets</p>
           </CardContent>
         </Card>
