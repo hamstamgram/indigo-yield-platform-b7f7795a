@@ -3,7 +3,6 @@
  * Top-level summary with key metrics, quick actions, and guided empty state
  */
 
-import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,7 +20,7 @@ import {
   AlertCircle,
   Send,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useInvestorOverview } from "@/hooks/data/useInvestorOverview";
 import { format } from "date-fns";
 
 interface InvestorOverviewTabProps {
@@ -34,17 +33,6 @@ interface InvestorOverviewTabProps {
   onNavigateToTab?: (tab: string) => void;
 }
 
-interface OverviewData {
-  totalFunds: number;
-  tokenBalances: { asset: string; amount: number; fundName: string }[];
-  lastActivityDate: string | null;
-  pendingWithdrawals: number;
-  lastReportPeriod: string | null;
-  ibParentName: string | null;
-  feeScheduleStatus: "active" | "default";
-  hasPositions: boolean;
-}
-
 export function InvestorOverviewTab({
   investorId,
   investorName,
@@ -55,131 +43,9 @@ export function InvestorOverviewTab({
   onNavigateToTab,
 }: InvestorOverviewTabProps) {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<OverviewData | null>(null);
+  const { data, isLoading, error } = useInvestorOverview(investorId);
 
-  const loadOverviewData = useCallback(async () => {
-    setLoading(true);
-    try {
-      // Fetch positions with fund info
-      const { data: positions, error: posError } = await supabase
-        .from("investor_positions")
-        .select(`
-          fund_id,
-          current_value,
-          shares,
-          funds!inner(name, asset, status)
-        `)
-        .eq("investor_id", investorId);
-
-      if (posError) throw posError;
-
-      const activePositions = (positions || []).filter(
-        (p: any) => p.funds?.status === "active" && p.current_value > 0
-      );
-
-      // Fetch pending withdrawals count
-      const { count: pendingCount, error: wdError } = await supabase
-        .from("withdrawal_requests")
-        .select("id", { count: "exact", head: true })
-        .eq("investor_id", investorId)
-        .eq("status", "pending");
-
-      if (wdError) console.warn("Failed to fetch withdrawals:", wdError);
-
-      // Fetch last transaction date
-      const { data: lastTx, error: txError } = await supabase
-        .from("transactions_v2")
-        .select("tx_date")
-        .eq("investor_id", investorId)
-        .order("tx_date", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (txError) console.warn("Failed to fetch last transaction:", txError);
-
-      // Fetch last generated report
-      const { data: lastReport, error: reportError } = await supabase
-        .from("generated_statements")
-        .select("period_id")
-        .eq("investor_id", investorId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (reportError) console.warn("Failed to fetch last report:", reportError);
-
-      // Fetch IB parent info
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("ib_parent_id")
-        .eq("id", investorId)
-        .maybeSingle();
-
-      if (profileError) console.warn("Failed to fetch profile:", profileError);
-
-      let ibParentName: string | null = null;
-      if (profile?.ib_parent_id) {
-        const { data: parentProfile } = await supabase
-          .from("profiles")
-          .select("first_name, last_name")
-          .eq("id", profile.ib_parent_id)
-          .maybeSingle();
-        if (parentProfile) {
-          ibParentName = [parentProfile.first_name, parentProfile.last_name]
-            .filter(Boolean)
-            .join(" ") || null;
-        }
-      }
-
-      // Fetch fee schedule status
-      const { data: feeSchedule, error: feeError } = await supabase
-        .from("investor_fee_schedule")
-        .select("id")
-        .eq("investor_id", investorId)
-        .limit(1);
-
-      if (feeError) console.warn("Failed to fetch fee schedule:", feeError);
-
-      // Build token balances grouped by asset
-      const tokenBalances = activePositions.map((p: any) => ({
-        asset: p.funds?.asset || "Unknown",
-        amount: p.current_value || 0,
-        fundName: p.funds?.name || "Unknown",
-      }));
-
-      setData({
-        totalFunds: activePositions.length,
-        tokenBalances,
-        lastActivityDate: lastTx?.tx_date || null,
-        pendingWithdrawals: pendingCount || 0,
-        lastReportPeriod: lastReport?.period_id || null,
-        ibParentName,
-        feeScheduleStatus: (feeSchedule?.length || 0) > 0 ? "active" : "default",
-        hasPositions: activePositions.length > 0,
-      });
-    } catch (error) {
-      console.error("Error loading overview data:", error);
-      setData({
-        totalFunds: 0,
-        tokenBalances: [],
-        lastActivityDate: null,
-        pendingWithdrawals: 0,
-        lastReportPeriod: null,
-        ibParentName: null,
-        feeScheduleStatus: "default",
-        hasPositions: false,
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [investorId]);
-
-  useEffect(() => {
-    loadOverviewData();
-  }, [loadOverviewData]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -192,7 +58,13 @@ export function InvestorOverviewTab({
     );
   }
 
-  if (!data) return null;
+  if (error || !data) {
+    return (
+      <div className="p-4 text-center text-muted-foreground">
+        Failed to load overview data
+      </div>
+    );
+  }
 
   // Empty state for investors with no positions
   if (!data.hasPositions) {

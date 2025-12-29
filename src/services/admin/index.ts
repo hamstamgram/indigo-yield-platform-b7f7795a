@@ -56,3 +56,9 @@ export {
   fetchRecentActivities,
   fetchPendingItems,
 } from "./dashboardService";
+
+// Investor lifecycle management
+export * from "./investorLifecycleService";
+
+// Investor performance management
+export * from "./investorPerformanceService";

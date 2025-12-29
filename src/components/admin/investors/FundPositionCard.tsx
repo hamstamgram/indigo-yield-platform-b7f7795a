@@ -26,7 +26,7 @@ import {
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useUpdateFundPerformance } from "@/hooks/admin";
 
 interface PerformanceData {
   mtd_beginning_balance: number;
@@ -68,7 +68,6 @@ export function FundPositionCard({
 }: FundPositionCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [editData, setEditData] = useState({
     mtd_beginning_balance: performance?.mtd_beginning_balance || 0,
     mtd_ending_balance: performance?.mtd_ending_balance || currentBalance,
@@ -76,6 +75,9 @@ export function FundPositionCard({
     mtd_redemptions: performance?.mtd_redemptions || 0,
     mtd_net_income: performance?.mtd_net_income || 0,
   });
+
+  const updatePerformanceMutation = useUpdateFundPerformance();
+  const isSaving = updatePerformanceMutation.isPending;
 
   const formatCrypto = (value: number) => {
     const decimals = assetCode === "BTC" ? 8 : assetCode === "ETH" ? 6 : 4;
@@ -88,13 +90,6 @@ export function FundPositionCard({
   const formatPercent = (value: number | undefined | null) => {
     if (value === undefined || value === null) return "0.00%";
     return `${value >= 0 ? "+" : ""}${(value * 100).toFixed(2)}%`;
-  };
-
-  // Auto-calculate net income when other values change
-  const calculateNetIncome = () => {
-    const { mtd_beginning_balance, mtd_ending_balance, mtd_additions, mtd_redemptions } = editData;
-    // Net Income = Ending - Beginning - Additions + Redemptions
-    return mtd_ending_balance - mtd_beginning_balance - mtd_additions + mtd_redemptions;
   };
 
   const handleFieldChange = (field: keyof typeof editData, value: string) => {
@@ -113,37 +108,26 @@ export function FundPositionCard({
     });
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!performanceId) {
       toast.error("No performance record to update");
       return;
     }
 
-    setIsSaving(true);
-    try {
-      const { error } = await supabase
-        .from("investor_fund_performance")
-        .update({
-          mtd_beginning_balance: editData.mtd_beginning_balance,
-          mtd_ending_balance: editData.mtd_ending_balance,
-          mtd_additions: editData.mtd_additions,
-          mtd_redemptions: editData.mtd_redemptions,
-          mtd_net_income: editData.mtd_net_income,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", performanceId);
-
-      if (error) throw error;
-
-      toast.success("Performance data updated");
-      setIsEditing(false);
-      onUpdate?.();
-    } catch (error) {
-      console.error("Error saving performance:", error);
-      toast.error("Failed to save changes");
-    } finally {
-      setIsSaving(false);
-    }
+    updatePerformanceMutation.mutate(
+      { performanceId, data: editData },
+      {
+        onSuccess: () => {
+          toast.success("Performance data updated");
+          setIsEditing(false);
+          onUpdate?.();
+        },
+        onError: (error) => {
+          console.error("Error saving performance:", error);
+          toast.error("Failed to save changes");
+        },
+      }
+    );
   };
 
   const handleCancel = () => {

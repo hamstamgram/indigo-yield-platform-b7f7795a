@@ -4,7 +4,7 @@
  * Uses InvestorTabs for consistent experience with full workspace
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,9 +20,8 @@ import {
   Copy,
   Check,
 } from "lucide-react";
-import { useState as useStateCopy } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { InvestorSummaryV2, forceDeleteInvestorUser } from "@/services/admin";
+import { usePendingWithdrawalsCount } from "@/hooks/admin";
 import { InvestorTabs } from "./InvestorTabs";
 import { toast } from "sonner";
 
@@ -42,8 +41,11 @@ export function InvestorDetailPanel({
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [pendingWithdrawalsCount, setPendingWithdrawalsCount] = useState(0);
   const [copied, setCopied] = useState(false);
+
+  // Use React Query hook for pending withdrawals
+  const { data: pendingWithdrawalsCount = 0, refetch: refetchWithdrawals } =
+    usePendingWithdrawalsCount(investorId);
 
   const handleCopyId = async () => {
     if (!investorId) return;
@@ -55,31 +57,6 @@ export function InvestorDetailPanel({
       toast.error("Failed to copy ID");
     }
   };
-
-  // Load pending withdrawals count
-  const loadPendingWithdrawals = useCallback(async () => {
-    if (!investorId) return;
-    
-    try {
-      const { count, error: wdError } = await supabase
-        .from("withdrawal_requests")
-        .select("id", { count: "exact", head: true })
-        .eq("investor_id", investorId)
-        .eq("status", "pending");
-
-      if (!wdError) {
-        setPendingWithdrawalsCount(count || 0);
-      }
-    } catch (err) {
-      console.warn("Failed to load pending withdrawals count:", err);
-    }
-  }, [investorId]);
-
-  useEffect(() => {
-    if (investorId) {
-      loadPendingWithdrawals();
-    }
-  }, [investorId, loadPendingWithdrawals]);
 
   const handleOpenWorkspace = () => {
     if (investorId) {
@@ -105,7 +82,7 @@ export function InvestorDetailPanel({
   };
 
   const handleDataChange = () => {
-    loadPendingWithdrawals();
+    refetchWithdrawals();
     onDataChange?.();
   };
 
