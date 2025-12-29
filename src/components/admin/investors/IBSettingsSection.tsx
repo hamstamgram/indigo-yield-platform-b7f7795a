@@ -6,28 +6,14 @@
  */
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
+  Card, CardContent, CardHeader, CardTitle, CardDescription,
+  Button, Input, Label, Badge,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Alert, AlertDescription,
+} from "@/components/ui";
 import { Loader2, Users, Percent, Save, AlertCircle, UserPlus, Search, Crown, Trash2 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks";
 import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
 import {

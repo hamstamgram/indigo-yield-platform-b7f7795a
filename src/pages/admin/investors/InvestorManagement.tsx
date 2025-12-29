@@ -5,22 +5,15 @@
 
 import { useEffect } from "react";
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import {
+  Card, CardContent, Button, Badge,
+  Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
+} from "@/components/ui";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft, Clock, FileText, ArrowDownToLine, Users, Percent } from "lucide-react";
 import { forceDeleteInvestorUser } from "@/services/admin/userService";
 import { InvestorTabs } from "@/components/admin";
 import { format } from "date-fns";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { useInvestorDetail, useInvestorOpsIndicators } from "@/hooks/data/admin";
 
 const InvestorManagement = () => {

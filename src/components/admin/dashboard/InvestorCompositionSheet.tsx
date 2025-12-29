@@ -1,24 +1,12 @@
 import React, { useMemo, useState } from "react";
 import { ArrowUpDown, ArrowUp, ArrowDown, Radio } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import {
+  Badge, TruncatedText,
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { formatAUM } from "@/utils/formatters";
-import { TruncatedText } from "@/components/ui/truncated-text";
 import type { FundAUMData } from "@/hooks";
 
 type SortColumn = "investor_name" | "email" | "balance" | "ownership_pct";

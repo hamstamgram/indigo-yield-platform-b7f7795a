@@ -1,30 +1,12 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Button, Input, Label, Calendar,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Popover, PopoverContent, PopoverTrigger,
+  Alert, AlertDescription,
+} from "@/components/ui";
 import { AlertTriangle, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { depositService } from "@/services/investor/depositService";

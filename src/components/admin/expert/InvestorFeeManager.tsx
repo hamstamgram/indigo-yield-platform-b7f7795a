@@ -1,18 +1,10 @@
 import type React from "react";
 import { useState, useEffect, useMemo } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Label, Button, Separator, Input,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui";
 import { DollarSign, TrendingUp, Calendar, History, FileText, Percent } from "lucide-react";
 import { ExpertInvestor } from "@/services/investor";
 import { formatAssetValue } from "@/utils/kpiCalculations";
