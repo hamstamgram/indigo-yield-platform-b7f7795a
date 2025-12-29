@@ -1,45 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { SortableTableHead } from "@/components/ui/sortable-table-head";
-import { useSortableColumns } from "@/hooks";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Card, CardContent, CardHeader, CardTitle, CardDescription,
+  Button, Badge, Input, Label, Progress, SortableTableHead,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  Alert, AlertDescription, AlertTitle, TruncatedText,
+} from "@/components/ui";
 import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
 import {
@@ -65,12 +34,11 @@ import {
   ArrowLeft,
   TrendingUp,
   RefreshCcw,
+  Info,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info } from "lucide-react";
 import { DeliveryExclusionStats } from "./DeliveryExclusionStats";
-import { TruncatedText } from "@/components/ui/truncated-text";
+import { useSortableColumns } from "@/hooks";
 
 // Import new hooks and types
 import { usePeriodsWithCounts, useDeliveryStats, useDeliveries } from "@/hooks/data/useDeliveryData";

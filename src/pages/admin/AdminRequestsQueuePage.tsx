@@ -1,20 +1,10 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Button, Badge, Input, Label, Textarea,
+  Tabs, TabsContent, TabsList, TabsTrigger,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui";
 import { toast } from "sonner";
 import { useWithdrawalRequests, useDepositsQueue } from "@/hooks/data/useRequestsQueueData";
 import { useRequestsQueueMutations } from "@/hooks/data/useRequestsQueueMutations";

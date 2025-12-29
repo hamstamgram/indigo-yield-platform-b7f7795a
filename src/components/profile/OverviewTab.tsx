@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { CheckCircle, Loader2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
+import {
+  Card, CardContent, CardHeader, CardTitle,
+  Button, Badge, Progress, Separator,
+  Avatar, AvatarFallback, AvatarImage,
+} from "@/components/ui";
 import { useAuth } from "@/lib/auth/context";
 import { profileService } from "@/services/shared";
 

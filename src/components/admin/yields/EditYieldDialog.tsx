@@ -6,18 +6,9 @@
 import { useState, useEffect } from "react";
 import { Loader2, Pencil, ArrowRight } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Button, Input, Textarea, Label, Badge,
+} from "@/components/ui";
 import { format } from "date-fns";
 import { YieldRecord } from "@/services/admin/recordedYieldsService";
 import { CryptoIcon } from "@/components/CryptoIcons";

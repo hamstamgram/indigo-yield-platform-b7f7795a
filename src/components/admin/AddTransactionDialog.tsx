@@ -4,47 +4,19 @@ import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Button, Input, Label, Textarea, Badge, Calendar,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Popover, PopoverContent, PopoverTrigger,
+  Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
+  Alert, AlertDescription,
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+} from "@/components/ui";
 import { toast } from "sonner";
 import { createAdminTransaction, type CreateTransactionParams } from "@/services/shared/transactionService";
 import { fetchInvestorsForSelector } from "@/services/investor";
 import { saveDraftAUMEntry } from "@/services/admin/yieldDistributionService";
 import { Loader2, Check, ChevronsUpDown, AlertTriangle, Info, CalendarIcon } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 import { useActiveFunds, useInvestorBalance, useAUMExists, useTransactionHistory } from "@/hooks";
