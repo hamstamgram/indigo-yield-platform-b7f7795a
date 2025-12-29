@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { AlertTriangle, Database, Loader2, CheckCircle, XCircle, Archive } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
+  Button,
+  Input,
+  Label,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -11,13 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@/components/ui/alert";
-import { Card, CardContent } from "@/components/ui/card";
+  Card,
+  CardContent,
+} from "@/components/ui";
 import { toast } from "sonner";
 import {
   getPositionResetPreview,

@@ -1,7 +1,6 @@
 import React, { useState, KeyboardEvent, ClipboardEvent } from "react";
 import { X } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { Input, Badge } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
 interface EmailChipsInputProps {

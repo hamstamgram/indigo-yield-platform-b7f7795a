@@ -13,7 +13,7 @@ import { PublicRoutes } from "./routes/public";
 
 // UI Components
 import { DashboardLayout } from "@/components/layout";
-import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
+import { PageLoadingSpinner } from "@/components/ui";
 
 /**
  * Application Routes Component

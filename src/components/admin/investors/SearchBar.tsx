@@ -1,5 +1,5 @@
 import React from "react";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui";
 import { Search, X } from "lucide-react";
 import { useIsMobile } from "@/hooks";
 
