@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,27 +32,10 @@ import {
 } from "@/components/ui/command";
 import { toast } from "sonner";
 import { Loader2, Check, ChevronsUpDown } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { getAssetLogo, formatAssetAmount } from "@/utils/assets";
-import { invalidateAfterWithdrawal } from "@/utils/cacheInvalidation";
-
-interface InvestorOption {
-  id: string;
-  email: string;
-  displayName: string;
-}
-
-interface InvestorPosition {
-  fund_id: string;
-  current_value: number;
-  shares: number;
-  fund: {
-    name: string;
-    code: string;
-    asset: string;
-  };
-}
+import { useInvestorOptions, useInvestorPositions } from "@/hooks/data/useWithdrawalFormData";
+import { useWithdrawalMutations } from "@/hooks/data/useWithdrawalMutations";
 
 const withdrawalSchema = z.object({
   amount: z
@@ -84,17 +66,18 @@ export function CreateWithdrawalDialog({
   onSuccess,
   preselectedInvestorId,
 }: CreateWithdrawalDialogProps) {
-  const [loading, setLoading] = useState(false);
-  const [investors, setInvestors] = useState<InvestorOption[]>([]);
   const [selectedInvestorId, setSelectedInvestorId] = useState<string>("");
   const [investorSearchOpen, setInvestorSearchOpen] = useState(false);
-  const [isLoadingInvestors, setIsLoadingInvestors] = useState(false);
-  const [positions, setPositions] = useState<InvestorPosition[]>([]);
   const [selectedFundId, setSelectedFundId] = useState<string>("");
-  const [isLoadingPositions, setIsLoadingPositions] = useState(false);
   const [investorError, setInvestorError] = useState<string | null>(null);
   const [fundError, setFundError] = useState<string | null>(null);
-  const queryClient = useQueryClient();
+
+  // Data hooks
+  const { data: investors = [], isLoading: isLoadingInvestors } = useInvestorOptions(open);
+  const { data: positions = [], isLoading: isLoadingPositions } = useInvestorPositions(selectedInvestorId || null);
+  
+  // Mutation hook
+  const { createMutation } = useWithdrawalMutations();
 
   const {
     register,
@@ -112,103 +95,29 @@ export function CreateWithdrawalDialog({
 
   const withdrawalType = watch("withdrawal_type");
 
-  // Load investors when dialog opens
+  // Reset state when dialog opens
   useEffect(() => {
     if (open) {
-      loadInvestors();
       if (preselectedInvestorId) {
         setSelectedInvestorId(preselectedInvestorId);
       } else {
         setSelectedInvestorId("");
       }
       setSelectedFundId("");
-      setPositions([]);
       setInvestorError(null);
       setFundError(null);
       reset();
     }
   }, [open, preselectedInvestorId, reset]);
 
-  // Load positions when investor is selected
+  // Auto-select first position when investor changes and has only one position
   useEffect(() => {
-    if (selectedInvestorId) {
-      loadPositions(selectedInvestorId);
-    } else {
-      setPositions([]);
+    if (positions.length === 1) {
+      setSelectedFundId(positions[0].fund_id);
+    } else if (!selectedInvestorId) {
       setSelectedFundId("");
     }
-  }, [selectedInvestorId]);
-
-  const loadInvestors = async () => {
-    setIsLoadingInvestors(true);
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, email, first_name, last_name")
-        .eq("is_admin", false)
-        .order("email");
-
-      if (error) throw error;
-
-      const options: InvestorOption[] = (data || []).map((p) => ({
-        id: p.id,
-        email: p.email || "",
-        displayName:
-          p.first_name && p.last_name
-            ? `${p.first_name} ${p.last_name}`
-            : p.email || p.id,
-      }));
-      setInvestors(options);
-    } catch (error) {
-      console.error("Failed to load investors:", error);
-      toast.error("Failed to load investors");
-    } finally {
-      setIsLoadingInvestors(false);
-    }
-  };
-
-  const loadPositions = async (investorId: string) => {
-    setIsLoadingPositions(true);
-    try {
-      const { data, error } = await supabase
-        .from("investor_positions")
-        .select(
-          `
-          fund_id,
-          current_value,
-          shares,
-          funds:fund_id (
-            name,
-            code,
-            asset
-          )
-        `
-        )
-        .eq("investor_id", investorId)
-        .gt("current_value", 0);
-
-      if (error) throw error;
-
-      const mappedPositions: InvestorPosition[] = (data || []).map((p: any) => ({
-        fund_id: p.fund_id,
-        current_value: Number(p.current_value) || 0,
-        shares: Number(p.shares) || 0,
-        fund: p.funds || { name: "Unknown", code: "UNK", asset: "N/A" },
-      }));
-
-      setPositions(mappedPositions);
-      
-      // Auto-select first position if only one
-      if (mappedPositions.length === 1) {
-        setSelectedFundId(mappedPositions[0].fund_id);
-      }
-    } catch (error) {
-      console.error("Failed to load positions:", error);
-      toast.error("Failed to load investor positions");
-    } finally {
-      setIsLoadingPositions(false);
-    }
-  };
+  }, [positions, selectedInvestorId]);
 
   const selectedInvestor = investors.find((i) => i.id === selectedInvestorId);
   const selectedPosition = positions.find((p) => p.fund_id === selectedFundId);
@@ -241,35 +150,24 @@ export function CreateWithdrawalDialog({
       return;
     }
 
-    try {
-      setLoading(true);
-
-      // Use RPC to create withdrawal request
-      const { error } = await supabase.rpc("create_withdrawal_request", {
-        p_investor_id: selectedInvestorId,
-        p_fund_id: selectedFundId,
-        p_amount: amount,
-        p_type: data.withdrawal_type,
-        p_notes: data.notes || null,
-      });
-
-      if (error) throw error;
-
-      // Comprehensive cache invalidation
-      invalidateAfterWithdrawal(queryClient, selectedInvestorId, selectedFundId);
-
-      toast.success("Withdrawal request created successfully");
-      reset();
-      setSelectedInvestorId("");
-      setSelectedFundId("");
-      onSuccess();
-      onOpenChange(false);
-    } catch (error: any) {
-      console.error("Error creating withdrawal:", error);
-      toast.error(error.message || "Failed to create withdrawal request");
-    } finally {
-      setLoading(false);
-    }
+    createMutation.mutate(
+      {
+        investorId: selectedInvestorId,
+        fundId: selectedFundId,
+        amount,
+        withdrawalType: data.withdrawal_type,
+        notes: data.notes,
+      },
+      {
+        onSuccess: () => {
+          reset();
+          setSelectedInvestorId("");
+          setSelectedFundId("");
+          onSuccess();
+          onOpenChange(false);
+        },
+      }
+    );
   };
 
   const handleCancel = () => {
@@ -467,14 +365,14 @@ export function CreateWithdrawalDialog({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
+            <Button type="button" variant="outline" onClick={handleCancel} disabled={createMutation.isPending}>
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={loading || isLoadingInvestors || isLoadingPositions || positions.length === 0}
+              disabled={createMutation.isPending || isLoadingInvestors || isLoadingPositions || positions.length === 0}
             >
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Withdrawal
             </Button>
           </DialogFooter>

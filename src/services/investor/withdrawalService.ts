@@ -1,5 +1,17 @@
 import { supabase } from "@/integrations/supabase/client";
-import { Withdrawal, WithdrawalFilters, WithdrawalStats, PaginatedWithdrawals, WithdrawalAuditLog } from "@/types/withdrawal";
+import { 
+  Withdrawal, 
+  WithdrawalFilters, 
+  WithdrawalStats, 
+  PaginatedWithdrawals, 
+  WithdrawalAuditLog,
+  InvestorOption,
+  InvestorPosition,
+  CreateWithdrawalParams,
+  UpdateWithdrawalParams,
+  DeleteWithdrawalParams,
+  RouteToFeesParams
+} from "@/types/withdrawal";
 import { generateCorrelationId, createCorrelatedLogger } from "@/lib/correlationId";
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -375,5 +387,111 @@ export const withdrawalService = {
     
     log.info('Withdrawal cancelled successfully');
     return { correlationId: corrId };
+  },
+
+  /**
+   * Fetch investor options for dropdown selection (non-admin profiles)
+   */
+  async fetchInvestorOptions(): Promise<InvestorOption[]> {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, email, first_name, last_name")
+      .eq("is_admin", false)
+      .order("email");
+
+    if (error) throw error;
+
+    return (data || []).map((p) => ({
+      id: p.id,
+      email: p.email || "",
+      displayName:
+        p.first_name && p.last_name
+          ? `${p.first_name} ${p.last_name}`
+          : p.email || p.id,
+    }));
+  },
+
+  /**
+   * Fetch investor positions with positive balance
+   */
+  async fetchInvestorPositions(investorId: string): Promise<InvestorPosition[]> {
+    const { data, error } = await supabase
+      .from("investor_positions")
+      .select(`
+        fund_id,
+        current_value,
+        shares,
+        funds:fund_id (
+          name,
+          code,
+          asset
+        )
+      `)
+      .eq("investor_id", investorId)
+      .gt("current_value", 0);
+
+    if (error) throw error;
+
+    return (data || []).map((p: any) => ({
+      fund_id: p.fund_id,
+      current_value: Number(p.current_value) || 0,
+      shares: Number(p.shares) || 0,
+      fund: p.funds || { name: "Unknown", code: "UNK", asset: "N/A" },
+    }));
+  },
+
+  /**
+   * Create a new withdrawal request via RPC
+   */
+  async createWithdrawal(params: CreateWithdrawalParams): Promise<void> {
+    const { error } = await supabase.rpc("create_withdrawal_request", {
+      p_investor_id: params.investorId,
+      p_fund_id: params.fundId,
+      p_amount: params.amount,
+      p_type: params.withdrawalType,
+      p_notes: params.notes || null,
+    });
+
+    if (error) throw error;
+  },
+
+  /**
+   * Route a withdrawal to INDIGO FEES account via RPC
+   */
+  async routeToFees(params: RouteToFeesParams): Promise<void> {
+    const { error } = await supabase.rpc("route_withdrawal_to_fees", {
+      p_request_id: params.withdrawalId,
+      p_reason: params.reason || "Routed to INDIGO FEES",
+    });
+
+    if (error) throw error;
+  },
+
+  /**
+   * Update an existing withdrawal request via RPC
+   */
+  async updateWithdrawal(params: UpdateWithdrawalParams): Promise<void> {
+    const { error } = await supabase.rpc("update_withdrawal", {
+      p_withdrawal_id: params.withdrawalId,
+      p_requested_amount: params.requestedAmount,
+      p_withdrawal_type: params.withdrawalType,
+      p_notes: params.notes || null,
+      p_reason: params.reason,
+    });
+
+    if (error) throw error;
+  },
+
+  /**
+   * Delete or cancel a withdrawal request via RPC
+   */
+  async deleteWithdrawal(params: DeleteWithdrawalParams): Promise<void> {
+    const { error } = await supabase.rpc("delete_withdrawal", {
+      p_withdrawal_id: params.withdrawalId,
+      p_reason: params.reason,
+      p_hard_delete: params.hardDelete || false,
+    });
+
+    if (error) throw error;
   },
 };

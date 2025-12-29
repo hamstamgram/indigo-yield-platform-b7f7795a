@@ -1,8 +1,5 @@
 import { useState } from "react";
 import { Withdrawal } from "@/types/withdrawal";
-import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Trash2, AlertTriangle } from "lucide-react";
-import { invalidateAfterWithdrawal } from "@/utils/cacheInvalidation";
+import { useWithdrawalMutations } from "@/hooks/data/useWithdrawalMutations";
 
 interface DeleteWithdrawalDialogProps {
   open: boolean;
@@ -37,41 +34,32 @@ export function DeleteWithdrawalDialog({
   const [reason, setReason] = useState("");
   const [confirmText, setConfirmText] = useState("");
   const [hardDelete, setHardDelete] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const queryClient = useQueryClient();
+
+  const { deleteMutation } = useWithdrawalMutations();
 
   const isConfirmed = confirmText === "DELETE";
 
   const handleSubmit = async () => {
     if (!withdrawal || !isConfirmed || !reason.trim()) return;
 
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase.rpc("delete_withdrawal", {
-        p_withdrawal_id: withdrawal.id,
-        p_reason: reason,
-        p_hard_delete: hardDelete,
-      });
-
-      if (error) {
-        console.error("Delete withdrawal error:", error);
-        toast.error(error.message || "Failed to delete withdrawal");
-        return;
+    deleteMutation.mutate(
+      {
+        withdrawalId: withdrawal.id,
+        reason,
+        hardDelete,
+        investorId: withdrawal.investor_id,
+        fundId: withdrawal.fund_id,
+      },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+          setReason("");
+          setConfirmText("");
+          setHardDelete(false);
+          onSuccess?.();
+        },
       }
-
-      toast.success(hardDelete ? "Withdrawal permanently deleted" : "Withdrawal cancelled");
-      invalidateAfterWithdrawal(queryClient, withdrawal.investor_id, withdrawal.fund_id);
-      onOpenChange(false);
-      setReason("");
-      setConfirmText("");
-      setHardDelete(false);
-      onSuccess?.();
-    } catch (err) {
-      console.error("Delete withdrawal exception:", err);
-      toast.error("An unexpected error occurred");
-    } finally {
-      setIsSubmitting(false);
-    }
+    );
   };
 
   if (!withdrawal) return null;
@@ -168,13 +156,13 @@ export function DeleteWithdrawalDialog({
         )}
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleSubmit}
-            disabled={!canDelete || isSubmitting || !isConfirmed || !reason.trim()}
+            disabled={!canDelete || deleteMutation.isPending || !isConfirmed || !reason.trim()}
             className="bg-destructive hover:bg-destructive/90"
           >
-            {isSubmitting ? (
+            {deleteMutation.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 Deleting...

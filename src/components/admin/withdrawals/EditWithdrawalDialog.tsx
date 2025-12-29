@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { Withdrawal } from "@/types/withdrawal";
-import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -24,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { invalidateAfterWithdrawal } from "@/utils/cacheInvalidation";
+import { useWithdrawalMutations } from "@/hooks/data/useWithdrawalMutations";
 
 interface EditWithdrawalDialogProps {
   open: boolean;
@@ -51,8 +49,8 @@ export function EditWithdrawalDialog({
   const [notes, setNotes] = useState("");
   const [reason, setReason] = useState("");
   const [confirmText, setConfirmText] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const queryClient = useQueryClient();
+
+  const { updateMutation } = useWithdrawalMutations();
 
   useEffect(() => {
     if (withdrawal && open) {
@@ -74,32 +72,23 @@ export function EditWithdrawalDialog({
   const handleSubmit = async () => {
     if (!withdrawal || !isConfirmed || !reason.trim()) return;
 
-    setIsSubmitting(true);
-    try {
-      const { data, error } = await supabase.rpc("update_withdrawal", {
-        p_withdrawal_id: withdrawal.id,
-        p_requested_amount: parseFloat(requestedAmount),
-        p_withdrawal_type: withdrawalType,
-        p_notes: notes || null,
-        p_reason: reason,
-      });
-
-      if (error) {
-        console.error("Update withdrawal error:", error);
-        toast.error(error.message || "Failed to update withdrawal");
-        return;
+    updateMutation.mutate(
+      {
+        withdrawalId: withdrawal.id,
+        requestedAmount: parseFloat(requestedAmount),
+        withdrawalType,
+        notes: notes || undefined,
+        reason,
+        investorId: withdrawal.investor_id,
+        fundId: withdrawal.fund_id,
+      },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+          onSuccess?.();
+        },
       }
-
-      toast.success("Withdrawal updated successfully");
-      invalidateAfterWithdrawal(queryClient, withdrawal.investor_id, withdrawal.fund_id, withdrawal.id);
-      onOpenChange(false);
-      onSuccess?.();
-    } catch (err) {
-      console.error("Update withdrawal exception:", err);
-      toast.error("An unexpected error occurred");
-    } finally {
-      setIsSubmitting(false);
-    }
+    );
   };
 
   if (!withdrawal) return null;
@@ -212,14 +201,14 @@ export function EditWithdrawalDialog({
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={updateMutation.isPending}>
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!canEdit || isSubmitting || !isConfirmed || !reason.trim() || !hasChanges}
+            disabled={!canEdit || updateMutation.isPending || !isConfirmed || !reason.trim() || !hasChanges}
           >
-            {isSubmitting ? (
+            {updateMutation.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 Saving...

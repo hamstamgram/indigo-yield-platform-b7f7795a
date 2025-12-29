@@ -1,8 +1,5 @@
 import { useState } from "react";
 import { Withdrawal } from "@/types/withdrawal";
-import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,7 +13,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, ArrowRightLeft } from "lucide-react";
-import { invalidateAfterWithdrawal } from "@/utils/cacheInvalidation";
+import { useWithdrawalMutations } from "@/hooks/data/useWithdrawalMutations";
 
 interface RouteToFeesDialogProps {
   open: boolean;
@@ -32,39 +29,27 @@ export function RouteToFeesDialog({
   onSuccess,
 }: RouteToFeesDialogProps) {
   const [adminNotes, setAdminNotes] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const queryClient = useQueryClient();
+
+  const { routeToFeesMutation } = useWithdrawalMutations();
 
   const handleSubmit = async () => {
     if (!withdrawal) return;
 
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase.rpc("route_withdrawal_to_fees", {
-        p_request_id: withdrawal.id,
-        p_reason: adminNotes || "Routed to INDIGO FEES",
-      });
-
-      if (error) {
-        console.error("Route to fees error:", error);
-        toast.error(error.message || "Failed to route withdrawal to INDIGO FEES");
-        return;
+    routeToFeesMutation.mutate(
+      {
+        withdrawalId: withdrawal.id,
+        reason: adminNotes || "Routed to INDIGO FEES",
+        investorId: withdrawal.investor_id,
+        fundId: withdrawal.fund_id,
+      },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+          setAdminNotes("");
+          onSuccess?.();
+        },
       }
-
-      toast.success("Withdrawal routed to INDIGO FEES successfully");
-
-      // Use centralized cache invalidation
-      invalidateAfterWithdrawal(queryClient, withdrawal.investor_id, withdrawal.fund_id, withdrawal.id);
-
-      onOpenChange(false);
-      setAdminNotes("");
-      onSuccess?.();
-    } catch (err) {
-      console.error("Route to fees exception:", err);
-      toast.error("An unexpected error occurred");
-    } finally {
-      setIsSubmitting(false);
-    }
+    );
   };
 
   if (!withdrawal) return null;
@@ -118,13 +103,13 @@ export function RouteToFeesDialog({
         </div>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={routeToFeesMutation.isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleSubmit}
-            disabled={isSubmitting}
+            disabled={routeToFeesMutation.isPending}
             className="bg-primary hover:bg-primary/90"
           >
-            {isSubmitting ? (
+            {routeToFeesMutation.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 Processing...
