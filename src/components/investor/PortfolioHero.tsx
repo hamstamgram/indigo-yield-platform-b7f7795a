@@ -1,8 +1,9 @@
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card, CardContent, Skeleton,
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+} from "@/components/ui";
 import { TrendingUp, TrendingDown, Wallet, Calendar, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getAssetLogo } from "@/utils/assets";
 import { formatTokenAmount } from "@/utils/formatters";
 

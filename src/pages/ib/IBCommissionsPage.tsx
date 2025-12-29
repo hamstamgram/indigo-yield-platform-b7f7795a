@@ -4,26 +4,12 @@
  */
 
 import { useState, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
+  Card, CardContent, CardHeader, CardTitle,
+  Button, Input, Badge, PageLoadingSpinner,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui";
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { Coins, Download, ChevronLeft, ChevronRight, Search } from "lucide-react";

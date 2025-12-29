@@ -8,15 +8,11 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  Card, CardContent, CardHeader, CardTitle,
+  Button, Badge, Skeleton,
+  Collapsible, CollapsibleContent, CollapsibleTrigger,
+} from "@/components/ui";
 import {
   ChevronLeft,
   ChevronRight,

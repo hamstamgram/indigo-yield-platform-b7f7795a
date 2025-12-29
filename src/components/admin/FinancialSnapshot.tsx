@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Radio, AlertCircle, RefreshCw, TrendingUp } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Card, CardContent, Badge, Button, Calendar,
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { useFundAUM } from "@/hooks";
 import { useHistoricalFlowData, useFundComposition } from "@/hooks/data/useDashboardMetrics";

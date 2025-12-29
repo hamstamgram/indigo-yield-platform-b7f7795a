@@ -15,39 +15,14 @@ import {
   RefreshCw
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Card, CardContent, CardHeader, CardTitle, CardDescription,
+  Button, Input, Label, Badge,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+} from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { useFunds, useUrlFilters } from "@/hooks";
 import { canEditYields, AumPurpose, YieldFilters } from "@/services/admin/recordedYieldsService";
