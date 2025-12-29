@@ -1,46 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useInvestorWithdrawals } from "@/hooks/data/useInvestorWithdrawals";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Filter, Plus } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export default function WithdrawalHistoryPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: items, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.withdrawalRequests(searchTerm || undefined),
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user");
-
-      // Resolve investor_id (One ID)
-      const investorId = user.id;
-
-      let query = supabase
-        .from("withdrawal_requests")
-        .select(
-          `
-          *,
-          funds:fund_id(name, code)
-        `
-        )
-        .eq("investor_id", investorId);
-
-      if (searchTerm) {
-        query = query.ilike("notes", `%${searchTerm}%`);
-      }
-
-      const { data, error } = await query.order("request_date", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: items, isLoading } = useInvestorWithdrawals(searchTerm || undefined);
 
   return (
     <div className="space-y-6">

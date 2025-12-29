@@ -1,53 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useWithdrawalPositions } from "@/hooks/data/useInvestorWithdrawals";
 import {
   WithdrawalRequestForm,
-  WithdrawalPosition,
 } from "@/components/withdrawal/WithdrawalRequestForm";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export default function NewWithdrawalPage() {
   const navigate = useNavigate();
 
-  const { data: positions, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.availableWithdrawalPositions,
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user");
-
-      // Get investor_id (One ID: it's the user.id)
-      const investorId = user.id;
-
-      // Fetch positions with fund details
-      const { data, error } = await supabase
-        .from("investor_positions")
-        .select(
-          `
-          fund_id,
-          shares,
-          current_value,
-          funds ( asset )
-        `
-        )
-        .eq("investor_id", investorId)
-        .gt("shares", 0);
-
-      if (error) throw error;
-
-      // Token-denominated only - no USD values
-      return data.map((pos: any) => ({
-        fund_id: pos.fund_id,
-        asset_symbol: pos.funds?.asset || "UNKNOWN",
-        amount: Number(pos.shares),
-      })) as WithdrawalPosition[];
-    },
-  });
+  const { data: positions, isLoading } = useWithdrawalPositions();
 
   if (isLoading) {
     return <div className="p-8 text-center">Loading available balance...</div>;

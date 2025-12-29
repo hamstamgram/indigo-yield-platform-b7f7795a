@@ -12,7 +12,6 @@
  * - Audit logging
  */
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { withdrawalRequestSchema, type WithdrawalRequestInput } from "@/lib/validation/schemas";
@@ -38,9 +37,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, AlertTriangle, Info } from "lucide-react";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { auditLogService } from "@/services/shared/auditLogService";
+import { useSubmitWithdrawal } from "@/hooks/data/useInvestorWithdrawals";
 
 export interface WithdrawalPosition {
   fund_id: string;
@@ -59,7 +56,7 @@ export function WithdrawalRequestForm({
   onSuccess,
   onCancel,
 }: WithdrawalRequestFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitMutation = useSubmitWithdrawal();
 
   const {
     register,
@@ -90,106 +87,31 @@ export function WithdrawalRequestForm({
       : false;
 
   const onSubmit = async (data: WithdrawalRequestInput) => {
-    setIsSubmitting(true);
+    if (!availableBalance) return;
 
-    try {
-      // 1. Validate amount against balance
-      if (!availableBalance) {
-        throw new Error("Asset not found in portfolio");
-      }
+    const requested = toDecimal(data.amount);
+    const available = toDecimal(availableBalance.amount);
 
-      const requested = toDecimal(data.amount);
-      const available = toDecimal(availableBalance.amount);
-
-      if (requested.greaterThan(available)) {
-        throw new Error("Insufficient balance");
-      }
-
-      // 2. Get User (Unified ID)
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
-
-      // user.id IS the investor.id
-      const investorId = user.id;
-
-      // 3. Verify TOTP (if code provided)
-      // Note: In a strict environment, we'd enforce MFA enabled check first.
-      // Here we try to verify if a code is provided.
-      if (data.totpCode) {
-        const { data: factors } = await supabase.auth.mfa.listFactors();
-        const totpFactor = (factors as any)?.find(
-          (f: any) => f.factor_type === "totp" && f.status === "verified"
-        );
-
-        if (totpFactor) {
-          const { error: verifyError } = await supabase.auth.mfa.challengeAndVerify({
-            factorId: totpFactor.id,
-            code: data.totpCode,
-          });
-
-          if (verifyError) {
-            throw new Error("Invalid 2FA code");
-          }
-        } else {
-          // If no TOTP factor, we might warn or just proceed if policy allows.
-          // For security, we should probably fail if code provided but no factor,
-          // or fail if no factor and code required.
-          // For now, we'll assume if the user entered a code, they expect it to work.
-          console.warn("No verified TOTP factor found for user");
-        }
-      }
-
-      // 4. Create Withdrawal Request via RPC (validates lock periods, pending requests, etc.)
-      // Include destination address and reason in notes since those columns don't exist
-      const combinedNotes = [
-        data.reason ? `Reason: ${data.reason}` : null,
-        data.destinationAddress ? `Destination: ${data.destinationAddress}` : null,
-        data.notes || null,
-      ].filter(Boolean).join('\n');
-      
-      const { data: requestId, error: rpcError } = await supabase.rpc(
-        "create_withdrawal_request",
-        {
-          p_investor_id: investorId,
-          p_fund_id: availableBalance.fund_id,
-          p_amount: requested.toNumber(),
-          p_type: "partial",
-          p_notes: combinedNotes || null,
-        }
-      );
-
-      if (rpcError) throw rpcError;
-      
-      const request = { id: requestId };
-
-      // 5. Log Audit Event
-      await auditLogService.logEvent({
-        actorUserId: user.id,
-        action: "WITHDRAWAL_REQUEST_CREATED",
-        entity: "withdrawal_requests",
-        entityId: request.id,
-        meta: {
-          amount: data.amount,
-          asset: data.assetCode,
-          destination: data.destinationAddress.substring(0, 10) + "...",
-        },
-      });
-
-      toast.success("Withdrawal Request Submitted", {
-        description: `Your request for ${formatCrypto(data.amount, 8, data.assetCode)} has been submitted for approval.`,
-      });
-
-      onSuccess?.();
-    } catch (error) {
-      console.error("Withdrawal error:", error);
-      toast.error("Withdrawal Request Failed", {
-        description: error instanceof Error ? error.message : "Unknown error occurred",
-      });
-    } finally {
-      setIsSubmitting(false);
+    if (requested.greaterThan(available)) {
+      return;
     }
+
+    submitMutation.mutate(
+      {
+        fundId: availableBalance.fund_id,
+        amount: requested.toNumber(),
+        assetCode: data.assetCode,
+        destinationAddress: data.destinationAddress,
+        reason: data.reason,
+        notes: data.notes,
+        totpCode: data.totpCode,
+      },
+      {
+        onSuccess: () => {
+          onSuccess?.();
+        },
+      }
+    );
   };
 
   return (
@@ -350,11 +272,11 @@ export function WithdrawalRequestForm({
         </CardContent>
 
         <CardFooter className="flex justify-between">
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={submitMutation.isPending}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isSubmitting || !isAmountValid || isFullWithdrawal}>
-            {isSubmitting ? (
+          <Button type="submit" disabled={submitMutation.isPending || !isAmountValid || isFullWithdrawal}>
+            {submitMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Submitting...

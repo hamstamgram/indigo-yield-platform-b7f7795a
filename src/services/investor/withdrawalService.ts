@@ -494,4 +494,120 @@ export const withdrawalService = {
 
     if (error) throw error;
   },
+
+  // ============================================================
+  // INVESTOR PORTAL METHODS (for investor-facing pages)
+  // ============================================================
+
+  /**
+   * Get investor's own withdrawal history with optional search
+   */
+  async getInvestorWithdrawals(investorId: string, search?: string) {
+    let query = supabase
+      .from("withdrawal_requests")
+      .select(`*, funds:fund_id(name, code)`)
+      .eq("investor_id", investorId);
+
+    if (search) {
+      query = query.ilike("notes", `%${search}%`);
+    }
+
+    const { data, error } = await query.order("request_date", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Get investor's available positions for withdrawal (shares > 0)
+   */
+  async getInvestorWithdrawalPositions(investorId: string) {
+    const { data, error } = await supabase
+      .from("investor_positions")
+      .select(`fund_id, shares, current_value, funds ( asset )`)
+      .eq("investor_id", investorId)
+      .gt("shares", 0);
+
+    if (error) throw error;
+
+    return (data || []).map((pos: any) => ({
+      fund_id: pos.fund_id,
+      asset_symbol: pos.funds?.asset || "UNKNOWN",
+      amount: Number(pos.shares),
+    }));
+  },
+
+  /**
+   * Verify MFA TOTP code for withdrawal submission
+   */
+  async verifyMFAForWithdrawal(totpCode: string): Promise<{ verified: boolean; error?: string }> {
+    const { data: factors } = await supabase.auth.mfa.listFactors();
+    const totpFactor = (factors as any)?.find(
+      (f: any) => f.factor_type === "totp" && f.status === "verified"
+    );
+
+    if (!totpFactor) {
+      console.warn("No verified TOTP factor found for user");
+      return { verified: true }; // Allow if no TOTP factor
+    }
+
+    const { error: verifyError } = await supabase.auth.mfa.challengeAndVerify({
+      factorId: totpFactor.id,
+      code: totpCode,
+    });
+
+    if (verifyError) {
+      return { verified: false, error: "Invalid 2FA code" };
+    }
+
+    return { verified: true };
+  },
+
+  /**
+   * Submit investor withdrawal request (for investor portal)
+   */
+  async submitInvestorWithdrawal(params: {
+    fundId: string;
+    amount: number;
+    destinationAddress?: string;
+    reason?: string;
+    notes?: string;
+    totpCode?: string;
+  }): Promise<string> {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const investorId = user.id;
+
+    // Verify TOTP if provided
+    if (params.totpCode) {
+      const mfaResult = await withdrawalService.verifyMFAForWithdrawal(params.totpCode);
+      if (!mfaResult.verified) {
+        throw new Error(mfaResult.error || "MFA verification failed");
+      }
+    }
+
+    // Combine notes with destination and reason
+    const combinedNotes = [
+      params.reason ? `Reason: ${params.reason}` : null,
+      params.destinationAddress ? `Destination: ${params.destinationAddress}` : null,
+      params.notes || null,
+    ].filter(Boolean).join('\n');
+
+    // Create withdrawal via RPC
+    const { data: requestId, error: rpcError } = await supabase.rpc(
+      "create_withdrawal_request",
+      {
+        p_investor_id: investorId,
+        p_fund_id: params.fundId,
+        p_amount: params.amount,
+        p_type: "partial",
+        p_notes: combinedNotes || null,
+      }
+    );
+
+    if (rpcError) throw rpcError;
+
+    return requestId as string;
+  },
 };
