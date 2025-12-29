@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { UserPlus } from "lucide-react";
-import { Asset } from "@/types/investorTypes";
+import { AssetRef as Asset } from "@/types/asset";
 import AddInvestorWizard from "./wizard/AddInvestorWizard";
 
 interface AddInvestorDialogProps {

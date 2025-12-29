@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
 import { WizardFormData, WizardStep, getDefaultWizardData, WIZARD_STEPS } from "./types";
-import { Asset } from "@/types/investorTypes";
+import { AssetRef as Asset } from "@/types/asset";
 
 interface WizardContextType {
   data: WizardFormData;

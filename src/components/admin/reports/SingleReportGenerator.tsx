@@ -19,12 +19,10 @@ import { format, parseISO } from "date-fns";
 import { renderReportToHtml } from "@/components/reports/InvestorReportTemplate";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { InvestorData, InvestorFund } from "@/types/investor-report";
+import { InvestorRef } from "@/types/domains/investor";
 
-interface Investor {
-  id: string;
-  name: string;
-  email: string;
-}
+// Use canonical InvestorRef type
+type Investor = InvestorRef;
 
 export function SingleReportGenerator() {
   const [selectedInvestor, setSelectedInvestor] = useState<string>("");

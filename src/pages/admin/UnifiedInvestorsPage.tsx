@@ -46,7 +46,7 @@ import { InvestorDetailPanel } from "@/components/admin/investors/InvestorDetail
 import { useAdminStats, useUrlFilters, useSortableColumns } from "@/hooks";
 import { cn } from "@/lib/utils";
 import { assetService } from "@/services/shared/assetService";
-import { Asset } from "@/types/investorTypes";
+import { AssetRef as Asset } from "@/types/asset";
 import {
   getActiveFundsForList,
   getActiveInvestorPositions,

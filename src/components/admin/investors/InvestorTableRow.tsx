@@ -2,7 +2,7 @@ import React from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
-import { Asset } from "@/types/investorTypes";
+import { AssetRef as Asset } from "@/types/asset";
 
 interface InvestorTableRowProps {
   investor: {

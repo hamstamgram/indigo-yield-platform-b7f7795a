@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { InvestorSummaryV2 } from "@/services/admin";
-import { Asset } from "@/types/investorTypes";
+import { AssetRef as Asset } from "@/types/asset";
 import { positionService, fundService, assetService } from "@/services/shared";
 
 type UserPortfolio = {

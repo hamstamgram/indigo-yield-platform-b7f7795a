@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { Asset } from "@/types/investorTypes";
+import { AssetRef as Asset } from "@/types/asset";
 import { InvestorSummaryV2 } from "@/services/admin/adminService";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { TruncatedText } from "@/components/ui/truncated-text";
