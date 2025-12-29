@@ -10,6 +10,9 @@
  * - Percentage formatting
  */
 
+// Import for internal use
+import { getAssetConfig, getAssetDecimals } from "@/types/asset";
+
 // Re-export asset config types and helpers from central location
 export {
   type AssetConfig,
@@ -37,7 +40,6 @@ export interface FormatOptions {
  * formatAssetWithSymbol(50000, 'USDT') → "50,000.00 USDT"
  */
 export function formatAssetWithSymbol(amount: number, symbol: string): string {
-  const { getAssetConfig } = require("@/types/asset");
   const config = getAssetConfig(symbol);
   const decimals = config.decimals;
 
@@ -51,7 +53,6 @@ export function formatAssetWithSymbol(amount: number, symbol: string): string {
  * Format an asset amount without symbol (just the number)
  */
 export function formatAssetAmount(amount: number, symbol: string): string {
-  const { getAssetDecimals } = require("@/types/asset");
   const decimals = getAssetDecimals(symbol);
 
   return amount.toLocaleString("en-US", {
@@ -68,7 +69,6 @@ export function formatTokenBalance(
   symbol: string,
   options?: FormatOptions
 ): string {
-  const { getAssetConfig } = require("@/types/asset");
   const { showSymbol = true, maxDecimals } = options || {};
   const config = getAssetConfig(symbol);
   const decimals = maxDecimals ?? Math.min(config.decimals, 6);
@@ -85,7 +85,6 @@ export function formatTokenBalance(
  * Format token amount (legacy alias for formatTokenBalance)
  */
 export function formatTokenAmount(amount: number, tokenSymbol: string): string {
-  const { getAssetConfig } = require("@/types/asset");
   const config = getAssetConfig(tokenSymbol);
   const decimals = Math.min(config.decimals, 6);
 
@@ -208,9 +207,6 @@ export function formatPercentage(
 // Backward Compatibility Exports
 // ============================================================================
 
-// Re-import for aliased exports
-import { getAssetDecimals as _getAssetDecimals, getAssetConfig as _getAssetConfig } from "@/types/asset";
-
 // These maintain backward compatibility with existing imports
-export { _getAssetDecimals as getDecimalsForAsset };
-export { _getAssetConfig as getTokenConfig };
+export { getAssetDecimals as getDecimalsForAsset };
+export { getAssetConfig as getTokenConfig };
