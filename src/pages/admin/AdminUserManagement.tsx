@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,112 +35,52 @@ import { toast } from "sonner";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { UserCog, UserPlus, Trash2, Shield, RefreshCw, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
-interface AdminProfile {
-  id: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  created_at: string;
-  status: string;
-}
+import {
+  useAdminUsers,
+  useRemoveAdminRole,
+  useCreateAdminInvite,
+  useSendAdminInviteEmail,
+  useForceResetPassword,
+} from "@/hooks/data/useSystemAdmin";
 
 function AdminUserManagementContent() {
-  const [admins, setAdmins] = useState<AdminProfile[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isInviting, setIsInviting] = useState(false);
+  const { data: admins = [], isLoading, refetch } = useAdminUsers();
+  const removeAdminMutation = useRemoveAdminRole();
+  const createInviteMutation = useCreateAdminInvite();
+  const sendInviteEmailMutation = useSendAdminInviteEmail();
+  const resetPasswordMutation = useForceResetPassword();
+
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteOpen, setInviteOpen] = useState(false);
 
   // Password Reset State
   const [resetEmail, setResetEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [isResetting, setIsResetting] = useState(false);
 
   // Remove admin confirmation state
   const [removeAdminOpen, setRemoveAdminOpen] = useState(false);
   const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchAdmins();
-  }, []);
-
-  const fetchAdmins = async () => {
-    try {
-      setIsLoading(true);
-      // Query user_roles table for admin role instead of profiles.is_admin
-      const { data: adminRoles, error: rolesError } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "admin");
-
-      if (rolesError) throw rolesError;
-
-      if (!adminRoles || adminRoles.length === 0) {
-        setAdmins([]);
-        return;
-      }
-
-      const adminIds = adminRoles.map((r) => r.user_id);
-
-      // Get profile details for admins
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .in("id", adminIds)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setAdmins(data || []);
-    } catch (error) {
-      console.error("Error fetching admins:", error);
-      toast.error("Failed to load admin list");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleInviteAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inviteEmail) return;
 
-    setIsInviting(true);
     try {
-      // 1. Generate Code
-      const inviteCode =
-        Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
+      const { inviteCode, expiresAt } = await createInviteMutation.mutateAsync({ email: inviteEmail });
 
-      const { data: userData } = await supabase.auth.getUser();
-
-      // 2. Insert Invite
-      const { data: invite, error: dbError } = await supabase
-        .from("admin_invites")
-        .insert({
+      // Try to send email
+      try {
+        await sendInviteEmailMutation.mutateAsync({
           email: inviteEmail,
           invite_code: inviteCode,
-          expires_at: expiresAt.toISOString(),
-          created_by: userData.user?.id,
-        })
-        .select()
-        .single();
-
-      if (dbError) throw dbError;
-
-      // 3. Send Email via Edge Function
-      const { error: fnError } = await supabase.functions.invoke("send-admin-invite", {
-        body: { invite },
-      });
-
-      if (fnError) {
-        console.warn("Email sending failed, but invite created:", fnError);
-        toast.error("Invite Created (Email Failed)", {
-          description: "The invite was created, but the email failed to send. You can manually share the code.",
+          expires_at: expiresAt,
         });
-      } else {
         toast.success("Invite Sent", {
           description: `Invitation sent to ${inviteEmail}`,
+        });
+      } catch {
+        toast.error("Invite Created (Email Failed)", {
+          description: "The invite was created, but the email failed to send. You can manually share the code.",
         });
       }
 
@@ -152,8 +91,6 @@ function AdminUserManagementContent() {
       toast.error("Error", {
         description: error.message || "Failed to send invite",
       });
-    } finally {
-      setIsInviting(false);
     }
   };
 
@@ -166,17 +103,9 @@ function AdminUserManagementContent() {
     if (!pendingRemoveId) return;
 
     try {
-      // Remove admin role from user_roles table
-      const { error } = await supabase
-        .from("user_roles")
-        .delete()
-        .eq("user_id", pendingRemoveId)
-        .eq("role", "admin");
-
-      if (error) throw error;
-
+      await removeAdminMutation.mutateAsync(pendingRemoveId);
       toast.success("Admin privileges removed");
-      fetchAdmins();
+      refetch();
     } catch (error: any) {
       toast.error("Error", {
         description: error.message,
@@ -190,26 +119,17 @@ function AdminUserManagementContent() {
   const handlePasswordReset = async () => {
     if (!resetEmail || !newPassword) return;
 
-    setIsResetting(true);
     try {
-      const { error } = await supabase.functions.invoke("set-user-password", {
-        body: { email: resetEmail, password: newPassword },
-      });
-
-      if (error) throw error;
-
+      await resetPasswordMutation.mutateAsync({ email: resetEmail, password: newPassword });
       toast.success("Success", {
         description: `Password updated for ${resetEmail}`,
       });
-
       setResetEmail("");
       setNewPassword("");
     } catch (error: any) {
       toast.error("Error", {
         description: error.message || "Failed to update password",
       });
-    } finally {
-      setIsResetting(false);
     }
   };
 
@@ -265,8 +185,8 @@ function AdminUserManagementContent() {
                       />
                     </div>
                     <DialogFooter>
-                      <Button type="submit" disabled={isInviting}>
-                        {isInviting ? (
+                      <Button type="submit" disabled={createInviteMutation.isPending}>
+                        {createInviteMutation.isPending ? (
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />
                         ) : (
                           <UserPlus className="h-4 w-4 mr-2" />
@@ -362,8 +282,8 @@ function AdminUserManagementContent() {
                 />
               </div>
 
-              <Button onClick={handlePasswordReset} disabled={isResetting} className="w-full">
-                {isResetting ? (
+              <Button onClick={handlePasswordReset} disabled={resetPasswordMutation.isPending} className="w-full">
+                {resetPasswordMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 ) : (
                   "Update Password"

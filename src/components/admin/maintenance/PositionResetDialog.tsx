@@ -18,35 +18,20 @@ import {
   AlertTitle,
 } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-interface PreviewData {
-  positions: number;
-  performance_records: number;
-  aum_records: number;
-  transactions: number;
-  investors_affected: number;
-  funds_affected: number;
-  total_aum: number;
-}
-
-interface ResetResult {
-  success: boolean;
-  batch_id: string;
-  positions_reset: number;
-  performance_archived: number;
-  aum_archived: number;
-  transactions_archived: number;
-  total_aum_before: number;
-}
+import {
+  getPositionResetPreview,
+  executePositionReset,
+  type PositionResetPreview,
+  type PositionResetResult,
+} from "@/services/admin/systemAdminService";
 
 export function PositionResetDialog() {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"initial" | "preview" | "confirm" | "executing" | "complete" | "error">("initial");
-  const [preview, setPreview] = useState<PreviewData | null>(null);
+  const [preview, setPreview] = useState<PositionResetPreview | null>(null);
   const [confirmationCode, setConfirmationCode] = useState("");
-  const [result, setResult] = useState<ResetResult | null>(null);
+  const [result, setResult] = useState<PositionResetResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -78,25 +63,9 @@ export function PositionResetDialog() {
     setError(null);
     
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error("Not authenticated");
-      }
-
-      const response = await supabase.functions.invoke("reset-positions", {
-        body: { action: "preview" },
-      });
-
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-
-      if (response.data?.success) {
-        setPreview(response.data.preview);
-        setStep("preview");
-      } else {
-        throw new Error(response.data?.error || "Failed to fetch preview");
-      }
+      const previewData = await getPositionResetPreview();
+      setPreview(previewData);
+      setStep("preview");
     } catch (err) {
       console.error("Preview error:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch preview");
@@ -106,7 +75,7 @@ export function PositionResetDialog() {
     }
   };
 
-  const executeReset = async () => {
+  const handleExecuteReset = async () => {
     if (confirmationCode !== "RESET POSITIONS") {
       toast.error("Please type exactly: RESET POSITIONS");
       return;
@@ -117,24 +86,10 @@ export function PositionResetDialog() {
     setError(null);
 
     try {
-      const response = await supabase.functions.invoke("reset-positions", {
-        body: { 
-          action: "execute",
-          confirmationCode: confirmationCode 
-        },
-      });
-
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-
-      if (response.data?.success) {
-        setResult(response.data.result);
-        setStep("complete");
-        toast.success("All positions have been reset to zero");
-      } else {
-        throw new Error(response.data?.error || "Reset failed");
-      }
+      const resetResult = await executePositionReset(confirmationCode);
+      setResult(resetResult);
+      setStep("complete");
+      toast.success("All positions have been reset to zero");
     } catch (err) {
       console.error("Reset error:", err);
       setError(err instanceof Error ? err.message : "Reset failed");
@@ -371,7 +326,7 @@ export function PositionResetDialog() {
               </Button>
               <Button 
                 variant="destructive" 
-                onClick={executeReset}
+                onClick={handleExecuteReset}
                 disabled={loading || confirmationCode !== "RESET POSITIONS"}
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
