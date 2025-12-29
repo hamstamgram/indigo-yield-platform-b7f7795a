@@ -1,17 +1,37 @@
 /**
  * Domain Types - Central Export
- * Clean, domain-specific type abstractions
+ * CANONICAL SOURCE for all domain-specific type abstractions
+ * 
+ * Usage:
+ * import { Investor, Transaction, Fund } from "@/types/domains";
  */
 
-// Re-export all domain types
+// ============================================================================
+// Core Domain Types - Import from here!
+// ============================================================================
+
+// Investor domain
 export * from "./investor";
+
+// Transaction domain
 export * from "./transaction";
+
+// Portfolio domain
 export * from "./portfolio";
+
+// Fund domain
 export * from "./fund";
+
+// Report domain
 export * from "./report";
+
+// Document domain
 export * from "./document";
 
-// Common utility types
+// ============================================================================
+// Common Utility Types
+// ============================================================================
+
 export type AsyncResult<T> = {
   data: T | null;
   error: Error | null;
@@ -35,4 +55,26 @@ export interface SortConfig {
 
 export interface FilterConfig {
   [key: string]: string | number | boolean | null | undefined;
+}
+
+// ============================================================================
+// Status Types
+// ============================================================================
+
+export type EntityStatus = "active" | "inactive" | "pending" | "closed" | "suspended";
+
+// ============================================================================
+// ID Reference Types
+// ============================================================================
+
+export interface IdRef {
+  id: string;
+}
+
+export interface NamedRef extends IdRef {
+  name: string;
+}
+
+export interface EmailRef extends NamedRef {
+  email: string;
 }

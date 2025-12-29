@@ -1,25 +1,24 @@
 /**
  * Investor Domain Types
- * Clean abstractions over database types for investor-related entities
+ * CANONICAL SOURCE - All investor-related types should be imported from here
  *
  * Database Schema Mapping:
- * - investors table: id, name, email, profile_id, status, created_at, updated_at, phone, etc.
- * - profiles table: id, first_name, last_name, is_admin, totp_enabled, totp_verified
+ * - profiles table: id, email, first_name, last_name, is_admin, totp_enabled, totp_verified, status, phone, onboarding_date
  * - investor_positions table: investor_id, fund_id, shares, cost_basis, etc.
  */
 
 import { Database } from "@/integrations/supabase/types";
 
 // Base types from database
-type DbInvestor = Database["public"]["Tables"]["profiles"]["Row"];
+type DbProfile = Database["public"]["Tables"]["profiles"]["Row"];
 type DbInvestorPosition = Database["public"]["Tables"]["investor_positions"]["Row"];
 
-// Status mapping
-type InvestorStatus = "active" | "pending" | "closed";
+// Status mapping - lowercase for internal use, can be displayed as capitalized
+export type InvestorStatus = "active" | "pending" | "closed";
 
 /**
- * Application-level investor type
- * Combines data from investors table with optional profile data
+ * Core investor type - the main type for investor data
+ * Maps to the profiles table with standardized naming
  */
 export interface Investor {
   id: string;
@@ -34,8 +33,7 @@ export interface Investor {
 }
 
 /**
- * Extended investor with profile information
- * Used when profile data is joined from profiles table
+ * Investor with profile fields exposed (for detailed views)
  */
 export interface InvestorWithProfile extends Investor {
   first_name: string | null;
@@ -98,21 +96,48 @@ export interface InvestorSummary extends Investor {
 }
 
 /**
- * Convert database investor row to application Investor type
+ * Minimal investor reference for dropdowns/lists
  */
-export function mapDbInvestorToInvestor(dbInvestor: DbInvestor): Investor {
+export interface InvestorRef {
+  id: string;
+  name: string;
+  email: string;
+}
+
+/**
+ * Admin-facing investor type with camelCase for UI compatibility
+ * @deprecated Use Investor with mappers instead
+ */
+export interface AdminInvestor {
+  id: string;
+  email: string;
+  name?: string;
+  totalPrincipal: string;
+  totalEarned: string;
+  status: "active" | "inactive" | "suspended";
+  createdAt: string;
+  lastActivity?: string;
+}
+
+/**
+ * Convert database profile row to application Investor type
+ */
+export function mapDbProfileToInvestor(dbProfile: DbProfile): Investor {
   return {
-    id: dbInvestor.id,
-    name: `${dbInvestor.first_name || ""} ${dbInvestor.last_name || ""}`.trim() || dbInvestor.email,
-    email: dbInvestor.email,
-    profile_id: dbInvestor.id,
-    status: (dbInvestor.status || "pending") as InvestorStatus,
-    created_at: dbInvestor.created_at || new Date().toISOString(),
-    updated_at: dbInvestor.updated_at || new Date().toISOString(),
-    phone: dbInvestor.phone,
-    onboarding_date: dbInvestor.onboarding_date,
+    id: dbProfile.id,
+    name: `${dbProfile.first_name || ""} ${dbProfile.last_name || ""}`.trim() || dbProfile.email,
+    email: dbProfile.email,
+    profile_id: dbProfile.id,
+    status: (dbProfile.status || "pending") as InvestorStatus,
+    created_at: dbProfile.created_at || new Date().toISOString(),
+    updated_at: dbProfile.updated_at || new Date().toISOString(),
+    phone: dbProfile.phone,
+    onboarding_date: dbProfile.onboarding_date,
   };
 }
+
+// Alias for backwards compatibility
+export const mapDbInvestorToInvestor = mapDbProfileToInvestor;
 
 /**
  * Convert database investor position to application type
@@ -133,8 +158,8 @@ export function mapDbPositionToInvestorPosition(dbPosition: DbInvestorPosition):
     perf_fees_paid: dbPosition.perf_fees_paid ? Number(dbPosition.perf_fees_paid) : null,
     lock_until_date: dbPosition.lock_until_date,
     last_transaction_date: dbPosition.last_transaction_date,
-    last_modified_at: dbPosition.updated_at, // Use updated_at as fallback
-    last_modified_by: null, // Column doesn't exist in current schema
+    last_modified_at: dbPosition.updated_at,
+    last_modified_by: null,
     updated_at: dbPosition.updated_at,
   };
 }
@@ -152,17 +177,27 @@ export function isInvestorWithProfile(
  * Get display name from investor (with or without profile)
  * Falls back to email prefix when name is empty for better UX
  */
-export function getInvestorDisplayName(investor: Investor | InvestorWithProfile): string {
-  if (isInvestorWithProfile(investor)) {
-    const { first_name, last_name } = investor;
-    if (first_name && last_name) {
-      return `${first_name} ${last_name}`;
+export function getInvestorDisplayName(investor: Investor | InvestorWithProfile | InvestorRef): string {
+  if (isInvestorWithProfile(investor as Investor | InvestorWithProfile)) {
+    const inv = investor as InvestorWithProfile;
+    if (inv.first_name && inv.last_name) {
+      return `${inv.first_name} ${inv.last_name}`;
     }
-    if (first_name) return first_name;
-    if (last_name) return last_name;
+    if (inv.first_name) return inv.first_name;
+    if (inv.last_name) return inv.last_name;
   }
-  if (investor.name) return investor.name;
-  // Use email prefix as fallback instead of full email
+  if ("name" in investor && investor.name) return investor.name;
   const emailPrefix = investor.email.split("@")[0];
   return emailPrefix || investor.email;
+}
+
+/**
+ * Convert Investor to InvestorRef for minimal data transfer
+ */
+export function toInvestorRef(investor: Investor | InvestorWithProfile): InvestorRef {
+  return {
+    id: investor.id,
+    name: investor.name || getInvestorDisplayName(investor),
+    email: investor.email,
+  };
 }
