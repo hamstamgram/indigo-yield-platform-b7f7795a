@@ -22,11 +22,11 @@ import {
 import { Loader2, FileText, Download, Send, Calendar, User } from "lucide-react";
 import { format } from "date-fns";
 import {
-  useActiveInvestorsForStatements,
+  useStatementsPageInvestors,
   useStatementDocuments,
-  useGenerateStatement,
+  useGenerateStatementMutation,
   useSendStatementEmail,
-} from "@/hooks/data/admin/useAdminStatementsPage";
+} from "@/hooks";
 
 const MONTHS = [
   { value: "1", label: "January" },
@@ -55,12 +55,12 @@ export default function AdminStatementsPage() {
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
   // Use extracted hooks
-  const { data: investorProfiles, isLoading: investorsLoading } = useActiveInvestorsForStatements();
+  const { data: investorProfiles, isLoading: investorsLoading } = useStatementsPageInvestors();
   const investors = investorProfiles || [];
 
   const { data: statements, isLoading: statementsLoading } = useStatementDocuments(50);
 
-  const generateStatementMutation = useGenerateStatement((id) => setGeneratingStatement(id));
+  const generateStatementMutation = useGenerateStatementMutation((id) => setGeneratingStatement(id));
 
   const sendStatementMutation = useSendStatementEmail();
 

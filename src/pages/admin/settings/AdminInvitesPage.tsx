@@ -47,10 +47,10 @@ import { useToast } from "@/hooks";
 import { SuperAdminGuard } from "@/components/admin/SuperAdminGuard";
 import {
   useAdminInvitesList,
-  useCreateAdminInvite,
+  useCreateAdminInvitePage,
   useRevokeAdminInvite,
-  type AdminInvite,
-} from "@/hooks/data/admin/useAdminInvitesPage";
+  type AdminInviteItem,
+} from "@/hooks";
 import {
   Users,
   UserPlus,
@@ -69,7 +69,7 @@ import { format, isPast } from "date-fns";
 
 type InviteStatus = "pending" | "used" | "expired";
 
-function getInviteStatus(invite: AdminInvite): InviteStatus {
+function getInviteStatus(invite: AdminInviteItem): InviteStatus {
   if (invite.used) return "used";
   if (isPast(new Date(invite.expires_at))) return "expired";
   return "pending";
@@ -78,7 +78,7 @@ function getInviteStatus(invite: AdminInvite): InviteStatus {
 function AdminInvitesContent() {
   const { toast } = useToast();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [revokeInvite, setRevokeInvite] = useState<AdminInvite | null>(null);
+  const [revokeInvite, setRevokeInvite] = useState<AdminInviteItem | null>(null);
   const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState<"admin" | "super_admin">("admin");
   const [statusFilter, setStatusFilter] = useState<InviteStatus | "all">("all");
@@ -86,7 +86,7 @@ function AdminInvitesContent() {
   // Use extracted hooks
   const { data: invites, isLoading } = useAdminInvitesList();
 
-  const createMutation = useCreateAdminInvite({
+  const createMutation = useCreateAdminInvitePage({
     onSuccess: ({ email, inviteCode }) => {
       const inviteLink = `${window.location.origin}/admin/invite?code=${inviteCode}`;
       navigator.clipboard.writeText(inviteLink);

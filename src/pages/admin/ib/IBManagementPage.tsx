@@ -35,7 +35,7 @@ import {
   useIBProfiles,
   useCreateIB,
   type EarningsByAsset,
-} from "@/hooks/data/admin/useIBManagementPage";
+} from "@/hooks";
 
 export default function IBManagementPage() {
   const navigate = useNavigate();

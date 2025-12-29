@@ -56,14 +56,14 @@ import { VoidYieldDialog } from "@/components/admin/yields/VoidYieldDialog";
 import { EditYieldDialog } from "@/components/admin/yields/EditYieldDialog";
 import { YieldActionsColumn } from "@/components/admin/yields/YieldActionsColumn";
 import {
-  useYieldRecords,
+  useRecordedYieldsData,
   useYieldCorrectionHistory,
   useRecordCorrectionHistory,
-  useVoidYieldRecord,
+  useVoidYieldMutation,
   useUpdateYieldAum,
-  YieldRecord,
-  CorrectionHistoryItem,
-} from "@/hooks/data/admin/useRecordedYieldsPage";
+  type RecordedYieldRecord,
+  type CorrectionHistoryItem,
+} from "@/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
 
@@ -78,12 +78,12 @@ function RecordedYieldsContent() {
   // Use data hook for funds
   const { data: fundsData = [] } = useFunds(true); // activeOnly
   const funds: Fund[] = fundsData.map(f => ({ id: f.id, code: f.code, name: f.name, asset: f.asset }));
-  const [historyRecord, setHistoryRecord] = useState<YieldRecord | null>(null);
+  const [historyRecord, setHistoryRecord] = useState<RecordedYieldRecord | null>(null);
   const [canEdit, setCanEdit] = useState(false);
-  const [correctionRecord, setCorrectionRecord] = useState<YieldRecord | null>(null);
-  const [correctionHistoryRecord, setCorrectionHistoryRecord] = useState<YieldRecord | null>(null);
-  const [voidRecord, setVoidRecord] = useState<YieldRecord | null>(null);
-  const [editAumRecord, setEditAumRecord] = useState<YieldRecord | null>(null);
+  const [correctionRecord, setCorrectionRecord] = useState<RecordedYieldRecord | null>(null);
+  const [correctionHistoryRecord, setCorrectionHistoryRecord] = useState<RecordedYieldRecord | null>(null);
+  const [voidRecord, setVoidRecord] = useState<RecordedYieldRecord | null>(null);
+  const [editAumRecord, setEditAumRecord] = useState<RecordedYieldRecord | null>(null);
 
   // URL-persisted filters
   const { filters: urlFilters, setFilter, clearFilters } = useUrlFilters({
@@ -103,7 +103,7 @@ function RecordedYieldsContent() {
   }, []);
 
   // Fetch yield records using hook
-  const { data: yields = [], isLoading } = useYieldRecords(filters);
+  const { data: yields = [], isLoading } = useRecordedYieldsData(filters);
 
   // Fetch correction history for all yields (for badge display)
   const { data: correctionHistory = [] } = useYieldCorrectionHistory(
@@ -133,7 +133,7 @@ function RecordedYieldsContent() {
   }, [correctionHistory]);
 
   // Void mutation using hook
-  const voidMutation = useVoidYieldRecord(() => setVoidRecord(null));
+  const voidMutation = useVoidYieldMutation(() => setVoidRecord(null));
 
   // Edit AUM mutation using hook
   const editAumMutation = useUpdateYieldAum(() => setEditAumRecord(null));
