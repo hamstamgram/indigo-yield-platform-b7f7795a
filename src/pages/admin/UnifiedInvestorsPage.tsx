@@ -4,8 +4,7 @@
  * URL-persisted filters for search, fund, status, ib, has_withdrawals
  */
 
-import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,52 +34,33 @@ import {
   User,
   Users,
   ArrowDownToLine,
-  Filter,
   X,
   RefreshCw,
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
-import { adminServiceV2, InvestorSummaryV2 } from "@/services/admin/adminService";
 import AddInvestorDialog from "@/components/admin/investors/AddInvestorDialog";
 import { InvestorDetailPanel } from "@/components/admin/investors/InvestorDetailPanel";
 import { useAdminStats, useUrlFilters, useSortableColumns } from "@/hooks";
+import { useUnifiedInvestors, type EnrichedInvestor } from "@/hooks/data";
 import { cn } from "@/lib/utils";
-import { assetService } from "@/services/shared/assetService";
-import { AssetRef as Asset } from "@/types/asset";
-import {
-  getActiveFundsForList,
-  getActiveInvestorPositions,
-} from "@/services/investor/fundViewService";
-import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
 
-interface Fund {
-  id: string;
-  code: string;
-  name: string;
-  asset: string;
-}
-
-interface EnrichedInvestor extends InvestorSummaryV2 {
-  fundsHeldCount: number;
-  lastActivityDate: string | null;
-  pendingWithdrawals: number;
-  lastReportPeriod: string | null;
-  ibParentName: string | null;
-  isSystemAccount?: boolean;
-}
-
 function UnifiedInvestorsContent() {
-  const navigate = useNavigate();
   const { stats } = useAdminStats();
-  const [investors, setInvestors] = useState<InvestorSummaryV2[]>([]);
-  const [enrichedInvestors, setEnrichedInvestors] = useState<EnrichedInvestor[]>([]);
-  const [assets, setAssets] = useState<Asset[]>([]);
-  const [funds, setFunds] = useState<Fund[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { 
+    data, 
+    isLoading: loading, 
+    refetch 
+  } = useUnifiedInvestors();
+  
   const [selectedInvestorId, setSelectedInvestorId] = useState<string | null>(null);
-  const [investorPositions, setInvestorPositions] = useState<Map<string, string[]>>(new Map());
+
+  const investors = data?.investors || [];
+  const enrichedInvestors = data?.enrichedInvestors || [];
+  const assets = data?.assets || [];
+  const funds = data?.funds || [];
+  const investorPositions = data?.investorPositions || new Map<string, string[]>();
 
   // URL-persisted filters
   const { filters, setFilter, hasActiveFilters, clearFilters } = useUrlFilters({
@@ -93,148 +73,6 @@ function UnifiedInvestorsContent() {
   const statusFilter = filters.status || "all";
   const ibFilter = filters.ib || "all";
   const hasWithdrawalsFilter = filters.has_withdrawals || "all";
-
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [investorsData, assetsData, fundsData, positionsData] = await Promise.all([
-        adminServiceV2.getAllInvestorsWithSummary(),
-        assetService.getAssets({ is_active: true }),
-        getActiveFundsForList(),
-        getActiveInvestorPositions(),
-      ]);
-      
-      setInvestors(investorsData);
-      setFunds(fundsData);
-
-      // Build map of investor -> fund IDs
-      const posMap = new Map<string, string[]>();
-      positionsData.forEach((p) => {
-        const existing = posMap.get(p.investor_id) || [];
-        if (!existing.includes(p.fund_id)) {
-          existing.push(p.fund_id);
-        }
-        posMap.set(p.investor_id, existing);
-      });
-      setInvestorPositions(posMap);
-      
-      // Transform to match Asset type expected by AddInvestorDialog
-      const transformedAssets: Asset[] = assetsData.map((a) => ({
-        id: a.asset_id ? parseInt(a.asset_id, 10) : 0,
-        symbol: a.symbol,
-        name: a.name,
-      }));
-      setAssets(transformedAssets);
-
-      // Enrich investors with additional data
-      await enrichInvestors(investorsData, posMap);
-    } catch (error) {
-      console.error("Failed to load data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const enrichInvestors = async (investorsData: InvestorSummaryV2[], posMap: Map<string, string[]>) => {
-    try {
-      const investorIds = investorsData.map(inv => inv.id);
-      
-      // Batch fetch pending withdrawals
-      const { data: withdrawals } = await supabase
-        .from("withdrawal_requests")
-        .select("investor_id")
-        .in("investor_id", investorIds)
-        .eq("status", "pending");
-
-      const withdrawalCounts = new Map<string, number>();
-      (withdrawals || []).forEach(w => {
-        withdrawalCounts.set(w.investor_id, (withdrawalCounts.get(w.investor_id) || 0) + 1);
-      });
-
-      // Fetch last_activity_at directly from profiles (now tracked via triggers)
-      const { data: profilesWithActivity } = await supabase
-        .from("profiles")
-        .select("id, last_activity_at")
-        .in("id", investorIds);
-
-      const lastActivityDates = new Map<string, string>();
-      (profilesWithActivity || []).forEach(p => {
-        if (p.last_activity_at) {
-          lastActivityDates.set(p.id, p.last_activity_at);
-        }
-      });
-
-      // Batch fetch last reports
-      const { data: reports } = await supabase
-        .from("generated_statements")
-        .select("investor_id, period_id, created_at")
-        .in("investor_id", investorIds)
-        .order("created_at", { ascending: false });
-
-      const lastReports = new Map<string, string>();
-      (reports || []).forEach(r => {
-        if (!lastReports.has(r.investor_id)) {
-          lastReports.set(r.investor_id, r.period_id);
-        }
-      });
-
-      // Batch fetch IB parent info
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, ib_parent_id")
-        .in("id", investorIds)
-        .not("ib_parent_id", "is", null);
-
-      const ibParentIds = [...new Set((profiles || []).map(p => p.ib_parent_id).filter(Boolean))];
-      const ibParentNames = new Map<string, string>();
-      
-      if (ibParentIds.length > 0) {
-        const { data: parents } = await supabase
-          .from("profiles")
-          .select("id, first_name, last_name")
-          .in("id", ibParentIds);
-
-        (parents || []).forEach(p => {
-          const name = [p.first_name, p.last_name].filter(Boolean).join(" ");
-          ibParentNames.set(p.id, name);
-        });
-      }
-
-      const investorIbParents = new Map<string, string>();
-      (profiles || []).forEach(p => {
-        if (p.ib_parent_id && ibParentNames.has(p.ib_parent_id)) {
-          investorIbParents.set(p.id, ibParentNames.get(p.ib_parent_id)!);
-        }
-      });
-
-      // Build enriched list
-      const enriched: EnrichedInvestor[] = investorsData.map(inv => ({
-        ...inv,
-        fundsHeldCount: posMap.get(inv.id)?.length || 0,
-        lastActivityDate: lastActivityDates.get(inv.id) || null,
-        pendingWithdrawals: withdrawalCounts.get(inv.id) || 0,
-        lastReportPeriod: lastReports.get(inv.id) || null,
-        ibParentName: investorIbParents.get(inv.id) || null,
-      }));
-
-      setEnrichedInvestors(enriched);
-    } catch (error) {
-      console.error("Failed to enrich investors:", error);
-      // Fallback to basic data
-      setEnrichedInvestors(investorsData.map(inv => ({
-        ...inv,
-        fundsHeldCount: posMap.get(inv.id)?.length || 0,
-        lastActivityDate: null,
-        pendingWithdrawals: 0,
-        lastReportPeriod: null,
-        ibParentName: null,
-      })));
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
 
   const selectedInvestor = useMemo(() => {
     return enrichedInvestors.find(inv => inv.id === selectedInvestorId) || null;
@@ -315,10 +153,10 @@ function UnifiedInvestorsContent() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={loadData}>
+          <Button variant="ghost" size="icon" onClick={() => refetch()}>
             <RefreshCw className="h-4 w-4" />
           </Button>
-          <AddInvestorDialog assets={assets} onInvestorAdded={loadData} />
+          <AddInvestorDialog assets={assets} onInvestorAdded={() => refetch()} />
         </div>
       </div>
 
@@ -571,7 +409,7 @@ function UnifiedInvestorsContent() {
                   investorId={selectedInvestorId}
                   investorSummary={selectedInvestor}
                   onClose={handleClosePanel}
-                  onDataChange={loadData}
+                  onDataChange={() => refetch()}
                 />
               </div>
             </ResizablePanel>
