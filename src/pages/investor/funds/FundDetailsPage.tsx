@@ -1,8 +1,7 @@
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PerformanceReportTable } from "@/components/investor/reports/PerformanceReportTable";
-import { useInvestorPerformance } from "@/hooks";
-import { useAssetMeta } from "@/hooks/data/investor/useFundDetailsPage";
+import { useInvestorPerformance, useAssetMeta } from "@/hooks";
 import { Loader2, TrendingUp, Info } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 

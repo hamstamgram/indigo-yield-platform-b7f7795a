@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { usePendingTransactionDetails } from "@/hooks/data/admin/usePendingTransactionDetails";
+import { usePendingTransactionDetails } from "@/hooks";
 
 export default function PendingTransactionDetailsPage() {
   const { type, id } = useParams<{ type: string; id: string }>();

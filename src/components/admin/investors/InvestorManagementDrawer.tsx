@@ -48,10 +48,10 @@ import { CryptoIcon } from "@/components/CryptoIcons";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { 
-  useInvestorPositions as useAdminInvestorPositions, 
+  useAdminInvestorPositions, 
   useInvestorActivePositions,
-  type InvestorPosition,
-} from "@/hooks/data/admin/useInvestorDetail";
+  type AdminInvestorPosition,
+} from "@/hooks";
 
 type DeleteStep = "check" | "confirm-with-positions" | "confirm-empty" | "deleting";
 
