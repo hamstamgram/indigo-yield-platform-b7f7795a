@@ -22,7 +22,7 @@ export type {
   PaginatedWithdrawals,
   Withdrawal,
   WithdrawalAuditLog,
-} from "@/types/withdrawal";
+} from "@/types/domains";
 
 // ==================== Hooks ====================
 

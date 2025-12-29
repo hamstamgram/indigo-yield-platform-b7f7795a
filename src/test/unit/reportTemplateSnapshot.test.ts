@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { renderReportToHtml } from '@/components/reports/InvestorReportTemplate';
-import { InvestorData } from '@/types/investor-report';
+import { InvestorData } from '@/types/domains';
 
 /**
  * Report Template Snapshot Tests
