@@ -45,6 +45,9 @@ export interface DocumentUploadRequest {
   period_end?: string;
 }
 
+// Alias for backward compatibility
+export type DocumentUpload = DocumentUploadRequest;
+
 export interface DocumentDownloadResult {
   url: string;
   filename: string;
