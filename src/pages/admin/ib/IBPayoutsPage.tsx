@@ -37,7 +37,7 @@ import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { Coins, CheckCircle, Loader2, DollarSign } from "lucide-react";
-import { useIBAllocationsForPayout, useMarkAllocationsAsPaid } from "@/hooks/admin";
+import { useIBAllocationsForPayout, useMarkAllocationsAsPaid } from "@/hooks/data/admin";
 
 export default function IBPayoutsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("pending");

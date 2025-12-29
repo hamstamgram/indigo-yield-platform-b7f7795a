@@ -7,7 +7,7 @@ import { FolderOpen, Download, FileText, Loader2 } from "lucide-react";
 import PageHeader from "@/components/layout/PageHeader";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { useInvestorDocuments, useDocumentDownload } from "@/hooks/investor";
+import { useInvestorDocuments, useDocumentDownload } from "@/hooks/data/investor";
 import type { InvestorDocument } from "@/services/investor/investorDataService";
 
 export default function InvestorDocumentsPage() {

@@ -23,7 +23,7 @@ import {
   useIBReferralDetail,
   useIBReferralPositions,
   useIBReferralCommissions,
-} from "@/hooks/ib/useIBData";
+} from "@/hooks/data/shared";
 
 export default function IBReferralDetailPage() {
   const { id } = useParams<{ id: string }>();

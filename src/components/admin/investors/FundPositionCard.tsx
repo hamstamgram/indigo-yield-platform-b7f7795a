@@ -26,7 +26,7 @@ import {
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useUpdateFundPerformance } from "@/hooks/admin";
+import { useUpdateFundPerformance } from "@/hooks/data/admin";
 
 interface PerformanceData {
   mtd_beginning_balance: number;

@@ -19,7 +19,7 @@ import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { Wallet, ChevronLeft, ChevronRight } from "lucide-react";
-import { useIBPayoutHistory } from "@/hooks/ib/useIBData";
+import { useIBPayoutHistory } from "@/hooks/data/shared";
 
 const PAGE_SIZE = 20;
 

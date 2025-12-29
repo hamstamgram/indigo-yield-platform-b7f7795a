@@ -124,3 +124,11 @@ export {
   useAssetMeta,
   type AssetMeta,
 } from "./useFundDetailsPage";
+
+// useInvestorPortfolioQueries (moved from hooks/investor/)
+export {
+  useInvestorDocuments,
+  useDocumentDownload,
+  usePerformanceHistory,
+  usePendingTransactions,
+} from "./useInvestorPortfolioQueries";

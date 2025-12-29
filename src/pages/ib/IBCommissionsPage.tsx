@@ -27,7 +27,7 @@ import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { Coins, Download, ChevronLeft, ChevronRight, Search } from "lucide-react";
-import { useIBCommissions } from "@/hooks/ib/useIBData";
+import { useIBCommissions } from "@/hooks/data/shared";
 
 const PAGE_SIZE = 20;
 

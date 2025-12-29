@@ -22,7 +22,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { formatAssetAmount } from "@/utils/assets";
 import { format } from "date-fns";
 import { Search, Users, ChevronRight, ChevronLeft, UserPlus } from "lucide-react";
-import { useIBReferrals } from "@/hooks/ib/useIBData";
+import { useIBReferrals } from "@/hooks/data/shared";
 
 const PAGE_SIZE = 10;
 

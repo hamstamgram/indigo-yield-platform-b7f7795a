@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { usePendingTransactions } from "@/hooks/investor";
+import { usePendingTransactions } from "@/hooks/data/investor";
 
 export default function PendingTransactionsPage() {
   const [searchTerm, setSearchTerm] = useState("");

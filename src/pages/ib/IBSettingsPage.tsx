@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
 import { User, Shield, Bell } from "lucide-react";
-import { useIBProfile, useUpdateIBProfile } from "@/hooks/ib/useIBData";
+import { useIBProfile, useUpdateIBProfile } from "@/hooks/data/shared";
 
 export default function IBSettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");

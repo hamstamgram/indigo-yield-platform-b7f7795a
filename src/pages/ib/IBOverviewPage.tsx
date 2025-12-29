@@ -14,7 +14,7 @@ import {
   useIBTopReferrals,
   useIBReferralCount,
   type PeriodType,
-} from "@/hooks/ib/useIBData";
+} from "@/hooks/data/shared";
 import type { CommissionSummary } from "@/services/ib/ibService";
 
 // Helper to format commission totals for display
