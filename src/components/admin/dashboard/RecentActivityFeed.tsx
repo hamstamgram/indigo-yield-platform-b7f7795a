@@ -3,8 +3,7 @@
  * Real-time stream of platform events
  */
 
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,153 +18,32 @@ import {
   FileText,
   RefreshCw,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
-
-interface ActivityItem {
-  id: string;
-  type: "deposit" | "withdrawal" | "yield" | "user" | "report" | "transaction";
-  title: string;
-  description: string;
-  timestamp: Date;
-  metadata?: {
-    amount?: number;
-    asset?: string;
-    investorName?: string;
-  };
-}
+import { useRecentActivities, useRealtimeSubscription } from "@/hooks/data";
+import type { ActivityItem } from "@/types/dashboard";
 
 export function RecentActivityFeed() {
-  const navigate = useNavigate();
-  const [activities, setActivities] = useState<ActivityItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchActivities = async () => {
-    try {
-      // Fetch recent transactions
-      const { data: transactions } = await supabase
-        .from("transactions_v2")
-        .select(`
-          id,
-          type,
-          amount,
-          asset,
-          created_at,
-          profile:profiles!fk_transactions_v2_profile(first_name, last_name, email)
-        `)
-        .order("created_at", { ascending: false })
-        .limit(10);
+  const { data: activities = [], isLoading: loading, refetch } = useRecentActivities();
 
-      // Fetch recent withdrawal requests
-      const { data: withdrawals } = await supabase
-        .from("withdrawal_requests")
-        .select(`
-          id,
-          requested_amount,
-          status,
-          created_at,
-          profile:profiles!fk_withdrawal_requests_profile(first_name, last_name, email),
-          fund:funds(asset)
-        `)
-        .order("created_at", { ascending: false })
-        .limit(5);
+  // Subscribe to realtime changes
+  useRealtimeSubscription({
+    channel: "activity-feed",
+    table: "transactions_v2",
+    onChange: () => refetch(),
+  });
 
-      const activityItems: ActivityItem[] = [];
+  useRealtimeSubscription({
+    channel: "activity-feed-withdrawals",
+    table: "withdrawal_requests",
+    onChange: () => refetch(),
+  });
 
-      // Map transactions
-      transactions?.forEach((t: any) => {
-        const investorName = t.profile
-          ? `${t.profile.first_name || ""} ${t.profile.last_name || ""}`.trim() || t.profile.email
-          : "Unknown";
-
-        let type: ActivityItem["type"] = "transaction";
-        let title = "Transaction";
-
-        // Compare uppercase since DB stores uppercase types
-        const txType = (t.type || "").toUpperCase();
-        if (txType === "DEPOSIT" || txType === "ADDITION") {
-          type = "deposit";
-          title = "Deposit";
-        } else if (txType === "WITHDRAWAL") {
-          type = "withdrawal";
-          title = "Withdrawal";
-        } else if (txType === "YIELD" || txType === "INCOME" || txType === "INTEREST") {
-          type = "yield";
-          title = "Yield Applied";
-        }
-
-        activityItems.push({
-          id: t.id,
-          type,
-          title,
-          description: investorName,
-          timestamp: new Date(t.created_at),
-          metadata: {
-            amount: t.amount,
-            asset: t.asset,
-            investorName,
-          },
-        });
-      });
-
-      // Map withdrawal requests
-      withdrawals?.forEach((w: any) => {
-        const investorName = w.profile
-          ? `${w.profile.first_name || ""} ${w.profile.last_name || ""}`.trim() || w.profile.email
-          : "Unknown";
-
-        activityItems.push({
-          id: `wr-${w.id}`,
-          type: "withdrawal",
-          title: `Withdrawal ${w.status === "pending" ? "Requested" : w.status}`,
-          description: investorName,
-          timestamp: new Date(w.created_at),
-          metadata: {
-            amount: w.requested_amount,
-            asset: w.fund?.asset,
-            investorName,
-          },
-        });
-      });
-
-      // Sort by timestamp and take top 15
-      activityItems.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-      setActivities(activityItems.slice(0, 15));
-    } catch (error) {
-      console.error("Failed to fetch activities:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchActivities();
-
-    // Subscribe to realtime changes
-    const channel = supabase
-      .channel("activity-feed")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "transactions_v2" },
-        () => fetchActivities()
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "withdrawal_requests" },
-        () => fetchActivities()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setRefreshing(true);
-    fetchActivities();
+    await refetch();
+    setRefreshing(false);
   };
 
   const getIcon = (type: ActivityItem["type"]) => {

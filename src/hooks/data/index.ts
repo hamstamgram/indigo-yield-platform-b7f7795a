@@ -193,3 +193,10 @@ export { useFinalizedPortfolio } from "./useFinalizedPortfolio";
 export { useInvestorSearch } from "./useInvestorSearch";
 export { useInvestors } from "./useInvestors";
 export { useUserAssets, type UserAsset } from "./useUserAssets";
+
+// Dashboard query hooks
+export {
+  useFundsWithAUM,
+  useRecentActivities,
+  usePendingItems,
+} from "./useDashboardQueries";

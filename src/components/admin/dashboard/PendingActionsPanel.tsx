@@ -4,8 +4,6 @@
  */
 
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { QUERY_KEYS } from "@/constants/queryKeys";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,106 +15,13 @@ import {
   ChevronRight,
   CheckCircle2,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
-import { useRealtimeSubscription } from "@/hooks/data";
-
-interface PendingItem {
-  id: string;
-  type: "withdrawal" | "report";
-  title: string;
-  subtitle: string;
-  amount?: string;
-  timestamp: Date;
-  priority: "high" | "medium" | "low";
-}
-
-async function fetchPendingItems(): Promise<PendingItem[]> {
-  // Fetch pending withdrawals
-  const { data: withdrawals } = await supabase
-    .from("withdrawal_requests")
-    .select(`
-      id,
-      requested_amount,
-      created_at,
-      profile:profiles!fk_withdrawal_requests_profile(first_name, last_name, email),
-      fund:funds(asset, name)
-    `)
-    .eq("status", "pending")
-    .order("created_at", { ascending: false })
-    .limit(5);
-
-  const pendingItems: PendingItem[] = [];
-
-  // Add withdrawals
-  withdrawals?.forEach((w: any) => {
-    const investorName = w.profile
-      ? `${w.profile.first_name || ""} ${w.profile.last_name || ""}`.trim() || w.profile.email
-      : "Unknown";
-    
-    pendingItems.push({
-      id: w.id,
-      type: "withdrawal",
-      title: `Withdrawal Request`,
-      subtitle: `${investorName} - ${w.fund?.name || "Unknown Fund"}`,
-      amount: `${w.requested_amount?.toFixed(4)} ${w.fund?.asset || ""}`,
-      timestamp: new Date(w.created_at),
-      priority: "high",
-    });
-  });
-
-  // Check for eligible investors without reports this month
-  const currentMonth = format(new Date(), "yyyy-MM");
-  const [yearStr, monthStr] = currentMonth.split("-");
-
-  // Get investors with active positions (eligible for reports)
-  const { data: eligibleInvestors } = await supabase
-    .from("investor_positions")
-    .select("investor_id")
-    .gt("current_value", 0);
-
-  const eligibleCount = new Set(eligibleInvestors?.map(p => p.investor_id) || []).size;
-
-  const { data: periods } = await supabase
-    .from("statement_periods")
-    .select("id")
-    .eq("year", parseInt(yearStr))
-    .eq("month", parseInt(monthStr))
-    .maybeSingle();
-
-  if (periods && eligibleCount > 0) {
-    // Count unique investors with reports for this period
-    const { data: reportData } = await supabase
-      .from("investor_fund_performance")
-      .select("investor_id")
-      .eq("period_id", periods.id);
-
-    const reportedInvestors = new Set(reportData?.map(r => r.investor_id) || []).size;
-    const missingReports = eligibleCount - reportedInvestors;
-    
-    if (missingReports > 0) {
-      pendingItems.push({
-        id: "reports-needed",
-        type: "report",
-        title: `Reports Pending`,
-        subtitle: `${missingReports} eligible investor${missingReports > 1 ? "s" : ""} need ${currentMonth} reports`,
-        timestamp: new Date(),
-        priority: "medium",
-      });
-    }
-  }
-
-  return pendingItems;
-}
+import { usePendingItems, useRealtimeSubscription } from "@/hooks/data";
+import type { PendingItem } from "@/types/dashboard";
 
 export function PendingActionsPanel() {
   const navigate = useNavigate();
 
-  // Use react-query for data fetching
-  const { data: items = [], isLoading: loading, refetch } = useQuery({
-    queryKey: QUERY_KEYS.pendingActions,
-    queryFn: fetchPendingItems,
-  });
+  const { data: items = [], isLoading: loading, refetch } = usePendingItems();
 
   // Subscribe to realtime changes for withdrawal_requests
   useRealtimeSubscription({
