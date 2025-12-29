@@ -2,32 +2,12 @@ import { useMemo } from "react";
 import { Withdrawal, WithdrawalFilters, WithdrawalFullStatus } from "@/types/domains";
 import { getAssetLogo, formatAssetAmount } from "@/utils/assets";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { SortableTableHead } from "@/components/ui/sortable-table-head";
+  Table, TableBody, TableCell, TableHeader, TableRow,
+  SortableTableHead, Input, Button, Badge, TruncatedText,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui";
 import { useSortableColumns } from "@/hooks";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import { TruncatedText } from "@/components/ui/truncated-text";
 import { 
   Search, CheckCircle, XCircle, Play, CheckCircle2, Loader2, Eye, 
   ChevronLeft, ChevronRight, MoreHorizontal, Pencil, Trash2, ArrowRightLeft 

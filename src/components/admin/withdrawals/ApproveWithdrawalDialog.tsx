@@ -1,19 +1,9 @@
 import { useState, useEffect } from "react";
 import { Withdrawal } from "@/types/domains";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Checkbox } from "@/components/ui/checkbox";
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Button, Input, Label, Textarea, Alert, AlertDescription, Checkbox,
+} from "@/components/ui";
 import { withdrawalService } from "@/services/investor/withdrawalService";
 import { useWithdrawalMutations } from "@/hooks/data/useWithdrawalMutations";
 import { toast } from "sonner";

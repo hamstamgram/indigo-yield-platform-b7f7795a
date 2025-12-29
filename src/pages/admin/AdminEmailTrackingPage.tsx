@@ -30,32 +30,13 @@ import {
   AlertCircle,
   MousePointerClick,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Button, Input, Badge,
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui";
 
 // =====================================================
 // TYPES & INTERFACES

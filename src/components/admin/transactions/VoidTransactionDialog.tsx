@@ -5,18 +5,9 @@
 
 import { useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Button, Input, Label, Textarea, Alert, AlertDescription,
+} from "@/components/ui";
 import { AlertTriangle, Loader2, Info } from "lucide-react";
 import { toast } from "sonner";
 import { useTransactionMutations } from "@/hooks/data/useTransactionMutations";

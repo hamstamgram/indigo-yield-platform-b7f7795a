@@ -4,21 +4,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRegisterMutation } from "@/hooks/auth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Button, Input, Label, Checkbox, Progress,
+  Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
+} from "@/components/ui";
 import { Eye, EyeOff, UserPlus, Loader2, Check, X } from "lucide-react";
 import AppLogo from "@/components/AppLogo";
-import { Progress } from "@/components/ui/progress";
 
 const registerSchema = z
   .object({
