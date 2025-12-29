@@ -1,33 +1,17 @@
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { QUERY_KEYS } from "@/constants/queryKeys";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getAssetLogo, getAssetName } from "@/utils/assets";
 import { PerformanceReportTable } from "@/components/investor/reports/PerformanceReportTable";
 import { useInvestorPerformance } from "@/hooks";
+import { useAssetMeta } from "@/hooks/data/investor/useFundDetailsPage";
 import { Loader2, TrendingUp, Info } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 
 export default function FundDetailsPage() {
-  const { assetId } = useParams(); // 'BTC', 'ETH', etc.
+  const { assetId } = useParams();
   const assetCode = assetId?.toUpperCase() || "";
 
-  // Fetch performance specific to this asset
   const { data: performance, isLoading } = useInvestorPerformance(assetCode);
-
-  // Fetch asset metadata (price, etc. if needed)
-  const { data: assetMeta } = useQuery({
-    queryKey: QUERY_KEYS.assetMeta(assetCode),
-    queryFn: async () => {
-      // In a real app, this might come from an 'assets' table or price feed
-      // For now, we mock or fetch what we can
-      return {
-        name: getAssetName(assetCode),
-        logo: getAssetLogo(assetCode),
-        description: `The ${assetCode} Yield Fund generates yield through...` // Placeholder
-      };
-    }
-  });
+  const { data: assetMeta } = useAssetMeta(assetCode);
 
   if (isLoading) {
     return (

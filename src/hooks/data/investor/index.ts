@@ -118,3 +118,9 @@ export {
   type PortfolioPosition,
   type WithdrawalFormPosition,
 } from "./usePortfolio";
+
+// useFundDetailsPage (new - for FundDetailsPage)
+export {
+  useAssetMeta,
+  type AssetMeta,
+} from "./useFundDetailsPage";

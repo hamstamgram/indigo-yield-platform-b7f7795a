@@ -279,3 +279,45 @@ export {
   useSendDailyRateNotification,
   type DailyRate,
 } from "./useDailyRates";
+
+// useAdminStatementsPage (new - for AdminStatementsPage)
+export {
+  useActiveInvestorsForStatements as useStatementsPageInvestors,
+  useStatementDocuments,
+  useGenerateStatement as useGenerateStatementMutation,
+  useSendStatementEmail,
+} from "./useAdminStatementsPage";
+
+// useRecordedYieldsPage (new - for RecordedYieldsPage)
+export {
+  useYieldRecords as useRecordedYieldsData,
+  useYieldCorrectionHistory,
+  useRecordCorrectionHistory,
+  useVoidYieldRecord as useVoidYieldMutation,
+  useUpdateYieldAum,
+  type YieldRecord as RecordedYieldRecord,
+  type YieldFilters as RecordedYieldFilters,
+  type CorrectionHistoryItem,
+} from "./useRecordedYieldsPage";
+
+// useAdminInvitesPage (new - for AdminInvitesPage)
+export {
+  useAdminInvitesList,
+  useCreateAdminInvite as useCreateAdminInvitePage,
+  useRevokeAdminInvite,
+  type AdminInvite as AdminInviteItem,
+} from "./useAdminInvitesPage";
+
+// usePendingTransactionDetails (new - for PendingTransactionDetailsPage)
+export {
+  usePendingTransactionDetails,
+  type PendingTransactionDetail,
+} from "./usePendingTransactionDetails";
+
+// useIBManagementPage (new - for IBManagementPage)
+export {
+  useIBProfiles,
+  useCreateIB,
+  type IBProfile,
+  type EarningsByAsset,
+} from "./useIBManagementPage";

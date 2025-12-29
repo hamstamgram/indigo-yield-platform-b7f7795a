@@ -1,40 +1,14 @@
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { depositService, withdrawalService } from "@/services/investor";
-import { QUERY_KEYS } from "@/constants/queryKeys";
+import { usePendingTransactionDetails } from "@/hooks/data/admin/usePendingTransactionDetails";
 
 export default function PendingTransactionDetailsPage() {
   const { type, id } = useParams<{ type: string; id: string }>();
 
-  const { data: item, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.pendingTransactionDetails(type || "", id || ""),
-    queryFn: async () => {
-      if (!id || !type) throw new Error("Missing parameters");
-
-      if (type === "deposit") {
-        const deposit = await depositService.getDepositById(id);
-        return { 
-          ...deposit, 
-          asset: deposit.asset_symbol, 
-          type: "DEPOSIT", 
-        };
-      } else if (type === "withdrawal") {
-        const withdrawal = await withdrawalService.getWithdrawalById(id);
-        if (!withdrawal) throw new Error("Withdrawal not found");
-        return {
-          ...withdrawal,
-          asset: withdrawal.asset || "Unknown",
-          amount: withdrawal.requested_amount,
-          type: "WITHDRAWAL",
-        };
-      }
-      throw new Error("Invalid transaction type");
-    },
-  });
+  const { data: item, isLoading } = usePendingTransactionDetails(type, id);
 
   if (isLoading) {
     return (
@@ -77,7 +51,7 @@ export default function PendingTransactionDetailsPage() {
             <div>
               <CardTitle className="text-2xl">{item.type}</CardTitle>
               <CardDescription>
-                Created {new Date(item.created_at).toLocaleDateString()}
+                Created {item.created_at ? new Date(item.created_at).toLocaleDateString() : "N/A"}
               </CardDescription>
             </div>
             <Badge variant="outline">{item.status}</Badge>
@@ -95,18 +69,18 @@ export default function PendingTransactionDetailsPage() {
                 {item.amount} {item.asset}
               </p>
             </div>
-            {(item as any).transaction_hash && (
+            {item.transaction_hash && (
               <div className="col-span-2">
                 <p className="text-sm text-muted-foreground mb-1">Transaction Hash</p>
-                <p className="font-mono text-xs break-all">{(item as any).transaction_hash}</p>
+                <p className="font-mono text-xs break-all">{item.transaction_hash}</p>
               </div>
             )}
-            {(item as any).rejection_reason && (
+            {item.rejection_reason && (
               <div className="col-span-2">
                 <p className="text-sm text-muted-foreground mb-1 text-destructive">
                   Rejection Reason
                 </p>
-                <p className="text-destructive">{(item as any).rejection_reason}</p>
+                <p className="text-destructive">{item.rejection_reason}</p>
               </div>
             )}
           </div>
