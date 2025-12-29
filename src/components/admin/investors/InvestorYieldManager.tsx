@@ -4,7 +4,7 @@
  * Replaces the fragmented InvestorMonthlyTracking component
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
@@ -12,13 +12,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Collapsible,
   CollapsibleContent,
@@ -30,29 +23,23 @@ import {
   Calendar,
   TrendingUp,
   FileText,
-  Settings2,
   Percent,
-  ChevronDown,
   Plus,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { format, subMonths, addMonths, startOfMonth } from "date-fns";
 import { FundPositionCard } from "./FundPositionCard";
 import { InvestorFeeManager } from "./InvestorFeeManager";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
+import {
+  useStatementPeriodId,
+  useInvestorPositionsWithFunds,
+  useInvestorPerformanceForPeriod,
+  useInvestorFeeScheduleData,
+} from "@/hooks/data";
 
 interface InvestorYieldManagerProps {
   investorId: string;
   investorName?: string;
-}
-
-interface Position {
-  fund_id: string;
-  fund_name: string;
-  asset: string;
-  current_value: number;
-  shares: number;
 }
 
 interface PerformanceRecord {
@@ -71,151 +58,21 @@ interface PerformanceRecord {
   itd_rate_of_return: number;
 }
 
-interface FeeScheduleEntry {
-  id: string;
-  fund_id: string | null;
-  fee_pct: number;
-  effective_date: string;
-}
-
 export function InvestorYieldManager({ investorId, investorName }: InvestorYieldManagerProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [loading, setLoading] = useState(true);
-  const [positions, setPositions] = useState<Position[]>([]);
-  const [performance, setPerformance] = useState<PerformanceRecord[]>([]);
-  const [feeSchedule, setFeeSchedule] = useState<FeeScheduleEntry[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(startOfMonth(new Date()));
   const [showFeeManager, setShowFeeManager] = useState(false);
-  const [availablePeriods, setAvailablePeriods] = useState<string[]>([]);
   const [addTxDialogOpen, setAddTxDialogOpen] = useState(false);
   const [defaultFundId, setDefaultFundId] = useState<string>("");
-  const [periodId, setPeriodId] = useState<string | null>(null);
 
-  // Lookup period UUID from statement_periods based on selected date
-  useEffect(() => {
-    const lookupPeriodId = async () => {
-      const year = selectedDate.getFullYear();
-      const month = selectedDate.getMonth() + 1;
-      
-      const { data, error } = await supabase
-        .from("statement_periods")
-        .select("id")
-        .eq("year", year)
-        .eq("month", month)
-        .maybeSingle();
-      
-      if (error) {
-        console.error("Error looking up period:", error);
-        setPeriodId(null);
-        return;
-      }
-      
-      setPeriodId(data?.id || null);
-    };
-    
-    lookupPeriodId();
-  }, [selectedDate]);
+  // React Query hooks
+  const { data: periodId } = useStatementPeriodId(selectedDate);
+  const { data: positions = [], isLoading: positionsLoading, refetch: refetchPositions } = useInvestorPositionsWithFunds(investorId);
+  const { data: performance = [], isLoading: perfLoading, refetch: refetchPerformance } = useInvestorPerformanceForPeriod(investorId, periodId ?? null);
+  const { data: feeSchedule = [], refetch: refetchFeeSchedule } = useInvestorFeeScheduleData(investorId);
 
-  // Fetch positions
-  const fetchPositions = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from("investor_positions")
-        .select(`
-          fund_id,
-          shares,
-          current_value,
-          funds!inner(name, asset, status)
-        `)
-        .eq("investor_id", investorId);
-
-      if (error) throw error;
-
-      const activePositions = (data || [])
-        .filter((p: any) => p.funds?.status === "active")
-        .map((p: any) => ({
-          fund_id: p.fund_id,
-          fund_name: p.funds?.name || "Unknown",
-          asset: p.funds?.asset || "USD",
-          current_value: p.current_value || 0,
-          shares: p.shares || 0,
-        }));
-
-      setPositions(activePositions);
-    } catch (error) {
-      console.error("Error fetching positions:", error);
-    }
-  }, [investorId]);
-
-  // Fetch performance data for selected period
-  const fetchPerformance = useCallback(async () => {
-    // Skip if periodId is not yet resolved
-    if (!periodId) {
-      setPerformance([]);
-      return;
-    }
-    
-    try {
-      const { data, error } = await supabase
-        .from("investor_fund_performance")
-        .select("*")
-        .eq("investor_id", investorId)
-        .eq("period_id", periodId);
-
-      if (error) throw error;
-      setPerformance(data || []);
-    } catch (error) {
-      console.error("Error fetching performance:", error);
-    }
-  }, [investorId, periodId]);
-
-  // Fetch fee schedule
-  const fetchFeeSchedule = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from("investor_fee_schedule")
-        .select("id, fund_id, fee_pct, effective_date")
-        .eq("investor_id", investorId)
-        .order("effective_date", { ascending: false });
-
-      if (error) throw error;
-      setFeeSchedule(data || []);
-    } catch (error) {
-      console.error("Error fetching fee schedule:", error);
-    }
-  }, [investorId]);
-
-  // Fetch available periods
-  const fetchPeriods = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from("statement_periods")
-        .select("id")
-        .order("period_end_date", { ascending: false })
-        .limit(24);
-
-      if (error) throw error;
-      setAvailablePeriods((data || []).map((p) => p.id));
-    } catch (error) {
-      console.error("Error fetching periods:", error);
-    }
-  }, []);
-
-  // Load all data
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      await Promise.all([fetchPositions(), fetchPerformance(), fetchFeeSchedule(), fetchPeriods()]);
-      setLoading(false);
-    };
-    loadData();
-  }, [fetchPositions, fetchPerformance, fetchFeeSchedule, fetchPeriods]);
-
-  // Reload performance when period changes
-  useEffect(() => {
-    fetchPerformance();
-  }, [periodId, fetchPerformance]);
+  const loading = positionsLoading || perfLoading;
 
   // Get fee for a specific fund
   const getFeeForFund = (fundId: string): number => {
@@ -244,12 +101,15 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
   const isCurrentMonth = format(selectedDate, "yyyy-MM") === format(new Date(), "yyyy-MM");
 
   // Calculate totals
-  const totalYield = performance.reduce((sum, p) => sum + (p.mtd_net_income || 0), 0);
+  const totalYield = useMemo(() => 
+    performance.reduce((sum, p) => sum + (p.mtd_net_income || 0), 0),
+    [performance]
+  );
   const hasPerformanceData = performance.length > 0;
 
   const handleDataUpdate = () => {
-    fetchPerformance();
-    fetchPositions();
+    refetchPerformance();
+    refetchPositions();
   };
 
   if (loading) {
@@ -327,7 +187,7 @@ export function InvestorYieldManager({ investorId, investorName }: InvestorYield
       {/* Fee Manager (Collapsible) */}
       <Collapsible open={showFeeManager} onOpenChange={setShowFeeManager}>
         <CollapsibleContent>
-          <InvestorFeeManager investorId={investorId} onUpdate={fetchFeeSchedule} />
+          <InvestorFeeManager investorId={investorId} onUpdate={() => refetchFeeSchedule()} />
         </CollapsibleContent>
       </Collapsible>
 

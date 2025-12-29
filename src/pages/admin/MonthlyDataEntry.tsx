@@ -1,6 +1,4 @@
-import { useState, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -28,38 +26,19 @@ import { useToast } from "@/hooks";
 import { useAuth } from "@/lib/auth/context";
 import {
   previewYieldDistribution,
-  applyYieldDistribution,
   YieldCalculationResult,
 } from "@/services/admin/yieldDistributionService";
-import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
-
-interface Fund {
-  id: string;
-  code: string;
-  name: string;
-  asset: string;
-  total_aum: number;
-  investor_count: number;
-}
-
-interface InvestorPosition {
-  investor_id: string;
-  investor_name: string;
-  investor_email: string;
-  current_value: number;
-  ownership_pct: number;
-  mtd_yield: number;
-}
+import {
+  useActiveFundsWithAUM,
+  useFundInvestorComposition,
+  useApplyYieldDistribution,
+} from "@/hooks/data";
 
 type SortField = "investor_name" | "current_value" | "ownership_pct" | "mtd_yield";
 type SortDirection = "asc" | "desc";
 
 export default function MonthlyDataEntry() {
-  const [funds, setFunds] = useState<Fund[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
-  const [investors, setInvestors] = useState<InvestorPosition[]>([]);
-  const [loadingInvestors, setLoadingInvestors] = useState(false);
   const [sortField, setSortField] = useState<SortField>("current_value");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
@@ -68,144 +47,14 @@ export default function MonthlyDataEntry() {
   const [newAUM, setNewAUM] = useState<string>("");
   const [yieldPreview, setYieldPreview] = useState<YieldCalculationResult | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
-  const [applyLoading, setApplyLoading] = useState(false);
 
   const { toast } = useToast();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    loadFunds();
-  }, []);
-
-  useEffect(() => {
-    if (selectedFundId) {
-      loadInvestorComposition(selectedFundId);
-    }
-  }, [selectedFundId]);
-
-  const loadFunds = async () => {
-    setLoading(true);
-    try {
-      // Get all funds
-      const { data: fundsData, error: fundsError } = await supabase
-        .from("funds")
-        .select("id, code, name, asset")
-        .eq("status", "active")
-        .order("code");
-
-      if (fundsError) throw fundsError;
-
-      // Get AUM and investor count for each fund from investor_positions
-      const fundsWithAUM = await Promise.all(
-        (fundsData || []).map(async (fund) => {
-          const { data: positions } = await supabase
-            .from("investor_positions")
-            .select("current_value, investor_id")
-            .eq("fund_id", fund.id);
-
-          const total_aum = positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0;
-          const uniqueInvestors = new Set(positions?.map((p) => p.investor_id) || []);
-
-          return {
-            ...fund,
-            total_aum,
-            investor_count: uniqueInvestors.size,
-          };
-        })
-      );
-
-      // Sort by AUM descending
-      fundsWithAUM.sort((a, b) => b.total_aum - a.total_aum);
-      setFunds(fundsWithAUM);
-    } catch (error) {
-      console.error("Error loading funds:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadInvestorComposition = async (fundId: string) => {
-    setLoadingInvestors(true);
-    try {
-      // Get all positions for this fund with investor details
-      const { data: positions, error } = await supabase
-        .from("investor_positions")
-        .select(`
-          investor_id,
-          current_value,
-          fund_id
-        `)
-        .eq("fund_id", fundId);
-
-      if (error) throw error;
-
-      // Calculate total AUM for ownership percentage
-      const totalAUM = positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0;
-
-      // Get investor details
-      const investorIds = [...new Set(positions?.map((p) => p.investor_id).filter(Boolean))];
-      
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, email")
-        .in("id", investorIds);
-
-      const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
-
-      // Calculate MTD period (first of current month to now)
-      const now = new Date();
-      const mtdStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-      const mtdEnd = now.toISOString().split('T')[0];
-
-      // Fetch MTD yield transactions (INTEREST minus FEE) for all investors in this fund
-      const { data: yieldTransactions } = await supabase
-        .from("transactions_v2")
-        .select("investor_id, type, amount")
-        .eq("fund_id", fundId)
-        .in("investor_id", investorIds)
-        .in("type", ["INTEREST", "FEE"])
-        .gte("tx_date", mtdStart)
-        .lte("tx_date", mtdEnd)
-        .eq("is_voided", false);
-
-      // Calculate MTD yield per investor: sum(INTEREST) - sum(FEE)
-      const mtdYieldMap = new Map<string, number>();
-      (yieldTransactions || []).forEach((tx) => {
-        const currentYield = mtdYieldMap.get(tx.investor_id!) || 0;
-        if (tx.type === "INTEREST") {
-          mtdYieldMap.set(tx.investor_id!, currentYield + (tx.amount || 0));
-        } else if (tx.type === "FEE") {
-          mtdYieldMap.set(tx.investor_id!, currentYield - Math.abs(tx.amount || 0));
-        }
-      });
-
-      // Build investor positions list
-      const investorPositions: InvestorPosition[] = (positions || [])
-        .filter((p) => p.investor_id)
-        .map((p) => {
-          const profile = profileMap.get(p.investor_id);
-          const name = profile
-            ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email
-            : "Unknown";
-
-          return {
-            investor_id: p.investor_id!,
-            investor_name: name,
-            investor_email: profile?.email || "",
-            current_value: p.current_value || 0,
-            ownership_pct: totalAUM > 0 ? ((p.current_value || 0) / totalAUM) * 100 : 0,
-            mtd_yield: mtdYieldMap.get(p.investor_id!) || 0,
-          };
-        });
-
-      setInvestors(investorPositions);
-    } catch (error) {
-      console.error("Error loading investor composition:", error);
-    } finally {
-      setLoadingInvestors(false);
-    }
-  };
+  // React Query hooks
+  const { data: funds = [], isLoading: loading, refetch: refetchFunds } = useActiveFundsWithAUM();
+  const { data: investors = [], isLoading: loadingInvestors } = useFundInvestorComposition(selectedFundId);
+  const applyYieldMutation = useApplyYieldDistribution();
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -287,48 +136,27 @@ export default function MonthlyDataEntry() {
   const handleApplyYield = async () => {
     if (!selectedFundId || !newAUM || !user || !yieldPreview) return;
 
-    setApplyLoading(true);
-    try {
-      await applyYieldDistribution(
-        {
+    applyYieldMutation.mutate(
+      {
+        input: {
           fundId: selectedFundId,
           targetDate: new Date(),
           newTotalAUM: parseFloat(newAUM),
         },
-        user.id
-      );
-
-      toast({
-        title: "Yield Distributed",
-        description: `Successfully distributed ${formatValue(yieldPreview.grossYield, selectedFund?.asset || "")} ${selectedFund?.asset} yield to ${yieldPreview.investorCount} investors.`,
-      });
-
-      setShowAUMDialog(false);
-      setYieldPreview(null);
-      setNewAUM("");
-
-      // Comprehensive cache invalidation for all yield-related data
-      YIELD_RELATED_KEYS.forEach(key => {
-        queryClient.invalidateQueries({ queryKey: key });
-      });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
-
-      // Refresh local data
-      await loadFunds();
-      if (selectedFundId) {
-        await loadInvestorComposition(selectedFundId);
+      },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Yield Distributed",
+            description: `Successfully distributed ${formatValue(yieldPreview.grossYield, selectedFund?.asset || "")} ${selectedFund?.asset} yield to ${yieldPreview.investorCount} investors.`,
+          });
+          setShowAUMDialog(false);
+          setYieldPreview(null);
+          setNewAUM("");
+          refetchFunds();
+        },
       }
-    } catch (error) {
-      console.error("Error applying yield:", error);
-      toast({
-        title: "Apply Failed",
-        description: error instanceof Error ? error.message : "Failed to apply yield distribution.",
-        variant: "destructive",
-      });
-    } finally {
-      setApplyLoading(false);
-    }
+    );
   };
 
   const SortButton = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
@@ -640,8 +468,8 @@ export default function MonthlyDataEntry() {
                   <Button variant="outline" onClick={() => setShowAUMDialog(false)}>
                     Cancel
                   </Button>
-                  <Button onClick={handleApplyYield} disabled={applyLoading}>
-                    {applyLoading ? (
+                  <Button onClick={handleApplyYield} disabled={applyYieldMutation.isPending}>
+                    {applyYieldMutation.isPending ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Applying...
