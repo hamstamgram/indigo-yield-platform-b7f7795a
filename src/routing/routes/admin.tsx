@@ -17,16 +17,18 @@
  * Total: ~27 admin routes
  */
 
-import { CoreAdminRoutes } from "./admin/core";
-import { InvestorRoutes } from "./admin/investors";
-import { DepositRoutes } from "./admin/deposits";
-import { WithdrawalRoutes } from "./admin/withdrawals";
-import { OperationsRoutes } from "./admin/operations";
-import { ReportsRoutes } from "./admin/reports";
-import { SystemRoutes } from "./admin/system";
-import { TransactionRoutes } from "./admin/transactions";
-import { FeesRoutes } from "./admin/fees";
-import { IBRoutes } from "./admin/ib";
+import {
+  CoreAdminRoutes,
+  InvestorRoutes,
+  DepositRoutes,
+  WithdrawalRoutes,
+  OperationsRoutes,
+  ReportsRoutes,
+  SystemRoutes,
+  TransactionRoutes,
+  FeesRoutes,
+  IBRoutes,
+} from "./admin/index";
 
 /**
  * Admin Routes Component

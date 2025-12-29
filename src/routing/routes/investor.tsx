@@ -3,9 +3,11 @@
  * All investor-protected routes organized by feature area
  */
 
-import { CoreInvestorRoutes } from "./investor/core";
-import { PortfolioRoutes } from "./investor/portfolio";
-import { ReportsRoutes } from "./investor/reports";
+import {
+  CoreInvestorRoutes,
+  PortfolioRoutes,
+  ReportsRoutes,
+} from "./investor/index";
 import { IBUserRoutes } from "./ib";
 
 /**
