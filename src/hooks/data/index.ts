@@ -220,3 +220,25 @@ export {
   useSendInvestorReport,
   useReportGenerationData,
 } from "./useReportData";
+
+// Yield operations hooks
+export {
+  useActiveFundsWithAUM,
+  useFundInvestorComposition,
+  useApplyYieldDistribution,
+} from "./useYieldOperations";
+
+// Investor yield data hooks
+export {
+  useStatementPeriodId,
+  useInvestorPositionsWithFunds,
+  useInvestorPerformanceForPeriod,
+  useInvestorFeeScheduleData,
+} from "./useInvestorYieldData";
+
+// Monthly reports hooks
+export {
+  useInvestorMonthlyReports,
+  useCreateMonthlyTemplate,
+  useUpdateMonthlyReportField,
+} from "./useMonthlyReports";
