@@ -314,9 +314,9 @@ export const withdrawalService = {
     const { error } = await supabase.rpc('start_processing_withdrawal', {
       p_request_id: withdrawalId,
       p_processed_amount: null,
-      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
-      p_expected_completion: null,
-      p_tx_hash: txHash || null
+      p_tx_hash: txHash || null,
+      p_settlement_date: null,
+      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
     });
 
     if (error) {

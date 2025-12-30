@@ -1,8 +1,12 @@
 import os
 from supabase import create_client, Client
 
-SUPABASE_URL = "https://nkfimvovosdehmyyjubn.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZmltdm92b3NkZWhteXlqdWJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjQ1NDU5OCwiZXhwIjoyMDYyMDMwNTk4fQ.2dG7IemW8SVQ7FcEe7Dcv41B7utJy0LtEjZhSMESa1k"
+# Configuration - Use environment variables for security
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://nkfimvovosdehmyyjubn.supabase.co")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
+
+if not SUPABASE_KEY:
+    raise ValueError("SUPABASE_SERVICE_KEY environment variable not set. Run: export SUPABASE_SERVICE_KEY=your_key")
 
 def check_fund_usage():
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
