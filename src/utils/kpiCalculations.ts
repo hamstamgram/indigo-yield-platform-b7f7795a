@@ -164,7 +164,7 @@ export const calculateAllKPIs = async (userId: string): Promise<AssetKPI[]> => {
         cost_basis,
         current_value,
         fund_id,
-        fund:funds(id, asset)
+        fund:funds!fk_investor_positions_fund(id, asset)
       `)
       .eq("investor_id", investorId);
 

@@ -45,7 +45,7 @@ export const investorPortfolioService = {
         shares,
         current_value,
         fund_class,
-        funds:fund_id (
+        funds:funds!fk_investor_positions_fund (
           id,
           name,
           code,
@@ -77,7 +77,7 @@ export const investorPortfolioService = {
         current_value,
         shares,
         fund_class,
-        funds:fund_id (
+        funds:funds!fk_investor_positions_fund (
           name,
           code,
           asset

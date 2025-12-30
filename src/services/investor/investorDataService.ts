@@ -610,7 +610,7 @@ export async function fetchInvestorPositions(investorId: string): Promise<Invest
       realized_pnl,
       fund_class,
       updated_at,
-      funds ( id, name, asset )
+      funds!fk_investor_positions_fund ( id, name, asset )
     `)
     .eq("investor_id", investorId)
     .or("current_value.neq.0,cost_basis.neq.0,shares.neq.0");

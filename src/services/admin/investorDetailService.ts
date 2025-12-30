@@ -146,7 +146,7 @@ export async function fetchInvestorPositions(investorId: string): Promise<Invest
       current_value,
       cost_basis,
       unrealized_pnl,
-      funds!inner(name, code, asset)
+      funds!fk_investor_positions_fund(name, code, asset)
     `)
     .eq("investor_id", investorId)
     .or("current_value.gt.0,cost_basis.gt.0");
@@ -183,7 +183,7 @@ export async function fetchActivePositions(investorId: string): Promise<Investor
       current_value,
       cost_basis,
       unrealized_pnl,
-      funds!inner(name, code, asset)
+      funds!fk_investor_positions_fund(name, code, asset)
     `)
     .eq("investor_id", investorId)
     .gt("current_value", 0);
