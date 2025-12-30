@@ -1,12 +1,12 @@
 import os
 from supabase import create_client, Client
 
-# Configuration - Trying to re-verify key. 
-# The user provided key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZmltdm92b3NkZWhteXlqdWJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjQ1NDU5OCwiZXhwIjoyMDYyMDMwNTk4fQ.2dG7IemW8SVQ7FcEe7Dcv41B7utJy0LtEjZhSMESa1k
-# I might have pasted it with whitespace or typo. Retrying carefully.
+# Configuration - Use environment variables for security
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://nkfimvovosdehmyyjubn.supabase.co")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
 
-SUPABASE_URL = "https://nkfimvovosdehmyyjubn.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZmltdm92b3NkZWhteXlqdWJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjQ1NDU5OCwiZXhwIjoyMDYyMDMwNTk4fQ.2dG7IemW8SVQ7FcEe7Dcv41B7utJy0LtEjZhSMESa1k"
+if not SUPABASE_KEY:
+    raise ValueError("SUPABASE_SERVICE_KEY environment variable not set. Run: export SUPABASE_SERVICE_KEY=your_key")
 
 def fix_data_integrity():
     try:
@@ -35,8 +35,6 @@ def fix_data_integrity():
     print("Linking Investors to Profiles...")
     try:
         # Get investors with missing profile_id
-        # Warning: 'investors' table might have RLS that even service role key issues with if policies are weird,
-        # OR table name is wrong. I checked migrations, it seems to be 'investors'.
         res = supabase.table('investors').select('id, email').is_('profile_id', 'null').execute()
         orphans = res.data
         

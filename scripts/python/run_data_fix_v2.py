@@ -3,9 +3,12 @@ import json
 import re
 from supabase import create_client, Client
 
-# Configuration
-SUPABASE_URL = "https://nkfimvovosdehmyyjubn.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZmltdm92b3NkZWhteXlqdWJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjQ1NDU5OCwiZXhwIjoyMDYyMDMwNTk4fQ.2dG7IemW8SVQ7FcEe7Dcv41B7utJy0LtEjZhSMESa1k"
+# Configuration - Use environment variables for security
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://nkfimvovosdehmyyjubn.supabase.co")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
+
+if not SUPABASE_KEY:
+    raise ValueError("SUPABASE_SERVICE_KEY environment variable not set. Run: export SUPABASE_SERVICE_KEY=your_key")
 
 def fix_data_integrity():
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -55,14 +58,12 @@ def fix_data_integrity():
                 # Specific Manual Overrides for known data issues
                 manual_map = {
                     "Pierre Bezençon": "Pierre Bezencon",
-                    "Vivie-Ann Bakos": "Vivie & Liana", # Assuming consolidated? Or check if 'Vivie-Ann' exists. 
-                    # Wait, 'Vivie & Liana' is in DB. 'Vivie-Ann Bakos' is in Investors.
-                    # If Vivie-Ann is the primary for "Vivie & Liana", map it.
-                    "Ryan Van Der Wall": "", # Unknown
-                    "Joel Barbeau": "", # Unknown
-                    "Alec Beckman": "", # Unknown
-                    "Lars Ahlgreen": "", # Unknown
-                    "Alex Jacobs": "", # Unknown
+                    "Vivie-Ann Bakos": "Vivie & Liana",
+                    "Ryan Van Der Wall": "",
+                    "Joel Barbeau": "",
+                    "Alec Beckman": "",
+                    "Lars Ahlgreen": "",
+                    "Alex Jacobs": "",
                 }
                 
                 if inv_name in manual_map and manual_map[inv_name]:
