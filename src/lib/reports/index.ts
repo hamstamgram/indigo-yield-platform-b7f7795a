@@ -6,6 +6,9 @@
 // Core engine
 export { ReportEngine } from "./reportEngine";
 
+// Email report generator (investor reports)
+export * from "./emailReportGenerator";
+
 // Generators - use lazy imports to reduce bundle size
 // Import directly from ./pdfGenerator or ./excelGenerator when needed
 // Or use the lazy wrappers from @/services/api/reportsApi.lazy

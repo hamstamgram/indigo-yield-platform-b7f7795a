@@ -19,8 +19,8 @@ export * from "./systemHealthService";
 // Session management
 export * from "./sessionManagement";
 
-// Report services (using lib/reports instead of duplicated core version)
-export * from "./reportGenerationService";
+// Report services (email report generator moved to lib/reports)
+export * from "@/lib/reports/emailReportGenerator";
 export * from "./reportUpsertService";
 
 // Support service

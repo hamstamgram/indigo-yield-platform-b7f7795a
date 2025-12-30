@@ -7,7 +7,15 @@ export * from "./utils";
 export * from "./correlationId";
 export * from "./email";
 export * from "./performance";
-export * from "./report-generator";
+
+// Reports (unified module)
+export * from "./reports";
+
+// GDPR compliance
+export * from "./gdpr";
+
+// Auth
+export * from "./auth";
 
 // Type adapters
 export * from "./typeAdapters";

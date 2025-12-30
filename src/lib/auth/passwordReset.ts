@@ -1,3 +1,8 @@
+/**
+ * Password Reset Utilities
+ * Auth-related side effect functions
+ */
+
 import { supabase } from "@/integrations/supabase/client";
 
 export async function sendPasswordResetEmail(email: string) {

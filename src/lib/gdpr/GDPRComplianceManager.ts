@@ -4,48 +4,15 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { securityLogger } from './security-logger';
-import { fieldEncryption } from './encryption';
-
-export enum ConsentType {
-  MARKETING = 'MARKETING',
-  ANALYTICS = 'ANALYTICS',
-  PERSONALIZATION = 'PERSONALIZATION',
-  THIRD_PARTY = 'THIRD_PARTY',
-  COOKIES = 'COOKIES',
-  DATA_PROCESSING = 'DATA_PROCESSING',
-}
-
-export enum DataRequestType {
-  EXPORT = 'EXPORT',
-  DELETE = 'DELETE',
-  RECTIFY = 'RECTIFY',
-}
-
-export enum DataRequestStatus {
-  PENDING = 'PENDING',
-  PROCESSING = 'PROCESSING',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED',
-}
-
-interface ConsentRecord {
-  consent_type: ConsentType;
-  consented: boolean;
-  consent_date?: string;
-  ip_address?: string;
-  user_agent?: string;
-}
-
-interface DataRequest {
-  id: string;
-  request_type: DataRequestType;
-  status: DataRequestStatus;
-  requested_at: string;
-  completed_at?: string;
-  export_url?: string;
-  notes?: string;
-}
+import { securityLogger } from '@/utils/security-logger';
+import { fieldEncryption } from '@/utils/encryption';
+import {
+  ConsentType,
+  DataRequestType,
+  DataRequestStatus,
+  ConsentRecord,
+  DataRequest,
+} from './types';
 
 class GDPRComplianceManager {
   private static instance: GDPRComplianceManager;
@@ -517,56 +484,3 @@ class GDPRComplianceManager {
 
 // Export singleton instance
 export const gdprManager = GDPRComplianceManager.getInstance();
-
-// React components for GDPR UI
-import { useState, useEffect } from 'react';
-
-export function CookieBanner() {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const consent = localStorage.getItem('cookie_consent');
-    if (!consent) {
-      setVisible(true);
-    }
-  }, []);
-
-  const handleAccept = async () => {
-    await gdprManager.setCookieConsent(true);
-    setVisible(false);
-  };
-
-  const handleReject = async () => {
-    await gdprManager.setCookieConsent(false);
-    setVisible(false);
-  };
-
-  if (!visible) return null;
-
-  return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 z-50">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <div className="flex-1">
-          <h3 className="font-semibold">Cookie Notice</h3>
-          <p className="text-sm text-gray-600">
-            We use cookies to improve your experience. By continuing to use our site, you accept our use of cookies.
-          </p>
-        </div>
-        <div className="flex gap-2 ml-4">
-          <button
-            onClick={handleReject}
-            className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
-          >
-            Reject
-          </button>
-          <button
-            onClick={handleAccept}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Accept
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
