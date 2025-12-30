@@ -1,13 +1,15 @@
 /**
  * Portfolio Service
  * Handles all portfolio-related operations
+ * 
+ * IMPORTANT: Uses canonical adjust_investor_position RPC for all money movements
  */
 
 import { ApiClient, ApiResponse } from "./ApiClient";
 import type { PortfolioPosition, PortfolioSummary, PortfolioData } from "@/types/domains/portfolio";
 import { supabase } from "@/integrations/supabase/client";
 
-// Helper to fetch funds (internal use or imported)
+// Helper to fetch funds (internal use)
 async function getAllFunds() {
   const { data, error } = await supabase.from("funds").select("*");
   if (error) throw error;
@@ -17,6 +19,7 @@ async function getAllFunds() {
 export class PortfolioService extends ApiClient {
   /**
    * Create investor positions and seed initial DEPOSIT transactions for each funded asset.
+   * Uses canonical adjust_investor_position RPC for atomic transaction + position update.
    * Balances are expected as native token amounts keyed by asset symbol (e.g., BTC, ETH).
    */
   async createPortfolioEntries(
@@ -39,39 +42,31 @@ export class PortfolioService extends ApiClient {
           continue;
         }
 
-        // Upsert investor position
-        const { error: posError } = await supabase
-          .from("investor_positions")
-          .upsert(
-            {
-              investor_id: investorId,
-              fund_id: fund.id,
-              fund_class: fund.fund_class,
-              shares: amount,
-              cost_basis: amount,
-              current_value: amount,
-              last_transaction_date: today,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: "investor_id,fund_id" }
-          );
-        if (posError) throw posError;
+        // Generate unique reference_id for idempotency
+        const referenceId = `initial:${fund.id}:${investorId}:${today}:${crypto.randomUUID()}`;
 
-        // Seed a DEPOSIT transaction
-        const { error: txError } = await supabase.from("transactions_v2").insert({
-          investor_id: investorId,
-          fund_id: fund.id,
-          fund_class: fund.fund_class,
-          asset: assetSymbol,
-          amount,
-          type: "DEPOSIT",
-          tx_date: today,
-          value_date: today,
-          notes: "Initial funding on investor creation",
-          balance_before: 0,
-          balance_after: amount,
+        // Use canonical adjust_investor_position RPC for atomic transaction + position update
+        const rpcCall = (supabase.rpc as any).bind(supabase);
+        const { data, error } = await rpcCall("adjust_investor_position", {
+          p_investor_id: investorId,
+          p_fund_id: fund.id,
+          p_delta: amount,
+          p_note: "Initial funding on investor creation",
+          p_admin_id: null,
+          p_tx_type: "DEPOSIT",
+          p_tx_date: today,
+          p_reference_id: referenceId,
         });
-        if (txError) throw txError;
+
+        if (error) {
+          console.error(`Error creating portfolio entry for ${assetSymbol}:`, error);
+          throw error;
+        }
+
+        const result = data?.[0];
+        if (!result?.out_success && result?.out_message !== 'Already exists') {
+          throw new Error(result?.out_message || `Failed to create position for ${assetSymbol}`);
+        }
       }
 
       return true;
@@ -83,12 +78,9 @@ export class PortfolioService extends ApiClient {
 
   /**
    * Get portfolio summary for investor
-   * Note: get_investor_portfolio_summary RPC doesn't exist - calculate from positions
    */
   async getPortfolioSummary(investorId: string): Promise<ApiResponse<PortfolioSummary>> {
     return this.execute(async () => {
-      // RPC doesn't exist - calculate summary from investor_positions directly
-      // Filter out zero-value positions
       const { data: positions, error } = await this.supabase
         .from("investor_positions")
         .select("cost_basis, current_value, unrealized_pnl, realized_pnl")
@@ -99,7 +91,6 @@ export class PortfolioService extends ApiClient {
         return { data: null, error };
       }
 
-      // Calculate summary from positions
       let totalValue = 0;
       let totalCostBasis = 0;
       let totalUnrealizedGain = 0;
@@ -128,7 +119,6 @@ export class PortfolioService extends ApiClient {
 
   /**
    * Get portfolio positions
-   * Filters out zero-value positions
    */
   async getPortfolioPositions(investorId: string): Promise<ApiResponse<PortfolioPosition[]>> {
     return this.execute(async () => {
@@ -146,14 +136,12 @@ export class PortfolioService extends ApiClient {
         `
         )
         .eq("investor_id", investorId)
-        // Filter out zero-value positions
         .or("current_value.gt.0,cost_basis.gt.0,shares.gt.0");
 
       if (error) {
         return { data: null, error };
       }
 
-      // Transform to PortfolioPosition format
       const positions: PortfolioPosition[] = (data || []).map((pos: any) => ({
         fund_id: pos.fund_id,
         fund_name: pos.funds?.name || "Unknown Fund",
@@ -177,12 +165,9 @@ export class PortfolioService extends ApiClient {
 
   /**
    * Get complete portfolio data
-   * Note: get_investor_portfolio_summary RPC doesn't exist - calculate from positions
    */
   async getCompletePortfolio(investorId: string): Promise<ApiResponse<PortfolioData>> {
     return this.execute(async () => {
-      // Get positions (also used for summary calculation)
-      // Filter out zero-value positions
       const { data: positionsData, error: positionsError } = await this.supabase
         .from("investor_positions")
         .select(
@@ -197,14 +182,12 @@ export class PortfolioService extends ApiClient {
         `
         )
         .eq("investor_id", investorId)
-        // Filter out zero-value positions
         .or("current_value.gt.0,cost_basis.gt.0,shares.gt.0");
 
       if (positionsError) {
         return { data: null, error: positionsError };
       }
 
-      // Calculate summary from positions
       let totalValue = 0;
       let totalCostBasis = 0;
       let totalUnrealizedGain = 0;
@@ -217,7 +200,6 @@ export class PortfolioService extends ApiClient {
         totalRealizedGain += Number(pos.realized_pnl) || 0;
       }
 
-      // Transform positions
       const positions: PortfolioPosition[] = (positionsData || []).map((pos: any) => ({
         fund_id: pos.fund_id,
         fund_name: pos.funds?.name || "Unknown Fund",
@@ -235,7 +217,6 @@ export class PortfolioService extends ApiClient {
         percentage_of_portfolio: Number(pos.aum_percentage) || 0,
       }));
 
-      // Build summary
       const summary: PortfolioSummary = {
         total_value: totalValue,
         total_cost_basis: totalCostBasis,
@@ -246,7 +227,6 @@ export class PortfolioService extends ApiClient {
         last_updated: new Date().toISOString(),
       };
 
-      // Combine data
       const portfolioData: PortfolioData = {
         summary,
         positions,
@@ -259,7 +239,8 @@ export class PortfolioService extends ApiClient {
   }
 
   /**
-   * Update position
+   * Update position - for admin manual adjustments only
+   * Note: For money movements, use adjust_investor_position RPC instead
    */
   async updatePosition(
     investorId: string,
@@ -267,7 +248,6 @@ export class PortfolioService extends ApiClient {
     updates: Partial<PortfolioPosition>
   ): Promise<ApiResponse<PortfolioPosition>> {
     return this.execute(async () => {
-      // Map application fields to database fields
       const dbUpdates: any = {
         ...(updates.shares_held !== undefined && { shares: updates.shares_held }),
         ...(updates.cost_basis !== undefined && { cost_basis: updates.cost_basis }),
@@ -302,7 +282,6 @@ export class PortfolioService extends ApiClient {
         return { data: null, error: { message: "Position not found", code: "NOT_FOUND" } as any };
       }
 
-      // Transform to PortfolioPosition format
       const position: PortfolioPosition = {
         fund_id: data.fund_id,
         fund_name: data.funds?.name || "Unknown Fund",

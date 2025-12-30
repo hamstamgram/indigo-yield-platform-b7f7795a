@@ -1,5 +1,17 @@
 import { supabase } from "@/integrations/supabase/client";
 
+/**
+ * Position Adjustment Service
+ * 
+ * IMPORTANT: All position adjustments MUST go through the canonical 
+ * adjust_investor_position RPC to ensure atomic transaction + position 
+ * updates with invariant checks.
+ */
+
+/**
+ * Adjust an investor's position using the canonical RPC
+ * This is the ONLY way to safely modify positions
+ */
 export async function adjustPosition(
   input: { 
     investor_id: string; 
@@ -26,9 +38,26 @@ export async function adjustPosition(
     console.error("adjustPosition error", error);
     return { success: false, error: error.message };
   }
-  return { success: true, data };
+  
+  const result = data?.[0];
+  if (!result?.out_success) {
+    return { success: false, error: result?.out_message || "Failed to adjust position" };
+  }
+  
+  return { 
+    success: true, 
+    data: {
+      transactionId: result.out_transaction_id,
+      oldBalance: result.out_old_balance,
+      newBalance: result.out_new_balance,
+    }
+  };
 }
 
+/**
+ * Create an adjustment transaction
+ * DEPRECATED: Use adjustPosition instead - this function now delegates to it
+ */
 export async function createAdjustment(
   investorId: string,
   fundId: string,
@@ -36,39 +65,38 @@ export async function createAdjustment(
   type: "Credit" | "Debit",
   notes: string
 ) {
-  const { data: fund, error: fundError } = await supabase
-    .from("funds")
-    .select("asset")
-    .eq("id", fundId)
-    .maybeSingle();
-
-  if (fundError || !fund) {
-    console.error("Error fetching fund for adjustment:", fundError?.message || "Fund not found");
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    console.error("createAdjustment: No authenticated user");
     return null;
   }
 
-  const { data, error } = await supabase
-    .from("transactions_v2")
-    .insert([
-      {
-        investor_id: investorId,
-        fund_id: fundId,
-        asset: fund.asset,
-        amount: type === "Credit" ? amount : -amount,
-        type: "ADJUSTMENT",
-        notes: notes,
-      },
-    ])
-    .select();
+  // Convert to delta (positive for credit, negative for debit)
+  const delta = type === "Credit" ? Math.abs(amount) : -Math.abs(amount);
+  
+  const result = await adjustPosition(
+    {
+      investor_id: investorId,
+      fund_id: fundId,
+      delta,
+      note: notes,
+      tx_type: "ADJUSTMENT",
+    },
+    user.id
+  );
 
-  if (error) {
-    console.error("Error creating adjustment:", error);
+  if (!result.success) {
+    console.error("createAdjustment error:", result.error);
     return null;
   }
-  return data;
+
+  // Return the transaction in expected format
+  return [{ id: result.data?.transactionId }];
 }
 
-// Simple fetch for a position to adjust
+/**
+ * Get a position for adjustment display
+ */
 export async function getPositionForAdjustment(investorId: string, fundId: string) {
   const { data, error } = await supabase
     .from("investor_positions")
@@ -83,8 +111,10 @@ export async function getPositionForAdjustment(investorId: string, fundId: strin
   return data;
 }
 
+/**
+ * Get fund adjustment history from transactions
+ */
 export async function getFundAdjustmentHistory(fundId?: string) {
-  // No dedicated table; rely on transactions_v2 type ADJUSTMENT
   let query = supabase
     .from("transactions_v2")
     .select("*")
@@ -101,4 +131,40 @@ export async function getFundAdjustmentHistory(fundId?: string) {
     return [];
   }
   return data;
+}
+
+/**
+ * Reconcile all positions from ledger (admin only)
+ * Runs a dry-run by default - pass false to actually fix positions
+ */
+export async function reconcileAllPositions(dryRun: boolean = true) {
+  const rpcCall = (supabase.rpc as any).bind(supabase);
+  const { data, error } = await rpcCall("reconcile_all_positions", {
+    p_dry_run: dryRun,
+  });
+  
+  if (error) {
+    console.error("reconcileAllPositions error", error);
+    return { success: false, error: error.message, mismatches: [] };
+  }
+  
+  return { success: true, mismatches: data || [] };
+}
+
+/**
+ * Recompute a single investor's position from ledger
+ */
+export async function recomputePosition(investorId: string, fundId: string) {
+  const rpcCall = (supabase.rpc as any).bind(supabase);
+  const { error } = await rpcCall("recompute_investor_position", {
+    p_investor_id: investorId,
+    p_fund_id: fundId,
+  });
+  
+  if (error) {
+    console.error("recomputePosition error", error);
+    return { success: false, error: error.message };
+  }
+  
+  return { success: true };
 }

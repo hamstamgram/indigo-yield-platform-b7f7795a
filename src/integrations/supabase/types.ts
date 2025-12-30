@@ -7067,6 +7067,20 @@ export type Database = {
         Args: { p_investor_id: string }
         Returns: undefined
       }
+      reconcile_all_positions: {
+        Args: { p_dry_run?: boolean }
+        Returns: {
+          action: string
+          fund_id: string
+          fund_name: string
+          investor_id: string
+          investor_name: string
+          new_shares: number
+          new_value: number
+          old_shares: number
+          old_value: number
+        }[]
+      }
       reconcile_investor_position: {
         Args: {
           p_action?: string
