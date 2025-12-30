@@ -16,6 +16,8 @@ class InvestorDataExportService {
     const [profile, investments, transactions, documents] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
       supabase.from("investor_positions").select("*").eq("investor_id", userId),
+      // Note: Includes ALL transactions (including voided) for complete GDPR audit trail
+      // Users have the right to see their full data history under GDPR Article 15
       supabase.from("transactions_v2").select("*").eq("investor_id", userId),
       supabase.from("documents").select("*").eq("user_id", userId),
     ]);
