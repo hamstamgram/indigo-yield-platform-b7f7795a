@@ -76,7 +76,7 @@ class FundService {
       .from("funds")
       .select("id")
       .eq("code", code)
-      .single();
+      .maybeSingle();
     return !!data;
   }
 
