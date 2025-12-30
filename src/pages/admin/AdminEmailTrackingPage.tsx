@@ -66,7 +66,7 @@ export default function AdminEmailTrackingPage() {
   // DATA FETCHING
   // =====================================================
 
-  const { data: stats } = useEmailStats();
+  const { data: stats } = useEmailStats(filters); // Pass same filters for consistent stats
   const { data: emailDeliveries, isLoading: logsLoading } = useEmailDeliveries(filters);
 
   // =====================================================

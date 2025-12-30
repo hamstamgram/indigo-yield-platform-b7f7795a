@@ -53,11 +53,33 @@ export interface EmailStats {
 
 /**
  * Fetch email statistics from statement_email_delivery
+ * Accepts optional filters to match list query for consistent totals
  */
-export async function getEmailStats(): Promise<EmailStats> {
-  const { data, error } = await supabase
+export async function getEmailStats(filters?: EmailFilters): Promise<EmailStats> {
+  let query = supabase
     .from("statement_email_delivery")
-    .select("status, sent_at, created_at");
+    .select("status, sent_at, created_at, recipient_email, subject");
+
+  // Apply same filters as getEmailDeliveries for consistency
+  if (filters?.status && filters.status !== "all") {
+    query = query.eq("status", filters.status);
+  }
+
+  if (filters?.search) {
+    query = query.or(
+      `recipient_email.ilike.%${filters.search}%,subject.ilike.%${filters.search}%`
+    );
+  }
+
+  if (filters?.dateFrom) {
+    query = query.gte("created_at", filters.dateFrom);
+  }
+
+  if (filters?.dateTo) {
+    query = query.lte("created_at", filters.dateTo);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Error fetching email stats:", error);

@@ -184,11 +184,23 @@ export const withdrawalService = {
 
   /**
    * Get withdrawal statistics with per-asset pending breakdown
+   * Accepts optional filters to match the list query for consistency
    */
-  async getStats(): Promise<WithdrawalStats> {
-    const { data, error } = await supabase
+  async getStats(filters?: WithdrawalFilters): Promise<WithdrawalStats> {
+    let query = supabase
       .from("withdrawal_requests")
       .select("status, requested_amount, fund:funds(asset)");
+
+    // Apply same filters as getWithdrawals for consistency
+    if (filters?.status && filters.status !== "all") {
+      query = query.eq("status", filters.status);
+    }
+
+    if (filters?.fund_id) {
+      query = query.eq("fund_id", filters.fund_id);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
