@@ -77,7 +77,7 @@ export async function getNotificationPreferences(
     .from("profiles")
     .select("preferences")
     .eq("id", userId)
-    .single();
+    .maybeSingle();
 
   const prefs = data?.preferences as Record<string, unknown> | null;
   if (prefs && typeof prefs === "object" && "notifications" in prefs) {
@@ -103,7 +103,7 @@ export async function updateNotificationPreferences(
     .from("profiles")
     .select("preferences")
     .eq("id", userId)
-    .single();
+    .maybeSingle();
 
   const currentPrefs = (profile?.preferences as Record<string, unknown>) || {};
 

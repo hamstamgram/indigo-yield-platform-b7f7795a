@@ -164,12 +164,14 @@ export class ReportsApi {
       .from("generated_reports")
       .select("*")
       .eq("id", reportId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Error fetching report:", error);
       return null;
     }
+
+    if (!data) return null;
 
     return this.mapGeneratedReport(data);
   }

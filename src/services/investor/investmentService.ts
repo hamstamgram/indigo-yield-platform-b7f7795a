@@ -16,7 +16,11 @@ export const investmentService = {
       .from("funds")
       .select("asset, fund_class")
       .eq("id", data.fund_id)
-      .single();
+      .maybeSingle();
+
+    if (!fund) {
+      throw new Error(`Fund not found: ${data.fund_id}`);
+    }
 
     const { error } = await supabase.from("transactions_v2").insert({
       investor_id: data.investor_id,
@@ -47,7 +51,7 @@ export const investmentService = {
       .from("transactions_v2")
       .select("*")
       .eq("id", id)
-      .single();
+      .maybeSingle();
 
     if (fetchError) throw fetchError;
     if (!tx) throw new Error("Transaction not found");
