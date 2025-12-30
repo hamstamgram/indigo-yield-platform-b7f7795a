@@ -351,7 +351,7 @@ export async function getDeliveryQueueMetrics(): Promise<DeliveryQueueMetrics> {
     .or("status.eq.queued,status.eq.QUEUED")
     .order("created_at", { ascending: true })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   return {
     queued_count: queuedCount ?? 0,
@@ -462,21 +462,21 @@ export async function getDataIntegrityStatus(): Promise<IntegrityData> {
       .select("created_at")
       .order("created_at", { ascending: false })
       .limit(1)
-      .single(),
+      .maybeSingle(),
     
     supabase
       .from("generated_reports")
       .select("created_at")
       .order("created_at", { ascending: false })
       .limit(1)
-      .single(),
+      .maybeSingle(),
     
     supabase
       .from("report_delivery_events")
       .select("occurred_at")
       .order("occurred_at", { ascending: false })
       .limit(1)
-      .single(),
+      .maybeSingle(),
   ]);
 
   const checks: IntegrityCheck[] = [

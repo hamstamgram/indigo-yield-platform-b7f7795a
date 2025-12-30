@@ -198,7 +198,7 @@ export async function getStatementHtmlContent(
     .select("id")
     .eq("year", periodYear)
     .eq("month", periodMonth)
-    .single();
+    .maybeSingle();
 
   if (!periodData) {
     throw new Error("Statement period not found");
@@ -210,7 +210,7 @@ export async function getStatementHtmlContent(
     .select("html_content")
     .eq("period_id", periodData.id)
     .eq("user_id", userId)
-    .single();
+    .maybeSingle();
 
   if (fetchError || !generatedStatement?.html_content) {
     throw new Error("Statement not yet generated. Please contact support.");
@@ -273,7 +273,7 @@ export async function getUserPreferences(userId: string): Promise<Partial<UserSe
     .from("profiles")
     .select("preferences")
     .eq("id", userId)
-    .single();
+    .maybeSingle();
 
   return data?.preferences as Partial<UserSettings> | null;
 }
