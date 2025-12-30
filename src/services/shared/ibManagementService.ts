@@ -172,7 +172,8 @@ class IBManagementService {
       .from("transactions_v2")
       .select("investor_id, fund_id, asset, amount")
       .in("investor_id", ibUserIds)
-      .eq("type", "IB_CREDIT");
+      .eq("type", "IB_CREDIT")
+      .eq("is_voided", false);
 
     if (error) throw error;
     return data || [];

@@ -439,6 +439,7 @@ export class InvestorDataService {
       .select("*")
       .eq("investor_id", investorId)
       .eq("type", "INTEREST")
+      .eq("is_voided", false)
       .gte("tx_date", startDate.toISOString().split("T")[0])
       .order("tx_date", { ascending: false })
       .order("id", { ascending: false }); // Deterministic tie-breaker for same-day ordering
