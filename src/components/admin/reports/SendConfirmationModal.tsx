@@ -1,16 +1,8 @@
 import { useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Button, Badge, Checkbox, Alert, AlertDescription, AlertTitle,
+} from "@/components/ui";
 import { Loader2, Send, AlertTriangle, Clock, Mail, User, Calendar } from "lucide-react";
 import { format } from "date-fns";
 

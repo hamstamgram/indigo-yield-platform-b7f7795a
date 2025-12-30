@@ -1,13 +1,7 @@
 import { ReactNode } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  Card, CardContent, Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui";
 import { cn } from "@/lib/utils";
 
 export interface ResponsiveTableColumn<T> {

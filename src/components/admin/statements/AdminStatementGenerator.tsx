@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Button, Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Alert, AlertDescription,
+} from "@/components/ui";
 import { FileText, Loader2, Shield, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks";
 import { generatePDF } from "@/lib/pdf/statementGenerator";
 import { checkStatementExists } from "@/services/core/reportUpsertService";
 import { useSuperAdmin } from "@/components/admin/SuperAdminGuard";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { profileService, statementsService, documentService } from "@/services/shared";
 
 const AdminStatementGenerator: React.FC = () => {
