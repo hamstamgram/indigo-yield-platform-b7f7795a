@@ -5,7 +5,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { storageService } from "@/services/shared/storageService";
+import { storageService } from "@/services";
 
 /**
  * Hook to upload a fund logo

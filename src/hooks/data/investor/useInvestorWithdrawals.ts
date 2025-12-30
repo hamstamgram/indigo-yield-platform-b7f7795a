@@ -5,8 +5,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { withdrawalService } from "@/services/investor/withdrawalService";
-import { auditLogService } from "@/services/shared/auditLogService";
+import { withdrawalService, auditLogService } from "@/services";
 import { supabase } from "@/integrations/supabase/client";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { toast } from "sonner";

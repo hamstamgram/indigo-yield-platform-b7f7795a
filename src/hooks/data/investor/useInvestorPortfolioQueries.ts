@@ -5,10 +5,11 @@ import {
   getInvestorDocuments,
   downloadDocument,
   getPendingTransactions,
+  performanceService,
   type InvestorDocument,
   type PendingTransaction,
-} from "@/services/investor/investorDataService";
-import { performanceService, type PerformanceHistoryRecord } from "@/services/shared/performanceService";
+  type PerformanceHistoryRecord,
+} from "@/services";
 
 /**
  * Hook for fetching investor documents
