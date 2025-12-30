@@ -3218,6 +3218,95 @@ export type Database = {
           },
         ]
       }
+      position_reconciliation_log: {
+        Row: {
+          action_taken: string | null
+          discrepancy: number
+          fund_id: string
+          id: string
+          investor_id: string
+          ledger_value: number
+          notes: string | null
+          position_value: number
+          reconciled_at: string | null
+          reconciled_by: string | null
+        }
+        Insert: {
+          action_taken?: string | null
+          discrepancy: number
+          fund_id: string
+          id?: string
+          investor_id: string
+          ledger_value: number
+          notes?: string | null
+          position_value: number
+          reconciled_at?: string | null
+          reconciled_by?: string | null
+        }
+        Update: {
+          action_taken?: string | null
+          discrepancy?: number
+          fund_id?: string
+          id?: string
+          investor_id?: string
+          ledger_value?: number
+          notes?: string | null
+          position_value?: number
+          reconciled_at?: string | null
+          reconciled_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "position_reconciliation_log_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_reconciled_by_fkey"
+            columns: ["reconciled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "position_reconciliation_log_reconciled_by_fkey"
+            columns: ["reconciled_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+        ]
+      }
       position_reset_log: {
         Row: {
           admin_user_id: string
@@ -6978,6 +7067,15 @@ export type Database = {
         Args: { p_investor_id: string }
         Returns: undefined
       }
+      reconcile_investor_position: {
+        Args: {
+          p_action?: string
+          p_admin_id: string
+          p_fund_id: string
+          p_investor_id: string
+        }
+        Returns: Json
+      }
       regenerate_reports_for_correction: {
         Args: { p_correction_id: string }
         Returns: Json
@@ -7016,6 +7114,15 @@ export type Database = {
       route_withdrawal_to_fees: {
         Args: { p_reason?: string; p_request_id: string }
         Returns: boolean
+      }
+      run_data_integrity_check: {
+        Args: never
+        Returns: {
+          check_name: string
+          details: Json
+          issue_count: number
+          status: string
+        }[]
       }
       send_daily_rate_notifications: {
         Args: { p_rate_date: string }
