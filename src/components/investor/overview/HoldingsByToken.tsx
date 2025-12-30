@@ -1,6 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, Skeleton } from "@/components/ui";
 import { getAssetLogo, getAssetName, formatAssetAmount } from "@/utils/assets";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface TokenHolding {
   symbol: string;
