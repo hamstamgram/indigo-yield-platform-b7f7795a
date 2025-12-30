@@ -58,7 +58,7 @@ export const useAssetData = () => {
           .select("*")
           .order("rate_date", { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (ratesError && ratesError.code !== "PGRST116") {
           // PGRST116 = no rows returned (acceptable if no rates yet)

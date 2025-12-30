@@ -80,9 +80,10 @@ export class DepositService {
       `
       )
       .eq("id", id)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+    if (!tx) throw new Error("Deposit not found");
     return this.mapTransactionToDeposit(tx, (tx as any).profile);
   }
 
@@ -108,7 +109,7 @@ export class DepositService {
       .select("id, asset, fund_class")
       .eq("asset", assetSymbol)
       .eq("status", "active")
-      .single();
+      .maybeSingle();
 
     if (!fund?.id) {
       throw new Error(`Fund not found for asset symbol ${assetSymbol}`);
@@ -186,9 +187,10 @@ export class DepositService {
       .from("transactions_v2")
       .select("*")
       .eq("id", id)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+    if (!data) throw new Error("Deposit not found");
     return this.mapTransactionToDeposit(data);
   }
 
@@ -197,9 +199,10 @@ export class DepositService {
       .from("transactions_v2")
       .select("*")
       .eq("id", id)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+    if (!data) throw new Error("Deposit not found");
     return this.mapTransactionToDeposit(data);
   }
 

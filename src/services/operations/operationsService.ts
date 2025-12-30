@@ -42,7 +42,8 @@ export const operationsService = {
         supabase
           .from("transactions_v2")
           .select("id", { count: "exact", head: true })
-          .gte("tx_date", new Date().toISOString().split("T")[0]),
+          .gte("tx_date", new Date().toISOString().split("T")[0])
+          .eq("is_voided", false),
 
         // Active investors
         supabase
@@ -103,7 +104,8 @@ export const operationsService = {
         .from("transactions_v2")
         .select("id", { count: "exact", head: true })
         .gte("tx_date", yesterdayDate)
-        .lt("tx_date", today);
+        .lt("tx_date", today)
+        .eq("is_voided", false);
 
       if (error) throw error;
       return count || 0;

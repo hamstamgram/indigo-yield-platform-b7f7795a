@@ -23,6 +23,7 @@ export function useRecentInvestorTransactions(limit = 5) {
         .select("id, type, amount, asset, tx_date")
         .eq("investor_id", user.id)
         .eq("visibility_scope", "investor_visible")
+        .eq("is_voided", false)
         .order("tx_date", { ascending: false })
         .limit(limit);
 

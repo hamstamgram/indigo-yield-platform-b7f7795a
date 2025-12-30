@@ -40,7 +40,7 @@ export async function createAdjustment(
     .from("funds")
     .select("asset")
     .eq("id", fundId)
-    .single();
+    .maybeSingle();
 
   if (fundError || !fund) {
     console.error("Error fetching fund for adjustment:", fundError?.message || "Fund not found");
@@ -89,6 +89,7 @@ export async function getFundAdjustmentHistory(fundId?: string) {
     .from("transactions_v2")
     .select("*")
     .eq("type", "ADJUSTMENT")
+    .eq("is_voided", false)
     .order("created_at", { ascending: false })
     .limit(100);
   if (fundId) {

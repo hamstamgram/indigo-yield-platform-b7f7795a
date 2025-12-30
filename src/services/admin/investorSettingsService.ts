@@ -42,7 +42,11 @@ export async function getInvestorProfileForSettings(
     .from("profiles")
     .select("id, first_name, last_name, email, phone, status, created_at")
     .eq("id", investorId)
-    .single();
+    .maybeSingle();
+
+  if (!data) {
+    throw new Error("Investor profile not found");
+  }
 
   if (error) {
     console.error("Error loading investor profile:", error);

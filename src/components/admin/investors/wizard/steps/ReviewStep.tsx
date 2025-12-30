@@ -25,7 +25,7 @@ const ReviewStep: React.FC = () => {
           .from("profiles")
           .select("first_name, last_name")
           .eq("id", data.ib.existingIbId)
-          .single();
+          .maybeSingle();
         
         if (profile) {
           setIbName(`${profile.first_name} ${profile.last_name}`);

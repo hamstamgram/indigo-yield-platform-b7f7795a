@@ -97,7 +97,8 @@ export async function checkInvestorBalance(
     .select("id", { count: "exact", head: true })
     .eq("investor_id", investorId)
     .eq("fund_id", fundId)
-    .eq("type", "DEPOSIT");
+    .eq("type", "DEPOSIT")
+    .eq("is_voided", false);
 
   return {
     currentBalance: positionData?.current_value ?? 0,

@@ -214,6 +214,7 @@ export const reportService = {
       .from("transactions_v2")
       .select("*")
       .eq("investor_id", investorId)
+      .eq("is_voided", false)
       .gte("tx_date", dateRange.start.toISOString().split("T")[0])
       .lte("tx_date", dateRange.end.toISOString().split("T")[0])
       .order("tx_date", { ascending: false })

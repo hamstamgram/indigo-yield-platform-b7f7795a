@@ -46,7 +46,8 @@ export function useTransactionHistory(investorId: string | undefined, fundId: st
         .select("id", { count: "exact", head: true })
         .eq("investor_id", investorId)
         .eq("fund_id", fundId)
-        .eq("type", "DEPOSIT");
+        .eq("type", "DEPOSIT")
+        .eq("is_voided", false);
 
       if (error) throw error;
       return (count ?? 0) > 0;
