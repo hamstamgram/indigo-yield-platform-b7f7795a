@@ -5,8 +5,9 @@
 export { ApiClient } from "./ApiClient";
 export type { ApiResponse } from "./ApiClient";
 
-export { AuthService, authService } from "./AuthService";
-export type { SignUpData, SignInData } from "./AuthService";
+// Auth is now in lib/auth - import from there
+// export { AuthService, authService } from "./AuthService";
+// export type { SignUpData, SignInData } from "./AuthService";
 
 export { PortfolioService, portfolioService } from "./PortfolioService";
 

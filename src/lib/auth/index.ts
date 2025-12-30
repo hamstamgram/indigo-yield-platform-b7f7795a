@@ -2,6 +2,20 @@
  * Auth Module - Barrel Export
  */
 
+// Context and hooks
 export { AuthProvider, useAuth } from './context';
+
+// Core auth operations
+export * from './authService';
+
+// Invite handling
+export * from './inviteService';
+
+// MFA operations
+export * from './mfaService';
+
+// Password reset
 export { sendPasswordResetEmail } from './passwordReset';
-export * from './totp-service';
+
+// Types
+export type * from './types';

@@ -1,104 +1,29 @@
 /**
- * Auth Flow Service
- * Handles all authentication-related operations
+ * Invite Service
+ * Handles investor and admin invitation operations
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import type { User, Session } from "@supabase/supabase-js";
-
-export interface SignInResult {
-  user: User;
-  session: Session;
-}
-
-export interface InviteDetails {
-  email: string;
-  used: boolean;
-  expires_at: string;
-}
-
-export interface UserMetadata {
-  first_name?: string;
-  last_name?: string;
-}
+import type { InviteDetails, UserMetadata } from "./types";
 
 /**
- * Sign in with email and password
+ * Wait for profile to be created by database trigger
  */
-export async function signInWithEmail(
-  email: string,
-  password: string
-): Promise<SignInResult> {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+export async function waitForProfile(
+  userId: string,
+  maxAttempts = 10
+): Promise<boolean> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", userId)
+      .maybeSingle();
 
-  if (error) throw error;
-  if (!data.user || !data.session) {
-    throw new Error("No user returned from login");
+    if (profile) return true;
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }
-
-  return { user: data.user, session: data.session };
-}
-
-/**
- * Sign out the current user
- */
-export async function signOut(): Promise<void> {
-  const { error } = await supabase.auth.signOut();
-  if (error) throw error;
-}
-
-/**
- * Get the current session
- */
-export async function getSession(): Promise<Session | null> {
-  const { data: { session } } = await supabase.auth.getSession();
-  return session;
-}
-
-/**
- * Get user admin status
- */
-export async function getUserAdminStatus(userId: string): Promise<boolean> {
-  const { data: adminStatus } = await supabase.rpc("get_user_admin_status", {
-    user_id: userId,
-  });
-  return adminStatus === true;
-}
-
-/**
- * Request password reset email
- */
-export async function requestPasswordReset(email: string): Promise<void> {
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password`,
-  });
-  if (error) throw error;
-}
-
-/**
- * Set session from recovery tokens
- */
-export async function setSessionFromTokens(
-  accessToken: string,
-  refreshToken: string
-): Promise<void> {
-  await supabase.auth.setSession({
-    access_token: accessToken,
-    refresh_token: refreshToken,
-  });
-}
-
-/**
- * Update user password
- */
-export async function updatePassword(newPassword: string): Promise<void> {
-  const { error } = await supabase.auth.updateUser({
-    password: newPassword,
-  });
-  if (error) throw error;
+  return false;
 }
 
 /**
@@ -161,26 +86,6 @@ export async function verifyAdminInvite(
     used: data.used ?? false,
     expires_at: data.expires_at,
   };
-}
-
-/**
- * Wait for profile to be created by database trigger
- */
-export async function waitForProfile(
-  userId: string,
-  maxAttempts = 10
-): Promise<boolean> {
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("id", userId)
-      .maybeSingle();
-
-    if (profile) return true;
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
-  return false;
 }
 
 /**
@@ -284,12 +189,4 @@ export async function acceptAdminInvite(
   });
 
   return userId;
-}
-
-/**
- * Get current user
- */
-export async function getCurrentUser(): Promise<User | null> {
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
 }

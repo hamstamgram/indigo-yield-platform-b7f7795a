@@ -6,7 +6,8 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { authService } from "@/services/core/AuthService";
+import * as authService from "@/lib/auth/authService";
+import * as mfaService from "@/lib/auth/mfaService";
 import QRCode from "qrcode";
 
 interface LoginData {
@@ -96,17 +97,14 @@ export function useMFAEnrollment() {
   return useQuery({
     queryKey: ["mfa-enrollment"],
     queryFn: async () => {
-      const result = await authService.enrollMFA();
-      if (result.error) throw result.error;
+      const result = await mfaService.enrollMFA();
+      if (!result.success || !result.data) throw result.error || new Error("Failed to enroll");
       
-      if (result.data) {
-        const qrCodeUrl = await QRCode.toDataURL(result.data.totp.qr_code);
-        return {
-          secret: result.data.totp.secret,
-          qrCodeUrl,
-        };
-      }
-      throw new Error("Failed to get MFA enrollment data");
+      const qrCodeUrl = await QRCode.toDataURL(result.data.qrCode);
+      return {
+        secret: result.data.secret,
+        qrCodeUrl,
+      };
     },
     staleTime: Infinity,
     retry: false,
@@ -121,7 +119,7 @@ export function useMFAVerification() {
 
   return useMutation({
     mutationFn: async (code: string) => {
-      const factorsResult = await authService.listMFAFactors();
+      const factorsResult = await mfaService.listMFAFactors();
       if (factorsResult.error) throw factorsResult.error;
 
       const totpFactors = factorsResult.data?.totp;
@@ -130,7 +128,7 @@ export function useMFAVerification() {
       }
 
       const factorId = totpFactors[0].id;
-      const verifyResult = await authService.verifyMFA(factorId, code);
+      const verifyResult = await mfaService.verifyMFA(factorId, code);
       if (verifyResult.error) throw verifyResult.error;
       
       return verifyResult.data;
