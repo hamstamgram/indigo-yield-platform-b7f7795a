@@ -10,11 +10,15 @@ export {
   type AssetConfig,
   type AssetSummary,
   ASSET_CONFIGS as ASSETS,
+  ASSET_PRECISION,
   DEFAULT_ASSET_LOGO,
   getAssetConfig,
   getAssetLogo,
   getAssetName,
   getAssetDecimals,
+  getAssetPrecision,
+  getAssetStep,
+  formatAssetPrecision,
   getSupportedAssets,
 } from "@/types/asset";
 

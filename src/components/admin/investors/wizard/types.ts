@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // Re-export asset utilities from canonical location for backwards compatibility
-export { ASSET_PRECISION, getAssetStep, getAssetPrecision } from "@/constants/assets";
+export { ASSET_PRECISION, getAssetStep, getAssetPrecision } from "@/types/asset";
 
 // Step 1: Identity
 export const identitySchema = z.object({
