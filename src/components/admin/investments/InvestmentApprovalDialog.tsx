@@ -11,7 +11,7 @@ import {
   Label,
   Textarea,
 } from "@/components/ui";
-import { investmentService } from "@/services/investor/investmentService";
+import { investmentService } from "@/services";
 import { toast } from "sonner";
 import type { Investment } from "@/types/domains";
 

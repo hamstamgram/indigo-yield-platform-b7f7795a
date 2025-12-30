@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { reportService } from "@/services/admin/reportService";
+import { reportService } from "@/services";
 import { GenerateReportRequest, GenerateReportResponse } from "@/types/domains";
 
 // Lazy load PDF/Excel generators to reduce initial bundle size

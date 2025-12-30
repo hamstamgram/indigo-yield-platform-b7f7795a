@@ -11,7 +11,7 @@ import {
 } from "@/components/ui";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft, Clock, FileText, ArrowDownToLine, Users, Percent } from "lucide-react";
-import { forceDeleteInvestorUser } from "@/services/admin/userService";
+import { forceDeleteInvestorUser } from "@/services";
 import { InvestorTabs } from "@/components/admin";
 import { format } from "date-fns";
 import { useInvestorDetail, useInvestorOpsIndicators } from "@/hooks/data/admin";

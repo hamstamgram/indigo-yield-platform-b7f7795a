@@ -23,7 +23,7 @@ import {
   executePositionReset,
   type PositionResetPreview,
   type PositionResetResult,
-} from "@/services/admin/systemAdminService";
+} from "@/services";
 
 export function PositionResetDialog() {
   const [open, setOpen] = useState(false);

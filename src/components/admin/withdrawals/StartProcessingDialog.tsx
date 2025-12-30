@@ -4,7 +4,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
   Button, Input, Label, Textarea,
 } from "@/components/ui";
-import { withdrawalService } from "@/services/investor/withdrawalService";
+import { withdrawalService } from "@/services";
 import { toast } from "sonner";
 import { Loader2, Play } from "lucide-react";
 

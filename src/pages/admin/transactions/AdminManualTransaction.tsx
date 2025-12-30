@@ -13,8 +13,7 @@ import {
 } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { supabase } from "@/integrations/supabase/client";
-import { createAdminTransaction, type CreateTransactionParams } from "@/services/shared/transactionService";
-import { saveDraftAUMEntry } from "@/services/admin/yieldDistributionService";
+import { createAdminTransaction, saveDraftAUMEntry, type CreateTransactionParams } from "@/services";
 import { Loader2, ArrowRightLeft, Info, AlertTriangle, Check, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";

@@ -4,7 +4,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui";
 import { toast } from "sonner";
-import { depositService } from "@/services/investor/depositService";
+import { depositService } from "@/services";
 import type { Deposit } from "@/types/domains";
 import { invalidateAfterDeposit } from "@/utils/cacheInvalidation";
 

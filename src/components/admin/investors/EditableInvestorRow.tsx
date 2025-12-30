@@ -6,7 +6,7 @@ import {
 } from "@/components/ui";
 import { Trash2 } from "lucide-react";
 import { AssetRef as Asset } from "@/types/asset";
-import { InvestorSummaryV2 } from "@/services/admin/adminService";
+import type { InvestorSummaryV2 } from "@/services";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import InviteInvestorDialog from "./InviteInvestorDialog";
 

@@ -12,7 +12,7 @@ import { Send, Save } from "lucide-react";
 import { useToast } from "@/hooks";
 import { useUpdateInvestorStatus } from "@/hooks/data";
 import { AssetRef as Asset } from "@/types/asset";
-import { InvestorSummaryV2 } from "@/services/admin/adminService";
+import type { InvestorSummaryV2 } from "@/services";
 import FundAssetDropdown from "./FundAssetDropdown";
 
 interface MobileInvestorCardProps {

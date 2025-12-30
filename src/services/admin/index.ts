@@ -159,5 +159,5 @@ export type {
 // Yield correction service
 export * from "./yieldCorrectionService";
 
-// Yield correction service
-export * from "./yieldCorrectionService";
+// Report service (selective export to avoid conflicts)
+export { reportService, type SendReportParams } from "./reportService";

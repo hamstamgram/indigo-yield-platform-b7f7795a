@@ -32,7 +32,7 @@ import { InvestorData, InvestorFund } from "@/types/domains";
 import { formatAssetWithSymbol } from "@/utils/formatters";
 import { PerformanceDataEditor } from "@/components/admin/reports/PerformanceDataEditor";
 import { useAdminInvestorReports, useGenerateFundPerformance } from "@/hooks/data";
-import type { InvestorReportSummary, InvestorReportAsset } from "@/services/admin/reportQueryService";
+import type { InvestorReportSummary, InvestorReportAsset } from "@/services";
 
 const InvestorReports = () => {
   const [selectedInvestor, setSelectedInvestor] = useState<InvestorReportSummary | null>(null);

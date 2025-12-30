@@ -24,7 +24,7 @@ import {
   AlertTriangle,
   RefreshCw,
 } from "lucide-react";
-import { withdrawalService } from "@/services/investor/withdrawalService";
+import { withdrawalService } from "@/services";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ApproveWithdrawalDialog } from "@/components/admin/withdrawals/ApproveWithdrawalDialog";

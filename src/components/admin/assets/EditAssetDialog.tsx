@@ -6,7 +6,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui";
 import { toast } from "sonner";
-import { assetService } from "@/services/shared/assetService";
+import { assetService } from "@/services";
 import type { Asset, AssetFormData, AssetKind } from "@/types/asset";
 import { invalidateAfterAssetOp } from "@/utils/cacheInvalidation";
 

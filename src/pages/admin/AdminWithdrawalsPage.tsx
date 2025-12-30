@@ -16,7 +16,7 @@ import {
   DeleteWithdrawalDialog,
   RouteToFeesDialog
 } from "@/components/admin";
-import { withdrawalService } from "@/services/investor/withdrawalService";
+import { withdrawalService } from "@/services";
 import { Withdrawal, WithdrawalFilters, WithdrawalStats, PaginatedWithdrawals } from "@/types/domains";
 import { toast } from "sonner";
 import { ArrowDownToLine, Plus } from "lucide-react";

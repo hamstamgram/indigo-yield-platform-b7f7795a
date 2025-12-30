@@ -11,7 +11,7 @@ import {
   Textarea, Label, Checkbox, Badge,
 } from "@/components/ui";
 import { format } from "date-fns";
-import { YieldRecord } from "@/services/admin/recordedYieldsService";
+import type { YieldRecord } from "@/services";
 
 interface VoidYieldDialogProps {
   record: YieldRecord | null;

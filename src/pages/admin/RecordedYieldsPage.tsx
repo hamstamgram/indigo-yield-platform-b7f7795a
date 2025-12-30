@@ -25,7 +25,7 @@ import {
 } from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { useFunds, useUrlFilters } from "@/hooks";
-import { canEditYields, AumPurpose, YieldFilters } from "@/services/admin/recordedYieldsService";
+import { canEditYields, type AumPurpose, type YieldFilters } from "@/services";
 import { YieldCorrectionPanel } from "@/components/admin/yields/YieldCorrectionPanel";
 import { VoidYieldDialog } from "@/components/admin/yields/VoidYieldDialog";
 import { EditYieldDialog } from "@/components/admin/yields/EditYieldDialog";

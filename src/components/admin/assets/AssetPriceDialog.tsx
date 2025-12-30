@@ -7,7 +7,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui";
 import { toast } from "sonner";
-import { assetService } from "@/services/shared/assetService";
+import { assetService } from "@/services";
 import { useAssetPrices, useLatestAssetPrice } from "@/hooks/data/admin";
 import type { Asset, AssetPrice, AssetPriceFormData } from "@/types/asset";
 import { format } from "date-fns";
