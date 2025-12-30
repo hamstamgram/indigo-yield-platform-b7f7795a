@@ -6,7 +6,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks";
 import { useAuth } from "@/lib/auth/context";
-import { fundService, auditLogService } from "@/services/shared";
+import { fundService, auditLogService } from "@/services";
 
 type FundStatus = "active" | "deprecated" | "inactive" | "suspended";
 

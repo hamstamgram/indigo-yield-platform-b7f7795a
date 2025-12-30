@@ -8,16 +8,16 @@ import {
   getYieldRecords,
   updateYieldRecord,
   canEditYields,
+  voidYieldRecord,
+  getYieldDetails,
+  canVoidYieldRecord,
+} from "@/services";
+import type {
   YieldRecord,
   YieldFilters,
   UpdateYieldRecordInput,
 } from "@/services/admin/recordedYieldsService";
-import {
-  voidYieldRecord,
-  getYieldDetails,
-  canVoidYieldRecord,
-  YieldDetails,
-} from "@/services/admin/yieldManagementService";
+import type { YieldDetails } from "@/services/admin/yieldManagementService";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/context";
 import { QUERY_KEYS } from "@/constants/queryKeys";

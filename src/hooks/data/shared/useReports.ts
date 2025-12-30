@@ -13,8 +13,10 @@ import {
   generateFundPerformanceReports,
   fetchLatestPerformance,
   fetchActiveInvestorsForStatements,
-  type InvestorReportSummary,
-  type PerformanceReportDetail,
+} from "@/services";
+import type {
+  InvestorReportSummary,
+  PerformanceReportDetail,
 } from "@/services/admin/reportQueryService";
 import { format, parseISO } from "date-fns";
 

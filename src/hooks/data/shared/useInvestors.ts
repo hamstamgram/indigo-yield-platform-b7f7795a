@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks";
 import { AssetRef as Asset } from "@/types/asset";
-import { adminServiceV2, InvestorSummaryV2 } from "@/services/admin/adminService";
+import { adminServiceV2 } from "@/services";
+import type { InvestorSummaryV2 } from "@/services/admin/adminService";
 import { useInvestorSearch } from "../investor/useInvestorSearch";
 import { supabase } from "@/integrations/supabase/client";
 import { QUERY_KEYS } from "@/constants/queryKeys";
