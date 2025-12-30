@@ -7115,15 +7115,7 @@ export type Database = {
         Args: { p_reason?: string; p_request_id: string }
         Returns: boolean
       }
-      run_data_integrity_check: {
-        Args: never
-        Returns: {
-          check_name: string
-          details: Json
-          issue_count: number
-          status: string
-        }[]
-      }
+      run_data_integrity_check: { Args: never; Returns: Json }
       send_daily_rate_notifications: {
         Args: { p_rate_date: string }
         Returns: number

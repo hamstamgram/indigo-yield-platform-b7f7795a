@@ -70,9 +70,12 @@ export const documentService = {
       .from("documents")
       .select("storage_path")
       .eq("id", docId)
-      .single();
+      .maybeSingle();
 
-    if (docError || !doc) {
+    if (docError) {
+      throw docError;
+    }
+    if (!doc) {
       throw new Error("Document not found");
     }
 
@@ -179,9 +182,12 @@ export const documentService = {
       .from("documents")
       .select("storage_path")
       .eq("id", docId)
-      .single();
+      .maybeSingle();
 
-    if (fetchError || !doc) {
+    if (fetchError) {
+      throw fetchError;
+    }
+    if (!doc) {
       throw new Error("Document not found");
     }
 
