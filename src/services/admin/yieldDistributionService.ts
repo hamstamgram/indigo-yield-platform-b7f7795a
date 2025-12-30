@@ -744,7 +744,7 @@ export async function getInvestorPositionsWithFunds(investorId: string): Promise
       fund_id,
       shares,
       current_value,
-      funds!inner(name, asset, status)
+      funds!fk_investor_positions_fund(name, asset, status)
     `)
     .eq("investor_id", investorId);
 

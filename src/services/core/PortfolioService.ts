@@ -127,7 +127,7 @@ export class PortfolioService extends ApiClient {
         .select(
           `
           *,
-          funds:fund_id (
+          funds!fk_investor_positions_fund (
             name,
             code,
             asset,
@@ -173,7 +173,7 @@ export class PortfolioService extends ApiClient {
         .select(
           `
           *,
-          funds:fund_id (
+          funds!fk_investor_positions_fund (
             name,
             code,
             asset,
@@ -264,7 +264,7 @@ export class PortfolioService extends ApiClient {
         .select(
           `
           *,
-          funds:fund_id (
+          funds!fk_investor_positions_fund (
             name,
             code,
             asset,
