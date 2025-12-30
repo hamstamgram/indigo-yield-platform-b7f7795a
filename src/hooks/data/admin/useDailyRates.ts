@@ -5,7 +5,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { dailyRatesService, DailyRate } from "@/services/shared/dailyRatesService";
+import { dailyRatesService, type DailyRate } from "@/services";
 
 /**
  * Hook to fetch daily rate for a specific date

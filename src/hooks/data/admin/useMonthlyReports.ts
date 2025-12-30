@@ -8,7 +8,7 @@ import {
   getInvestorMonthlyReports,
   createMonthlyReportTemplate,
   updateMonthlyReportField,
-} from "@/services/admin/yieldDistributionService";
+} from "@/services";
 import { toast } from "sonner";
 
 export interface MonthlyReport {

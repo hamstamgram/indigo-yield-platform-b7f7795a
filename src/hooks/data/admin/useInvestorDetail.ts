@@ -9,9 +9,9 @@ import {
   investorDetailService,
   type InvestorDetailData,
   type OpsIndicators,
-  type InvestorPosition,
+  type AdminInvestorPosition,
   type InvestorPositionsData,
-} from "@/services/admin/investorDetailService";
+} from "@/services";
 
 /**
  * Hook to fetch investor detail
@@ -53,12 +53,13 @@ export function useInvestorPositions(investorId: string | undefined) {
  * Hook to fetch investor active positions (for delete confirmation)
  */
 export function useInvestorActivePositions(investorId: string | undefined, enabled: boolean = false) {
-  return useQuery<InvestorPosition[]>({
+  return useQuery<AdminInvestorPosition[]>({
     queryKey: ["admin", "investor", "activePositions", investorId],
     queryFn: () => investorDetailService.fetchActivePositions(investorId!),
     enabled: !!investorId && enabled,
   });
 }
 
-// Re-export types
-export type { InvestorDetailData, OpsIndicators, InvestorPosition, InvestorPositionsData };
+// Re-export types (use original name for local exports, aliased for clarity)
+export type { InvestorDetailData, OpsIndicators, InvestorPositionsData };
+export type { AdminInvestorPosition as InvestorPosition };

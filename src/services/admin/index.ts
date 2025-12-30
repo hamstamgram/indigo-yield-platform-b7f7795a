@@ -129,4 +129,35 @@ export { ibUsersService, type IBUser } from "./ibUsersService";
 export { transactionFormDataService, type TransactionFormInvestor, type TransactionFormFund, type BalanceCheckResult } from "./transactionFormDataService";
 
 // Investor detail service (new)
-export { investorDetailService, type InvestorDetailData, type OpsIndicators } from "./investorDetailService";
+export { investorDetailService, type InvestorDetailData, type OpsIndicators, type InvestorPositionsData } from "./investorDetailService";
+export type { InvestorPosition as AdminInvestorPosition } from "./investorDetailService";
+
+// Admin invite service
+export { adminInviteService, type AdminInvite } from "./adminInviteService";
+
+// Fees service (selective to avoid Fund conflict)
+export {
+  getFeesOverviewData,
+  getActiveFunds as getFeesActiveFunds,
+  getFeeTransactions,
+  getIndigoFeesBalance,
+  getFeeAllocations,
+  getRoutingAuditEntries,
+  getYieldEarned,
+} from "./feesService";
+export type {
+  FeesOverviewData,
+  FeeRecord,
+  Fund as FeesFund,
+  FeeAllocation,
+  RoutingAuditEntry,
+  RoutingSummary,
+  YieldEarned,
+  FeeSummary,
+} from "./feesService";
+
+// Yield correction service
+export * from "./yieldCorrectionService";
+
+// Yield correction service
+export * from "./yieldCorrectionService";

@@ -12,7 +12,7 @@ import {
   type InvestorPositionForRoute,
   type InternalRouteParams,
   type InternalRouteResult,
-} from "@/services/admin/internalRouteService";
+} from "@/services";
 
 /**
  * Hook to fetch investor positions for internal routing

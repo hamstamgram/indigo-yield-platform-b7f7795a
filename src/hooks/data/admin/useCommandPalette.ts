@@ -4,8 +4,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { commandPaletteService } from "@/services";
-import type { InvestorSearchResult } from "@/services/admin/commandPaletteService";
+import { commandPaletteService, type InvestorSearchResult } from "@/services";
 
 /**
  * Hook to fetch investors for command palette search

@@ -7,14 +7,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import {
   getYieldRecords,
-  YieldRecord,
-  YieldFilters,
-} from "@/services/admin/recordedYieldsService";
-import {
   getYieldCorrectionHistory,
-  CorrectionHistoryItem,
-} from "@/services/admin/yieldCorrectionService";
-import { voidYieldRecord, updateYieldAum } from "@/services/admin/yieldManagementService";
+  voidYieldRecord,
+  updateYieldAum,
+  type YieldRecord,
+  type YieldFilters,
+  type CorrectionHistoryItem,
+} from "@/services";
 import { invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";
 

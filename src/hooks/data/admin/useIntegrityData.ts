@@ -5,7 +5,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { integrityService } from "@/services/admin/integrityService";
+import { integrityService } from "@/services";
 import type { IntegrityCheck, AuditEvent, IntegrityStatus } from "@/types/domains/integrity";
 
 /**

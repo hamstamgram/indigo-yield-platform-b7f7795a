@@ -6,7 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   getFeesOverviewData,
-  getActiveFunds,
+  getFeesActiveFunds,
   getFeeTransactions,
   getIndigoFeesBalance,
   getFeeAllocations,
@@ -14,12 +14,13 @@ import {
   getYieldEarned,
   type FeesOverviewData,
   type FeeRecord,
-  type Fund,
+  type FeesFund,
   type FeeAllocation,
   type RoutingAuditEntry,
   type RoutingSummary,
   type YieldEarned,
-} from "@/services/admin/feesService";
+  type FeeSummary,
+} from "@/services";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
 // ==================== Re-export types ====================
@@ -27,13 +28,13 @@ import { QUERY_KEYS } from "@/constants/queryKeys";
 export type {
   FeesOverviewData,
   FeeRecord,
-  Fund,
   FeeAllocation,
   RoutingAuditEntry,
   RoutingSummary,
   YieldEarned,
   FeeSummary,
-} from "@/services/admin/feesService";
+};
+export type { FeesFund as Fund };
 
 // ==================== Hooks ====================
 
@@ -52,9 +53,9 @@ export function useFeesOverview() {
  * Hook to fetch active funds only
  */
 export function useFeeFunds() {
-  return useQuery<Fund[], Error>({
+  return useQuery<FeesFund[], Error>({
     queryKey: [...QUERY_KEYS.adminFeesOverview, "funds"],
-    queryFn: getActiveFunds,
+    queryFn: getFeesActiveFunds,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 }
@@ -106,7 +107,7 @@ export function useRoutingAuditEntries() {
 /**
  * Hook to fetch yield earned by INDIGO FEES account
  */
-export function useYieldEarned(funds: Fund[]) {
+export function useYieldEarned(funds: FeesFund[]) {
   return useQuery<YieldEarned[], Error>({
     queryKey: [...QUERY_KEYS.adminFeesOverview, "yield", funds.map(f => f.id)],
     queryFn: () => getYieldEarned(funds),

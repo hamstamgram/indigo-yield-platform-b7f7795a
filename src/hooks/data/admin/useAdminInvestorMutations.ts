@@ -10,13 +10,11 @@ import {
   lockPositions,
   cleanupInactiveInvestors,
   getPendingWithdrawalsCount,
-  InvestorStatus,
-  CleanupResult,
-} from "@/services/admin/investorLifecycleService";
-import {
   updateFundPerformance,
-  PerformanceUpdateData,
-} from "@/services/admin/investorPerformanceService";
+  type InvestorStatus,
+  type CleanupResult,
+  type AdminPerformanceUpdateData as PerformanceUpdateData,
+} from "@/services";
 
 /**
  * Query hook for pending withdrawals count

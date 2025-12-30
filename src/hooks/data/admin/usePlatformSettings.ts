@@ -8,9 +8,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import {
   systemConfigService,
-  PlatformSettings,
   defaultPlatformSettings,
-} from "@/services/shared/systemConfigService";
+  type PlatformSettings,
+} from "@/services";
 
 /**
  * Hook to fetch platform settings
