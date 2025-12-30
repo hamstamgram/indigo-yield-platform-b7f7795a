@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   TableRow, TableCell, Button, TruncatedText,
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -48,7 +49,7 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
 
       {/* Asset balances with logos */}
       {assets.map((asset) => {
-        const balance = investor.portfolioDetails.assetBreakdown[asset.symbol];
+        const balance = investor.portfolioDetails.assetBreakdown[asset.symbol.toUpperCase()];
         const hasBalance = balance && balance > 0;
         return (
           <TableCell key={asset.id}>
@@ -76,7 +77,7 @@ const EditableInvestorRow: React.FC<EditableInvestorRowProps> = ({
             }}
           />
           <Button variant="ghost" size="sm" asChild>
-            <a href={`/admin/investors/${investor.id}`}>Manage</a>
+            <Link to={`/admin/investors/${investor.id}`}>Manage</Link>
           </Button>
           {onDelete && (
             <AlertDialog>

@@ -454,3 +454,70 @@ export async function reconcileAllPositions(
   } as any);
   return { data: data as PositionMismatch[] | null, error };
 }
+
+// ============================================================================
+// Admin Transaction RPCs
+// ============================================================================
+
+export interface AdminCreateTransactionArgs {
+  p_investor_id: string;
+  p_fund_id: string;
+  p_type: string;
+  p_amount: number;
+  p_tx_date: string;
+  p_notes?: string;
+}
+
+export interface AdminCreateTransactionResponse {
+  id: string;
+  reference_id?: string;
+}
+
+/**
+ * Admin create single transaction
+ */
+export async function adminCreateTransaction(
+  args: AdminCreateTransactionArgs
+): Promise<{ data: AdminCreateTransactionResponse | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("admin_create_transaction", {
+    p_investor_id: args.p_investor_id,
+    p_fund_id: args.p_fund_id,
+    p_type: args.p_type,
+    p_amount: args.p_amount,
+    p_tx_date: args.p_tx_date,
+    p_notes: args.p_notes || null,
+  } as any);
+  return { data: data as unknown as AdminCreateTransactionResponse | null, error };
+}
+
+// ============================================================================
+// Route Withdrawal to Fees RPC
+// ============================================================================
+
+export interface RouteWithdrawalToFeesArgs {
+  p_withdrawal_id: string;
+  p_admin_notes?: string;
+}
+
+export interface RouteWithdrawalToFeesResponse {
+  success: boolean;
+  internal_withdrawal_id?: string;
+  internal_credit_id?: string;
+  routed_amount?: number;
+  already_routed?: boolean;
+  message?: string;
+  visibility_scope?: string;
+}
+
+/**
+ * Route a withdrawal to INDIGO FEES account
+ */
+export async function routeWithdrawalToFees(
+  args: RouteWithdrawalToFeesArgs
+): Promise<{ data: RouteWithdrawalToFeesResponse | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("route_withdrawal_to_fees", {
+    p_withdrawal_id: args.p_withdrawal_id,
+    p_admin_notes: args.p_admin_notes || null,
+  } as any);
+  return { data: data as unknown as RouteWithdrawalToFeesResponse | null, error };
+}

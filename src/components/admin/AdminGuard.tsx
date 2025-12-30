@@ -4,7 +4,7 @@
  */
 
 import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { Shield, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
 
@@ -40,12 +40,12 @@ export function AdminGuard({ children }: AdminGuardProps) {
           <p className="text-muted-foreground mb-6">
             You do not have permission to access this area. Admin privileges are required.
           </p>
-          <a
-            href="/dashboard"
+          <Link
+            to="/dashboard"
             className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4"
           >
             Go to Dashboard
-          </a>
+          </Link>
         </div>
       </div>
     );
