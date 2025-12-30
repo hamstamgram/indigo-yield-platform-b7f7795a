@@ -146,57 +146,6 @@ export type Database = {
         }
         Relationships: []
       }
-      audit_logs: {
-        Row: {
-          action: string
-          changes: Json | null
-          created_at: string | null
-          id: string
-          ip_address: unknown
-          record_id: string | null
-          table_name: string
-          user_agent: string | null
-          user_id: string
-        }
-        Insert: {
-          action: string
-          changes?: Json | null
-          created_at?: string | null
-          id?: string
-          ip_address?: unknown
-          record_id?: string | null
-          table_name: string
-          user_agent?: string | null
-          user_id: string
-        }
-        Update: {
-          action?: string
-          changes?: Json | null
-          created_at?: string | null
-          id?: string
-          ip_address?: unknown
-          record_id?: string | null
-          table_name?: string
-          user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "audit_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "audit_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "v_investor_kpis"
-            referencedColumns: ["investor_id"]
-          },
-        ]
-      }
       balance_adjustments: {
         Row: {
           amount: number
@@ -3497,7 +3446,6 @@ export type Database = {
           email: string
           entity_type: string | null
           fee_pct: number
-          fee_percentage: number | null
           first_name: string | null
           ib_commission_source: string
           ib_parent_id: string | null
@@ -3524,7 +3472,6 @@ export type Database = {
           email: string
           entity_type?: string | null
           fee_pct?: number
-          fee_percentage?: number | null
           first_name?: string | null
           ib_commission_source?: string
           ib_parent_id?: string | null
@@ -3551,7 +3498,6 @@ export type Database = {
           email?: string
           entity_type?: string | null
           fee_pct?: number
-          fee_percentage?: number | null
           first_name?: string | null
           ib_commission_source?: string
           ib_parent_id?: string | null
@@ -5312,9 +5258,9 @@ export type Database = {
           actor_user?: string | null
           created_at?: string | null
           entity?: string | null
-          entity_id?: never
+          entity_id?: string | null
           event_id?: string | null
-          meta?: never
+          meta?: Json | null
           new_values?: Json | null
           old_values?: Json | null
           operation?: string | null
@@ -5325,45 +5271,16 @@ export type Database = {
           actor_user?: string | null
           created_at?: string | null
           entity?: string | null
-          entity_id?: never
+          entity_id?: string | null
           event_id?: string | null
-          meta?: never
+          meta?: Json | null
           new_values?: Json | null
           old_values?: Json | null
           operation?: string | null
           source_table?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "audit_logs_user_id_fkey"
-            columns: ["actor_user"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "audit_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "audit_logs_user_id_fkey"
-            columns: ["actor_user"]
-            isOneToOne: false
-            referencedRelation: "v_investor_kpis"
-            referencedColumns: ["investor_id"]
-          },
-          {
-            foreignKeyName: "audit_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "v_investor_kpis"
-            referencedColumns: ["investor_id"]
-          },
-        ]
+        Relationships: []
       }
       fund_aum_mismatch: {
         Row: {
@@ -6482,62 +6399,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_investor_kpis"
             referencedColumns: ["investor_id"]
-          },
-        ]
-      }
-      withdrawal_audit_log: {
-        Row: {
-          action: Database["public"]["Enums"]["withdrawal_action"] | null
-          actor_id: string | null
-          created_at: string | null
-          details: Json | null
-          id: string | null
-          request_id: string | null
-        }
-        Insert: {
-          action?: Database["public"]["Enums"]["withdrawal_action"] | null
-          actor_id?: string | null
-          created_at?: string | null
-          details?: Json | null
-          id?: string | null
-          request_id?: string | null
-        }
-        Update: {
-          action?: Database["public"]["Enums"]["withdrawal_action"] | null
-          actor_id?: string | null
-          created_at?: string | null
-          details?: Json | null
-          id?: string | null
-          request_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "withdrawal_audit_logs_actor_id_fkey"
-            columns: ["actor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "withdrawal_audit_logs_actor_id_fkey"
-            columns: ["actor_id"]
-            isOneToOne: false
-            referencedRelation: "v_investor_kpis"
-            referencedColumns: ["investor_id"]
-          },
-          {
-            foreignKeyName: "withdrawal_audit_logs_request_id_fkey"
-            columns: ["request_id"]
-            isOneToOne: false
-            referencedRelation: "withdrawal_queue"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "withdrawal_audit_logs_request_id_fkey"
-            columns: ["request_id"]
-            isOneToOne: false
-            referencedRelation: "withdrawal_requests"
-            referencedColumns: ["id"]
           },
         ]
       }

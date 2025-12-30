@@ -166,7 +166,7 @@ async function createUser(params: CreateUserRequest): Promise<any> {
       phone: phone || null,
       is_admin: role === "admin",
       status: "active",
-      fee_percentage: 0.20, // 20% default fee
+      fee_pct: 20, // 20% default fee (whole percent)
     });
 
   if (profileError) {

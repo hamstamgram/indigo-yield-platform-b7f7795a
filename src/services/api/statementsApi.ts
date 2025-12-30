@@ -663,14 +663,14 @@ export async function finalizePeriod(periodId: string): Promise<void> {
 
     if (updateError) throw updateError;
 
-    // Log audit event
-    await supabase.from("audit_logs").insert({
+    // Log audit event to the correct audit_log table (not empty audit_logs)
+    await (supabase as any).from("audit_log").insert({
       action: "FINALIZE_PERIOD",
-      table_name: "statement_periods",
-      record_id: periodId,
-      user_id: user.id,
-      changes: { status: "finalized" },
-    } as any);
+      entity: "statement_periods",
+      entity_id: periodId,
+      actor_user: user.id,
+      new_values: { status: "finalized" },
+    });
 
   } catch (error) {
     console.error("Error finalizing period:", error);
