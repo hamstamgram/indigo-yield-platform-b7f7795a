@@ -21,7 +21,6 @@ interface PreferencesData {
   language: string;
   timezone: string;
   dateFormat: string;
-  currencyDisplay: string;
 
   // Display
   theme: string;
@@ -38,7 +37,6 @@ const defaultPreferences: PreferencesData = {
   language: "en",
   timezone: "America/New_York",
   dateFormat: "MM/DD/YYYY",
-  currencyDisplay: "USD",
   theme: "system",
 };
 
@@ -258,41 +256,21 @@ export default function PreferencesTab() {
             </Select>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="dateFormat">Date Format</Label>
-              <Select
-                value={preferences.dateFormat}
-                onValueChange={(val) => updatePreference("dateFormat", val)}
-              >
-                <SelectTrigger id="dateFormat">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
-                  <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
-                  <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="currency">Currency Display</Label>
-              <Select
-                value={preferences.currencyDisplay}
-                onValueChange={(val) => updatePreference("currencyDisplay", val)}
-              >
-                <SelectTrigger id="currency">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="USD">USD ($)</SelectItem>
-                  <SelectItem value="EUR">EUR (€)</SelectItem>
-                  <SelectItem value="GBP">GBP (£)</SelectItem>
-                  <SelectItem value="JPY">JPY (¥)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="dateFormat">Date Format</Label>
+            <Select
+              value={preferences.dateFormat}
+              onValueChange={(val) => updatePreference("dateFormat", val)}
+            >
+              <SelectTrigger id="dateFormat">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
+                <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
+                <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>

@@ -664,7 +664,7 @@ export async function getInvestorPositionsWithFunds(investorId: string): Promise
     .map((p: any) => ({
       fund_id: p.fund_id,
       fund_name: p.funds?.name || "Unknown",
-      asset: p.funds?.asset || "USD",
+      asset: p.funds?.asset || "USDT",
       current_value: p.current_value || 0,
       shares: p.shares || 0,
     }));

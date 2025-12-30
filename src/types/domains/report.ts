@@ -263,6 +263,8 @@ export interface ReportData {
   reportPeriod: string;
   generatedDate: Date;
   confidential?: boolean;
+  /** Native asset code for formatting (e.g., "BTC", "USDT", "ETH") */
+  assetCode?: string;
   investor?: {
     name: string;
     accountNumber?: string;

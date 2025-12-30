@@ -236,44 +236,45 @@ export class PDFReportGenerator {
   }
 
   /**
-   * Generate summary page
+   * Generate summary page - all values in native token format
    */
   private generateSummaryPage(data: ReportData): void {
     this.addSectionHeader("Account Summary");
 
     const summary = data.summary;
+    const asset = data.assetCode; // Native token (BTC, ETH, USDT, etc.)
     const summaryData: [string, string][] = [];
 
     if (summary.beginningBalance !== undefined) {
-      summaryData.push(["Beginning Balance", this.formatCurrency(summary.beginningBalance)]);
+      summaryData.push(["Beginning Balance", this.formatCurrency(summary.beginningBalance, asset)]);
     }
 
     if (summary.totalDeposits !== undefined && summary.totalDeposits > 0) {
-      summaryData.push(["Total Deposits", this.formatCurrency(summary.totalDeposits)]);
+      summaryData.push(["Total Deposits", this.formatCurrency(summary.totalDeposits, asset)]);
     }
 
     if (summary.totalWithdrawals !== undefined && summary.totalWithdrawals > 0) {
-      summaryData.push(["Total Withdrawals", this.formatCurrency(summary.totalWithdrawals)]);
+      summaryData.push(["Total Withdrawals", this.formatCurrency(summary.totalWithdrawals, asset)]);
     }
 
     if (summary.netIncome !== undefined && summary.netIncome !== 0) {
-      summaryData.push(["Net Income", this.formatCurrency(summary.netIncome)]);
+      summaryData.push(["Net Income", this.formatCurrency(summary.netIncome, asset)]);
     }
 
     if (summary.totalFees !== undefined && summary.totalFees > 0) {
-      summaryData.push(["Total Fees", this.formatCurrency(summary.totalFees)]);
+      summaryData.push(["Total Fees", this.formatCurrency(summary.totalFees, asset)]);
     }
 
     if (summary.endingBalance !== undefined) {
-      summaryData.push(["Ending Balance", this.formatCurrency(summary.endingBalance)]);
+      summaryData.push(["Ending Balance", this.formatCurrency(summary.endingBalance, asset)]);
     }
 
     if (summary.totalValue !== undefined) {
-      summaryData.push(["Current Value", this.formatCurrency(summary.totalValue)]);
+      summaryData.push(["Current Value", this.formatCurrency(summary.totalValue, asset)]);
     }
 
     if (summary.totalReturn !== undefined) {
-      summaryData.push(["Total Return", this.formatCurrency(summary.totalReturn)]);
+      summaryData.push(["Total Return", this.formatCurrency(summary.totalReturn, asset)]);
     }
 
     if (summary.returnPercentage !== undefined) {
