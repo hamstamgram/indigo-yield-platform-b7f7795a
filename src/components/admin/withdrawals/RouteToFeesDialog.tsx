@@ -1,17 +1,10 @@
 import { useState } from "react";
 import { Withdrawal } from "@/types/domains";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  Textarea, Label,
+} from "@/components/ui";
 import { Loader2, ArrowRightLeft } from "lucide-react";
 import { useWithdrawalMutations } from "@/hooks/data/useWithdrawalMutations";
 
