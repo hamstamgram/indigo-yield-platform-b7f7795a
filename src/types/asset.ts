@@ -73,6 +73,26 @@ export interface AssetConfig {
  * Static asset configuration registry
  * Single source of truth for asset metadata
  */
+/**
+ * Asset precision mapping (decimal places) - matches database configuration
+ * Used for input validation and formatting
+ */
+export const ASSET_PRECISION: Record<string, number> = {
+  BTC: 8,
+  ETH: 8,
+  SOL: 8,
+  XRP: 6,
+  USDT: 6,
+  USDC: 6,
+  EURC: 6,
+  XAUT: 6,
+};
+
+/**
+ * Static asset configuration registry
+ * Single source of truth for asset metadata
+ * Note: decimals here match ASSET_PRECISION for consistency
+ */
 export const ASSET_CONFIGS: Record<string, AssetConfig> = {
   BTC: {
     symbol: "BTC",
@@ -91,42 +111,42 @@ export const ASSET_CONFIGS: Record<string, AssetConfig> = {
   SOL: {
     symbol: "SOL",
     name: "SOL Yield Fund",
-    decimals: 6,
+    decimals: 8,
     logoUrl: "https://storage.mlcdn.com/account_image/855106/14fmAPi88WAnAwH4XhoObK1J1HwiTSvItLhIRFSQ.png",
     color: "#14F195",
   },
   USDT: {
     symbol: "USDT",
     name: "Stablecoin Fund",
-    decimals: 2,
+    decimals: 6,
     logoUrl: "https://storage.mlcdn.com/account_image/855106/2p3Y0l5lox8EefjCx7U7Qgfkrb9cxW3L8mGpaORi.png",
     color: "#26A17B",
   },
   USDC: {
     symbol: "USDC",
     name: "USD Coin",
-    decimals: 2,
+    decimals: 6,
     logoUrl: "https://storage.mlcdn.com/account_image/855106/770YUbYlWXFXPpolUS1wssuUGIeH7zHpt1mQbDah.png",
     color: "#2775CA",
   },
   EURC: {
     symbol: "EURC",
     name: "EURC Yield Fund",
-    decimals: 2,
+    decimals: 6,
     logoUrl: "https://storage.mlcdn.com/account_image/855106/kwV87oiC7c4dnG6zkl95MnV5yafAxWlFbQgjmaIm.png",
     color: "#0052FF",
   },
   XAUT: {
     symbol: "xAUT",
     name: "Tokenized Gold",
-    decimals: 4,
+    decimals: 6,
     logoUrl: "https://assets.coingecko.com/coins/images/10481/large/Tether_Gold.png",
     color: "#FFD700",
   },
   xAUT: {
     symbol: "xAUT",
     name: "Tokenized Gold",
-    decimals: 4,
+    decimals: 6,
     logoUrl: "https://assets.coingecko.com/coins/images/10481/large/Tether_Gold.png",
     color: "#FFD700",
   },
@@ -184,6 +204,38 @@ export function getAssetName(symbol: string): string {
  */
 export function getAssetDecimals(symbol: string): number {
   return getAssetConfig(symbol).decimals;
+}
+
+/**
+ * Alias for getAssetDecimals - get precision for an asset
+ * @param symbol - Asset symbol
+ * @returns Number of decimal places
+ */
+export function getAssetPrecision(symbol: string): number {
+  const normalized = symbol.toUpperCase();
+  return ASSET_PRECISION[normalized] ?? 8;
+}
+
+/**
+ * Get the step value for input fields based on asset precision
+ * @param symbol - Asset symbol (e.g., "BTC", "USDT")
+ * @returns Step string for HTML input (e.g., "0.00000001" for BTC)
+ */
+export function getAssetStep(symbol: string): string {
+  const precision = getAssetPrecision(symbol);
+  return `0.${"0".repeat(precision - 1)}1`;
+}
+
+/**
+ * Format a number with the correct precision for an asset (raw decimal string)
+ * Use formatAssetDisplay from kpiCalculations for locale-formatted display
+ * @param value - Numeric value to format
+ * @param symbol - Asset symbol
+ * @returns Formatted string with correct decimal places
+ */
+export function formatAssetPrecision(value: number, symbol: string): string {
+  const precision = getAssetPrecision(symbol);
+  return value.toFixed(precision);
 }
 
 /**
