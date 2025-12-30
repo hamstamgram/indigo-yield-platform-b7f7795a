@@ -21,6 +21,7 @@ import {
 import { useToast } from "@/hooks";
 import { depositService } from "@/services";
 import { PlusCircle, Loader2, CalendarIcon } from "lucide-react";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -143,7 +144,10 @@ const AdminDepositForm: React.FC<AdminDepositFormProps> = ({ investors, assets, 
                 <SelectContent>
                   {assets.map((asset) => (
                     <SelectItem key={asset.id} value={asset.id.toString()}>
-                      {(asset.symbol || "").toUpperCase()} - {asset.name}
+                      <div className="flex items-center gap-2">
+                        <CryptoIcon symbol={asset.symbol} className="h-4 w-4" />
+                        <span>{(asset.symbol || "").toUpperCase()} - {asset.name}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>

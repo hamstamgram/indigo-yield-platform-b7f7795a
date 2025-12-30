@@ -8,7 +8,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
   Button, Input, Label, Textarea, Alert, AlertDescription,
 } from "@/components/ui";
-import { AlertTriangle, Loader2, Info } from "lucide-react";
+import { AlertTriangle, Loader2, Info, Ban } from "lucide-react";
 import { toast } from "sonner";
 import { useTransactionMutations } from "@/hooks/data/useTransactionMutations";
 
@@ -23,6 +23,8 @@ interface VoidableTransaction {
   investorName: string;
   txDate: string;
   isSystemGenerated?: boolean;
+  // Flag to indicate if this is a completed/processed withdrawal
+  isProcessedWithdrawal?: boolean;
   // Optional fields for cache invalidation
   investorId?: string;
   fundId?: string | null;
@@ -99,6 +101,20 @@ export function VoidTransactionDialog({
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Processed withdrawal block */}
+          {transaction.isProcessedWithdrawal && (
+            <Alert variant="destructive">
+              <Ban className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Cannot void a processed withdrawal</strong>
+                <p className="text-sm mt-1">
+                  This withdrawal has already been completed and funds have left the platform.
+                  If you need to record a refund, use a manual DEPOSIT transaction instead.
+                </p>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Transaction details */}
           <Alert>
             <AlertDescription className="space-y-1">
@@ -109,7 +125,7 @@ export function VoidTransactionDialog({
             </AlertDescription>
           </Alert>
 
-          {transaction.isSystemGenerated && (
+          {transaction.isSystemGenerated && !transaction.isProcessedWithdrawal && (
             <Alert className="border-amber-500/50 bg-amber-500/10">
               <div className="flex items-start gap-2">
                 <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-amber-600" />
@@ -126,7 +142,7 @@ export function VoidTransactionDialog({
             </Alert>
           )}
 
-          {/* Reason */}
+          {/* Reason - disabled if processed withdrawal */}
           <div className="space-y-2">
             <Label htmlFor="reason">Reason for voiding *</Label>
             <Textarea
@@ -135,6 +151,7 @@ export function VoidTransactionDialog({
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={3}
+              disabled={transaction.isProcessedWithdrawal}
             />
             <p className="text-xs text-muted-foreground">
               Minimum 3 characters required for audit trail
@@ -144,7 +161,7 @@ export function VoidTransactionDialog({
             )}
           </div>
 
-          {/* Confirmation */}
+          {/* Confirmation - disabled if processed withdrawal */}
           <div className="space-y-2">
             <Label htmlFor="confirm">Type VOID to confirm</Label>
             <Input
@@ -152,6 +169,7 @@ export function VoidTransactionDialog({
               placeholder="Type VOID"
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
+              disabled={transaction.isProcessedWithdrawal}
             />
           </div>
         </div>
@@ -163,10 +181,15 @@ export function VoidTransactionDialog({
           <Button
             variant="destructive"
             onClick={handleVoid}
-            disabled={voidMutation.isPending || confirmText !== "VOID" || reason.trim().length < 3}
+            disabled={
+              voidMutation.isPending || 
+              confirmText !== "VOID" || 
+              reason.trim().length < 3 ||
+              transaction.isProcessedWithdrawal
+            }
           >
             {voidMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Void Transaction
+            {transaction.isProcessedWithdrawal ? "Cannot Void" : "Void Transaction"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
-  Badge, Button,
+  Button,
 } from "@/components/ui";
 import { ArrowUpRight, ArrowDownLeft, CreditCard, Plus } from "lucide-react";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import { useRealtimeSubscription } from "@/hooks";
 import { toast } from "sonner";
 import { AddTransactionDialog } from "@/components/admin/AddTransactionDialog";
@@ -151,7 +152,7 @@ export default function InvestorTransactionsTab({ investorId }: InvestorTransact
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{txType}</span>
-                        <Badge variant="outline">{transaction.asset}</Badge>
+                        <CryptoIcon symbol={transaction.asset} className="h-4 w-4" />
                       </div>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span>{new Date(transaction.tx_date).toLocaleString()}</span>
