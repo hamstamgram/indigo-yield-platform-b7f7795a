@@ -5,8 +5,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { investorPortfolioService } from "@/services/investor/investorPortfolioService";
-import type { PortfolioPosition, WithdrawalFormPosition } from "@/services/investor/investorPortfolioService";
+import { investorPortfolioService, type PortfolioPosition, type WithdrawalFormPosition } from "@/services";
 import { supabase } from "@/integrations/supabase/client";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { toast } from "sonner";

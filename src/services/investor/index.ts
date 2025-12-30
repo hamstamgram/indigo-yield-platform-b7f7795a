@@ -51,13 +51,13 @@ export type { TransactionV2, TransactionFilters } from "./transactionsV2Service"
 
 // Investor Portfolio service (for investor-facing pages)
 export { investorPortfolioService } from "./investorPortfolioService";
-export type { PortfolioPosition as InvestorPortfolioPosition, WithdrawalFormPosition } from "./investorPortfolioService";
+export type { PortfolioPosition, WithdrawalFormPosition } from "./investorPortfolioService";
 
 // Investor Portal service types (for investor portal pages)
 export type {
-  Session as InvestorSession,
-  AccessLog as InvestorAccessLog,
-  UserSettings as InvestorUserSettings,
+  Session,
+  AccessLog,
+  UserSettings,
   InvestorProfile,
   MonthlyStatement,
 } from "./investorPortalService";
@@ -75,8 +75,15 @@ export {
   saveUserPreferences,
   getActiveSessions,
   getAccessLogs,
-  // Note: revokeSession is not re-exported to avoid conflict with session-manager
+  revokeSession,
 } from "./investorPortalService";
+
+// Investor data service functions
+export {
+  getInvestorDocuments,
+  downloadDocument,
+  getPendingTransactions,
+} from "./investorDataService";
 
 // Fund view service (investor-focused fund operations)
 export {

@@ -25,7 +25,7 @@ import {
   type UserSettings,
   type InvestorProfile,
   type MonthlyStatement,
-} from "@/services/investor/investorPortalService";
+} from "@/services";
 
 // Re-export types
 export type { Session, AccessLog, UserSettings, InvestorProfile, MonthlyStatement };
