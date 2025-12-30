@@ -4,22 +4,15 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import {
+  voidFundDailyAum,
+  updateFundDailyAum,
+  type VoidAumResponse,
+  type UpdateAumResponse,
+} from "@/lib/supabase/typedRpc";
 
-export interface VoidYieldResult {
-  success: boolean;
-  fund_id: string;
-  aum_date: string;
-  purpose: string;
-  voided_at: string;
-}
-
-export interface UpdateYieldResult {
-  success: boolean;
-  record_id: string;
-  old_aum: number;
-  new_aum: number;
-  updated_at: string;
-}
+export interface VoidYieldResult extends VoidAumResponse {}
+export interface UpdateYieldResult extends UpdateAumResponse {}
 
 export interface YieldDetails {
   id: string;
@@ -57,7 +50,7 @@ export async function voidYieldRecord(
     throw new Error("Not authenticated");
   }
 
-  const { data, error } = await (supabase.rpc as any)("void_fund_daily_aum", {
+  const { data, error } = await voidFundDailyAum({
     p_record_id: recordId,
     p_reason: reason,
     p_admin_id: user.id,
@@ -85,7 +78,7 @@ export async function updateYieldAum(
     throw new Error("Not authenticated");
   }
 
-  const { data, error } = await (supabase.rpc as any)("update_fund_daily_aum", {
+  const { data, error } = await updateFundDailyAum({
     p_record_id: recordId,
     p_new_total_aum: newTotalAum,
     p_reason: reason,

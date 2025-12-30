@@ -22,7 +22,7 @@ interface MobileCardInvestor {
   email: string;
   first_name: string | null;
   last_name: string | null;
-  fee_percentage?: number | null;
+  fee_pct?: number | null; // Stored as percent (0-100)
   portfolio_summary?: {
     [key: string]: {
       balance: number;
@@ -46,12 +46,12 @@ const MobileInvestorCard = ({
 }: MobileInvestorCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [fee, setFee] = useState<string>(investor.fee_percentage?.toString() || "20.0");
+  const [fee, setFee] = useState<string>(investor.fee_pct?.toString() || "20.0");
   const { toast } = useToast();
 
   // Update fee state when investor prop changes
   useEffect(() => {
-    setFee(investor.fee_percentage?.toString() || "20.0");
+    setFee(investor.fee_pct?.toString() || "20.0");
   }, [investor]);
 
   // Create state for each asset balance
@@ -87,11 +87,11 @@ const MobileInvestorCard = ({
         throw new Error("Invalid fee percentage");
       }
 
-      // Update fee percentage in profile
+      // Update fee percentage in profile (stored as percent 0-100)
       const { error: feeError } = await supabase
         .from("profiles")
         .update({
-          fee_percentage: feeValue,
+          fee_pct: feeValue,
           updated_at: new Date().toISOString(),
         })
         .eq("id", investor.id);
@@ -209,8 +209,8 @@ const MobileInvestorCard = ({
               />
             ) : (
             <div>
-                {investor.fee_percentage !== null && investor.fee_percentage !== undefined
-                  ? `${investor.fee_percentage.toFixed(1)}%`
+                {investor.fee_pct !== null && investor.fee_pct !== undefined
+                  ? `${investor.fee_pct.toFixed(1)}%`
                   : "20.0%"}
               </div>
             )}
