@@ -11,16 +11,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Card, CardContent, Button, Badge,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui";
 import {
   ArrowDownToLine,
   CheckCircle,

@@ -16,26 +16,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { withdrawalRequestSchema, type WithdrawalRequestInput } from "@/lib/validation/schemas";
 import { toDecimal, formatCrypto } from "@/utils/financial";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+  Button, Input, Label, Textarea,
+  Alert, AlertDescription,
+  Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui";
 import { Loader2, AlertTriangle, Info } from "lucide-react";
 import { useSubmitWithdrawal } from "@/hooks/data/useInvestorWithdrawals";
 

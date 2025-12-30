@@ -1,15 +1,9 @@
 import { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+  Button, Label, Input,
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui";
 import { useToast } from "@/hooks";
 import { Loader2, FileText, Download, Eye, Send } from "lucide-react";
 import { ReportsApi } from "@/services/api/reportsApi";

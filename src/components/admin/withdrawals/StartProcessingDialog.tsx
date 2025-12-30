@@ -1,17 +1,9 @@
 import { useState, useEffect } from "react";
 import { Withdrawal } from "@/types/domains";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Button, Input, Label, Textarea,
+} from "@/components/ui";
 import { withdrawalService } from "@/services/investor/withdrawalService";
 import { toast } from "sonner";
 import { Loader2, Play } from "lucide-react";

@@ -5,12 +5,13 @@
 
 import { useState } from "react";
 import { Download, Users, TrendingUp, ArrowUpDown, AlertTriangle, CheckCircle2, Scale } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Card, CardContent, CardHeader, CardTitle, CardDescription,
+  Button, Badge,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Tabs, TabsContent, TabsList, TabsTrigger,
+  ScrollArea,
+} from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   CorrectionSummary,

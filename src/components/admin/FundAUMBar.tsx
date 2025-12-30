@@ -5,11 +5,10 @@
  */
 
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton, Button } from "@/components/ui";
 import { useFundAUM } from "@/hooks";
 import { formatAUMCompact } from "@/utils/formatters";
 import { AlertCircle, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export const FundAUMBar: React.FC = () => {
   const { funds, isLoading, isError, refetch } = useFundAUM();
