@@ -35,7 +35,9 @@ const MobileInvestorCard = ({
 
   // Update fee state when investor prop changes
   useEffect(() => {
-    setFee("20.0"); // Default fee since InvestorSummaryV2 doesn't have fee_percentage
+    // Use fee_pct from investor if available
+    const investorFee = (investor as any).fee_pct;
+    setFee(investorFee?.toString() ?? "20.0");
   }, [investor]);
 
   // Create state for each asset balance
@@ -68,10 +70,10 @@ const MobileInvestorCard = ({
         throw new Error("Invalid fee percentage");
       }
 
-      // Update fee percentage using data hook
+      // Update fee percentage using data hook (using fee_pct column)
       await updateInvestorStatus.mutateAsync({
         investorId: investor.id,
-        updates: { fee_percentage: feeValue },
+        updates: { fee_pct: feeValue },
       });
 
       // Convert input values to portfolio entries
@@ -161,7 +163,7 @@ const MobileInvestorCard = ({
                 className="max-w-[80px]"
               />
             ) : (
-              <div>"20.0%"</div>
+              <div>{fee}%</div>
             )}
           </div>
         </div>

@@ -400,3 +400,57 @@ export async function updateFundDailyAum(
   } as any);
   return { data: data as unknown as UpdateAumResponse | null, error };
 }
+
+// ============================================================================
+// Typed RPC Functions - Recompute Position
+// ============================================================================
+
+export interface RecomputePositionArgs {
+  p_investor_id: string;
+  p_fund_id: string;
+}
+
+/**
+ * Recompute a single investor's position from ledger
+ */
+export async function recomputeInvestorPosition(
+  args: RecomputePositionArgs
+): Promise<{ data: null; error: Error | null }> {
+  const { error } = await supabase.rpc("recompute_investor_position", {
+    p_investor_id: args.p_investor_id,
+    p_fund_id: args.p_fund_id,
+  } as any);
+  return { data: null, error };
+}
+
+// ============================================================================
+// Typed RPC Functions - Reconcile Positions
+// ============================================================================
+
+export interface ReconcilePositionsArgs {
+  p_dry_run: boolean;
+}
+
+export interface PositionMismatch {
+  investor_id: string;
+  investor_name: string;
+  fund_id: string;
+  fund_name: string;
+  old_shares: number;
+  new_shares: number;
+  old_value: number;
+  new_value: number;
+  action: string;
+}
+
+/**
+ * Reconcile all positions from ledger (admin only)
+ */
+export async function reconcileAllPositions(
+  args: ReconcilePositionsArgs
+): Promise<{ data: PositionMismatch[] | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("reconcile_all_positions", {
+    p_dry_run: args.p_dry_run,
+  } as any);
+  return { data: data as PositionMismatch[] | null, error };
+}

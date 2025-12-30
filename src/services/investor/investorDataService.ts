@@ -792,12 +792,12 @@ export async function fetchInvestors(): Promise<{
   first_name: string | null;
   last_name: string | null;
   created_at: string;
-  fee_percentage?: number;
+  fee_pct?: number;
   portfolio_summary?: Record<string, { balance: number; usd_value: number }>;
 }[]> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, email, first_name, last_name, created_at, fee_percentage")
+    .select("id, email, first_name, last_name, created_at, fee_pct")
     .eq("is_admin", false);
 
   if (error) throw new Error(`Failed to fetch investors: ${error.message}`);
@@ -808,7 +808,7 @@ export async function fetchInvestors(): Promise<{
     first_name: profile.first_name || null,
     last_name: profile.last_name || null,
     created_at: profile.created_at || new Date().toISOString(),
-    fee_percentage: profile.fee_percentage || 20.0,
+    fee_pct: profile.fee_pct ?? 20.0,
     portfolio_summary: {},
   }));
 }
