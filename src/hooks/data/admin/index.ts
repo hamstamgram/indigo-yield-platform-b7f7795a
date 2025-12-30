@@ -333,7 +333,7 @@ export {
 
 // Re-export types from services
 export type { InvestorStatus, CleanupResult } from "@/services/admin/investorLifecycleService";
-export type { PerformanceUpdateData } from "@/services/admin/investorPerformanceService";
+export type { PerformanceUpdateData as AdminPerformanceUpdateData } from "@/services/admin/investorPerformanceService";
 
 // useIBPayoutMutations (moved from hooks/admin/)
 export {

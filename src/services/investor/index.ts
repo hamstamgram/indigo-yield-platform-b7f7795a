@@ -20,7 +20,7 @@ export {
   expertInvestorService,
 } from "./investorDataService";
 
-// Types
+// Types from investorDataService
 export type {
   InvestorPositionDetail,
   InvestorPositionRow,
@@ -32,6 +32,8 @@ export type {
   ExpertPosition,
   ExpertInvestor,
   InvestorSelectorItem,
+  InvestorDocument,
+  PendingTransaction,
 } from "./investorDataService";
 
 // Deposit service
@@ -50,3 +52,43 @@ export type { TransactionV2, TransactionFilters } from "./transactionsV2Service"
 // Investor Portfolio service (for investor-facing pages)
 export { investorPortfolioService } from "./investorPortfolioService";
 export type { PortfolioPosition as InvestorPortfolioPosition, WithdrawalFormPosition } from "./investorPortfolioService";
+
+// Investor Portal service types (for investor portal pages)
+export type {
+  Session as InvestorSession,
+  AccessLog as InvestorAccessLog,
+  UserSettings as InvestorUserSettings,
+  InvestorProfile,
+  MonthlyStatement,
+} from "./investorPortalService";
+
+// Investor Portal service functions
+export {
+  getInvestorTransactionAssets,
+  getInvestorTransactionsList,
+  getInvestorStatements,
+  getStatementYears,
+  getStatementAssets,
+  getStatementHtmlContent,
+  getInvestorProfile,
+  getUserPreferences,
+  saveUserPreferences,
+  getActiveSessions,
+  getAccessLogs,
+  // Note: revokeSession is not re-exported to avoid conflict with session-manager
+} from "./investorPortalService";
+
+// Fund view service (investor-focused fund operations)
+export {
+  getAllFunds,
+  getFundById,
+  addFundToInvestor,
+  getInvestorPositions,
+  updateInvestorPosition,
+  getAvailableFundsForInvestor,
+  removeFundFromInvestor,
+  getFundPerformanceSummary,
+  getActiveFundsForList,
+  getActiveInvestorPositions,
+} from "./fundViewService";
+export type { InvestorPosition, Fund as InvestorFund } from "./fundViewService";
