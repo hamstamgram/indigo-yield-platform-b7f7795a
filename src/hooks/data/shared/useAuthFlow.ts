@@ -6,7 +6,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks";
-import * as authService from "@/services/auth/authFlowService";
+import * as authService from "@/lib/auth/authService";
+import * as inviteService from "@/lib/auth/inviteService";
 
 const QUERY_KEYS = {
   session: ["auth", "session"] as const,
@@ -76,7 +77,11 @@ export function useRequestPasswordReset() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: authService.requestPasswordReset,
+    mutationFn: async (email: string) => {
+      const result = await authService.resetPasswordForEmail(email);
+      if (!result.success) throw result.error;
+      return result;
+    },
     onSuccess: () => {
       toast({
         title: "Reset link sent",
@@ -129,7 +134,7 @@ export function useVerifyInvestorInvite(inviteCode: string | null) {
     queryKey: QUERY_KEYS.investorInvite(inviteCode || ""),
     queryFn: async () => {
       if (!inviteCode) throw new Error("No invite code provided");
-      return authService.verifyInvestorInvite(inviteCode);
+      return inviteService.verifyInvestorInvite(inviteCode);
     },
     enabled: !!inviteCode,
     retry: false,
@@ -144,7 +149,7 @@ export function useVerifyAdminInvite(inviteCode: string | null) {
     queryKey: QUERY_KEYS.adminInvite(inviteCode || ""),
     queryFn: async () => {
       if (!inviteCode) throw new Error("No invite code provided");
-      return authService.verifyAdminInvite(inviteCode);
+      return inviteService.verifyAdminInvite(inviteCode);
     },
     enabled: !!inviteCode,
     retry: false,
@@ -172,7 +177,7 @@ export function useAcceptInvestorInvite() {
       firstName?: string;
       lastName?: string;
     }) => {
-      return authService.acceptInvestorInvite(inviteCode, email, password, {
+      return inviteService.acceptInvestorInvite(inviteCode, email, password, {
         first_name: firstName,
         last_name: lastName,
       });
@@ -217,7 +222,7 @@ export function useAcceptAdminInvite() {
       firstName?: string;
       lastName?: string;
     }) => {
-      return authService.acceptAdminInvite(inviteCode, email, password, {
+      return inviteService.acceptAdminInvite(inviteCode, email, password, {
         first_name: firstName,
         last_name: lastName,
       });
@@ -271,4 +276,4 @@ export function useSetSessionFromTokens() {
 }
 
 // Re-export types
-export type { InviteDetails, UserMetadata, SignInResult } from "@/services/auth/authFlowService";
+export type { InviteDetails, UserMetadata, SignInResult } from "@/lib/auth/types";

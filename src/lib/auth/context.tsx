@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useRef, useCallback } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { authService } from "@/services/core";
+import * as authService from "./authService";
 
 interface Profile {
   id: string;
@@ -185,15 +185,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const handleSignIn = async (email: string, password: string) => {
     return await authService.signIn({ email, password });
   };
 
-  const signOut = async () => {
+  const handleSignOut = async () => {
     await authService.signOut();
   };
 
-  const signUp = async (email: string, password: string) => {
+  const handleSignUp = async (email: string, password: string) => {
     return await authService.signUp({ email, password });
   };
 
@@ -201,8 +201,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return await authService.resetPasswordForEmail(email);
   };
 
-  const updatePassword = async (password: string) => {
-    return await authService.updatePassword(password);
+  const handleUpdatePassword = async (password: string) => {
+    await authService.updatePassword(password);
+    return { success: true };
   };
 
   const value = {
@@ -211,11 +212,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     profile,
     loading: loading || (user !== null && profileLoading),
     isAdmin: profile?.is_admin ?? false,
-    signIn,
-    signOut,
-    signUp,
+    signIn: handleSignIn,
+    signOut: handleSignOut,
+    signUp: handleSignUp,
     resetPassword,
-    updatePassword,
+    updatePassword: handleUpdatePassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
