@@ -1,5 +1,8 @@
 /**
  * Utils - Barrel export for all utility functions
+ * 
+ * Note: GDPR compliance moved to src/lib/gdpr/
+ * Note: Password reset moved to src/lib/auth/
  */
 
 // Asset utilities
@@ -29,9 +32,3 @@ export * from "./statementStorage";
 // Dynamic imports & lazy loading
 export * from "./dynamicImport";
 // Note: lazyWithRetry.tsx re-exports from dynamicImport, skip to avoid conflicts
-
-// GDPR compliance
-export * from "./gdpr-compliance";
-
-// Email utilities
-export * from "./sendPasswordResetEmail";
