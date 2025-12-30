@@ -11,49 +11,105 @@
  * import { adminServiceV2, depositService } from '@/services';
  */
 
-// Investor services (primary for investor data)
-export * from "./investor";
-
-// Admin services (excluding expert investor stuff which is now in investor)
-export { adminServiceV2 } from "./admin";
-export type { InvestorSummaryV2, DashboardStatsV2 } from "./admin";
-export { adminTransactionService } from "./admin";
-export type { CreateTransactionParams } from "./admin";
-export * from "./admin/fundService";
-export * from "./admin/yieldDistributionService";
-export * from "./admin/recordedYieldsService";
-export * from "./admin/bulkOperationsService";
-export { 
-  deleteInvestorUser, 
-  forceDeleteInvestorUser,
-  createOrFindInvestorUser 
-} from "./admin/userService";
-
-// Operations services (selective to avoid conflicts)
-export { operationsService } from "./operations";
-export type { OperationsMetrics, PendingBreakdown } from "./operations";
-
-// Shared services
-export * from "./shared";
-
-// Core services
-export * from "./core";
-
-// API services (keep existing structure)
-export * from "./api/reportsApi";
-export * from "./api/statementsApi";
-
-// Fund view service (investor-focused operations, moved to investor/)
-export { 
-  getAllFunds, 
-  getFundById, 
-  addFundToInvestor, 
-  getInvestorPositions, 
+// ============================================================================
+// INVESTOR SERVICES
+// ============================================================================
+export {
+  // Data service
+  investorDataService,
+  InvestorDataService,
+  fetchInvestorPositions,
+  fetchInvestorsForSelector,
+  getAllInvestorsExpertSummary,
+  getInvestorExpertView,
+  updatePositionValue,
+  checkAdminStatus,
+  fetchInvestors,
+  fetchPendingInvites,
+  expertInvestorService,
+  // Deposit/Withdrawal/Investment
+  depositService,
+  DepositService,
+  withdrawalService,
+  investmentService,
+  // Transactions
+  transactionsV2Service,
+  // Portfolio
+  investorPortfolioService,
+  // Portal functions
+  getInvestorTransactionAssets,
+  getInvestorTransactionsList,
+  getInvestorStatements,
+  getStatementYears,
+  getStatementAssets,
+  getStatementHtmlContent,
+  getInvestorProfile,
+  getUserPreferences,
+  saveUserPreferences,
+  getActiveSessions,
+  getAccessLogs,
+  // Fund view
+  getAllFunds,
+  getFundById,
+  addFundToInvestor,
+  getInvestorPositions,
   updateInvestorPosition,
   getAvailableFundsForInvestor,
   removeFundFromInvestor,
   getFundPerformanceSummary,
   getActiveFundsForList,
-  getActiveInvestorPositions
-} from "./investor/fundViewService";
-export type { InvestorPosition } from "./investor/fundViewService";
+  getActiveInvestorPositions,
+} from "./investor";
+
+export type {
+  InvestorPositionDetail,
+  InvestorPositionRow,
+  InvestorSummary,
+  PortfolioPerformance,
+  InvestorPortfolio,
+  YieldHistoryEntry,
+  WithdrawalRequest,
+  ExpertPosition,
+  ExpertInvestor,
+  InvestorSelectorItem,
+  InvestorDocument,
+  PendingTransaction,
+  TransactionV2,
+  TransactionFilters,
+  InvestorPortfolioPosition,
+  WithdrawalFormPosition,
+  InvestorSession,
+  InvestorAccessLog,
+  InvestorUserSettings,
+  InvestorProfile,
+  MonthlyStatement,
+  InvestorPosition,
+  InvestorFund,
+} from "./investor";
+
+// ============================================================================
+// ADMIN SERVICES
+// ============================================================================
+export * from "./admin";
+
+// ============================================================================
+// OPERATIONS SERVICES
+// ============================================================================
+export { operationsService } from "./operations";
+export type { OperationsMetrics, PendingBreakdown } from "./operations";
+
+// ============================================================================
+// SHARED SERVICES
+// ============================================================================
+export * from "./shared";
+
+// ============================================================================
+// CORE SERVICES
+// ============================================================================
+export * from "./core";
+
+// ============================================================================
+// API SERVICES
+// ============================================================================
+export * from "./api/reportsApi";
+export * from "./api/statementsApi";
