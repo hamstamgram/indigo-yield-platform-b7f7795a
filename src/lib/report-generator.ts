@@ -42,9 +42,10 @@ export async function generateReportForInvestor(
     .from("profiles")
     .select("id, first_name, last_name, email")
     .eq("id", investorId)
-    .single();
+    .maybeSingle();
 
-  if (profileError || !profile) throw profileError;
+  if (profileError) throw profileError;
+  if (!profile) throw new Error(`Investor profile not found: ${investorId}`);
 
   const investorName = `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
 

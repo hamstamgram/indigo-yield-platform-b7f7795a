@@ -353,9 +353,13 @@ export async function fetchLatestPerformance(
     .eq("fund_name", assetCode)
     .order("period(period_end_date)", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
-  if (perfError || !latestPerformance) return null;
+  if (perfError) {
+    console.error("Error fetching latest performance:", perfError);
+    return null;
+  }
+  if (!latestPerformance) return null;
 
   return {
     MTD: {

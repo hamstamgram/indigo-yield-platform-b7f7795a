@@ -198,7 +198,7 @@ export const dataIntegrityService = {
             .from("profiles")
             .select("id")
             .eq("id", pos.investor_id)
-            .single();
+            .maybeSingle();
 
           if (!profile) {
             issues.push({
