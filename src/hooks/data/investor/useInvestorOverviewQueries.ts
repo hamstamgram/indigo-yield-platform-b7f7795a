@@ -72,9 +72,9 @@ export function useLastStatementPeriod() {
         .eq("purpose", "reporting")
         .order("created_at", { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (error) return null;
+      if (error || !data) return null;
       return (data?.period as any)?.period_name || null;
     },
   });
