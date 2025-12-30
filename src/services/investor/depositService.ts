@@ -16,9 +16,9 @@ export class DepositService {
       `
       )
       .eq("type", "DEPOSIT")
-      .eq("is_voided", false) // Exclude voided transactions for consistency
+      .eq("is_voided", false)
       .order("tx_date", { ascending: false })
-      .order("id", { ascending: false }); // Deterministic tie-breaker for same-day ordering
+      .order("id", { ascending: false });
 
     if (filters?.asset_symbol) {
       query = query.eq("asset", filters.asset_symbol);
@@ -53,8 +53,8 @@ export class DepositService {
 
     return {
       id: tx.id,
-      user_id: tx.investor_id, // investor_id is now profile.id
-      investor_id: tx.investor_id, // keep for backward compatibility if needed
+      user_id: tx.investor_id,
+      investor_id: tx.investor_id,
       amount: tx.amount,
       asset_symbol: tx.asset,
       status: "completed",
@@ -87,9 +87,12 @@ export class DepositService {
     return this.mapTransactionToDeposit(tx, (tx as any).profile);
   }
 
+  /**
+   * Create deposit using the canonical adjust_investor_position RPC
+   * This ensures atomic transaction + position update with invariant checks
+   */
   async createDeposit(formData: DepositFormData): Promise<Deposit> {
-    // Resolve investor_id (which is now profile_id) from user_id
-    const profileId = formData.user_id; // user_id is already the profile_id
+    const profileId = formData.user_id;
 
     // Check if profile exists
     const { data: profile } = await supabase
@@ -115,71 +118,37 @@ export class DepositService {
       throw new Error(`Fund not found for asset symbol ${assetSymbol}`);
     }
 
-    // Fetch existing position for balance_before
-    const { data: existingPosition } = await supabase
-      .from("investor_positions")
-      .select("shares, cost_basis, current_value")
-      .eq("investor_id", profileId) // Use profileId
-      .eq("fund_id", fund.id)
-      .maybeSingle();
-
     const amount = Number(formData.amount);
-    const previousShares = Number(existingPosition?.shares || 0);
-    const previousCostBasis = Number(existingPosition?.cost_basis || 0);
-    const previousCurrentValue = Number(existingPosition?.current_value || 0);
+    const txDate = formData.tx_date || new Date().toISOString().split("T")[0];
+    
+    // Generate unique reference_id for idempotency
+    const referenceId = `deposit:${fund.id}:${profileId}:${txDate}:${crypto.randomUUID()}`;
 
-    // Upsert investor_positions (composite key investor_id + fund_id)
-    if (existingPosition) {
-      const { error: updateError } = await supabase
-        .from("investor_positions")
-        .update({
-          shares: previousShares + amount,
-          cost_basis: previousCostBasis + amount,
-          current_value: previousCurrentValue + amount,
-          updated_at: new Date().toISOString(),
-          fund_class: fund.fund_class || fund.asset,
-        })
-        .eq("investor_id", profileId) // Use profileId
-        .eq("fund_id", fund.id);
+    // Use canonical adjust_investor_position RPC for atomic transaction + position update
+    const rpcCall = (supabase.rpc as any).bind(supabase);
+    const { data, error } = await rpcCall("adjust_investor_position", {
+      p_investor_id: profileId,
+      p_fund_id: fund.id,
+      p_delta: amount,
+      p_note: `DEPOSIT of ${amount} ${assetSymbol}`,
+      p_admin_id: null,
+      p_tx_type: "DEPOSIT",
+      p_tx_date: txDate,
+      p_reference_id: referenceId,
+    });
 
-      if (updateError) throw updateError;
-    } else {
-      const { error: insertError } = await supabase.from("investor_positions").insert([
-        {
-          investor_id: profileId, // Use profileId
-          fund_id: fund.id,
-          shares: amount,
-          cost_basis: amount,
-          current_value: amount,
-          fund_class: fund.fund_class || fund.asset,
-        },
-      ]);
-      if (insertError) throw insertError;
+    if (error) {
+      console.error("adjust_investor_position error:", error);
+      throw new Error(error.message || "Failed to create deposit");
     }
 
-    const txDate = formData.tx_date || new Date().toISOString().split("T")[0];
+    // Get the created transaction ID from the RPC result
+    const result = data?.[0];
+    if (!result?.out_success) {
+      throw new Error(result?.out_message || "Failed to create deposit");
+    }
 
-    // Record transaction
-    const { data, error } = await supabase
-      .from("transactions_v2")
-      .insert({
-        investor_id: profileId, // Use profileId
-        fund_id: fund.id,
-        type: "DEPOSIT",
-        asset: fund.asset || assetSymbol,
-        fund_class: fund.fund_class || fund.asset,
-        amount,
-        tx_hash: formData.transaction_hash || null,
-        balance_before: previousShares,
-        balance_after: previousShares + amount,
-        tx_date: txDate,
-        value_date: txDate,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return this.mapTransactionToDeposit(data);
+    return this.getDepositById(result.out_transaction_id);
   }
 
   async verifyDeposit(id: string): Promise<Deposit> {
@@ -214,14 +183,12 @@ export class DepositService {
     total_amount: number;
     by_asset: Record<string, { count: number; amount: number }>;
   }> {
-    // Use same query logic as getDeposits for consistency
     let query = supabase
       .from("transactions_v2")
       .select("asset, amount, is_voided")
       .eq("type", "DEPOSIT")
-      .eq("is_voided", false); // Exclude voided transactions
+      .eq("is_voided", false);
 
-    // Apply same filters as getDeposits for consistency
     if (filters?.asset_symbol) {
       query = query.eq("asset", filters.asset_symbol);
     }
