@@ -117,14 +117,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .maybeSingle();
 
       // Check admin role from user_roles table (SECURITY: Server-side role check)
-      const { data: adminRole } = await supabase
+      const { data: adminRole, error: roleError } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", userId)
         .in("role", ["admin", "super_admin"])
         .maybeSingle();
 
+      console.log("[AuthContext] Role check result:", { userId, adminRole, roleError });
       const isAdmin = !!adminRole;
+      console.log("[AuthContext] isAdmin:", isAdmin);
 
       // Try to get TOTP status
       let totpData: { enabled?: boolean; verified_at?: string | null } | null = null;
