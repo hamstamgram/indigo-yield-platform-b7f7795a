@@ -43,6 +43,7 @@ async function fetchTransactions(filters: TransactionFilters): Promise<Transacti
       created_by,
       funds:fund_id (id, name, code)
     `)
+    .eq("is_voided", false)
     .order("tx_date", { ascending: false });
 
   if (filters.investorId) {
