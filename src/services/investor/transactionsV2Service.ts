@@ -36,6 +36,7 @@ class TransactionsV2Service {
       .from("transactions_v2")
       .select("*")
       .eq("investor_id", investorId)
+      .eq("is_voided", false)
       .order("tx_date", { ascending: false })
       .order("id", { ascending: false });
 
@@ -111,7 +112,8 @@ class TransactionsV2Service {
     const { data, error } = await supabase
       .from("transactions_v2")
       .select("type, amount")
-      .eq("investor_id", investorId);
+      .eq("investor_id", investorId)
+      .eq("is_voided", false);
 
     if (error) throw error;
 
