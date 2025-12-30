@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/auth/context";
-import { PageLoadingSpinner } from "@/components/ui/loading-spinner";
+import { PageLoadingSpinner } from "@/components/ui";
 
 interface AdminRouteProps {
   children: React.ReactNode;

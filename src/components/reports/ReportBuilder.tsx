@@ -6,17 +6,13 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { FileText, Download, Calendar, Settings, Loader2, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+  Button,
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Label,
+  Checkbox,
+} from "@/components/ui";
 import { useToast } from "@/hooks";
 import { ReportsApi } from "@/services/api/reportsApi";
 import {

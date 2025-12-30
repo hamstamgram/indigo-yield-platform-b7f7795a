@@ -7,10 +7,12 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import {
+  Button,
+  Badge,
+  Card, CardContent, CardHeader, CardTitle,
+  Separator,
+} from "@/components/ui";
 import { 
   ExternalLink, 
   Plus, 

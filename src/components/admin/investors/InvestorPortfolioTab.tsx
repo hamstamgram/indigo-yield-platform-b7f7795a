@@ -4,7 +4,7 @@
  */
 
 import { useState } from "react";
-import { Separator } from "@/components/ui/separator";
+import { Separator } from "@/components/ui";
 import InvestorPositionsTab from "./InvestorPositionsTab";
 import { InvestorYieldManager } from "./InvestorYieldManager";
 
