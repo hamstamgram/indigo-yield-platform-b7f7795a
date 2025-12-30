@@ -24,22 +24,24 @@ const DashboardLayout = () => {
   const { user, loading: authLoading, isAdmin: userIsAdmin, profile } = useAuth();
 
   useEffect(() => {
-    // Wait for both auth and profile to be loaded
-    if (!authLoading && profile !== null) {
-      if (!user) {
-        navigate("/login", { replace: true });
-        return;
-      }
-
-      setIsAdmin(userIsAdmin);
-      setIsLoading(false);
-
-      // Simple redirect logic - only redirect admin from /dashboard to /admin
-      if (currentPath === "/dashboard" && userIsAdmin) {
-        navigate("/admin", { replace: true });
-      }
+    // Wait for auth loading to complete
+    if (authLoading) return;
+    
+    // If no user, redirect to login
+    if (!user) {
+      navigate("/login", { replace: true });
+      return;
     }
-  }, [user, authLoading, userIsAdmin, profile, navigate, currentPath, isAdminRoute]);
+
+    // Auth is loaded, user exists - proceed
+    setIsAdmin(userIsAdmin);
+    setIsLoading(false);
+
+    // Redirect admin from /dashboard to /admin
+    if (currentPath === "/dashboard" && userIsAdmin) {
+      navigate("/admin", { replace: true });
+    }
+  }, [user, authLoading, userIsAdmin, navigate, currentPath]);
 
   // Set sidebar open state based on screen size
   useEffect(() => {
