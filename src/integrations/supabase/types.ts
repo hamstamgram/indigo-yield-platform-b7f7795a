@@ -6672,31 +6672,19 @@ export type Database = {
           out_transaction_id: string
         }[]
       }
-      admin_create_transaction:
-        | {
-            Args: {
-              p_amount: number
-              p_fund_id: string
-              p_investor_id: string
-              p_notes?: string
-              p_transaction_type: string
-              p_tx_date?: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_admin_id?: string
-              p_amount: number
-              p_fund_id: string
-              p_investor_id: string
-              p_notes?: string
-              p_reference_id?: string
-              p_tx_date?: string
-              p_type: string
-            }
-            Returns: string
-          }
+      admin_create_transaction: {
+        Args: {
+          p_admin_id?: string
+          p_amount: number
+          p_fund_id: string
+          p_investor_id: string
+          p_notes?: string
+          p_reference_id?: string
+          p_tx_date?: string
+          p_type: string
+        }
+        Returns: string
+      }
       apply_daily_yield_to_fund: {
         Args: {
           p_admin_id: string
@@ -6815,19 +6803,14 @@ export type Database = {
         }
         Returns: Json
       }
-      complete_withdrawal:
-        | {
-            Args: {
-              p_admin_notes?: string
-              p_request_id: string
-              p_transaction_hash?: string
-            }
-            Returns: boolean
-          }
-        | {
-            Args: { p_request_id: string; p_tx_hash?: string }
-            Returns: boolean
-          }
+      complete_withdrawal: {
+        Args: {
+          p_admin_notes?: string
+          p_request_id: string
+          p_transaction_hash?: string
+        }
+        Returns: boolean
+      }
       compute_correction_input_hash: {
         Args: {
           p_fund_id: string
@@ -7064,44 +7047,19 @@ export type Database = {
           snapshot_date: string
         }[]
       }
-      get_position_reconciliation:
-        | {
-            Args: { p_as_of_date?: string }
-            Returns: {
-              out_discrepancy: number
-              out_fund_code: string
-              out_fund_id: string
-              out_investor_id: string
-              out_investor_name: string
-              out_last_tx_date: string
-              out_ledger_balance: number
-              out_position_value: number
-            }[]
-          }
-        | {
-            Args: { p_as_of_date?: string; p_fund_id?: string }
-            Returns: {
-              out_difference: number
-              out_fund_id: string
-              out_fund_name: string
-              out_investor_id: string
-              out_investor_name: string
-              out_is_matched: boolean
-              out_ledger_balance: number
-              out_position_balance: number
-            }[]
-          }
-        | {
-            Args: { p_investor_id?: string }
-            Returns: {
-              discrepancy: number
-              fund_id: string
-              investor_id: string
-              position_balance: number
-              status: string
-              transaction_sum: number
-            }[]
-          }
+      get_position_reconciliation: {
+        Args: { p_as_of_date?: string; p_fund_id?: string }
+        Returns: {
+          out_difference: number
+          out_fund_id: string
+          out_fund_name: string
+          out_investor_id: string
+          out_investor_name: string
+          out_is_matched: boolean
+          out_ledger_balance: number
+          out_position_balance: number
+        }[]
+      }
       get_profile_by_id: {
         Args: { profile_id: string }
         Returns: {
@@ -7123,28 +7081,16 @@ export type Database = {
           total_reports: number
         }[]
       }
-      get_reporting_eligible_investors:
-        | {
-            Args: { p_as_of_date?: string; p_fund_id?: string }
-            Returns: {
-              current_value: number
-              email: string
-              fund_id: string
-              fund_name: string
-              investor_id: string
-              investor_name: string
-            }[]
-          }
-        | {
-            Args: { p_period_id: string }
-            Returns: {
-              eligibility_reason: string
-              email: string
-              investor_id: string
-              investor_name: string
-              is_eligible: boolean
-            }[]
-          }
+      get_reporting_eligible_investors: {
+        Args: { p_period_id: string }
+        Returns: {
+          eligibility_reason: string
+          email: string
+          investor_id: string
+          investor_name: string
+          is_eligible: boolean
+        }[]
+      }
       get_statement_period_summary: {
         Args: { p_period_id: string }
         Returns: {
