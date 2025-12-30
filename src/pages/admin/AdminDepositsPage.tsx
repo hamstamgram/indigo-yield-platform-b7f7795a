@@ -2,9 +2,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui";
 import { Plus } from "lucide-react";
 import { DepositStats, DepositsTable, CreateDepositDialog } from "@/components/admin";
+import type { DepositFilters } from "@/types/domains";
 
 export default function AdminDepositsPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  
+  // Shared filter state - lifted to parent for consistency between stats and table
+  const [filters, setFilters] = useState<DepositFilters>({});
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -19,9 +23,11 @@ export default function AdminDepositsPage() {
         </Button>
       </div>
 
-      <DepositStats />
+      {/* Stats now receives same filters as table */}
+      <DepositStats filters={filters} />
 
-      <DepositsTable />
+      {/* Table with filter controls - callbacks update shared state */}
+      <DepositsTable filters={filters} onFiltersChange={setFilters} />
 
       <CreateDepositDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
     </div>

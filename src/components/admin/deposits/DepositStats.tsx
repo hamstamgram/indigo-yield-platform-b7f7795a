@@ -1,9 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { Wallet, Clock, CheckCircle, XCircle } from "lucide-react";
 import { useDepositStats } from "@/hooks/data/admin";
+import type { DepositFilters } from "@/types/domains";
 
-export function DepositStats() {
-  const { data: stats, isLoading } = useDepositStats();
+interface DepositStatsProps {
+  filters?: DepositFilters;
+}
+
+export function DepositStats({ filters }: DepositStatsProps) {
+  // Pass filters to stats hook for consistency with table
+  const { data: stats, isLoading } = useDepositStats(filters);
 
   if (isLoading) {
     return (

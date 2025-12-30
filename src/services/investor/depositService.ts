@@ -16,6 +16,7 @@ export class DepositService {
       `
       )
       .eq("type", "DEPOSIT")
+      .eq("is_voided", false) // Exclude voided transactions for consistency
       .order("tx_date", { ascending: false })
       .order("id", { ascending: false }); // Deterministic tie-breaker for same-day ordering
 
@@ -202,7 +203,7 @@ export class DepositService {
     return this.mapTransactionToDeposit(data);
   }
 
-  async getDepositStats(): Promise<{
+  async getDepositStats(filters?: DepositFilters): Promise<{
     total: number;
     pending: number;
     verified: number;
@@ -210,10 +211,31 @@ export class DepositService {
     total_amount: number;
     by_asset: Record<string, { count: number; amount: number }>;
   }> {
-    const { data, error } = await supabase
+    // Use same query logic as getDeposits for consistency
+    let query = supabase
       .from("transactions_v2")
-      .select("asset, amount")
-      .eq("type", "DEPOSIT");
+      .select("asset, amount, is_voided")
+      .eq("type", "DEPOSIT")
+      .eq("is_voided", false); // Exclude voided transactions
+
+    // Apply same filters as getDeposits for consistency
+    if (filters?.asset_symbol) {
+      query = query.eq("asset", filters.asset_symbol);
+    }
+
+    if (filters?.search) {
+      query = query.or(`tx_hash.ilike.%${filters.search}%,asset.ilike.%${filters.search}%`);
+    }
+
+    if (filters?.start_date) {
+      query = query.gte("tx_date", filters.start_date);
+    }
+
+    if (filters?.end_date) {
+      query = query.lte("tx_date", filters.end_date);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 

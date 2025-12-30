@@ -23,12 +23,13 @@ export interface DepositFilters {
 }
 
 /**
- * Hook to fetch deposit statistics
+ * Hook to fetch deposit statistics with optional filters
+ * Accepts same filters as useDeposits for consistency
  */
-export function useDepositStats() {
+export function useDepositStats(filters?: DepositFilters) {
   return useQuery<DepositStats>({
-    queryKey: QUERY_KEYS.depositStats,
-    queryFn: () => depositService.getDepositStats(),
+    queryKey: [...QUERY_KEYS.depositStats, filters],
+    queryFn: () => depositService.getDepositStats(filters),
   });
 }
 

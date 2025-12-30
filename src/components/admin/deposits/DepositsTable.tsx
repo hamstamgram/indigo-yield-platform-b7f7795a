@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
   Input, Button, Badge,
@@ -11,17 +11,37 @@ import { ApproveDepositDialog } from "./ApproveDepositDialog";
 import { RejectDepositDialog } from "./RejectDepositDialog";
 import { EditTransactionDialog } from "@/components/admin/transactions/EditTransactionDialog";
 import { VoidTransactionDialog } from "@/components/admin/transactions/VoidTransactionDialog";
-import type { Deposit, DepositStatus } from "@/types/domains";
+import type { Deposit, DepositStatus, DepositFilters } from "@/types/domains";
 import { format } from "date-fns";
+import { useState } from "react";
 
-export function DepositsTable() {
-  const [search, setSearch] = useState("");
+interface DepositsTableProps {
+  filters?: DepositFilters;
+  onFiltersChange?: (filters: DepositFilters) => void;
+}
+
+export function DepositsTable({ filters, onFiltersChange }: DepositsTableProps) {
+  // Local UI state for inputs (debounced before propagating)
+  const [searchInput, setSearchInput] = useState(filters?.search || "");
   const [statusFilter, setStatusFilter] = useState<DepositStatus | "all">("all");
   const [selectedDeposit, setSelectedDeposit] = useState<Deposit | null>(null);
   const [action, setAction] = useState<"approve" | "reject" | "edit" | "void" | null>(null);
 
+  // Sync filters to parent when they change
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      onFiltersChange?.({
+        ...filters,
+        search: searchInput || undefined,
+        status: statusFilter === "all" ? undefined : statusFilter,
+      });
+    }, 300); // Debounce search input
+    
+    return () => clearTimeout(handler);
+  }, [searchInput, statusFilter]);
+
   const { data: deposits, isLoading, refetch } = useDeposits({
-    search,
+    search: searchInput || undefined,
     status: statusFilter === "all" ? undefined : statusFilter,
   });
 
@@ -73,8 +93,8 @@ export function DepositsTable() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search by transaction hash or asset..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               className="pl-9"
             />
           </div>
