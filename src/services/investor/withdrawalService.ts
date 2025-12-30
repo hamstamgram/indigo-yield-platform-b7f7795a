@@ -46,7 +46,8 @@ export const withdrawalService = {
       .range(from, to);
 
     if (filters?.status && filters.status !== "all") {
-      query = query.eq("status", filters.status);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      query = query.eq("status", filters.status as any);
     }
 
     if (filters?.fund_id) {
@@ -191,7 +192,8 @@ export const withdrawalService = {
 
     // Apply same filters as getWithdrawals for consistency
     if (filters?.status && filters.status !== "all") {
-      query = query.eq("status", filters.status);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      query = query.eq("status", filters.status as any);
     }
 
     if (filters?.fund_id) {

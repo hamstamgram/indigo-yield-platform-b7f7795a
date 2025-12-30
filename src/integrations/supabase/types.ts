@@ -756,6 +756,7 @@ export type Database = {
           period_start: string
           purpose: Database["public"]["Enums"]["aum_purpose"]
           voided_at: string | null
+          voided_by: string | null
         }
         Insert: {
           base_net_income: number
@@ -775,6 +776,7 @@ export type Database = {
           period_start: string
           purpose: Database["public"]["Enums"]["aum_purpose"]
           voided_at?: string | null
+          voided_by?: string | null
         }
         Update: {
           base_net_income?: number
@@ -794,6 +796,7 @@ export type Database = {
           period_start?: string
           purpose?: Database["public"]["Enums"]["aum_purpose"]
           voided_at?: string | null
+          voided_by?: string | null
         }
         Relationships: [
           {
@@ -1878,6 +1881,7 @@ export type Database = {
           source_investor_id: string
           source_net_income: number
           voided_at: string | null
+          voided_by: string | null
         }
         Insert: {
           created_at?: string | null
@@ -1902,6 +1906,7 @@ export type Database = {
           source_investor_id: string
           source_net_income: number
           voided_at?: string | null
+          voided_by?: string | null
         }
         Update: {
           created_at?: string | null
@@ -1926,6 +1931,7 @@ export type Database = {
           source_investor_id?: string
           source_net_income?: number
           voided_at?: string | null
+          voided_by?: string | null
         }
         Relationships: [
           {
