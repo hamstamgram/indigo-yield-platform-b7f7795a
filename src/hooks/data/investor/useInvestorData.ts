@@ -114,7 +114,7 @@ export function useInvestorQuickView(investorId: string) {
         .from("profiles")
         .select("ib_parent_id")
         .eq("id", investorId)
-        .single();
+        .maybeSingle();
 
       // Load fee schedule status
       const { count: feeCount } = await supabase
@@ -176,6 +176,7 @@ export function useInvestorRecentActivity(investorId: string, limit = 5) {
         .from("transactions_v2")
         .select("id, amount, tx_date, type, fund_id")
         .eq("investor_id", investorId)
+        .eq("is_voided", false) // Exclude voided transactions
         .order("tx_date", { ascending: false })
         .limit(limit);
 

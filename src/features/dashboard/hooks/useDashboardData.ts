@@ -63,6 +63,7 @@ export function useDashboardData() {
           .from("transactions_v2")
           .select("*")
           .eq("investor_id", investorId)
+          .eq("is_voided", false) // Exclude voided transactions
           .order("tx_date", { ascending: false })
           .order("id", { ascending: false }) // Deterministic tie-breaker for same-day ordering
           .limit(5);

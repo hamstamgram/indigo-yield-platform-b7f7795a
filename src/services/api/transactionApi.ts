@@ -31,7 +31,8 @@ export async function fetchTransactions(filter: TransactionFilter = {}): Promise
   count: number;
 }> {
   try {
-    let query = supabase.from("transactions_v2").select("*", { count: "exact" });
+    let query = supabase.from("transactions_v2").select("*", { count: "exact" })
+      .eq("is_voided", false); // Always exclude voided transactions
 
     // Apply filters
 
@@ -120,6 +121,7 @@ export async function fetchTransactionSummary(userId: string): Promise<Transacti
       .from("transactions_v2")
       .select("*")
       .eq("investor_id", investorId)
+      .eq("is_voided", false) // Exclude voided transactions
       .order("tx_date", { ascending: false })
       .order("id", { ascending: false }); // Deterministic tie-breaker for same-day ordering
 

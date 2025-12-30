@@ -117,7 +117,8 @@ export async function getAUMHistory(): Promise<AUMHistoryPoint[]> {
 export async function getTransactionFlowMetrics(): Promise<FlowMetrics> {
   const { data: transactions, error } = await supabase
     .from("transactions_v2")
-    .select("amount, type, tx_date");
+    .select("amount, type, tx_date")
+    .eq("is_voided", false); // Exclude voided transactions
 
   if (error) throw error;
 

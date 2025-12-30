@@ -74,7 +74,7 @@ export const supportService = {
           .from("profiles")
           .select("email, first_name, last_name")
           .eq("id", ticket.user_id)
-          .single();
+          .maybeSingle();
 
         // Extract description from messages_jsonb
         const messages = Array.isArray(ticket.messages_jsonb) ? ticket.messages_jsonb : [];

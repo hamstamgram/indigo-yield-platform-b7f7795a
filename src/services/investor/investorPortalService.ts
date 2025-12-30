@@ -63,7 +63,8 @@ export async function getInvestorTransactionAssets(userId: string): Promise<stri
     .from("transactions_v2")
     .select("asset")
     .eq("investor_id", userId)
-    .eq("visibility_scope", "investor_visible");
+    .eq("visibility_scope", "investor_visible")
+    .eq("is_voided", false);
 
   const uniqueAssets = new Set<string>();
   data?.forEach((d) => {
@@ -82,7 +83,8 @@ export async function getInvestorTransactionsList(
     .from("transactions_v2")
     .select("*")
     .eq("investor_id", userId)
-    .eq("visibility_scope", "investor_visible");
+    .eq("visibility_scope", "investor_visible")
+    .eq("is_voided", false);
 
   if (searchTerm) {
     query = query.or(`asset.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%`);
