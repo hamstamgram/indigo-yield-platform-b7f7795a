@@ -3,7 +3,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { adminTransactionHistoryService } from "@/services/admin/adminTransactionHistoryService";
+import { adminTransactionHistoryService } from "@/services";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import type {
   AdminTransactionFilters,

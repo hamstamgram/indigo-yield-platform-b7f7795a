@@ -5,9 +5,13 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { profileService, statementsService, documentService } from "@/services/shared";
-import { fetchActiveInvestorsForStatements } from "@/services/admin/reportQueryService";
-import { sendStatementEmail } from "@/services/admin/statementAdminService";
+import {
+  profileService,
+  statementsService,
+  documentService,
+  fetchActiveInvestorsForStatements,
+  sendStatementEmail,
+} from "@/services";
 import { generatePDF } from "@/lib/pdf/statementGenerator";
 import { invalidateAfterStatementOp } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";

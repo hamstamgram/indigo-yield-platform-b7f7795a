@@ -9,8 +9,8 @@ import {
   getRecentAuditLogs,
   setupOperationsRealtimeChannel,
   removeOperationsChannel,
-  type AuditLogEntry,
-} from "@/services/admin/operationsHubService";
+  type OperationsAuditLogEntry as AuditLogEntry,
+} from "@/services";
 
 /**
  * Hook to fetch recent audit logs

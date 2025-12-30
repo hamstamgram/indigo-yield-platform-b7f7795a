@@ -11,7 +11,7 @@ import {
   type EmailStats,
   type EmailDelivery,
   type EmailFilters,
-} from "@/services/admin/emailTrackingService";
+} from "@/services";
 
 /**
  * Hook to fetch email statistics

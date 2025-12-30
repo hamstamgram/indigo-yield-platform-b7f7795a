@@ -5,7 +5,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { adminInviteService, AdminInvite } from "@/services/admin/adminInviteService";
+import { adminInviteService, type AdminInvite } from "@/services";
 import { invalidateAfterAdminInviteOp } from "@/utils/cacheInvalidation";
 
 export type { AdminInvite };

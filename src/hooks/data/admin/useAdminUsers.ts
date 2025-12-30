@@ -10,7 +10,7 @@ import {
   adminUsersService,
   type AdminUserProfile,
   type AdminInviteParams,
-} from "@/services/admin/adminUsersService";
+} from "@/services";
 
 /**
  * Hook to fetch all users for admin management

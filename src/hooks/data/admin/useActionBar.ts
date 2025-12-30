@@ -5,8 +5,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { actionBarService } from "@/services";
-import type { PendingCounts } from "@/services/admin/actionBarService";
+import { actionBarService, type PendingCounts } from "@/services";
 
 /**
  * Hook to fetch pending counts for the action bar

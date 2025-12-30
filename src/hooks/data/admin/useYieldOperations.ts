@@ -8,8 +8,8 @@ import {
   getActiveFundsWithAUM,
   getFundInvestorComposition,
   applyYieldDistribution,
-  YieldCalculationInput,
-} from "@/services/admin/yieldDistributionService";
+  type YieldCalculationInput,
+} from "@/services";
 import { useAuth } from "@/lib/auth/context";
 import { toast } from "sonner";
 import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
