@@ -6,9 +6,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { adminServiceV2, InvestorSummaryV2 } from "@/services/admin/adminService";
-import { assetService } from "@/services/shared/assetService";
-import { getActiveFundsForList, getActiveInvestorPositions } from "@/services/investor/fundViewService";
+import {
+  adminServiceV2,
+  assetService,
+  getActiveFundsForList,
+  getActiveInvestorPositions,
+} from "@/services";
+import type { InvestorSummaryV2 } from "@/services/admin/adminService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { AssetRef as Asset } from "@/types/asset";
 

@@ -9,8 +9,9 @@ import {
   updateInvestorIBConfig,
   getIBReferrals,
   getAvailableIBParents,
-} from "@/services/shared/ibService";
-import { ibManagementService, auditLogService } from "@/services/shared";
+  ibManagementService,
+  auditLogService,
+} from "@/services";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { QUERY_KEYS } from "@/constants/queryKeys";

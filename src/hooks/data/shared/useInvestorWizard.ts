@@ -5,11 +5,8 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { 
-  createInvestorWithWizard, 
-  type WizardResult,
-  type WizardProgressCallback 
-} from "@/services/admin/investorWizardService";
+import { createInvestorWithWizard } from "@/services";
+import type { WizardResult, WizardProgressCallback } from "@/services/admin/investorWizardService";
 import { WizardFormData } from "@/components/admin/investors/wizard/types";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 

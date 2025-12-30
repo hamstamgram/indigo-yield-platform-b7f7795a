@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { withdrawalService } from "@/services/investor/withdrawalService";
+import { withdrawalService } from "@/services";
 
 /**
  * Hook to fetch investor options for dropdown selection

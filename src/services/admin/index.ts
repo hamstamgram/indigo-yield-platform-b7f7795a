@@ -17,6 +17,7 @@ export { adminTransactionService } from "./adminTransactionService";
 // Yield management
 export * from "./yieldDistributionService";
 export * from "./recordedYieldsService";
+export * from "./yieldManagementService";
 
 // Bulk operations
 export * from "./bulkOperationsService";

@@ -5,7 +5,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { requestsQueueService } from "@/services/admin/requestsQueueService";
+import { requestsQueueService } from "@/services";
 import { invalidateAfterWithdrawal } from "@/utils/cacheInvalidation";
 import type { ApproveWithdrawalParams, RejectWithdrawalParams, WithdrawalRequest } from "@/types/domains/requests";
 

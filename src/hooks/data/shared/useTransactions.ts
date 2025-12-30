@@ -5,8 +5,8 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { adminTransactionService, CreateTransactionParams } from "@/services/admin/adminTransactionService";
-import { transactionsV2Service } from "@/services/shared";
+import { adminTransactionService, transactionsV2Service } from "@/services";
+import type { CreateTransactionParams } from "@/services/admin/adminTransactionService";
 import { toast } from "sonner";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { QUERY_KEYS } from "@/constants/queryKeys";

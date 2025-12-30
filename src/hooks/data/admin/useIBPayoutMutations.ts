@@ -5,7 +5,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth/context";
-import { ibPayoutService } from "@/services/admin/ibPayoutService";
+import { ibPayoutService } from "@/services";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { invalidateAfterIBOperation } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";

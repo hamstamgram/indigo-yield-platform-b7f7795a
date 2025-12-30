@@ -10,15 +10,17 @@ import {
   getTransactionFormData,
   checkInvestorBalance,
   checkAumExists,
-  type TransactionDetail,
-  type TransactionWithRelated,
-  type InvestorForTransaction,
-  type FundForTransaction,
-  type BalanceCheckResult,
-  type AumCheckResult,
+  createAdminTransaction,
+  saveDraftAUMEntry,
+} from "@/services";
+import type {
+  TransactionDetail,
+  TransactionWithRelated,
+  InvestorForTransaction,
+  FundForTransaction,
+  BalanceCheckResult,
+  AumCheckResult,
 } from "@/services/admin/transactionDetailsService";
-import { createAdminTransaction } from "@/services/shared/transactionService";
-import { saveDraftAUMEntry } from "@/services/admin/yieldDistributionService";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { toast } from "sonner";

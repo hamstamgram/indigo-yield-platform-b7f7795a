@@ -10,18 +10,21 @@ import { toast } from "sonner";
 import {
   getFinancialMetrics,
   getHistoricalFlowData,
-  getFundInvestorComposition,
   getDeliveryStatus,
   retryDelivery,
   getDeliveryDiagnostics,
   getDeliveryExclusionBreakdown,
-  type FinancialMetrics,
-  type FlowData,
-  type InvestorComposition,
-  type DeliveryRecord,
-  type DeliveryDiagnostics,
-  type ExclusionBreakdown,
+} from "@/services";
+import type {
+  FinancialMetrics,
+  FlowData,
+  InvestorComposition,
+  DeliveryRecord,
+  DeliveryDiagnostics,
+  ExclusionBreakdown,
 } from "@/services/admin/dashboardMetricsService";
+// getFundInvestorComposition imported directly due to naming conflict
+import { getFundInvestorComposition } from "@/services/admin/dashboardMetricsService";
 
 // ============================================================================
 // Performance Dashboard Hooks

@@ -9,7 +9,7 @@ import {
   fetchFundsWithAUM,
   fetchRecentActivities,
   fetchPendingItems,
-} from "@/services/admin/dashboardService";
+} from "@/services";
 import type { Fund } from "@/types/domains/fund";
 
 /**
