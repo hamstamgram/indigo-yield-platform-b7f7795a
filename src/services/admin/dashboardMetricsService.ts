@@ -197,9 +197,10 @@ export async function getFundInvestorComposition(fundId: string): Promise<Invest
     .from("investor_positions")
     .select(`
       current_value,
-      profile:profiles!investor_id(first_name, last_name, email)
+      profile:profiles!fk_investor_positions_investor(first_name, last_name, email)
     `)
     .eq("fund_id", fundId)
+    .gt("current_value", 0)
     .limit(100);
 
   if (error) throw error;
