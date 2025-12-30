@@ -115,12 +115,10 @@ export const withdrawalService = {
       .from("withdrawal_requests")
       .select("*, profile:profiles!fk_withdrawal_requests_profile(first_name, last_name, email), fund:funds(name, code, asset)")
       .eq("id", id)
-      .single();
+      .maybeSingle();
 
-    if (error) {
-      if (error.code === "PGRST116") return null;
-      throw error;
-    }
+    if (error) throw error;
+    if (!data) return null;
 
     const profile = data.profile as {
       first_name?: string;

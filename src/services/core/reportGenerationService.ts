@@ -315,10 +315,14 @@ export async function fetchInvestorReportData(
       .from("profiles")
       .select("id, first_name, last_name, email")
       .eq("id", investorId)
-      .single();
+      .maybeSingle();
 
-    if (profileError || !profile) {
+    if (profileError) {
       console.error("Error fetching investor profile:", profileError);
+      return null;
+    }
+    if (!profile) {
+      console.error("Investor profile not found:", investorId);
       return null;
     }
 

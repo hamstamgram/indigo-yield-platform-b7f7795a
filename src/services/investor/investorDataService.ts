@@ -234,7 +234,7 @@ export class InvestorDataService {
         .from("profiles")
         .select("id, email, first_name, last_name, status, onboarding_date, created_at")
         .eq("id", investorId)
-        .single();
+        .maybeSingle();
 
       if (investorError) {
         console.error("Error fetching investor:", investorError);

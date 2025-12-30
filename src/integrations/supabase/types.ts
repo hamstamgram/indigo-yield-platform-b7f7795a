@@ -7247,7 +7247,12 @@ export type Database = {
       benchmark_type: "BTC" | "ETH" | "STABLE" | "CUSTOM"
       document_type: "statement" | "notice" | "terms" | "tax" | "other"
       fee_kind: "mgmt" | "perf"
-      fund_status: "active" | "inactive" | "suspended" | "deprecated"
+      fund_status:
+        | "active"
+        | "inactive"
+        | "suspended"
+        | "deprecated"
+        | "pending"
       notification_priority: "low" | "medium" | "high"
       notification_type:
         | "deposit"
@@ -7452,7 +7457,7 @@ export const Constants = {
       benchmark_type: ["BTC", "ETH", "STABLE", "CUSTOM"],
       document_type: ["statement", "notice", "terms", "tax", "other"],
       fee_kind: ["mgmt", "perf"],
-      fund_status: ["active", "inactive", "suspended", "deprecated"],
+      fund_status: ["active", "inactive", "suspended", "deprecated", "pending"],
       notification_priority: ["low", "medium", "high"],
       notification_type: [
         "deposit",
