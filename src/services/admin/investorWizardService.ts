@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { WizardFormData } from "@/components/admin/investors/wizard/types";
 import { addCsrfHeader } from "@/lib/security/csrf";
+import { createTransactionsBatch, type BatchTransactionRequest } from "@/lib/supabase/typedRpc";
 
 interface CreateIBResponse {
   success: boolean;

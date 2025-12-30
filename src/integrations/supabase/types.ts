@@ -3496,8 +3496,10 @@ export type Database = {
           created_at: string
           email: string
           entity_type: string | null
+          fee_pct: number
           fee_percentage: number | null
           first_name: string | null
+          ib_commission_source: string
           ib_parent_id: string | null
           ib_percentage: number | null
           id: string
@@ -3521,8 +3523,10 @@ export type Database = {
           created_at?: string
           email: string
           entity_type?: string | null
+          fee_pct?: number
           fee_percentage?: number | null
           first_name?: string | null
+          ib_commission_source?: string
           ib_parent_id?: string | null
           ib_percentage?: number | null
           id: string
@@ -3546,8 +3550,10 @@ export type Database = {
           created_at?: string
           email?: string
           entity_type?: string | null
+          fee_pct?: number
           fee_percentage?: number | null
           first_name?: string | null
+          ib_commission_source?: string
           ib_parent_id?: string | null
           ib_percentage?: number | null
           id?: string
@@ -6685,6 +6691,10 @@ export type Database = {
         }
         Returns: string
       }
+      admin_create_transactions_batch: {
+        Args: { p_requests: Json }
+        Returns: Json
+      }
       apply_daily_yield_to_fund: {
         Args: {
           p_admin_id: string
@@ -6705,6 +6715,16 @@ export type Database = {
           p_date: string
           p_fund_id: string
           p_gross_amount: number
+          p_purpose?: string
+        }
+        Returns: Json
+      }
+      apply_daily_yield_to_fund_v3: {
+        Args: {
+          p_as_of_date: string
+          p_fund_id: string
+          p_new_total_aum: number
+          p_notes?: string
           p_purpose?: string
         }
         Returns: Json
@@ -7252,6 +7272,16 @@ export type Database = {
           p_date: string
           p_fund_id: string
           p_gross_yield: number
+          p_purpose?: string
+        }
+        Returns: Json
+      }
+      preview_daily_yield_to_fund_v3: {
+        Args: {
+          p_as_of_date: string
+          p_fund_id: string
+          p_new_total_aum: number
+          p_notes?: string
           p_purpose?: string
         }
         Returns: Json

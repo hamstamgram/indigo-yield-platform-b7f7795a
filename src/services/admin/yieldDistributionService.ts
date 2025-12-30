@@ -3,7 +3,7 @@
  * Handles daily yield entry, preview, and distribution across investor positions
  * All values are in NATIVE TOKENS (BTC, ETH, USDT, etc.) - never fiat
  * 
- * IMPORTANT: Preview now uses backend RPC for exact parity with apply
+ * IMPORTANT: v3 RPCs compute gross_yield server-side for exact parity
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +13,7 @@ import {
   isPeriodLocked,
   getFundPeriodSnapshot
 } from "@/services/operations/snapshotService";
+import { previewYieldV3, applyYieldV3 } from "@/lib/supabase/typedRpc";
 
 // Re-export types from canonical source for backwards compatibility
 export type {
@@ -45,6 +46,13 @@ function formatDate(date: Date): string {
   return date.toISOString().split("T")[0];
 }
 
+// UUID validation regex
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isValidUUID(value: string): boolean {
+  return UUID_REGEX.test(value);
+}
+
 // ============================================================================
 // Service Functions
 // ============================================================================
@@ -53,9 +61,8 @@ function formatDate(date: Date): string {
  * Get period ID for a given date
  */
 async function getPeriodIdForDate(targetDate: Date): Promise<string | null> {
-  // Query using year and month columns (statement_periods doesn't have period_start_date/period_end_date)
   const year = targetDate.getFullYear();
-  const month = targetDate.getMonth() + 1; // JavaScript months are 0-indexed
+  const month = targetDate.getMonth() + 1;
   
   const { data, error } = await supabase
     .from("statement_periods")
@@ -65,7 +72,6 @@ async function getPeriodIdForDate(targetDate: Date): Promise<string | null> {
     .maybeSingle();
   
   if (error || !data) {
-    // Try to find the next available period
     const { data: nextPeriod } = await supabase
       .from("statement_periods")
       .select("id")
@@ -80,22 +86,14 @@ async function getPeriodIdForDate(targetDate: Date): Promise<string | null> {
 }
 
 /**
- * Preview yield distribution using backend RPC for exact parity with apply.
- * This is a read-only operation that returns computed distributions.
+ * Preview yield distribution using v3 RPC - server computes gross yield
  */
-// UUID validation regex
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-function isValidUUID(value: string): boolean {
-  return UUID_REGEX.test(value);
-}
-
 export async function previewYieldDistribution(
   input: YieldCalculationInput
 ): Promise<YieldCalculationResult> {
   const { fundId, targetDate, newTotalAUM, purpose = "reporting" } = input;
 
-  // Validate fundId is a valid UUID to prevent "operator does not exist: uuid = text" errors
+  // Validate fundId
   if (!fundId || !isValidUUID(fundId)) {
     throw new Error(`Invalid fund ID format: "${fundId}". Expected a valid UUID.`);
   }
@@ -116,82 +114,11 @@ export async function previewYieldDistribution(
     }
   }
 
-  // Get "as-of" AUM for the target date
-  // For backdated entries, use historical AUM snapshot if available
-  // This prevents using current Dec 2025 AUM when recording June 2025 yield
-  let currentAUM = 0;
-  const today = new Date();
-  const isBackdated = targetDate < today;
-  
-  if (isBackdated) {
-    // Look for AUM snapshot on or before target date
-    const { data: historicalAum } = await supabase
-      .from("fund_daily_aum")
-      .select("total_aum, aum_date")
-      .eq("fund_id", fundId)
-      .eq("is_voided", false)
-      .lte("aum_date", formatDate(targetDate))
-      .order("aum_date", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (historicalAum) {
-      currentAUM = Number(historicalAum.total_aum);
-      console.log(`Using historical AUM from ${historicalAum.aum_date}: ${currentAUM}`);
-    } else {
-      // No historical snapshot - calculate from ledger as of target date
-      const { data: ledgerSum } = await (supabase.rpc as any)("get_fund_aum_as_of_date", {
-        p_fund_id: fundId,
-        p_date: formatDate(targetDate),
-      });
-      
-      if (ledgerSum?.aum) {
-        currentAUM = Number(ledgerSum.aum);
-      } else {
-        // Fallback: use current positions but warn
-        const { data: positions } = await supabase
-          .from("investor_positions")
-          .select("current_value")
-          .eq("fund_id", fundId)
-          .gt("current_value", 0);
-        
-        currentAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
-        console.warn(`No historical AUM snapshot found for ${formatDate(targetDate)} - using current positions. Consider creating an AUM snapshot first.`);
-      }
-    }
-  } else {
-    // For current/future dates, use current positions
-    const { data: positions, error: posError } = await supabase
-      .from("investor_positions")
-      .select("current_value")
-      .eq("fund_id", fundId)
-      .gt("current_value", 0);
-
-    if (posError) {
-      throw new Error(`Failed to fetch positions: ${posError.message}`);
-    }
-
-    currentAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
-  }
-  
-  const grossYieldAmount = Math.max(newTotalAUM - currentAUM, 0);
-
-  if (grossYieldAmount <= 0) {
-    throw new Error(`New AUM (${newTotalAUM}) must be greater than ${isBackdated ? 'historical' : 'current'} AUM (${currentAUM}) to distribute yield`);
-  }
-
-  // Get user ID
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error("Authentication required");
-  }
-
-  // Call backend preview RPC with correct 4-parameter signature
-  // DB function: preview_daily_yield_to_fund_v2(p_fund_id uuid, p_date date, p_gross_yield numeric, p_purpose text)
-  const { data, error } = await (supabase.rpc as any)("preview_daily_yield_to_fund_v2", {
+  // Call v3 RPC - SERVER computes gross_yield = new_total_aum - current_aum
+  const { data, error } = await previewYieldV3({
     p_fund_id: fundId,
-    p_date: formatDate(targetDate),
-    p_gross_yield: grossYieldAmount,  // Pass calculated gross yield amount
+    p_as_of_date: formatDate(targetDate),
+    p_new_total_aum: newTotalAUM,
     p_purpose: purpose,
   });
 
@@ -200,19 +127,18 @@ export async function previewYieldDistribution(
     throw new Error(`Failed to preview yield: ${error.message}`);
   }
 
-  if (!data.success) {
-    throw new Error(data.error || "Preview failed");
+  if (!data?.success) {
+    throw new Error(data?.error || "Preview failed");
   }
 
   // Transform backend response to frontend format
-  // Backend returns 'investors' array, not 'distributions'
-  const distributions: YieldDistribution[] = (data.investors || []).map((d: any) => ({
+  const distributions: YieldDistribution[] = (data.investors || []).map((d) => ({
     investorId: d.investor_id,
     investorName: d.investor_name,
     accountType: d.account_type,
-    currentBalance: Number(d.current_value || 0),  // Backend uses current_value
-    allocationPercentage: Number(d.allocation_pct || 0),  // Backend uses allocation_pct
-    feePercentage: Number(d.fee_pct || 0),  // Backend uses fee_pct
+    currentBalance: Number(d.current_value || 0),
+    allocationPercentage: Number(d.allocation_pct || 0),
+    feePercentage: Number(d.fee_pct || 0),
     grossYield: Number(d.gross_yield || 0),
     feeAmount: Number(d.fee_amount || 0),
     netYield: Number(d.net_yield || 0),
@@ -222,12 +148,12 @@ export async function previewYieldDistribution(
     ibParentName: d.ib_parent_name,
     ibPercentage: Number(d.ib_percentage || 0),
     ibAmount: Number(d.ib_amount || 0),
-    ibSource: d.ib_source,
+    ibSource: d.ib_source as 'from_platform_fees' | 'from_investor_yield' | undefined,
     referenceId: d.reference_id,
     wouldSkip: d.would_skip || false,
   }));
 
-  const ibCredits: IBCredit[] = (data.ib_credits || []).map((c: any) => ({
+  const ibCredits: IBCredit[] = (data.ib_credits || []).map((c) => ({
     ibInvestorId: c.ib_investor_id,
     ibInvestorName: c.ib_investor_name,
     sourceInvestorId: c.source_investor_id,
@@ -239,17 +165,17 @@ export async function previewYieldDistribution(
     wouldSkip: c.would_skip || false,
   }));
 
-  // Backend returns flat total fields with fallback to nested totals object
-  // INDIGO FEES Credit = Total Fees - IB Fees (what remains after IB takes their share)
-  const totalFees = Number(data.total_fees || data.totals?.fees || 0);
-  const totalIb = Number(data.total_ib || data.total_ib_fees || data.totals?.ib_fees || 0);
-  const indigoCredit = Number(data.indigo_fees_credit || data.indigo_revenue || (totalFees - totalIb));
+  const totalFees = Number(data.total_fees || 0);
+  const totalIb = Number(data.total_ib || 0);
+  const indigoCredit = Number(data.indigo_fees_credit || (totalFees - totalIb));
+  const currentAUM = Number(data.current_aum || 0);
+  const grossYieldAmount = Number(data.gross_yield || 0);
   
   const totals: YieldTotals = {
-    gross: Number(data.total_gross || data.totals?.gross || grossYieldAmount),
+    gross: Number(data.total_gross || grossYieldAmount),
     fees: totalFees,
     ibFees: totalIb,
-    net: Number(data.total_net || data.totals?.net || 0),
+    net: Number(data.total_net || 0),
     indigoCredit: indigoCredit,
   };
 
@@ -264,8 +190,7 @@ export async function previewYieldDistribution(
     yieldDate: targetDate,
     effectiveDate: data.effective_date,
     purpose: data.purpose,
-    isMonthEnd: data.is_month_end,
-    currentAUM: Number(data.current_aum || currentAUM),
+    currentAUM,
     newAUM: Number(data.new_aum || newTotalAUM),
     grossYield: grossYieldAmount,
     netYield: totals.net,
@@ -286,9 +211,8 @@ export async function previewYieldDistribution(
 }
 
 /**
- * Apply yield distribution (calls RPC function)
+ * Apply yield distribution using v3 RPC - server computes gross yield
  * This permanently updates investor positions and creates transactions.
- * Also generates and locks a snapshot for the period to preserve ownership percentages.
  */
 export async function applyYieldDistribution(
   input: YieldCalculationInput,
@@ -297,22 +221,23 @@ export async function applyYieldDistribution(
 ): Promise<YieldCalculationResult> {
   const { fundId, targetDate, newTotalAUM } = input;
 
+  // Validate fundId
+  if (!fundId || !isValidUUID(fundId)) {
+    throw new Error(`Invalid fund ID format: "${fundId}". Expected a valid UUID.`);
+  }
+
   // Get or create period snapshot before applying yield
   const periodId = await getPeriodIdForDate(targetDate);
   let snapshotInfo: YieldCalculationResult["snapshotInfo"];
   
   if (periodId) {
-    // Check if period is already locked
     const isLocked = await isPeriodLocked(fundId, periodId);
     if (isLocked) {
       throw new Error("This period is locked. Yield has already been applied for this period.");
     }
     
-    // Ensure snapshot exists (creates one if not)
     const snapshotResult = await ensureSnapshotExists(fundId, periodId, adminId);
-    if (!snapshotResult.exists) {
-      console.warn("Could not create snapshot:", snapshotResult.error);
-    } else if (snapshotResult.snapshotId) {
+    if (snapshotResult.exists && snapshotResult.snapshotId) {
       const snapshot = await getFundPeriodSnapshot(fundId, periodId);
       if (snapshot) {
         snapshotInfo = {
@@ -325,38 +250,21 @@ export async function applyYieldDistribution(
     }
   }
 
-  // First, calculate the gross yield (new AUM - current AUM)
-  const { data: positions, error: posError } = await supabase
-    .from("investor_positions")
-    .select("current_value")
-    .eq("fund_id", fundId)
-    .gt("current_value", 0);
-
-  if (posError) {
-    throw new Error(`Failed to fetch current positions: ${posError.message}`);
-  }
-
-  const currentAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
-  const grossYieldAmount = Math.max(newTotalAUM - currentAUM, 0);
-
-  if (grossYieldAmount <= 0) {
-    throw new Error("New AUM must be greater than current AUM to distribute yield");
-  }
-
-  // The RPC expects p_gross_amount as the yield to distribute, not new total AUM
-  // Purpose is passed to control whether this yield appears in investor reports
-  // Updated to match new 5-param signature: (p_fund_id, p_date, p_gross_amount, p_admin_id, p_purpose)
-  const { data, error } = await (supabase.rpc as any)("apply_daily_yield_to_fund_v2", {
+  // Call v3 RPC - SERVER computes gross_yield and commits atomically
+  const { data, error } = await applyYieldV3({
     p_fund_id: fundId,
-    p_date: formatDate(targetDate),
-    p_gross_amount: grossYieldAmount,
-    p_admin_id: adminId,
-    p_purpose: purpose, // Uses correct column mappings now
+    p_as_of_date: formatDate(targetDate),
+    p_new_total_aum: newTotalAUM,
+    p_purpose: purpose,
   });
 
   if (error) {
     console.error("Error applying yield distribution:", error);
     throw new Error(`Failed to apply yield: ${error.message}`);
+  }
+
+  if (!data?.success) {
+    throw new Error(data?.error || "Apply failed");
   }
 
   // Lock the snapshot after successful yield application
@@ -367,23 +275,24 @@ export async function applyYieldDistribution(
     }
   }
 
-  // Parse response - apply returns JSONB now
-  const result = data as any;
+  const currentAUM = Number(data.current_aum || 0);
+  const grossYieldAmount = Number(data.gross_yield || 0);
+  const totalFees = Number(data.total_fees || 0);
+  const totalIb = Number(data.total_ib || 0);
   
-  const distributions: YieldDistribution[] = [];
   const totals: YieldTotals = {
     gross: grossYieldAmount,
-    fees: Number(result?.total_fees || 0),
-    ibFees: Number(result?.total_ib_fees || 0),
-    net: grossYieldAmount - Number(result?.total_fees || 0) - Number(result?.total_ib_fees || 0),
-    indigoCredit: Number(result?.total_fees || 0),
+    fees: totalFees,
+    ibFees: totalIb,
+    net: Number(data.total_net || 0),
+    indigoCredit: totalFees - totalIb,
   };
 
   return {
     success: true,
     fundId,
-    fundCode: "",
-    fundAsset: "",
+    fundCode: data.fund_code || "",
+    fundAsset: data.fund_asset || "",
     yieldDate: targetDate,
     purpose,
     currentAUM,
@@ -393,8 +302,8 @@ export async function applyYieldDistribution(
     totalFees: totals.fees,
     totalIbFees: totals.ibFees,
     yieldPercentage: currentAUM > 0 ? (grossYieldAmount / currentAUM) * 100 : 0,
-    investorCount: Number(result?.investors_updated || 0),
-    distributions,
+    investorCount: Number(data.investor_count || 0),
+    distributions: [],
     ibCredits: [],
     indigoFeesCredit: totals.indigoCredit,
     existingConflicts: [],
