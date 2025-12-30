@@ -194,10 +194,11 @@ export async function setFundDailyAUM(
  */
 export async function getMonthlyAUM() {
   try {
-    const { data, error } = await (supabase.rpc as any)('get_monthly_platform_aum');
+    const { getMonthlyPlatformAum } = await import("@/lib/supabase/typedRpc");
+    const { data, error } = await getMonthlyPlatformAum();
 
     if (error) throw error;
-    return data;
+    return data || [];
   } catch (error) {
     console.error("Error fetching monthly AUM:", error);
     return [];
@@ -384,12 +385,12 @@ export async function getFundInvestorPositions(fundId: string) {
  */
 export async function getAllFundsWithAUM() {
   try {
-    // Use optimized RPC to avoid N+1 queries
-    const { data: funds, error } = await (supabase.rpc as any)("get_funds_with_aum");
+    const { getFundsWithAum } = await import("@/lib/supabase/typedRpc");
+    const { data: funds, error } = await getFundsWithAum();
 
     if (error) throw error;
 
-    return (funds || []).map((fund: any) => ({
+    return (funds || []).map((fund) => ({
       id: fund.fund_id,
       code: fund.fund_code,
       name: fund.fund_name,
@@ -542,7 +543,7 @@ export async function previewInvestorYieldDistribution(
           first_name,
           last_name,
           email,
-          fee_percentage
+          fee_pct
         )
       `)
       .eq("fund_id", fundId)
@@ -584,8 +585,8 @@ export async function previewInvestorYieldDistribution(
       
       // Fee priority: schedule > profile > 0%
       let feeRate = feeMap.get(pos.investor_id!) ?? 0;
-      if (feeRate === 0 && profile?.fee_percentage) {
-        feeRate = Number(profile.fee_percentage) * 100; // profile stores as decimal (0.02 = 2%)
+      if (feeRate === 0 && profile?.fee_pct) {
+        feeRate = Number(profile.fee_pct); // fee_pct is already in percent (0-100)
       }
       
       const feeAmount = investorGrossYield * (feeRate / 100);

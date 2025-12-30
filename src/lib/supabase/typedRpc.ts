@@ -103,7 +103,134 @@ export interface BatchTransactionResponse {
 }
 
 // ============================================================================
-// Typed RPC Functions
+// Month Closure RPC Types
+// ============================================================================
+
+export interface MonthClosureStatusArgs {
+  p_fund_id: string;
+  p_month_start: string;
+}
+
+export interface MonthClosureStatusResponse {
+  is_closed: boolean;
+  closure_id?: string;
+  fund_id: string;
+  month_start: string;
+  month_end?: string;
+  closed_at?: string;
+  closed_by?: string;
+  notes?: string;
+}
+
+export interface CloseMonthArgs {
+  p_fund_id: string;
+  p_month_start: string;
+  p_effective_date: string;
+  p_admin_id: string;
+  p_notes?: string | null;
+}
+
+export interface CloseMonthResponse {
+  success: boolean;
+  error?: string;
+  closure_id?: string;
+  month_start?: string;
+  month_end?: string;
+  closed_at?: string;
+}
+
+export interface ReopenMonthArgs {
+  p_fund_id: string;
+  p_month_start: string;
+  p_admin_id: string;
+  p_reason?: string | null;
+}
+
+export interface ReopenMonthResponse {
+  success: boolean;
+  error?: string;
+  closure_id?: string;
+  month_start?: string;
+}
+
+// ============================================================================
+// AUM RPC Types
+// ============================================================================
+
+export interface FundWithAUM {
+  fund_id: string;
+  fund_code: string;
+  fund_name: string;
+  asset: string;
+  fund_class: string;
+  status: string;
+  total_aum: number;
+  investor_count: number;
+}
+
+export interface MonthlyAUMRecord {
+  month: string;
+  total_aum: number;
+  fund_count: number;
+}
+
+// ============================================================================
+// Position Adjustment RPC Types
+// ============================================================================
+
+export interface AdjustPositionArgs {
+  p_investor_id: string;
+  p_fund_id: string;
+  p_delta: number;
+  p_note: string;
+  p_admin_id: string | null;
+  p_tx_type: string;
+  p_tx_date: string;
+  p_reference_id: string;
+}
+
+export interface AdjustPositionResponse {
+  out_success: boolean;
+  out_message: string;
+  out_transaction_id: string;
+  out_new_balance: number;
+}
+
+// ============================================================================
+// Yield Management RPC Types
+// ============================================================================
+
+export interface VoidAumArgs {
+  p_record_id: string;
+  p_reason: string;
+  p_admin_id: string;
+}
+
+export interface VoidAumResponse {
+  success: boolean;
+  fund_id: string;
+  aum_date: string;
+  purpose: string;
+  voided_at: string;
+}
+
+export interface UpdateAumArgs {
+  p_record_id: string;
+  p_new_total_aum: number;
+  p_reason: string;
+  p_admin_id: string;
+}
+
+export interface UpdateAumResponse {
+  success: boolean;
+  record_id: string;
+  old_aum: number;
+  new_aum: number;
+  updated_at: string;
+}
+
+// ============================================================================
+// Typed RPC Functions - Yield V3
 // ============================================================================
 
 /**
@@ -148,4 +275,128 @@ export async function createTransactionsBatch(
     p_requests: requests,
   } as any);
   return { data: data as unknown as BatchTransactionResponse | null, error };
+}
+
+// ============================================================================
+// Typed RPC Functions - Month Closure
+// ============================================================================
+
+/**
+ * Get month closure status for a fund
+ */
+export async function getMonthClosureStatus(
+  args: MonthClosureStatusArgs
+): Promise<{ data: MonthClosureStatusResponse | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("get_month_closure_status", {
+    p_fund_id: args.p_fund_id,
+    p_month_start: args.p_month_start,
+  } as any);
+  return { data: data as unknown as MonthClosureStatusResponse | null, error };
+}
+
+/**
+ * Close a fund's reporting month
+ */
+export async function closeReportingMonth(
+  args: CloseMonthArgs
+): Promise<{ data: CloseMonthResponse | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("close_fund_reporting_month", {
+    p_fund_id: args.p_fund_id,
+    p_month_start: args.p_month_start,
+    p_effective_date: args.p_effective_date,
+    p_admin_id: args.p_admin_id,
+    p_notes: args.p_notes || null,
+  } as any);
+  return { data: data as unknown as CloseMonthResponse | null, error };
+}
+
+/**
+ * Reopen a fund's reporting month
+ */
+export async function reopenReportingMonth(
+  args: ReopenMonthArgs
+): Promise<{ data: ReopenMonthResponse | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("reopen_fund_reporting_month", {
+    p_fund_id: args.p_fund_id,
+    p_month_start: args.p_month_start,
+    p_admin_id: args.p_admin_id,
+    p_reason: args.p_reason || null,
+  } as any);
+  return { data: data as unknown as ReopenMonthResponse | null, error };
+}
+
+// ============================================================================
+// Typed RPC Functions - AUM
+// ============================================================================
+
+/**
+ * Get all funds with their current AUM
+ */
+export async function getFundsWithAum(): Promise<{ data: FundWithAUM[] | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("get_funds_with_aum") as any;
+  return { data: data as FundWithAUM[] | null, error };
+}
+
+/**
+ * Get monthly platform AUM
+ */
+export async function getMonthlyPlatformAum(): Promise<{ data: MonthlyAUMRecord[] | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("get_monthly_platform_aum") as any;
+  return { data: data as MonthlyAUMRecord[] | null, error };
+}
+
+// ============================================================================
+// Typed RPC Functions - Position Adjustment
+// ============================================================================
+
+/**
+ * Adjust investor position (atomic transaction + position update)
+ */
+export async function adjustInvestorPosition(
+  args: AdjustPositionArgs
+): Promise<{ data: AdjustPositionResponse[] | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("adjust_investor_position", {
+    p_investor_id: args.p_investor_id,
+    p_fund_id: args.p_fund_id,
+    p_delta: args.p_delta,
+    p_note: args.p_note,
+    p_admin_id: args.p_admin_id,
+    p_tx_type: args.p_tx_type,
+    p_tx_date: args.p_tx_date,
+    p_reference_id: args.p_reference_id,
+  } as any);
+  return { data: data as unknown as AdjustPositionResponse[] | null, error };
+}
+
+// ============================================================================
+// Typed RPC Functions - Yield Management
+// ============================================================================
+
+/**
+ * Void a fund daily AUM record
+ */
+export async function voidFundDailyAum(
+  args: VoidAumArgs
+): Promise<{ data: VoidAumResponse | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("void_fund_daily_aum", {
+    p_record_id: args.p_record_id,
+    p_reason: args.p_reason,
+    p_admin_id: args.p_admin_id,
+  } as any);
+  return { data: data as unknown as VoidAumResponse | null, error };
+}
+
+/**
+ * Update a fund daily AUM record
+ */
+export async function updateFundDailyAum(
+  args: UpdateAumArgs
+): Promise<{ data: UpdateAumResponse | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("update_fund_daily_aum", {
+    p_record_id: args.p_record_id,
+    p_new_total_aum: args.p_new_total_aum,
+    p_reason: args.p_reason,
+    p_admin_id: args.p_admin_id,
+  } as any);
+  return { data: data as unknown as UpdateAumResponse | null, error };
 }

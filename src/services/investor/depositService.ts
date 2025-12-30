@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Deposit, DepositFormData, DepositFilters } from "@/types/domains";
+import { adjustInvestorPosition } from "@/lib/supabase/typedRpc";
 
 export class DepositService {
   async getDeposits(filters?: DepositFilters): Promise<Deposit[]> {
@@ -125,8 +126,7 @@ export class DepositService {
     const referenceId = `deposit:${fund.id}:${profileId}:${txDate}:${crypto.randomUUID()}`;
 
     // Use canonical adjust_investor_position RPC for atomic transaction + position update
-    const rpcCall = (supabase.rpc as any).bind(supabase);
-    const { data, error } = await rpcCall("adjust_investor_position", {
+    const { data, error } = await adjustInvestorPosition({
       p_investor_id: profileId,
       p_fund_id: fund.id,
       p_delta: amount,

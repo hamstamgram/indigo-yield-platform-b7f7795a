@@ -181,7 +181,7 @@ export async function createInvestorWithWizard(
     const profileUpdate: Record<string, any> = {
       entity_type: identity.entity_type,
       status: identity.status,
-      fee_percentage: fees.investor_fee_pct / 100, // Convert to decimal
+      fee_pct: fees.investor_fee_pct, // Now stored as percent (0-100)
     };
 
     if (ibParentId) {
@@ -239,70 +239,25 @@ export async function createInvestorWithWizard(
       if (funds && funds.length > 0) {
         onProgress?.("Creating initial deposit transactions...", "info");
         
-        // Use admin_create_transaction RPC for each position
-        // This ensures proper ledger entries and position updates
-        for (const fund of funds) {
-          const amount = positions[fund.asset] || 0;
-          if (amount <= 0) continue;
+        // Use batch RPC for atomic creation of all initial positions
+        const batchRequests: BatchTransactionRequest[] = funds
+          .filter(fund => (positions[fund.asset] || 0) > 0)
+          .map(fund => ({
+            investor_id: investorId,
+            fund_id: fund.id,
+            type: "DEPOSIT",
+            amount: positions[fund.asset],
+            tx_date: effectiveDate,
+            notes: "Initial position on investor creation",
+            reference_id: `init_deposit:${investorId}:${fund.id}:${effectiveDate}`,
+          }));
 
-          // Create deterministic reference_id for idempotency
-          const referenceId = `init_deposit:${investorId}:${fund.id}:${effectiveDate}`;
+        if (batchRequests.length > 0) {
+          const { data: batchResult, error: batchError } = await createTransactionsBatch(batchRequests);
 
-          // Call admin_create_transaction RPC which handles both transaction creation
-          // and position update atomically
-          const { data: { user } } = await supabase.auth.getUser();
-          const { error: txError } = await (supabase.rpc as any)("admin_create_transaction", {
-            p_investor_id: investorId,
-            p_fund_id: fund.id,
-            p_type: "DEPOSIT",
-            p_amount: amount,
-            p_tx_date: effectiveDate,
-            p_notes: "Initial position on investor creation",
-            p_reference_id: referenceId,
-            p_admin_id: user?.id || null,
-          });
-
-          if (txError) {
-            console.error(`Transaction creation error for ${fund.asset}:`, txError);
-            // Fallback: try direct insert if RPC fails (for backwards compatibility)
-            const { error: fallbackError } = await supabase
-              .from("transactions_v2")
-              .insert({
-                investor_id: investorId,
-                fund_id: fund.id,
-                type: "DEPOSIT",
-                asset: fund.asset,
-                amount: amount,
-                tx_date: effectiveDate,
-                value_date: effectiveDate,
-                notes: "Initial position on investor creation",
-                source: "investor_wizard",
-                is_system_generated: false,
-                reference_id: referenceId,
-                visibility_scope: "investor_visible",
-              });
-
-            if (fallbackError) {
-              console.error("Fallback transaction creation also failed:", fallbackError);
-            }
-
-            // Also create/update position directly as fallback
-            const { error: posError } = await supabase
-              .from("investor_positions")
-              .upsert({
-                investor_id: investorId,
-                fund_id: fund.id,
-                current_value: amount,
-                cost_basis: amount,
-                shares: 0,
-                fund_class: fund.asset,
-              }, {
-                onConflict: "investor_id,fund_id",
-              });
-
-            if (posError) {
-              console.error("Fallback position creation also failed:", posError);
-            }
+          if (batchError || !batchResult?.success) {
+            console.error("Batch transaction error:", batchError || batchResult?.error);
+            // Log but continue - investor is created, positions can be added manually
           }
         }
       }

@@ -173,13 +173,13 @@ class ProfileService {
   }
 
   /**
-   * Update investor fee percentage
+   * Update investor fee percentage (stored as percent 0-100)
    */
-  async updateFeePercentage(investorId: string, feePercentage: number): Promise<void> {
+  async updateFeePercentage(investorId: string, feePct: number): Promise<void> {
     const { error } = await supabase
       .from("profiles")
       .update({
-        fee_percentage: feePercentage,
+        fee_pct: feePct,
         updated_at: new Date().toISOString(),
       })
       .eq("id", investorId);
