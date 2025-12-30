@@ -8,6 +8,7 @@
 import { ApiClient, ApiResponse } from "./ApiClient";
 import type { PortfolioPosition, PortfolioSummary, PortfolioData } from "@/types/domains/portfolio";
 import { supabase } from "@/integrations/supabase/client";
+import { adjustInvestorPosition } from "@/lib/supabase/typedRpc";
 
 // Helper to fetch funds (internal use)
 async function getAllFunds() {
@@ -45,9 +46,8 @@ export class PortfolioService extends ApiClient {
         // Generate unique reference_id for idempotency
         const referenceId = `initial:${fund.id}:${investorId}:${today}:${crypto.randomUUID()}`;
 
-        // Use canonical adjust_investor_position RPC for atomic transaction + position update
-        const rpcCall = (supabase.rpc as any).bind(supabase);
-        const { data, error } = await rpcCall("adjust_investor_position", {
+        // Use typed RPC for atomic transaction + position update
+        const { data, error } = await adjustInvestorPosition({
           p_investor_id: investorId,
           p_fund_id: fund.id,
           p_delta: amount,
