@@ -55,7 +55,11 @@ export async function updatePerformanceData(
       .from("investor_fund_performance")
       .select("*")
       .eq("id", recordId)
-      .single();
+      .maybeSingle();
+
+    if (!oldRecord) {
+      return { success: false, error: "Record not found" };
+    }
 
     if (fetchError) throw fetchError;
 
@@ -141,9 +145,10 @@ export async function createPerformanceRecord(
         ...data,
       })
       .select("id")
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+    if (!result) throw new Error("Failed to create record");
 
     return { success: true, id: result.id };
   } catch (error: any) {

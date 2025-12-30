@@ -60,6 +60,7 @@ export async function fetchRecentActivities(): Promise<ActivityItem[]> {
       created_at,
       profile:profiles!fk_transactions_v2_profile(first_name, last_name, email)
     `)
+    .eq("is_voided", false)
     .order("created_at", { ascending: false })
     .limit(10);
 

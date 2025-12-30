@@ -68,7 +68,8 @@ async function getDayTransactions(fundId: string, date: string): Promise<DailyTr
       .from("transactions_v2")
       .select("amount, type")
       .eq("fund_id", fundId)
-      .eq("tx_date", date);
+      .eq("tx_date", date)
+      .eq("is_voided", false);
 
     if (error) throw error;
 

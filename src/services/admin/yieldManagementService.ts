@@ -108,7 +108,7 @@ export async function getYieldDetails(recordId: string): Promise<YieldDetails | 
     .from("fund_daily_aum")
     .select("*")
     .eq("id", recordId)
-    .single();
+    .maybeSingle();
 
   if (error || !record) {
     console.error("Error fetching yield details:", error);
@@ -120,7 +120,7 @@ export async function getYieldDetails(recordId: string): Promise<YieldDetails | 
     .from("funds")
     .select("name, asset")
     .eq("id", record.fund_id)
-    .single();
+    .maybeSingle();
 
   // Get user names for created_by, voided_by, updated_by
   const userIds = [record.created_by, record.voided_by, record.updated_by].filter(Boolean);

@@ -276,6 +276,7 @@ class AdminServiceV2 {
       const { data, error } = await supabase
         .from("transactions_v2")
         .select("*")
+        .eq("is_voided", false)
         .order("tx_date", { ascending: false })
         .limit(100);
 

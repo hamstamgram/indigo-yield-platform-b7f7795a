@@ -367,7 +367,8 @@ export async function getYieldEarned(funds: Fund[]): Promise<YieldEarned[]> {
     .from("transactions_v2")
     .select("fund_id, amount, type")
     .eq("investor_id", INDIGO_FEES_ACCOUNT_ID)
-    .eq("type", "INTEREST");
+    .eq("type", "INTEREST")
+    .eq("is_voided", false);
 
   if (error) throw error;
 

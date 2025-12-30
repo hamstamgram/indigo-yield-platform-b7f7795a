@@ -82,6 +82,7 @@ export async function loadOpsIndicators(
     .from("transactions_v2")
     .select("tx_date")
     .eq("investor_id", investorId)
+    .eq("is_voided", false)
     .order("tx_date", { ascending: false })
     .limit(1)
     .maybeSingle();

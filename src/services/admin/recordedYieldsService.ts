@@ -150,7 +150,7 @@ export async function updateYieldRecord(
     .from("fund_daily_aum")
     .select("*")
     .eq("id", recordId)
-    .single();
+    .maybeSingle();
 
   if (fetchError || !current) {
     throw new Error("Yield record not found");
@@ -180,7 +180,7 @@ export async function updateYieldRecord(
     })
     .eq("id", recordId)
     .select()
-    .single();
+    .maybeSingle();
 
   if (updateError) {
     throw new Error(`Failed to update yield record: ${updateError.message}`);
