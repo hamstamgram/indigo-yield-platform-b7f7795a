@@ -75,11 +75,11 @@ export async function fetchTransactions(filter: TransactionFilter = {}): Promise
 }
 
 // Implementations for Phase 2
-export async function fetchTransactionById(id: string): Promise<any> {
-  const { data, error } = await supabase.from("transactions_v2").select("*").eq("id", id).single();
+export async function fetchTransactionById(id: string): Promise<any | null> {
+  const { data, error } = await supabase.from("transactions_v2").select("*").eq("id", id).maybeSingle();
 
   if (error) throw error;
-  return data;
+  return data; // Returns null if not found instead of throwing
 }
 
 export async function createTransactionRecord(transaction: any): Promise<any> {

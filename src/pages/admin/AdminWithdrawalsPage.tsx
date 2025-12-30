@@ -106,7 +106,7 @@ export default function AdminWithdrawalsPage() {
     try {
       const [withdrawalsData, statsData] = await Promise.all([
         withdrawalService.getWithdrawals(filters),
-        withdrawalService.getStats(),
+        withdrawalService.getStats(filters), // Pass same filters for consistent stats
       ]);
       setPaginatedData(withdrawalsData);
       setStats(statsData);

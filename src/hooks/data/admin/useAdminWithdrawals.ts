@@ -39,11 +39,12 @@ export function useAdminWithdrawals(filters?: WithdrawalFilters) {
 
 /**
  * Hook to fetch withdrawal statistics
+ * Accepts optional filters to match list query for consistent totals
  */
-export function useWithdrawalStats() {
+export function useWithdrawalStats(filters?: WithdrawalFilters) {
   return useQuery<WithdrawalStats, Error>({
-    queryKey: [...QUERY_KEYS.withdrawals, "stats"],
-    queryFn: () => withdrawalService.getStats(),
+    queryKey: [...QUERY_KEYS.withdrawals, "stats", filters],
+    queryFn: () => withdrawalService.getStats(filters),
     staleTime: 30 * 1000,
   });
 }
@@ -78,10 +79,11 @@ export function useWithdrawalAuditLogs(withdrawalId: string | null | undefined) 
 
 /**
  * Combined hook to fetch both withdrawals and stats (useful for main page)
+ * Stats are filtered to match the list for consistent totals
  */
 export function useWithdrawalsWithStats(filters?: WithdrawalFilters) {
   const withdrawalsQuery = useAdminWithdrawals(filters);
-  const statsQuery = useWithdrawalStats();
+  const statsQuery = useWithdrawalStats(filters);
 
   return {
     withdrawals: withdrawalsQuery.data,

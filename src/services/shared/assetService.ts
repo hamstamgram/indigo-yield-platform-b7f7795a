@@ -56,9 +56,10 @@ export class AssetService {
 
   async getAssetById(assetId: string): Promise<Asset> {
     const numericId = parseInt(assetId, 10);
-    const { data, error } = await supabase.from("assets").select("*").eq("id", numericId).single();
+    const { data, error } = await supabase.from("assets").select("*").eq("id", numericId).maybeSingle();
 
     if (error) throw error;
+    if (!data) throw new Error(`Asset not found: ${assetId}`);
     return mapDbRowToAsset(data);
   }
 

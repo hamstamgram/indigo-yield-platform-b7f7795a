@@ -15,11 +15,12 @@ import {
 
 /**
  * Hook to fetch email statistics
+ * Accepts optional filters to match list query for consistent totals
  */
-export function useEmailStats() {
+export function useEmailStats(filters?: EmailFilters) {
   return useQuery<EmailStats>({
-    queryKey: QUERY_KEYS.emailStats,
-    queryFn: getEmailStats,
+    queryKey: [...QUERY_KEYS.emailStats, filters],
+    queryFn: () => getEmailStats(filters),
     refetchInterval: 30000,
   });
 }
