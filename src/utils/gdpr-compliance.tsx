@@ -268,7 +268,7 @@ class GDPRComplianceManager {
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     const { data: profile } = profileResult as { data: any; error: any };
 
@@ -286,7 +286,7 @@ class GDPRComplianceManager {
       .from('investor_profiles')
       .select('*')
       .eq('investor_id', userId)
-      .single();
+      .maybeSingle();
 
     const { data: investorProfile } = result as { data: any; error: any };
 

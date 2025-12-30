@@ -111,6 +111,7 @@ export const dataIntegrityService = {
       const { data: transactions } = await supabase
         .from("transactions_v2")
         .select("id, investor_id, asset, amount")
+        .eq("is_voided", false)
         .limit(1000);
 
       if (transactions && transactions.length > 0) {
@@ -156,6 +157,7 @@ export const dataIntegrityService = {
     const { data: transactions } = await supabase
       .from("transactions_v2")
       .select("id, investor_id, tx_date, amount")
+      .eq("is_voided", false)
       .gt("tx_date", new Date().toISOString().split("T")[0]);
 
     if (transactions) {
@@ -166,6 +168,7 @@ export const dataIntegrityService = {
     const { data: zeroTx } = await supabase
       .from("transactions_v2")
       .select("id, investor_id, asset, amount")
+      .eq("is_voided", false)
       .eq("amount", 0);
 
     if (zeroTx) {
@@ -285,6 +288,7 @@ export const dataIntegrityService = {
             .select("amount")
             .eq("investor_id", position.investor_id)
             .eq("fund_id", position.fund_id)
+            .eq("is_voided", false)
             .eq("type", "DEPOSIT");
 
           const { data: withdrawals } = await supabase
@@ -292,6 +296,7 @@ export const dataIntegrityService = {
             .select("amount")
             .eq("investor_id", position.investor_id)
             .eq("fund_id", position.fund_id)
+            .eq("is_voided", false)
             .eq("type", "WITHDRAWAL");
 
           const totalDeposits = deposits?.reduce((sum, tx) => sum + Number(tx.amount || 0), 0) || 0;
