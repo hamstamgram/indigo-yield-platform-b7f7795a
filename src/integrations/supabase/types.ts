@@ -6711,26 +6711,16 @@ export type Database = {
           net_amount: number
         }[]
       }
-      apply_daily_yield_to_fund_v2:
-        | {
-            Args: {
-              p_date: string
-              p_fund_id: string
-              p_gross_yield: number
-              p_notes?: string
-              p_purpose?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_effective_date?: string
-              p_fund_id: string
-              p_gross_yield: number
-              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-            }
-            Returns: Json
-          }
+      apply_daily_yield_to_fund_v2: {
+        Args: {
+          p_admin_id: string
+          p_date: string
+          p_fund_id: string
+          p_gross_amount: number
+          p_purpose?: string
+        }
+        Returns: Json
+      }
       apply_daily_yield_with_fees: {
         Args: {
           p_fee_rate?: number
