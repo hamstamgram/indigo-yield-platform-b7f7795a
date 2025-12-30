@@ -119,7 +119,7 @@ export async function previewYieldV3(
     p_purpose: args.p_purpose || "reporting",
     p_notes: args.p_notes || null,
   } as any);
-  return { data: data as YieldV3Response | null, error };
+  return { data: data as unknown as YieldV3Response | null, error };
 }
 
 /**
@@ -135,7 +135,7 @@ export async function applyYieldV3(
     p_purpose: args.p_purpose || "reporting",
     p_notes: args.p_notes || null,
   } as any);
-  return { data: data as YieldV3Response | null, error };
+  return { data: data as unknown as YieldV3Response | null, error };
 }
 
 /**
@@ -147,5 +147,5 @@ export async function createTransactionsBatch(
   const { data, error } = await supabase.rpc("admin_create_transactions_batch", {
     p_requests: requests,
   } as any);
-  return { data: data as BatchTransactionResponse | null, error };
+  return { data: data as unknown as BatchTransactionResponse | null, error };
 }
