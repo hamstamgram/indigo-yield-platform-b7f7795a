@@ -2,11 +2,12 @@ import { useState } from "react";
 import {
   Card, CardContent, CardHeader, CardTitle,
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-  Input, Button, Badge,
+  Input, Button,
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui";
 import { formatTokenBalance } from "@/utils/formatters";
 import { Save, Calendar } from "lucide-react";
+import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   useInvestorMonthlyReports,
   useCreateMonthlyTemplate,
@@ -194,7 +195,10 @@ const MonthlyReportsTable: React.FC<MonthlyReportsTableProps> = ({ investorId, i
                       {monthReports.map((report) => (
                         <TableRow key={report.id}>
                           <TableCell>
-                            <Badge variant="outline">{report.asset_code}</Badge>
+                            <div className="flex items-center gap-2">
+                              <CryptoIcon symbol={report.asset_code} className="h-5 w-5" />
+                              <span className="text-xs">{report.asset_code}</span>
+                            </div>
                           </TableCell>
                           <TableCell>
                             {renderEditableCell(report, "opening_balance", report.opening_balance)}
