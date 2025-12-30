@@ -1,9 +1,11 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import {
+  Card, CardContent, CardHeader, CardTitle,
+  Button,
+  Skeleton,
+} from "@/components/ui";
 import { Calendar, ArrowRight, Clock, Receipt, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatAssetAmount } from "@/utils/assets";
-import { Skeleton } from "@/components/ui/skeleton";
 
 import type { LedgerTransaction } from "@/types/domains/transaction";
 

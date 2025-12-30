@@ -1,13 +1,9 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Button,
+  Input,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui";
 import { Search, Users, ArrowDownToLine, X } from "lucide-react";
 import type { EnrichedInvestor } from "@/hooks/data";
 

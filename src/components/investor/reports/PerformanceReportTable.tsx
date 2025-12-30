@@ -1,13 +1,8 @@
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Badge,
+  Button,
+} from "@/components/ui";
 import { Download, TrendingUp, TrendingDown, Loader2 } from "lucide-react";
 import { PerformanceRecord } from "@/types/domains";
 import { getAssetLogo } from "@/utils/assets";
