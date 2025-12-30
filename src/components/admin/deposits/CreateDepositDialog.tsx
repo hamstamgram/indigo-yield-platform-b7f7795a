@@ -9,8 +9,7 @@ import {
 } from "@/components/ui";
 import { AlertTriangle, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
-import { depositService } from "@/services/investor/depositService";
-import { fundDailyAumService, profileService } from "@/services/shared";
+import { depositService, fundDailyAumService, profileService } from "@/services";
 import { supabase } from "@/integrations/supabase/client";
 import type { DepositFormData } from "@/types/domains";
 import { format } from "date-fns";

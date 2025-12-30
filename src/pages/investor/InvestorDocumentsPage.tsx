@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/layout";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useInvestorDocuments, useDocumentDownload } from "@/hooks/data/investor";
-import type { InvestorDocument } from "@/services/investor/investorDataService";
+import type { InvestorDocument } from "@/services";
 
 export default function InvestorDocumentsPage() {
   const { data: documents, isLoading } = useInvestorDocuments();

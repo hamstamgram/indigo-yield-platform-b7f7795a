@@ -10,7 +10,7 @@ import {
   Button,
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui";
-import { YieldRecord } from "@/services/admin/recordedYieldsService";
+import type { YieldRecord } from "@/services";
 
 interface YieldActionsColumnProps {
   record: YieldRecord;

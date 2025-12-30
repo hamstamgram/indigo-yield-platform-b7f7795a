@@ -42,10 +42,10 @@ import { useAuth } from "@/lib/auth/context";
 import {
   previewYieldDistribution,
   applyYieldDistribution,
-  YieldCalculationResult,
-  YieldDistribution,
-  IBCredit,
-} from "@/services/admin/yieldDistributionService";
+  type YieldCalculationResult,
+  type YieldDistribution,
+  type IBCredit,
+} from "@/services";
 import { useMonthClosure, useActiveFundsWithAUM } from "@/hooks";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";

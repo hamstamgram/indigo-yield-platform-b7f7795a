@@ -5,7 +5,7 @@ import {
   Button, Input, Label, Textarea,
   Alert, AlertDescription,
 } from "@/components/ui";
-import { withdrawalService } from "@/services/investor/withdrawalService";
+import { withdrawalService } from "@/services";
 import { toast } from "sonner";
 import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { formatAssetAmount } from "@/utils/assets";

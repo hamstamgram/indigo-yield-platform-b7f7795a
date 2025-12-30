@@ -14,16 +14,16 @@ import {
 } from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import {
-  CorrectionSummary,
-  InvestorImpactRow,
-  TransactionDiff,
-  ReportImpact,
-  Reconciliation,
   formatTokenAmount,
   exportInvestorImpactToCsv,
   exportTransactionDiffsToCsv,
   downloadCsv,
-} from "@/services/admin/yieldCorrectionService";
+  type CorrectionSummary,
+  type InvestorImpactRow,
+  type TransactionDiff,
+  type ReportImpact,
+  type Reconciliation,
+} from "@/services";
 
 interface YieldCorrectionPreviewProps {
   summary: CorrectionSummary;

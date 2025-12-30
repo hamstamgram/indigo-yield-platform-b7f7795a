@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import SearchBar from "./SearchBar";
 import InvestorsTable from "./InvestorsTable";
 import { AssetRef as Asset } from "@/types/asset";
-import { InvestorSummaryV2 } from "@/services/admin/adminService";
+import type { InvestorSummaryV2 } from "@/services";
 
 interface InvestorTableContainerProps {
   investors: InvestorSummaryV2[];

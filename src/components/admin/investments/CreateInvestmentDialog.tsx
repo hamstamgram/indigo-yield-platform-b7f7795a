@@ -9,8 +9,7 @@ import {
 } from "@/components/ui";
 import { investmentFormSchema, type InvestmentFormValues } from "@/lib/validation/investment";
 import { type InvestmentFormData } from "@/types/domains";
-import { investmentService } from "@/services/investor/investmentService";
-import { profileService } from "@/services/shared";
+import { investmentService, profileService } from "@/services";
 import { toast } from "sonner";
 
 interface CreateInvestmentDialogProps {

@@ -10,7 +10,7 @@ import { AssetRef as Asset } from "@/types/asset";
 import FundAssetDropdown from "../FundAssetDropdown";
 import InvestorInfo from "./InvestorInfo";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { getAllFunds, updateInvestorPosition } from "@/services/investor/fundViewService";
+import { getAllFunds, updateInvestorPosition } from "@/services";
 import { formatAssetAmount } from "@/utils/assets";
 
 /**

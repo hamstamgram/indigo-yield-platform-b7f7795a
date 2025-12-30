@@ -12,8 +12,8 @@ import { useToast } from "@/hooks";
 import { useAuth } from "@/lib/auth/context";
 import {
   previewYieldDistribution,
-  YieldCalculationResult,
-} from "@/services/admin/yieldDistributionService";
+  type YieldCalculationResult,
+} from "@/services";
 import {
   useActiveFundsWithAUM,
   useFundInvestorComposition,

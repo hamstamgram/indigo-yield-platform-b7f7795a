@@ -13,9 +13,7 @@ import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui";
 import { toast } from "sonner";
-import { createAdminTransaction, type CreateTransactionParams } from "@/services/shared/transactionService";
-import { fetchInvestorsForSelector } from "@/services/investor";
-import { saveDraftAUMEntry } from "@/services/admin/yieldDistributionService";
+import { createAdminTransaction, fetchInvestorsForSelector, saveDraftAUMEntry, type CreateTransactionParams } from "@/services";
 import { Loader2, Check, ChevronsUpDown, AlertTriangle, Info, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";

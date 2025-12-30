@@ -9,7 +9,7 @@ import {
 } from "@/components/ui";
 import { FileText, Filter, Calendar, User, Activity, Database, Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
-import { auditLogService, AuditLogEntry, AuditLogFilters } from "@/services/shared/auditLogService";
+import { auditLogService, type AuditLogEntry, type AuditLogFilters } from "@/services";
 import { useRealtimeSubscription } from "@/hooks";
 
 const AuditLogViewer = () => {

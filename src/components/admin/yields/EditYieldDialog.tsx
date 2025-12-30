@@ -10,7 +10,7 @@ import {
   Button, Input, Textarea, Label, Badge,
 } from "@/components/ui";
 import { format } from "date-fns";
-import { YieldRecord } from "@/services/admin/recordedYieldsService";
+import type { YieldRecord } from "@/services";
 import { CryptoIcon } from "@/components/CryptoIcons";
 
 interface EditYieldDialogProps {

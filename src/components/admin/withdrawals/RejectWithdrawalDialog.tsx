@@ -11,7 +11,7 @@ import {
   Label,
   Textarea,
 } from "@/components/ui";
-import { withdrawalService } from "@/services/investor/withdrawalService";
+import { withdrawalService } from "@/services";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 

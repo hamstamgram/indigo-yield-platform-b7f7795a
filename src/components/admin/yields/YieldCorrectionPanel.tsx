@@ -14,14 +14,14 @@ import {
 } from "@/components/ui";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { toast } from "sonner";
-import { YieldRecord } from "@/services/admin/recordedYieldsService";
 import {
   previewYieldCorrectionV2,
   applyYieldCorrectionV2,
   regenerateAffectedReports,
-  CorrectionPreview,
   formatTokenAmount,
-} from "@/services/admin/yieldCorrectionService";
+  type YieldRecord,
+  type CorrectionPreview,
+} from "@/services";
 import { YieldCorrectionPreview } from "./YieldCorrectionPreview";
 import { CorrectionConfirmDialog } from "./CorrectionConfirmDialog";
 

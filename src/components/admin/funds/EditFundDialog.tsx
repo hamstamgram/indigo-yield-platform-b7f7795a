@@ -17,8 +17,7 @@ import { Loader2, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
 import { FundLogoUpload } from "./FundLogoUpload";
 import { format } from "date-fns";
-import { updateFund } from "@/services/admin/fundService";
-import { auditLogService, positionService } from "@/services/shared";
+import { updateFund, auditLogService, positionService } from "@/services";
 import { supabase } from "@/integrations/supabase/client";
 
 const editFundSchema = z.object({

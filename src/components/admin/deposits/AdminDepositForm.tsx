@@ -19,7 +19,7 @@ import {
   Calendar,
 } from "@/components/ui";
 import { useToast } from "@/hooks";
-import { depositService } from "@/services/investor/depositService";
+import { depositService } from "@/services";
 import { PlusCircle, Loader2, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";

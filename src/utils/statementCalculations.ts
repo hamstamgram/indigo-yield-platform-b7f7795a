@@ -1,5 +1,4 @@
-import { profileService, fundService } from "@/services/shared";
-import { transactionsV2Service } from "@/services/investor/transactionsV2Service";
+import { profileService, fundService, transactionsV2Service } from "@/services";
 import { StatementTransaction } from "@/types/domains/transaction";
 
 // Re-export for backwards compatibility

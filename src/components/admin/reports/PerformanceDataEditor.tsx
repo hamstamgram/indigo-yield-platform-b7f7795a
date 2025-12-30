@@ -19,8 +19,8 @@ import {
   createPerformanceRecord,
   deletePerformanceRecord,
   getAvailableFunds,
-  PerformanceUpdateData,
-} from "@/services/shared/performanceDataService";
+  type PerformanceUpdateData,
+} from "@/services";
 
 interface AssetData {
   asset_code: string;
