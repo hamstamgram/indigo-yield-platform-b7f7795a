@@ -249,6 +249,7 @@ export async function createInvestorWithWizard(
 
           // Call admin_create_transaction RPC which handles both transaction creation
           // and position update atomically
+          const { data: { user } } = await supabase.auth.getUser();
           const { error: txError } = await (supabase.rpc as any)("admin_create_transaction", {
             p_investor_id: investorId,
             p_fund_id: fund.id,
@@ -257,6 +258,7 @@ export async function createInvestorWithWizard(
             p_tx_date: effectiveDate,
             p_notes: "Initial position on investor creation",
             p_reference_id: referenceId,
+            p_admin_id: user?.id || null,
           });
 
           if (txError) {
