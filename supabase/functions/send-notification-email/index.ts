@@ -17,7 +17,7 @@ const corsHeaders = (origin: string | null) => ({
 interface EmailRequest {
   to: string;
   subject: string;
-  template: "statement_ready" | "withdrawal_status" | "welcome" | "admin_notification";
+  template: "statement_ready" | "withdrawal_status" | "welcome" | "admin_notification" | "deposit_confirmed" | "yield_distributed";
   data: Record<string, any>;
 }
 
@@ -113,6 +113,45 @@ const handler = async (req: Request): Promise<Response> => {
             ${data.details ? `<div style="background: #F3F4F6; padding: 15px; margin: 15px 0; border-radius: 6px;"><pre>${JSON.stringify(data.details, null, 2)}</pre></div>` : ""}
             <p>Please review and take appropriate action.</p>
             <p>System Notification</p>
+          </div>
+        `,
+      },
+      deposit_confirmed: {
+        subject: subject || "Deposit Confirmed",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #10B981;">Deposit Confirmed</h1>
+            <p>Dear ${data.name},</p>
+            <p>Your deposit of <strong>${data.amount} ${data.asset}</strong>${data.fundName ? ` to ${data.fundName}` : ""} has been confirmed and credited to your account.</p>
+            <div style="background: #F0FDF4; padding: 15px; margin: 15px 0; border-radius: 6px; border-left: 4px solid #10B981;">
+              <p style="margin: 0;"><strong>Amount:</strong> ${data.amount} ${data.asset}</p>
+              ${data.fundName ? `<p style="margin: 5px 0 0 0;"><strong>Fund:</strong> ${data.fundName}</p>` : ""}
+              ${data.reference ? `<p style="margin: 5px 0 0 0;"><strong>Reference:</strong> ${data.reference}</p>` : ""}
+            </div>
+            <div style="margin: 20px 0;">
+              <a href="${data.portalLink || "#"}" style="background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">View Your Portfolio</a>
+            </div>
+            <p>Best regards,<br/>The Indigo Yield Team</p>
+          </div>
+        `,
+      },
+      yield_distributed: {
+        subject: subject || "Yield Distribution",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #4F46E5;">Yield Distributed</h1>
+            <p>Dear ${data.name},</p>
+            <p>Good news! Your yield for ${data.period} has been distributed.</p>
+            <div style="background: #EEF2FF; padding: 15px; margin: 15px 0; border-radius: 6px; border-left: 4px solid #4F46E5;">
+              <p style="margin: 0;"><strong>Yield Earned:</strong> ${data.amount} ${data.asset}</p>
+              ${data.yieldPercentage ? `<p style="margin: 5px 0 0 0;"><strong>Rate:</strong> ${data.yieldPercentage}%</p>` : ""}
+              ${data.fundName ? `<p style="margin: 5px 0 0 0;"><strong>Fund:</strong> ${data.fundName}</p>` : ""}
+            </div>
+            <p>Your yield has been automatically compounded into your position.</p>
+            <div style="margin: 20px 0;">
+              <a href="${data.portalLink || "#"}" style="background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">View Your Portfolio</a>
+            </div>
+            <p>Best regards,<br/>The Indigo Yield Team</p>
           </div>
         `,
       },
