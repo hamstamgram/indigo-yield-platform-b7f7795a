@@ -4752,6 +4752,7 @@ export type Database = {
           status: Database["public"]["Enums"]["withdrawal_status"]
           tx_hash: string | null
           updated_at: string | null
+          version: number | null
           withdrawal_type: string
         }
         Insert: {
@@ -4781,6 +4782,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["withdrawal_status"]
           tx_hash?: string | null
           updated_at?: string | null
+          version?: number | null
           withdrawal_type: string
         }
         Update: {
@@ -4810,6 +4812,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["withdrawal_status"]
           tx_hash?: string | null
           updated_at?: string | null
+          version?: number | null
           withdrawal_type?: string
         }
         Relationships: [
@@ -7326,6 +7329,7 @@ export type Database = {
         | "YIELD"
         | "INTERNAL_WITHDRAWAL"
         | "INTERNAL_CREDIT"
+        | "IB_DEBIT"
       visibility_scope: "investor_visible" | "admin_only"
       withdrawal_action:
         | "create"
@@ -7534,6 +7538,7 @@ export const Constants = {
         "YIELD",
         "INTERNAL_WITHDRAWAL",
         "INTERNAL_CREDIT",
+        "IB_DEBIT",
       ],
       visibility_scope: ["investor_visible", "admin_only"],
       withdrawal_action: [
