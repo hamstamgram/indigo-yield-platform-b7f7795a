@@ -7231,6 +7231,7 @@ export type Database = {
           redemptions: number
         }[]
       }
+      recalculate_all_aum: { Args: never; Returns: Json }
       recompute_investor_position: {
         Args: { p_fund_id: string; p_investor_id: string }
         Returns: undefined
