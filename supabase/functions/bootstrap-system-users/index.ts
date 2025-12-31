@@ -178,7 +178,7 @@ async function bootstrapFeesAccount(email: string) {
     .update({
       account_type: "fees_account",
       is_system_account: true,
-      fee_pct: 0,
+      fee_percentage: 0,
       first_name: "INDIGO",
       last_name: "FEES",
     })

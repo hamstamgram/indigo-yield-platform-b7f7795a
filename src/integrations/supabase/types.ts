@@ -146,6 +146,57 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_logs: {
+        Row: {
+          action: string
+          changes: Json | null
+          created_at: string | null
+          id: string
+          ip_address: unknown
+          record_id: string | null
+          table_name: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          changes?: Json | null
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          record_id?: string | null
+          table_name: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          changes?: Json | null
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          record_id?: string | null
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+        ]
+      }
       balance_adjustments: {
         Row: {
           amount: number
@@ -756,7 +807,6 @@ export type Database = {
           period_start: string
           purpose: Database["public"]["Enums"]["aum_purpose"]
           voided_at: string | null
-          voided_by: string | null
         }
         Insert: {
           base_net_income: number
@@ -776,7 +826,6 @@ export type Database = {
           period_start: string
           purpose: Database["public"]["Enums"]["aum_purpose"]
           voided_at?: string | null
-          voided_by?: string | null
         }
         Update: {
           base_net_income?: number
@@ -796,7 +845,6 @@ export type Database = {
           period_start?: string
           purpose?: Database["public"]["Enums"]["aum_purpose"]
           voided_at?: string | null
-          voided_by?: string | null
         }
         Relationships: [
           {
@@ -1881,7 +1929,6 @@ export type Database = {
           source_investor_id: string
           source_net_income: number
           voided_at: string | null
-          voided_by: string | null
         }
         Insert: {
           created_at?: string | null
@@ -1906,7 +1953,6 @@ export type Database = {
           source_investor_id: string
           source_net_income: number
           voided_at?: string | null
-          voided_by?: string | null
         }
         Update: {
           created_at?: string | null
@@ -1931,7 +1977,6 @@ export type Database = {
           source_investor_id?: string
           source_net_income?: number
           voided_at?: string | null
-          voided_by?: string | null
         }
         Relationships: [
           {
@@ -3451,9 +3496,8 @@ export type Database = {
           created_at: string
           email: string
           entity_type: string | null
-          fee_pct: number
+          fee_percentage: number | null
           first_name: string | null
-          ib_commission_source: string
           ib_parent_id: string | null
           ib_percentage: number | null
           id: string
@@ -3477,9 +3521,8 @@ export type Database = {
           created_at?: string
           email: string
           entity_type?: string | null
-          fee_pct?: number
+          fee_percentage?: number | null
           first_name?: string | null
-          ib_commission_source?: string
           ib_parent_id?: string | null
           ib_percentage?: number | null
           id: string
@@ -3503,9 +3546,8 @@ export type Database = {
           created_at?: string
           email?: string
           entity_type?: string | null
-          fee_pct?: number
+          fee_percentage?: number | null
           first_name?: string | null
-          ib_commission_source?: string
           ib_parent_id?: string | null
           ib_percentage?: number | null
           id?: string
@@ -5264,9 +5306,9 @@ export type Database = {
           actor_user?: string | null
           created_at?: string | null
           entity?: string | null
-          entity_id?: string | null
+          entity_id?: never
           event_id?: string | null
-          meta?: Json | null
+          meta?: never
           new_values?: Json | null
           old_values?: Json | null
           operation?: string | null
@@ -5277,16 +5319,45 @@ export type Database = {
           actor_user?: string | null
           created_at?: string | null
           entity?: string | null
-          entity_id?: string | null
+          entity_id?: never
           event_id?: string | null
-          meta?: Json | null
+          meta?: never
           new_values?: Json | null
           old_values?: Json | null
           operation?: string | null
           source_table?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["actor_user"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["actor_user"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+        ]
       }
       fund_aum_mismatch: {
         Row: {
@@ -6408,6 +6479,62 @@ export type Database = {
           },
         ]
       }
+      withdrawal_audit_log: {
+        Row: {
+          action: Database["public"]["Enums"]["withdrawal_action"] | null
+          actor_id: string | null
+          created_at: string | null
+          details: Json | null
+          id: string | null
+          request_id: string | null
+        }
+        Insert: {
+          action?: Database["public"]["Enums"]["withdrawal_action"] | null
+          actor_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string | null
+          request_id?: string | null
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["withdrawal_action"] | null
+          actor_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string | null
+          request_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "withdrawal_audit_logs_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_queue"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_audit_logs_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       withdrawal_queue: {
         Row: {
           amount: number | null
@@ -6558,10 +6685,6 @@ export type Database = {
         }
         Returns: string
       }
-      admin_create_transactions_batch: {
-        Args: { p_requests: Json }
-        Returns: Json
-      }
       apply_daily_yield_to_fund: {
         Args: {
           p_admin_id: string
@@ -6582,16 +6705,6 @@ export type Database = {
           p_date: string
           p_fund_id: string
           p_gross_amount: number
-          p_purpose?: string
-        }
-        Returns: Json
-      }
-      apply_daily_yield_to_fund_v3: {
-        Args: {
-          p_as_of_date: string
-          p_fund_id: string
-          p_new_total_aum: number
-          p_notes?: string
           p_purpose?: string
         }
         Returns: Json
@@ -6651,7 +6764,6 @@ export type Database = {
         }
         Returns: boolean
       }
-      backfill_yield_summaries: { Args: never; Returns: Json }
       can_access_investor: { Args: { investor_uuid: string }; Returns: boolean }
       can_access_notification: {
         Args: { notification_id: string }
@@ -7144,16 +7256,6 @@ export type Database = {
         }
         Returns: Json
       }
-      preview_daily_yield_to_fund_v3: {
-        Args: {
-          p_as_of_date: string
-          p_fund_id: string
-          p_new_total_aum: number
-          p_notes?: string
-          p_purpose?: string
-        }
-        Returns: Json
-      }
       preview_investor_balances: {
         Args: { p_fund_id?: string }
         Returns: {
@@ -7232,7 +7334,6 @@ export type Database = {
           redemptions: number
         }[]
       }
-      recalculate_all_aum: { Args: never; Returns: Json }
       recompute_investor_position: {
         Args: { p_fund_id: string; p_investor_id: string }
         Returns: undefined

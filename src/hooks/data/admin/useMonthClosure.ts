@@ -3,19 +3,35 @@
  */
 
 import { useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import {
-  getMonthClosureStatus,
-  closeReportingMonth as closeMonth,
-  reopenReportingMonth as reopenMonth,
-  type MonthClosureStatusResponse,
-  type CloseMonthResponse,
-  type ReopenMonthResponse,
-} from "@/lib/supabase/typedRpc";
 
-export interface MonthClosureStatus extends MonthClosureStatusResponse {}
-export interface CloseMonthResult extends CloseMonthResponse {}
-export interface ReopenMonthResult extends ReopenMonthResponse {}
+export interface MonthClosureStatus {
+  is_closed: boolean;
+  closure_id?: string;
+  fund_id: string;
+  month_start: string;
+  month_end?: string;
+  closed_at?: string;
+  closed_by?: string;
+  notes?: string;
+}
+
+export interface CloseMonthResult {
+  success: boolean;
+  error?: string;
+  closure_id?: string;
+  month_start?: string;
+  month_end?: string;
+  closed_at?: string;
+}
+
+export interface ReopenMonthResult {
+  success: boolean;
+  error?: string;
+  closure_id?: string;
+  month_start?: string;
+}
 
 /**
  * Hook for checking and closing fund reporting months
@@ -34,7 +50,7 @@ export function useMonthClosure() {
     try {
       const monthStartStr = monthStart.toISOString().split("T")[0];
       
-      const { data, error } = await getMonthClosureStatus({
+      const { data, error } = await (supabase.rpc as any)("get_month_closure_status", {
         p_fund_id: fundId,
         p_month_start: monthStartStr,
       });
@@ -68,7 +84,7 @@ export function useMonthClosure() {
       const monthStartStr = monthStart.toISOString().split("T")[0];
       const effectiveDateStr = effectiveDate.toISOString().split("T")[0];
 
-      const { data, error } = await closeMonth({
+      const { data, error } = await (supabase.rpc as any)("close_fund_reporting_month", {
         p_fund_id: fundId,
         p_month_start: monthStartStr,
         p_effective_date: effectiveDateStr,
@@ -114,7 +130,7 @@ export function useMonthClosure() {
     try {
       const monthStartStr = monthStart.toISOString().split("T")[0];
 
-      const { data, error } = await reopenMonth({
+      const { data, error } = await (supabase.rpc as any)("reopen_fund_reporting_month", {
         p_fund_id: fundId,
         p_month_start: monthStartStr,
         p_admin_id: adminId,

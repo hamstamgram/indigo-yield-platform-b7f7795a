@@ -24,7 +24,6 @@ import {
 } from "@/components/ui";
 import { Loader2, AlertTriangle, Info } from "lucide-react";
 import { useSubmitWithdrawal } from "@/hooks/data/useInvestorWithdrawals";
-import { CryptoIcon } from "@/components/CryptoIcons";
 
 export interface WithdrawalPosition {
   fund_id: string;
@@ -127,10 +126,7 @@ export function WithdrawalRequestForm({
                 {positions.map((position) => (
                   <SelectItem key={position.asset_symbol} value={position.asset_symbol}>
                     <div className="flex justify-between items-center w-full">
-                      <div className="flex items-center gap-2">
-                        <CryptoIcon symbol={position.asset_symbol} className="h-4 w-4" />
-                        <span>{position.asset_symbol}</span>
-                      </div>
+                      <span>{position.asset_symbol}</span>
                       <span className="text-sm text-muted-foreground ml-4">
                         {formatCrypto(position.amount, 8, position.asset_symbol)}
                       </span>

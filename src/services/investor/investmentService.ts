@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { adjustInvestorPosition, recomputeInvestorPosition } from "@/lib/supabase/typedRpc";
 import { type InvestmentFormData } from "@/types/domains";
 
 export const investmentService = {
@@ -35,7 +34,8 @@ export const investmentService = {
       `investment:${data.fund_id}:${data.investor_id}:${txDate}:${crypto.randomUUID()}`;
 
     // Use canonical adjust_investor_position RPC for atomic transaction + position update
-    const { data: result, error } = await adjustInvestorPosition({
+    const rpcCall = (supabase.rpc as any).bind(supabase);
+    const { data: result, error } = await rpcCall("adjust_investor_position", {
       p_investor_id: data.investor_id,
       p_fund_id: data.fund_id,
       p_delta: delta,
@@ -91,7 +91,8 @@ export const investmentService = {
     if (updateError) throw updateError;
 
     // 3. Recompute position from ledger to ensure consistency
-    await recomputeInvestorPosition({
+    const rpcCall = (supabase.rpc as any).bind(supabase);
+    await rpcCall("recompute_investor_position", {
       p_investor_id: tx.investor_id,
       p_fund_id: tx.fund_id,
     });
@@ -99,26 +100,16 @@ export const investmentService = {
     return { success: true };
   },
 
-  /**
-   * Reject an investment
-   */
   async rejectInvestment(id: string, reason: string) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
     const { error } = await supabase
       .from("transactions_v2")
       .update({
         status: "rejected",
-        notes: reason,
-        approved_by: user?.id,
-        approved_at: new Date().toISOString(),
+        notes: reason ? `Rejected: ${reason}` : "Rejected",
       } as any)
       .eq("id", id);
 
     if (error) throw error;
-
     return { success: true };
   },
 };

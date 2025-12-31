@@ -6,7 +6,6 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { adjustInvestorPosition } from "@/lib/supabase/typedRpc";
 import type { 
   Transaction as BaseTransaction,
   CreateTransactionUIParams,
@@ -176,8 +175,9 @@ export async function createAdminTransaction(
       const referenceId = params.reference_id || 
         `manual:${params.fund_id}:${params.investor_id}:${params.tx_date}:${crypto.randomUUID()}`;
       
-      // Use typed RPC wrapper
-      const { data, error } = await adjustInvestorPosition({
+      // Use the canonical 8-param signature with reference_id
+      const rpcCall = (supabase.rpc as any).bind(supabase);
+      const { data, error } = await rpcCall("adjust_investor_position", {
         p_investor_id: params.investor_id,
         p_fund_id: params.fund_id,
         p_delta: delta,
@@ -191,7 +191,7 @@ export async function createAdminTransaction(
       if (error) {
         console.error("adjust_investor_position error:", error);
         // Surface the actual Postgres error message
-        const errorMessage = error.message || "Failed to create transaction";
+        const errorMessage = error.message || error.details || "Failed to create transaction";
         throw new Error(errorMessage);
       }
       
@@ -253,8 +253,8 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
   // Generate unique reference_id to prevent duplicates
   const referenceId = `manual:${params.fundId}:${params.investorId}:${new Date().toISOString().split('T')[0]}:${crypto.randomUUID()}`;
 
-  // Use typed RPC wrapper
-  const { error } = await adjustInvestorPosition({
+  // Use the canonical 8-param signature with reference_id
+  const { error } = await (supabase.rpc as any)("adjust_investor_position", {
     p_investor_id: params.investorId,
     p_fund_id: params.fundId,
     p_delta: delta,
@@ -266,7 +266,7 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
   });
 
   if (error) {
-    const errorMessage = error.message || "Failed to create transaction";
+    const errorMessage = error.message || error.details || "Failed to create transaction";
     throw new Error(errorMessage);
   }
 }

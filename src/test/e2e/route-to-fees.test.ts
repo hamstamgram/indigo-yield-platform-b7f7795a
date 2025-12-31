@@ -4,7 +4,6 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { routeWithdrawalToFees } from "@/lib/supabase/typedRpc";
 
 // Mock Supabase client
 const mockRpc = vi.fn();
@@ -54,7 +53,9 @@ describe("Route Withdrawal to INDIGO FEES", () => {
         error: null 
       });
 
-      const result = await routeWithdrawalToFees({
+      const { supabase } = await import("@/integrations/supabase/client");
+      
+      const result = await (supabase.rpc as any)("route_withdrawal_to_fees", {
         p_withdrawal_id: "withdrawal-request-id",
         p_admin_notes: "Routed to fees per policy",
       });
@@ -80,7 +81,9 @@ describe("Route Withdrawal to INDIGO FEES", () => {
         error: null 
       });
 
-      const result = await routeWithdrawalToFees({
+      const { supabase } = await import("@/integrations/supabase/client");
+      
+      const result = await (supabase.rpc as any)("route_withdrawal_to_fees", {
         p_withdrawal_id: "withdrawal-request-id",
         p_admin_notes: "Internal routing",
       });
@@ -99,7 +102,9 @@ describe("Route Withdrawal to INDIGO FEES", () => {
         error: null 
       });
 
-      const result = await routeWithdrawalToFees({
+      const { supabase } = await import("@/integrations/supabase/client");
+      
+      const result = await (supabase.rpc as any)("route_withdrawal_to_fees", {
         p_withdrawal_id: "already-routed-withdrawal-id",
         p_admin_notes: "Attempted duplicate routing",
       });
@@ -117,7 +122,9 @@ describe("Route Withdrawal to INDIGO FEES", () => {
         } 
       });
 
-      const result = await routeWithdrawalToFees({
+      const { supabase } = await import("@/integrations/supabase/client");
+      
+      const result = await (supabase.rpc as any)("route_withdrawal_to_fees", {
         p_withdrawal_id: "pending-withdrawal-id",
         p_admin_notes: "Should fail",
       });
@@ -135,7 +142,9 @@ describe("Route Withdrawal to INDIGO FEES", () => {
         } 
       });
 
-      const result = await routeWithdrawalToFees({
+      const { supabase } = await import("@/integrations/supabase/client");
+      
+      const result = await (supabase.rpc as any)("route_withdrawal_to_fees", {
         p_withdrawal_id: "withdrawal-request-id",
         p_admin_notes: "Attempted by non-admin",
       });

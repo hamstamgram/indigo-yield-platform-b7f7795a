@@ -4,7 +4,7 @@
  */
 
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Plus, FileOutput, FileText, MoreHorizontal, User, Users, Percent, AlertTriangle } from "lucide-react";
 import {
   Button,
@@ -114,9 +114,7 @@ export function InvestorHeader({
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link to="/admin/investors">Investors</Link>
-                </BreadcrumbLink>
+                <BreadcrumbLink href="/admin/investors">Investors</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>

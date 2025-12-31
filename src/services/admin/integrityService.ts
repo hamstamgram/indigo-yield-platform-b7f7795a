@@ -95,29 +95,7 @@ export async function fetchAuditEvents(limit = 10): Promise<AuditEvent[]> {
   return (data as AuditEvent[]) || [];
 }
 
-/**
- * Run position reconciliation via RPC
- * @param dryRun - If true, returns preview without making changes
- */
-export async function runPositionReconciliation(dryRun = true): Promise<{
-  investor_id: string;
-  fund_id: string;
-  investor_name: string;
-  fund_name: string;
-  old_value: number;
-  new_value: number;
-  action: string;
-}[]> {
-  const { data, error } = await supabase.rpc("reconcile_all_positions", {
-    p_dry_run: dryRun,
-  });
-
-  if (error) throw error;
-  return data || [];
-}
-
 export const integrityService = {
   fetchIntegrityChecks,
   fetchAuditEvents,
-  runPositionReconciliation,
 };

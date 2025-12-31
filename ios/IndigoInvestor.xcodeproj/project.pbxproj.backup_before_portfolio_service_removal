@@ -1,0 +1,1463 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		017DEB9A9662AEB24F1D4E0C /* SecurityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A5E1805ACDD822726C10AE5 /* SecurityManager.swift */; };
+		02CE5412D49810FC951B8E7E /* TransactionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6359576BE6402001378D64CC /* TransactionsView.swift */; };
+		059F8C97535BFAF8ADEE0F96 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 32825BDE31C81D31B1FB9960 /* Supabase */; };
+		065B24929928FBA02A453360 /* ProfileSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26D4974EF794CE4886D0AF88 /* ProfileSettingsView.swift */; };
+		092F33DAE68B58E823071751 /* IndigoInvestor.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F6F6F25D8AF6B10960F071A4 /* IndigoInvestor.xcdatamodeld */; };
+		0C41989E5524138F8D162A74 /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE0D0E087CC6C308B2823831 /* AuthenticationView.swift */; };
+		0C486B18E1F96BDE0D1AA30B /* NotificationsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F0A76BE6377778E5E30D58A /* NotificationsViewModel.swift */; };
+		0E8AFAA623B90EE30AE20761 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = B4FE8087ECD88C6C2685D9E4 /* KeychainAccess */; };
+		0EF37F16E78AA4895BEE8904 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D1913928A26F5D54F78FC57A /* Assets.xcassets */; };
+		0F23092E20AB4033A0533E39 /* MockBiometricAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F8BB320D9BB17F06090F359 /* MockBiometricAuthManager.swift */; };
+		0F8FE7D0A3A9DF888A1B77B2 /* Newsletter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52685A678206970467F75526 /* Newsletter.swift */; };
+		11B2F0E96576796734818811 /* InMemoryLocalStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC0BEBC60581716432E97E8C /* InMemoryLocalStorage.swift */; };
+		121A8372579BB3C29B83317A /* AuthViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E75A785A213139CD35F4DDE /* AuthViewModelTests.swift */; };
+		12959D1063646188BBD5274F /* Montserrat-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F72EA5BC7464901E4564087A /* Montserrat-SemiBold.ttf */; };
+		12C94B7E55CE7989EED1007B /* RealtimeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8933305BEF036D6595204F98 /* RealtimeService.swift */; };
+		140E740902110581CFA3C555 /* PortfolioRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506BBF0A3BC273330AC656F6 /* PortfolioRepository.swift */; };
+		1832A00F7276FC459C8872B2 /* Montserrat-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7264AAAC34AE3384F7C1F016 /* Montserrat-Italic.ttf */; };
+		18C071534BF342D42D62A051 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE01593B54DB36BFDE1D3DE4 /* SupabaseConfig.swift */; };
+		19A047FA537B859E9E4CA5D9 /* Montserrat-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4B2592408ED0996A7B89EBD2 /* Montserrat-ExtraBold.ttf */; };
+		1AE862B22487A69468C040D1 /* ChartWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C944FD71E92A09D803A361AA /* ChartWrapper.swift */; };
+		1B2F73FDAEC1B00A28B5902E /* WithdrawalRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEA860F3896A03DEEBDD4368 /* WithdrawalRequestView.swift */; };
+		1B4E01A92655A97D26E76604 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5FD33D38E2EECB65764991DD /* Info.plist */; };
+		1CEBBEB609DD8493A266BF8E /* InMemoryAuthStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 170527F0E634482EDBFEF8C3 /* InMemoryAuthStorage.swift */; };
+		203580B609F806D9D9505763 /* AssetDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70478BF008EE598863055450 /* AssetDetailView.swift */; };
+		20535FD5D4B642685CAABC10 /* TransactionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FBD33E87475A335ABBC5ADA /* TransactionViewModel.swift */; };
+		20A7D7D995AD00C1FDBD140C /* Montserrat-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CC8D828800EEC512F1FB88BF /* Montserrat-Thin.ttf */; };
+		2208B2EAD179840403D9EAC0 /* PasswordResetViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153416FF7FBCD448A1703E34 /* PasswordResetViewModel.swift */; };
+		223E22CB6BA3058E3333D8C4 /* AdminInvestorsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CF9E5AFEED36AE0BF30E1A7 /* AdminInvestorsView.swift */; };
+		24228CBD7C292FDD650CF67E /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0565623F3E985E6EADBA0D15 /* DashboardViewModel.swift */; };
+		24AE5B9DE521A8FA748E7E5A /* FinancialComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BEAEB4272B150A859CA35B3 /* FinancialComponents.swift */; };
+		2506F9E3B824B550ADAD58DB /* Montserrat-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 80AAF3674071781CDAA55205 /* Montserrat-ExtraLight.ttf */; };
+		2ADD872D4392C95FE29C5B4A /* AdminDashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E4C07426F8D187C1E574B6B /* AdminDashboardViewModel.swift */; };
+		2B61D803DF13453534144EB6 /* RepositoryProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 864B0C5A0BE7384404F26E81 /* RepositoryProtocols.swift */; };
+		2E2BCB7DD81CEA260FA153D9 /* Montserrat-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 963EBDAA63EB64C5E1E5F3AE /* Montserrat-Bold.ttf */; };
+		2E2F4097D50420EB6E75C609 /* Montserrat-ExtraLightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F9D96BCDCCA9DA273E88A7B3 /* Montserrat-ExtraLightItalic.ttf */; };
+		34B5457C8E6FA9E771905CBB /* PortfolioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADB906EB8B4EC5D8D06F7B2 /* PortfolioService.swift */; };
+		357A137B1F64B9C593AA12A7 /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E06C035EB8311DFAC0D1F557 /* AccountView.swift */; };
+		37411D003BF3B05B06848E42 /* Montserrat-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9160032DA1E800B7344B8230 /* Montserrat-MediumItalic.ttf */; };
+		39180D304F56858A9160FD70 /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACFD42DD2C2174E6286F2968 /* NotificationsView.swift */; };
+		395623A1517BFAFB1FA63674 /* AdminReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2BD1E315287F712D3888CFD /* AdminReportsView.swift */; };
+		396B893FBD6CCECEE87A2878 /* Services.swift in Sources */ = {isa = PBXBuildFile; fileRef = A705E385C4B41832C51805DC /* Services.swift */; };
+		3B2C01FB143D7574587B31BD /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 411A80C7C7399FCC8788F209 /* LaunchScreen.storyboard */; };
+		3D4B8766A272ABD992C19F5D /* Montserrat-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 89067DE1262E18AA8D432408 /* Montserrat-Light.ttf */; };
+		3DDB469A8851755CDB447A25 /* DGCharts in Frameworks */ = {isa = PBXBuildFile; productRef = 4305C7CCA888B79AA380A558 /* DGCharts */; };
+		41DD37D3DF9B1CBB812652A8 /* Montserrat-ThinItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BCFC6316CEDDA968B3C02D24 /* Montserrat-ThinItalic.ttf */; };
+		441B7944932DAC1A0AF7B53C /* WithdrawalsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17157068AA74C7EDD3B2B19E /* WithdrawalsView.swift */; };
+		46A9D0D948A6867C6337AD58 /* IndigoInvestorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951987BE5295E8BF0116EC1C /* IndigoInvestorApp.swift */; };
+		47121DB20996E147CCDA42DB /* generate_icons.sh in Resources */ = {isa = PBXBuildFile; fileRef = DCD6AA436FD57750A20FAF3C /* generate_icons.sh */; };
+		47CF7538DF6DA985929C8509 /* PortfolioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B2924309F669B9E3E98718 /* PortfolioView.swift */; };
+		4868F0F24F8065ED8782446B /* Montserrat-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D03CD0CD3C1D4ABAE44F47D1 /* Montserrat-Black.ttf */; };
+		4940EE3C98DA049554092920 /* AdditionalServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A15C9D79EFBCED9D58B23A9 /* AdditionalServices.swift */; };
+		4A5E39182F0BA0B802334D77 /* BusinessServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0A2769FFE786696B4CC83E7 /* BusinessServices.swift */; };
+		4BF8FFCC2BE57D4E85914C66 /* FinancialTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7D4F007618495BCC224E179 /* FinancialTypography.swift */; };
+		500C1E556E2E4E780F23C8E3 /* AUMService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 318C2AA7EED23FE0EF177E5F /* AUMService.swift */; };
+		523937811DDAE020958FC9C1 /* Montserrat-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8F8738878D2234618B9DBA49 /* Montserrat-Regular.ttf */; };
+		560F245E6F7849FDA6E0A6E9 /* NewDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5109A39251EC97DA6792423 /* NewDashboardView.swift */; };
+		5948B709C5E95FADB0F6DBB5 /* StatementViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BDDCD0FA15FBFC17DA67F4B /* StatementViewer.swift */; };
+		5E1E5377D8745CB187AA1478 /* supabase.cer in Resources */ = {isa = PBXBuildFile; fileRef = 63030E1D07B69C5E0A31B404 /* supabase.cer */; };
+		5F7BD9953AEF528A5DEB4F19 /* YieldGeneratedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9836595B95EDC2D6E2C011 /* YieldGeneratedView.swift */; };
+		605C843B4917AB241DF9E59D /* AccountViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1781186163B6FF39FB25F44D /* AccountViewModel.swift */; };
+		61CD4674B176666C3F0CE332 /* CertificatePinningManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24C0D1D6875B4978FDA3FC68 /* CertificatePinningManager.swift */; };
+		6269817D64994CAC81B34418 /* CoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92305EC8CC178F0A97487531 /* CoreDataManager.swift */; };
+		652A14AA1D02CA34BE5DDC44 /* SupabaseDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBF079F9E3C8CA4085D39D53 /* SupabaseDebugView.swift */; };
+		653FD9691632BA594874F758 /* MissingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD002D213CD7745F8EC64A1 /* MissingViews.swift */; };
+		67AE9E2D489B0C093FA1768B /* AdminSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5546E034C3262B6D9E9ABCE1 /* AdminSettingsView.swift */; };
+		6816EA535172901FE091633A /* OfflineManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9131DDC5CA9BDB0D2121CB6 /* OfflineManager.swift */; };
+		6F57D52C88C3AD832CD4FAFD /* Montserrat-SemiBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E11500D5E7D760D73A511A42 /* Montserrat-SemiBoldItalic.ttf */; };
+		72487F17947A65142EE5D87F /* Types.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFC33B1DDDE1005EA88B88 /* Types.swift */; };
+		742842F380F4C0036D330230 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135ACEF8377F849B0E36684B /* AuthViewModel.swift */; };
+		7459E9B911C54917CB67D6D6 /* QuickDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8578B92F377C713BAB854336 /* QuickDebugView.swift */; };
+		78D6CA23ECEA2DFA5FFBCB9C /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AE44B1A67C4B1858115AD21 /* MainTabView.swift */; };
+		78E1483B3208AB4C6653CB5B /* SupportViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09938D2439AA716ECC939377 /* SupportViewModel.swift */; };
+		7E360B04B96AB1F1B2F3282E /* Montserrat-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EE418EE131FD171A38ABBDD8 /* Montserrat-Medium.ttf */; };
+		7F22AB0BD141A63CF655B960 /* AdminApprovalsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42EB2075C069D0E608A046D /* AdminApprovalsView.swift */; };
+		85518E3BC238205C66220FEA /* ServiceLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 551BFC96C38228D3B6196E27 /* ServiceLocator.swift */; };
+		891BBC0C435EA6A583BDC840 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A133BA85E50755E8FC2E6479 /* DashboardView.swift */; };
+		89F1752391F8388E83FE1782 /* DocumentsVaultViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05C5EB20025ADBDE2EC261DB /* DocumentsVaultViewModel.swift */; };
+		8EEBEDB174F7EE83FC52A2A0 /* Montserrat-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7428A8BB352E7B6B9A41E48E /* Montserrat-LightItalic.ttf */; };
+		8F53A5B6AEA85AC0EF98920C /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40DA37A1580AD29FD17C332C /* Environment.swift */; };
+		8FA5B43B5D965730AAB087A0 /* TransactionHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C192631E08B07B51D590DD4E /* TransactionHistoryView.swift */; };
+		92BC31CA52F35922C20C14AE /* Color+Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD14EB97D98D897826B4A34 /* Color+Brand.swift */; };
+		9734598AB4D72B51B6BE1A1B /* UpdatedRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 752947D194FEECE198B16738 /* UpdatedRootView.swift */; };
+		99DE2DF88DABAC4F343F9D1B /* BiometricAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CAD2080143DC9067C853FAD /* BiometricAuthManager.swift */; };
+		9EAC1AD80CF418A747AAC977 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BD83474EE4ACD4891E8CE78 /* KeychainManager.swift */; };
+		A0E398F961352106C80C84AA /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2161C6A80FCF861705F043E /* NetworkMonitor.swift */; };
+		A15C767C6035E646041A9A90 /* PortfolioServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3F2961454BE3D9A5F42AFE3 /* PortfolioServiceTests.swift */; };
+		A18ECA9424C995739C66E876 /* LiveEventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5846DD0C1B61E58E27AFA9C0 /* LiveEventsView.swift */; };
+		A2A9CBDF0187678BA221985D /* TransactionHistoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0E42FDE244D632E715ED395 /* TransactionHistoryViewModel.swift */; };
+		A3F1AA552DA4392E8635F853 /* String+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA3CA795335038D79B7CEB0 /* String+Localization.swift */; };
+		A4CDAA83551AEB1C516CDDF3 /* PortfolioViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B14D21CA7DB2F54DF32D3838 /* PortfolioViewModel.swift */; };
+		A4F02DE5EDE96644BCB9C4AE /* AdminDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EABF34E65BD56C61A56E17F /* AdminDashboardView.swift */; };
+		A5B589B1D48095696642D53E /* NetworkDebugService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B472FDEE732BA8A4DF01ECCF /* NetworkDebugService.swift */; };
+		A696350A9F9D09A7458C5287 /* SupportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1EC1EEFF1A7B76ACAA166BC /* SupportView.swift */; };
+		A8CD98609546936839ACF4F9 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = B05F9BE294FC4E904B58D29C /* README.md */; };
+		AE4B60B3D5EA80FA15389A05 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8561D26658C20C2061EF2A4F /* User.swift */; };
+		AF1B440D96704D288353C1ED /* FundService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45D279A0157E4E0DE8F4CB39 /* FundService.swift */; };
+		AFD758BD81895CDE3F2D3459 /* StatementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACC4B014A99DC34411198105 /* StatementView.swift */; };
+		B01B94E717E53D2CCB85F6E0 /* AuthServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D7F3D5CBD3D45E5C7962646 /* AuthServiceTests.swift */; };
+		B1AC3D487E45E0450BD04A97 /* SupabaseDebugger.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5885E5D63E5E4399937B61E /* SupabaseDebugger.swift */; };
+		B5DA0A8397416E17E6119958 /* WithdrawalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31F29505C42119F2BE8BA5E4 /* WithdrawalViewModel.swift */; };
+		B848197F397FAD10D4DFBC1F /* YieldHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B220652FB6E6563FE5BC385F /* YieldHistoryView.swift */; };
+		B8F50598BBE55E208B4191A1 /* AdminService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4D2F6A3A535A52A6B7A8139 /* AdminService.swift */; };
+		B8F90B6128656A82446CB812 /* MockKeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B52F6AC8C5F57AFF6D2A55B /* MockKeychainManager.swift */; };
+		B941C35BEC2E673000637C77 /* supabase_pin.txt in Resources */ = {isa = PBXBuildFile; fileRef = 822B6CAA6F4969FF5988357A /* supabase_pin.txt */; };
+		BA3AD770CD11BA7F05D8DCC7 /* AppError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D89E214A995C5C5DB4367AE /* AppError.swift */; };
+		BDB67C4D49EB3ADF159D2008 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02E217BDB3BFB7319CC02FAE /* DesignTokens.swift */; };
+		BDF3FA1079D79EA7FD37283F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADDADB3F5657362D503B3D36 /* RootView.swift */; };
+		BE465DE577618530B79EFBEB /* AdminServiceV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D129E3B36B895BC1AA1295A /* AdminServiceV2.swift */; };
+		BF26229705DF89DFBFDA29A3 /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EE7B2CD631DCB774FED9FE2 /* CoreDataStack.swift */; };
+		C13D3B521CB733C6AD571C0C /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4C8284C1F7416E255D88889 /* SupabaseService.swift */; };
+		C2E10D3B3B47FEFA0C1805A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2EE89A3B4B936E6FB197CF20 /* Assets.xcassets */; };
+		C48228CCC2AA2E7257A942B5 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01739EA145C0ED501113C10E /* LoadingView.swift */; };
+		C7D3CB427CB93A5F17999DDF /* DocumentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07373B417AB4112D8C338774 /* DocumentModels.swift */; };
+		C7DB3DBAEAC4CC72F9CBCA88 /* Montserrat-BlackItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FE8F77674F7160358651B /* Montserrat-BlackItalic.ttf */; };
+		CB1F85697AC0260B46588DDA /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = D7BC3BE765832F9C2DB15A80 /* Supabase */; };
+		CBB1261ABDD381CC12845399 /* Montserrat-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 83E634418DE7EEB1F2EA163A /* Montserrat-BoldItalic.ttf */; };
+		CC963F6863D84639D30CEE1E /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DD38C95DDDAA01E377083BB /* AuthService.swift */; };
+		CD9025AAF729A8480D3BD7CB /* PushNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7D851B80D3F0E663C630910 /* PushNotificationManager.swift */; };
+		CEA75EE615900048844B7FCC /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = E46379CC826AB8B81E6605FB /* Localizable.strings */; };
+		CF6E38CD6EA7FACE81472231 /* PasswordResetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD09C6A96F3631F548115448 /* PasswordResetView.swift */; };
+		D0237302914926072E157E3C /* ComponentLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = B78A8E654E19DDA6E97B7853 /* ComponentLibrary.swift */; };
+		D246040C6C873A0473DB1206 /* TransactionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E45DEA9C3BC12E51598F6DE /* TransactionDetailView.swift */; };
+		D263C35E4F600E796DF5A524 /* KeychainLocalStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09F0B9F2EFAAC168F9D83C67 /* KeychainLocalStorage.swift */; };
+		DA1058A679F7967533770C39 /* AdminMoreMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0577625D17F3994FDF31FC2 /* AdminMoreMenuView.swift */; };
+		DD91BA18B159E44252538C5F /* ServiceProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97D1C604AEB46DF796B4A2E /* ServiceProtocols.swift */; };
+		E0FBEDBB95C28E1BD2994B81 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD9AA7B99BDC71AF54DC759 /* Typography.swift */; };
+		E1065587337637A60FBF0F32 /* NotificationsInboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4100A6E9DF2329E492F12532 /* NotificationsInboxView.swift */; };
+		E9071FF85E46B66C30160B9F /* StatementViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03CF96266B14901CE1CB2A47 /* StatementViewModel.swift */; };
+		EA2F709B5341D27DE3F01FB4 /* ViewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9685930D3699FA258DB393D1 /* ViewModels.swift */; };
+		EFB89AFB772E9B355AC488EE /* InvestorServiceV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1D768B4B35B4697E5DA3BB4 /* InvestorServiceV2.swift */; };
+		F015996CD3224DCE1B79D391 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 3FBC6AEB837032081F74388B /* Kingfisher */; };
+		F071E8AC240888218F5AFDD9 /* MockSupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E3B4C61E61D2F1315B4CE7 /* MockSupabaseClient.swift */; };
+		F0AC2F9474FD586088225557 /* DocumentsVaultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75EE9206EDB85713B84058AB /* DocumentsVaultView.swift */; };
+		F4FFE3131C36A6CDB0D42186 /* NewsletterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A9188EDEF438CFE1A0E1FE /* NewsletterView.swift */; };
+		F8E00A28014E73D87FADC7D3 /* Montserrat-ExtraBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 79844D4B79DFBD9A9E690084 /* Montserrat-ExtraBoldItalic.ttf */; };
+		FBAD5D8A3FB65EDC8CE2793D /* WithdrawalRequestViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D5F122190E14040016B68EC /* WithdrawalRequestViewModel.swift */; };
+		FE3BC66552496E3E198A959D /* CoreDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2D745ED560723A8546CF88D /* CoreDataModel.swift */; };
+		FF3B3788B7D6D4B0B3CA04AD /* Portfolio.swift in Sources */ = {isa = PBXBuildFile; fileRef = B830443C8A20580A22B6AD52 /* Portfolio.swift */; };
+		FF4B4F6C96A4E20C20482D17 /* MockSupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAC40A866C7D851E7D324CE /* MockSupabaseClient.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1B99D276BC12798F39CE1735 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E96F7260A8D80B351458192B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 27E9E71348EF8FEC010EA7E1;
+			remoteInfo = IndigoInvestor;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		012AFFCDA8B6C7EC5600AA47 /* IndigoInvestorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndigoInvestorTests.swift; sourceTree = "<group>"; };
+		01739EA145C0ED501113C10E /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
+		0242118919C948AD28D4D4E3 /* IndigoInvestorTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = IndigoInvestorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		02E217BDB3BFB7319CC02FAE /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
+		03CF96266B14901CE1CB2A47 /* StatementViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatementViewModel.swift; sourceTree = "<group>"; };
+		047D473FBC067DBD455C470B /* GenerateAppIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateAppIcons.swift; sourceTree = "<group>"; };
+		04FFC33B1DDDE1005EA88B88 /* Types.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Types.swift; sourceTree = "<group>"; };
+		0565623F3E985E6EADBA0D15 /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
+		05C5EB20025ADBDE2EC261DB /* DocumentsVaultViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentsVaultViewModel.swift; sourceTree = "<group>"; };
+		07373B417AB4112D8C338774 /* DocumentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentModels.swift; sourceTree = "<group>"; };
+		09938D2439AA716ECC939377 /* SupportViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportViewModel.swift; sourceTree = "<group>"; };
+		09F0B9F2EFAAC168F9D83C67 /* KeychainLocalStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainLocalStorage.swift; sourceTree = "<group>"; };
+		0BDDCD0FA15FBFC17DA67F4B /* StatementViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatementViewer.swift; sourceTree = "<group>"; };
+		0D129E3B36B895BC1AA1295A /* AdminServiceV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminServiceV2.swift; sourceTree = "<group>"; };
+		0FD9AA7B99BDC71AF54DC759 /* Typography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Typography.swift; sourceTree = "<group>"; };
+		135ACEF8377F849B0E36684B /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		153416FF7FBCD448A1703E34 /* PasswordResetViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordResetViewModel.swift; sourceTree = "<group>"; };
+		170527F0E634482EDBFEF8C3 /* InMemoryAuthStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryAuthStorage.swift; sourceTree = "<group>"; };
+		17157068AA74C7EDD3B2B19E /* WithdrawalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WithdrawalsView.swift; sourceTree = "<group>"; };
+		1781186163B6FF39FB25F44D /* AccountViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountViewModel.swift; sourceTree = "<group>"; };
+		1E4C07426F8D187C1E574B6B /* AdminDashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminDashboardViewModel.swift; sourceTree = "<group>"; };
+		1E75A785A213139CD35F4DDE /* AuthViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModelTests.swift; sourceTree = "<group>"; };
+		24C0D1D6875B4978FDA3FC68 /* CertificatePinningManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificatePinningManager.swift; sourceTree = "<group>"; };
+		26D4974EF794CE4886D0AF88 /* ProfileSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSettingsView.swift; sourceTree = "<group>"; };
+		2C8BFB248398083F35E46310 /* Production.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Production.xcconfig; sourceTree = "<group>"; };
+		2EABF34E65BD56C61A56E17F /* AdminDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminDashboardView.swift; sourceTree = "<group>"; };
+		2EE89A3B4B936E6FB197CF20 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		2FBD33E87475A335ABBC5ADA /* TransactionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionViewModel.swift; sourceTree = "<group>"; };
+		318C2AA7EED23FE0EF177E5F /* AUMService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AUMService.swift; sourceTree = "<group>"; };
+		31F29505C42119F2BE8BA5E4 /* WithdrawalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WithdrawalViewModel.swift; sourceTree = "<group>"; };
+		3A5E1805ACDD822726C10AE5 /* SecurityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityManager.swift; sourceTree = "<group>"; };
+		3BD83474EE4ACD4891E8CE78 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
+		3D89E214A995C5C5DB4367AE /* AppError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppError.swift; sourceTree = "<group>"; };
+		3F0A76BE6377778E5E30D58A /* NotificationsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsViewModel.swift; sourceTree = "<group>"; };
+		3F9836595B95EDC2D6E2C011 /* YieldGeneratedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YieldGeneratedView.swift; sourceTree = "<group>"; };
+		40DA37A1580AD29FD17C332C /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
+		4100A6E9DF2329E492F12532 /* NotificationsInboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsInboxView.swift; sourceTree = "<group>"; };
+		411A80C7C7399FCC8788F209 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		45D279A0157E4E0DE8F4CB39 /* FundService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FundService.swift; sourceTree = "<group>"; };
+		4ADB906EB8B4EC5D8D06F7B2 /* PortfolioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioService.swift; sourceTree = "<group>"; };
+		4B2592408ED0996A7B89EBD2 /* Montserrat-ExtraBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-ExtraBold.ttf"; sourceTree = "<group>"; };
+		4D5F122190E14040016B68EC /* WithdrawalRequestViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WithdrawalRequestViewModel.swift; sourceTree = "<group>"; };
+		4EA401C187F5CBBFDA194FD2 /* IndigoInvestor.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = IndigoInvestor.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4F8BB320D9BB17F06090F359 /* MockBiometricAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockBiometricAuthManager.swift; sourceTree = "<group>"; };
+		506BBF0A3BC273330AC656F6 /* PortfolioRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioRepository.swift; sourceTree = "<group>"; };
+		52685A678206970467F75526 /* Newsletter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Newsletter.swift; sourceTree = "<group>"; };
+		5514B52D0EEA6400A2A1DA24 /* IndigoInvestorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndigoInvestorTests.swift; sourceTree = "<group>"; };
+		551BFC96C38228D3B6196E27 /* ServiceLocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceLocator.swift; sourceTree = "<group>"; };
+		5546E034C3262B6D9E9ABCE1 /* AdminSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminSettingsView.swift; sourceTree = "<group>"; };
+		56E3B4C61E61D2F1315B4CE7 /* MockSupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockSupabaseClient.swift; sourceTree = "<group>"; };
+		5846DD0C1B61E58E27AFA9C0 /* LiveEventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveEventsView.swift; sourceTree = "<group>"; };
+		5BD14EB97D98D897826B4A34 /* Color+Brand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Brand.swift"; sourceTree = "<group>"; };
+		5CA3CA795335038D79B7CEB0 /* String+Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Localization.swift"; sourceTree = "<group>"; };
+		5DD38C95DDDAA01E377083BB /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		5FD33D38E2EECB65764991DD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		63030E1D07B69C5E0A31B404 /* supabase.cer */ = {isa = PBXFileReference; path = supabase.cer; sourceTree = "<group>"; };
+		6359576BE6402001378D64CC /* TransactionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsView.swift; sourceTree = "<group>"; };
+		6B52F6AC8C5F57AFF6D2A55B /* MockKeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockKeychainManager.swift; sourceTree = "<group>"; };
+		6BEAEB4272B150A859CA35B3 /* FinancialComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinancialComponents.swift; sourceTree = "<group>"; };
+		6CF9E5AFEED36AE0BF30E1A7 /* AdminInvestorsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminInvestorsView.swift; sourceTree = "<group>"; };
+		6F3360526DCA9409BCCFA856 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		70478BF008EE598863055450 /* AssetDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetDetailView.swift; sourceTree = "<group>"; };
+		7264AAAC34AE3384F7C1F016 /* Montserrat-Italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-Italic.ttf"; sourceTree = "<group>"; };
+		7428A8BB352E7B6B9A41E48E /* Montserrat-LightItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-LightItalic.ttf"; sourceTree = "<group>"; };
+		752947D194FEECE198B16738 /* UpdatedRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatedRootView.swift; sourceTree = "<group>"; };
+		75EE9206EDB85713B84058AB /* DocumentsVaultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentsVaultView.swift; sourceTree = "<group>"; };
+		79844D4B79DFBD9A9E690084 /* Montserrat-ExtraBoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-ExtraBoldItalic.ttf"; sourceTree = "<group>"; };
+		7AE44B1A67C4B1858115AD21 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		80AAF3674071781CDAA55205 /* Montserrat-ExtraLight.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-ExtraLight.ttf"; sourceTree = "<group>"; };
+		822B6CAA6F4969FF5988357A /* supabase_pin.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = supabase_pin.txt; sourceTree = "<group>"; };
+		83E634418DE7EEB1F2EA163A /* Montserrat-BoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-BoldItalic.ttf"; sourceTree = "<group>"; };
+		8561D26658C20C2061EF2A4F /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		8578B92F377C713BAB854336 /* QuickDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickDebugView.swift; sourceTree = "<group>"; };
+		864B0C5A0BE7384404F26E81 /* RepositoryProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryProtocols.swift; sourceTree = "<group>"; };
+		89067DE1262E18AA8D432408 /* Montserrat-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-Light.ttf"; sourceTree = "<group>"; };
+		8933305BEF036D6595204F98 /* RealtimeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealtimeService.swift; sourceTree = "<group>"; };
+		8D7F3D5CBD3D45E5C7962646 /* AuthServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthServiceTests.swift; sourceTree = "<group>"; };
+		8F8738878D2234618B9DBA49 /* Montserrat-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-Regular.ttf"; sourceTree = "<group>"; };
+		9160032DA1E800B7344B8230 /* Montserrat-MediumItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-MediumItalic.ttf"; sourceTree = "<group>"; };
+		92305EC8CC178F0A97487531 /* CoreDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
+		951987BE5295E8BF0116EC1C /* IndigoInvestorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndigoInvestorApp.swift; sourceTree = "<group>"; };
+		963EBDAA63EB64C5E1E5F3AE /* Montserrat-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-Bold.ttf"; sourceTree = "<group>"; };
+		9685930D3699FA258DB393D1 /* ViewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModels.swift; sourceTree = "<group>"; };
+		9A15C9D79EFBCED9D58B23A9 /* AdditionalServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdditionalServices.swift; sourceTree = "<group>"; };
+		9B5FE8F77674F7160358651B /* Montserrat-BlackItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-BlackItalic.ttf"; sourceTree = "<group>"; };
+		9BAC40A866C7D851E7D324CE /* MockSupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockSupabaseClient.swift; sourceTree = "<group>"; };
+		9CAD2080143DC9067C853FAD /* BiometricAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricAuthManager.swift; sourceTree = "<group>"; };
+		9E45DEA9C3BC12E51598F6DE /* TransactionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionDetailView.swift; sourceTree = "<group>"; };
+		9EE7B2CD631DCB774FED9FE2 /* CoreDataStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
+		A0577625D17F3994FDF31FC2 /* AdminMoreMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminMoreMenuView.swift; sourceTree = "<group>"; };
+		A0E42FDE244D632E715ED395 /* TransactionHistoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionHistoryViewModel.swift; sourceTree = "<group>"; };
+		A133BA85E50755E8FC2E6479 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		A2BD1E315287F712D3888CFD /* AdminReportsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminReportsView.swift; sourceTree = "<group>"; };
+		A4D2F6A3A535A52A6B7A8139 /* AdminService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminService.swift; sourceTree = "<group>"; };
+		A705E385C4B41832C51805DC /* Services.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services.swift; sourceTree = "<group>"; };
+		ACC4B014A99DC34411198105 /* StatementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatementView.swift; sourceTree = "<group>"; };
+		ACFD42DD2C2174E6286F2968 /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
+		ADDADB3F5657362D503B3D36 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		B05F9BE294FC4E904B58D29C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		B0A2769FFE786696B4CC83E7 /* BusinessServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessServices.swift; sourceTree = "<group>"; };
+		B14D21CA7DB2F54DF32D3838 /* PortfolioViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioViewModel.swift; sourceTree = "<group>"; };
+		B220652FB6E6563FE5BC385F /* YieldHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YieldHistoryView.swift; sourceTree = "<group>"; };
+		B42EB2075C069D0E608A046D /* AdminApprovalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminApprovalsView.swift; sourceTree = "<group>"; };
+		B472FDEE732BA8A4DF01ECCF /* NetworkDebugService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkDebugService.swift; sourceTree = "<group>"; };
+		B5109A39251EC97DA6792423 /* NewDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewDashboardView.swift; sourceTree = "<group>"; };
+		B78A8E654E19DDA6E97B7853 /* ComponentLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentLibrary.swift; sourceTree = "<group>"; };
+		B7D851B80D3F0E663C630910 /* PushNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationManager.swift; sourceTree = "<group>"; };
+		B82BE874040EAD26922C5D23 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		B830443C8A20580A22B6AD52 /* Portfolio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Portfolio.swift; sourceTree = "<group>"; };
+		B97D1C604AEB46DF796B4A2E /* ServiceProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceProtocols.swift; sourceTree = "<group>"; };
+		BCFC6316CEDDA968B3C02D24 /* Montserrat-ThinItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-ThinItalic.ttf"; sourceTree = "<group>"; };
+		C192631E08B07B51D590DD4E /* TransactionHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionHistoryView.swift; sourceTree = "<group>"; };
+		C3F2961454BE3D9A5F42AFE3 /* PortfolioServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioServiceTests.swift; sourceTree = "<group>"; };
+		C4A9188EDEF438CFE1A0E1FE /* NewsletterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsletterView.swift; sourceTree = "<group>"; };
+		C944FD71E92A09D803A361AA /* ChartWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartWrapper.swift; sourceTree = "<group>"; };
+		C9A3678F7D4A3CEDDA777138 /* IndigoInvestor.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = IndigoInvestor.xcdatamodel; sourceTree = "<group>"; };
+		CC8D828800EEC512F1FB88BF /* Montserrat-Thin.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-Thin.ttf"; sourceTree = "<group>"; };
+		D03CD0CD3C1D4ABAE44F47D1 /* Montserrat-Black.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-Black.ttf"; sourceTree = "<group>"; };
+		D1913928A26F5D54F78FC57A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D4C8284C1F7416E255D88889 /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
+		D7D4F007618495BCC224E179 /* FinancialTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinancialTypography.swift; sourceTree = "<group>"; };
+		DC0BEBC60581716432E97E8C /* InMemoryLocalStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryLocalStorage.swift; sourceTree = "<group>"; };
+		DCD6AA436FD57750A20FAF3C /* generate_icons.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = generate_icons.sh; sourceTree = "<group>"; };
+		E06C035EB8311DFAC0D1F557 /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
+		E11500D5E7D760D73A511A42 /* Montserrat-SemiBoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-SemiBoldItalic.ttf"; sourceTree = "<group>"; };
+		E1D768B4B35B4697E5DA3BB4 /* InvestorServiceV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestorServiceV2.swift; sourceTree = "<group>"; };
+		E2161C6A80FCF861705F043E /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		E4B2924309F669B9E3E98718 /* PortfolioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioView.swift; sourceTree = "<group>"; };
+		E5885E5D63E5E4399937B61E /* SupabaseDebugger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseDebugger.swift; sourceTree = "<group>"; };
+		ECD002D213CD7745F8EC64A1 /* MissingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissingViews.swift; sourceTree = "<group>"; };
+		EE01593B54DB36BFDE1D3DE4 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
+		EE418EE131FD171A38ABBDD8 /* Montserrat-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-Medium.ttf"; sourceTree = "<group>"; };
+		EEA860F3896A03DEEBDD4368 /* WithdrawalRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WithdrawalRequestView.swift; sourceTree = "<group>"; };
+		F1EC1EEFF1A7B76ACAA166BC /* SupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportView.swift; sourceTree = "<group>"; };
+		F2D745ED560723A8546CF88D /* CoreDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataModel.swift; sourceTree = "<group>"; };
+		F72EA5BC7464901E4564087A /* Montserrat-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-SemiBold.ttf"; sourceTree = "<group>"; };
+		F9131DDC5CA9BDB0D2121CB6 /* OfflineManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineManager.swift; sourceTree = "<group>"; };
+		F9D96BCDCCA9DA273E88A7B3 /* Montserrat-ExtraLightItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Montserrat-ExtraLightItalic.ttf"; sourceTree = "<group>"; };
+		FBF079F9E3C8CA4085D39D53 /* SupabaseDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseDebugView.swift; sourceTree = "<group>"; };
+		FD09C6A96F3631F548115448 /* PasswordResetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordResetView.swift; sourceTree = "<group>"; };
+		FE0D0E087CC6C308B2823831 /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		35489FBCECC465B5B8FDDA8C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				059F8C97535BFAF8ADEE0F96 /* Supabase in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3A5CECC19DFB37ACBC525637 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CB1F85697AC0260B46588DDA /* Supabase in Frameworks */,
+				3DDB469A8851755CDB447A25 /* DGCharts in Frameworks */,
+				F015996CD3224DCE1B79D391 /* Kingfisher in Frameworks */,
+				0E8AFAA623B90EE30AE20761 /* KeychainAccess in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0152E34C26770BD63281D18A /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				1781186163B6FF39FB25F44D /* AccountViewModel.swift */,
+				1E4C07426F8D187C1E574B6B /* AdminDashboardViewModel.swift */,
+				135ACEF8377F849B0E36684B /* AuthViewModel.swift */,
+				0565623F3E985E6EADBA0D15 /* DashboardViewModel.swift */,
+				05C5EB20025ADBDE2EC261DB /* DocumentsVaultViewModel.swift */,
+				3F0A76BE6377778E5E30D58A /* NotificationsViewModel.swift */,
+				153416FF7FBCD448A1703E34 /* PasswordResetViewModel.swift */,
+				B14D21CA7DB2F54DF32D3838 /* PortfolioViewModel.swift */,
+				03CF96266B14901CE1CB2A47 /* StatementViewModel.swift */,
+				09938D2439AA716ECC939377 /* SupportViewModel.swift */,
+				A0E42FDE244D632E715ED395 /* TransactionHistoryViewModel.swift */,
+				2FBD33E87475A335ABBC5ADA /* TransactionViewModel.swift */,
+				9685930D3699FA258DB393D1 /* ViewModels.swift */,
+				4D5F122190E14040016B68EC /* WithdrawalRequestViewModel.swift */,
+				31F29505C42119F2BE8BA5E4 /* WithdrawalViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		02025D3B4BC465B3141F098A /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				70478BF008EE598863055450 /* AssetDetailView.swift */,
+				5846DD0C1B61E58E27AFA9C0 /* LiveEventsView.swift */,
+				ECD002D213CD7745F8EC64A1 /* MissingViews.swift */,
+				C4A9188EDEF438CFE1A0E1FE /* NewsletterView.swift */,
+				ADDADB3F5657362D503B3D36 /* RootView.swift */,
+				9E45DEA9C3BC12E51598F6DE /* TransactionDetailView.swift */,
+				752947D194FEECE198B16738 /* UpdatedRootView.swift */,
+				D3F49BABAC85047F9EE01920 /* Account */,
+				35CEC8F38784830A84B8D42A /* Admin */,
+				9C97E479157E5A04AF252839 /* Auth */,
+				22CB01DAFA71C6C2FF6CC7AD /* Authentication */,
+				ABFC09BFBA16DD5BBB5AF540 /* Components */,
+				3260E3C4914D43BE9EE9A4CD /* Dashboard */,
+				4A83A2BB9B787A068E74466A /* Debug */,
+				46643A10D89C38DEF7C189A8 /* Documents */,
+				ACD3155A6B0DFFFA6D3A987E /* Navigation */,
+				8DAA0BA599D7F9B2D16C765C /* Notifications */,
+				D218D4CD7CF2791C661B56D7 /* Portfolio */,
+				0374215153CE2EDD99899D31 /* Profile */,
+				BBF6171530FBC762FF90532E /* Statements */,
+				367D2E4E1FA0D17029F23CE7 /* Support */,
+				AF821E237D6F3A0E18123CFF /* Transactions */,
+				10029D3FBE4CFCC6F5EA1F79 /* Withdrawals */,
+				CB24F66272CE5A67E0A18AF2 /* Yield */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		0374215153CE2EDD99899D31 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				26D4974EF794CE4886D0AF88 /* ProfileSettingsView.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		07EE375DC85D223ED44A46A3 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				5BD14EB97D98D897826B4A34 /* Color+Brand.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		10029D3FBE4CFCC6F5EA1F79 /* Withdrawals */ = {
+			isa = PBXGroup;
+			children = (
+				EEA860F3896A03DEEBDD4368 /* WithdrawalRequestView.swift */,
+				17157068AA74C7EDD3B2B19E /* WithdrawalsView.swift */,
+			);
+			path = Withdrawals;
+			sourceTree = "<group>";
+		};
+		20A3C986FAA3B27BD0AAFA7A /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				40DA37A1580AD29FD17C332C /* Environment.swift */,
+				2C8BFB248398083F35E46310 /* Production.xcconfig */,
+				EE01593B54DB36BFDE1D3DE4 /* SupabaseConfig.swift */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		21A151237EA6885692DEB47D /* CoreData */ = {
+			isa = PBXGroup;
+			children = (
+				92305EC8CC178F0A97487531 /* CoreDataManager.swift */,
+			);
+			path = CoreData;
+			sourceTree = "<group>";
+		};
+		22CB01DAFA71C6C2FF6CC7AD /* Authentication */ = {
+			isa = PBXGroup;
+			children = (
+				FE0D0E087CC6C308B2823831 /* AuthenticationView.swift */,
+			);
+			path = Authentication;
+			sourceTree = "<group>";
+		};
+		2FF087B3B31CAE0C9F039427 /* IndigoInvestorTests */ = {
+			isa = PBXGroup;
+			children = (
+				5514B52D0EEA6400A2A1DA24 /* IndigoInvestorTests.swift */,
+				5FD33D38E2EECB65764991DD /* Info.plist */,
+				68AB3AC16425865465230F56 /* Mocks */,
+				F11508721BD0F13730B9B7E0 /* Services */,
+				D5307A14F14810380D46B69C /* ViewModels */,
+			);
+			path = IndigoInvestorTests;
+			sourceTree = "<group>";
+		};
+		3260E3C4914D43BE9EE9A4CD /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				A133BA85E50755E8FC2E6479 /* DashboardView.swift */,
+				B5109A39251EC97DA6792423 /* NewDashboardView.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		351841AF76D7426B6CDC7095 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				E5885E5D63E5E4399937B61E /* SupabaseDebugger.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		35CEC8F38784830A84B8D42A /* Admin */ = {
+			isa = PBXGroup;
+			children = (
+				B42EB2075C069D0E608A046D /* AdminApprovalsView.swift */,
+				2EABF34E65BD56C61A56E17F /* AdminDashboardView.swift */,
+				6CF9E5AFEED36AE0BF30E1A7 /* AdminInvestorsView.swift */,
+				A0577625D17F3994FDF31FC2 /* AdminMoreMenuView.swift */,
+				A2BD1E315287F712D3888CFD /* AdminReportsView.swift */,
+				5546E034C3262B6D9E9ABCE1 /* AdminSettingsView.swift */,
+			);
+			path = Admin;
+			sourceTree = "<group>";
+		};
+		367D2E4E1FA0D17029F23CE7 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				F1EC1EEFF1A7B76ACAA166BC /* SupportView.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
+		38E8973229037159D3A99179 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				D1913928A26F5D54F78FC57A /* Assets.xcassets */,
+				DCD6AA436FD57750A20FAF3C /* generate_icons.sh */,
+				047D473FBC067DBD455C470B /* GenerateAppIcons.swift */,
+				411A80C7C7399FCC8788F209 /* LaunchScreen.storyboard */,
+				E46379CC826AB8B81E6605FB /* Localizable.strings */,
+				B05F9BE294FC4E904B58D29C /* README.md */,
+				729B10DD0D9133B235D968C3 /* Certificates */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		46042F92EAC2E4EA19CCFAE0 /* IndigoInvestor */ = {
+			isa = PBXGroup;
+			children = (
+				2EE89A3B4B936E6FB197CF20 /* Assets.xcassets */,
+				F6F6F25D8AF6B10960F071A4 /* IndigoInvestor.xcdatamodeld */,
+				6F3360526DCA9409BCCFA856 /* Info.plist */,
+				D03CD0CD3C1D4ABAE44F47D1 /* Montserrat-Black.ttf */,
+				9B5FE8F77674F7160358651B /* Montserrat-BlackItalic.ttf */,
+				963EBDAA63EB64C5E1E5F3AE /* Montserrat-Bold.ttf */,
+				83E634418DE7EEB1F2EA163A /* Montserrat-BoldItalic.ttf */,
+				4B2592408ED0996A7B89EBD2 /* Montserrat-ExtraBold.ttf */,
+				79844D4B79DFBD9A9E690084 /* Montserrat-ExtraBoldItalic.ttf */,
+				80AAF3674071781CDAA55205 /* Montserrat-ExtraLight.ttf */,
+				F9D96BCDCCA9DA273E88A7B3 /* Montserrat-ExtraLightItalic.ttf */,
+				7264AAAC34AE3384F7C1F016 /* Montserrat-Italic.ttf */,
+				89067DE1262E18AA8D432408 /* Montserrat-Light.ttf */,
+				7428A8BB352E7B6B9A41E48E /* Montserrat-LightItalic.ttf */,
+				EE418EE131FD171A38ABBDD8 /* Montserrat-Medium.ttf */,
+				9160032DA1E800B7344B8230 /* Montserrat-MediumItalic.ttf */,
+				8F8738878D2234618B9DBA49 /* Montserrat-Regular.ttf */,
+				F72EA5BC7464901E4564087A /* Montserrat-SemiBold.ttf */,
+				E11500D5E7D760D73A511A42 /* Montserrat-SemiBoldItalic.ttf */,
+				CC8D828800EEC512F1FB88BF /* Montserrat-Thin.ttf */,
+				BCFC6316CEDDA968B3C02D24 /* Montserrat-ThinItalic.ttf */,
+				880728F11FA0ADEDF515E045 /* App */,
+				20A3C986FAA3B27BD0AAFA7A /* Config */,
+				C6E752E5106E8AEBDF8E2617 /* Core */,
+				21A151237EA6885692DEB47D /* CoreData */,
+				C8AB1F73726AEC1F6003EAF9 /* Extensions */,
+				626A51B3E384535FDA3318C0 /* Models */,
+				FB3D014EC837421FDE2FB1C1 /* Repositories */,
+				38E8973229037159D3A99179 /* Resources */,
+				A22E79DB73764C7143CD2A17 /* Services */,
+				D31344220534682674D6DF8D /* Tests */,
+				5A04885EF9B49ECB10B5F58B /* Theme */,
+				351841AF76D7426B6CDC7095 /* Utils */,
+				0152E34C26770BD63281D18A /* ViewModels */,
+				02025D3B4BC465B3141F098A /* Views */,
+			);
+			path = IndigoInvestor;
+			sourceTree = "<group>";
+		};
+		46643A10D89C38DEF7C189A8 /* Documents */ = {
+			isa = PBXGroup;
+			children = (
+				75EE9206EDB85713B84058AB /* DocumentsVaultView.swift */,
+			);
+			path = Documents;
+			sourceTree = "<group>";
+		};
+		4A83A2BB9B787A068E74466A /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+				8578B92F377C713BAB854336 /* QuickDebugView.swift */,
+				FBF079F9E3C8CA4085D39D53 /* SupabaseDebugView.swift */,
+			);
+			path = Debug;
+			sourceTree = "<group>";
+		};
+		5499AFE7B8852B5301814B50 = {
+			isa = PBXGroup;
+			children = (
+				46042F92EAC2E4EA19CCFAE0 /* IndigoInvestor */,
+				2FF087B3B31CAE0C9F039427 /* IndigoInvestorTests */,
+				DFF23F44038FAAD911E25AA4 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		549C03614F14B311197C7108 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				F2D745ED560723A8546CF88D /* CoreDataModel.swift */,
+				9EE7B2CD631DCB774FED9FE2 /* CoreDataStack.swift */,
+				EBDDA838F0D8B71B1DCCBE30 /* Repositories */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		5A04885EF9B49ECB10B5F58B /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				02E217BDB3BFB7319CC02FAE /* DesignTokens.swift */,
+				D7D4F007618495BCC224E179 /* FinancialTypography.swift */,
+				0FD9AA7B99BDC71AF54DC759 /* Typography.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		6093B60D6A3ED950D112B845 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				E2161C6A80FCF861705F043E /* NetworkMonitor.swift */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
+		626A51B3E384535FDA3318C0 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				07373B417AB4112D8C338774 /* DocumentModels.swift */,
+				52685A678206970467F75526 /* Newsletter.swift */,
+				B830443C8A20580A22B6AD52 /* Portfolio.swift */,
+				04FFC33B1DDDE1005EA88B88 /* Types.swift */,
+				8561D26658C20C2061EF2A4F /* User.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		68AB3AC16425865465230F56 /* Mocks */ = {
+			isa = PBXGroup;
+			children = (
+				4F8BB320D9BB17F06090F359 /* MockBiometricAuthManager.swift */,
+				6B52F6AC8C5F57AFF6D2A55B /* MockKeychainManager.swift */,
+				56E3B4C61E61D2F1315B4CE7 /* MockSupabaseClient.swift */,
+			);
+			path = Mocks;
+			sourceTree = "<group>";
+		};
+		729B10DD0D9133B235D968C3 /* Certificates */ = {
+			isa = PBXGroup;
+			children = (
+				822B6CAA6F4969FF5988357A /* supabase_pin.txt */,
+				63030E1D07B69C5E0A31B404 /* supabase.cer */,
+			);
+			path = Certificates;
+			sourceTree = "<group>";
+		};
+		880728F11FA0ADEDF515E045 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				951987BE5295E8BF0116EC1C /* IndigoInvestorApp.swift */,
+				551BFC96C38228D3B6196E27 /* ServiceLocator.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		8DAA0BA599D7F9B2D16C765C /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				4100A6E9DF2329E492F12532 /* NotificationsInboxView.swift */,
+				ACFD42DD2C2174E6286F2968 /* NotificationsView.swift */,
+			);
+			path = Notifications;
+			sourceTree = "<group>";
+		};
+		9C97E479157E5A04AF252839 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				FD09C6A96F3631F548115448 /* PasswordResetView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		A22E79DB73764C7143CD2A17 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				9A15C9D79EFBCED9D58B23A9 /* AdditionalServices.swift */,
+				0D129E3B36B895BC1AA1295A /* AdminServiceV2.swift */,
+				318C2AA7EED23FE0EF177E5F /* AUMService.swift */,
+				45D279A0157E4E0DE8F4CB39 /* FundService.swift */,
+				E1D768B4B35B4697E5DA3BB4 /* InvestorServiceV2.swift */,
+				B472FDEE732BA8A4DF01ECCF /* NetworkDebugService.swift */,
+				B7D851B80D3F0E663C630910 /* PushNotificationManager.swift */,
+				B97D1C604AEB46DF796B4A2E /* ServiceProtocols.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		ABFC09BFBA16DD5BBB5AF540 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				C944FD71E92A09D803A361AA /* ChartWrapper.swift */,
+				B78A8E654E19DDA6E97B7853 /* ComponentLibrary.swift */,
+				6BEAEB4272B150A859CA35B3 /* FinancialComponents.swift */,
+				01739EA145C0ED501113C10E /* LoadingView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		ACD3155A6B0DFFFA6D3A987E /* Navigation */ = {
+			isa = PBXGroup;
+			children = (
+				7AE44B1A67C4B1858115AD21 /* MainTabView.swift */,
+			);
+			path = Navigation;
+			sourceTree = "<group>";
+		};
+		AE9DE7844A86DC72EA3FFF1B /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				170527F0E634482EDBFEF8C3 /* InMemoryAuthStorage.swift */,
+				DC0BEBC60581716432E97E8C /* InMemoryLocalStorage.swift */,
+				09F0B9F2EFAAC168F9D83C67 /* KeychainLocalStorage.swift */,
+			);
+			path = Storage;
+			sourceTree = "<group>";
+		};
+		AF821E237D6F3A0E18123CFF /* Transactions */ = {
+			isa = PBXGroup;
+			children = (
+				C192631E08B07B51D590DD4E /* TransactionHistoryView.swift */,
+				6359576BE6402001378D64CC /* TransactionsView.swift */,
+			);
+			path = Transactions;
+			sourceTree = "<group>";
+		};
+		BBF6171530FBC762FF90532E /* Statements */ = {
+			isa = PBXGroup;
+			children = (
+				ACC4B014A99DC34411198105 /* StatementView.swift */,
+				0BDDCD0FA15FBFC17DA67F4B /* StatementViewer.swift */,
+			);
+			path = Statements;
+			sourceTree = "<group>";
+		};
+		C6E752E5106E8AEBDF8E2617 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				549C03614F14B311197C7108 /* Data */,
+				FD25711E150E15899B845042 /* Errors */,
+				07EE375DC85D223ED44A46A3 /* Extensions */,
+				6093B60D6A3ED950D112B845 /* Network */,
+				E4BBFA85029E136476E7CBFC /* Security */,
+				D3AF13D30F446A98FBDE15AB /* Services */,
+				AE9DE7844A86DC72EA3FFF1B /* Storage */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		C8AB1F73726AEC1F6003EAF9 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				5CA3CA795335038D79B7CEB0 /* String+Localization.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		CB24F66272CE5A67E0A18AF2 /* Yield */ = {
+			isa = PBXGroup;
+			children = (
+				3F9836595B95EDC2D6E2C011 /* YieldGeneratedView.swift */,
+			);
+			path = Yield;
+			sourceTree = "<group>";
+		};
+		D218D4CD7CF2791C661B56D7 /* Portfolio */ = {
+			isa = PBXGroup;
+			children = (
+				E4B2924309F669B9E3E98718 /* PortfolioView.swift */,
+				B220652FB6E6563FE5BC385F /* YieldHistoryView.swift */,
+			);
+			path = Portfolio;
+			sourceTree = "<group>";
+		};
+		D31344220534682674D6DF8D /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				012AFFCDA8B6C7EC5600AA47 /* IndigoInvestorTests.swift */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		D3AF13D30F446A98FBDE15AB /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A4D2F6A3A535A52A6B7A8139 /* AdminService.swift */,
+				5DD38C95DDDAA01E377083BB /* AuthService.swift */,
+				B0A2769FFE786696B4CC83E7 /* BusinessServices.swift */,
+				9BAC40A866C7D851E7D324CE /* MockSupabaseClient.swift */,
+				F9131DDC5CA9BDB0D2121CB6 /* OfflineManager.swift */,
+				4ADB906EB8B4EC5D8D06F7B2 /* PortfolioService.swift */,
+				8933305BEF036D6595204F98 /* RealtimeService.swift */,
+				A705E385C4B41832C51805DC /* Services.swift */,
+				D4C8284C1F7416E255D88889 /* SupabaseService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		D3F49BABAC85047F9EE01920 /* Account */ = {
+			isa = PBXGroup;
+			children = (
+				E06C035EB8311DFAC0D1F557 /* AccountView.swift */,
+			);
+			path = Account;
+			sourceTree = "<group>";
+		};
+		D5307A14F14810380D46B69C /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				1E75A785A213139CD35F4DDE /* AuthViewModelTests.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		DFF23F44038FAAD911E25AA4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4EA401C187F5CBBFDA194FD2 /* IndigoInvestor.app */,
+				0242118919C948AD28D4D4E3 /* IndigoInvestorTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E4BBFA85029E136476E7CBFC /* Security */ = {
+			isa = PBXGroup;
+			children = (
+				9CAD2080143DC9067C853FAD /* BiometricAuthManager.swift */,
+				24C0D1D6875B4978FDA3FC68 /* CertificatePinningManager.swift */,
+				3BD83474EE4ACD4891E8CE78 /* KeychainManager.swift */,
+				3A5E1805ACDD822726C10AE5 /* SecurityManager.swift */,
+			);
+			path = Security;
+			sourceTree = "<group>";
+		};
+		EBDDA838F0D8B71B1DCCBE30 /* Repositories */ = {
+			isa = PBXGroup;
+			children = (
+				506BBF0A3BC273330AC656F6 /* PortfolioRepository.swift */,
+				864B0C5A0BE7384404F26E81 /* RepositoryProtocols.swift */,
+			);
+			path = Repositories;
+			sourceTree = "<group>";
+		};
+		F11508721BD0F13730B9B7E0 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				8D7F3D5CBD3D45E5C7962646 /* AuthServiceTests.swift */,
+				C3F2961454BE3D9A5F42AFE3 /* PortfolioServiceTests.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		FB3D014EC837421FDE2FB1C1 /* Repositories */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Repositories;
+			sourceTree = "<group>";
+		};
+		FD25711E150E15899B845042 /* Errors */ = {
+			isa = PBXGroup;
+			children = (
+				3D89E214A995C5C5DB4367AE /* AppError.swift */,
+			);
+			path = Errors;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1871A1F28320DF9AE70811A1 /* IndigoInvestorTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 071574F53F9A79BB99806AFE /* Build configuration list for PBXNativeTarget "IndigoInvestorTests" */;
+			buildPhases = (
+				DFFC33636A555A8F8139D29C /* Copy Secrets */,
+				939D893C581DEBC5331EC29A /* Sources */,
+				DCF72A1DF237AB8B26A8070C /* Resources */,
+				35489FBCECC465B5B8FDDA8C /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F8CE4E1BCBBFF414058901CB /* PBXTargetDependency */,
+			);
+			name = IndigoInvestorTests;
+			packageProductDependencies = (
+				32825BDE31C81D31B1FB9960 /* Supabase */,
+			);
+			productName = IndigoInvestorTests;
+			productReference = 0242118919C948AD28D4D4E3 /* IndigoInvestorTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		27E9E71348EF8FEC010EA7E1 /* IndigoInvestor */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C1431E0CCD0EC16A330E94DD /* Build configuration list for PBXNativeTarget "IndigoInvestor" */;
+			buildPhases = (
+				31DB31906E36BFD7EB069575 /* Sources */,
+				E0F8137218D6226F16DECE25 /* Resources */,
+				3A5CECC19DFB37ACBC525637 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = IndigoInvestor;
+			packageProductDependencies = (
+				D7BC3BE765832F9C2DB15A80 /* Supabase */,
+				4305C7CCA888B79AA380A558 /* DGCharts */,
+				3FBC6AEB837032081F74388B /* Kingfisher */,
+				B4FE8087ECD88C6C2685D9E4 /* KeychainAccess */,
+			);
+			productName = IndigoInvestor;
+			productReference = 4EA401C187F5CBBFDA194FD2 /* IndigoInvestor.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E96F7260A8D80B351458192B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					1871A1F28320DF9AE70811A1 = {
+						ProvisioningStyle = Automatic;
+					};
+					27E9E71348EF8FEC010EA7E1 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 686E0881AC385E3AF25AC5F7 /* Build configuration list for PBXProject "IndigoInvestor" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 5499AFE7B8852B5301814B50;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				180832E7A52735CF2E57C9BD /* XCRemoteSwiftPackageReference "Charts" */,
+				7943423F7D4B897E758E9C86 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
+				73579FE95DA49CD72565B18E /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				87A5FA2FD1FB333BCF36D3D4 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				27E9E71348EF8FEC010EA7E1 /* IndigoInvestor */,
+				1871A1F28320DF9AE70811A1 /* IndigoInvestorTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		DCF72A1DF237AB8B26A8070C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1B4E01A92655A97D26E76604 /* Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E0F8137218D6226F16DECE25 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C2E10D3B3B47FEFA0C1805A8 /* Assets.xcassets in Resources */,
+				0EF37F16E78AA4895BEE8904 /* Assets.xcassets in Resources */,
+				3B2C01FB143D7574587B31BD /* LaunchScreen.storyboard in Resources */,
+				CEA75EE615900048844B7FCC /* Localizable.strings in Resources */,
+				4868F0F24F8065ED8782446B /* Montserrat-Black.ttf in Resources */,
+				C7DB3DBAEAC4CC72F9CBCA88 /* Montserrat-BlackItalic.ttf in Resources */,
+				2E2BCB7DD81CEA260FA153D9 /* Montserrat-Bold.ttf in Resources */,
+				CBB1261ABDD381CC12845399 /* Montserrat-BoldItalic.ttf in Resources */,
+				19A047FA537B859E9E4CA5D9 /* Montserrat-ExtraBold.ttf in Resources */,
+				F8E00A28014E73D87FADC7D3 /* Montserrat-ExtraBoldItalic.ttf in Resources */,
+				2506F9E3B824B550ADAD58DB /* Montserrat-ExtraLight.ttf in Resources */,
+				2E2F4097D50420EB6E75C609 /* Montserrat-ExtraLightItalic.ttf in Resources */,
+				1832A00F7276FC459C8872B2 /* Montserrat-Italic.ttf in Resources */,
+				3D4B8766A272ABD992C19F5D /* Montserrat-Light.ttf in Resources */,
+				8EEBEDB174F7EE83FC52A2A0 /* Montserrat-LightItalic.ttf in Resources */,
+				7E360B04B96AB1F1B2F3282E /* Montserrat-Medium.ttf in Resources */,
+				37411D003BF3B05B06848E42 /* Montserrat-MediumItalic.ttf in Resources */,
+				523937811DDAE020958FC9C1 /* Montserrat-Regular.ttf in Resources */,
+				12959D1063646188BBD5274F /* Montserrat-SemiBold.ttf in Resources */,
+				6F57D52C88C3AD832CD4FAFD /* Montserrat-SemiBoldItalic.ttf in Resources */,
+				20A7D7D995AD00C1FDBD140C /* Montserrat-Thin.ttf in Resources */,
+				41DD37D3DF9B1CBB812652A8 /* Montserrat-ThinItalic.ttf in Resources */,
+				A8CD98609546936839ACF4F9 /* README.md in Resources */,
+				47121DB20996E147CCDA42DB /* generate_icons.sh in Resources */,
+				5E1E5377D8745CB187AA1478 /* supabase.cer in Resources */,
+				B941C35BEC2E673000637C77 /* supabase_pin.txt in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		DFFC33636A555A8F8139D29C /* Copy Secrets */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Secrets";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ -f \"${PROJECT_DIR}/Config/Secrets.xcconfig\" ]; then\n  cp \"${PROJECT_DIR}/Config/Secrets.xcconfig\" \"${CONFIGURATION_BUILD_DIR}\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		31DB31906E36BFD7EB069575 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				500C1E556E2E4E780F23C8E3 /* AUMService.swift in Sources */,
+				357A137B1F64B9C593AA12A7 /* AccountView.swift in Sources */,
+				605C843B4917AB241DF9E59D /* AccountViewModel.swift in Sources */,
+				4940EE3C98DA049554092920 /* AdditionalServices.swift in Sources */,
+				7F22AB0BD141A63CF655B960 /* AdminApprovalsView.swift in Sources */,
+				A4F02DE5EDE96644BCB9C4AE /* AdminDashboardView.swift in Sources */,
+				2ADD872D4392C95FE29C5B4A /* AdminDashboardViewModel.swift in Sources */,
+				223E22CB6BA3058E3333D8C4 /* AdminInvestorsView.swift in Sources */,
+				DA1058A679F7967533770C39 /* AdminMoreMenuView.swift in Sources */,
+				395623A1517BFAFB1FA63674 /* AdminReportsView.swift in Sources */,
+				B8F50598BBE55E208B4191A1 /* AdminService.swift in Sources */,
+				BE465DE577618530B79EFBEB /* AdminServiceV2.swift in Sources */,
+				67AE9E2D489B0C093FA1768B /* AdminSettingsView.swift in Sources */,
+				BA3AD770CD11BA7F05D8DCC7 /* AppError.swift in Sources */,
+				203580B609F806D9D9505763 /* AssetDetailView.swift in Sources */,
+				CC963F6863D84639D30CEE1E /* AuthService.swift in Sources */,
+				742842F380F4C0036D330230 /* AuthViewModel.swift in Sources */,
+				0C41989E5524138F8D162A74 /* AuthenticationView.swift in Sources */,
+				99DE2DF88DABAC4F343F9D1B /* BiometricAuthManager.swift in Sources */,
+				4A5E39182F0BA0B802334D77 /* BusinessServices.swift in Sources */,
+				61CD4674B176666C3F0CE332 /* CertificatePinningManager.swift in Sources */,
+				1AE862B22487A69468C040D1 /* ChartWrapper.swift in Sources */,
+				92BC31CA52F35922C20C14AE /* Color+Brand.swift in Sources */,
+				D0237302914926072E157E3C /* ComponentLibrary.swift in Sources */,
+				6269817D64994CAC81B34418 /* CoreDataManager.swift in Sources */,
+				FE3BC66552496E3E198A959D /* CoreDataModel.swift in Sources */,
+				BF26229705DF89DFBFDA29A3 /* CoreDataStack.swift in Sources */,
+				891BBC0C435EA6A583BDC840 /* DashboardView.swift in Sources */,
+				24228CBD7C292FDD650CF67E /* DashboardViewModel.swift in Sources */,
+				BDB67C4D49EB3ADF159D2008 /* DesignTokens.swift in Sources */,
+				C7D3CB427CB93A5F17999DDF /* DocumentModels.swift in Sources */,
+				F0AC2F9474FD586088225557 /* DocumentsVaultView.swift in Sources */,
+				89F1752391F8388E83FE1782 /* DocumentsVaultViewModel.swift in Sources */,
+				8F53A5B6AEA85AC0EF98920C /* Environment.swift in Sources */,
+				24AE5B9DE521A8FA748E7E5A /* FinancialComponents.swift in Sources */,
+				4BF8FFCC2BE57D4E85914C66 /* FinancialTypography.swift in Sources */,
+				AF1B440D96704D288353C1ED /* FundService.swift in Sources */,
+				1CEBBEB609DD8493A266BF8E /* InMemoryAuthStorage.swift in Sources */,
+				11B2F0E96576796734818811 /* InMemoryLocalStorage.swift in Sources */,
+				092F33DAE68B58E823071751 /* IndigoInvestor.xcdatamodeld in Sources */,
+				46A9D0D948A6867C6337AD58 /* IndigoInvestorApp.swift in Sources */,
+				EFB89AFB772E9B355AC488EE /* InvestorServiceV2.swift in Sources */,
+				D263C35E4F600E796DF5A524 /* KeychainLocalStorage.swift in Sources */,
+				9EAC1AD80CF418A747AAC977 /* KeychainManager.swift in Sources */,
+				A18ECA9424C995739C66E876 /* LiveEventsView.swift in Sources */,
+				C48228CCC2AA2E7257A942B5 /* LoadingView.swift in Sources */,
+				78D6CA23ECEA2DFA5FFBCB9C /* MainTabView.swift in Sources */,
+				653FD9691632BA594874F758 /* MissingViews.swift in Sources */,
+				FF4B4F6C96A4E20C20482D17 /* MockSupabaseClient.swift in Sources */,
+				A5B589B1D48095696642D53E /* NetworkDebugService.swift in Sources */,
+				A0E398F961352106C80C84AA /* NetworkMonitor.swift in Sources */,
+				560F245E6F7849FDA6E0A6E9 /* NewDashboardView.swift in Sources */,
+				0F8FE7D0A3A9DF888A1B77B2 /* Newsletter.swift in Sources */,
+				F4FFE3131C36A6CDB0D42186 /* NewsletterView.swift in Sources */,
+				E1065587337637A60FBF0F32 /* NotificationsInboxView.swift in Sources */,
+				39180D304F56858A9160FD70 /* NotificationsView.swift in Sources */,
+				0C486B18E1F96BDE0D1AA30B /* NotificationsViewModel.swift in Sources */,
+				6816EA535172901FE091633A /* OfflineManager.swift in Sources */,
+				CF6E38CD6EA7FACE81472231 /* PasswordResetView.swift in Sources */,
+				2208B2EAD179840403D9EAC0 /* PasswordResetViewModel.swift in Sources */,
+				FF3B3788B7D6D4B0B3CA04AD /* Portfolio.swift in Sources */,
+				140E740902110581CFA3C555 /* PortfolioRepository.swift in Sources */,
+				34B5457C8E6FA9E771905CBB /* PortfolioService.swift in Sources */,
+				47CF7538DF6DA985929C8509 /* PortfolioView.swift in Sources */,
+				A4CDAA83551AEB1C516CDDF3 /* PortfolioViewModel.swift in Sources */,
+				065B24929928FBA02A453360 /* ProfileSettingsView.swift in Sources */,
+				CD9025AAF729A8480D3BD7CB /* PushNotificationManager.swift in Sources */,
+				7459E9B911C54917CB67D6D6 /* QuickDebugView.swift in Sources */,
+				12C94B7E55CE7989EED1007B /* RealtimeService.swift in Sources */,
+				2B61D803DF13453534144EB6 /* RepositoryProtocols.swift in Sources */,
+				BDF3FA1079D79EA7FD37283F /* RootView.swift in Sources */,
+				017DEB9A9662AEB24F1D4E0C /* SecurityManager.swift in Sources */,
+				85518E3BC238205C66220FEA /* ServiceLocator.swift in Sources */,
+				DD91BA18B159E44252538C5F /* ServiceProtocols.swift in Sources */,
+				396B893FBD6CCECEE87A2878 /* Services.swift in Sources */,
+				AFD758BD81895CDE3F2D3459 /* StatementView.swift in Sources */,
+				E9071FF85E46B66C30160B9F /* StatementViewModel.swift in Sources */,
+				5948B709C5E95FADB0F6DBB5 /* StatementViewer.swift in Sources */,
+				A3F1AA552DA4392E8635F853 /* String+Localization.swift in Sources */,
+				18C071534BF342D42D62A051 /* SupabaseConfig.swift in Sources */,
+				652A14AA1D02CA34BE5DDC44 /* SupabaseDebugView.swift in Sources */,
+				B1AC3D487E45E0450BD04A97 /* SupabaseDebugger.swift in Sources */,
+				C13D3B521CB733C6AD571C0C /* SupabaseService.swift in Sources */,
+				A696350A9F9D09A7458C5287 /* SupportView.swift in Sources */,
+				78E1483B3208AB4C6653CB5B /* SupportViewModel.swift in Sources */,
+				D246040C6C873A0473DB1206 /* TransactionDetailView.swift in Sources */,
+				8FA5B43B5D965730AAB087A0 /* TransactionHistoryView.swift in Sources */,
+				A2A9CBDF0187678BA221985D /* TransactionHistoryViewModel.swift in Sources */,
+				20535FD5D4B642685CAABC10 /* TransactionViewModel.swift in Sources */,
+				02CE5412D49810FC951B8E7E /* TransactionsView.swift in Sources */,
+				72487F17947A65142EE5D87F /* Types.swift in Sources */,
+				E0FBEDBB95C28E1BD2994B81 /* Typography.swift in Sources */,
+				9734598AB4D72B51B6BE1A1B /* UpdatedRootView.swift in Sources */,
+				AE4B60B3D5EA80FA15389A05 /* User.swift in Sources */,
+				EA2F709B5341D27DE3F01FB4 /* ViewModels.swift in Sources */,
+				1B2F73FDAEC1B00A28B5902E /* WithdrawalRequestView.swift in Sources */,
+				FBAD5D8A3FB65EDC8CE2793D /* WithdrawalRequestViewModel.swift in Sources */,
+				B5DA0A8397416E17E6119958 /* WithdrawalViewModel.swift in Sources */,
+				441B7944932DAC1A0AF7B53C /* WithdrawalsView.swift in Sources */,
+				5F7BD9953AEF528A5DEB4F19 /* YieldGeneratedView.swift in Sources */,
+				B848197F397FAD10D4DFBC1F /* YieldHistoryView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		939D893C581DEBC5331EC29A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B01B94E717E53D2CCB85F6E0 /* AuthServiceTests.swift in Sources */,
+				121A8372579BB3C29B83317A /* AuthViewModelTests.swift in Sources */,
+				0F23092E20AB4033A0533E39 /* MockBiometricAuthManager.swift in Sources */,
+				B8F90B6128656A82446CB812 /* MockKeychainManager.swift in Sources */,
+				F071E8AC240888218F5AFDD9 /* MockSupabaseClient.swift in Sources */,
+				A15C767C6035E646041A9A90 /* PortfolioServiceTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F8CE4E1BCBBFF414058901CB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 27E9E71348EF8FEC010EA7E1 /* IndigoInvestor */;
+			targetProxy = 1B99D276BC12798F39CE1735 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		E46379CC826AB8B81E6605FB /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B82BE874040EAD26922C5D23 /* en */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		0A3E897473A57DC070D45039 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_BITCODE = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = IndigoInvestor;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Debug;
+		};
+		6F58323E25A37BC22A701D66 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = IndigoInvestor/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.indigo.IndigoInvestor;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		A570AC8BC43EDB61C4194AD7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				INFOPLIST_FILE = IndigoInvestor/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.indigo.investor;
+				SDKROOT = iphoneos;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/IndigoInvestor.app/IndigoInvestor";
+			};
+			name = Release;
+		};
+		B333C64A5BFED27D060EFCA7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_BITCODE = NO;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = IndigoInvestor;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Release;
+		};
+		D09A301E642CD4BCB5D4A363 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				INFOPLIST_FILE = IndigoInvestor/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.indigo.investor;
+				SDKROOT = iphoneos;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SWIFT_COMPILATION_MODE = singlefile;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/IndigoInvestor.app/IndigoInvestor";
+			};
+			name = Debug;
+		};
+		F2A7844863314711676B1566 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = IndigoInvestor/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.indigo.IndigoInvestor;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		071574F53F9A79BB99806AFE /* Build configuration list for PBXNativeTarget "IndigoInvestorTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D09A301E642CD4BCB5D4A363 /* Debug */,
+				A570AC8BC43EDB61C4194AD7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		686E0881AC385E3AF25AC5F7 /* Build configuration list for PBXProject "IndigoInvestor" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0A3E897473A57DC070D45039 /* Debug */,
+				B333C64A5BFED27D060EFCA7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C1431E0CCD0EC16A330E94DD /* Build configuration list for PBXNativeTarget "IndigoInvestor" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F2A7844863314711676B1566 /* Debug */,
+				6F58323E25A37BC22A701D66 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		180832E7A52735CF2E57C9BD /* XCRemoteSwiftPackageReference "Charts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/danielgindi/Charts";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
+		73579FE95DA49CD72565B18E /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.10.0;
+			};
+		};
+		7943423F7D4B897E758E9C86 /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.2.2;
+			};
+		};
+		87A5FA2FD1FB333BCF36D3D4 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		32825BDE31C81D31B1FB9960 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 87A5FA2FD1FB333BCF36D3D4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+		3FBC6AEB837032081F74388B /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 73579FE95DA49CD72565B18E /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+		4305C7CCA888B79AA380A558 /* DGCharts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 180832E7A52735CF2E57C9BD /* XCRemoteSwiftPackageReference "Charts" */;
+			productName = DGCharts;
+		};
+		B4FE8087ECD88C6C2685D9E4 /* KeychainAccess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7943423F7D4B897E758E9C86 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
+			productName = KeychainAccess;
+		};
+		D7BC3BE765832F9C2DB15A80 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 87A5FA2FD1FB333BCF36D3D4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
+
+/* Begin XCVersionGroup section */
+		F6F6F25D8AF6B10960F071A4 /* IndigoInvestor.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				C9A3678F7D4A3CEDDA777138 /* IndigoInvestor.xcdatamodel */,
+			);
+			currentVersion = C9A3678F7D4A3CEDDA777138 /* IndigoInvestor.xcdatamodel */;
+			path = IndigoInvestor.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
+	};
+	rootObject = E96F7260A8D80B351458192B /* Project object */;
+}

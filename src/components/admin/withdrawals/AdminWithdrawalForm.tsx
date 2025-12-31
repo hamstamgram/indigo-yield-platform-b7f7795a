@@ -16,7 +16,6 @@ import {
 } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { MinusCircle, Info } from "lucide-react";
-import { CryptoIcon } from "@/components/CryptoIcons";
 
 interface AdminWithdrawalFormProps {
   investors: any[];
@@ -98,10 +97,7 @@ const AdminWithdrawalForm: React.FC<AdminWithdrawalFormProps> = ({ investors, as
                 <SelectContent>
                   {assets.map((asset) => (
                     <SelectItem key={asset.id} value={asset.id.toString()}>
-                      <div className="flex items-center gap-2">
-                        <CryptoIcon symbol={asset.symbol} className="h-4 w-4" />
-                        <span>{asset.symbol} - {asset.name}</span>
-                      </div>
+                      {asset.symbol} - {asset.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

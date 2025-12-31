@@ -123,14 +123,12 @@ describe("Withdrawal RPC Functions", () => {
       
       const result = await supabase.rpc("complete_withdrawal", {
         p_request_id: "test-id",
-        p_transaction_hash: "0x123abc",
-        p_admin_notes: null,
+        p_tx_hash: "0x123abc",
       });
 
       expect(mockRpc).toHaveBeenCalledWith("complete_withdrawal", {
         p_request_id: "test-id",
-        p_transaction_hash: "0x123abc",
-        p_admin_notes: null,
+        p_tx_hash: "0x123abc",
       });
       expect(result.error).toBeNull();
     });

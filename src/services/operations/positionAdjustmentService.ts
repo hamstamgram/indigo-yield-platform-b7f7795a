@@ -1,8 +1,3 @@
-import { 
-  adjustInvestorPosition, 
-  recomputeInvestorPosition, 
-  reconcileAllPositions as reconcileAllPositionsRpc 
-} from "@/lib/supabase/typedRpc";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -25,13 +20,12 @@ export async function adjustPosition(
     note?: string;
     tx_type?: string;
     tx_date?: string;
-    reference_id?: string;
   },
   adminId: string
 ) {
-  const { investor_id, fund_id, delta, note, tx_type, tx_date, reference_id } = input;
-  
-  const { data, error } = await adjustInvestorPosition({
+  const { investor_id, fund_id, delta, note, tx_type, tx_date } = input;
+  const rpcCall = (supabase.rpc as any).bind(supabase);
+  const { data, error } = await rpcCall("adjust_investor_position", {
     p_investor_id: investor_id,
     p_fund_id: fund_id,
     p_delta: delta,
@@ -39,9 +33,7 @@ export async function adjustPosition(
     p_admin_id: adminId,
     p_tx_type: tx_type || "ADJUSTMENT",
     p_tx_date: tx_date || new Date().toISOString().split('T')[0],
-    p_reference_id: reference_id || `adj:${fund_id}:${investor_id}:${Date.now()}`,
   });
-  
   if (error) {
     console.error("adjustPosition error", error);
     return { success: false, error: error.message };
@@ -56,6 +48,7 @@ export async function adjustPosition(
     success: true, 
     data: {
       transactionId: result.out_transaction_id,
+      oldBalance: result.out_old_balance,
       newBalance: result.out_new_balance,
     }
   };
@@ -145,7 +138,10 @@ export async function getFundAdjustmentHistory(fundId?: string) {
  * Runs a dry-run by default - pass false to actually fix positions
  */
 export async function reconcileAllPositions(dryRun: boolean = true) {
-  const { data, error } = await reconcileAllPositionsRpc({ p_dry_run: dryRun });
+  const rpcCall = (supabase.rpc as any).bind(supabase);
+  const { data, error } = await rpcCall("reconcile_all_positions", {
+    p_dry_run: dryRun,
+  });
   
   if (error) {
     console.error("reconcileAllPositions error", error);
@@ -159,7 +155,8 @@ export async function reconcileAllPositions(dryRun: boolean = true) {
  * Recompute a single investor's position from ledger
  */
 export async function recomputePosition(investorId: string, fundId: string) {
-  const { error } = await recomputeInvestorPosition({
+  const rpcCall = (supabase.rpc as any).bind(supabase);
+  const { error } = await rpcCall("recompute_investor_position", {
     p_investor_id: investorId,
     p_fund_id: fundId,
   });

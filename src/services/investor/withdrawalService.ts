@@ -46,8 +46,7 @@ export const withdrawalService = {
       .range(from, to);
 
     if (filters?.status && filters.status !== "all") {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      query = query.eq("status", filters.status as any);
+      query = query.eq("status", filters.status);
     }
 
     if (filters?.fund_id) {
@@ -192,8 +191,7 @@ export const withdrawalService = {
 
     // Apply same filters as getWithdrawals for consistency
     if (filters?.status && filters.status !== "all") {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      query = query.eq("status", filters.status as any);
+      query = query.eq("status", filters.status);
     }
 
     if (filters?.fund_id) {
@@ -316,9 +314,9 @@ export const withdrawalService = {
     const { error } = await supabase.rpc('start_processing_withdrawal', {
       p_request_id: withdrawalId,
       p_processed_amount: null,
-      p_tx_hash: txHash || null,
-      p_settlement_date: null,
-      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
+      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
+      p_expected_completion: null,
+      p_tx_hash: txHash || null
     });
 
     if (error) {

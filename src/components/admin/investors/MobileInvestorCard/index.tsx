@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card, CardContent, CardFooter,
   Button, Input,
@@ -12,10 +12,27 @@ import InvestorInfo from "./InvestorInfo";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { getAllFunds, updateInvestorPosition } from "@/services";
 import { formatAssetAmount } from "@/utils/assets";
-import { InvestorSummaryV2 } from "@/services/admin";
+
+/**
+ * Extended investor type for mobile card with portfolio data
+ * This is specific to this component's needs
+ */
+interface MobileCardInvestor {
+  id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  fee_percentage?: number | null;
+  portfolio_summary?: {
+    [key: string]: {
+      balance: number;
+      usd_value: number;
+    };
+  };
+}
 
 interface MobileInvestorCardProps {
-  investor: InvestorSummaryV2;
+  investor: MobileCardInvestor;
   assets: Asset[];
   onSendEmail: (email: string) => void;
   onSaveSuccess: () => void;
@@ -29,18 +46,26 @@ const MobileInvestorCard = ({
 }: MobileInvestorCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [fee, setFee] = useState<string>(investor.fee_percentage?.toString() || "20.0");
   const { toast } = useToast();
 
-  // Get asset breakdown from portfolioDetails
-  const assetBreakdown = investor.portfolioDetails?.assetBreakdown || {};
+  // Update fee state when investor prop changes
+  useEffect(() => {
+    setFee(investor.fee_percentage?.toString() || "20.0");
+  }, [investor]);
 
   // Create state for each asset balance
   const [balances, setBalances] = useState<Record<string, string>>(() => {
     const initialBalances: Record<string, string> = {};
     assets.forEach((asset) => {
-      const symbol = asset.symbol.toUpperCase();
-      const balance = assetBreakdown[symbol]?.toString() || "0";
-      initialBalances[asset.symbol] = balance;
+      const symbol = asset.symbol;
+      // Normalize symbol to uppercase for lookup in portfolio_summary
+      const normalizedSymbol = symbol.toUpperCase();
+      const balance =
+        investor.portfolio_summary && investor.portfolio_summary[normalizedSymbol]
+          ? investor.portfolio_summary[normalizedSymbol].balance.toString()
+          : "0";
+      initialBalances[symbol] = balance;
     });
     return initialBalances;
   });
@@ -56,22 +81,48 @@ const MobileInvestorCard = ({
     try {
       setIsSaving(true);
 
+      // Parse fee as float for database update, ensuring it's a valid number
+      const feeValue = parseFloat(fee);
+      if (isNaN(feeValue)) {
+        throw new Error("Invalid fee percentage");
+      }
+
+      // Update fee percentage in profile
+      const { error: feeError } = await supabase
+        .from("profiles")
+        .update({
+          fee_percentage: feeValue,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", investor.id);
+
+      if (feeError) {
+        console.error("Error updating fee:", feeError);
+        throw feeError;
+      }
+
       // Process portfolio updates
+      // 1. Fetch funds to map assets to funds
       const funds = await getAllFunds();
 
+      // 2. Iterate through assets and update positions
       const updatePromises = assets.map(async (asset) => {
         const symbol = asset.symbol;
         const newBalance = parseFloat(balances[symbol] || "0");
         
+        // Only update if we have a valid balance
         if (isNaN(newBalance)) return;
 
+        // Find the fund for this asset
         const fund = funds.find(f => f.asset === symbol);
         if (!fund) {
           console.warn(`No fund found for asset ${symbol}`);
           return;
         }
 
-        const hasExistingPosition = assetBreakdown[symbol.toUpperCase()] !== undefined;
+        // Check if user has this position (balance > 0 or existed before)
+        const hasExistingPosition = investor.portfolio_summary && 
+                                   investor.portfolio_summary[symbol.toUpperCase()];
         
         if (newBalance > 0 || hasExistingPosition) {
           const result = await updateInvestorPosition(investor.id, fund.id, {
@@ -95,8 +146,8 @@ const MobileInvestorCard = ({
       setTimeout(() => {
         setIsSaving(false);
         setIsEditing(false);
-        onSaveSuccess();
-      }, 500);
+        onSaveSuccess(); // Refresh data
+      }, 500); // Small delay to ensure UI feedback
     } catch (error) {
       console.error("Error saving investor data:", error);
       toast({
@@ -112,14 +163,14 @@ const MobileInvestorCard = ({
     <Card className="mb-4">
       <CardContent className="pt-4">
         <InvestorInfo
-          firstName={investor.firstName || ""}
-          lastName={investor.lastName || ""}
+          firstName={investor.first_name || ""}
+          lastName={investor.last_name || ""}
           email={investor.email}
         />
 
         <div className="space-y-3">
           {assets.map((asset) => {
-            const balance = assetBreakdown[asset.symbol.toUpperCase()];
+            const balance = investor.portfolio_summary?.[asset.symbol.toUpperCase()]?.balance;
             const hasBalance = balance && balance > 0;
             return (
               <div key={asset.id} className="flex justify-between items-center">
@@ -143,6 +194,27 @@ const MobileInvestorCard = ({
               </div>
             );
           })}
+
+          <div className="flex justify-between items-center border-t pt-3 mt-3">
+            <div className="font-medium">Fee (%)</div>
+            {isEditing ? (
+              <Input
+                type="number"
+                step="0.1"
+                min="0"
+                max="100"
+                value={fee}
+                onChange={(e) => setFee(e.target.value)}
+                className="max-w-[80px]"
+              />
+            ) : (
+            <div>
+                {investor.fee_percentage !== null && investor.fee_percentage !== undefined
+                  ? `${investor.fee_percentage.toFixed(1)}%`
+                  : "20.0%"}
+              </div>
+            )}
+          </div>
         </div>
       </CardContent>
 

@@ -7,8 +7,8 @@
 import type { WithdrawalStatus } from "./requests";
 export type { WithdrawalStatus };
 
-// Extended status with cancelled and voided for full workflow
-export type WithdrawalFullStatus = WithdrawalStatus | "cancelled" | "voided";
+// Extended status with cancelled for full workflow
+export type WithdrawalFullStatus = WithdrawalStatus | "cancelled";
 
 export interface Withdrawal {
   id: string;

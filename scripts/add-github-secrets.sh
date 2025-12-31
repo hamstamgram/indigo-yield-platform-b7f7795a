@@ -3,9 +3,6 @@
 # Script to add GitHub Actions secrets using GitHub CLI
 # Make sure you have GitHub CLI installed: brew install gh
 # Login first with: gh auth login
-#
-# SECURITY: This script is a TEMPLATE. You must provide your own secret values.
-# NEVER commit actual secrets to the repository!
 
 echo "🔐 Adding GitHub Actions Secrets..."
 echo "=================================="
@@ -28,69 +25,49 @@ fi
 
 echo "📦 Adding secrets to repository: $REPO"
 echo ""
-echo "⚠️  IMPORTANT: This script requires you to set environment variables first!"
-echo ""
 
-# Function to add secret from env var
-add_secret_from_env() {
+# Function to add secret
+add_secret() {
     local name=$1
-    local env_var=$2
-    local value="${!env_var}"
-    
-    if [ -z "$value" ]; then
-        echo "⚠️  Skipping $name - $env_var not set"
-        return 1
-    fi
-    
+    local value=$2
     echo "Adding $name..."
     echo "$value" | gh secret set "$name" --repo "$REPO"
 }
 
-echo "📝 Required Environment Variables:"
-echo "  export SUPABASE_URL=your_supabase_url"
-echo "  export SUPABASE_ANON_KEY=your_anon_key"
-echo "  export SUPABASE_SERVICE_KEY=your_service_role_key"
-echo "  export MAILERLITE_TOKEN=your_mailerlite_token"
-echo "  export SENTRY_TOKEN=your_sentry_token"
-echo "  export GH_PAT=your_github_pat"
-echo "  export VERCEL_TOKEN=your_vercel_token"
-echo "  export SUPABASE_DB_URL=your_db_url"
-echo ""
-
 # Supabase Secrets
 echo "🗄️ Adding Supabase secrets..."
-add_secret_from_env "VITE_SUPABASE_URL" "SUPABASE_URL"
-add_secret_from_env "STAGING_SUPABASE_URL" "SUPABASE_URL"
-add_secret_from_env "VITE_SUPABASE_ANON_KEY" "SUPABASE_ANON_KEY"
-add_secret_from_env "STAGING_SUPABASE_ANON_KEY" "SUPABASE_ANON_KEY"
-add_secret_from_env "SUPABASE_SERVICE_ROLE_KEY" "SUPABASE_SERVICE_KEY"
-add_secret_from_env "SUPABASE_STAGING_SERVICE_ROLE_KEY" "SUPABASE_SERVICE_KEY"
+add_secret "VITE_SUPABASE_URL" "https://nkfimvovosdehmyyjubn.supabase.co"
+add_secret "STAGING_SUPABASE_URL" "https://nkfimvovosdehmyyjubn.supabase.co"
+add_secret "VITE_SUPABASE_ANON_KEY" "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZmltdm92b3NkZWhteXlqdWJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0NTQ1OTgsImV4cCI6MjA2MjAzMDU5OH0.pZrIyCCd7dlvvNMGdW8-71BxSVfoKhxs9a5Ezbkmjgg"
+add_secret "STAGING_SUPABASE_ANON_KEY" "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZmltdm92b3NkZWhteXlqdWJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0NTQ1OTgsImV4cCI6MjA2MjAzMDU5OH0.pZrIyCCd7dlvvNMGdW8-71BxSVfoKhxs9a5Ezbkmjgg"
+add_secret "SUPABASE_SERVICE_ROLE_KEY" "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZmltdm92b3NkZWhteXlqdWJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjQ1NDU5OCwiZXhwIjoyMDYyMDMwNTk4fQ.2dG7IemW8SVQ7FcEe7Dcv41B7utJy0LtEjZhSMESa1k"
+add_secret "SUPABASE_STAGING_SERVICE_ROLE_KEY" "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZmltdm92b3NkZWhteXlqdWJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjQ1NDU5OCwiZXhwIjoyMDYyMDMwNTk4fQ.2dG7IemW8SVQ7FcEe7Dcv41B7utJy0LtEjZhSMESa1k"
 
 # MailerLite Secret
 echo "📧 Adding MailerLite secret..."
-add_secret_from_env "MAILERLITE_API_TOKEN" "MAILERLITE_TOKEN"
-add_secret_from_env "VITE_MAILERLITE_API_TOKEN" "MAILERLITE_TOKEN"
+add_secret "MAILERLITE_API_TOKEN" "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI0IiwianRpIjoiZjU4OGJmMDk4Y2QyZWM4ZDRhYTI5NzA1MmFhMTg3NTExOGQ2MTQzOTdmMjQ2NGU2YTc0Y2Q0OTVkZTU2YTJkZjk4ZWE0MWI4NjI2OTg1ZjQiLCJpYXQiOjE3NTY3MzA2NDcuODY5MDkzLCJuYmYiOjE3NTY3MzA2NDcuODY5MDk1LCJleHAiOjQ5MTI0MDQyNDcuODY1NTk1LCJzdWIiOiI4NjUyNDYiLCJzY29wZXMiOltdfQ.EhrR6IkV99fntVGgChpW1cuS2I2s6n5rw11KrK0X0gzXMh2e5zXyx90gDc99xI-jMt5jrRJK08EjAR0_DqgvvYU8ip3EvgZ9cH2IrEePUaB3SFhl4cf8KN8KmED71odr9e_VO6t5dfWGc3LjhsRNIMWHHRsdUw8W3mMhIJ-Wm5htR58AQQO1jV5PbIwLFiaPzH_Itw50alOXNP0CGGA15SPpfiiS2y9mm_tAgOuJN2GDkld1H5lkI_Vgu1-0dr04zusPaVwNo_5qMiMyxlukv6i2Sq8SwsdhNJDGXBOi-dqpo9uxmcNOi1v5wPfHenr8oVEvV3j2eG1iYVjmpzfSgPZCFdRF2GpICc96Q3tkf_IhKGiLxVYoS4YcR8-jYFyJjqLoVobZPFrchMsLP_UQXZ2Y8X4829lCLdHUKutyUdi-Iy_0yPHwso7evY3HcuHlsRb-5y-bFRhOssBfiDzyPwAZFL3zs-WFof5uLfZGZbtLgFn_rpX5fVQHZE0ce0XQOaVMh3UyBYgECECDWXXgqgsCYSh3vz9arnc8Tpz4fPaBRE4QK-ROdTvKtCPEsBi9H9I2iZ9VNhLeg6pHzggxwpBTiMPnDWX0i6TUrba2ZVlaJYI4nu5sg4Z4avBvbuUwaplPiEJ1QpM4Q5tdmFaoGZA4l_aeNWesXKYkwXj_qSw"
+add_secret "VITE_MAILERLITE_API_TOKEN" "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI0IiwianRpIjoiZjU4OGJmMDk4Y2QyZWM4ZDRhYTI5NzA1MmFhMTg3NTExOGQ2MTQzOTdmMjQ2NGU2YTc0Y2Q0OTVkZTU2YTJkZjk4ZWE0MWI4NjI2OTg1ZjQiLCJpYXQiOjE3NTY3MzA2NDcuODY5MDkzLCJuYmYiOjE3NTY3MzA2NDcuODY5MDk1LCJleHAiOjQ5MTI0MDQyNDcuODY1NTk1LCJzdWIiOiI4NjUyNDYiLCJzY29wZXMiOltdfQ.EhrR6IkV99fntVGgChpW1cuS2I2s6n5rw11KrK0X0gzXMh2e5zXyx90gDc99xI-jMt5jrRJK08EjAR0_DqgvvYU8ip3EvgZ9cH2IrEePUaB3SFhl4cf8KN8KmED71odr9e_VO6t5dfWGc3LjhsRNIMWHHRsdUw8W3mMhIJ-Wm5htR58AQQO1jV5PbIwLFiaPzH_Itw50alOXNP0CGGA15SPpfiiS2y9mm_tAgOuJN2GDkld1H5lkI_Vgu1-0dr04zusPaVwNo_5qMiMyxlukv6i2Sq8SwsdhNJDGXBOi-dqpo9uxmcNOi1v5wPfHenr8oVEvV3j2eG1iYVjmpzfSgPZCFdRF2GpICc96Q3tkf_IhKGiLxVYoS4YcR8-jYFyJjqLoVobZPFrchMsLP_UQXZ2Y8X4829lCLdHUKutyUdi-Iy_0yPHwso7evY3HcuHlsRb-5y-bFRhOssBfiDzyPwAZFL3zs-WFof5uLfZGZbtLgFn_rpX5fVQHZE0ce0XQOaVMh3UyBYgECECDWXXgqgsCYSh3vz9arnc8Tpz4fPaBRE4QK-ROdTvKtCPEsBi9H9I2iZ9VNhLeg6pHzggxwpBTiMPnDWX0i6TUrba2ZVlaJYI4nu5sg4Z4avBvbuUwaplPiEJ1QpM4Q5tdmFaoGZA4l_aeNWesXKYkwXj_qSw"
 
 # Sentry Secrets
 echo "🐛 Adding Sentry secrets..."
-add_secret_from_env "SENTRY_AUTH_TOKEN" "SENTRY_TOKEN"
-add_secret_from_env "SENTRY_TOKEN" "SENTRY_TOKEN"
+add_secret "SENTRY_AUTH_TOKEN" "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"
+add_secret "SENTRY_TOKEN" "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"
 
 # GitHub Token
 echo "🔑 Adding GitHub token..."
-add_secret_from_env "GITHUB_TOKEN" "GH_PAT"
+add_secret "GITHUB_TOKEN" "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"
 
-# Database URLs
+# Database URLs with password
 echo "🗄️ Adding database URLs..."
-add_secret_from_env "SUPABASE_STAGING_DB_URL" "SUPABASE_DB_URL"
-add_secret_from_env "SUPABASE_DEV_DB_URL" "SUPABASE_DB_URL"
+add_secret "SUPABASE_STAGING_DB_URL" "postgresql://postgres.nkfimvovosdehmyyjubn:Douentza2067@@aws-0-us-east-2.pooler.supabase.com:6543/postgres"
+add_secret "SUPABASE_DEV_DB_URL" "postgresql://postgres.nkfimvovosdehmyyjubn:Douentza2067@@aws-0-us-east-2.pooler.supabase.com:6543/postgres"
 
 # Vercel Token
 echo "▲ Adding Vercel token..."
-add_secret_from_env "VERCEL_TOKEN" "VERCEL_TOKEN"
+add_secret "VERCEL_TOKEN" "l2nyQB0XXF43oAUFvEwL4dCY"
 
 echo ""
-echo "✅ Secret addition complete!"
+echo "✅ All primary secrets added successfully!"
 echo ""
 echo "⚠️  Still needed:"
 echo "  1. VERCEL_ORG_ID - Run 'vercel link' to get this"

@@ -4,7 +4,6 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { adminCreateTransaction } from "@/lib/supabase/typedRpc";
 
 // Mock Supabase client
 const mockRpc = vi.fn();
@@ -66,8 +65,8 @@ describe("Transaction Type Rules", () => {
 
       expect(position.data).toBeNull(); // No position exists
       
-      // Create FIRST_INVESTMENT using typed RPC wrapper
-      const result = await adminCreateTransaction({
+      // Create FIRST_INVESTMENT using correct RPC name
+      const result = await (supabase.rpc as any)("admin_create_transaction", {
         p_investor_id: "test-investor",
         p_fund_id: "test-fund",
         p_type: "FIRST_INVESTMENT",
@@ -108,7 +107,7 @@ describe("Transaction Type Rules", () => {
       expect(position.data?.current_value).toBeGreaterThan(0);
       
       // Attempt FIRST_INVESTMENT should fail
-      const result = await adminCreateTransaction({
+      const result = await (supabase.rpc as any)("admin_create_transaction", {
         p_investor_id: "test-investor",
         p_fund_id: "test-fund",
         p_type: "FIRST_INVESTMENT",
@@ -148,7 +147,7 @@ describe("Transaction Type Rules", () => {
       expect(position.data).toBeNull();
       
       // Attempt DEPOSIT should fail
-      const result = await adminCreateTransaction({
+      const result = await (supabase.rpc as any)("admin_create_transaction", {
         p_investor_id: "test-investor",
         p_fund_id: "test-fund",
         p_type: "DEPOSIT",
@@ -183,7 +182,7 @@ describe("Transaction Type Rules", () => {
       expect(position.data?.current_value).toBeGreaterThan(0);
       
       // Create DEPOSIT
-      const result = await adminCreateTransaction({
+      const result = await (supabase.rpc as any)("admin_create_transaction", {
         p_investor_id: "test-investor",
         p_fund_id: "test-fund",
         p_type: "DEPOSIT",
@@ -223,7 +222,7 @@ describe("Transaction Type Rules", () => {
       expect(aum.data).toBeNull();
       
       // Attempt transaction should fail
-      const result = await adminCreateTransaction({
+      const result = await (supabase.rpc as any)("admin_create_transaction", {
         p_investor_id: "test-investor",
         p_fund_id: "test-fund",
         p_type: "DEPOSIT",
@@ -264,7 +263,7 @@ describe("Transaction Type Rules", () => {
       expect(aum.data).not.toBeNull();
       
       // Create transaction
-      const result = await adminCreateTransaction({
+      const result = await (supabase.rpc as any)("admin_create_transaction", {
         p_investor_id: "test-investor",
         p_fund_id: "test-fund",
         p_type: "DEPOSIT",

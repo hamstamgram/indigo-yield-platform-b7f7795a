@@ -364,31 +364,6 @@ export async function getDeliveryQueueMetrics(): Promise<DeliveryQueueMetrics> {
 
 // ============ Data Integrity ============
 
-export interface ReconciliationResult {
-  investor_id: string;
-  fund_id: string;
-  investor_name: string;
-  fund_name: string;
-  old_value: number;
-  new_value: number;
-  old_shares: number;
-  new_shares: number;
-  action: string;
-}
-
-/**
- * Run position reconciliation via RPC
- * @param dryRun - If true, returns preview without making changes
- */
-export async function runPositionReconciliation(dryRun = true): Promise<ReconciliationResult[]> {
-  const { data, error } = await supabase.rpc("reconcile_all_positions", {
-    p_dry_run: dryRun,
-  });
-
-  if (error) throw error;
-  return (data as ReconciliationResult[]) || [];
-}
-
 /**
  * Check position vs transaction reconciliation
  */
