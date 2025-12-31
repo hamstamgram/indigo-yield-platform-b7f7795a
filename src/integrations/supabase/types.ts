@@ -7001,7 +7001,7 @@ export type Database = {
           p_date: string
           p_fund_id: string
           p_gross_yield: number
-          p_purpose?: string
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
         }
         Returns: Json
       }
