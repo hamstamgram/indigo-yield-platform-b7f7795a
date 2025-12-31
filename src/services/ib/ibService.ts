@@ -385,7 +385,7 @@ class IBService {
         shares,
         cost_basis,
         current_value,
-        funds!fk_investor_positions_fund(name, asset, code)
+        funds!investor_positions_fund_id_fkey(name, asset, code)
       `)
       .eq("investor_id", investorId);
 

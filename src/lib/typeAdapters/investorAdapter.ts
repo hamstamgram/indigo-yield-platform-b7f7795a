@@ -34,7 +34,7 @@ export function toInvestorProfile(row: SupabaseProfile): InvestorProfile {
     last_name: row.last_name,
     phone: row.phone,
     is_admin: row.is_admin ?? false,
-    fee_percentage: row.fee_percentage ?? 0,
+    fee_percentage: row.fee_pct ?? 0,
     avatar_url: row.avatar_url,
     totp_enabled: row.totp_enabled ?? false,
     totp_verified: row.totp_verified ?? false,

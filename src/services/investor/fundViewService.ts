@@ -158,7 +158,7 @@ export async function getInvestorPositions(investorId: string): Promise<Investor
     .select(
       `
       *,
-      fund:funds!fk_investor_positions_fund (
+      fund:funds!investor_positions_fund_id_fkey (
         id,
         code,
         name,

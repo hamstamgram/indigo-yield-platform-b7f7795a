@@ -264,7 +264,7 @@ export class PortfolioService extends ApiClient {
         .select(
           `
           *,
-          funds!fk_investor_positions_fund (
+          funds!investor_positions_fund_id_fkey (
             name,
             code,
             asset,
