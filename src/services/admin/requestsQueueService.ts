@@ -19,8 +19,8 @@ export const requestsQueueService = {
       .from("withdrawal_requests")
       .select(`
         *,
-        profile:profiles!investor_id(first_name, last_name, email),
-        funds!inner(name, fund_class)
+        profile:profiles!withdrawal_requests_investor_id_fkey(first_name, last_name, email),
+        funds!withdrawal_requests_fund_id_fkey(name, fund_class)
       `)
       .order("request_date", { ascending: false });
 

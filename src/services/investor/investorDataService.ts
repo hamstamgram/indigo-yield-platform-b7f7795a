@@ -610,7 +610,7 @@ export async function fetchInvestorPositions(investorId: string): Promise<Invest
       realized_pnl,
       fund_class,
       updated_at,
-      funds!fk_investor_positions_fund ( id, name, asset )
+      funds!investor_positions_fund_id_fkey ( id, name, asset )
     `)
     .eq("investor_id", investorId)
     .or("current_value.neq.0,cost_basis.neq.0,shares.neq.0");
@@ -797,7 +797,7 @@ export async function fetchInvestors(): Promise<{
 }[]> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, email, first_name, last_name, created_at, fee_percentage")
+    .select("id, email, first_name, last_name, created_at, fee_pct")
     .eq("is_admin", false);
 
   if (error) throw new Error(`Failed to fetch investors: ${error.message}`);
@@ -808,7 +808,7 @@ export async function fetchInvestors(): Promise<{
     first_name: profile.first_name || null,
     last_name: profile.last_name || null,
     created_at: profile.created_at || new Date().toISOString(),
-    fee_percentage: profile.fee_percentage || 20.0,
+    fee_percentage: profile.fee_pct || 20.0,
     portfolio_summary: {},
   }));
 }
