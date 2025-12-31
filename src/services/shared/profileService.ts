@@ -179,7 +179,7 @@ class ProfileService {
     const { error } = await supabase
       .from("profiles")
       .update({
-        fee_percentage: feePercentage,
+        fee_pct: feePercentage,
         updated_at: new Date().toISOString(),
       })
       .eq("id", investorId);
