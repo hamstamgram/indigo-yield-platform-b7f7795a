@@ -751,7 +751,7 @@ export type Database = {
           fund_id: string
           id: string
           investor_id: string
-          is_voided: boolean | null
+          is_voided: boolean
           period_end: string
           period_start: string
           purpose: Database["public"]["Enums"]["aum_purpose"]
@@ -771,7 +771,7 @@ export type Database = {
           fund_id: string
           id?: string
           investor_id: string
-          is_voided?: boolean | null
+          is_voided?: boolean
           period_end: string
           period_start: string
           purpose: Database["public"]["Enums"]["aum_purpose"]
@@ -791,7 +791,7 @@ export type Database = {
           fund_id?: string
           id?: string
           investor_id?: string
-          is_voided?: boolean | null
+          is_voided?: boolean
           period_end?: string
           period_start?: string
           purpose?: Database["public"]["Enums"]["aum_purpose"]
@@ -1259,7 +1259,7 @@ export type Database = {
           fund_id: string
           id: string
           is_month_end: boolean | null
-          is_voided: boolean | null
+          is_voided: boolean
           nav_per_share: number | null
           purpose: Database["public"]["Enums"]["aum_purpose"]
           source: string | null
@@ -1279,7 +1279,7 @@ export type Database = {
           fund_id: string
           id?: string
           is_month_end?: boolean | null
-          is_voided?: boolean | null
+          is_voided?: boolean
           nav_per_share?: number | null
           purpose?: Database["public"]["Enums"]["aum_purpose"]
           source?: string | null
@@ -1299,7 +1299,7 @@ export type Database = {
           fund_id?: string
           id?: string
           is_month_end?: boolean | null
-          is_voided?: boolean | null
+          is_voided?: boolean
           nav_per_share?: number | null
           purpose?: Database["public"]["Enums"]["aum_purpose"]
           source?: string | null
@@ -1735,6 +1735,27 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_generated_reports_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_generated_reports_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_generated_reports_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
+          },
+          {
             foreignKeyName: "generated_reports_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -1868,7 +1889,7 @@ export type Database = {
           ib_investor_id: string
           ib_percentage: number
           id: string
-          is_voided: boolean | null
+          is_voided: boolean
           paid_at: string | null
           paid_by: string | null
           payout_batch_id: string | null
@@ -1893,7 +1914,7 @@ export type Database = {
           ib_investor_id: string
           ib_percentage: number
           id?: string
-          is_voided?: boolean | null
+          is_voided?: boolean
           paid_at?: string | null
           paid_by?: string | null
           payout_batch_id?: string | null
@@ -1918,7 +1939,7 @@ export type Database = {
           ib_investor_id?: string
           ib_percentage?: number
           id?: string
-          is_voided?: boolean | null
+          is_voided?: boolean
           paid_at?: string | null
           paid_by?: string | null
           payout_batch_id?: string | null
@@ -2357,7 +2378,7 @@ export type Database = {
           created_at: string | null
           email: string
           id: string
-          investor_id: string | null
+          investor_id: string
           is_primary: boolean | null
           updated_at: string | null
           verified: boolean | null
@@ -2366,7 +2387,7 @@ export type Database = {
           created_at?: string | null
           email: string
           id?: string
-          investor_id?: string | null
+          investor_id: string
           is_primary?: boolean | null
           updated_at?: string | null
           verified?: boolean | null
@@ -2375,12 +2396,26 @@ export type Database = {
           created_at?: string | null
           email?: string
           id?: string
-          investor_id?: string | null
+          investor_id?: string
           is_primary?: boolean | null
           updated_at?: string | null
           verified?: boolean | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_investor_emails_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_emails_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
           {
             foreignKeyName: "fk_investor_emails_profile"
             columns: ["investor_id"]
@@ -7292,7 +7327,15 @@ export type Database = {
         | "ib"
         | "user"
         | "investor"
-      asset_code: "BTC" | "ETH" | "SOL" | "USDT" | "EURC" | "xAUT" | "XRP"
+      asset_code:
+        | "BTC"
+        | "ETH"
+        | "SOL"
+        | "USDT"
+        | "EURC"
+        | "xAUT"
+        | "XRP"
+        | "ADA"
       aum_purpose: "reporting" | "transaction"
       benchmark_type: "BTC" | "ETH" | "STABLE" | "CUSTOM"
       document_type: "statement" | "notice" | "terms" | "tax" | "other"
@@ -7504,7 +7547,7 @@ export const Constants = {
       ],
       account_type: ["investor", "ib", "fees_account"],
       app_role: ["super_admin", "admin", "moderator", "ib", "user", "investor"],
-      asset_code: ["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"],
+      asset_code: ["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP", "ADA"],
       aum_purpose: ["reporting", "transaction"],
       benchmark_type: ["BTC", "ETH", "STABLE", "CUSTOM"],
       document_type: ["statement", "notice", "terms", "tax", "other"],
