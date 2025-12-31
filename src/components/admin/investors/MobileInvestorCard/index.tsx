@@ -90,10 +90,10 @@ const MobileInvestorCard = ({
       // Update fee percentage in profile
       const { error: feeError } = await supabase
         .from("profiles")
-        .update({
-          fee_percentage: feeValue,
-          updated_at: new Date().toISOString(),
-        })
+      .update({
+        fee_pct: feeValue,
+        updated_at: new Date().toISOString(),
+      })
         .eq("id", investor.id);
 
       if (feeError) {
