@@ -6931,13 +6931,15 @@ export type Database = {
         }
         Returns: undefined
       }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      has_role:
+        | {
+            Args: {
+              _role: Database["public"]["Enums"]["app_role"]
+              _user_id: string
+            }
+            Returns: boolean
+          }
+        | { Args: { required_role: string }; Returns: boolean }
       has_super_admin_role: { Args: { p_user_id: string }; Returns: boolean }
       internal_route_to_fees: {
         Args: {
