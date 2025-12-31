@@ -68,9 +68,8 @@
 
 | Function | Justification | Auth Check | Risk Level |
 |----------|--------------|------------|------------|
-| `cancel_withdrawal_request` | Updates status + audit log atomically | `is_admin_for_jwt()` at start | Low |
-| `soft_delete_withdrawal_request` | Sets deleted_at timestamp | `is_admin_for_jwt()` at start | Low |
-| `hard_delete_withdrawal_request` | Cascades delete to audit logs | `is_admin_for_jwt()` at start | Low |
+| `cancel_withdrawal_by_admin` | Updates status + audit log atomically | `is_admin_for_jwt()` at start | Low |
+| `delete_withdrawal` | Soft or hard delete based on flag | `is_admin_for_jwt()` at start | Low |
 | `update_withdrawal_status` | State machine transitions | `is_admin_for_jwt()` at start | Low |
 
 ### Utility Functions

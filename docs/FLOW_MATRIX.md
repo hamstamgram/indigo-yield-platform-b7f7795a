@@ -34,8 +34,8 @@ This document provides a summary of all operational flows in the platform with l
 | Approve Withdrawal | `update_withdrawal_status` | ✅ | ✅ request.id | State machine | ✅ PASS |
 | Reject Withdrawal | `update_withdrawal_status` | ✅ | ✅ request.id | State machine | ✅ PASS |
 | Complete Withdrawal | `update_withdrawal_status` | ✅ | ✅ request.id | Position = Ledger | ✅ PASS |
-| Cancel Withdrawal | `cancel_withdrawal_request` | ✅ | ✅ request.id | State machine | ✅ PASS |
-| Delete Withdrawal | `hard_delete_withdrawal_request` | ✅ | ✅ request.id | - | ✅ PASS |
+| Cancel Withdrawal | `cancel_withdrawal_by_admin` | ✅ | ✅ request.id | State machine | ✅ PASS |
+| Delete Withdrawal | `delete_withdrawal` | ✅ | ✅ request.id | - | ✅ PASS |
 | Preview Yield | `preview_daily_yield_to_fund_v2` | ✅ | ✅ (read-only) | - | ✅ PASS |
 | Apply Yield | `apply_daily_yield_to_fund_v2` | ✅ | ✅ reference_id | Conservation | ✅ PASS |
 | Void Yield | `void_yield_distribution` | ✅ | ✅ distribution.id | - | ✅ PASS |
@@ -156,7 +156,7 @@ This document provides a summary of all operational flows in the platform with l
 | Preview Yield | `preview_daily_yield_to_fund_v2` |
 | Create Transaction | `admin_create_transaction` |
 | Withdrawal Status | `update_withdrawal_status` |
-| Cancel Withdrawal | `cancel_withdrawal_request` |
+| Cancel Withdrawal | `cancel_withdrawal_by_admin` |
 
 ### Critical Views
 

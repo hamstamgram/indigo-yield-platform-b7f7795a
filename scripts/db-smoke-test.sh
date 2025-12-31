@@ -123,16 +123,12 @@ run_check "withdrawal_audit_log view exists" \
 # Check 8: RPC functions exist
 echo ""
 echo "🔧 Function Checks:"
-run_check "cancel_withdrawal_request function" \
-  "SELECT COUNT(*) FROM pg_proc WHERE proname = 'cancel_withdrawal_request'" \
+run_check "cancel_withdrawal_by_admin function" \
+  "SELECT COUNT(*) FROM pg_proc WHERE proname = 'cancel_withdrawal_by_admin'" \
   "1" || ((FAILURES++))
 
-run_check "soft_delete_withdrawal_request function" \
-  "SELECT COUNT(*) FROM pg_proc WHERE proname = 'soft_delete_withdrawal_request'" \
-  "1" || ((FAILURES++))
-
-run_check "hard_delete_withdrawal_request function" \
-  "SELECT COUNT(*) FROM pg_proc WHERE proname = 'hard_delete_withdrawal_request'" \
+run_check "delete_withdrawal function" \
+  "SELECT COUNT(*) FROM pg_proc WHERE proname = 'delete_withdrawal'" \
   "1" || ((FAILURES++))
 
 run_check "void_transaction function" \

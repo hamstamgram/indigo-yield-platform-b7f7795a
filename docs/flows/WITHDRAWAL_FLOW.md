@@ -37,11 +37,11 @@ This document describes the canonical withdrawal flow, including state transitio
 |-------------|-------------|--------|-------------------------------------|
 | pending     | approved    | Admin  | `update_withdrawal_status`          |
 | pending     | rejected    | Admin  | `update_withdrawal_status`          |
-| pending     | cancelled   | Admin  | `cancel_withdrawal_request`         |
+| pending     | cancelled   | Admin  | `cancel_withdrawal_by_admin`        |
 | approved    | processing  | Admin  | `update_withdrawal_status`          |
-| approved    | cancelled   | Admin  | `cancel_withdrawal_request`         |
+| approved    | cancelled   | Admin  | `cancel_withdrawal_by_admin`        |
 | processing  | completed   | Admin  | `update_withdrawal_status`          |
-| processing  | cancelled   | Admin  | `cancel_withdrawal_request`         |
+| processing  | cancelled   | Admin  | `cancel_withdrawal_by_admin`        |
 
 ## Database Tables
 
@@ -82,7 +82,7 @@ This document describes the canonical withdrawal flow, including state transitio
 
 ## RPC Functions
 
-### `cancel_withdrawal_request(p_withdrawal_id UUID, p_reason TEXT)`
+### `cancel_withdrawal_by_admin(p_request_id UUID, p_reason TEXT)`
 
 Cancels a pending/approved/processing withdrawal request.
 
@@ -98,19 +98,13 @@ Cancels a pending/approved/processing withdrawal request.
 -- Returns: JSON with success status and message
 ```
 
-### `soft_delete_withdrawal_request(p_withdrawal_id UUID, p_reason TEXT)`
+### `delete_withdrawal(p_request_id UUID, p_reason TEXT, p_hard_delete BOOLEAN DEFAULT FALSE)`
 
-Soft-deletes a withdrawal request (sets deleted_at timestamp).
-
-**Security**: SECURITY DEFINER with admin role check
-**Use case**: Hide requests without losing audit trail
-
-### `hard_delete_withdrawal_request(p_withdrawal_id UUID, p_reason TEXT)`
-
-Permanently deletes a withdrawal request and its audit trail.
+Deletes a withdrawal request (soft delete by default, hard delete if flag is set).
 
 **Security**: SECURITY DEFINER with admin role check
-**Use case**: GDPR compliance, test data cleanup
+**Soft delete**: Sets deleted_at timestamp, preserves audit trail
+**Hard delete**: Permanently removes request and audit trail (GDPR compliance)
 
 ## Invariants
 
