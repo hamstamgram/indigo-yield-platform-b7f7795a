@@ -79,12 +79,12 @@ FAILURES=0
 # Check 1: Fund AUM mismatches
 echo "📊 Data Integrity Checks:"
 run_check "Fund AUM mismatches" \
-  "SELECT COUNT(*) FROM fund_aum_mismatch WHERE mismatch_abs > 0.01" \
+  "SELECT COUNT(*) FROM fund_aum_mismatch WHERE ABS(discrepancy) > 0.01" \
   "0" || ((FAILURES++))
 
 # Check 2: Investor position mismatches
 run_check "Investor position mismatches" \
-  "SELECT COUNT(*) FROM investor_position_ledger_mismatch WHERE abs_diff > 0.01" \
+  "SELECT COUNT(*) FROM investor_position_ledger_mismatch WHERE ABS(discrepancy) > 0.01" \
   "0" || ((FAILURES++))
 
 # Check 3: Period orphans
