@@ -6651,6 +6651,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      backfill_yield_summaries: { Args: never; Returns: Json }
       can_access_investor: { Args: { investor_uuid: string }; Returns: boolean }
       can_access_notification: {
         Args: { notification_id: string }
