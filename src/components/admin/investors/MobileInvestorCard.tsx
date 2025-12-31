@@ -71,7 +71,7 @@ const MobileInvestorCard = ({
       // Update fee percentage using data hook
       await updateInvestorStatus.mutateAsync({
         investorId: investor.id,
-        updates: { fee_percentage: feeValue },
+        updates: { fee_pct: feeValue },
       });
 
       // Convert input values to portfolio entries
