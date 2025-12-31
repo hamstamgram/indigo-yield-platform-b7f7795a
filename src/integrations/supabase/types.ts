@@ -7311,6 +7311,7 @@ export type Database = {
         | "system"
         | "support"
         | "withdrawal"
+        | "yield"
       share_scope: "portfolio" | "documents" | "statement"
       ticket_category:
         | "account"
@@ -7517,6 +7518,7 @@ export const Constants = {
         "system",
         "support",
         "withdrawal",
+        "yield",
       ],
       share_scope: ["portfolio", "documents", "statement"],
       ticket_category: [
