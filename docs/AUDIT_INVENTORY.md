@@ -89,9 +89,8 @@
 | admin_create_transaction | SECURITY DEFINER | ✅ Yes (checked) | Create deposit/transaction |
 | add_fund_to_investor | SECURITY DEFINER | ✅ Yes (checked) | Add investor position |
 | update_withdrawal_status | SECURITY DEFINER | ✅ Yes (checked) | Withdrawal state change |
-| cancel_withdrawal_request | SECURITY DEFINER | ✅ Yes (checked) | Cancel withdrawal |
-| soft_delete_withdrawal_request | SECURITY DEFINER | ✅ Yes (checked) | Soft delete withdrawal |
-| hard_delete_withdrawal_request | SECURITY DEFINER | ✅ Yes (checked) | Hard delete withdrawal |
+| cancel_withdrawal_by_admin | SECURITY DEFINER | ✅ Yes (checked) | Cancel withdrawal |
+| delete_withdrawal | SECURITY DEFINER | ✅ Yes (checked) | Delete withdrawal (soft or hard) |
 | is_admin | SECURITY DEFINER | - | Role check utility |
 | is_admin_safe | SECURITY DEFINER | - | Safe role check (no recursion) |
 | is_admin_for_jwt | SECURITY DEFINER | - | JWT-based role check |
@@ -126,8 +125,8 @@
 | **Withdrawal Reject** | Admin action | `update_withdrawal_status` | withdrawal_requests, withdrawal_audit_logs | Valid state transition | request.id | ✅ PASS |
 | **Withdrawal Process** | Admin action | `update_withdrawal_status` | withdrawal_requests, withdrawal_audit_logs | Valid state transition | request.id | ✅ PASS |
 | **Withdrawal Complete** | Admin action | `update_withdrawal_status` | withdrawal_requests, transactions_v2, investor_positions | Position = Ledger | request.id | ✅ PASS |
-| **Withdrawal Cancel** | Admin action | `cancel_withdrawal_request` | withdrawal_requests, withdrawal_audit_logs | Valid state transition | request.id | ✅ PASS |
-| **Withdrawal Delete** | Admin action | `hard_delete_withdrawal_request` | withdrawal_requests, withdrawal_audit_logs (cascade) | - | request.id | ✅ PASS |
+| **Withdrawal Cancel** | Admin action | `cancel_withdrawal_by_admin` | withdrawal_requests, withdrawal_audit_logs | Valid state transition | request.id | ✅ PASS |
+| **Withdrawal Delete** | Admin action | `delete_withdrawal` | withdrawal_requests, withdrawal_audit_logs (cascade) | - | request.id | ✅ PASS |
 | **Yield Preview** | Yield page | `preview_daily_yield_to_fund_v2` | None (read-only) | - | - | ✅ PASS |
 | **Yield Apply** | Yield page | `apply_daily_yield_to_fund_v2` | yield_distributions, transactions_v2, fee_allocations, ib_allocations, investor_positions | Conservation, Position = Ledger | distribution.id + reference_id | ✅ PASS |
 | **Yield Void** | Yield page | `void_yield_distribution` | All distribution tables (voided) | - | distribution.id | ✅ PASS |
