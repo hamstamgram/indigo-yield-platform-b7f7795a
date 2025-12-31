@@ -542,7 +542,7 @@ export async function previewInvestorYieldDistribution(
           first_name,
           last_name,
           email,
-          fee_percentage
+          fee_pct
         )
       `)
       .eq("fund_id", fundId)
@@ -584,8 +584,8 @@ export async function previewInvestorYieldDistribution(
       
       // Fee priority: schedule > profile > 0%
       let feeRate = feeMap.get(pos.investor_id!) ?? 0;
-      if (feeRate === 0 && profile?.fee_percentage) {
-        feeRate = Number(profile.fee_percentage) * 100; // profile stores as decimal (0.02 = 2%)
+      if (feeRate === 0 && profile?.fee_pct) {
+        feeRate = Number(profile.fee_pct) * 100; // profile stores as decimal (0.02 = 2%)
       }
       
       const feeAmount = investorGrossYield * (feeRate / 100);

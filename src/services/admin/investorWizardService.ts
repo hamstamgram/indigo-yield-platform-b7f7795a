@@ -180,7 +180,7 @@ export async function createInvestorWithWizard(
     const profileUpdate: Record<string, any> = {
       entity_type: identity.entity_type,
       status: identity.status,
-      fee_percentage: fees.investor_fee_pct / 100, // Convert to decimal
+      fee_pct: fees.investor_fee_pct / 100, // Convert to decimal
     };
 
     if (ibParentId) {
