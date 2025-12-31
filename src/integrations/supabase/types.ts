@@ -6396,13 +6396,13 @@ export type Database = {
       }
       admin_create_transaction: {
         Args: {
-          p_admin_id?: string
+          p_admin_id: string
           p_amount: number
           p_fund_id: string
           p_investor_id: string
-          p_notes?: string
-          p_reference_id?: string
-          p_tx_date?: string
+          p_notes: string
+          p_reference_id: string
+          p_tx_date: string
           p_type: string
         }
         Returns: string
@@ -6425,16 +6425,28 @@ export type Database = {
           net_amount: number
         }[]
       }
-      apply_daily_yield_to_fund_v2: {
-        Args: {
-          p_admin_id: string
-          p_date: string
-          p_fund_id: string
-          p_gross_amount: number
-          p_purpose?: string
-        }
-        Returns: Json
-      }
+      apply_daily_yield_to_fund_v2:
+        | {
+            Args: {
+              p_admin_id: string
+              p_date: string
+              p_fund_id: string
+              p_gross_amount: number
+              p_purpose?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_admin_id: string
+              p_date: string
+              p_force?: boolean
+              p_fund_id: string
+              p_gross_amount: number
+              p_purpose: Database["public"]["Enums"]["aum_purpose"]
+            }
+            Returns: Json
+          }
       apply_daily_yield_to_fund_v3: {
         Args: {
           p_as_of_date: string
@@ -7135,6 +7147,7 @@ export type Database = {
         Args: { p_minutes?: number; p_period_id: string }
         Returns: Json
       }
+      require_super_admin: { Args: { p_operation: string }; Returns: undefined }
       reset_all_data_keep_profiles: {
         Args: { p_admin_id: string; p_confirmation_code: string }
         Returns: Json
