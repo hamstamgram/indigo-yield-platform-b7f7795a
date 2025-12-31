@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Deposit, DepositFormData, DepositFilters } from "@/types/domains";
+import { depositNotifications } from "@/services/notifications";
 
 export class DepositService {
   async getDeposits(filters?: DepositFilters): Promise<Deposit[]> {
@@ -109,7 +110,7 @@ export class DepositService {
     const assetSymbol = formData.asset_symbol.toUpperCase();
     const { data: fund } = await supabase
       .from("funds")
-      .select("id, asset, fund_class")
+      .select("id, name, asset, fund_class")
       .eq("asset", assetSymbol)
       .eq("status", "active")
       .maybeSingle();
@@ -147,6 +148,15 @@ export class DepositService {
     if (!result?.out_success) {
       throw new Error(result?.out_message || "Failed to create deposit");
     }
+
+    // Send deposit notification (non-blocking)
+    depositNotifications.onConfirmed(
+      profileId,
+      result.out_transaction_id,
+      amount,
+      assetSymbol,
+      fund?.name
+    ).catch(err => console.error("Failed to send deposit notification:", err));
 
     return this.getDepositById(result.out_transaction_id);
   }

@@ -13,6 +13,7 @@ import {
   isPeriodLocked,
   getFundPeriodSnapshot
 } from "@/services/operations/snapshotService";
+import { yieldNotifications } from "@/services/notifications";
 
 // Re-export types from canonical source for backwards compatibility
 export type {
@@ -369,6 +370,39 @@ export async function applyYieldDistribution(
 
   // Parse response - apply returns JSONB now
   const result = data as any;
+
+  // Send yield notifications to affected investors (non-blocking)
+  // Fetch fund info for notifications
+  const { data: fundInfo } = await supabase
+    .from("funds")
+    .select("name, asset")
+    .eq("id", fundId)
+    .single();
+
+  // Fetch affected investors for notifications (excluding system accounts)
+  const { data: affectedInvestors } = await supabase
+    .from("transactions_v2")
+    .select("investor_id, amount")
+    .eq("fund_id", fundId)
+    .eq("tx_date", formatDate(targetDate))
+    .in("type", ["INTEREST", "YIELD"])
+    .eq("is_voided", false);
+
+  if (affectedInvestors?.length && fundInfo) {
+    const distributions = affectedInvestors.map(inv => ({
+      userId: inv.investor_id,
+      distributionId: `yield:${fundId}:${formatDate(targetDate)}:${inv.investor_id}`,
+      fundId,
+      fundName: fundInfo.name,
+      amount: Number(inv.amount),
+      asset: fundInfo.asset,
+      yieldDate: formatDate(targetDate),
+      yieldPercentage: currentAUM > 0 ? (grossYieldAmount / currentAUM) * 100 : undefined,
+    }));
+
+    yieldNotifications.onFundYieldDistributed(distributions)
+      .catch(err => console.error("Failed to send yield notifications:", err));
+  }
   
   const distributions: YieldDistribution[] = [];
   const totals: YieldTotals = {
