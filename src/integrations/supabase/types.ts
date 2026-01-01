@@ -6618,6 +6618,7 @@ export type Database = {
         Args: { p_admin_notes?: string; p_reason: string; p_request_id: string }
         Returns: boolean
       }
+      carryforward_daily_aum: { Args: never; Returns: Json }
       check_aum_exists_for_date: {
         Args: { p_date: string; p_fund_id: string }
         Returns: boolean
