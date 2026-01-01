@@ -45,8 +45,7 @@ export function WithdrawalDetailsDrawer({
   
   const canRouteToFees = withdrawal?.status === "pending" ||
                           withdrawal?.status === "approved" || 
-                          withdrawal?.status === "processing" || 
-                          withdrawal?.status === "completed";
+                          withdrawal?.status === "processing";
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
