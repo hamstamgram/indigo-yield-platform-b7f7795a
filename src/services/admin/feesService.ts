@@ -205,16 +205,32 @@ export function calculateFeeSummaries(fees: FeeRecord[]): FeeSummary[] {
  * Get INDIGO FEES account balances by asset
  */
 export async function getIndigoFeesBalance(): Promise<Record<string, number>> {
-  const { data: indigoPositions, error } = await supabase
+  // First get positions for INDIGO FEES account
+  const { data: indigoPositions, error: posError } = await supabase
     .from("investor_positions")
-    .select("fund_id, current_value, funds!inner(asset)")
+    .select("fund_id, current_value")
     .eq("investor_id", INDIGO_FEES_ACCOUNT_ID);
 
-  if (error) throw error;
+  if (posError) throw posError;
+
+  if (!indigoPositions || indigoPositions.length === 0) {
+    return {};
+  }
+
+  // Get fund assets separately to avoid FK ambiguity
+  const fundIds = indigoPositions.map(p => p.fund_id);
+  const { data: fundsData, error: fundsError } = await supabase
+    .from("funds")
+    .select("id, asset")
+    .in("id", fundIds);
+
+  if (fundsError) throw fundsError;
+
+  const fundAssetMap = new Map((fundsData || []).map(f => [f.id, f.asset]));
 
   const balances: Record<string, number> = {};
-  (indigoPositions || []).forEach((p: any) => {
-    const asset = p.funds?.asset;
+  indigoPositions.forEach((p) => {
+    const asset = fundAssetMap.get(p.fund_id);
     if (asset) {
       balances[asset] = (balances[asset] || 0) + Number(p.current_value || 0);
     }
