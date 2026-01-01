@@ -7255,10 +7255,15 @@ export type Database = {
         Args: { p_correction_id: string; p_reason: string }
         Returns: Json
       }
-      route_withdrawal_to_fees: {
-        Args: { p_reason?: string; p_request_id: string }
-        Returns: boolean
-      }
+      route_withdrawal_to_fees:
+        | {
+            Args: { p_reason?: string; p_request_id: string }
+            Returns: boolean
+          }
+        | {
+            Args: { p_admin_id: string; p_withdrawal_id: string }
+            Returns: Json
+          }
       run_data_integrity_check: { Args: never; Returns: Json }
       send_daily_rate_notifications: {
         Args: { p_rate_date: string }

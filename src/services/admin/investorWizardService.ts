@@ -281,26 +281,10 @@ export async function createInvestorWithWizard(
                 visibility_scope: "investor_visible",
               });
 
-            if (fallbackError) {
+          if (fallbackError) {
               console.error("Fallback transaction creation also failed:", fallbackError);
-            }
-
-            // Also create/update position directly as fallback
-            const { error: posError } = await supabase
-              .from("investor_positions")
-              .upsert({
-                investor_id: investorId,
-                fund_id: fund.id,
-                current_value: amount,
-                cost_basis: amount,
-                shares: 0,
-                fund_class: fund.asset,
-              }, {
-                onConflict: "investor_id,fund_id",
-              });
-
-            if (posError) {
-              console.error("Fallback position creation also failed:", posError);
+              // Note: Position will be created via the recompute trigger when transaction succeeds
+              // Do NOT directly insert into investor_positions - this causes orphaned positions
             }
           }
         }
