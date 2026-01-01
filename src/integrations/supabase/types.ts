@@ -7365,14 +7365,19 @@ export type Database = {
         Args: { p_admin_id: string; p_reason: string; p_record_id: string }
         Returns: Json
       }
-      void_transaction: {
-        Args: {
-          p_actor_id?: string
-          p_reason: string
-          p_transaction_id: string
-        }
-        Returns: Json
-      }
+      void_transaction:
+        | {
+            Args: { p_reason: string; p_transaction_id: string }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_actor_id?: string
+              p_reason: string
+              p_transaction_id: string
+            }
+            Returns: Json
+          }
     }
     Enums: {
       access_event:
