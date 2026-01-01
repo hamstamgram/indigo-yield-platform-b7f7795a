@@ -183,7 +183,7 @@ export async function createAdminTransaction(
         p_delta: delta,
         p_note: note,
         p_admin_id: user.id,
-        p_tx_type: params.type, // Pass original type, DB will map FIRST_INVESTMENT -> DEPOSIT
+        p_tx_type: dbType, // Use mapped type (FIRST_INVESTMENT → DEPOSIT)
         p_tx_date: params.tx_date,
         p_reference_id: referenceId,
       });
