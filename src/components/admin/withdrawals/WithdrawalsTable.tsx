@@ -77,7 +77,7 @@ export function WithdrawalsTable({
   const canEdit = (status: WithdrawalFullStatus) => status === "pending" || status === "approved";
   const canDelete = (status: WithdrawalFullStatus) => status !== "completed";
   const canRouteToFees = (status: WithdrawalFullStatus) => 
-    status === "approved" || status === "processing" || status === "completed";
+    status === "approved" || status === "processing";
 
   // Add sorting capability
   const { sortConfig, requestSort, sortedData } = useSortableColumns(withdrawals, {
