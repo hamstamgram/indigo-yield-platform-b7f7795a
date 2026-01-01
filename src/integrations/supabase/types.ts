@@ -6731,10 +6731,12 @@ export type Database = {
         Args: { p_admin_id: string; p_period_id: string }
         Returns: undefined
       }
-      force_delete_investor: {
-        Args: { p_admin_id: string; p_investor_id: string }
-        Returns: boolean
-      }
+      force_delete_investor:
+        | { Args: { p_investor_id: string }; Returns: Json }
+        | {
+            Args: { p_admin_id: string; p_investor_id: string }
+            Returns: boolean
+          }
       fund_period_return: {
         Args: { d1: string; d2: string; f: string; net?: boolean }
         Returns: number
