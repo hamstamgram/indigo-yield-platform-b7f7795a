@@ -7456,6 +7456,7 @@ export type Database = {
         | "complete"
         | "cancel"
         | "update"
+        | "route_to_fees"
       withdrawal_status:
         | "pending"
         | "approved"
@@ -7668,6 +7669,7 @@ export const Constants = {
         "complete",
         "cancel",
         "update",
+        "route_to_fees",
       ],
       withdrawal_status: [
         "pending",
