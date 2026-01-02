@@ -6767,40 +6767,28 @@ export type Database = {
         }
         Returns: string
       }
-      adjust_investor_position:
-        | {
-            Args: {
-              p_admin_id?: string
-              p_delta: number
-              p_fund_id: string
-              p_investor_id: string
-              p_note?: string
-              p_reference_id?: string
-              p_tx_date?: string
-              p_tx_type?: string
-            }
-            Returns: {
-              out_fund_id: string
-              out_investor_id: string
-              out_message: string
-              out_new_balance: number
-              out_old_balance: number
-              out_reference_id: string
-              out_success: boolean
-              out_transaction_id: string
-            }[]
-          }
-        | {
-            Args: {
-              p_delta: number
-              p_fund_id: string
-              p_investor_id: string
-              p_note?: string
-              p_tx_date?: string
-              p_tx_type?: string
-            }
-            Returns: Json
-          }
+      adjust_investor_position: {
+        Args: {
+          p_admin_id?: string
+          p_delta: number
+          p_fund_id: string
+          p_investor_id: string
+          p_note?: string
+          p_reference_id?: string
+          p_tx_date?: string
+          p_tx_type?: string
+        }
+        Returns: {
+          out_fund_id: string
+          out_investor_id: string
+          out_message: string
+          out_new_balance: number
+          out_old_balance: number
+          out_reference_id: string
+          out_success: boolean
+          out_transaction_id: string
+        }[]
+      }
       admin_create_transaction: {
         Args: {
           p_admin_id: string
@@ -6832,51 +6820,29 @@ export type Database = {
           net_amount: number
         }[]
       }
-      apply_daily_yield_to_fund_v2:
-        | {
-            Args: {
-              p_admin_id: string
-              p_date: string
-              p_fund_id: string
-              p_gross_amount: number
-              p_purpose?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_admin_id: string
-              p_date: string
-              p_force?: boolean
-              p_fund_id: string
-              p_gross_amount: number
-              p_purpose: Database["public"]["Enums"]["aum_purpose"]
-            }
-            Returns: Json
-          }
-      apply_daily_yield_to_fund_v3:
-        | {
-            Args: {
-              p_as_of_date: string
-              p_fund_id: string
-              p_new_total_aum: number
-              p_notes?: string
-              p_purpose?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_admin_id?: string
-              p_fund_id: string
-              p_gross_yield_pct: number
-              p_period_end?: string
-              p_period_start?: string
-              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-              p_yield_date: string
-            }
-            Returns: Json
-          }
+      apply_daily_yield_to_fund_v2: {
+        Args: {
+          p_admin_id: string
+          p_date: string
+          p_force?: boolean
+          p_fund_id: string
+          p_gross_amount: number
+          p_purpose: Database["public"]["Enums"]["aum_purpose"]
+        }
+        Returns: Json
+      }
+      apply_daily_yield_to_fund_v3: {
+        Args: {
+          p_admin_id?: string
+          p_fund_id: string
+          p_gross_yield_pct: number
+          p_period_end?: string
+          p_period_start?: string
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+          p_yield_date: string
+        }
+        Returns: Json
+      }
       apply_daily_yield_with_fees: {
         Args: {
           p_fee_rate?: number
@@ -7492,16 +7458,6 @@ export type Database = {
           p_fund_id: string
           p_gross_yield: number
           p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-        }
-        Returns: Json
-      }
-      preview_daily_yield_to_fund_v3: {
-        Args: {
-          p_as_of_date: string
-          p_fund_id: string
-          p_new_total_aum: number
-          p_notes?: string
-          p_purpose?: string
         }
         Returns: Json
       }

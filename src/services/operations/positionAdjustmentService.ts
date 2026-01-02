@@ -33,6 +33,7 @@ export async function adjustPosition(
     p_admin_id: adminId,
     p_tx_type: tx_type || "ADJUSTMENT",
     p_tx_date: tx_date || new Date().toISOString().split('T')[0],
+    p_reference_id: `adj:${fund_id}:${investor_id}:${Date.now()}`,
   });
   if (error) {
     console.error("adjustPosition error", error);
