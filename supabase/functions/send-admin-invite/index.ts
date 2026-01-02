@@ -265,7 +265,8 @@ serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Indigo Yield <noreply@indigoyield.com>",
+        // Using Resend test domain - for production, verify your domain at https://resend.com/domains
+        from: "Indigo Yield <onboarding@resend.dev>",
         to: [invite.email],
         subject: "You've been invited to join Indigo Yield as an Administrator",
         html: emailHtml,
