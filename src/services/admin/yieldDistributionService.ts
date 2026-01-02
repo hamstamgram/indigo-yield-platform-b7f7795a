@@ -672,7 +672,7 @@ export async function getActiveFundsWithAUM(): Promise<
         .select("*", { count: "exact", head: true })
         .eq("fund_id", fund.id);
 
-      const total_aum = positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0;
+      const total_aum = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
       const uniqueInvestors = new Set(positions?.map((p) => p.investor_id) || []);
 
       return {
@@ -708,7 +708,7 @@ export async function getFundInvestorComposition(fundId: string): Promise<
 
   if (error) throw new Error(`Failed to fetch positions: ${error.message}`);
 
-  const totalAUM = positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0;
+  const totalAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
   const investorIds = [...new Set(positions?.map((p) => p.investor_id).filter(Boolean))];
 
   // Get investor profiles
@@ -740,9 +740,9 @@ export async function getFundInvestorComposition(fundId: string): Promise<
   (yieldTransactions || []).forEach((tx) => {
     const currentYield = mtdYieldMap.get(tx.investor_id!) || 0;
     if (tx.type === "INTEREST") {
-      mtdYieldMap.set(tx.investor_id!, currentYield + (tx.amount || 0));
+      mtdYieldMap.set(tx.investor_id!, currentYield + Number(tx.amount || 0));
     } else if (tx.type === "FEE") {
-      mtdYieldMap.set(tx.investor_id!, currentYield - Math.abs(tx.amount || 0));
+      mtdYieldMap.set(tx.investor_id!, currentYield - Math.abs(Number(tx.amount || 0)));
     }
   });
 
