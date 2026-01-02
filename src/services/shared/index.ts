@@ -50,9 +50,6 @@ export type {
 // Email templates
 export * from "./emailTemplates";
 
-// Daily rates
-export { dailyRatesService } from "./dailyRatesService";
-export type { DailyRate } from "./dailyRatesService";
 
 // System config
 export { systemConfigService, defaultPlatformSettings } from "./systemConfigService";

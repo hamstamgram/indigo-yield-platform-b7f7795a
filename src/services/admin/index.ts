@@ -161,3 +161,6 @@ export * from "./yieldCorrectionService";
 
 // Report service (selective export to avoid conflicts)
 export { reportService, type SendReportParams } from "./reportService";
+
+// Deposit with yield service
+export * from "./depositWithYieldService";

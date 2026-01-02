@@ -151,13 +151,6 @@ function AdminOperationsHubContent() {
       icon: Calendar,
       category: "Data Entry & Management",
     },
-    {
-      title: "Daily Rates",
-      description: "Manage daily yield rates",
-      href: "/admin/daily-rates",
-      icon: BarChart3,
-      category: "Data Entry & Management",
-    },
 
     // Request Management
     {

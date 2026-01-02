@@ -317,20 +317,6 @@ export function invalidateAfterAssetOp(
   invalidateByGraph(queryClient, 'asset', { assetId });
 }
 
-/**
- * Invalidate queries after daily rate operations
- * Use after: saveDailyRate
- */
-export function invalidateAfterDailyRateOp(
-  queryClient: QueryClient,
-  date?: string
-): void {
-  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.recentDailyRates });
-  if (date) {
-    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dailyRate(date) });
-  }
-  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dailyRate() });
-}
 
 /**
  * Invalidate queries after admin invite operations

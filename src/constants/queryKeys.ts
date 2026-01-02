@@ -232,11 +232,6 @@ export const QUERY_KEYS = {
   userAssets: ["assets", "user"] as const,
   assetMeta: (assetCode: string) => ["assets", "meta", assetCode] as const,
 
-  // ============ Daily Rates ============
-  dailyRate: (date?: string) => date 
-    ? ["daily-rate", date] as const 
-    : ["daily-rate"] as const,
-  recentDailyRates: ["daily-rate", "recent"] as const,
 
   // ============ Admin Invites ============
   adminInvites: ["admin", "invites"] as const,
