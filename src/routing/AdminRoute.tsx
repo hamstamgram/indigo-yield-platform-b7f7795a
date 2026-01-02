@@ -1,17 +1,26 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/auth/context";
+import { useUserRole } from "@/hooks/auth";
 import { PageLoadingSpinner } from "@/components/ui";
 
 interface AdminRouteProps {
   children: React.ReactNode;
 }
 
+/**
+ * AdminRoute - Hardened admin route guard
+ * Double-checks admin status using both AuthContext and useUserRole hook
+ * to prevent any race condition or inconsistent state issues
+ */
 export function AdminRoute({ children }: AdminRouteProps) {
-  const { user, loading, isAdmin, profile } = useAuth();
+  const { user, loading: authLoading, isAdmin: authIsAdmin, profile } = useAuth();
+  const { isAdmin: roleIsAdmin, isLoading: roleLoading } = useUserRole();
   const location = useLocation();
 
-  // Wait for both auth and profile to be loaded before making decisions
-  if (loading || (user && !profile)) {
+  // Wait for both auth context AND role check to complete
+  const isLoading = authLoading || roleLoading || (user && !profile);
+  
+  if (isLoading) {
     return <PageLoadingSpinner />;
   }
 
@@ -20,8 +29,17 @@ export function AdminRoute({ children }: AdminRouteProps) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!isAdmin) {
-    // User is authenticated but not admin - redirect to dashboard
+  // SECURITY: Double-check admin status from both sources
+  // Both must agree for access to be granted
+  const isVerifiedAdmin = authIsAdmin && roleIsAdmin;
+
+  if (!isVerifiedAdmin) {
+    console.warn("[AdminRoute] Access denied - admin verification failed", {
+      authIsAdmin,
+      roleIsAdmin,
+      userId: user.id,
+    });
+    // User is authenticated but not verified admin - redirect to dashboard
     return <Navigate to="/dashboard" replace />;
   }
 
