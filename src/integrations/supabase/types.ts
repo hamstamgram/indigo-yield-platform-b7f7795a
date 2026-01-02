@@ -6782,7 +6782,7 @@ export type Database = {
           out_fund_id: string
           out_investor_id: string
           out_new_balance: number
-          out_previous_balance: number
+          out_old_balance: number
           out_reference_id: string
           out_transaction_id: string
         }[]
@@ -7215,19 +7215,33 @@ export type Database = {
           snapshot_date: string
         }[]
       }
-      get_position_reconciliation: {
-        Args: { p_as_of_date?: string; p_fund_id?: string }
-        Returns: {
-          out_difference: number
-          out_fund_id: string
-          out_fund_name: string
-          out_investor_id: string
-          out_investor_name: string
-          out_is_matched: boolean
-          out_ledger_balance: number
-          out_position_balance: number
-        }[]
-      }
+      get_position_reconciliation:
+        | {
+            Args: { p_as_of_date?: string; p_fund_id?: string }
+            Returns: {
+              out_difference: number
+              out_fund_id: string
+              out_fund_name: string
+              out_investor_id: string
+              out_investor_name: string
+              out_is_matched: boolean
+              out_ledger_balance: number
+              out_position_balance: number
+            }[]
+          }
+        | {
+            Args: { p_as_of_date?: string; p_fund_id?: string }
+            Returns: {
+              out_difference: number
+              out_fund_id: string
+              out_fund_name: string
+              out_investor_id: string
+              out_investor_name: string
+              out_is_matched: boolean
+              out_ledger_balance: number
+              out_position_balance: number
+            }[]
+          }
       get_profile_by_id: {
         Args: { profile_id: string }
         Returns: {
