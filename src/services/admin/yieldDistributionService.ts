@@ -122,62 +122,31 @@ export async function previewYieldDistribution(
     }
   }
 
-  // Get "as-of" AUM for the target date
-  // For backdated entries, use historical AUM snapshot if available
-  // This prevents using current Dec 2025 AUM when recording June 2025 yield
-  let currentAUM = 0;
+  // CRITICAL: Always use CURRENT positions for AUM calculation
+  // The backend RPC also uses current positions for distribution percentages
+  // This ensures consistency between preview and apply operations
+  // Historical AUM lookup was causing discrepancies because:
+  // 1. Frontend calculated gross yield from historical AUM
+  // 2. Backend distributed based on current positions
+  // This led to incorrect yield amounts when positions changed since the historical date
+  
+  const { data: positions, error: posError } = await supabase
+    .from("investor_positions")
+    .select("current_value")
+    .eq("fund_id", fundId)
+    .gt("current_value", 0);
+
+  if (posError) {
+    throw new Error(`Failed to fetch positions: ${posError.message}`);
+  }
+
+  const currentAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
+  
+  // Warn for backdated entries
   const today = new Date();
   const isBackdated = targetDate < today;
-  
   if (isBackdated) {
-    // Look for AUM snapshot on or before target date
-    const { data: historicalAum } = await supabase
-      .from("fund_daily_aum")
-      .select("total_aum, aum_date")
-      .eq("fund_id", fundId)
-      .eq("is_voided", false)
-      .lte("aum_date", formatDate(targetDate))
-      .order("aum_date", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (historicalAum) {
-      currentAUM = Number(historicalAum.total_aum);
-      console.log(`Using historical AUM from ${historicalAum.aum_date}: ${currentAUM}`);
-    } else {
-      // No historical snapshot - calculate from ledger as of target date
-      const { data: ledgerSum } = await (supabase.rpc as any)("get_fund_aum_as_of_date", {
-        p_fund_id: fundId,
-        p_date: formatDate(targetDate),
-      });
-      
-      if (ledgerSum?.aum) {
-        currentAUM = Number(ledgerSum.aum);
-      } else {
-        // Fallback: use current positions but warn
-        const { data: positions } = await supabase
-          .from("investor_positions")
-          .select("current_value")
-          .eq("fund_id", fundId)
-          .gt("current_value", 0);
-        
-        currentAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
-        console.warn(`No historical AUM snapshot found for ${formatDate(targetDate)} - using current positions. Consider creating an AUM snapshot first.`);
-      }
-    }
-  } else {
-    // For current/future dates, use current positions
-    const { data: positions, error: posError } = await supabase
-      .from("investor_positions")
-      .select("current_value")
-      .eq("fund_id", fundId)
-      .gt("current_value", 0);
-
-    if (posError) {
-      throw new Error(`Failed to fetch positions: ${posError.message}`);
-    }
-
-    currentAUM = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
+    console.info(`Recording backdated yield for ${formatDate(targetDate)}. Using current positions AUM (${currentAUM}) for consistency with backend distribution.`);
   }
   
   const grossYieldAmount = Math.max(newTotalAUM - currentAUM, 0);
