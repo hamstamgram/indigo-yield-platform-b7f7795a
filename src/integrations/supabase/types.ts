@@ -6776,10 +6776,11 @@ export type Database = {
           p_tx_type?: string
         }
         Returns: {
-          out_message: string
+          out_fund_id: string
+          out_investor_id: string
           out_new_balance: number
-          out_old_balance: number
-          out_success: boolean
+          out_previous_balance: number
+          out_reference_id: string
           out_transaction_id: string
         }[]
       }
