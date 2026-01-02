@@ -536,6 +536,7 @@ export type Database = {
           operation: string | null
           record_id: string
           table_name: string
+          voided_record: boolean | null
         }
         Insert: {
           changed_fields?: string[] | null
@@ -550,6 +551,7 @@ export type Database = {
           operation?: string | null
           record_id: string
           table_name: string
+          voided_record?: boolean | null
         }
         Update: {
           changed_fields?: string[] | null
@@ -564,6 +566,7 @@ export type Database = {
           operation?: string | null
           record_id?: string
           table_name?: string
+          voided_record?: boolean | null
         }
         Relationships: [
           {
@@ -7688,6 +7691,14 @@ export type Database = {
       void_fund_daily_aum: {
         Args: { p_admin_id: string; p_reason: string; p_record_id: string }
         Returns: Json
+      }
+      void_investor_yield_events_for_distribution: {
+        Args: {
+          p_admin_id: string
+          p_distribution_id: string
+          p_reason?: string
+        }
+        Returns: number
       }
       void_transaction: {
         Args: {
