@@ -6770,6 +6770,28 @@ export type Database = {
       adjust_investor_position:
         | {
             Args: {
+              p_admin_id?: string
+              p_delta: number
+              p_fund_id: string
+              p_investor_id: string
+              p_note?: string
+              p_reference_id?: string
+              p_tx_date?: string
+              p_tx_type?: string
+            }
+            Returns: {
+              out_fund_id: string
+              out_investor_id: string
+              out_message: string
+              out_new_balance: number
+              out_old_balance: number
+              out_reference_id: string
+              out_success: boolean
+              out_transaction_id: string
+            }[]
+          }
+        | {
+            Args: {
               p_delta: number
               p_fund_id: string
               p_investor_id: string
@@ -6778,25 +6800,6 @@ export type Database = {
               p_tx_type?: string
             }
             Returns: Json
-          }
-        | {
-            Args: {
-              p_admin_id: string
-              p_delta: number
-              p_fund_id: string
-              p_investor_id: string
-              p_note: string
-              p_reference_id?: string
-              p_tx_date: string
-              p_tx_type: string
-            }
-            Returns: {
-              out_message: string
-              out_new_balance: number
-              out_old_balance: number
-              out_success: boolean
-              out_transaction_id: string
-            }[]
           }
       admin_create_transaction: {
         Args: {
@@ -6959,6 +6962,15 @@ export type Database = {
         Returns: boolean
       }
       carryforward_daily_aum: { Args: never; Returns: Json }
+      check_and_fix_aum_integrity: {
+        Args: {
+          p_dry_run?: boolean
+          p_end_date?: string
+          p_fund_id?: string
+          p_start_date?: string
+        }
+        Returns: Json
+      }
       check_aum_exists_for_date: {
         Args: { p_date: string; p_fund_id: string }
         Returns: boolean
@@ -7337,6 +7349,11 @@ export type Database = {
           status: string
         }[]
       }
+      get_void_transaction_impact: {
+        Args: { p_transaction_id: string }
+        Returns: Json
+      }
+      get_void_yield_impact: { Args: { p_record_id: string }; Returns: Json }
       get_yield_corrections: {
         Args: { p_date_from?: string; p_date_to?: string; p_fund_id?: string }
         Returns: {
@@ -7567,6 +7584,15 @@ export type Database = {
         }[]
       }
       recalculate_all_aum: { Args: never; Returns: Json }
+      recalculate_fund_aum_for_date: {
+        Args: {
+          p_actor_id?: string
+          p_date: string
+          p_fund_id: string
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+        }
+        Returns: Json
+      }
       recompute_investor_position: {
         Args: { p_fund_id: string; p_investor_id: string }
         Returns: undefined

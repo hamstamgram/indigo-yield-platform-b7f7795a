@@ -1,10 +1,10 @@
 /**
  * Void Yield Dialog
- * Confirmation dialog for voiding (soft-deleting) yield records
+ * Confirmation dialog for voiding yield records with impact preview
  */
 
-import { useState } from "react";
-import { AlertTriangle, Loader2, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { AlertTriangle, Loader2, Trash2, Users, FileX } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui";
 import { format } from "date-fns";
 import type { YieldRecord } from "@/services";
+import { getYieldVoidImpact } from "@/services/admin/yieldManagementService";
 
 interface VoidYieldDialogProps {
   record: YieldRecord | null;
@@ -19,6 +20,20 @@ interface VoidYieldDialogProps {
   onOpenChange: (open: boolean) => void;
   onConfirm: (reason: string) => Promise<void>;
   isPending?: boolean;
+}
+
+interface VoidImpact {
+  success: boolean;
+  error?: string;
+  transactions_to_void?: number;
+  affected_investors?: Array<{
+    investor_id: string;
+    investor_name: string;
+    current_position: number;
+    yield_amount: number;
+    fee_amount: number;
+  }>;
+  affected_investor_count?: number;
 }
 
 export function VoidYieldDialog({
@@ -30,20 +45,40 @@ export function VoidYieldDialog({
 }: VoidYieldDialogProps) {
   const [reason, setReason] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+  const [impact, setImpact] = useState<VoidImpact | null>(null);
+  const [loadingImpact, setLoadingImpact] = useState(false);
 
   const isValid = reason.trim().length >= 5 && confirmed;
+
+  // Fetch impact preview when dialog opens
+  useEffect(() => {
+    if (open && record?.id) {
+      setLoadingImpact(true);
+      getYieldVoidImpact(record.id)
+        .then(setImpact)
+        .catch((err) => {
+          console.error("Failed to fetch yield void impact:", err);
+          setImpact(null);
+        })
+        .finally(() => setLoadingImpact(false));
+    } else {
+      setImpact(null);
+    }
+  }, [open, record?.id]);
 
   const handleConfirm = async () => {
     if (!isValid) return;
     await onConfirm(reason.trim());
     setReason("");
     setConfirmed(false);
+    setImpact(null);
   };
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
       setReason("");
       setConfirmed(false);
+      setImpact(null);
     }
     onOpenChange(newOpen);
   };
@@ -52,7 +87,7 @@ export function VoidYieldDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
-      <AlertDialogContent className="max-w-md">
+      <AlertDialogContent className="max-w-lg">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="h-5 w-5" />
@@ -60,8 +95,8 @@ export function VoidYieldDialog({
           </AlertDialogTitle>
           <AlertDialogDescription className="space-y-3">
             <p>
-              You are about to void this yield record. This action cannot be undone
-              and the record will be marked as voided with full audit trail.
+              You are about to void this yield record. This will cascade void all related 
+              yield transactions and recalculate affected investor positions.
             </p>
             
             <div className="bg-muted rounded-lg p-3 space-y-2">
@@ -92,6 +127,60 @@ export function VoidYieldDialog({
         </AlertDialogHeader>
 
         <div className="space-y-4 py-2">
+          {/* Impact Preview */}
+          {loadingImpact ? (
+            <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm text-muted-foreground">Loading impact preview...</span>
+            </div>
+          ) : impact?.success && ((impact.transactions_to_void ?? 0) > 0 || (impact.affected_investor_count ?? 0) > 0) ? (
+            <div className="space-y-3 p-3 bg-amber-500/10 border border-amber-500/30 rounded-md">
+              <div className="text-sm font-medium flex items-center gap-2 text-amber-700">
+                <AlertTriangle className="h-4 w-4" />
+                Cascade Impact
+              </div>
+              
+              {(impact.transactions_to_void ?? 0) > 0 && (
+                <div className="flex items-center gap-2 text-sm">
+                  <FileX className="h-4 w-4 text-muted-foreground" />
+                  <span>
+                    <strong>{impact.transactions_to_void}</strong> transaction(s) will be voided
+                  </span>
+                </div>
+              )}
+              
+              {(impact.affected_investor_count ?? 0) > 0 && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <span>
+                    <strong>{impact.affected_investor_count}</strong> investor(s) will have positions recalculated
+                  </span>
+                </div>
+              )}
+
+              {impact.affected_investors && impact.affected_investors.length > 0 && (
+                <div className="mt-2 max-h-32 overflow-y-auto">
+                  <div className="text-xs text-muted-foreground mb-1">Affected investors:</div>
+                  <div className="space-y-1">
+                    {impact.affected_investors.slice(0, 5).map((inv) => (
+                      <div key={inv.investor_id} className="text-xs flex justify-between">
+                        <span>{inv.investor_name}</span>
+                        <span className="font-mono text-destructive">
+                          -{(inv.yield_amount - inv.fee_amount).toFixed(4)}
+                        </span>
+                      </div>
+                    ))}
+                    {impact.affected_investors.length > 5 && (
+                      <div className="text-xs text-muted-foreground">
+                        ...and {impact.affected_investors.length - 5} more
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : null}
+
           <div className="space-y-2">
             <Label htmlFor="void-reason">
               Reason for voiding <span className="text-destructive">*</span>
@@ -121,8 +210,8 @@ export function VoidYieldDialog({
               htmlFor="confirm-void"
               className="text-sm leading-tight cursor-pointer"
             >
-              I understand this action cannot be undone and will create a permanent
-              audit record.
+              I understand this action will cascade void all related yield transactions
+              and recalculate affected investor positions.
             </label>
           </div>
         </div>

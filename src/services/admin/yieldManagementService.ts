@@ -196,3 +196,37 @@ export async function canEditYieldRecord(recordId: string): Promise<{ canEdit: b
 
   return { canEdit: true };
 }
+
+/**
+ * Get void impact preview for a yield record
+ * Shows what will happen before voiding (transactions, investors affected)
+ */
+export async function getYieldVoidImpact(recordId: string): Promise<{
+  success: boolean;
+  error?: string;
+  record_id?: string;
+  fund_id?: string;
+  aum_date?: string;
+  total_aum?: number;
+  purpose?: string;
+  transactions_to_void?: number;
+  affected_investors?: Array<{
+    investor_id: string;
+    investor_name: string;
+    current_position: number;
+    yield_amount: number;
+    fee_amount: number;
+  }>;
+  affected_investor_count?: number;
+}> {
+  const { data, error } = await (supabase.rpc as any)("get_void_yield_impact", {
+    p_record_id: recordId,
+  });
+
+  if (error) {
+    console.error("Error getting yield void impact:", error);
+    throw new Error(error.message || "Failed to get yield void impact");
+  }
+
+  return data;
+}
