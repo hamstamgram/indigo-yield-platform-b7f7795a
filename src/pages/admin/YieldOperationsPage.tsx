@@ -34,6 +34,7 @@ import {
   Building2,
   UserCheck,
   ArrowRightLeft,
+  Clock,
 } from "lucide-react";
 import { AdminGuard, SuperAdminGuard, useSuperAdmin } from "@/components/admin";
 import { CryptoIcon } from "@/components/CryptoIcons";
@@ -47,8 +48,9 @@ import {
   type IBCredit,
 } from "@/services";
 import { useMonthClosure, useActiveFundsWithAUM } from "@/hooks";
+import { usePendingYieldEvents } from "@/hooks/data/admin/useYieldCrystallization";
 import { cn } from "@/lib/utils";
-import { format, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
+import { format, startOfMonth, endOfMonth, isWithinInterval, getMonth, getYear } from "date-fns";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
 
@@ -101,6 +103,14 @@ function YieldOperationsContent() {
 
   // Use the hook for funds data
   const { data: funds = [], isLoading: loading, refetch: refetchFunds } = useActiveFundsWithAUM();
+  
+  // Calculate pending yield events for selected fund/month
+  const reportingMonthDate = reportingMonth ? new Date(reportingMonth) : null;
+  const { data: pendingEvents } = usePendingYieldEvents(
+    selectedFund?.id || null,
+    reportingMonthDate ? getYear(reportingMonthDate) : new Date().getFullYear(),
+    reportingMonthDate ? getMonth(reportingMonthDate) + 1 : new Date().getMonth() + 1
+  );
 
   const formatValue = (value: number, asset: string) => {
     if (asset === "BTC") {
@@ -645,6 +655,22 @@ function YieldOperationsContent() {
               <div className="flex items-start gap-2 p-3 rounded-md bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 text-sm">
                 <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                 <span>{validateEffectiveDate().error}</span>
+              </div>
+            )}
+
+            {/* Pending Crystallization Events Info */}
+            {yieldPurpose === "reporting" && pendingEvents && pendingEvents.count > 0 && (
+              <div className="flex items-start gap-3 p-4 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700">
+                <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-medium text-amber-800 dark:text-amber-200">
+                    {pendingEvents.count} pending yield event{pendingEvents.count !== 1 ? 's' : ''} from mid-month flows
+                  </p>
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    These events were crystallized from deposits/withdrawals during this period. 
+                    They will become visible to investors after you apply this month-end yield.
+                  </p>
+                </div>
               </div>
             )}
 

@@ -37,6 +37,7 @@ export { UnifiedInvestorsTable } from "./UnifiedInvestorsTable";
 export { default as InvestorForm } from "./InvestorForm";
 export { InvestorProfileEditor } from "./InvestorProfileEditor";
 export { InvestorFeeManager } from "./InvestorFeeManager";
+export { InvestorYieldHistory } from "./InvestorYieldHistory";
 export { InvestorYieldManager } from "./InvestorYieldManager";
 export { default as EditableInvestorRow } from "./EditableInvestorRow";
 

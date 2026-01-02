@@ -12,3 +12,4 @@ export { VoidYieldDialog } from "./VoidYieldDialog";
 export { YieldActionsColumn } from "./YieldActionsColumn";
 export { YieldCorrectionPanel } from "./YieldCorrectionPanel";
 export { YieldCorrectionPreview } from "./YieldCorrectionPreview";
+export { YieldEventsTable } from "./YieldEventsTable";

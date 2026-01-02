@@ -1,12 +1,13 @@
 /**
  * InvestorPortfolioTab - Combined Portfolio view
- * Sections: Positions, Performance Summary
+ * Sections: Positions, Yield History, Performance Summary
  */
 
 import { useState } from "react";
 import { Separator } from "@/components/ui";
 import InvestorPositionsTab from "./InvestorPositionsTab";
 import { InvestorYieldManager } from "./InvestorYieldManager";
+import { InvestorYieldHistory } from "./InvestorYieldHistory";
 
 interface InvestorPortfolioTabProps {
   investorId: string;
@@ -38,6 +39,16 @@ export function InvestorPortfolioTab({
         </div>
         <InvestorPositionsTab
           key={`positions-${refreshKey}`}
+          investorId={investorId}
+        />
+      </section>
+
+      <Separator />
+
+      {/* Yield History Section */}
+      <section id="yield-history-section">
+        <InvestorYieldHistory
+          key={`yield-history-${refreshKey}`}
           investorId={investorId}
         />
       </section>
