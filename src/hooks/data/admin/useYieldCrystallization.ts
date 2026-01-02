@@ -1,0 +1,182 @@
+/**
+ * Yield Crystallization Hooks
+ * React Query hooks for admin yield crystallization operations
+ */
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  crystallizeYieldBeforeFlow,
+  finalizeMonthYield,
+  getYieldEventsForFund,
+  getYieldEventsForInvestor,
+  getFundYieldSnapshots,
+  getPendingYieldEventsCount,
+  getAggregatedYieldForPeriod,
+} from "@/services/admin/yieldCrystallizationService";
+import { useAuth } from "@/lib/auth/context";
+import { toast } from "sonner";
+import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
+
+/**
+ * Hook to get yield events for a fund
+ */
+export function useFundYieldEvents(
+  fundId: string | null,
+  options?: {
+    startDate?: Date;
+    endDate?: Date;
+    visibilityScope?: "all" | "admin_only" | "investor_visible";
+  }
+) {
+  return useQuery({
+    queryKey: ["fundYieldEvents", fundId, options],
+    queryFn: () => getYieldEventsForFund(fundId!, options),
+    enabled: !!fundId,
+  });
+}
+
+/**
+ * Hook to get yield events for an investor (admin view)
+ */
+export function useInvestorYieldEventsAdmin(
+  investorId: string | null,
+  options?: {
+    fundId?: string;
+    startDate?: Date;
+    endDate?: Date;
+    visibilityScope?: "all" | "admin_only" | "investor_visible";
+  }
+) {
+  return useQuery({
+    queryKey: ["investorYieldEventsAdmin", investorId, options],
+    queryFn: () => getYieldEventsForInvestor(investorId!, options),
+    enabled: !!investorId,
+  });
+}
+
+/**
+ * Hook to get fund yield snapshots
+ */
+export function useFundYieldSnapshots(fundId: string | null, limit = 30) {
+  return useQuery({
+    queryKey: ["fundYieldSnapshots", fundId, limit],
+    queryFn: () => getFundYieldSnapshots(fundId!, limit),
+    enabled: !!fundId,
+  });
+}
+
+/**
+ * Hook to get pending yield events count
+ */
+export function usePendingYieldEvents(
+  fundId: string | null,
+  year: number,
+  month: number
+) {
+  return useQuery({
+    queryKey: ["pendingYieldEvents", fundId, year, month],
+    queryFn: () => getPendingYieldEventsCount(fundId!, year, month),
+    enabled: !!fundId && !!year && !!month,
+  });
+}
+
+/**
+ * Hook to get aggregated yield for a period
+ */
+export function useAggregatedYield(
+  fundId: string | null,
+  periodStart: Date | null,
+  periodEnd: Date | null,
+  visibilityFilter?: "all" | "admin_only" | "investor_visible"
+) {
+  return useQuery({
+    queryKey: ["aggregatedYield", fundId, periodStart?.toISOString(), periodEnd?.toISOString(), visibilityFilter],
+    queryFn: () => getAggregatedYieldForPeriod(fundId!, periodStart!, periodEnd!, visibilityFilter),
+    enabled: !!fundId && !!periodStart && !!periodEnd,
+  });
+}
+
+/**
+ * Hook to manually crystallize yield
+ */
+export function useCrystallizeYield() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({
+      fundId,
+      triggerType,
+      triggerDate,
+      triggerTransactionId,
+    }: {
+      fundId: string;
+      triggerType: "deposit" | "withdrawal" | "month_end" | "manual";
+      triggerDate: Date;
+      triggerTransactionId?: string;
+    }) => {
+      return crystallizeYieldBeforeFlow(
+        fundId,
+        triggerType,
+        triggerDate,
+        triggerTransactionId,
+        user?.id
+      );
+    },
+    onSuccess: (result) => {
+      if (result.skipped) {
+        toast.info(result.reason || "Crystallization skipped");
+      } else {
+        toast.success(
+          `Yield crystallized for ${result.investors_processed} investors`
+        );
+      }
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ["fundYieldEvents"] });
+      queryClient.invalidateQueries({ queryKey: ["fundYieldSnapshots"] });
+      queryClient.invalidateQueries({ queryKey: ["investorYieldEventsAdmin"] });
+      queryClient.invalidateQueries({ queryKey: ["pendingYieldEvents"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to crystallize yield");
+    },
+  });
+}
+
+/**
+ * Hook to finalize month yield (make visible to investors)
+ */
+export function useFinalizeMonthYield() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({
+      fundId,
+      year,
+      month,
+    }: {
+      fundId: string;
+      year: number;
+      month: number;
+    }) => {
+      if (!user?.id) throw new Error("Not authenticated");
+      return finalizeMonthYield(fundId, year, month, user.id);
+    },
+    onSuccess: (result) => {
+      toast.success(
+        `${result.events_made_visible} yield events now visible to investors`
+      );
+      // Invalidate all yield-related queries
+      YIELD_RELATED_KEYS.forEach((key) => {
+        queryClient.invalidateQueries({ queryKey: key });
+      });
+      queryClient.invalidateQueries({ queryKey: ["fundYieldEvents"] });
+      queryClient.invalidateQueries({ queryKey: ["investorYieldEvents"] });
+      queryClient.invalidateQueries({ queryKey: ["pendingYieldEvents"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to finalize yield");
+    },
+  });
+}

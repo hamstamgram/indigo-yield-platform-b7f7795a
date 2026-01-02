@@ -1630,6 +1630,116 @@ export type Database = {
           },
         ]
       }
+      fund_yield_snapshots: {
+        Row: {
+          closing_aum: number
+          created_at: string
+          created_by: string | null
+          days_in_period: number
+          fund_id: string
+          gross_yield_amount: number
+          gross_yield_pct: number
+          id: string
+          is_voided: boolean
+          opening_aum: number
+          period_end: string
+          period_start: string
+          snapshot_date: string
+          trigger_reference: string | null
+          trigger_type: string
+          voided_at: string | null
+          voided_by: string | null
+        }
+        Insert: {
+          closing_aum: number
+          created_at?: string
+          created_by?: string | null
+          days_in_period: number
+          fund_id: string
+          gross_yield_amount: number
+          gross_yield_pct: number
+          id?: string
+          is_voided?: boolean
+          opening_aum: number
+          period_end: string
+          period_start: string
+          snapshot_date: string
+          trigger_reference?: string | null
+          trigger_type: string
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Update: {
+          closing_aum?: number
+          created_at?: string
+          created_by?: string | null
+          days_in_period?: number
+          fund_id?: string
+          gross_yield_amount?: number
+          gross_yield_pct?: number
+          id?: string
+          is_voided?: boolean
+          opening_aum?: number
+          period_end?: string
+          period_start?: string
+          snapshot_date?: string
+          trigger_reference?: string | null
+          trigger_type?: string
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_yield_snapshots_created_by"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_snapshots_created_by"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_snapshots_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_snapshots_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_snapshots_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_snapshots_voided_by"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_snapshots_voided_by"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+        ]
+      }
       funds: {
         Row: {
           asset: string
@@ -2978,12 +3088,14 @@ export type Database = {
         Row: {
           aum_percentage: number | null
           cost_basis: number
+          cumulative_yield_earned: number | null
           current_value: number
           fund_class: string | null
           fund_id: string
           high_water_mark: number | null
           investor_id: string
           last_transaction_date: string | null
+          last_yield_crystallization_date: string | null
           lock_until_date: string | null
           mgmt_fees_paid: number | null
           perf_fees_paid: number | null
@@ -2995,12 +3107,14 @@ export type Database = {
         Insert: {
           aum_percentage?: number | null
           cost_basis?: number
+          cumulative_yield_earned?: number | null
           current_value?: number
           fund_class?: string | null
           fund_id: string
           high_water_mark?: number | null
           investor_id: string
           last_transaction_date?: string | null
+          last_yield_crystallization_date?: string | null
           lock_until_date?: string | null
           mgmt_fees_paid?: number | null
           perf_fees_paid?: number | null
@@ -3012,12 +3126,14 @@ export type Database = {
         Update: {
           aum_percentage?: number | null
           cost_basis?: number
+          cumulative_yield_earned?: number | null
           current_value?: number
           fund_class?: string | null
           fund_id?: string
           high_water_mark?: number | null
           investor_id?: string
           last_transaction_date?: string | null
+          last_yield_crystallization_date?: string | null
           lock_until_date?: string | null
           mgmt_fees_paid?: number | null
           perf_fees_paid?: number | null
@@ -3129,6 +3245,188 @@ export type Database = {
           unrealized_pnl?: number | null
         }
         Relationships: []
+      }
+      investor_yield_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          days_in_period: number
+          event_date: string
+          fee_amount: number | null
+          fee_pct: number | null
+          fund_aum_after: number
+          fund_aum_before: number
+          fund_id: string
+          fund_yield_pct: number
+          gross_yield_amount: number
+          id: string
+          investor_balance: number
+          investor_id: string
+          investor_share_pct: number
+          is_voided: boolean
+          made_visible_at: string | null
+          made_visible_by: string | null
+          net_yield_amount: number
+          period_end: string
+          period_start: string
+          reference_id: string
+          trigger_transaction_id: string | null
+          trigger_type: string
+          visibility_scope: string
+          voided_at: string | null
+          voided_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          days_in_period: number
+          event_date: string
+          fee_amount?: number | null
+          fee_pct?: number | null
+          fund_aum_after: number
+          fund_aum_before: number
+          fund_id: string
+          fund_yield_pct: number
+          gross_yield_amount: number
+          id?: string
+          investor_balance: number
+          investor_id: string
+          investor_share_pct: number
+          is_voided?: boolean
+          made_visible_at?: string | null
+          made_visible_by?: string | null
+          net_yield_amount: number
+          period_end: string
+          period_start: string
+          reference_id: string
+          trigger_transaction_id?: string | null
+          trigger_type: string
+          visibility_scope?: string
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          days_in_period?: number
+          event_date?: string
+          fee_amount?: number | null
+          fee_pct?: number | null
+          fund_aum_after?: number
+          fund_aum_before?: number
+          fund_id?: string
+          fund_yield_pct?: number
+          gross_yield_amount?: number
+          id?: string
+          investor_balance?: number
+          investor_id?: string
+          investor_share_pct?: number
+          is_voided?: boolean
+          made_visible_at?: string | null
+          made_visible_by?: string | null
+          net_yield_amount?: number
+          period_end?: string
+          period_start?: string
+          reference_id?: string
+          trigger_transaction_id?: string | null
+          trigger_type?: string
+          visibility_scope?: string
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_yield_events_created_by"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_created_by"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_trigger_tx"
+            columns: ["trigger_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions_v2"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_trigger_tx"
+            columns: ["trigger_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "v_transaction_distribution_orphans"
+            referencedColumns: ["transaction_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_visible_by"
+            columns: ["made_visible_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_visible_by"
+            columns: ["made_visible_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_voided_by"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_events_voided_by"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "v_investor_kpis"
+            referencedColumns: ["investor_id"]
+          },
+        ]
       }
       notification_settings: {
         Row: {
@@ -6673,6 +6971,16 @@ export type Database = {
         }
         Returns: string
       }
+      crystallize_yield_before_flow: {
+        Args: {
+          p_admin_id?: string
+          p_fund_id: string
+          p_trigger_date: string
+          p_trigger_transaction_id?: string
+          p_trigger_type: string
+        }
+        Returns: Json
+      }
       current_user_is_admin_or_owner: {
         Args: { check_user_id: string }
         Returns: boolean
@@ -6727,6 +7035,15 @@ export type Database = {
       }
       encrypt_totp_secret: { Args: { secret_text: string }; Returns: string }
       ensure_admin: { Args: never; Returns: undefined }
+      finalize_month_yield: {
+        Args: {
+          p_admin_id: string
+          p_fund_id: string
+          p_period_month: number
+          p_period_year: number
+        }
+        Returns: Json
+      }
       finalize_statement_period: {
         Args: { p_admin_id: string; p_period_id: string }
         Returns: undefined
