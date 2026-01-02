@@ -20,7 +20,6 @@ interface RequestBody {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -28,7 +27,6 @@ serve(async (req) => {
   try {
     console.log("=== send-admin-invite function started ===");
 
-    // Check authorization
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       console.error("Missing authorization header");
@@ -38,34 +36,90 @@ serve(async (req) => {
       );
     }
 
-    // Parse request body
     const { invite }: RequestBody = await req.json();
     console.log("Received invite request for:", invite?.email);
 
     if (!invite?.email || !invite?.invite_code) {
-      console.error("Missing required invite data:", { email: invite?.email, hasCode: !!invite?.invite_code });
+      console.error("Missing required invite data");
       return new Response(
         JSON.stringify({ error: "Missing required invite data" }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    // Create Supabase admin client
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Generate redirect URL
+    // Check if user already exists
+    const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+    
+    if (listError) {
+      console.error("Error listing users:", listError);
+      return new Response(
+        JSON.stringify({ error: "Failed to check existing users", details: listError.message }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const existingUser = existingUsers.users.find(
+      u => u.email?.toLowerCase() === invite.email.toLowerCase()
+    );
+
+    if (existingUser) {
+      console.log("User already exists, assigning role directly:", existingUser.id);
+      
+      // User exists - assign role directly
+      const { error: roleError } = await supabaseAdmin
+        .from("user_roles")
+        .upsert({
+          user_id: existingUser.id,
+          role: invite.intended_role || "admin"
+        }, { onConflict: "user_id,role" });
+
+      if (roleError) {
+        console.error("Error assigning role:", roleError);
+        return new Response(
+          JSON.stringify({ error: "Failed to assign role", details: roleError.message }),
+          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      // Update profile is_admin flag
+      await supabaseAdmin
+        .from("profiles")
+        .update({ is_admin: true })
+        .eq("id", existingUser.id);
+
+      // Mark invite as used
+      await supabaseAdmin
+        .from("admin_invites")
+        .update({ used: true })
+        .eq("id", invite.id);
+
+      console.log("Role assigned successfully to existing user");
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          userId: existingUser.id,
+          email: invite.email,
+          message: "User already exists - role assigned directly"
+        }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // User doesn't exist - send invite email
+    console.log("User doesn't exist, sending invite email");
+    
     const siteUrl = Deno.env.get("PUBLIC_SITE_URL") || Deno.env.get("SITE_URL") || "https://indigo.fund";
     const redirectTo = `${siteUrl}/admin-invite-callback`;
     
     console.log("Using redirect URL:", redirectTo);
-    console.log("Invite code:", invite.invite_code);
-    console.log("Intended role:", invite.intended_role || "admin");
 
-    // Use Supabase Auth to send invite email
     const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       invite.email,
       {
@@ -86,8 +140,6 @@ serve(async (req) => {
     }
 
     console.log("Invite sent successfully! User ID:", data.user?.id);
-    console.log("Email:", invite.email);
-    console.log("Role:", invite.intended_role);
 
     return new Response(
       JSON.stringify({ 
