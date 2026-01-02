@@ -37,18 +37,24 @@ class FeeScheduleService {
   }
 
   /**
-   * Get fee history for an investor
+   * Get fee history for an investor from fee_allocations
    */
   async getInvestorFeeHistory(investorId: string, limit = 50): Promise<FeeHistoryRow[]> {
     const { data, error } = await supabase
-      .from("fee_calculations")
-      .select("id, fee_type, calculation_date, fee_amount")
+      .from("fee_allocations")
+      .select("id, purpose, period_end, fee_amount")
       .eq("investor_id", investorId)
-      .order("calculation_date", { ascending: false })
+      .eq("is_voided", false)
+      .order("period_end", { ascending: false })
       .limit(limit);
 
     if (error) throw error;
-    return (data as FeeHistoryRow[]) || [];
+    return (data || []).map(row => ({
+      id: row.id,
+      fee_type: row.purpose,
+      calculation_date: row.period_end,
+      fee_amount: row.fee_amount,
+    }));
   }
 
   /**
