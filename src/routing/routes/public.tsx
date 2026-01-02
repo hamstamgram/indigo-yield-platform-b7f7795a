@@ -16,6 +16,7 @@ const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 
 // Invite pages (public access for new user setup)
 const AdminInvite = lazy(() => import("@/pages/admin/settings/AdminInvite"));
+const AdminInviteCallback = lazy(() => import("@/pages/AdminInviteCallback"));
 const InvestorInvite = lazy(() => import("@/pages/InvestorInvite"));
 
 // Public info pages
@@ -37,6 +38,7 @@ export function PublicRoutes() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/admin-invite" element={<AdminInvite />} />
+      <Route path="/admin-invite-callback" element={<AdminInviteCallback />} />
       <Route path="/investor-invite" element={<InvestorInvite />} />
 
       {/* Public Info Pages */}
