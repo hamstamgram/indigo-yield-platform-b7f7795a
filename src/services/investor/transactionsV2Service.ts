@@ -101,6 +101,35 @@ class TransactionsV2Service {
   }
 
   /**
+   * Get void impact preview - shows what will happen before voiding
+   */
+  async getVoidImpact(transactionId: string): Promise<{
+    success: boolean;
+    error?: string;
+    transaction_type?: string;
+    transaction_amount?: number;
+    transaction_date?: string;
+    current_position?: number;
+    projected_position?: number;
+    position_change?: number;
+    would_go_negative?: boolean;
+    aum_records_affected?: number;
+    related_records?: { type: string; count: number }[];
+    is_system_generated?: boolean;
+  }> {
+    const { data, error } = await supabase.rpc("get_void_transaction_impact", {
+      p_transaction_id: transactionId,
+    });
+
+    if (error) {
+      console.error("Error getting void impact:", error);
+      throw new Error(error.message || "Failed to get void impact");
+    }
+
+    return data as any;
+  }
+
+  /**
    * Get transaction summary for an investor
    */
   async getSummary(investorId: string): Promise<{

@@ -1,16 +1,17 @@
 /**
  * Void Transaction Dialog
- * Allows admins to void a transaction with reason and confirmation
+ * Allows admins to void a transaction with reason, confirmation, and impact preview
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
   Button, Input, Label, Textarea, Alert, AlertDescription,
 } from "@/components/ui";
-import { AlertTriangle, Loader2, Info } from "lucide-react";
+import { AlertTriangle, Loader2, Info, TrendingDown, Database } from "lucide-react";
 import { toast } from "sonner";
 import { useTransactionMutations } from "@/hooks/data/useTransactionMutations";
+import { transactionsV2Service } from "@/services/investor/transactionsV2Service";
 
 /**
  * Minimal transaction data required for the void dialog
@@ -28,6 +29,21 @@ interface VoidableTransaction {
   fundId?: string | null;
 }
 
+interface VoidImpact {
+  success: boolean;
+  error?: string;
+  transaction_type?: string;
+  transaction_amount?: number;
+  transaction_date?: string;
+  current_position?: number;
+  projected_position?: number;
+  position_change?: number;
+  would_go_negative?: boolean;
+  aum_records_affected?: number;
+  related_records?: { type: string; count: number }[];
+  is_system_generated?: boolean;
+}
+
 interface VoidTransactionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -43,7 +59,25 @@ export function VoidTransactionDialog({
 }: VoidTransactionDialogProps) {
   const [reason, setReason] = useState("");
   const [confirmText, setConfirmText] = useState("");
+  const [impact, setImpact] = useState<VoidImpact | null>(null);
+  const [loadingImpact, setLoadingImpact] = useState(false);
   const { voidMutation } = useTransactionMutations();
+
+  // Fetch impact preview when dialog opens
+  useEffect(() => {
+    if (open && transaction?.id) {
+      setLoadingImpact(true);
+      transactionsV2Service.getVoidImpact(transaction.id)
+        .then(setImpact)
+        .catch((err) => {
+          console.error("Failed to fetch void impact:", err);
+          setImpact(null);
+        })
+        .finally(() => setLoadingImpact(false));
+    } else {
+      setImpact(null);
+    }
+  }, [open, transaction?.id]);
 
   const handleVoid = async () => {
     if (!transaction) return;
@@ -69,6 +103,7 @@ export function VoidTransactionDialog({
         onSuccess: () => {
           setReason("");
           setConfirmText("");
+          setImpact(null);
           onSuccess();
           onOpenChange(false);
         },
@@ -79,6 +114,7 @@ export function VoidTransactionDialog({
   const handleClose = () => {
     setReason("");
     setConfirmText("");
+    setImpact(null);
     onOpenChange(false);
   };
 
@@ -86,7 +122,7 @@ export function VoidTransactionDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[450px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="h-5 w-5" />
@@ -94,7 +130,7 @@ export function VoidTransactionDialog({
           </DialogTitle>
           <DialogDescription>
             This action cannot be undone. The transaction will be marked as voided
-            and positions will be recalculated.
+            and positions/AUM will be recalculated.
           </DialogDescription>
         </DialogHeader>
 
@@ -108,6 +144,47 @@ export function VoidTransactionDialog({
               <div><strong>Date:</strong> {transaction.txDate}</div>
             </AlertDescription>
           </Alert>
+
+          {/* Impact Preview */}
+          {loadingImpact ? (
+            <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm text-muted-foreground">Loading impact preview...</span>
+            </div>
+          ) : impact?.success ? (
+            <div className="space-y-2 p-3 bg-muted/50 rounded-md border">
+              <div className="text-sm font-medium flex items-center gap-2">
+                <TrendingDown className="h-4 w-4" />
+                Impact Preview
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>Current Position:</div>
+                <div className="font-mono">{(impact.current_position ?? 0).toFixed(4)}</div>
+                <div>After Void:</div>
+                <div className="font-mono">{(impact.projected_position ?? 0).toFixed(4)}</div>
+                <div>Change:</div>
+                <div className={`font-mono ${(impact.position_change ?? 0) < 0 ? "text-destructive" : "text-green-600"}`}>
+                  {(impact.position_change ?? 0) >= 0 ? "+" : ""}{(impact.position_change ?? 0).toFixed(4)}
+                </div>
+              </div>
+              
+              {(impact.aum_records_affected ?? 0) > 0 && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                  <Database className="h-3 w-3" />
+                  {impact.aum_records_affected} AUM record(s) will be recalculated
+                </div>
+              )}
+
+              {impact.would_go_negative && (
+                <Alert className="mt-2 border-destructive/50 bg-destructive/10">
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                  <AlertDescription className="text-destructive">
+                    Warning: This would result in a negative balance!
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          ) : null}
 
           {transaction.isSystemGenerated && (
             <Alert className="border-amber-500/50 bg-amber-500/10">
@@ -163,7 +240,7 @@ export function VoidTransactionDialog({
           <Button
             variant="destructive"
             onClick={handleVoid}
-            disabled={voidMutation.isPending || confirmText !== "VOID" || reason.trim().length < 3}
+            disabled={voidMutation.isPending || confirmText !== "VOID" || reason.trim().length < 3 || impact?.would_go_negative}
           >
             {voidMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Void Transaction

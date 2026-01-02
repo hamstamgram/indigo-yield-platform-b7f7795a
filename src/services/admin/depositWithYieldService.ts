@@ -203,24 +203,8 @@ export async function processDepositWithYield(
       };
     }
 
-    // Step 3: Record new AUM
-    const { error: aumError } = await supabase
-      .from("fund_daily_aum")
-      .upsert({
-        fund_id: fundId,
-        aum_date: txDate,
-        total_aum: newTotalAum,
-        source: "deposit_with_yield",
-        created_by: user.id,
-        purpose: "transaction",
-      }, {
-        onConflict: "fund_id,aum_date,purpose",
-      });
-
-    if (aumError) {
-      console.warn("AUM recording warning:", aumError);
-      // Don't fail the entire operation for AUM recording issues
-    }
+    // Note: AUM is now automatically updated by the adjust_investor_position RPC
+    // which calls recalculate_fund_aum_for_date internally
 
     return {
       success: true,
