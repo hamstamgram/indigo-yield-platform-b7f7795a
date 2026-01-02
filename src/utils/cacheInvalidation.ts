@@ -196,16 +196,16 @@ export function invalidateAfterTransaction(
   invalidateByGraph(queryClient, 'transaction', { investorId, fundId });
   
   // Additional position key patterns for thorough invalidation
-  queryClient.invalidateQueries({ queryKey: ["investor-positions"] });
-  queryClient.invalidateQueries({ queryKey: ["positions"] });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions() });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.positions() });
   
   if (investorId) {
-    queryClient.invalidateQueries({ queryKey: ["investor", investorId] });
-    queryClient.invalidateQueries({ queryKey: ["investorPositions", investorId] });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investor(investorId) });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorPositions(investorId) });
   }
   
   if (fundId) {
-    queryClient.invalidateQueries({ queryKey: ["fund", fundId] });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fund(fundId) });
   }
 }
 

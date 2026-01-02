@@ -21,7 +21,7 @@ import {
  */
 export function usePendingWithdrawalsCount(investorId: string | null) {
   return useQuery({
-    queryKey: ["pending-withdrawals-count", investorId],
+    queryKey: QUERY_KEYS.adminPendingWithdrawalsCount(investorId || ""),
     queryFn: () => getPendingWithdrawalsCount(investorId!),
     enabled: !!investorId,
     staleTime: 30 * 1000, // 30 seconds
@@ -105,7 +105,7 @@ export function useUpdateFundPerformance() {
       data: PerformanceUpdateData;
     }) => updateFundPerformance(performanceId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["investor-performance"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminInvestorPerformance });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investors });
     },
   });

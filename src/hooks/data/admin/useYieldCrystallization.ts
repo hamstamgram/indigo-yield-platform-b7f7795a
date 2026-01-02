@@ -29,7 +29,7 @@ export function useFundYieldEvents(
   }
 ) {
   return useQuery({
-    queryKey: ["fundYieldEvents", fundId, options],
+    queryKey: QUERY_KEYS.fundYieldEvents(fundId!, options),
     queryFn: () => getYieldEventsForFund(fundId!, options),
     enabled: !!fundId,
   });
@@ -48,7 +48,7 @@ export function useInvestorYieldEventsAdmin(
   }
 ) {
   return useQuery({
-    queryKey: ["investorYieldEventsAdmin", investorId, options],
+    queryKey: QUERY_KEYS.investorYieldEventsAdmin(investorId!, options),
     queryFn: () => getYieldEventsForInvestor(investorId!, options),
     enabled: !!investorId,
   });
@@ -59,7 +59,7 @@ export function useInvestorYieldEventsAdmin(
  */
 export function useFundYieldSnapshots(fundId: string | null, limit = 30) {
   return useQuery({
-    queryKey: ["fundYieldSnapshots", fundId, limit],
+    queryKey: QUERY_KEYS.fundYieldSnapshots(fundId!, limit),
     queryFn: () => getFundYieldSnapshots(fundId!, limit),
     enabled: !!fundId,
   });
@@ -74,7 +74,7 @@ export function usePendingYieldEvents(
   month: number
 ) {
   return useQuery({
-    queryKey: ["pendingYieldEvents", fundId, year, month],
+    queryKey: QUERY_KEYS.pendingYieldEvents(fundId!, year, month),
     queryFn: () => getPendingYieldEventsCount(fundId!, year, month),
     enabled: !!fundId && !!year && !!month,
   });
@@ -90,7 +90,7 @@ export function useAggregatedYield(
   visibilityFilter?: "all" | "admin_only" | "investor_visible"
 ) {
   return useQuery({
-    queryKey: ["aggregatedYield", fundId, periodStart?.toISOString(), periodEnd?.toISOString(), visibilityFilter],
+    queryKey: QUERY_KEYS.aggregatedYield(fundId!, periodStart?.toISOString(), periodEnd?.toISOString(), visibilityFilter),
     queryFn: () => getAggregatedYieldForPeriod(fundId!, periodStart!, periodEnd!, visibilityFilter),
     enabled: !!fundId && !!periodStart && !!periodEnd,
   });
@@ -132,10 +132,10 @@ export function useCrystallizeYield() {
         );
       }
       // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: ["fundYieldEvents"] });
-      queryClient.invalidateQueries({ queryKey: ["fundYieldSnapshots"] });
-      queryClient.invalidateQueries({ queryKey: ["investorYieldEventsAdmin"] });
-      queryClient.invalidateQueries({ queryKey: ["pendingYieldEvents"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundYieldEvents() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundYieldSnapshots() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorYieldEventsAdmin() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pendingYieldEvents() });
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to crystallize yield");
@@ -171,9 +171,9 @@ export function useFinalizeMonthYield() {
       YIELD_RELATED_KEYS.forEach((key) => {
         queryClient.invalidateQueries({ queryKey: key });
       });
-      queryClient.invalidateQueries({ queryKey: ["fundYieldEvents"] });
-      queryClient.invalidateQueries({ queryKey: ["investorYieldEvents"] });
-      queryClient.invalidateQueries({ queryKey: ["pendingYieldEvents"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundYieldEvents() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.investorYieldEvents });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.pendingYieldEvents() });
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to finalize yield");

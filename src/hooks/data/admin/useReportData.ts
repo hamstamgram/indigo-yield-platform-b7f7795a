@@ -15,7 +15,7 @@ import { toast } from "sonner";
  */
 export function useHistoricalDataSummary() {
   const query = useQuery({
-    queryKey: ["historical-data-summary"],
+    queryKey: QUERY_KEYS.historicalDataSummary,
     queryFn: () => reportService.getHistoricalDataSummary(),
   });
 
@@ -54,7 +54,7 @@ export function useActiveInvestorsForReports() {
  */
 export function useStatementPeriod(year: number, month: number) {
   const query = useQuery({
-    queryKey: ["statement-period", year, month],
+    queryKey: QUERY_KEYS.statementPeriodByDate(year, month),
     queryFn: () => reportService.getStatementPeriod(year, month),
     enabled: !!year && !!month,
   });
@@ -71,7 +71,7 @@ export function useStatementPeriod(year: number, month: number) {
  */
 export function useInvestorReportData(investorId: string, periodId: string) {
   const query = useQuery({
-    queryKey: ["investor-report-data", investorId, periodId],
+    queryKey: QUERY_KEYS.investorReportData(investorId, periodId),
     queryFn: () => reportService.getInvestorPerformanceForPeriod(investorId, periodId),
     enabled: !!investorId && !!periodId,
   });
@@ -92,7 +92,7 @@ export function useGenerateTemplates() {
   const mutation = useMutation({
     mutationFn: (options: BulkGenerateOptions) => reportService.generateMissingTemplates(options),
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ["historical-data-summary"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.historicalDataSummary });
       
       if (result.success) {
         toast.success(`Generated ${result.generated} historical report templates`);
@@ -148,19 +148,19 @@ export function useSendInvestorReport() {
  */
 export function useReportGenerationData(investorId: string, dateRange: { start: Date; end: Date } | null) {
   const positionsQuery = useQuery({
-    queryKey: ["report-positions", investorId],
+    queryKey: QUERY_KEYS.reportPositions(investorId),
     queryFn: () => reportService.getInvestorPositions(investorId),
     enabled: !!investorId && !!dateRange,
   });
 
   const transactionsQuery = useQuery({
-    queryKey: ["report-transactions", investorId, dateRange?.start.toISOString(), dateRange?.end.toISOString()],
+    queryKey: QUERY_KEYS.reportTransactions(investorId, dateRange?.start.toISOString(), dateRange?.end.toISOString()),
     queryFn: () => reportService.getInvestorTransactions(investorId, dateRange!),
     enabled: !!investorId && !!dateRange,
   });
 
   const statementsQuery = useQuery({
-    queryKey: ["report-statements", investorId, dateRange?.start.toISOString(), dateRange?.end.toISOString()],
+    queryKey: QUERY_KEYS.reportStatements(investorId, dateRange?.start.toISOString(), dateRange?.end.toISOString()),
     queryFn: () => reportService.getInvestorPerformanceStatements(investorId, dateRange!),
     enabled: !!investorId && !!dateRange,
   });

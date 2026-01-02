@@ -5,13 +5,14 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { commandPaletteService, type InvestorSearchResult } from "@/services";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 /**
  * Hook to fetch investors for command palette search
  */
 export function useCommandPaletteInvestors(isAdmin: boolean, isOpen: boolean) {
   return useQuery<InvestorSearchResult[]>({
-    queryKey: ["admin", "investorSearch"],
+    queryKey: QUERY_KEYS.adminInvestorSearch,
     queryFn: () => commandPaletteService.fetchInvestorsForSearch(),
     enabled: isAdmin && isOpen,
     staleTime: 30000, // Cache for 30 seconds
