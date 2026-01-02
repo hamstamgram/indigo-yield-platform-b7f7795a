@@ -47,7 +47,7 @@ export type {
  */
 export function useResetHistory() {
   return useQuery({
-    queryKey: ["resetHistory"],
+    queryKey: QUERY_KEYS.resetHistory,
     queryFn: getResetHistory,
   });
 }
@@ -57,7 +57,7 @@ export function useResetHistory() {
  */
 export function usePositionResetPreview(enabled: boolean = false) {
   return useQuery({
-    queryKey: ["positionResetPreview"],
+    queryKey: QUERY_KEYS.positionResetPreview,
     queryFn: getPositionResetPreview,
     enabled,
   });
@@ -72,8 +72,8 @@ export function useExecutePositionReset() {
   return useMutation({
     mutationFn: (confirmationCode: string) => executePositionReset(confirmationCode),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["resetHistory"] });
-      queryClient.invalidateQueries({ queryKey: ["positionResetPreview"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.resetHistory });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.positionResetPreview });
     },
   });
 }
@@ -85,7 +85,7 @@ export function useExecutePositionReset() {
  */
 export function useAdminUsers() {
   return useQuery({
-    queryKey: ["adminUsers"],
+    queryKey: QUERY_KEYS.adminUsers,
     queryFn: getAdminUsers,
   });
 }
@@ -95,7 +95,7 @@ export function useAdminUsers() {
  */
 export function useAdminUsersWithRoles() {
   return useQuery({
-    queryKey: ["adminUsersWithRoles"],
+    queryKey: QUERY_KEYS.adminUsersWithRoles,
     queryFn: getAdminUsersWithRoles,
   });
 }
@@ -109,8 +109,8 @@ export function useRemoveAdminRole() {
   return useMutation({
     mutationFn: (userId: string) => removeAdminRole(userId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
-      queryClient.invalidateQueries({ queryKey: ["adminUsersWithRoles"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminUsers });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminUsersWithRoles });
     },
   });
 }
@@ -125,8 +125,8 @@ export function useUpdateAdminRole() {
     mutationFn: ({ userId, newRole }: { userId: string; newRole: "admin" | "super_admin" }) => 
       updateAdminRole(userId, newRole),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
-      queryClient.invalidateQueries({ queryKey: ["adminUsersWithRoles"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminUsers });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminUsersWithRoles });
     },
   });
 }

@@ -35,7 +35,7 @@ import { getFundInvestorComposition } from "@/services/admin/dashboardMetricsSer
  */
 export function useFinancialMetrics() {
   return useQuery<FinancialMetrics>({
-    queryKey: ["financial-metrics"],
+    queryKey: QUERY_KEYS.financialMetrics,
     queryFn: getFinancialMetrics,
     staleTime: 60000, // 1 minute
   });
@@ -50,7 +50,7 @@ export function useFinancialMetrics() {
  */
 export function useHistoricalFlowData(targetDate: Date | undefined) {
   return useQuery<Map<string, FlowData>>({
-    queryKey: ["historical-flow-data", targetDate?.toISOString()],
+    queryKey: QUERY_KEYS.historicalFlowData(targetDate?.toISOString()),
     queryFn: () => getHistoricalFlowData(targetDate!),
     enabled: !!targetDate,
     staleTime: 30000, // 30 seconds
@@ -62,7 +62,7 @@ export function useHistoricalFlowData(targetDate: Date | undefined) {
  */
 export function useFundComposition(fundId: string | null) {
   return useQuery<InvestorComposition[]>({
-    queryKey: ["fund-composition", fundId],
+    queryKey: QUERY_KEYS.fundComposition(fundId || undefined),
     queryFn: () => getFundInvestorComposition(fundId!),
     enabled: !!fundId,
     staleTime: 30000,
@@ -99,7 +99,7 @@ export function useRetryDelivery() {
     onSuccess: () => {
       toast.success("Delivery re-queued for retry");
       // Invalidate delivery-related queries
-      queryClient.invalidateQueries({ queryKey: ["statement-delivery"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.statementDelivery });
     },
     onError: (error: Error) => {
       toast.error(`Failed to retry: ${error.message}`);

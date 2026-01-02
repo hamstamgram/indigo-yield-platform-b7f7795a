@@ -15,9 +15,9 @@ import {
 /**
  * Hook to fetch all users for admin management
  */
-export function useAdminUsers() {
+export function useAdminUsersAll() {
   return useQuery<AdminUserProfile[]>({
-    queryKey: ["admin", "users", "all"],
+    queryKey: QUERY_KEYS.adminUsersAll,
     queryFn: adminUsersService.fetchAllUsers,
   });
 }
@@ -33,11 +33,11 @@ export function useToggleAdminStatusMutation() {
     mutationFn: ({ userId, currentStatus }: { userId: string; currentStatus: boolean }) =>
       adminUsersService.toggleAdminStatus(userId, currentStatus),
     onSuccess: (_, { currentStatus }) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminUsersAll });
       toast({
         title: "Success",
         description: `User admin status ${!currentStatus ? "granted" : "revoked"}`,
       });
-      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
     },
     onError: (error: Error) => {
       toast({
@@ -64,7 +64,7 @@ export function useSendAdminInviteMutation() {
         title: "Invitation Sent",
         description: `An admin invitation has been sent to ${email}`,
       });
-      queryClient.invalidateQueries({ queryKey: ["admin", "invites"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminInvites });
     },
     onError: (error: Error) => {
       toast({
@@ -81,7 +81,7 @@ export function useSendAdminInviteMutation() {
  */
 export function useSuperAdminCheck(userId: string | undefined) {
   return useQuery<boolean>({
-    queryKey: ["admin", "superAdmin", userId],
+    queryKey: QUERY_KEYS.adminSuperAdmin(userId || ""),
     queryFn: () => adminUsersService.checkSuperAdminRole(userId!),
     enabled: !!userId,
   });

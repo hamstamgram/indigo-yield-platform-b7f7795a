@@ -11,6 +11,7 @@ import {
   InvestorYieldEvent,
   InvestorYieldSummary,
 } from "@/services/investor/investorYieldService";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 /**
  * Hook to get investor's visible yield events
@@ -23,7 +24,7 @@ export function useInvestorYieldEvents(
   limit?: number
 ) {
   return useQuery({
-    queryKey: ["investorYieldEvents", investorId, year, month, fundId, limit],
+    queryKey: QUERY_KEYS.investorYieldEventsInvestor(investorId || undefined, year, month, fundId, limit),
     queryFn: () => getInvestorVisibleYield(investorId!, { year, month, fundId, limit }),
     enabled: !!investorId,
   });
@@ -38,7 +39,7 @@ export function useInvestorYieldSummaryByFund(
   month?: number
 ) {
   return useQuery({
-    queryKey: ["investorYieldSummary", investorId, year, month],
+    queryKey: QUERY_KEYS.investorYieldSummary(investorId || undefined, year, month),
     queryFn: () => getInvestorYieldSummaryByFund(investorId!, year, month),
     enabled: !!investorId,
   });
@@ -49,7 +50,7 @@ export function useInvestorYieldSummaryByFund(
  */
 export function useInvestorCumulativeYield(investorId: string | null) {
   return useQuery({
-    queryKey: ["investorCumulativeYield", investorId],
+    queryKey: QUERY_KEYS.investorCumulativeYield(investorId || undefined),
     queryFn: () => getInvestorCumulativeYield(investorId!),
     enabled: !!investorId,
   });

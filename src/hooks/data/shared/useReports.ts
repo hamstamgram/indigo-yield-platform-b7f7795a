@@ -46,7 +46,7 @@ export function usePerformanceReportDetail(id: string) {
  */
 export function useAdminInvestorReports(selectedMonth: string) {
   return useQuery<{ reports: InvestorReportSummary[]; periodId: string }>({
-    queryKey: ["admin-investor-reports", selectedMonth],
+    queryKey: QUERY_KEYS.adminInvestorReports(selectedMonth),
     queryFn: () => fetchAdminInvestorReports(selectedMonth),
     enabled: !!selectedMonth,
   });
@@ -65,7 +65,7 @@ export function useGenerateFundPerformance() {
       toast.success("Reports Generated", {
         description: data.message || `Generated ${data.recordsCreated} performance records`,
       });
-      queryClient.invalidateQueries({ queryKey: ["admin-investor-reports"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminInvestorReports() });
     },
     onError: (error: any) => {
       const errorStr = error?.message || error?.toString() || "";
@@ -96,7 +96,7 @@ export function useGenerateFundPerformance() {
  */
 export function useLatestPerformance(investorId: string, assetCode: string) {
   return useQuery({
-    queryKey: ["latest-performance", investorId, assetCode],
+    queryKey: QUERY_KEYS.latestPerformance(investorId, assetCode),
     queryFn: () => fetchLatestPerformance(investorId, assetCode),
     enabled: !!investorId && !!assetCode,
   });
@@ -107,7 +107,7 @@ export function useLatestPerformance(investorId: string, assetCode: string) {
  */
 export function useActiveInvestorsForStatements() {
   return useQuery({
-    queryKey: ["active-investors-statements"],
+    queryKey: QUERY_KEYS.activeInvestorsStatements,
     queryFn: fetchActiveInvestorsForStatements,
   });
 }

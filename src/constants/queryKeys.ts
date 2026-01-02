@@ -339,6 +339,101 @@ export const QUERY_KEYS = {
   // ============ Portfolio (Investor) ============
   withdrawalFormPositions: ["withdrawalFormPositions"] as const,
   myWithdrawalsWithFunds: ["myWithdrawalsWithFunds"] as const,
+
+  // ============ System Admin ============
+  resetHistory: ["resetHistory"] as const,
+  positionResetPreview: ["positionResetPreview"] as const,
+  adminUsers: ["adminUsers"] as const,
+  adminUsersWithRoles: ["adminUsersWithRoles"] as const,
+  adminUsersAll: ["admin", "users", "all"] as const,
+  adminSuperAdmin: (userId: string) => ["admin", "superAdmin", userId] as const,
+  adminPendingCounts: ["admin", "pendingCounts"] as const,
+  adminFundsActive: ["admin", "funds", "active"] as const,
+
+  // ============ Operations Hub ============
+  recentAuditLogs: (limit?: number) => limit !== undefined
+    ? ["audit-logs", "recent", limit] as const
+    : ["audit-logs", "recent"] as const,
+
+  // ============ Dashboard Metrics ============
+  financialMetrics: ["financial-metrics"] as const,
+  historicalFlowData: (dateIso?: string) => dateIso
+    ? ["historical-flow-data", dateIso] as const
+    : ["historical-flow-data"] as const,
+  fundComposition: (fundId?: string) => fundId
+    ? ["fund-composition", fundId] as const
+    : ["fund-composition"] as const,
+  statementDelivery: ["statement-delivery"] as const,
+
+  // ============ Reports ============
+  adminInvestorReports: (month?: string) => month
+    ? ["admin-investor-reports", month] as const
+    : ["admin-investor-reports"] as const,
+  latestPerformance: (investorId: string, assetCode: string) =>
+    ["latest-performance", investorId, assetCode] as const,
+  activeInvestorsStatements: ["active-investors-statements"] as const,
+  investorMonthlyReports: (investorId: string) =>
+    ["investorMonthlyReports", investorId] as const,
+
+  // ============ Withdrawal Form ============
+  investorOptions: ["investor-options"] as const,
+  investorPositionsForWithdrawal: (investorId: string) =>
+    ["investor-positions", investorId] as const,
+
+  // ============ AUM Reconciliation ============
+  aumReconciliation: (fundId?: string, tolerancePct?: number) => fundId
+    ? ["aumReconciliation", fundId, tolerancePct] as const
+    : ["aumReconciliation"] as const,
+
+  // ============ Yield Operations ============
+  activeFundsWithAUM: ["active-funds-with-aum"] as const,
+  fundInvestorComposition: (fundId?: string) => fundId
+    ? ["fundInvestorComposition", fundId] as const
+    : ["fundInvestorComposition"] as const,
+
+  // ============ Investor Yield (Investor-facing) ============
+  investorYieldEventsInvestor: (investorId?: string, year?: number, month?: number, fundId?: string, limit?: number) =>
+    ["investorYieldEvents", investorId, year, month, fundId, limit] as const,
+  investorYieldSummary: (investorId?: string, year?: number, month?: number) =>
+    ["investorYieldSummary", investorId, year, month] as const,
+  investorCumulativeYield: (investorId?: string) =>
+    ["investorCumulativeYield", investorId] as const,
+
+  // ============ Investor Yield Data ============
+  statementPeriodId: (year: number, month: number) =>
+    ["statementPeriodId", year, month] as const,
+  investorPositionsWithFunds: (investorId: string) =>
+    ["investorPositionsWithFunds", investorId] as const,
+  investorPerformanceForPeriod: (investorId: string, periodId?: string) =>
+    ["investorPerformanceForPeriod", investorId, periodId] as const,
+  investorFeeSchedule: (investorId: string) =>
+    ["investorFeeSchedule", investorId] as const,
+
+  // ============ Investor Portal ============
+  investorProfile: (userId?: string) => userId
+    ? ["investorProfile", userId] as const
+    : ["investorProfile"] as const,
+  userPreferences: (userId?: string) => userId
+    ? ["userPreferences", userId] as const
+    : ["userPreferences"] as const,
+  activeSessions: (userId?: string) => userId
+    ? ["activeSessions", userId] as const
+    : ["activeSessions"] as const,
+  accessLogs: (userId?: string, limit?: number) => limit !== undefined
+    ? ["accessLogs", userId, limit] as const
+    : ["accessLogs", userId] as const,
+
+  // ============ Profile Settings ============
+  personalInfo: (userId: string) => ["profile", "personalInfo", userId] as const,
+  notificationPrefs: (userId: string) => ["profile", "notificationPrefs", userId] as const,
+  userEmail: ["profile", "userEmail"] as const,
+  localPreferences: ["profile", "localPreferences"] as const,
+
+  // ============ Transaction History ============
+  transactionHistory: (investorId?: string, fundId?: string) =>
+    investorId && fundId
+      ? ["transaction-history", investorId, fundId] as const
+      : ["transaction-history"] as const,
 } as const;
 
 /**

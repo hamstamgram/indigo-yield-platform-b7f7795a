@@ -20,7 +20,7 @@ export function useStatementPeriodId(date: Date | null) {
   const month = date ? date.getMonth() + 1 : 0;
 
   return useQuery({
-    queryKey: ["statementPeriodId", year, month],
+    queryKey: QUERY_KEYS.statementPeriodId(year, month),
     queryFn: () => getStatementPeriodId(year, month),
     enabled: !!date,
   });
@@ -31,7 +31,7 @@ export function useStatementPeriodId(date: Date | null) {
  */
 export function useInvestorPositionsWithFunds(investorId: string) {
   return useQuery({
-    queryKey: ["investorPositionsWithFunds", investorId],
+    queryKey: QUERY_KEYS.investorPositionsWithFunds(investorId),
     queryFn: () => getInvestorPositionsWithFunds(investorId),
     enabled: !!investorId,
   });
@@ -42,7 +42,7 @@ export function useInvestorPositionsWithFunds(investorId: string) {
  */
 export function useInvestorPerformanceForPeriod(investorId: string, periodId: string | null) {
   return useQuery({
-    queryKey: ["investorPerformanceForPeriod", investorId, periodId],
+    queryKey: QUERY_KEYS.investorPerformanceForPeriod(investorId, periodId || undefined),
     queryFn: () => getInvestorPerformanceForPeriod(investorId, periodId!),
     enabled: !!investorId && !!periodId,
   });
@@ -53,7 +53,7 @@ export function useInvestorPerformanceForPeriod(investorId: string, periodId: st
  */
 export function useInvestorFeeScheduleData(investorId: string) {
   return useQuery({
-    queryKey: ["investorFeeSchedule", investorId],
+    queryKey: QUERY_KEYS.investorFeeSchedule(investorId),
     queryFn: () => getInvestorFeeSchedule(investorId),
     enabled: !!investorId,
   });

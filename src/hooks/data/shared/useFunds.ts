@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks";
 import { useAuth } from "@/lib/auth/context";
 import { fundService, auditLogService } from "@/services";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 type FundStatus = "active" | "deprecated" | "inactive" | "suspended";
 
@@ -37,10 +38,10 @@ export interface CreateFundInput {
   logo_url?: string | null;
 }
 
-const QUERY_KEYS = {
-  funds: ["funds"] as const,
+const LOCAL_QUERY_KEYS = {
+  funds: QUERY_KEYS.funds,
   activeFunds: ["funds", "active"] as const,
-  fund: (id: string) => ["funds", id] as const,
+  fund: (id: string) => QUERY_KEYS.fund(id),
 };
 
 /**
@@ -48,7 +49,7 @@ const QUERY_KEYS = {
  */
 export function useFunds(activeOnly = false) {
   return useQuery<Fund[]>({
-    queryKey: activeOnly ? QUERY_KEYS.activeFunds : QUERY_KEYS.funds,
+    queryKey: activeOnly ? LOCAL_QUERY_KEYS.activeFunds : LOCAL_QUERY_KEYS.funds,
     queryFn: async (): Promise<Fund[]> => {
       const funds = await fundService.getAllFunds();
       const result = activeOnly ? funds.filter((f: any) => f.status === "active") : funds;
@@ -63,7 +64,7 @@ export function useFunds(activeOnly = false) {
  */
 export function useFund(fundId: string | undefined) {
   return useQuery<Fund | null>({
-    queryKey: QUERY_KEYS.fund(fundId || ""),
+    queryKey: LOCAL_QUERY_KEYS.fund(fundId || ""),
     queryFn: async (): Promise<Fund | null> => {
       if (!fundId) return null;
       const fund = await fundService.getFundById(fundId);
@@ -113,8 +114,8 @@ export function useCreateFund() {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.activeFunds });
+      queryClient.invalidateQueries({ queryKey: LOCAL_QUERY_KEYS.funds });
+      queryClient.invalidateQueries({ queryKey: LOCAL_QUERY_KEYS.activeFunds });
       toast({
         title: "Fund created",
         description: `Fund "${data.name}" created successfully`,
@@ -176,9 +177,9 @@ export function useUpdateFund() {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.activeFunds });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fund(data.id) });
+      queryClient.invalidateQueries({ queryKey: LOCAL_QUERY_KEYS.funds });
+      queryClient.invalidateQueries({ queryKey: LOCAL_QUERY_KEYS.activeFunds });
+      queryClient.invalidateQueries({ queryKey: LOCAL_QUERY_KEYS.fund(data.id) });
       toast({
         title: "Fund updated",
         description: `Fund "${data.name}" updated successfully`,
@@ -207,8 +208,8 @@ export function useDeactivateFund() {
       await fundService.deactivateFund(fundId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.activeFunds });
+      queryClient.invalidateQueries({ queryKey: LOCAL_QUERY_KEYS.funds });
+      queryClient.invalidateQueries({ queryKey: LOCAL_QUERY_KEYS.activeFunds });
       toast({
         title: "Fund deactivated",
         description: "Fund has been deactivated",

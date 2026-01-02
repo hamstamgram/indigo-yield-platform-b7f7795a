@@ -113,7 +113,7 @@ export function useInvestorProfileData() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["investorProfile", user?.id],
+    queryKey: QUERY_KEYS.investorProfile(user?.id),
     queryFn: () => getInvestorProfile(user!.id),
     enabled: !!user,
   });
@@ -123,7 +123,7 @@ export function useUserPreferences() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["userPreferences", user?.id],
+    queryKey: QUERY_KEYS.userPreferences(user?.id),
     queryFn: () => getUserPreferences(user!.id),
     enabled: !!user,
   });
@@ -136,7 +136,7 @@ export function useSaveUserPreferences() {
   return useMutation({
     mutationFn: (settings: UserSettings) => saveUserPreferences(user!.id, settings),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["userPreferences", user?.id] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.userPreferences(user?.id) });
     },
   });
 }
@@ -147,7 +147,7 @@ export function useActiveSessions() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["activeSessions", user?.id],
+    queryKey: QUERY_KEYS.activeSessions(user?.id),
     queryFn: () => getActiveSessions(user!.id),
     enabled: !!user,
   });
@@ -157,7 +157,7 @@ export function useAccessLogs(limit = 20) {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["accessLogs", user?.id, limit],
+    queryKey: QUERY_KEYS.accessLogs(user?.id, limit),
     queryFn: () => getAccessLogs(user!.id, limit),
     enabled: !!user,
   });
@@ -170,7 +170,7 @@ export function useRevokeSession() {
   return useMutation({
     mutationFn: revokeSession,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["activeSessions", user?.id] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.activeSessions(user?.id) });
     },
   });
 }
