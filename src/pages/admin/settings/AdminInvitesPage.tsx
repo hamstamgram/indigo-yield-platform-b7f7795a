@@ -21,6 +21,7 @@ import {
   useRevokeAdminInvite,
   type AdminInviteItem,
 } from "@/hooks";
+import { useSendAdminInvite } from "@/hooks/data/admin/useAdminInvites";
 import {
   Users,
   UserPlus,
@@ -33,6 +34,7 @@ import {
   XCircle,
   ArrowLeft,
   Loader2,
+  Mail,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format, isPast } from "date-fns";
@@ -55,18 +57,25 @@ function AdminInvitesContent() {
 
   // Use extracted hooks
   const { data: invites, isLoading } = useAdminInvitesList();
+  const sendEmailMutation = useSendAdminInvite();
 
   const createMutation = useCreateAdminInvitePage({
-    onSuccess: ({ email, inviteCode }) => {
-      const inviteLink = `${window.location.origin}/admin/invite?code=${inviteCode}`;
+    onSuccess: async ({ email, inviteCode }) => {
+      const inviteLink = `${window.location.origin}/admin-invite?code=${inviteCode}`;
       navigator.clipboard.writeText(inviteLink);
+      
+      // Also trigger email send
+      const newInvite = invites?.find(i => i.invite_code === inviteCode);
+      if (newInvite) {
+        sendEmailMutation.mutate(newInvite as any);
+      }
       
       toast({
         title: "Invite Created",
         description: (
           <div className="space-y-2">
             <p>Invitation created for {email}</p>
-            <p className="text-xs text-muted-foreground">Link copied to clipboard</p>
+            <p className="text-xs text-muted-foreground">Link copied to clipboard. Email sent.</p>
           </div>
         ),
       });
@@ -101,7 +110,7 @@ function AdminInvitesContent() {
   });
 
   const copyInviteLink = (code: string) => {
-    const link = `${window.location.origin}/admin/invite?code=${code}`;
+    const link = `${window.location.origin}/admin-invite?code=${code}`;
     navigator.clipboard.writeText(link);
     toast({
       title: "Copied",
@@ -256,13 +265,27 @@ function AdminInvitesContent() {
                         {format(new Date(invite.expires_at), "MMM d, yyyy")}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex justify-end gap-1">
                           {status === "pending" && (
                             <>
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                onClick={() => sendEmailMutation.mutate(invite as any)}
+                                disabled={sendEmailMutation.isPending}
+                                title="Send invitation email"
+                              >
+                                {sendEmailMutation.isPending ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Mail className="h-4 w-4" />
+                                )}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 onClick={() => copyInviteLink(invite.invite_code)}
+                                title="Copy invite link"
                               >
                                 <Copy className="h-4 w-4" />
                               </Button>
@@ -270,6 +293,7 @@ function AdminInvitesContent() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => setRevokeInvite(invite)}
+                                title="Revoke invitation"
                               >
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>

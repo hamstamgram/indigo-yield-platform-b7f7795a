@@ -63,7 +63,18 @@ class AdminInviteService {
    * Generate invite link
    */
   generateInviteLink(inviteCode: string): string {
-    return `${window.location.origin}/admin/invite?code=${inviteCode}`;
+    return `${window.location.origin}/admin-invite?code=${inviteCode}`;
+  }
+
+  /**
+   * Send invite email via edge function
+   */
+  async sendInviteEmail(invite: AdminInvite): Promise<void> {
+    const { error } = await supabase.functions.invoke("send-admin-invite", {
+      body: { invite },
+    });
+
+    if (error) throw error;
   }
 }
 
