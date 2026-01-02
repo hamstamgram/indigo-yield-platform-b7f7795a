@@ -16,7 +16,6 @@ export interface InvestorPosition {
   high_water_mark?: number;
   lock_until_date?: string;
   last_transaction_date?: string;
-  created_at?: string;
   updated_at?: string;
 }
 

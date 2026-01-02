@@ -6767,28 +6767,40 @@ export type Database = {
         }
         Returns: string
       }
-      adjust_investor_position: {
-        Args: {
-          p_admin_id?: string
-          p_delta: number
-          p_fund_id: string
-          p_investor_id: string
-          p_note?: string
-          p_reference_id?: string
-          p_tx_date?: string
-          p_tx_type?: string
-        }
-        Returns: {
-          out_fund_id: string
-          out_investor_id: string
-          out_message: string
-          out_new_balance: number
-          out_old_balance: number
-          out_reference_id: string
-          out_success: boolean
-          out_transaction_id: string
-        }[]
-      }
+      adjust_investor_position:
+        | {
+            Args: {
+              p_admin_id?: string
+              p_delta: number
+              p_fund_id: string
+              p_investor_id: string
+              p_note?: string
+              p_reference_id?: string
+              p_tx_date?: string
+              p_tx_type?: string
+            }
+            Returns: {
+              out_fund_id: string
+              out_investor_id: string
+              out_message: string
+              out_new_balance: number
+              out_old_balance: number
+              out_reference_id: string
+              out_success: boolean
+              out_transaction_id: string
+            }[]
+          }
+        | {
+            Args: {
+              p_delta: number
+              p_fund_id: string
+              p_investor_id: string
+              p_note?: string
+              p_tx_date?: string
+              p_tx_type?: string
+            }
+            Returns: Json
+          }
       admin_create_transaction: {
         Args: {
           p_admin_id: string
