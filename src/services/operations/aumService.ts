@@ -211,6 +211,7 @@ export async function getDailyAUM() {
   const { data, error } = await supabase
     .from("fund_daily_aum")
     .select("*")
+    .eq("is_voided", false)
     .order("aum_date", { ascending: false })
     .limit(30);
   if (error) {
@@ -239,6 +240,7 @@ export async function getFundAUMHistory(
     let query = supabase
       .from("fund_daily_aum")
       .select("*")
+      .eq("is_voided", false)
       .order("as_of_date", { ascending: false });
 
     if (fundId) {
@@ -270,6 +272,7 @@ export async function applyDailyYieldToFund(
       .from("fund_daily_aum")
       .select("total_aum")
       .eq("fund_id", fundId)
+      .eq("is_voided", false)
       .order("as_of_date", { ascending: false })
       .limit(1);
     if (aumError) throw aumError;

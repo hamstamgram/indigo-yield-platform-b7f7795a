@@ -242,6 +242,7 @@ export async function getInvestorVisibleAUM(
     .select("*")
     .eq("purpose", "reporting")
     .eq("is_month_end", true)
+    .eq("is_voided", false)
     .order("aum_date", { ascending: false });
 
   if (fundId) {
@@ -276,6 +277,7 @@ export async function getLastFinalizedAUMDate(fundId: string): Promise<string | 
     .eq("fund_id", fundId)
     .eq("purpose", "reporting")
     .eq("is_month_end", true)
+    .eq("is_voided", false)
     .order("aum_date", { ascending: false })
     .limit(1)
     .maybeSingle();

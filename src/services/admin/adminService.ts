@@ -237,6 +237,7 @@ class AdminServiceV2 {
       let aumQuery = supabase
         .from("fund_daily_aum")
         .select("fund_id, total_aum, as_of_date, aum_date, created_at")
+        .eq("is_voided", false)
         .order("as_of_date", { ascending: false })
         .limit(30);
 

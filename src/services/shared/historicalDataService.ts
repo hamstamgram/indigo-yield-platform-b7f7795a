@@ -94,6 +94,7 @@ export async function getHistoricalData(entityId: string, type: "fund" | "invest
       .from("fund_daily_aum")
       .select("*")
       .eq("fund_id", entityId)
+      .eq("is_voided", false)
       .order("aum_date", { ascending: false });
     if (error) {
       console.error("Error fetching fund historical data:", error);

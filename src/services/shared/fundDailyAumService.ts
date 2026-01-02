@@ -23,6 +23,7 @@ class FundDailyAumService {
       .select("*")
       .eq("fund_id", fundId)
       .eq("aum_date", date)
+      .eq("is_voided", false)
       .maybeSingle();
 
     if (error) throw error;
