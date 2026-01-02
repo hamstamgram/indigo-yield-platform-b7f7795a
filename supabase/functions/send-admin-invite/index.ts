@@ -53,31 +53,29 @@ serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Check if user already exists
-    const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
-    
-    if (listError) {
-      console.error("Error listing users:", listError);
-      return new Response(
-        JSON.stringify({ error: "Failed to check existing users", details: listError.message }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+    // Check if user already exists via profiles table (more reliable than listUsers)
+    console.log("Checking if user exists in profiles table:", invite.email);
+    const { data: existingProfile, error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .select("id, email, is_admin")
+      .ilike("email", invite.email)
+      .maybeSingle();
+
+    if (profileError) {
+      console.error("Error checking profile:", profileError);
+      // Don't fail - continue to try invite
     }
 
-    const existingUser = existingUsers.users.find(
-      u => u.email?.toLowerCase() === invite.email.toLowerCase()
-    );
-
-    if (existingUser) {
-      console.log("User already exists, assigning role directly:", existingUser.id);
+    if (existingProfile) {
+      console.log("User already exists, assigning role directly:", existingProfile.id, "->", invite.intended_role);
       
-      // User exists - assign role directly
+      // Insert or update the role
       const { error: roleError } = await supabaseAdmin
         .from("user_roles")
         .upsert({
-          user_id: existingUser.id,
+          user_id: existingProfile.id,
           role: invite.intended_role || "admin"
-        }, { onConflict: "user_id,role" });
+        }, { onConflict: "user_id,role", ignoreDuplicates: false });
 
       if (roleError) {
         console.error("Error assigning role:", roleError);
@@ -87,11 +85,14 @@ serve(async (req) => {
         );
       }
 
-      // Update profile is_admin flag
-      await supabaseAdmin
-        .from("profiles")
-        .update({ is_admin: true })
-        .eq("id", existingUser.id);
+      // Update profile is_admin flag if not already set
+      if (!existingProfile.is_admin) {
+        console.log("Updating is_admin flag for user");
+        await supabaseAdmin
+          .from("profiles")
+          .update({ is_admin: true })
+          .eq("id", existingProfile.id);
+      }
 
       // Mark invite as used
       await supabaseAdmin
@@ -99,13 +100,14 @@ serve(async (req) => {
         .update({ used: true })
         .eq("id", invite.id);
 
-      console.log("Role assigned successfully to existing user");
+      console.log("Role assigned successfully to existing user:", invite.intended_role);
       
       return new Response(
         JSON.stringify({ 
           success: true, 
-          userId: existingUser.id,
+          userId: existingProfile.id,
           email: invite.email,
+          role: invite.intended_role || "admin",
           message: "User already exists - role assigned directly"
         }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
