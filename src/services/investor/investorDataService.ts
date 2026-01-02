@@ -921,16 +921,7 @@ export async function getPendingTransactions(
   userId: string, 
   searchTerm?: string
 ): Promise<PendingTransaction[]> {
-  // 1. Get Pending Deposits
-  const { data: deposits, error: depositError } = await supabase
-    .from("deposits")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("status", "pending");
-
-  if (depositError) throw depositError;
-
-  // 2. Get Pending Withdrawals
+  // Get Pending Withdrawals (deposits now go through transactions_v2)
   const { data: withdrawals, error: withdrawalError } = await supabase
     .from("withdrawal_requests")
     .select(`*, funds ( name, code, asset )`)
@@ -938,17 +929,6 @@ export async function getPendingTransactions(
     .eq("status", "pending");
 
   if (withdrawalError) throw withdrawalError;
-
-  // 3. Normalize and Merge
-  const normalizedDeposits: PendingTransaction[] = (deposits || []).map((d) => ({
-    id: d.id,
-    type: "DEPOSIT" as const,
-    amount: d.amount,
-    asset: d.asset_symbol,
-    created_at: d.created_at || "",
-    status: d.status || "pending",
-    note: "Pending deposit",
-  }));
 
   const normalizedWithdrawals: PendingTransaction[] = (withdrawals || []).map((w) => ({
     id: w.id,
@@ -960,7 +940,7 @@ export async function getPendingTransactions(
     note: `Withdrawal from ${(w.funds as any)?.name || "Fund"}`,
   }));
 
-  let allItems = [...normalizedDeposits, ...normalizedWithdrawals];
+  let allItems = [...normalizedWithdrawals];
 
   // 4. Filter if search term provided
   if (searchTerm) {
