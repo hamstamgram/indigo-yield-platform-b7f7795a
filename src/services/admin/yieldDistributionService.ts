@@ -451,6 +451,7 @@ export async function getFundAUMHistory(
     .from("fund_daily_aum")
     .select("*")
     .eq("fund_id", fundId)
+    .eq("is_voided", false)
     .order("aum_date", { ascending: false });
 
   if (startDate) {
@@ -478,6 +479,7 @@ export async function getLatestFundAUM(fundId: string): Promise<FundDailyAUM | n
     .from("fund_daily_aum")
     .select("*")
     .eq("fund_id", fundId)
+    .eq("is_voided", false)
     .order("aum_date", { ascending: false })
     .limit(1)
     .maybeSingle();
