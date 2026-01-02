@@ -6817,14 +6817,18 @@ export type Database = {
       }
       apply_daily_yield_to_fund_v2: {
         Args: {
-          p_admin_id: string
+          p_admin_id?: string
           p_date: string
           p_force?: boolean
           p_fund_id: string
           p_gross_amount: number
-          p_purpose: Database["public"]["Enums"]["aum_purpose"]
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
         }
-        Returns: Json
+        Returns: {
+          investors_updated: number
+          new_fund_aum: number
+          total_yield_amount: number
+        }[]
       }
       apply_daily_yield_to_fund_v3: {
         Args: {
