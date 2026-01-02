@@ -281,10 +281,10 @@ export async function getFundPerformanceSummary(fundId: string) {
 
     const summary = {
       totalInvestors: positions?.length || 0,
-      totalAUM: positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0,
-      totalCostBasis: positions?.reduce((sum, p) => sum + (p.cost_basis || 0), 0) || 0,
-      totalUnrealizedPnL: positions?.reduce((sum, p) => sum + (p.unrealized_pnl || 0), 0) || 0,
-      totalRealizedPnL: positions?.reduce((sum, p) => sum + (p.realized_pnl || 0), 0) || 0,
+      totalAUM: positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0,
+      totalCostBasis: positions?.reduce((sum, p) => sum + Number(p.cost_basis || 0), 0) || 0,
+      totalUnrealizedPnL: positions?.reduce((sum, p) => sum + Number(p.unrealized_pnl || 0), 0) || 0,
+      totalRealizedPnL: positions?.reduce((sum, p) => sum + Number(p.realized_pnl || 0), 0) || 0,
     };
 
     return summary;

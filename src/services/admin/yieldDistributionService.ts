@@ -593,50 +593,6 @@ export async function saveDraftAUMEntry(
   return data as FundDailyAUM;
 }
 
-/**
- * Get active funds with their current positions
- */
-export async function getActiveFundsWithPositions(): Promise<
-  Array<{
-    id: string;
-    code: string;
-    name: string;
-    asset: string;
-    totalAUM: number;
-    investorCount: number;
-  }>
-> {
-  const { data: funds, error } = await supabase
-    .from("funds")
-    .select("id, code, name, asset")
-    .eq("status", "active")
-    .order("code");
-
-  if (error) {
-    throw new Error(`Failed to fetch funds: ${error.message}`);
-  }
-
-  const fundsWithAUM = await Promise.all(
-    (funds || []).map(async (fund) => {
-      const { data: positions } = await supabase
-        .from("investor_positions")
-        .select("current_value, investor_id")
-        .eq("fund_id", fund.id)
-        .gt("current_value", 0);
-
-      const totalAUM = positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0;
-      const uniqueInvestors = new Set(positions?.map((p) => p.investor_id) || []);
-
-      return {
-        ...fund,
-        totalAUM,
-        investorCount: uniqueInvestors.size,
-      };
-    })
-  );
-
-  return fundsWithAUM.sort((a, b) => b.totalAUM - a.totalAUM);
-}
 
 /**
  * Get active funds with AUM and record counts
