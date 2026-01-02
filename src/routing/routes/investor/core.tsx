@@ -17,6 +17,7 @@ const InvestorDocumentsPage = lazy(() => import("@/pages/investor/InvestorDocume
 const InvestorSettingsPage = lazy(() => import("@/pages/investor/InvestorSettingsPage"));
 const TransactionDetailsPage = lazy(() => import("@/pages/transactions/TransactionDetailsPage"));
 const FundDetailsPage = lazy(() => import("@/pages/investor/funds/FundDetailsPage"));
+const YieldHistoryPage = lazy(() => import("@/pages/investor/YieldHistoryPage"));
 
 export function CoreInvestorRoutes() {
   return (
@@ -75,6 +76,14 @@ export function CoreInvestorRoutes() {
         element={
           <ProtectedRoute>
             <InvestorSettingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/investor/yield-history"
+        element={
+          <ProtectedRoute>
+            <YieldHistoryPage />
           </ProtectedRoute>
         }
       />
