@@ -32,7 +32,7 @@ export function useInvestorOpsIndicators(
   ibParentId: string | null | undefined
 ) {
   return useQuery<OpsIndicators>({
-    queryKey: ["admin", "investor", "opsIndicators", investorId],
+    queryKey: QUERY_KEYS.adminInvestorOpsIndicators(investorId || ""),
     queryFn: () => investorDetailService.loadOpsIndicators(investorId!, ibParentId ?? null),
     enabled: !!investorId,
   });
@@ -43,7 +43,7 @@ export function useInvestorOpsIndicators(
  */
 export function useInvestorPositions(investorId: string | undefined) {
   return useQuery<InvestorPositionsData>({
-    queryKey: ["admin", "investor", "positions", investorId],
+    queryKey: QUERY_KEYS.adminInvestorPositions(investorId || ""),
     queryFn: () => investorDetailService.fetchInvestorPositions(investorId!),
     enabled: !!investorId,
   });
@@ -54,7 +54,7 @@ export function useInvestorPositions(investorId: string | undefined) {
  */
 export function useInvestorActivePositions(investorId: string | undefined, enabled: boolean = false) {
   return useQuery<AdminInvestorPosition[]>({
-    queryKey: ["admin", "investor", "activePositions", investorId],
+    queryKey: QUERY_KEYS.adminInvestorActivePositions(investorId || ""),
     queryFn: () => investorDetailService.fetchActivePositions(investorId!),
     enabled: !!investorId && enabled,
   });

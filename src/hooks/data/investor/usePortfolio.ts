@@ -30,7 +30,7 @@ export function usePortfolioPositions() {
  */
 export function useWithdrawalFormPositions() {
   return useQuery<WithdrawalFormPosition[]>({
-    queryKey: ["withdrawalFormPositions"],
+    queryKey: QUERY_KEYS.withdrawalFormPositions,
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
@@ -44,7 +44,7 @@ export function useWithdrawalFormPositions() {
  */
 export function useMyWithdrawalsWithFunds() {
   return useQuery({
-    queryKey: ["myWithdrawalsWithFunds"],
+    queryKey: QUERY_KEYS.myWithdrawalsWithFunds,
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
@@ -83,8 +83,8 @@ export function useCreateWithdrawalRequest() {
     },
     onSuccess: (result) => {
       invalidateAfterWithdrawal(queryClient, result.investorId, result.fundId);
-      queryClient.invalidateQueries({ queryKey: ["myWithdrawalsWithFunds"] });
-      queryClient.invalidateQueries({ queryKey: ["withdrawalFormPositions"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myWithdrawalsWithFunds });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.withdrawalFormPositions });
       toast.success("Withdrawal request submitted", {
         description: "Your withdrawal request has been submitted for review",
       });

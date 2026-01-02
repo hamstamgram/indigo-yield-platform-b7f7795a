@@ -287,6 +287,58 @@ export const QUERY_KEYS = {
   positions: (investorId?: string) => investorId 
     ? ["positions", investorId] as const 
     : ["positions"] as const,
+
+  // ============ Yield Crystallization ============
+  fundYieldEvents: (fundId?: string, options?: unknown) => options
+    ? ["fund-yield-events", fundId, options] as const
+    : fundId 
+      ? ["fund-yield-events", fundId] as const 
+      : ["fund-yield-events"] as const,
+  investorYieldEventsAdmin: (investorId?: string, options?: unknown) => options
+    ? ["investor-yield-events-admin", investorId, options] as const
+    : investorId
+      ? ["investor-yield-events-admin", investorId] as const
+      : ["investor-yield-events-admin"] as const,
+  fundYieldSnapshots: (fundId?: string, limit?: number) => limit
+    ? ["fund-yield-snapshots", fundId, limit] as const
+    : fundId
+      ? ["fund-yield-snapshots", fundId] as const
+      : ["fund-yield-snapshots"] as const,
+  pendingYieldEvents: (fundId?: string, year?: number, month?: number) => 
+    ["pending-yield-events", fundId, year, month] as const,
+  aggregatedYield: (fundId?: string, periodStart?: string, periodEnd?: string, filter?: string) =>
+    ["aggregated-yield", fundId, periodStart, periodEnd, filter] as const,
+  investorYieldEvents: ["investor-yield-events"] as const,
+
+  // ============ Admin Investor Detail ============
+  adminInvestorOpsIndicators: (investorId: string) => 
+    ["admin", "investor", "opsIndicators", investorId] as const,
+  adminInvestorPositions: (investorId: string) => 
+    ["admin", "investor", "positions", investorId] as const,
+  adminInvestorActivePositions: (investorId: string) => 
+    ["admin", "investor", "activePositions", investorId] as const,
+  adminInvestorPerformance: ["admin", "investor-performance"] as const,
+  adminPendingWithdrawalsCount: (investorId: string) => 
+    ["admin", "pending-withdrawals-count", investorId] as const,
+
+  // ============ Command Palette ============
+  adminInvestorSearch: ["admin", "investorSearch"] as const,
+
+  // ============ Report Data ============
+  historicalDataSummary: ["historical-data-summary"] as const,
+  statementPeriodByDate: (year: number, month: number) => 
+    ["statement-period", year, month] as const,
+  investorReportData: (investorId: string, periodId: string) => 
+    ["investor-report-data", investorId, periodId] as const,
+  reportPositions: (investorId: string) => ["report-positions", investorId] as const,
+  reportTransactions: (investorId: string, start?: string, end?: string) => 
+    ["report-transactions", investorId, start, end] as const,
+  reportStatements: (investorId: string, start?: string, end?: string) => 
+    ["report-statements", investorId, start, end] as const,
+
+  // ============ Portfolio (Investor) ============
+  withdrawalFormPositions: ["withdrawalFormPositions"] as const,
+  myWithdrawalsWithFunds: ["myWithdrawalsWithFunds"] as const,
 } as const;
 
 /**
