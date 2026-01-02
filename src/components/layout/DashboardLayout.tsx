@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import ContentArea from "./ContentArea";
 import { useAuth } from "@/lib/auth/context";
+import { useUserRole } from "@/hooks/auth";
 import { GlobalShortcuts } from "@/components/global";
 
 const DashboardLayout = () => {
@@ -14,32 +15,47 @@ const DashboardLayout = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
+  const hasRedirectedRef = useRef(false);
 
   const currentPath = location.pathname;
 
-  // Determine if path is admin route with improved logic
+  // Determine if path is admin route
   const isAdminRoute = currentPath.startsWith("/admin") || currentPath === "/admin-operations";
 
-  // Get auth status from context - no need for complex checking since AuthProvider handles it
-  const { user, loading: authLoading, isAdmin: userIsAdmin, profile } = useAuth();
+  // Get auth status from both context AND useUserRole hook for double verification
+  const { user, loading: authLoading, isAdmin: authIsAdmin, profile } = useAuth();
+  const { isAdmin: roleIsAdmin, isLoading: roleLoading } = useUserRole();
 
   useEffect(() => {
-    // Wait for both auth and profile to be loaded
-    if (!authLoading && profile !== null) {
-      if (!user) {
-        navigate("/login", { replace: true });
-        return;
-      }
+    // Wait for both auth context AND role check to complete
+    const isFullyLoaded = !authLoading && !roleLoading && profile !== null;
+    
+    if (!isFullyLoaded) return;
 
-      setIsAdmin(userIsAdmin);
-      setIsLoading(false);
+    if (!user) {
+      navigate("/login", { replace: true });
+      return;
+    }
 
-      // Simple redirect logic - only redirect admin from /dashboard to /admin
-      if (currentPath === "/dashboard" && userIsAdmin) {
+    // SECURITY: Use role from useUserRole as source of truth (queries user_roles table directly)
+    const verifiedIsAdmin = authIsAdmin && roleIsAdmin;
+    setIsAdmin(verifiedIsAdmin);
+    setIsLoading(false);
+
+    // Deterministic redirect logic - only redirect once per mount
+    if (!hasRedirectedRef.current) {
+      if (currentPath === "/dashboard" && verifiedIsAdmin) {
+        // Admin on investor dashboard -> redirect to admin
+        hasRedirectedRef.current = true;
         navigate("/admin", { replace: true });
+      } else if (isAdminRoute && !verifiedIsAdmin) {
+        // Non-admin trying to access admin routes -> redirect to dashboard
+        hasRedirectedRef.current = true;
+        console.warn("[DashboardLayout] Non-admin accessing admin route, redirecting");
+        navigate("/dashboard", { replace: true });
       }
     }
-  }, [user, authLoading, userIsAdmin, profile, navigate, currentPath, isAdminRoute]);
+  }, [user, authLoading, roleLoading, authIsAdmin, roleIsAdmin, profile, navigate, currentPath, isAdminRoute]);
 
   // Set sidebar open state based on screen size
   useEffect(() => {
