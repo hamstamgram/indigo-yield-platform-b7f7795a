@@ -17,6 +17,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
   Popover, PopoverContent, PopoverTrigger,
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Checkbox,
 } from "@/components/ui";
 import {
   TrendingUp,
@@ -97,6 +98,9 @@ function YieldOperationsContent() {
   const [showSystemAccounts, setShowSystemAccounts] = useState(true);
   const [showOnlyChanged, setShowOnlyChanged] = useState(false);
   const [searchInvestor, setSearchInvestor] = useState("");
+  
+  // AUM Reconciliation acknowledgment
+  const [acknowledgeDiscrepancy, setAcknowledgeDiscrepancy] = useState(false);
 
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -112,6 +116,9 @@ function YieldOperationsContent() {
     reportingMonthDate ? getYear(reportingMonthDate) : new Date().getFullYear(),
     reportingMonthDate ? getMonth(reportingMonthDate) + 1 : new Date().getMonth() + 1
   );
+  
+  // AUM Reconciliation check
+  const { data: reconciliation } = useAUMReconciliation(selectedFund?.id || null);
 
   const formatValue = (value: number, asset: string) => {
     if (asset === "BTC") {
@@ -134,6 +141,7 @@ function YieldOperationsContent() {
     setShowSystemAccounts(true);
     setShowOnlyChanged(false);
     setSearchInvestor("");
+    setAcknowledgeDiscrepancy(false);
     
     // Default to current month
     const currentMonthStart = startOfMonth(new Date()).toISOString().split("T")[0];
@@ -674,6 +682,28 @@ function YieldOperationsContent() {
                 </div>
               </div>
             )}
+            
+            {/* AUM Reconciliation Warning */}
+            {reconciliation?.has_warning && (
+              <div className="flex items-start gap-3 p-4 rounded-lg border border-destructive/50 bg-destructive/10">
+                <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-medium text-destructive">
+                    AUM Discrepancy Detected
+                  </p>
+                  <p className="text-sm text-destructive/80">
+                    Positions sum: {formatValue(reconciliation.positions_sum, selectedFund?.asset || "USD")} {selectedFund?.asset}
+                    <br />
+                    Recorded AUM: {formatValue(reconciliation.recorded_aum, selectedFund?.asset || "USD")} {selectedFund?.asset}
+                    <br />
+                    Difference: {reconciliation.discrepancy_pct.toFixed(2)}% (threshold: {reconciliation.tolerance_pct}%)
+                  </p>
+                  <p className="text-sm text-destructive font-medium">
+                    Review before applying yield to ensure accuracy.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Step 2: Preview Button */}
             <div className="p-4 border rounded-lg bg-muted/20">
@@ -1038,6 +1068,21 @@ function YieldOperationsContent() {
                   </div>
                 )}
 
+                {/* AUM Discrepancy Acknowledgment */}
+                {reconciliation?.has_warning && (
+                  <div className="space-y-2 p-3 rounded-md border border-destructive/50 bg-destructive/10">
+                    <Label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <Checkbox 
+                        checked={acknowledgeDiscrepancy} 
+                        onCheckedChange={(checked) => setAcknowledgeDiscrepancy(checked === true)} 
+                      />
+                      <span className="text-destructive">
+                        I acknowledge the {reconciliation.discrepancy_pct.toFixed(2)}% AUM discrepancy and want to proceed
+                      </span>
+                    </Label>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="confirm-text">
                     Type <span className="font-mono font-bold">APPLY</span> to confirm:
@@ -1057,7 +1102,11 @@ function YieldOperationsContent() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <Button
               onClick={handleApplyYield}
-              disabled={confirmationText !== "APPLY" || applyLoading}
+              disabled={
+                confirmationText !== "APPLY" || 
+                applyLoading || 
+                (reconciliation?.has_warning && !acknowledgeDiscrepancy)
+              }
             >
               {applyLoading ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
