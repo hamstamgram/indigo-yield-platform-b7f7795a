@@ -81,7 +81,7 @@ function FundManagementContent() {
         (fundsData || []).map(async (fund) => {
           const positions = await positionService.getPositionsByFund(fund.id);
 
-          const total_aum = positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0;
+          const total_aum = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
           const uniqueInvestors = new Set(positions?.map((p) => p.investor_id) || []);
 
           return {

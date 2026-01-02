@@ -204,7 +204,7 @@ export async function getFundInvestorComposition(fundId: string): Promise<Invest
 
   if (error) throw error;
 
-  const totalValue = positions?.reduce((sum, p) => sum + (p.current_value || 0), 0) || 0;
+  const totalValue = positions?.reduce((sum, p) => sum + Number(p.current_value || 0), 0) || 0;
 
   return positions?.map((p: any) => ({
     investor_name:
