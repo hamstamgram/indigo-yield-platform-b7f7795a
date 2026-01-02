@@ -78,14 +78,13 @@ export const investmentService = {
     if (fetchError) throw fetchError;
     if (!tx) throw new Error("Transaction not found");
 
-    // 2. Update transaction status
+    // 2. Update transaction - use only valid columns (no status column exists)
     const { error: updateError } = await supabase
       .from("transactions_v2")
       .update({
-        status: "completed",
         approved_by: user?.id,
         approved_at: new Date().toISOString(),
-      } as any)
+      })
       .eq("id", id);
 
     if (updateError) throw updateError;
@@ -101,12 +100,12 @@ export const investmentService = {
   },
 
   async rejectInvestment(id: string, reason: string) {
+    // Update notes only - no status column exists on transactions_v2
     const { error } = await supabase
       .from("transactions_v2")
       .update({
-        status: "rejected",
         notes: reason ? `Rejected: ${reason}` : "Rejected",
-      } as any)
+      })
       .eq("id", id);
 
     if (error) throw error;
