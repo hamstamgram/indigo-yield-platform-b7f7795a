@@ -9,7 +9,6 @@ import { AdminRoute } from "../../AdminRoute";
 
 const YieldOperationsPage = lazy(() => import("@/pages/admin/YieldOperationsPage"));
 const InvestorReports = lazy(() => import("@/pages/admin/InvestorReports"));
-const DailyRatesManagement = lazy(() => import("@/pages/admin/DailyRatesManagement"));
 const RecordedYieldsPage = lazy(() => import("@/pages/admin/RecordedYieldsPage"));
 const FundManagementPage = lazy(() => import("@/pages/admin/FundManagementPage"));
 
@@ -56,15 +55,6 @@ export function OperationsRoutes() {
         }
       />
 
-      {/* Daily rates (kept for now) */}
-      <Route
-        path="/admin/daily-rates"
-        element={
-          <AdminRoute>
-            <DailyRatesManagement />
-          </AdminRoute>
-        }
-      />
 
       {/* Redirects for consolidated pages */}
       <Route path="/admin/monthly-data-entry" element={<Navigate to="/admin/yield" replace />} />

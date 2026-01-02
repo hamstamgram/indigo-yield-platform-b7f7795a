@@ -271,14 +271,6 @@ export {
   type PlatformSettings,
 } from "./usePlatformSettings";
 
-// useDailyRates (new - for DailyRatesManagement page)
-export {
-  useDailyRate,
-  useRecentDailyRates,
-  useSaveDailyRate,
-  useSendDailyRateNotification,
-  type DailyRate,
-} from "./useDailyRates";
 
 // useAdminStatementsPage (new - for AdminStatementsPage)
 export {

@@ -6,7 +6,6 @@ import {
   Users,
   Shield,
   Database,
-  TrendingUp,
   ArrowUpFromLine,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
@@ -90,12 +89,6 @@ export function useNavItems(): NavItem[] {
       href: "/admin/yield",
       icon: Database,
       description: "Yield distribution and fund data",
-    },
-    {
-      title: "Daily Rates",
-      href: "/admin/daily-rates",
-      icon: TrendingUp,
-      description: "Manage daily asset rates",
     },
     {
       title: "System",

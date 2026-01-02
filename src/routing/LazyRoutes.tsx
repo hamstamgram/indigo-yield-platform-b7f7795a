@@ -27,7 +27,7 @@ export const AdminStatementsPage = lazy(() => import("@/pages/admin/AdminStateme
 
 export const AdminUserManagement = lazy(() => import("@/pages/admin/AdminUserManagement"));
 export const AdminWithdrawalsPage = lazy(() => import("@/pages/admin/AdminWithdrawalsPage"));
-export const DailyRatesManagement = lazy(() => import("@/pages/admin/DailyRatesManagement"));
+
 export const InvestorReports = lazy(() => import("@/pages/admin/InvestorReports"));
 export const MonthlyDataEntry = lazy(() => import("@/pages/admin/MonthlyDataEntry"));
 
@@ -200,11 +200,6 @@ export const LazyAdminUserManagement = () => (
 export const LazyAdminWithdrawals = () => (
   <RouteSuspense type="admin">
     <AdminWithdrawalsPage />
-  </RouteSuspense>
-);
-export const LazyDailyRatesManagement = () => (
-  <RouteSuspense type="admin">
-    <DailyRatesManagement />
   </RouteSuspense>
 );
 export const LazyInvestorReports = () => (

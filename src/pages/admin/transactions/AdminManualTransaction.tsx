@@ -13,20 +13,19 @@ import {
 } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { supabase } from "@/integrations/supabase/client";
-import { createAdminTransaction, saveDraftAUMEntry, type CreateTransactionParams } from "@/services";
-import { Loader2, ArrowRightLeft, Info, AlertTriangle, Check, CalendarIcon } from "lucide-react";
+import { createAdminTransaction, type CreateTransactionParams } from "@/services";
+import { processDepositWithYield, previewDepositYield, getCurrentFundAum, type YieldPreviewResult } from "@/services/admin/depositWithYieldService";
+import { Loader2, ArrowRightLeft, Info, AlertTriangle, Check, CalendarIcon, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
-import { QUERY_KEYS } from "@/constants/queryKeys";
+import { invalidateAfterTransaction, invalidateAfterYieldOp } from "@/utils/cacheInvalidation";
 import {
   useTransactionFormInvestors,
   useTransactionFormFunds,
-  useTransactionFormAumCheck,
   useTransactionFormBalanceCheck,
 } from "@/hooks/data/admin";
 
-// Form Schema - aligned with AddTransactionDialog
+// Form Schema
 const transactionSchema = z.object({
   investorId: z.string().min(1, "Investor is required"),
   fundId: z.string().min(1, "Fund is required"),
@@ -35,6 +34,7 @@ const transactionSchema = z.object({
     message: "Amount must be a positive number",
   }),
   txDate: z.string().min(1, "Transaction date is required"),
+  newTotalAum: z.string().optional(),
   description: z.string().optional(),
   txHash: z.string().optional(),
 });
@@ -43,12 +43,9 @@ type TransactionFormValues = z.infer<typeof transactionSchema>;
 
 export default function AdminManualTransaction() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // AUM form state
-  const [showAumForm, setShowAumForm] = useState(false);
-  const [aumValue, setAumValue] = useState<string>("");
-  const [isRecordingAum, setIsRecordingAum] = useState(false);
-  const [aumExists, setAumExists] = useState<boolean | null>(null);
+  const [yieldPreview, setYieldPreview] = useState<YieldPreviewResult | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [currentAum, setCurrentAum] = useState<number | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -63,6 +60,7 @@ export default function AdminManualTransaction() {
       type: "DEPOSIT",
       amount: "",
       txDate: new Date().toISOString().split("T")[0],
+      newTotalAum: "",
       description: "",
       txHash: "",
     },
@@ -72,12 +70,10 @@ export default function AdminManualTransaction() {
   const selectedFundId = form.watch("fundId");
   const txnType = form.watch("type");
   const txDate = form.watch("txDate");
+  const depositAmount = form.watch("amount");
+  const newTotalAum = form.watch("newTotalAum");
 
-  // Use hooks for AUM and balance checks
-  const { data: aumCheckResult, isLoading: isCheckingAum } = useTransactionFormAumCheck(
-    selectedFundId,
-    txDate
-  );
+  // Use hook for balance check
   const { data: balanceCheck, isLoading: isCheckingBalance } = useTransactionFormBalanceCheck(
     selectedInvestorId,
     selectedFundId
@@ -86,84 +82,52 @@ export default function AdminManualTransaction() {
   const currentBalance = balanceCheck?.currentBalance ?? null;
   const hasTransactionHistory = balanceCheck?.hasTransactionHistory ?? false;
 
-  // Sync AUM check result with local state
+  // Load current AUM when fund changes
   useEffect(() => {
-    if (aumCheckResult !== undefined) {
-      setAumExists(aumCheckResult);
-    }
-    setShowAumForm(false);
-  }, [aumCheckResult, selectedFundId, txDate]);
-
-  // Handle AUM recording
-  const handleRecordAum = async () => {
-    if (!aumValue || !selectedFundId || !txDate) {
-      toast({
-        title: "Error",
-        description: "Please enter an AUM value",
-        variant: "destructive",
-      });
+    if (!selectedFundId) {
+      setCurrentAum(null);
       return;
     }
 
-    const numericAum = Number(aumValue);
-    if (isNaN(numericAum) || numericAum < 0) {
-      toast({
-        title: "Error",
-        description: "AUM must be a valid positive number",
-        variant: "destructive",
-      });
+    getCurrentFundAum(selectedFundId)
+      .then(setCurrentAum)
+      .catch(() => setCurrentAum(null));
+  }, [selectedFundId]);
+
+  // Update yield preview when amount or AUM changes
+  useEffect(() => {
+    if (!selectedFundId || !depositAmount || !newTotalAum || txnType === "WITHDRAWAL") {
+      setYieldPreview(null);
       return;
     }
 
-    setIsRecordingAum(true);
-    try {
-      const user = await supabase.auth.getUser();
-      await saveDraftAUMEntry(
-        selectedFundId,
-        new Date(txDate),
-        numericAum,
-        "Recorded for transaction creation",
-        user.data.user?.id
-      );
-      
-      setAumExists(true);
-      setShowAumForm(false);
-      setAumValue("");
-      toast({
-        title: "Success",
-        description: "AUM recorded successfully",
-      });
-      
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundAumAll });
-    } catch (error) {
-      console.error("Error recording AUM:", error);
-      const errorMsg = error instanceof Error ? error.message : "Failed to record AUM";
-      toast({
-        title: "Error",
-        description: errorMsg.includes("Permission") 
-          ? "Permission denied: Admin access required." 
-          : errorMsg,
-        variant: "destructive",
-      });
-    } finally {
-      setIsRecordingAum(false);
-    }
-  };
+    const amount = parseFloat(depositAmount);
+    const aum = parseFloat(newTotalAum);
 
-  // Auto-select transaction type based on balance (only auto-switch away from invalid FIRST_INVESTMENT)
+    if (isNaN(amount) || isNaN(aum) || amount <= 0 || aum <= 0) {
+      setYieldPreview(null);
+      return;
+    }
+
+    setIsLoadingPreview(true);
+    previewDepositYield(selectedFundId, amount, aum)
+      .then(setYieldPreview)
+      .catch(() => setYieldPreview(null))
+      .finally(() => setIsLoadingPreview(false));
+  }, [selectedFundId, depositAmount, newTotalAum, txnType]);
+
+  // Auto-select transaction type based on balance
   useEffect(() => {
     if (currentBalance === null || isCheckingBalance) return;
     
-    // Only auto-switch from FIRST_INVESTMENT to DEPOSIT if position exists
     if (currentBalance > 0 && txnType === "FIRST_INVESTMENT") {
       form.setValue("type", "DEPOSIT");
     }
   }, [currentBalance, isCheckingBalance, txnType, form]);
 
-  // Only force FIRST_INVESTMENT if balance is 0 AND no prior transactions exist
   const isFirstInvestment = currentBalance !== null && currentBalance === 0 && !hasTransactionHistory;
   const hasExistingPosition = currentBalance !== null && (currentBalance > 0 || hasTransactionHistory);
-
+  const isDeposit = txnType === "DEPOSIT" || txnType === "FIRST_INVESTMENT";
   const isLoading = investorsLoading || fundsLoading;
 
   const onSubmit = async (data: TransactionFormValues) => {
@@ -174,77 +138,85 @@ export default function AdminManualTransaction() {
         throw new Error("Selected fund not found");
       }
 
-      // Auto-create AUM record if it doesn't exist (for deposit/withdrawal transactions)
-      const requiresAum = ["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"].includes(data.type);
-      if (requiresAum && aumExists === false) {
-        console.log("Auto-creating AUM record for transaction...");
-        try {
-          const user = await supabase.auth.getUser();
-          await saveDraftAUMEntry(
-            data.fundId,
-            new Date(data.txDate),
-            0,
-            "Auto-created for transaction",
-            user.data.user?.id
-          );
-          setAumExists(true);
-          console.log("AUM record auto-created successfully");
-        } catch (aumError) {
-          console.error("Failed to auto-create AUM:", aumError);
-          const errorMsg = aumError instanceof Error ? aumError.message : "Failed to create AUM record";
-          toast({
-            title: "Error",
-            description: errorMsg.includes("Permission") 
-              ? "Permission denied: Admin access required." 
-              : `Failed to prepare transaction: ${errorMsg}`,
-            variant: "destructive",
-          });
-          setIsSubmitting(false);
-          return;
+      // For deposits with AUM, use the combined yield + deposit flow
+      if (isDeposit && data.newTotalAum) {
+        const aumValue = parseFloat(data.newTotalAum);
+        const amountValue = parseFloat(data.amount);
+
+        if (isNaN(aumValue) || aumValue <= 0) {
+          throw new Error("Please enter a valid New Total AUM");
         }
+
+        const result = await processDepositWithYield({
+          investorId: data.investorId,
+          fundId: data.fundId,
+          amount: amountValue,
+          newTotalAum: aumValue,
+          txDate: data.txDate,
+          notes: data.description,
+          txHash: data.txHash,
+        });
+
+        if (!result.success) {
+          throw new Error(result.error || "Failed to process deposit");
+        }
+
+        // Invalidate caches
+        invalidateAfterTransaction(queryClient, data.investorId, data.fundId);
+        if (result.yieldDistributed > 0) {
+          invalidateAfterYieldOp(queryClient);
+        }
+
+        const yieldMsg = result.yieldDistributed > 0 
+          ? ` Yield of ${result.yieldDistributed.toFixed(8)} ${selectedFund.asset} distributed to ${result.yieldInvestorsAffected} investors.`
+          : "";
+
+        toast({
+          title: "Transaction Created",
+          description: `Successfully created ${data.type.toLowerCase().replace(/_/g, ' ')} of ${data.amount} ${selectedFund.asset}.${yieldMsg}`,
+        });
+      } else {
+        // Standard transaction (withdrawal or deposit without AUM)
+        const result = await createAdminTransaction({
+          investor_id: data.investorId,
+          fund_id: data.fundId,
+          type: data.type as CreateTransactionParams["type"],
+          amount: parseFloat(data.amount),
+          tx_date: data.txDate,
+          asset: selectedFund.asset,
+          notes: data.description,
+          tx_hash: data.txHash,
+        });
+
+        if (!result.success) {
+          throw new Error(result.error || "Failed to create transaction");
+        }
+
+        invalidateAfterTransaction(queryClient, data.investorId, data.fundId);
+
+        toast({
+          title: "Transaction Created",
+          description: `Successfully created ${data.type.toLowerCase().replace(/_/g, ' ')} of ${data.amount} ${selectedFund.asset}.`,
+        });
       }
-
-      // Use the unified createAdminTransaction service
-      const result = await createAdminTransaction({
-        investor_id: data.investorId,
-        fund_id: data.fundId,
-        type: data.type as CreateTransactionParams["type"],
-        amount: parseFloat(data.amount),
-        tx_date: data.txDate,
-        asset: selectedFund.asset,
-        notes: data.description,
-        tx_hash: data.txHash,
-      });
-
-      if (!result.success) {
-        throw new Error(result.error || "Failed to create transaction");
-      }
-
-      // Comprehensive cache invalidation using centralized helper
-      invalidateAfterTransaction(queryClient, data.investorId, data.fundId);
-
-      toast({
-        title: "Transaction Created",
-        description: `Successfully created ${data.type.toLowerCase().replace(/_/g, ' ')} of ${data.amount} ${selectedFund.asset}.`,
-      });
 
       form.reset({
         type: "DEPOSIT",
         amount: "",
         txDate: new Date().toISOString().split("T")[0],
+        newTotalAum: "",
         description: "",
         txHash: "",
         investorId: "",
         fundId: "",
       });
-      setAumExists(null);
-      setShowAumForm(false);
-      setAumValue("");
-    } catch (error: any) {
+      setYieldPreview(null);
+      setCurrentAum(null);
+    } catch (error: unknown) {
       console.error("Transaction error:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to create transaction",
+        description: error instanceof Error ? error.message : "Failed to create transaction",
         variant: "destructive",
       });
     } finally {
@@ -270,8 +242,7 @@ export default function AdminManualTransaction() {
             Manual Transaction
           </CardTitle>
           <CardDescription>
-            Manually record a deposit or withdrawal for an investor. This will update their ledger
-            and position.
+            Record a deposit or withdrawal. For deposits, enter the new total AUM to automatically distribute yield before the deposit is processed.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -343,7 +314,7 @@ export default function AdminManualTransaction() {
             )}
 
             <div className="grid grid-cols-2 gap-4">
-              {/* Type Selection - aligned with AddTransactionDialog */}
+              {/* Type Selection */}
               <div className="space-y-2">
                 <Label>Type</Label>
                 <Select
@@ -361,7 +332,6 @@ export default function AdminManualTransaction() {
                     >
                       First Investment {hasExistingPosition && "(position exists)"}
                     </SelectItem>
-                    {/* Deposit is always available */}
                     <SelectItem value="DEPOSIT">
                       Deposit / Top-up
                     </SelectItem>
@@ -422,76 +392,94 @@ export default function AdminManualTransaction() {
               )}
             </div>
 
-            {/* AUM Warning and Inline Form */}
-            {selectedFundId && txDate && (
-              <>
-                {isCheckingAum && (
-                  <Alert className="py-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <AlertDescription>Checking AUM for this date...</AlertDescription>
-                  </Alert>
+            {/* New Total AUM - Required for deposits */}
+            {isDeposit && selectedFundId && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  New Total AUM
+                  <span className="text-xs text-muted-foreground">(After yield + deposit)</span>
+                </Label>
+                <Input
+                  {...form.register("newTotalAum")}
+                  placeholder="Enter new total fund AUM"
+                  type="number"
+                  step="any"
+                />
+                {currentAum !== null && (
+                  <p className="text-xs text-muted-foreground">
+                    Current AUM: {currentAum.toFixed(8)}
+                  </p>
                 )}
-                
-                {!isCheckingAum && aumExists === false && (
-                  <Alert variant="destructive" className="py-3">
+                {!newTotalAum && (
+                  <Alert variant="destructive" className="py-2">
                     <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription className="space-y-3">
-                      <p>
-                        <strong>No AUM recorded</strong> for this fund on {txDate}.
-                        Transactions require AUM data for proper allocation calculations.
+                    <AlertDescription className="text-sm">
+                      Enter the new total AUM to calculate and distribute yield before this deposit.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            )}
+
+            {/* Yield Preview */}
+            {isDeposit && yieldPreview && (
+              <Card className="border-primary/30 bg-primary/5">
+                <CardContent className="pt-4 space-y-3">
+                  <div className="flex items-center gap-2 text-primary font-medium">
+                    <TrendingUp className="h-4 w-4" />
+                    Yield Preview
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Current AUM</p>
+                      <p className="font-medium">{yieldPreview.currentAum.toFixed(8)} {yieldPreview.fundAsset}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Yield to Distribute</p>
+                      <p className={cn(
+                        "font-medium",
+                        yieldPreview.preDepositYield > 0 ? "text-green-600" : "text-muted-foreground"
+                      )}>
+                        {yieldPreview.preDepositYield > 0 ? "+" : ""}{yieldPreview.preDepositYield.toFixed(8)} {yieldPreview.fundAsset}
+                        {yieldPreview.preDepositYield > 0 && (
+                          <span className="text-xs ml-1">({yieldPreview.yieldPercentage.toFixed(4)}%)</span>
+                        )}
                       </p>
-                      
-                      {!showAumForm ? (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowAumForm(true)}
-                          className="mt-2"
-                        >
-                          Record AUM Now
-                        </Button>
-                      ) : (
-                        <div className="space-y-2 pt-2 border-t border-destructive/20">
-                          <Label htmlFor="aum_value" className="text-sm">
-                            Total Fund AUM
-                          </Label>
-                          <div className="flex gap-2">
-                            <Input
-                              id="aum_value"
-                              type="number"
-                              step="0.00000001"
-                              placeholder="Enter AUM value"
-                              value={aumValue}
-                              onChange={(e) => setAumValue(e.target.value)}
-                              className="flex-1"
-                              disabled={isRecordingAum}
-                            />
-                            <Button
-                              type="button"
-                              size="sm"
-                              onClick={handleRecordAum}
-                              disabled={isRecordingAum || !aumValue}
-                            >
-                              {isRecordingAum && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                              Record
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </AlertDescription>
-                  </Alert>
-                )}
-                
-                {!isCheckingAum && aumExists === true && (
-                  <Alert className="py-2 border-green-500/50 bg-green-50 dark:bg-green-950/20">
-                    <Check className="h-4 w-4 text-green-600" />
-                    <AlertDescription className="text-green-700 dark:text-green-400">
-                      AUM recorded for {txDate}
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">This Deposit</p>
+                      <p className="font-medium">+{parseFloat(depositAmount || "0").toFixed(8)} {yieldPreview.fundAsset}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Investors Affected</p>
+                      <p className="font-medium">{yieldPreview.investorCount} investors</p>
+                    </div>
+                  </div>
+                  {yieldPreview.preDepositYield > 0 && (
+                    <Alert className="py-2 border-green-500/50 bg-green-50 dark:bg-green-950/20">
+                      <Check className="h-4 w-4 text-green-600" />
+                      <AlertDescription className="text-green-700 dark:text-green-400 text-sm">
+                        Yield will be distributed to {yieldPreview.investorCount} existing investors before the deposit is processed.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  {yieldPreview.preDepositYield <= 0 && (
+                    <Alert className="py-2">
+                      <Info className="h-4 w-4" />
+                      <AlertDescription className="text-sm">
+                        No yield to distribute. The deposit will be processed directly.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {isLoadingPreview && (
+              <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Calculating yield preview...
+              </div>
             )}
 
             {/* Optional Fields */}
@@ -508,7 +496,7 @@ export default function AdminManualTransaction() {
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={isSubmitting || (aumExists === false && showAumForm)}
+              disabled={isSubmitting || (isDeposit && !newTotalAum)}
             >
               {isSubmitting ? (
                 <>
@@ -516,7 +504,9 @@ export default function AdminManualTransaction() {
                   Processing...
                 </>
               ) : (
-                "Create Transaction"
+                isDeposit && yieldPreview && yieldPreview.preDepositYield > 0
+                  ? "Distribute Yield & Create Deposit"
+                  : "Create Transaction"
               )}
             </Button>
           </form>
