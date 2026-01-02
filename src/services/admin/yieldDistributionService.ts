@@ -4,6 +4,10 @@
  * All values are in NATIVE TOKENS (BTC, ETH, USDT, etc.) - never fiat
  * 
  * IMPORTANT: Preview now uses backend RPC for exact parity with apply
+ * 
+ * Yield Crystallization Integration:
+ * - Deposits/withdrawals automatically crystallize yield before processing
+ * - Month-end yield application calls finalize_month_yield to make events visible to investors
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +18,7 @@ import {
   getFundPeriodSnapshot
 } from "@/services/operations/snapshotService";
 import { yieldNotifications } from "@/services/notifications";
+import { finalizeMonthYield } from "@/services/admin/yieldCrystallizationService";
 
 // Re-export types from canonical source for backwards compatibility
 export type {
@@ -366,6 +371,24 @@ export async function applyYieldDistribution(
     if (lockResult.success) {
       snapshotInfo.isLocked = true;
     }
+  }
+
+  // Finalize yield visibility - make all admin_only yield events visible to investors
+  // This is called at month-end when yield is distributed
+  try {
+    const finalizationResult = await finalizeMonthYield(
+      fundId,
+      targetDate.getFullYear(),
+      targetDate.getMonth() + 1, // JavaScript months are 0-indexed
+      adminId
+    );
+    
+    if (finalizationResult.success) {
+      console.log(`Yield finalized: ${finalizationResult.events_made_visible} events made visible to investors`);
+    }
+  } catch (finalizationError) {
+    // Log but don't fail - the yield was applied successfully
+    console.warn("Yield finalization failed (non-fatal):", finalizationError);
   }
 
   // Parse response - apply returns JSONB now
