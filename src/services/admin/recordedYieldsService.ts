@@ -24,6 +24,9 @@ export interface YieldRecord {
   created_by?: string | null;
   created_by_name?: string;
   updated_at?: string;
+  is_voided: boolean;
+  voided_at?: string | null;
+  void_reason?: string | null;
 }
 
 export interface YieldFilters {
@@ -62,8 +65,12 @@ export async function getYieldRecords(filters: YieldFilters = {}): Promise<Yield
       source,
       created_at,
       created_by,
-      updated_at
+      updated_at,
+      is_voided,
+      voided_at,
+      void_reason
     `)
+    .eq("is_voided", false)
     .order("aum_date", { ascending: false })
     .order("created_at", { ascending: false });
 
