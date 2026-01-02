@@ -248,7 +248,7 @@ function RecordedYieldsContent() {
                   {yields.map((record) => {
                     const correctionKey = `${record.fund_id}:${record.aum_date}:${record.purpose}`;
                     const correctionInfo = correctedRecordsMap.get(correctionKey);
-                    const isVoided = (record as any).is_voided;
+                    const isVoided = record.is_voided;
                     
                     return (
                       <TableRow key={record.id} className={isVoided ? "opacity-50" : ""}>
