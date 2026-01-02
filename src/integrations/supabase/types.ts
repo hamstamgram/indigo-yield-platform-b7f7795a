@@ -6781,9 +6781,11 @@ export type Database = {
         Returns: {
           out_fund_id: string
           out_investor_id: string
+          out_message: string
           out_new_balance: number
           out_old_balance: number
           out_reference_id: string
+          out_success: boolean
           out_transaction_id: string
         }[]
       }
