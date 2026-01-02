@@ -34,6 +34,7 @@ export interface InviteDetails {
   email: string;
   used: boolean;
   expires_at: string;
+  intended_role?: "admin" | "super_admin";
 }
 
 export interface UserMetadata {

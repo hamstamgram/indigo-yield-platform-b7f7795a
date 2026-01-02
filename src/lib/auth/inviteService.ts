@@ -85,6 +85,7 @@ export async function verifyAdminInvite(
     email: data.email,
     used: data.used ?? false,
     expires_at: data.expires_at,
+    intended_role: (data.intended_role as "admin" | "super_admin") || "admin",
   };
 }
 
@@ -146,7 +147,18 @@ export async function acceptAdminInvite(
   password: string,
   metadata?: UserMetadata
 ): Promise<string> {
-  // 1. Sign up the user
+  // 1. Fetch invite to get intended_role
+  const { data: invite, error: inviteError } = await supabase
+    .from("admin_invites")
+    .select("intended_role")
+    .eq("invite_code", inviteCode)
+    .single();
+
+  if (inviteError) throw inviteError;
+  
+  const intendedRole = invite?.intended_role || "admin";
+
+  // 2. Sign up the user
   const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
     email,
     password,
@@ -161,7 +173,7 @@ export async function acceptAdminInvite(
   const userId = signUpData.user?.id;
   if (!userId) throw new Error("User ID not returned from signup");
 
-  // 2. Mark invite as used
+  // 3. Mark invite as used
   const { error: updateError } = await supabase
     .from("admin_invites")
     .update({ used: true })
@@ -169,10 +181,10 @@ export async function acceptAdminInvite(
 
   if (updateError) throw updateError;
 
-  // 3. Wait for profile to be created
+  // 4. Wait for profile to be created
   await waitForProfile(userId);
 
-  // 4. Update profile with admin flag and name
+  // 5. Update profile with admin flag and name
   await supabase
     .from("profiles")
     .update({
@@ -182,10 +194,10 @@ export async function acceptAdminInvite(
     })
     .eq("id", userId);
 
-  // 5. Insert admin role
+  // 6. Insert role using intended_role from invite
   await supabase.from("user_roles" as any).insert({
     user_id: userId,
-    role: "admin",
+    role: intendedRole,
   });
 
   return userId;
