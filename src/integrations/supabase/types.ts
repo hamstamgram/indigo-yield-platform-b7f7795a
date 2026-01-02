@@ -6779,14 +6779,9 @@ export type Database = {
           p_tx_type?: string
         }
         Returns: {
-          out_fund_id: string
-          out_investor_id: string
-          out_message: string
-          out_new_balance: number
-          out_old_balance: number
-          out_reference_id: string
-          out_success: boolean
-          out_transaction_id: string
+          new_balance: number
+          old_balance: number
+          transaction_id: string
         }[]
       }
       admin_create_transaction: {
@@ -6995,16 +6990,27 @@ export type Database = {
         }
         Returns: string
       }
-      crystallize_yield_before_flow: {
-        Args: {
-          p_admin_id?: string
-          p_fund_id: string
-          p_trigger_date: string
-          p_trigger_transaction_id?: string
-          p_trigger_type: string
-        }
-        Returns: Json
-      }
+      crystallize_yield_before_flow:
+        | {
+            Args: {
+              p_admin_id?: string
+              p_fund_id: string
+              p_trigger_date: string
+              p_trigger_transaction_id?: string
+              p_trigger_type: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_admin_id?: string
+              p_flow_amount: number
+              p_flow_date: string
+              p_fund_id: string
+              p_investor_id: string
+            }
+            Returns: Json
+          }
       current_user_is_admin_or_owner: {
         Args: { check_user_id: string }
         Returns: boolean
