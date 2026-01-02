@@ -11,13 +11,14 @@ import {
   removeOperationsChannel,
   type OperationsAuditLogEntry as AuditLogEntry,
 } from "@/services";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 /**
  * Hook to fetch recent audit logs
  */
 export function useRecentAuditLogs(limit: number = 10) {
   return useQuery<AuditLogEntry[]>({
-    queryKey: ["audit-logs", "recent", limit],
+    queryKey: QUERY_KEYS.recentAuditLogs(limit),
     queryFn: () => getRecentAuditLogs(limit),
   });
 }

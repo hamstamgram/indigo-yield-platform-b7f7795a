@@ -19,7 +19,7 @@ import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
  */
 export function useActiveFundsWithAUM() {
   return useQuery({
-    queryKey: ["active-funds-with-aum"],
+    queryKey: QUERY_KEYS.activeFundsWithAUM,
     queryFn: getActiveFundsWithAUM,
     staleTime: 30 * 1000, // 30 seconds
   });
@@ -30,7 +30,7 @@ export function useActiveFundsWithAUM() {
  */
 export function useFundInvestorComposition(fundId: string | null) {
   return useQuery({
-    queryKey: ["fundInvestorComposition", fundId],
+    queryKey: QUERY_KEYS.fundInvestorComposition(fundId || undefined),
     queryFn: () => getFundInvestorComposition(fundId!),
     enabled: !!fundId,
   });
@@ -60,7 +60,7 @@ export function useApplyYieldDistribution() {
         queryClient.invalidateQueries({ queryKey: key });
       });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.funds });
-      queryClient.invalidateQueries({ queryKey: ["active-funds-with-aum"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.activeFundsWithAUM });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.integrityDashboard });
       toast.success("Yield distributed successfully");
     },

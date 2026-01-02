@@ -173,7 +173,7 @@ export {
 
 // useAdminUsers (new - for AdminUsersList component)
 export {
-  useAdminUsers as useAdminUsersList,
+  useAdminUsersAll as useAdminUsersList,
   useToggleAdminStatusMutation,
   useSendAdminInviteMutation,
   useSuperAdminCheck,

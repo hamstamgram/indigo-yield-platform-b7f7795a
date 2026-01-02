@@ -7,12 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks";
 import { useAuth } from "@/lib/auth/context";
 import * as profileService from "@/services/profile/profileSettingsService";
-
-const QUERY_KEYS = {
-  personalInfo: (userId: string) => ["profile", "personalInfo", userId] as const,
-  notificationPrefs: (userId: string) => ["profile", "notificationPrefs", userId] as const,
-  userEmail: ["profile", "userEmail"] as const,
-};
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 /**
  * Hook to fetch personal info
@@ -195,7 +190,7 @@ export function useSaveLocalPreferences() {
  */
 export function useLocalPreferences() {
   return useQuery({
-    queryKey: ["profile", "localPreferences"],
+    queryKey: QUERY_KEYS.localPreferences,
     queryFn: () => profileService.loadLocalPreferences(),
     staleTime: Infinity,
   });

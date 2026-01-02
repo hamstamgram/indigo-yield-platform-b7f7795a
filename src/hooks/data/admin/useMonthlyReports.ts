@@ -10,6 +10,7 @@ import {
   updateMonthlyReportField,
 } from "@/services";
 import { toast } from "sonner";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export interface MonthlyReport {
   id: string;
@@ -33,7 +34,7 @@ export interface MonthlyReport {
  */
 export function useInvestorMonthlyReports(investorId: string) {
   return useQuery<MonthlyReport[]>({
-    queryKey: ["investorMonthlyReports", investorId],
+    queryKey: QUERY_KEYS.investorMonthlyReports(investorId),
     queryFn: () => getInvestorMonthlyReports(investorId) as Promise<MonthlyReport[]>,
     enabled: !!investorId,
   });
@@ -61,7 +62,7 @@ export function useCreateMonthlyTemplate() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["investorMonthlyReports", variables.investorId],
+        queryKey: QUERY_KEYS.investorMonthlyReports(variables.investorId),
       });
       toast.success("Monthly template generated successfully");
     },
@@ -92,7 +93,7 @@ export function useUpdateMonthlyReportField() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["investorMonthlyReports", variables.investorId],
+        queryKey: QUERY_KEYS.investorMonthlyReports(variables.investorId),
       });
       toast.success("Value updated successfully");
     },

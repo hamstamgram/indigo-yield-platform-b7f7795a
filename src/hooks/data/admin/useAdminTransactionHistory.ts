@@ -15,7 +15,7 @@ import type {
  */
 export function useAdminActiveFunds() {
   return useQuery({
-    queryKey: ["admin", "funds", "active"],
+    queryKey: QUERY_KEYS.adminFundsActive,
     queryFn: () => adminTransactionHistoryService.fetchActiveFunds(),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { withdrawalService } from "@/services";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 /**
  * Hook to fetch investor options for dropdown selection
  */
 export function useInvestorOptions(enabled: boolean = true) {
   return useQuery({
-    queryKey: ["investor-options"],
+    queryKey: QUERY_KEYS.investorOptions,
     queryFn: () => withdrawalService.fetchInvestorOptions(),
     enabled,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -18,7 +19,7 @@ export function useInvestorOptions(enabled: boolean = true) {
  */
 export function useInvestorPositions(investorId: string | null) {
   return useQuery({
-    queryKey: ["investor-positions", investorId],
+    queryKey: QUERY_KEYS.investorPositionsForWithdrawal(investorId || ""),
     queryFn: () => withdrawalService.fetchInvestorPositions(investorId!),
     enabled: !!investorId,
     staleTime: 30 * 1000, // 30 seconds - positions change more frequently
