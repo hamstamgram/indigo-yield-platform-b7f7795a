@@ -5488,20 +5488,6 @@ export type Database = {
         Args: { p_requests: Json }
         Returns: Json
       }
-      apply_daily_yield_to_fund: {
-        Args: {
-          p_admin_id: string
-          p_date: string
-          p_fund_id: string
-          p_gross_amount: number
-        }
-        Returns: {
-          fee_amount: number
-          gross_amount: number
-          investor_id: string
-          net_amount: number
-        }[]
-      }
       apply_daily_yield_to_fund_v2: {
         Args: {
           p_admin_id?: string
@@ -5542,17 +5528,6 @@ export type Database = {
           net_yield: number
           positions_updated: number
         }[]
-      }
-      apply_yield_correction: {
-        Args: {
-          p_confirmation: string
-          p_date: string
-          p_fund_id: string
-          p_new_aum: number
-          p_purpose: string
-          p_reason: string
-        }
-        Returns: Json
       }
       apply_yield_correction_v2:
         | {
@@ -6171,15 +6146,6 @@ export type Database = {
           investor_name: string
           unrealized_pnl: number
         }[]
-      }
-      preview_yield_correction: {
-        Args: {
-          p_date: string
-          p_fund_id: string
-          p_new_aum: number
-          p_purpose: string
-        }
-        Returns: Json
       }
       preview_yield_correction_v2: {
         Args: {
