@@ -161,12 +161,12 @@ export async function previewYieldDistribution(
     throw new Error("Authentication required");
   }
 
-  // Call backend preview RPC with correct 4-parameter signature
-  // DB function: preview_daily_yield_to_fund_v2(p_fund_id uuid, p_date date, p_gross_yield numeric, p_purpose text)
-  const { data, error } = await (supabase.rpc as any)("preview_daily_yield_to_fund_v2", {
+  // Call backend preview RPC with v3 signature (matches apply_daily_yield_to_fund_v3)
+  // DB function: preview_daily_yield_to_fund_v3(p_fund_id uuid, p_yield_date date, p_new_aum numeric, p_purpose aum_purpose)
+  const { data, error } = await (supabase.rpc as any)("preview_daily_yield_to_fund_v3", {
     p_fund_id: fundId,
-    p_date: formatDate(targetDate),
-    p_gross_yield: grossYieldAmount,  // Pass calculated gross yield amount
+    p_yield_date: formatDate(targetDate),
+    p_new_aum: newTotalAUM,  // v3 uses p_new_aum like apply
     p_purpose: purpose,
   });
 
