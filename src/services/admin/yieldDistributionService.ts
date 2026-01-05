@@ -525,35 +525,67 @@ export async function saveDraftAUMEntry(
   notes?: string,
   adminId?: string
 ): Promise<FundDailyAUM> {
-  const { data, error } = await supabase
+  const dateStr = formatDate(recordDate);
+  const purpose = "transaction";
+
+  // Check for existing active record (partial index workaround)
+  const { data: existing } = await supabase
     .from("fund_daily_aum")
-    .upsert(
-      {
-        fund_id: fundId,
-        aum_date: formatDate(recordDate),
-        as_of_date: formatDate(recordDate),
+    .select("id")
+    .eq("fund_id", fundId)
+    .eq("aum_date", dateStr)
+    .eq("purpose", purpose)
+    .eq("is_voided", false)
+    .maybeSingle();
+
+  if (existing) {
+    // UPDATE existing record
+    const { data, error } = await supabase
+      .from("fund_daily_aum")
+      .update({
         total_aum: closingAUM,
-        purpose: "transaction", // Default purpose for draft entries
+        as_of_date: dateStr,
+        source: notes || "manual",
+        updated_by: adminId || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", existing.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating AUM entry:", error);
+      if (error.code === '42501' || error.message?.includes('policy')) {
+        throw new Error("Permission denied: Admin access required to record AUM.");
+      }
+      throw new Error(`Failed to update AUM: ${error.message}`);
+    }
+    return data as FundDailyAUM;
+  } else {
+    // INSERT new record
+    const { data, error } = await supabase
+      .from("fund_daily_aum")
+      .insert({
+        fund_id: fundId,
+        aum_date: dateStr,
+        as_of_date: dateStr,
+        total_aum: closingAUM,
+        purpose: purpose,
         source: notes || "manual",
         created_by: adminId || null,
-      },
-      {
-        onConflict: "fund_id,aum_date,purpose",
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error inserting AUM entry:", error);
+      if (error.code === '42501' || error.message?.includes('policy')) {
+        throw new Error("Permission denied: Admin access required to record AUM.");
       }
-    )
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Error saving draft AUM entry:", error);
-    // Check for RLS/permission errors
-    if (error.code === '42501' || error.message?.includes('policy')) {
-      throw new Error("Permission denied: Admin access required to record AUM.");
+      throw new Error(`Failed to save AUM: ${error.message}`);
     }
-    throw new Error(`Failed to save AUM: ${error.message}`);
+    return data as FundDailyAUM;
   }
-
-  return data as FundDailyAUM;
 }
 
 
