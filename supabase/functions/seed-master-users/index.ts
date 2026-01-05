@@ -234,12 +234,12 @@ serve(async (req) => {
     } = await supabase.auth.admin.listUsers({ perPage: 1000 });
     if (listError) throw listError;
 
-    const emailToId = {};
+    const emailToId: Record<string, string> = {};
     existingUsers.forEach((u) => {
       if (u.email) emailToId[u.email.toLowerCase()] = u.id;
     });
 
-    const results = [];
+    const results: Array<{ email: string; status: string; error?: string; id?: string }> = [];
 
     for (const user of users) {
       const emailLower = user.email.toLowerCase();
@@ -284,8 +284,9 @@ serve(async (req) => {
         );
 
         results.push({ email: user.email, status: `${status} & Upserted`, id: uid });
-      } catch (dbError) {
-        results.push({ email: user.email, status: "DB Error", error: dbError.message });
+      } catch (dbError: unknown) {
+        const errorMessage = dbError instanceof Error ? dbError.message : String(dbError);
+        results.push({ email: user.email, status: "DB Error", error: errorMessage });
       }
     }
 
@@ -293,8 +294,9 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

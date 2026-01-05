@@ -350,7 +350,7 @@ export const withdrawalService = {
     
     const { error } = await supabase.rpc('complete_withdrawal', {
       p_request_id: withdrawalId,
-      p_closing_aum: closingAum,
+      p_closing_aum: parseFloat(closingAum),
       p_transaction_hash: txHash || null,
       p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`
     });

@@ -579,6 +579,60 @@ export type Database = {
           },
         ]
       }
+      fund_aum_events: {
+        Row: {
+          closing_aum: number
+          created_at: string
+          created_by: string | null
+          event_date: string
+          event_ts: string
+          fund_id: string
+          id: string
+          is_voided: boolean
+          opening_aum: number
+          purpose: Database["public"]["Enums"]["aum_purpose"]
+          trigger_reference: string | null
+          trigger_type: string
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+        }
+        Insert: {
+          closing_aum: number
+          created_at?: string
+          created_by?: string | null
+          event_date: string
+          event_ts: string
+          fund_id: string
+          id?: string
+          is_voided?: boolean
+          opening_aum: number
+          purpose: Database["public"]["Enums"]["aum_purpose"]
+          trigger_reference?: string | null
+          trigger_type: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Update: {
+          closing_aum?: number
+          created_at?: string
+          created_by?: string | null
+          event_date?: string
+          event_ts?: string
+          fund_id?: string
+          id?: string
+          is_voided?: boolean
+          opening_aum?: number
+          purpose?: Database["public"]["Enums"]["aum_purpose"]
+          trigger_reference?: string | null
+          trigger_type?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Relationships: []
+      }
       fund_daily_aum: {
         Row: {
           as_of_date: string | null
@@ -4750,6 +4804,32 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_deposit_with_crystallization: {
+        Args: {
+          p_admin_id?: string
+          p_amount: number
+          p_closing_aum: number
+          p_event_ts: string
+          p_fund_id: string
+          p_investor_id: string
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+          p_trigger_reference: string
+        }
+        Returns: Json
+      }
+      apply_withdrawal_with_crystallization: {
+        Args: {
+          p_admin_id?: string
+          p_amount: number
+          p_closing_aum: number
+          p_event_ts: string
+          p_fund_id: string
+          p_investor_id: string
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+          p_trigger_reference: string
+        }
+        Returns: Json
+      }
       apply_yield_correction_v2: {
         Args: {
           p_confirmation: string
@@ -4827,6 +4907,16 @@ export type Database = {
       complete_withdrawal: {
         Args: {
           p_admin_notes?: string
+          p_closing_aum: number
+          p_event_ts?: string
+          p_request_id: string
+          p_transaction_hash?: string
+        }
+        Returns: boolean
+      }
+      complete_withdrawal_legacy: {
+        Args: {
+          p_admin_notes?: string
           p_request_id: string
           p_transaction_hash?: string
         }
@@ -4854,6 +4944,18 @@ export type Database = {
         Returns: string
       }
       crystallize_yield_before_flow:
+        | {
+            Args: {
+              p_admin_id: string
+              p_closing_aum: number
+              p_event_ts: string
+              p_fund_id: string
+              p_purpose: Database["public"]["Enums"]["aum_purpose"]
+              p_trigger_reference: string
+              p_trigger_type: string
+            }
+            Returns: Json
+          }
         | {
             Args: {
               p_admin_id?: string
@@ -5204,23 +5306,42 @@ export type Database = {
           }
         | { Args: { required_role: string }; Returns: boolean }
       has_super_admin_role: { Args: { p_user_id: string }; Returns: boolean }
-      internal_route_to_fees: {
-        Args: {
-          p_admin_id: string
-          p_amount: number
-          p_effective_date: string
-          p_from_investor_id: string
-          p_fund_id: string
-          p_reason: string
-        }
-        Returns: {
-          credit_tx_id: string
-          debit_tx_id: string
-          message: string
-          success: boolean
-          transfer_id: string
-        }[]
-      }
+      internal_route_to_fees:
+        | {
+            Args: {
+              p_admin_id: string
+              p_amount: number
+              p_effective_date: string
+              p_from_investor_id: string
+              p_fund_id: string
+              p_reason: string
+            }
+            Returns: {
+              credit_tx_id: string
+              debit_tx_id: string
+              message: string
+              success: boolean
+              transfer_id: string
+            }[]
+          }
+        | {
+            Args: {
+              p_admin_id: string
+              p_amount: number
+              p_effective_date: string
+              p_from_investor_id: string
+              p_fund_id: string
+              p_reason: string
+              p_transfer_id?: string
+            }
+            Returns: {
+              credit_tx_id: string
+              debit_tx_id: string
+              message: string
+              success: boolean
+              transfer_id: string
+            }[]
+          }
       is_2fa_required: { Args: { p_user_id: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_admin_for_jwt: { Args: never; Returns: boolean }

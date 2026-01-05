@@ -194,7 +194,8 @@ Deno.serve(async (req) => {
     // Group positions by investor_id and fund asset
     const groupedPositions = new Map<string, any[]>();
     for (const pos of activePositions) {
-      const key = `${pos.investor_id}:${pos.funds.asset}`;
+      const fundData = pos.funds as unknown as { asset: string; status: string };
+      const key = `${pos.investor_id}:${fundData.asset}`;
       if (!groupedPositions.has(key)) {
         groupedPositions.set(key, []);
       }
