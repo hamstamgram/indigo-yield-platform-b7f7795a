@@ -4804,7 +4804,7 @@ export type Database = {
               p_fund_id: string
               p_new_aum: number
               p_purpose?: string
-              p_target_date: string
+              p_yield_date: string
             }
             Returns: Json
           }
@@ -5433,15 +5433,6 @@ export type Database = {
             Args: {
               p_fund_id: string
               p_new_aum: number
-              p_purpose?: string
-              p_target_date: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_fund_id: string
-              p_new_aum: number
               p_purpose?: Database["public"]["Enums"]["aum_purpose"]
               p_yield_date: string
             }
@@ -5458,6 +5449,15 @@ export type Database = {
               opening_balance: number
               ownership_pct: number
             }[]
+          }
+        | {
+            Args: {
+              p_fund_id: string
+              p_new_aum: number
+              p_purpose?: string
+              p_yield_date: string
+            }
+            Returns: Json
           }
       preview_investor_balances: {
         Args: { p_fund_id?: string }
