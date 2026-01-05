@@ -13,16 +13,14 @@ import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui";
 import { toast } from "sonner";
-import { createAdminTransaction, fetchInvestorsForSelector, saveDraftAUMEntry, type CreateTransactionParams } from "@/services";
-import { Loader2, Check, ChevronsUpDown, AlertTriangle, Info, CalendarIcon } from "lucide-react";
+import { createAdminTransaction, fetchInvestorsForSelector, type CreateTransactionParams } from "@/services";
+import { Loader2, Check, ChevronsUpDown, Info, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
-import { useActiveFunds, useInvestorBalance, useAUMExists, useTransactionHistory } from "@/hooks";
+import { useActiveFunds, useInvestorBalance, useTransactionHistory } from "@/hooks";
 import { getAssetLogo } from "@/utils/assets";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
 import { invalidateAfterTransaction } from "@/utils/cacheInvalidation";
-import { QUERY_KEYS } from "@/constants/queryKeys";
 
 interface InvestorOption {
   id: string;
@@ -53,6 +51,13 @@ const transactionSchema = z.object({
     .min(1, "Transaction date is required")
     .refine((val) => !isNaN(Date.parse(val)), {
       message: "Invalid date format",
+    }),
+  closing_aum: z
+    .string()
+    .trim()
+    .optional()
+    .refine((val) => !val || (!isNaN(Number(val)) && Number(val) >= 0), {
+      message: "Preflow AUM must be a valid non-negative number",
     }),
   reference_id: z
     .string()
@@ -91,10 +96,8 @@ export function AddTransactionDialog({
   const [isLoadingInvestors, setIsLoadingInvestors] = useState(false);
   const [investorError, setInvestorError] = useState<string | null>(null);
   
-  // AUM form state (only for manual recording, not the check)
-  const [showAumForm, setShowAumForm] = useState(false);
+  // AUM form state (for inline recording as fallback)
   const [aumValue, setAumValue] = useState<string>("");
-  const [isRecordingAum, setIsRecordingAum] = useState(false);
   
   const queryClient = useQueryClient();
   const { data: funds, isLoading: fundsLoading } = useActiveFunds();
@@ -129,16 +132,6 @@ export function AddTransactionDialog({
     selectedInvestorId || undefined,
     selectedFundId || undefined
   );
-  
-  const { data: aumExists, isLoading: isCheckingAum } = useAUMExists(
-    selectedFundId || undefined,
-    txDate || undefined
-  );
-
-  // Reset AUM form when fund/date changes
-  useEffect(() => {
-    setShowAumForm(false);
-  }, [selectedFundId, txDate]);
 
   // Auto-select transaction type based on balance (only for initial selection, no forcing)
   useEffect(() => {
@@ -182,7 +175,6 @@ export function AddTransactionDialog({
         setSelectedInvestorId("");
       }
       setInvestorError(null);
-      setShowAumForm(false);
       setAumValue("");
     }
   }, [open, investorId]);
@@ -223,52 +215,6 @@ export function AddTransactionDialog({
       }
     }
   }, [selectedFundId, funds, setValue]);
-
-  // Handle AUM recording
-  const handleRecordAum = async () => {
-    if (!aumValue || !selectedFundId || !txDate) {
-      toast.error("Please enter an AUM value");
-      return;
-    }
-
-    const numericAum = Number(aumValue);
-    if (isNaN(numericAum) || numericAum < 0) {
-      toast.error("AUM must be a valid positive number");
-      return;
-    }
-
-    setIsRecordingAum(true);
-    try {
-      const user = await supabase.auth.getUser();
-      await saveDraftAUMEntry(
-        selectedFundId,
-        new Date(txDate),
-        numericAum,
-        "Recorded for transaction creation",
-        user.data.user?.id
-      );
-      
-      setShowAumForm(false);
-      setAumValue("");
-      toast.success("AUM recorded successfully");
-      
-      // Invalidate AUM queries to refetch the updated state
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fundAumAll });
-      queryClient.invalidateQueries({ queryKey: ["aum-exists"] });
-    } catch (error) {
-      console.error("Error recording AUM:", error);
-      const errorMsg = error instanceof Error ? error.message : "Failed to record AUM";
-      // Show more helpful message for permission errors
-      if (errorMsg.includes("Permission denied") || errorMsg.includes("policy")) {
-        toast.error("Permission denied: You need admin access to record AUM.");
-      } else {
-        toast.error(errorMsg);
-      }
-    } finally {
-      setIsRecordingAum(false);
-    }
-  };
-
   const onSubmit = async (data: TransactionFormData) => {
     // Validate investor selection
     if (!selectedInvestorId) {
@@ -292,34 +238,16 @@ export function AddTransactionDialog({
     try {
       setLoading(true);
 
-      // Auto-create AUM record if it doesn't exist (for deposit/withdrawal transactions)
+      // For DEPOSIT/WITHDRAWAL, require closing_aum (preflow AUM snapshot)
       const requiresAum = ["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"].includes(data.txn_type);
-      if (requiresAum && aumExists === false) {
-        console.log("Auto-creating AUM record for transaction...");
-        try {
-          const user = await supabase.auth.getUser();
-          // Use 0 as default AUM - the transaction will update the position anyway
-          await saveDraftAUMEntry(
-            data.fund_id,
-            new Date(data.tx_date),
-            0,
-            "Auto-created for transaction",
-            user.data.user?.id
-          );
-          // Invalidate to refetch AUM state
-          queryClient.invalidateQueries({ queryKey: ["aum-exists"] });
-          console.log("AUM record auto-created successfully");
-        } catch (aumError) {
-          console.error("Failed to auto-create AUM:", aumError);
-          const errorMsg = aumError instanceof Error ? aumError.message : "Failed to create AUM record";
-          if (errorMsg.includes("Permission denied") || errorMsg.includes("policy")) {
-            toast.error("Permission denied: Admin access required to create transactions.");
-          } else {
-            toast.error(`Failed to prepare transaction: ${errorMsg}`);
-          }
-          setLoading(false);
-          return;
-        }
+      
+      // Use the form's closing_aum field or the inline aumValue as fallback
+      const closingAumValue = data.closing_aum || aumValue;
+      
+      if (requiresAum && !closingAumValue) {
+        toast.error("Preflow AUM Snapshot is required for deposits and withdrawals.");
+        setLoading(false);
+        return;
       }
 
       // The service now handles FIRST_INVESTMENT -> DEPOSIT mapping internally
@@ -330,6 +258,8 @@ export function AddTransactionDialog({
         asset: data.asset,
         amount: Number(data.amount),
         tx_date: data.tx_date,
+        closing_aum: closingAumValue || undefined,
+        event_ts: `${data.tx_date}T00:00:00.000Z`,
         reference_id: data.reference_id || undefined,
         tx_hash: data.tx_hash || undefined,
         notes: data.notes || undefined,
@@ -345,7 +275,6 @@ export function AddTransactionDialog({
       toast.success("Transaction created successfully");
       reset();
       setSelectedInvestorId("");
-      setShowAumForm(false);
       setAumValue("");
       onSuccess();
       onOpenChange(false);
@@ -361,7 +290,6 @@ export function AddTransactionDialog({
     reset();
     setSelectedInvestorId("");
     setInvestorError(null);
-    setShowAumForm(false);
     setAumValue("");
     onOpenChange(false);
   };
@@ -611,79 +539,43 @@ export function AddTransactionDialog({
             {errors.tx_date && <p className="text-sm text-destructive">{errors.tx_date.message}</p>}
           </div>
 
-          {/* AUM Warning and Inline Form */}
-          {selectedFundId && txDate && (
-            <>
-              {isCheckingAum && (
-                <Alert className="py-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <AlertDescription>Checking AUM for this date...</AlertDescription>
-                </Alert>
+          {/* Preflow AUM Snapshot - Required for DEPOSIT/WITHDRAWAL */}
+          {selectedFundId && txDate && ["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"].includes(txnType) && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="closing_aum">
+                  Preflow AUM Snapshot ({selectedFund?.asset || "tokens"}) *
+                </Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>
+                        The authoritative fund AUM <strong>immediately before</strong> this transaction is applied.
+                        This is used to crystallize any accrued yield before the capital flow.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <Input
+                id="closing_aum"
+                type="number"
+                step="0.00000001"
+                min="0"
+                placeholder="Enter preflow AUM"
+                {...register("closing_aum")}
+                className={errors.closing_aum ? "border-destructive" : ""}
+              />
+              {errors.closing_aum && (
+                <p className="text-sm text-destructive">{errors.closing_aum.message}</p>
               )}
-              
-              {!isCheckingAum && aumExists === false && (
-                <Alert variant="destructive" className="py-3">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription className="space-y-3">
-                    <p>
-                      <strong>No AUM recorded</strong> for {selectedFund?.asset || "this fund"} on {txDate}.
-                      Transactions require AUM data for proper allocation calculations.
-                    </p>
-                    
-                    {!showAumForm ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowAumForm(true)}
-                        className="mt-2"
-                      >
-                        Record AUM Now
-                      </Button>
-                    ) : (
-                      <div className="space-y-2 pt-2 border-t border-destructive/20">
-                        <Label htmlFor="aum_value" className="text-sm">
-                          Total Fund AUM ({selectedFund?.asset || "tokens"})
-                        </Label>
-                        <div className="flex gap-2">
-                          <Input
-                            id="aum_value"
-                            type="number"
-                            step="0.00000001"
-                            placeholder="Enter AUM value"
-                            value={aumValue}
-                            onChange={(e) => setAumValue(e.target.value)}
-                            className="flex-1"
-                            disabled={isRecordingAum}
-                          />
-                          <Button
-                            type="button"
-                            size="sm"
-                            onClick={handleRecordAum}
-                            disabled={isRecordingAum || !aumValue}
-                          >
-                            {isRecordingAum && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Record
-                          </Button>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          This will create an AUM record for yield distribution calculations.
-                        </p>
-                      </div>
-                    )}
-                  </AlertDescription>
-                </Alert>
-              )}
-              
-              {!isCheckingAum && aumExists === true && (
-                <Alert className="py-2 border-green-500/50 bg-green-50 dark:bg-green-950/20">
-                  <Check className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-green-700 dark:text-green-400">
-                    AUM recorded for {txDate}
-                  </AlertDescription>
-                </Alert>
-              )}
-            </>
+              <p className="text-xs text-muted-foreground">
+                Fund AUM snapshot used for yield crystallization before this {txnType?.toLowerCase() || "transaction"}.
+              </p>
+            </div>
           )}
 
           <div className="space-y-2">
@@ -728,7 +620,7 @@ export function AddTransactionDialog({
             </Button>
             <Button 
               type="submit" 
-              disabled={loading || fundsLoading || isLoadingInvestors || (aumExists === false && showAumForm)}
+              disabled={loading || fundsLoading || isLoadingInvestors}
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Transaction
