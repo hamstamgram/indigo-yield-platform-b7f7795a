@@ -1282,20 +1282,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ib_allocations_distribution"
-            columns: ["distribution_id"]
-            isOneToOne: false
-            referencedRelation: "yield_distribution_conservation_check"
-            referencedColumns: ["distribution_id"]
-          },
-          {
-            foreignKeyName: "fk_ib_allocations_distribution"
-            columns: ["distribution_id"]
-            isOneToOne: false
-            referencedRelation: "yield_distributions"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "ib_allocations_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -4313,20 +4299,6 @@ export type Database = {
           source_investor_id: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ib_allocations_distribution"
-            columns: ["distribution_id"]
-            isOneToOne: false
-            referencedRelation: "yield_distribution_conservation_check"
-            referencedColumns: ["distribution_id"]
-          },
-          {
-            foreignKeyName: "fk_ib_allocations_distribution"
-            columns: ["distribution_id"]
-            isOneToOne: false
-            referencedRelation: "yield_distributions"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "ib_allocations_distribution_id_fkey_v2"
             columns: ["distribution_id"]
