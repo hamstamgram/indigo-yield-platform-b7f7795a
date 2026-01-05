@@ -2300,6 +2300,27 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
+          },
+          {
             foreignKeyName: "fk_investor_positions_investor"
             columns: ["investor_id"]
             isOneToOne: false
@@ -4189,6 +4210,27 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_yield_distributions_fund_new"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund_new"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund_new"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
+          },
+          {
             foreignKeyName: "yield_distributions_aum_record_id_fkey"
             columns: ["aum_record_id"]
             isOneToOne: false
@@ -4534,6 +4576,27 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
+          },
+          {
             foreignKeyName: "fk_investor_positions_investor"
             columns: ["investor_id"]
             isOneToOne: false
@@ -4683,6 +4746,27 @@ export type Database = {
           transaction_sum: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
+          },
           {
             foreignKeyName: "fk_investor_positions_investor"
             columns: ["investor_id"]
@@ -5117,6 +5201,27 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
+          },
+          {
             foreignKeyName: "fk_investor_positions_investor"
             columns: ["investor_id"]
             isOneToOne: false
@@ -5429,6 +5534,27 @@ export type Database = {
           net_to_investors: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_yield_distributions_fund_new"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund_new"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_yield_distributions_fund_new"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_period_orphans"
+            referencedColumns: ["fund_id"]
+          },
           {
             foreignKeyName: "yield_distributions_fund_id_fkey"
             columns: ["fund_id"]
@@ -5882,33 +6008,19 @@ export type Database = {
           snapshot_date: string
         }[]
       }
-      get_position_reconciliation:
-        | {
-            Args: { p_as_of_date?: string; p_fund_id?: string }
-            Returns: {
-              out_difference: number
-              out_fund_id: string
-              out_fund_name: string
-              out_investor_id: string
-              out_investor_name: string
-              out_is_matched: boolean
-              out_ledger_balance: number
-              out_position_balance: number
-            }[]
-          }
-        | {
-            Args: { p_as_of_date?: string; p_fund_id?: string }
-            Returns: {
-              out_difference: number
-              out_fund_id: string
-              out_fund_name: string
-              out_investor_id: string
-              out_investor_name: string
-              out_is_matched: boolean
-              out_ledger_balance: number
-              out_position_balance: number
-            }[]
-          }
+      get_position_reconciliation: {
+        Args: { p_as_of_date?: string; p_fund_id?: string }
+        Returns: {
+          out_difference: number
+          out_fund_id: string
+          out_fund_name: string
+          out_investor_id: string
+          out_investor_name: string
+          out_is_matched: boolean
+          out_ledger_balance: number
+          out_position_balance: number
+        }[]
+      }
       get_profile_by_id: {
         Args: { profile_id: string }
         Returns: {
