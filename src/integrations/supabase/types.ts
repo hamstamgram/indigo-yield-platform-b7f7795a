@@ -6405,6 +6405,14 @@ export type Database = {
         }
         Returns: Json
       }
+      void_yield_distribution: {
+        Args: {
+          p_admin_id: string
+          p_distribution_id: string
+          p_reason: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       access_event:
