@@ -4096,6 +4096,7 @@ export type Database = {
       yield_distributions: {
         Row: {
           aum_record_id: string | null
+          closing_aum: number | null
           created_at: string
           created_by: string
           distribution_type: string
@@ -4106,11 +4107,15 @@ export type Database = {
           investor_count: number | null
           is_month_end: boolean
           net_yield: number | null
+          opening_aum: number | null
           parent_distribution_id: string | null
+          period_end: string | null
+          period_start: string | null
           previous_aum: number | null
           purpose: Database["public"]["Enums"]["aum_purpose"]
           reason: string | null
           recorded_aum: number
+          reference_id: string | null
           status: string
           summary_json: Json | null
           total_fees: number | null
@@ -4118,9 +4123,11 @@ export type Database = {
           void_reason: string | null
           voided_at: string | null
           voided_by: string | null
+          yield_percentage: number | null
         }
         Insert: {
           aum_record_id?: string | null
+          closing_aum?: number | null
           created_at?: string
           created_by: string
           distribution_type: string
@@ -4131,11 +4138,15 @@ export type Database = {
           investor_count?: number | null
           is_month_end?: boolean
           net_yield?: number | null
+          opening_aum?: number | null
           parent_distribution_id?: string | null
+          period_end?: string | null
+          period_start?: string | null
           previous_aum?: number | null
           purpose: Database["public"]["Enums"]["aum_purpose"]
           reason?: string | null
           recorded_aum: number
+          reference_id?: string | null
           status: string
           summary_json?: Json | null
           total_fees?: number | null
@@ -4143,9 +4154,11 @@ export type Database = {
           void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
+          yield_percentage?: number | null
         }
         Update: {
           aum_record_id?: string | null
+          closing_aum?: number | null
           created_at?: string
           created_by?: string
           distribution_type?: string
@@ -4156,11 +4169,15 @@ export type Database = {
           investor_count?: number | null
           is_month_end?: boolean
           net_yield?: number | null
+          opening_aum?: number | null
           parent_distribution_id?: string | null
+          period_end?: string | null
+          period_start?: string | null
           previous_aum?: number | null
           purpose?: Database["public"]["Enums"]["aum_purpose"]
           reason?: string | null
           recorded_aum?: number
+          reference_id?: string | null
           status?: string
           summary_json?: Json | null
           total_fees?: number | null
@@ -4168,6 +4185,7 @@ export type Database = {
           void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
+          yield_percentage?: number | null
         }
         Relationships: [
           {
@@ -5513,76 +5531,25 @@ export type Database = {
           total_yield_amount: number
         }[]
       }
-      apply_daily_yield_to_fund_v3:
-        | {
-            Args: {
-              p_admin_id: string
-              p_fund_id: string
-              p_gross_yield_pct: number
-              p_period_end?: string
-              p_period_start?: string
-              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-              p_yield_date: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_admin_id?: string
-              p_fund_id: string
-              p_new_aum: number
-              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-              p_yield_date: string
-            }
-            Returns: Json
-          }
-      apply_daily_yield_with_fees: {
+      apply_daily_yield_to_fund_v3: {
         Args: {
-          p_fee_rate?: number
-          p_fund_id: string
-          p_gross_rate: number
-          p_rate_date: string
-        }
-        Returns: {
-          fees_collected: number
-          gross_yield: number
-          net_yield: number
-          positions_updated: number
-        }[]
-      }
-      apply_yield_correction_v2:
-        | {
-            Args: {
-              p_admin_id: string
-              p_correction_date: string
-              p_correction_pct: number
-              p_fund_id: string
-              p_period_end?: string
-              p_period_start?: string
-              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-              p_reason: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_confirmation: string
-              p_fund_id: string
-              p_new_aum: number
-              p_period_end: string
-              p_period_start: string
-              p_purpose: string
-              p_reason: string
-            }
-            Returns: Json
-          }
-      apply_yield_with_ib: {
-        Args: {
-          p_created_by?: string
-          p_date: string
+          p_admin_id?: string
           p_fund_id: string
           p_new_aum: number
-          p_purpose: Database["public"]["Enums"]["aum_purpose"]
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+          p_yield_date: string
+        }
+        Returns: Json
+      }
+      apply_yield_correction_v2: {
+        Args: {
+          p_confirmation: string
+          p_fund_id: string
+          p_new_aum: number
+          p_period_end: string
+          p_period_start: string
+          p_purpose: string
+          p_reason: string
         }
         Returns: Json
       }
@@ -5721,15 +5688,6 @@ export type Database = {
       dispatch_report_delivery_run: {
         Args: { p_channel?: string; p_period_id: string }
         Returns: Json
-      }
-      distribute_monthly_yield: {
-        Args: {
-          p_fund_id: string
-          p_month: number
-          p_total_yield: number
-          p_year: number
-        }
-        Returns: number
       }
       distribute_yield_v2: {
         Args: {
@@ -6427,15 +6385,10 @@ export type Database = {
           status: string
         }[]
       }
-      void_fund_daily_aum:
-        | {
-            Args: { p_admin_id: string; p_reason?: string; p_record_id: string }
-            Returns: Json
-          }
-        | {
-            Args: { p_admin_id: string; p_reason: string; p_record_id: string }
-            Returns: Json
-          }
+      void_fund_daily_aum: {
+        Args: { p_admin_id: string; p_reason: string; p_record_id: string }
+        Returns: Json
+      }
       void_investor_yield_events_for_distribution: {
         Args: {
           p_admin_id: string
