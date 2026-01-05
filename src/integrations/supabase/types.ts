@@ -4095,6 +4095,7 @@ export type Database = {
       }
       yield_distributions: {
         Row: {
+          aum_record_id: string | null
           created_at: string
           created_by: string
           distribution_type: string
@@ -4119,6 +4120,7 @@ export type Database = {
           voided_by: string | null
         }
         Insert: {
+          aum_record_id?: string | null
           created_at?: string
           created_by: string
           distribution_type: string
@@ -4143,6 +4145,7 @@ export type Database = {
           voided_by?: string | null
         }
         Update: {
+          aum_record_id?: string | null
           created_at?: string
           created_by?: string
           distribution_type?: string
@@ -4167,6 +4170,13 @@ export type Database = {
           voided_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "yield_distributions_aum_record_id_fkey"
+            columns: ["aum_record_id"]
+            isOneToOne: false
+            referencedRelation: "fund_daily_aum"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "yield_distributions_fund_id_fkey"
             columns: ["fund_id"]
@@ -5503,18 +5513,29 @@ export type Database = {
           total_yield_amount: number
         }[]
       }
-      apply_daily_yield_to_fund_v3: {
-        Args: {
-          p_admin_id: string
-          p_fund_id: string
-          p_gross_yield_pct: number
-          p_period_end?: string
-          p_period_start?: string
-          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-          p_yield_date: string
-        }
-        Returns: Json
-      }
+      apply_daily_yield_to_fund_v3:
+        | {
+            Args: {
+              p_admin_id: string
+              p_fund_id: string
+              p_gross_yield_pct: number
+              p_period_end?: string
+              p_period_start?: string
+              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+              p_yield_date: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_admin_id?: string
+              p_fund_id: string
+              p_new_aum: number
+              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+              p_yield_date: string
+            }
+            Returns: Json
+          }
       apply_daily_yield_with_fees: {
         Args: {
           p_fee_rate?: number
@@ -6385,10 +6406,15 @@ export type Database = {
           status: string
         }[]
       }
-      void_fund_daily_aum: {
-        Args: { p_admin_id: string; p_reason: string; p_record_id: string }
-        Returns: Json
-      }
+      void_fund_daily_aum:
+        | {
+            Args: { p_admin_id: string; p_reason?: string; p_record_id: string }
+            Returns: Json
+          }
+        | {
+            Args: { p_admin_id: string; p_reason: string; p_record_id: string }
+            Returns: Json
+          }
       void_investor_yield_events_for_distribution: {
         Args: {
           p_admin_id: string
